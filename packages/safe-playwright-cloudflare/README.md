@@ -24,6 +24,10 @@ in the Worker host. Enable `nodejs_compat` and a Worker Loader binding. The publ
 types target Worker projects using TypeScript's `Bundler` module resolution and
 Cloudflare Workers types. `run-code` reports an unavailable binding if no loader
 is supplied; other browser commands remain available.
+Pass one function accepting `page`, for example
+`playwright-cli run-code 'async (page) => { return await page.title(); }'`.
+Compilation syntax errors retain their original detail and include this example;
+corrected code can run in the same session.
 
 The host constructs the trusted `ownerId` and scopes each CLI instance to one
 authenticated user/agent. Session aliases, `-s`, and `PLAYWRIGHT_CLI_SESSION`

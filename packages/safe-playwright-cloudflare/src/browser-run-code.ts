@@ -226,7 +226,12 @@ async function prepareAndRun(
 			return await runGuest(options, input, metadata, relay, signal);
 		} catch (error) {
 			// Loader compilation can fail before any guest obtains browser access.
-			if (!relay.opened()) throw new RunCodeUserError(String(error));
+			if (!relay.opened()) {
+				const detail = String(error);
+				throw new RunCodeUserError(detail.includes("SyntaxError:")
+					? `${detail}\nplaywright-cli run-code expects one JavaScript function accepting page, for example: async (page) => { return await page.title(); }`
+					: detail);
+			}
 			throw error;
 		} finally {
 			const closing = relay.close();

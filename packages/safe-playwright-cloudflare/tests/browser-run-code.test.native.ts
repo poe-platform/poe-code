@@ -65,6 +65,7 @@ for (const scenario of [
 	"init-script-page-close-capacity",
 	"init-script-context-close-capacity",
 	"syntax",
+	"loader-error",
 	"cancel",
 	"output",
 ]) {

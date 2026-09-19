@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { createPlaywrightCli } from "@poe-platform/safe-bash/playwright";
 import {
 	acquire,
 	type BrowserWorker,
@@ -21,7 +23,7 @@ interface Env {
 	BROWSER: BrowserWorker;
 	BROWSER_RUN_CODE_LOADER: WorkerLoader;
 }
-async function fixture(env: Env, mobile: boolean) {
+async function fixture(env: Env, mobile: boolean, loader = env.BROWSER_RUN_CODE_LOADER) {
 	const { sessionId } = await acquire(env.BROWSER, {});
 	const browser = await connect(env.BROWSER, sessionId);
 	let retirement: Promise<void> | undefined;
@@ -58,7 +60,7 @@ async function fixture(env: Env, mobile: boolean) {
 	const execute = createBrowserRunCode({
 		ownerId: sessionId,
 		browser,
-		loader: env.BROWSER_RUN_CODE_LOADER,
+		loader,
 		guestSource: browserRunCodeGuestSource,
 		retire,
 		async connectSocket(signal) {
@@ -93,6 +95,7 @@ async function fixture(env: Env, mobile: boolean) {
 		browser,
 		page,
 		context,
+		execute,
 		run,
 		retired: () => retirement !== undefined,
 		retiredState: () => retiredState,
@@ -112,6 +115,9 @@ export default {
 			const f = await fixture(
 				env,
 				new URL(request.url).pathname.startsWith("/mobile"),
+				new URL(request.url).pathname === '/loader-error'
+					? { load() { throw new Error('Worker transport unavailable'); } } as unknown as WorkerLoader
+					: env.BROWSER_RUN_CODE_LOADER,
 			);
 			cleanup = f.cleanup;
 			switch (new URL(request.url).pathname) {
@@ -332,9 +338,40 @@ export default {
 					break;
 				}
 				case "/syntax": {
-					await assert.rejects(f.run("async page => { broken syntax ??? }"));
+					const shell = new Shell({ fs: new MemoryFileSystem() });
+					shell.use(createPlaywrightCli({ adapter: {
+						browsers: { chromium: { headed: false } },
+						async acquire() { return { context: f.context, executeCode: f.execute, onClosed() { return () => {}; }, async release() {} }; },
+					} }).plugin);
+					try {
+						assert.equal((await shell.exec('playwright-cli open')).exitCode, 0);
+						for (const source of ['const x = 1; x;', 'async page => { broken syntax ??? }']) {
+							const result = await shell.exec(`playwright-cli run-code '${source}'`);
+							assert.equal(result.exitCode, 1);
+							assert.ok((result.stdout + result.stderr).includes('SyntaxError'), result.stdout + result.stderr);
+							assert.ok((result.stdout + result.stderr).includes('async (page) => { return await page.title(); }'), result.stdout + result.stderr);
+						}
+						const recovered = await shell.exec('playwright-cli run-code "async (page) => { return await page.title(); }"');
+						assert.equal(recovered.exitCode, 0, recovered.stderr);
+						for (const source of ['async page => { throw new Error("user failure"); }', 'async page => { throw new SyntaxError("user syntax failure"); }']) {
+							const result = await shell.exec(`playwright-cli run-code '${source}'`);
+							assert.equal(result.exitCode, 1);
+							assert.ok((result.stdout + result.stderr).includes('failure'));
+							assert.ok(!(result.stdout + result.stderr).includes('async (page)'));
+						}
+						assert.equal((await shell.exec('playwright-cli run-code "async page => page.title()"')).exitCode, 0);
+					} finally { await shell.dispose(); }
 					assert.equal(f.retired(), false);
 					assert.equal(await f.run("async page => page.title()"), "");
+					break;
+				}
+				case "/loader-error": {
+					await assert.rejects(f.run('async page => page.title()'), error => {
+						assert.ok(String(error).includes('Worker transport unavailable'));
+						assert.ok(!String(error).includes('expects one JavaScript function'));
+						assert.ok(!String(error).includes('SyntaxError'));
+						return true;
+					});
 					break;
 				}
 				case "/cancel": {

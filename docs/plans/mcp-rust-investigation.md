@@ -5,10 +5,18 @@ Status: implementation active. The reusable `mcp-protocol-rust` JSON foundation
 is implemented, including a tested napi-rs JSON binding; MCP package rewrites
 and the complete poe-agent dependency rewrite are in progress.
 An additive native server checkpoint now covers sessions, tool callbacks, direct
-value conversion, request admission, cancellation, and modern result metadata.
+value conversion, request admission, cancellation, modern result metadata, and
+stdio framing/backpressure. Content now includes binary and resource blocks,
+annotation validation, structured primitives on modern explicit results, and
+ordinary tool failures versus explicit `ToolError` responses.
 A first callback-heavy benchmark is recorded below. Consumer integration and
 publication have not been performed; transports and complete server conformance
-remain in progress.
+remain in progress. The format foundation cross-checks canonical base64 padding
+bits and resource URI syntax/authorities against the TypeScript implementation.
+Complete Unicode IDNA mapping, contextual joining, combining marks, and bidi host
+rules remain an explicit conformance gap; the current host checks are not a full
+replacement for WHATWG URL processing. Content helper classes and output-schema
+normalization/validation also remain pending.
 
 The active goal began on 2026-09-20 at 02:45 UTC (September 19 at 21:45 Chicago).
 The user's minimum effort requirement is 24 hours, with a deadline of Monday,

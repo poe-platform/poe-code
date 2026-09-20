@@ -14,6 +14,12 @@ export interface HandleResult {
   error?: { code: number; message: string; data?: unknown };
 }
 
+export declare class ToolError extends Error {
+  readonly code: number;
+  readonly data?: unknown;
+  constructor(code: number, message: string, data?: unknown);
+}
+
 export interface HandlerRequestContext {
   signal: AbortSignal;
   clientCapabilities: Record<string, unknown>;

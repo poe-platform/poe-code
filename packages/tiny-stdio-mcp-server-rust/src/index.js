@@ -3,6 +3,16 @@ import { connectStreams } from "./stdio.js";
 
 const { NativeServer } = createRequire(import.meta.url)("./tiny-stdio-mcp-server-rust.node");
 
+export class ToolError extends Error {
+  constructor(code, message, data) {
+    if (!Number.isFinite(code)) throw new Error("ToolError code must be a finite number");
+    super(message);
+    this.name = "ToolError";
+    this.code = code;
+    this.data = data;
+  }
+}
+
 export function createServer(options) {
   const native = new NativeServer(options);
   const handlers = new Map();
@@ -45,15 +55,30 @@ export function createServer(options) {
               ...action.context,
               signal: directLegacy ? controller.signal : request.signal
             });
-            return {
-              result: native.normalizeResult(result, action.modern)
-            };
-          } catch (error) {
-            return {
-              error: {
-                code: -32603,
-                message: error instanceof Error ? error.message : String(error)
+            try {
+              return { result: native.normalizeResult(result, action.modern) };
+            } catch (error) {
+              if (error?.code === "InvalidMcpResult") {
+                return { error: { code: -32603, message: error.message } };
               }
+              throw error;
+            }
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            if (error instanceof ToolError) {
+              return {
+                error: {
+                  code: error.code,
+                  message,
+                  ...(error.data === undefined ? {} : { data: error.data })
+                }
+              };
+            }
+            return {
+              result: native.normalizeResult(
+                { content: [{ type: "text", text: `Error: ${message}` }], isError: true },
+                action.modern
+              )
             };
           }
         })

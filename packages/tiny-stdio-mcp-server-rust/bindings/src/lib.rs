@@ -146,19 +146,21 @@ impl NativeServer {
         env: Env,
         source: Unknown<'_>,
         modern: Option<bool>,
-    ) -> Result<NativeJson> {
-        let value = input::read(&env, source, input::Mode::Tool)?;
+    ) -> Result<NativeJson, String> {
+        let value = input::read(&env, source, input::Mode::Tool)
+            .map_err(|error| Error::new("GenericFailure".to_owned(), error.reason))?;
         if modern == Some(true) && value.as_ref().and_then(|value| value.get("resultType")).is_some_and(|value| matches!(value, Value::String(units) if units.iter().copied().eq("input_required".encode_utf16()))) {
-            return Err(Error::from_reason("Invalid MCP input_required result"));
+            return Err(Error::new("InvalidMcpResult".to_owned(), "Invalid MCP input_required result"));
         }
-        let value = tiny_stdio_mcp_server_rust::content::normalize_result(value)
-            .map_err(Error::from_reason)?;
+        let value =
+            tiny_stdio_mcp_server_rust::content::normalize_result(value, modern == Some(true))
+                .map_err(|message| Error::new("GenericFailure".to_owned(), message))?;
         Ok(NativeJson(if modern == Some(true) {
             self.state
                 .borrow()
                 .server
                 .decorate_result(value)
-                .map_err(Error::from_reason)?
+                .map_err(|message| Error::new("InvalidMcpResult".to_owned(), message))?
         } else {
             value
         }))

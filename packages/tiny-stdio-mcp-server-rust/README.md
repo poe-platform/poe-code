@@ -11,14 +11,21 @@ sparse arrays are rejected. Native copying has depth, node, and string-byte
 budgets, and metadata and tool arguments retain the repository's JSON limits.
 
 The current API supports isolated message sessions, legacy initialization,
-modern discovery, tool registration and listing, asynchronous tool calls, text
-results, cancellation, and stdio connections. The reusable Rust core uses the standard library and
+modern discovery, tool registration and listing, asynchronous tool calls, text,
+image, audio, resource-link and embedded-resource results, cancellation, and
+stdio connections. The reusable Rust core uses the standard library and
 the sibling `mcp-protocol-rust` core.
 
 Set `maxActiveRequests` to bound running requests across sessions (default: 128).
 Concurrent requests with the same ID in one session are rejected. A
 `notifications/cancelled` message aborts that request; callbacks that continue
 running retain capacity until they settle.
+
+Content validates canonical base64, strict absolute resource URIs, and annotation
+field types. Modern explicit results accept JSON primitives and arrays in
+`structuredContent`; legacy results require an object. Ordinary callback failures
+return tool error content. Throw `ToolError(code, message, data)` to return an
+explicit JSON-RPC error, preserving its code and optional data.
 
 ```ts
 import { createServer } from "tiny-stdio-mcp-server-rust";

@@ -2,8 +2,122 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createRequire } from "node:module";
 import { Worker } from "node:worker_threads";
-import { createServer } from "../dist/index.js";
-import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
+import { createServer, ToolError } from "../dist/index.js";
+import {
+  createServer as referenceCreateServer,
+  ToolError as ReferenceToolError
+} from "tiny-stdio-mcp-server";
+
+test("tool failures preserve ordinary content errors and explicit RPC error data", async () => {
+  for (const modern of [false, true]) {
+    for (const [nativeError, referenceError] of [
+      [new Error("broken\ud800"), new Error("broken\ud800")],
+      ["failure", "failure"],
+      [null, null],
+      [Object.assign(new Error("ordinary"), { code: "InvalidMcpResult" }), Object.assign(new Error("ordinary"), { code: "InvalidMcpResult" })],
+      [
+        new ToolError(-32010, "policy", { reason: "denied" }),
+        new ReferenceToolError(-32010, "policy", { reason: "denied" })
+      ]
+    ]) {
+      const options = { name: "test", version: "0" };
+      const native = createServer(options),
+        reference = referenceCreateServer(options);
+      for (const [server, error] of [
+        [native, nativeError],
+        [reference, referenceError]
+      ]) {
+        server.tool("fail", "Fail", { type: "object" }, () => {
+          throw error;
+        });
+        await server.handleMessage("initialize");
+      }
+      const params = {
+        name: "fail",
+        ...(modern
+          ? {
+              _meta: {
+                "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                "io.modelcontextprotocol/clientCapabilities": {}
+              }
+            }
+          : {})
+      };
+      assert.deepEqual(
+        await native.handleMessage("tools/call", params),
+        await reference.handleMessage("tools/call", params)
+      );
+    }
+  }
+  for (const code of [NaN, Infinity, -Infinity]) {
+    assert.throws(() => new ToolError(code, "invalid"), {
+      message: "ToolError code must be a finite number"
+    });
+  }
+});
+
+test("binary, resource, annotations and structured primitives agree with the reference", async () => {
+  const blocks = [
+    { type: "image", data: "AA==", mimeType: "image/png" },
+    { type: "audio", data: "//8=", mimeType: "audio/wav" },
+    { type: "resource_link", uri: "https://[::1]/asset", name: "Asset", size: 12 },
+    { type: "resource", resource: { uri: "file:///asset", text: "hello" } },
+    { type: "resource", resource: { uri: "urn:asset:1", blob: "/w==" } },
+    {
+      type: "text",
+      text: "hello",
+      annotations: { audience: ["user", "assistant"], priority: 2, lastModified: "now" }
+    }
+  ];
+  const invalid = [
+    { type: "image", data: "Zh==", mimeType: "image/png" },
+    { type: "audio", data: "Zm9=", mimeType: "audio/wav" },
+    { type: "resource_link", uri: "file:///some file", name: "Asset" },
+    { type: "resource_link", uri: "https://host/", name: "Asset", size: "large" },
+    { type: "resource", resource: { uri: "/relative", text: "hello" } },
+    { type: "resource", resource: { uri: "urn:asset:1", blob: "bad" } },
+    ...[null, { audience: ["system"] }, { priority: "high" }, { lastModified: 1 }].map(
+      (annotations) => ({ type: "text", text: "hello", annotations })
+    )
+  ];
+  for (const modern of [false, true]) {
+    const options = { name: "test", version: "0" };
+    const native = createServer(options),
+      reference = referenceCreateServer(options);
+    let result;
+    for (const server of [native, reference]) {
+      server.tool("return", "Return", { type: "object" }, () => result);
+      await server.handleMessage("initialize");
+    }
+    const params = {
+      name: "return",
+      ...(modern
+        ? {
+            _meta: {
+              "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+              "io.modelcontextprotocol/clientCapabilities": {}
+            }
+          }
+        : {})
+    };
+    for (result of [
+      blocks,
+      { content: blocks },
+      ...invalid,
+      ...invalid.map((block) => ({ content: [block] })),
+      ...[null, true, 12, "hello", [1, 2], { x: 1 }].map((structuredContent) => ({
+        content: [],
+        structuredContent
+      }))
+    ]) {
+      assert.deepEqual(
+        await native.handleMessage("tools/call", params),
+        await reference.handleMessage("tools/call", params),
+        JSON.stringify({ modern, result })
+      );
+    }
+  }
+});
 
 test("malformed modern input-required results are rejected before text normalization", async () => {
   const server = createServer({ name: "test", version: "0" });
@@ -234,7 +348,7 @@ test("invalid tool return objects do not execute getters or serialization hooks"
     server.tool("return", "Return", { type: "object" }, () => result);
     await server.handleMessage("initialize");
     const response = await server.handleMessage("tools/call", { name: "return" });
-    assert.equal(response.error?.code, -32603);
+    assert.equal(response.result?.isError, true);
     assert.equal(effects, 0);
   }
 });

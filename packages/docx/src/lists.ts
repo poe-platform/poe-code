@@ -157,29 +157,17 @@ export function listProperties(xml: DocumentXmlEditor | undefined, props: XmlEle
     ? runElementOpen({ ...node, attributes: node.attributes.map(attribute => attribute.namespace === w && attribute.localName === "val" ? { ...attribute, value: String(value) } : attribute) }) + xml.sourceXml(node, new Map(), true) + `</${node.name}>`
     : `<nl:${name} xmlns:nl="${w}" nl:val="${value}"/>`;
   const ilvl = scalar(priorLevel, "ilvl", level), numId = scalar(priorId, "numId", id);
-  const rewrite = (node: XmlElement, patches: ReadonlyMap<XmlElement, string>, contentOnly = false): string => {
-    const direct = new Map<XmlElement, string>();
-    for (const nodeChild of node.children) {
-      const changed = patches.get(nodeChild);
-      if (changed !== undefined) direct.set(nodeChild, changed);
-      else if (nodeChild.children.length) {
-        const original = xml!.sourceXml(nodeChild), candidate = rewrite(nodeChild, patches);
-        if (candidate !== original) direct.set(nodeChild, candidate);
-      }
-    }
-    return xml!.sourceXml(node, direct, contentOnly);
-  };
   let numbering = `<nl:numPr xmlns:nl="${w}">${ilvl}${numId}</nl:numPr>`;
   if (old && xml) {
     const patches = new Map<XmlElement, string>();
     if (priorLevel) patches.set(priorLevel, ilvl);
     if (priorId) patches.set(priorId, (priorLevel ? "" : ilvl) + numId);
-    numbering = runElementOpen(old) + rewrite(old, patches, true) + (priorId ? "" : (priorLevel ? "" : ilvl) + numId) + `</${old.name}>`;
+    numbering = runElementOpen(old) + xml.sourceXml(old, patches, true) + (priorId ? "" : (priorLevel ? "" : ilvl) + numId) + `</${old.name}>`;
   }
   if (!props || !xml) return `<nl:pPr xmlns:nl="${w}">${numbering}</nl:pPr>`;
-  if (old) return rewrite(props, new Map([[old, numbering]]));
+  if (old) return xml.sourceXml(props, new Map([[old, numbering]]));
   const preceding = ["pStyle", "keepNext", "keepLines", "pageBreakBefore", "framePr", "widowControl"];
   const next = children(props).find(c => c.namespace === w && !preceding.includes(c.localName));
-  const content = rewrite(props, next ? new Map([[next, numbering + xml.sourceXml(next)]]) : new Map(), true) + (next ? "" : numbering);
+  const content = xml.sourceXml(props, next ? new Map([[next, numbering + xml.sourceXml(next)]]) : new Map(), true) + (next ? "" : numbering);
   return runElementOpen(props) + content + `</${props.name}>`;
 }

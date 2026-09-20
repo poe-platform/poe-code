@@ -1226,6 +1226,56 @@ broader sustained stability and supported-platform proof remain outstanding.
 Evidence is `out/rust-agent-defs-*`. This is another package delivery, not full
 MCP or poe-agent completion, and applications still use their original imports.
 
+The configuration closure now has the private `@poe-code/config-mutations-rust`
+JSON foundation, available only through `./json`. Its std/own-path Rust core
+parses UTF-16 JSONC, retains scalar values and AST spans without duplicating
+descendant values, normalizes blank/null documents, derives indentation and
+plans localized object/array edits. Duplicate-key admission uses a map rather
+than repeated linear searches; numeric property names follow JavaScript order.
+Formatting applies ordered changes in one pass rather than repeatedly shifting
+the remaining document. Adapted Microsoft editing/formatting algorithms carry
+the upstream MIT notice.
+
+Edit planning precedes host value serialization. Missing-path wrappers are
+applied to the original JS value so `toJSON` receives the original property key;
+invalid parents reject before value hooks run. A concrete failing conformance
+test reproduced both the old root-key serialization mismatch and path-toJSON
+admission. Native plans are consumed on application and explicitly discarded
+when host serialization throws, releasing their Rust source buffers immediately.
+Node retains V8 serialization, Date/getter/array-hole semantics and unvisited
+patch replacement identities, including cycles. Deep merge/prune operate on
+these host properties; they are not represented as fully native arbitrary-object
+algorithms. The complete own Rust JSON parser/editor/serializer remains reusable
+without Node. JSONC SDK imports occur only in development tests.
+
+Two deliberate corrections are documented: ordinary own `__proto__` keys survive
+instead of being lost by the existing JSONC SDK's prototype assignment, and
+deleting the final item of `[1,2,3]` produces `[1,2]` rather than the SDK's
+reproduced `[1,23]` bug. Both have dedicated regression coverage. Source nesting
+is bounded at 512 levels; malformed editor input rejects rather than following
+the SDK's tolerant AST recovery. Those restrictions remain explicit differences.
+Ten Rust groups (including hundreds of generated/truncated SDK parser cases and
+comment/array/EOL edits), seven actual native groups, shipped type checks, lint
+and the maintained four-workspace build closure pass. The extracted packed
+addon passes JSONC/UTF-16/metadata/edit/host-operation smokes with every bare npm
+resolution blocked. It has no production/peer/optional npm dependencies.
+
+On Node 22.23.2 macOS arm64, seven-batch median original/additive times in ns are
+small parse 4,387/1,375; 1,734-unit connection config parse 52,755/46,357;
+59,221-unit/4,096-property parse 3,154,521/2,158,297; connection insertion
+192,792/52,253. These workload-specific figures do not establish whole-agent
+speed. Separate GC-enabled processes retain 32 large parsed results with nearly
+identical additional V8 heap (~6.39 MB), returning near warmed heap after release.
+After 2,048 parse/edit/parse cycles, native first/last GC heap is ~4.025/~4.028 MB
+and RSS ~65.9/~68.2 MB. Observed peak RSS original/additive is 93,344/70,784 KiB.
+This is bounded churn, not sustained leak, cross-platform or end-to-end proof.
+Evidence is `out/rust-config-jsonc-*`.
+
+This atomic delivery is a configuration foundation, not acceptance of the entire
+config-mutations package: TOML, YAML, mutation execution, and its original root
+and testing exports remain to implement. Applications retain original imports.
+The full ten-MCP and nineteen-package poe-agent closure goal remains active.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

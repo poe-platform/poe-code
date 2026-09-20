@@ -1,0 +1,19 @@
+{
+ "name":"@poe-code/config-mutations-rust",
+ "version":"0.1.0",
+ "private":true,
+ "description":"Additive own Rust configuration codecs with zero npm runtime dependencies",
+ "type":"module",
+ "license":"MIT",
+ "exports":{"./json":{"types":"./dist/json.d.ts","import":"./dist/json.js"}},
+ "scripts":{
+  "build":"node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
+  "test:unit":"node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
+  "lint":"node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+ },
+ "devDependencies":{"@napi-rs/cli":"3.10.4","jsonc-parser":"^3.3.1","mcp-protocol-rust":"*","typescript":"5.9.3"},
+ "files":["dist","LICENSE","THIRD_PARTY_NOTICES.md"],
+ "engines":{"node":">=18.18"},
+ "napi":{"binaryName":"config-mutations-rust"},
+ "repository":{"type":"git","url":"git+https://github.com/poe-platform/poe-code.git","directory":"packages/config-mutations-rust"}
+}

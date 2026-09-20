@@ -1,0 +1,24 @@
+[package]
+name = "config-mutations-rust-node"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+config-mutations-rust = { path = ".." }
+mcp-protocol-rust = { path = "../../mcp-protocol-rust" }
+mcp-protocol-rust-napi-core = { path = "../../mcp-protocol-rust/bindings/shared" }
+napi = { version = "=3.12.6", default-features = false, features = ["napi6"] }
+napi-derive = "=3.6.7"
+
+[build-dependencies]
+napi-build = "=2.4.3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

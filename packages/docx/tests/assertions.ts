@@ -153,11 +153,16 @@ export function xmlStructure(bytes: Uint8Array): XmlNode {
 }
 
 function nodes(root: XmlNode, name?: string): XmlNode[] {
-  return [
-    root,
-    ...root.children.flatMap((child) => (typeof child === "string" ? [] : nodes(child)))
-  ].filter((node) => node.name !== "#comment" && node.name !== "#pi" &&
-    (name === undefined || node.name === name));
+  const result: XmlNode[] = [], pending = [root];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (node.name !== "#comment" && node.name !== "#pi" && (name === undefined || node.name === name)) result.push(node);
+    for (let index = node.children.length - 1; index >= 0; index--) {
+      const child = node.children[index]!;
+      if (typeof child !== "string") pending.push(child);
+    }
+  }
+  return result;
 }
 function partXml(parts: Parts, name: string): XmlNode {
   const bytes = parts.get(name);

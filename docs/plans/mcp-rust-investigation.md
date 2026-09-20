@@ -236,6 +236,17 @@ fractional/string/zero IDs, invalid envelopes and cross-subscription messages.
 Checks expand to 21 Rust and 45 native groups plus public type fixtures. The fetch
 adapter, HTTP lifecycle/reader ownership, SDK adapter and OAuth remain required.
 
+Own SDK-compatible linked message transports and byte/message adapter now support
+`createSdkTestPair` without importing the official SDK at runtime. Rust parses wire
+objects and serializes descriptor-copied JSON; Node owns platform streams and
+transport callbacks. Pre-start message queues are bounded at 128. `createTestPair`
+uses own in-memory streams. Both helpers pass tool/list/call/ping checks against
+the official SDK or own Rust server and clean up after a client's setup failure.
+Native malformed-line diagnostics preserve raw UTF-16. Public type fixtures accept
+official Server instances and own clients/servers without runtime dependencies.
+Additional SDK factory/server failure and hostile callback/serializer diagnostics
+remain for auditing; HTTP transport and OAuth remain incomplete.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

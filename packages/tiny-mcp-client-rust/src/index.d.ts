@@ -437,3 +437,20 @@ export interface McpSubscription {
   readonly closed: Promise<void>;
   cancel(): void;
 }
+
+export interface McpClientConnection {
+  connect(transport: McpTransport): Promise<unknown>;
+  close(): Promise<void>;
+}
+export interface SdkTestPair<TClient extends McpClientConnection> {
+  client: TClient;
+  cleanup(): Promise<void>;
+}
+export declare function createSdkTestPair<TClient extends McpClientConnection>(
+  server: { connect(transport: unknown): Promise<unknown> },
+  createClient: () => TClient
+): Promise<SdkTestPair<TClient>>;
+export declare function createTestPair<TClient extends McpClientConnection>(
+  server: { connect(transport: InMemoryServerTransport): Promise<unknown> },
+  createClient: () => TClient
+): Promise<SdkTestPair<TClient>>;

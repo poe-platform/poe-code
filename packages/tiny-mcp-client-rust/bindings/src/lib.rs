@@ -784,3 +784,42 @@ impl NativeHttpResponseMessages {
             .map_err(napi::Error::from_reason)
     }
 }
+
+#[napi]
+pub fn sdk_message_to_line(env: Env, message: Unknown<'_>) -> Result<Utf16String> {
+    let message = input::read(&env, message, input::Mode::Json)?.unwrap_or(Value::Null);
+    if let Some(result) = message.get("result")
+        && !result.is_json_value()
+    {
+        return Err(napi::Error::from_reason(
+            "Response result must contain only JSON values",
+        ));
+    }
+    if let Some(params) = message.get("params")
+        && !params.is_json_value()
+    {
+        return Err(napi::Error::from_reason(
+            "Message params must contain only JSON values",
+        ));
+    }
+    Ok(Utf16String::from(
+        (json::stringify(&message) + "\n")
+            .encode_utf16()
+            .collect::<Vec<_>>(),
+    ))
+}
+#[napi]
+pub fn parse_sdk_message(line: Utf16String) -> convert::NativeJson {
+    match json::parse_utf16(&line, json::Limits::default()) {
+        Ok(value @ Value::Object(_)) => convert::NativeJson(object(vec![("message", value)])),
+        _ => convert::NativeJson(object(vec![(
+            "error",
+            Value::String(
+                "Malformed JSON line: "
+                    .encode_utf16()
+                    .chain(line.iter().copied())
+                    .collect(),
+            ),
+        )])),
+    }
+}

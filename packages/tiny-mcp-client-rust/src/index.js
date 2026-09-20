@@ -22,3 +22,4 @@ export function parseJsonRpcMessage(line) {
   return parsed;
 }
 export { createInMemoryTransportPair, StdioTransport } from "./transports.js";
+export { createSdkTestPair, createTestPair } from "./sdk.js";

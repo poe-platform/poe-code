@@ -3,6 +3,8 @@ import {
   McpClient,
   StdioTransport,
   createInMemoryTransportPair,
+  createSdkTestPair,
+  createTestPair,
   JsonRpcMessageLayer,
   McpError,
   type JsonRpcRequestOptions,
@@ -21,6 +23,10 @@ layer.onRequest("callback", (_params, context: McpRequestContext) => {
   void signal;
   return {};
 });
+import { Server as OfficialServer } from "@modelcontextprotocol/sdk/server/index.js";
+import { createServer } from "tiny-stdio-mcp-server-rust";
+void createSdkTestPair(new OfficialServer({ name: "official", version: "1" }), () => client);
+void createTestPair(createServer({ name: "own", version: "1" }), () => client);
 layer.onInputRequest("roots/list", () => ({ roots: [] }));
 layer.onNotification("changed", (_params, context) => {
   const method: string = context.method;

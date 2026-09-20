@@ -12,7 +12,7 @@ function unwrap(value) {
   return value;
 }
 
-async function* readLines(input) {
+export async function* readLines(input) {
   const decoder = new TextDecoder("utf-8", { fatal: true });
   let parts = [];
   let bytes = 0;

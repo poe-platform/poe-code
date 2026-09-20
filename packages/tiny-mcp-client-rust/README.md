@@ -43,6 +43,11 @@ after completion. Filters and stream counts have explicit bounds.
 environment, tracks exit/error metadata, and terminates it on disposal. Stderr
 diagnostics retain at most 65,536 UTF-16 units in the Rust core.
 
-HTTP/SDK transport support and OAuth are still being implemented.
+`createTestPair` connects a local stream server, while `createSdkTestPair` connects
+an SDK-compatible server over own message transports. Official SDK imports are
+needed only by applications/tests that choose an official SDK server; this package
+does not import it at runtime. Both helpers provide asynchronous cleanup.
+
+HTTP transport support, OAuth and additional SDK edge checks are still in progress.
 Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

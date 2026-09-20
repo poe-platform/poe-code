@@ -37,5 +37,27 @@
     "configKey": "mcp_servers",
     "format": "toml",
     "shape": "standard"
+  },
+  "hookConfig": {
+    "globalHookPath": "~/.codex/hooks.json",
+    "localHookPath": ".codex/hooks.json",
+    "format": "codex-hooks-json",
+    "transformWritable": true,
+    "supportedEvents": [
+      "SessionStart",
+      "UserPromptSubmit",
+      "PreToolUse",
+      "PostToolUse",
+      "PermissionRequest",
+      "Stop"
+    ],
+    "supportedHandlerTypes": [
+      "command"
+    ],
+    "placeholders": {
+      "projectDir": "$(git rev-parse --show-toplevel)",
+      "pluginRoot": "$PLUGIN_ROOT",
+      "pluginData": "$PLUGIN_DATA"
+    }
   }
 }

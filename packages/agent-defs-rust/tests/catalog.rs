@@ -185,3 +185,40 @@ fn one_definition_derives_name_lookup_and_telemetry_capture() {
         units("custom:Mixed/Model")
     );
 }
+
+#[test]
+fn hook_descriptors_share_one_agent_definition_without_changing_public_metadata() {
+    use mcp_protocol_rust::json::Value;
+    let registry = Registry::builtins();
+    let ids: Vec<_> = registry
+        .definitions()
+        .iter()
+        .filter(|definition| definition.hook_config.is_some())
+        .map(|definition| definition.metadata.get("id").unwrap().clone())
+        .collect();
+    assert_eq!(
+        ids,
+        ["claude-code", "codex"].map(|id| Value::String(units(id)))
+    );
+    for definition in registry.definitions() {
+        assert!(definition.metadata.get("hookConfig").is_none());
+        if let Some(config) = &definition.hook_config {
+            for key in [
+                "globalHookPath",
+                "format",
+                "supportedEvents",
+                "supportedHandlerTypes",
+                "placeholders",
+            ] {
+                assert!(config.get(key).is_some());
+            }
+        }
+    }
+    let source = r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"hookConfig":{"format":"custom"}}"#;
+    assert!(
+        Registry::from_json([source]).unwrap().definitions()[0]
+            .hook_config
+            .is_some()
+    );
+    assert!(Registry::from_json([r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"hookConfig":false}"#]).is_err());
+}

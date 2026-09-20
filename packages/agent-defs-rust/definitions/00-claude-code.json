@@ -37,5 +37,38 @@
     "configKey": "mcpServers",
     "format": "json",
     "shape": "standard"
+  },
+  "hookConfig": {
+    "globalHookPath": "~/.claude/settings.json",
+    "localHookPath": ".claude/settings.json",
+    "format": "claude-settings-json",
+    "transformReadable": true,
+    "supportedEvents": [
+      "SessionStart",
+      "SessionEnd",
+      "UserPromptSubmit",
+      "PreToolUse",
+      "PostToolUse",
+      "PermissionRequest",
+      "Stop",
+      "StopFailure",
+      "Notification",
+      "PreCompact",
+      "PostCompact",
+      "SubagentStart",
+      "SubagentStop"
+    ],
+    "supportedHandlerTypes": [
+      "command",
+      "http",
+      "mcp_tool",
+      "prompt",
+      "agent"
+    ],
+    "placeholders": {
+      "projectDir": "${CLAUDE_PROJECT_DIR}",
+      "pluginRoot": "${CLAUDE_PLUGIN_ROOT}",
+      "pluginData": "${CLAUDE_PLUGIN_DATA}"
+    }
   }
 }

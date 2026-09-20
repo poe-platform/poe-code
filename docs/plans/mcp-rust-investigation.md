@@ -2088,6 +2088,20 @@ or heap growth across the sampled run; it is not a general leak-free guarantee.
 Document/base metadata accessors, full YAML fidelity, cross-platform packaging,
 remaining MCP applications and the complete poe-agent closure are still open.
 
+### Declarative agent hook descriptors, 2026-09-20
+
+Added optional object-valued `hook_config` descriptors to the Rust agent catalog
+and the existing Claude Code/Codex definition files. Hook packages can derive
+support, paths, event/handler matrices and placeholder rules from one agent file,
+without provider-specific policy branches or a second registry. Public SDK agent
+metadata and original TS definitions remain unchanged. A failing Rust catalog
+test reproduced the absent field; built-in descriptor ownership, optional custom
+configuration and malformed descriptor admission now pass. Maintained agent-defs
+unit/lint/type/oracle routes pass (six native groups and63 actual SDK cases), and
+the12-workspace uncached agent-mcp-config build closure passes. This is a reusable
+prerequisite for agent-hook-config-rust, not a completed hook bridge rewrite.
+Evidence is `out/rust-agent-defs-hook-*`.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -34,8 +34,10 @@ returns an independent array.
 
 The standard-library Rust core also exposes `Registry`, UTF-16 `Specifier`
 parsing/formatting and reusable `Registry::from_json` catalogs.
-Each Rust definition can also carry optional `mcp_config` settings, including
-platform paths, configuration format and server shape, alongside its capabilities.
+Each Rust definition can also carry optional `mcp_config` and `hook_config`
+settings, including platform paths, formats, server shape, hook events, handler
+types and placeholders, alongside its capabilities. Hook support derives from
+this same definition file.
 These settings stay separate from the existing Node agent metadata.
 Telemetry argument templates escape endpoints as JSON and preserve Unicode, including lone
 surrogates. This package does not load application configuration or read

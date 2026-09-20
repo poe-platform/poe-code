@@ -70,5 +70,9 @@
       "pluginRoot": "${CLAUDE_PLUGIN_ROOT}",
       "pluginData": "${CLAUDE_PLUGIN_DATA}"
     }
+  },
+  "skillConfig": {
+    "globalSkillDir": "~/.claude/skills",
+    "localSkillDir": ".claude/skills"
   }
 }

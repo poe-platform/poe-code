@@ -2187,6 +2187,18 @@ runtime dependency. Hook ownership/cleanup and the skill/git-exclude prerequisit
 remain unfinished. Evidence: `out/rust-agent-hook-links-*`.
 
 
+### Skill descriptors from declarative agent definitions — 2026-09-20
+
+Extended the own agent catalog with optional `skill_config` object descriptors.
+The six supported agents derive skill directories and the Goose convention note
+from their existing single definition files, with no agent-id policy branches.
+Public agent metadata remains SDK-identical; invalid custom descriptor arrays
+are rejected. Failing-first catalog coverage, six native groups, all63 SDK cases,
+strict API types, fmt/clippy and the uncached15-workspace hook consumer build
+closure pass. This is the skill rewrite prerequisite, not completed skill APIs.
+Evidence: `out/rust-agent-defs-skill-*`.
+
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

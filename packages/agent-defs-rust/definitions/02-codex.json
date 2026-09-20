@@ -59,5 +59,9 @@
       "pluginRoot": "$PLUGIN_ROOT",
       "pluginData": "$PLUGIN_DATA"
     }
+  },
+  "skillConfig": {
+    "globalSkillDir": "~/.codex/skills",
+    "localSkillDir": ".codex/skills"
   }
 }

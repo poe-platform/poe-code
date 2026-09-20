@@ -30,5 +30,10 @@
     "configKey": "extensions",
     "format": "yaml",
     "shape": "goose"
+  },
+  "skillConfig": {
+    "globalSkillDir": "~/.agents/skills",
+    "localSkillDir": ".agents/skills",
+    "dirNote": "Goose discovers skills from the shared .agents/skills convention, not a goose-specific directory."
   }
 }

@@ -29,5 +29,9 @@
     "configKey": "mcpServers",
     "format": "json",
     "shape": "standard"
+  },
+  "skillConfig": {
+    "globalSkillDir": "~/.cursor/skills-cursor",
+    "localSkillDir": ".cursor/skills"
   }
 }

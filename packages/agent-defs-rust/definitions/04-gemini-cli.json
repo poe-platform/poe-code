@@ -25,5 +25,9 @@
         "light": "#1A73E8"
       }
     }
+  },
+  "skillConfig": {
+    "globalSkillDir": "~/.gemini/skills",
+    "localSkillDir": ".gemini/skills"
   }
 }

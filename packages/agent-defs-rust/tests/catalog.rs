@@ -222,3 +222,47 @@ fn hook_descriptors_share_one_agent_definition_without_changing_public_metadata(
     );
     assert!(Registry::from_json([r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"hookConfig":false}"#]).is_err());
 }
+
+#[test]
+fn skill_descriptors_are_optional_private_metadata_from_one_agent_file() {
+    use mcp_protocol_rust::json::Value;
+    let registry = Registry::builtins();
+    let ids: Vec<_> = registry
+        .definitions()
+        .iter()
+        .filter(|definition| definition.skill_config.is_some())
+        .map(|definition| definition.metadata.get("id").unwrap().clone())
+        .collect();
+    assert_eq!(
+        ids,
+        [
+            "claude-code",
+            "codex",
+            "cursor",
+            "gemini-cli",
+            "opencode",
+            "goose"
+        ]
+        .map(|id| Value::String(units(id)))
+    );
+    for definition in registry.definitions() {
+        assert!(definition.metadata.get("skillConfig").is_none());
+        if let Some(config) = &definition.skill_config {
+            assert!(matches!(
+                config.get("globalSkillDir"),
+                Some(Value::String(_))
+            ));
+            assert!(matches!(
+                config.get("localSkillDir"),
+                Some(Value::String(_))
+            ));
+        }
+    }
+    let source = r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"skillConfig":{"globalSkillDir":"~/.custom/skills","localSkillDir":".custom/skills"}}"#;
+    assert!(
+        Registry::from_json([source]).unwrap().definitions()[0]
+            .skill_config
+            .is_some()
+    );
+    assert!(Registry::from_json([r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"skillConfig":[]}"#]).is_err());
+}

@@ -16,6 +16,7 @@ pub struct Definition {
     pub mcp_config: Option<Value>,
     /// Hook bridges derive support from the same declarative agent file.
     pub hook_config: Option<Value>,
+    pub skill_config: Option<Value>,
     id: Vec<u16>,
     aliases: Vec<Vec<u16>>,
     capabilities: Vec<Vec<u16>>,
@@ -161,6 +162,13 @@ impl Registry {
             {
                 return Err("Agent hook configuration object is required");
             }
+            let skill_config = value.get("skillConfig").cloned();
+            if skill_config
+                .as_ref()
+                .is_some_and(|config| !matches!(config, Value::Object(_)))
+            {
+                return Err("Agent skill configuration object is required");
+            }
             let Value::Object(fields) = &mut metadata else {
                 return Err("Agent definition object is required");
             };
@@ -188,6 +196,7 @@ impl Registry {
                 argument_templates,
                 mcp_config,
                 hook_config,
+                skill_config,
                 id,
                 aliases,
                 capabilities,

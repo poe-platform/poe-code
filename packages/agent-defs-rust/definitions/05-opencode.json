@@ -34,5 +34,9 @@
     "configKey": "mcp",
     "format": "json",
     "shape": "opencode"
+  },
+  "skillConfig": {
+    "globalSkillDir": "~/.config/opencode/skills",
+    "localSkillDir": ".opencode/skills"
   }
 }

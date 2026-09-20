@@ -12,6 +12,7 @@ independent Rust execution policies and no npm runtime dependencies.
 | Select Docker/Podman and discover running Colima profiles | `detectEngine`, `isEngineAvailable`, `detectContext` |
 | Add a Docker context while keeping Podman arguments unchanged | `buildContextArgs` |
 | Replay deterministic runs and timed stream output | `createMockRunner`, `createMockRunnerByCommand` |
+| Read filtered build-context files and binary bytes | `readDockerBuildContextFiles` |
 
 ```typescript
 import { createHostRunner } from '@poe-code/process-runner-rust';
@@ -55,7 +56,14 @@ entries. Consumed FIFO slots release their behavior references. Output completes
 before the default result; explicit exit delays may finish earlier. Repeated kill
 stops streams and settles once without rereading the exit-code getter.
 
-This is an additive experimental host, Docker-runner and mock subset. Docker environments,
+Build contexts use an own Rust ignore matcher with no regex dependency. It covers
+anchoring, directory rules, parent exclusion, negation, globstars, classes and
+case folding. The Node filesystem transport skips symlinks, preserves file bytes
+and sorts relative paths with Node locale ordering. `.dockerignore` always stays
+in the file list. The SDK `docker/build-context` and `testing` subpaths are also
+available on this package.
+
+This is an additive experimental host, Docker-runner, context and mock subset. Docker environments,
 workspace transfer, full malformed/getter fidelity and
 cross-platform artifacts remain in progress. Existing applications keep their
 original TypeScript imports. Bounded cancellation measurements are not general
@@ -71,3 +79,9 @@ Simulated Docker process/abort cycles measured6.4–9.3µs native versus2.6–5.
 SDK. Across65,536 more simulated runs, native sampled heap stayed5.0–5.1MB and
 buffers16.6KB. These checks use a deterministic process transport; real Docker
 engine and detached-environment verification remain unfinished.
+
+Matcher construction plus12 path checks measured9.8µs native versus3.9µs for the
+SDK reference. After131,072 further cycles, native heap stayed3.84–3.87MB and RSS
+111.8–112.4MB; the reference stayed4.00–4.04MB and59.9–62.8MB. These results do
+not establish a performance or total-memory improvement. Full malformed-pattern
+error parity, including a reference-library `SyntaxError` case, remains unfinished.

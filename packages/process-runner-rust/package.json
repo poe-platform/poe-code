@@ -11,6 +11,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/mock-runner.d.ts",
+      "import": "./dist/mock-runner.js"
+    },
+    "./docker/build-context": {
+      "types": "./dist/docker-build-context.d.ts",
+      "import": "./dist/docker-build-context.js"
     }
   },
   "scripts": {
@@ -24,7 +32,8 @@
     "mcp-protocol-rust": "*",
     "typescript": "5.9.3",
     "vitest": "4.1.11",
-    "memfs": "4.56.10"
+    "memfs": "4.56.10",
+    "ignore": "5.3.2"
   },
   "files": [
     "dist",

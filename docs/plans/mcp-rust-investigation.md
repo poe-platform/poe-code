@@ -2463,6 +2463,41 @@ along with real-engine/cross-platform/full malformed acceptance and the larger
 rewrite/24-hour actual-effort requirement. The hook-lock correction's Linux
 release build and audit have passed; full publication is still pending.
 
+### Process runner own build-context filtering — 2026-09-20
+
+Added the root build-context reader and SDK `docker/build-context`/`testing`
+subpaths with bidirectional types. An own std Rust matcher replaces the original
+reader's runtime ignore dependency. It handles UTF-16 wildcard units, anchoring,
+parent-directory exclusion, ordered negation, directory rules, globstars, class
+ranges, case folding, escaped markers and whitespace. Dynamic programming avoids
+regex/backtracking. Builtin Node filesystem transport preserves bytes/errors,
+skips symlinks, always includes `.dockerignore`, and preserves locale sorting.
+
+Failing-first core/addon/module absence, escaped-wildcard comparisons and a
+trailing-directory-globstar anchoring case precede their implementation/fixes.
+The maintained suite now includes166,991 generated valid-reference comparisons
+plus a targeted rule/path matrix. One generated malformed rule is rejected by
+the reference library's regex compiler and is explicitly counted separately;
+its native SyntaxError parity is not implemented or counted as a comparison pass.
+All97 actual SDK cases plus5 additional filesystem/lifecycle cases,15 Rust
+groups,11 native groups, strict root/subpath types, fmt/clippy and uncached
+5-workspace build pass. Filesystem fixtures use memfs.
+
+Direct/packed8MiB workers each add512 build-context reads to the prior host,
+Docker and mock workloads with external imports blocked. One addon and zero npm
+runtime/peer/optional dependencies remain. Matcher construction plus12 paths
+measures9.76–9.83µs native versus3.89–3.92µs reference. Across131,072 more cycles,
+native heap3.84→3.87MB, buffers10.5KB and RSS111.8→112.4MB; reference4.00→4.04MB,
+10.5KB and59.9→62.8MB. Native resident usage is higher despite lower sampled JS
+heap. No broad performance/memory acceptance follows. Evidence:
+`out/rust-process-ignore-*`, `out/rust-process-build-context-*`.
+
+Docker runtime templates/detached environments, workspace transfer, malformed/
+getter/SyntaxError parity, real-engine/cross-platform acceptance and the larger
+rewrite/24-hour actual-effort requirement remain unfinished. The lock-correction
+release build/audit/checks/cached-unit and all4 Bash shards pass; uncached unit
+and publication are still pending.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

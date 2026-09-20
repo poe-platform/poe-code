@@ -1008,6 +1008,41 @@ reference on a 48-unit header, and 777 ns versus 726 ns on a 102-unit mixed head
 This path does not establish a speed win; native marshalling has a visible cost
 on small inputs. Broader sustained and end-to-end performance work remains required.
 
+The additive client now implements HTTP transport against own OAuth support.
+Rust owns modern request slots/cancellation lookup, legacy session identity,
+GET stream/reconnect state, disposal plans, standard/parameter header mutations,
+exact media type admission and correlated HTTP protocol-error/fallback replies.
+Node supplies PassThrough streams, fetch, controllers, body readers, timers and
+OAuth/storage callbacks. Modern controllers survive fetch headers through body
+consumption; late responses are cancelled, sibling requests remain usable and
+all reader locks/listeners are released. Legacy disposal performs at most one
+DELETE with a one-second deadline; OAuth retries once and cancels both tee branches.
+Request plans and response validators share immutable Arc payloads rather than
+deep-copying tool arguments. A snapshot test proves lifetime through plan drop and
+release after validator drop. Native request replacement/settlement churn covers
+4,096 ID pairs without retained bookkeeping. Scoped header schema projection fixes
+a reproduced rejection of valid cyclic/bigint/toJSON extensions without invoking
+serialization hooks. It preserves inherited types and date/boolean schema behavior.
+The client directly interoperates with original and own HTTP server artifacts in
+both legacy and modern modes, including Unicode parameter headers and DELETE/GET
+counts. Broader source contracts now cover 289 cases across 35 files, including
+the original combined OAuth fixture. Identity assertions require actual native
+client bindings; original servers/official SDKs remain development oracles only.
+Eight source files for SDK fixture helpers/private utilities/source-only loading
+remain outside this redirected suite and are tracked for further validation.
+The package passes 32 Rust tests, 65 native groups, public HTTP options/transport
+types and focused lint. Native declarations are checked from the shipped dist
+artifact so embedded OAuth type references cannot silently become unresolved any.
+Focused build checks pass. The actual standalone tarball passes eight live loopback
+combinations: original/native HTTP servers, legacy/modern protocols and JSON/SSE
+responses, with native tool annotation/header handling and listener cleanup.
+Its embedded default OAuth provider separately completes browser/manual callback,
+PKCE validation, token exchange, retry and stored bearer reuse. Packed manifests
+have no dependencies, peer dependencies or optional dependencies. Temporary
+tarball/extraction artifacts were purged after evidence collection.
+This is still an additive private port; full MCP/poe-agent and broad performance/
+platform acceptance remain incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

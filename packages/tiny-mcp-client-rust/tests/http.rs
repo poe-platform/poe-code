@@ -1,5 +1,24 @@
 use mcp_protocol_rust::json::{self, Limits, Value};
+use std::sync::Arc;
 use tiny_mcp_client_rust::http::HttpResponseMessages;
+
+#[test]
+fn shared_request_snapshot_survives_plan_drop_and_is_released_after_stream_completion() {
+    let request = Arc::new(value(r#"{"jsonrpc":"2.0","id":"shared","method":"ping"}"#));
+    let weak = Arc::downgrade(&request);
+    let mut context = HttpResponseMessages::from_shared(request.clone()).unwrap();
+    assert_eq!(Arc::strong_count(&request), 2);
+    drop(request);
+    assert!(weak.upgrade().is_some());
+    context
+        .validate(
+            &units(r#"{"jsonrpc":"2.0","id":"shared","result":{}}"#),
+            false,
+        )
+        .unwrap();
+    drop(context);
+    assert!(weak.upgrade().is_none());
+}
 fn value(text: &str) -> Value {
     json::parse_utf16(&text.encode_utf16().collect::<Vec<_>>(), Limits::default()).unwrap()
 }

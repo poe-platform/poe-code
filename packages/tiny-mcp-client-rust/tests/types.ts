@@ -1,7 +1,7 @@
 import { PassThrough } from "node:stream";
-import { parseBearerWwwAuthenticateHeader } from "../src/index.js";
+import { parseBearerWwwAuthenticateHeader } from "../dist/index.js";
 import type { OAuthUnauthorizedChallenge as ReferenceChallenge } from "tiny-mcp-client";
-import type { OAuthUnauthorizedChallenge } from "../src/index.js";
+import type { OAuthUnauthorizedChallenge } from "../dist/index.js";
 declare const referenceChallenge: ReferenceChallenge;
 declare const ownChallenge: OAuthUnauthorizedChallenge;
 const challengeToReference: ReferenceChallenge = ownChallenge;
@@ -9,7 +9,7 @@ const challengeFromReference: OAuthUnauthorizedChallenge = referenceChallenge;
 void challengeToReference;
 void challengeFromReference;
 void parseBearerWwwAuthenticateHeader(null);
-import { discoverOAuthMetadata, OAuthMetadataDiscovery, fetchMcpResponse } from "../src/index.js";
+import { discoverOAuthMetadata, OAuthMetadataDiscovery, fetchMcpResponse } from "../dist/index.js";
 import { discoverOAuthMetadata as referenceDiscover, OAuthMetadataDiscovery as ReferenceDiscovery, fetchMcpResponse as referenceFetch } from "tiny-mcp-client";
 const fetchToReference: typeof referenceFetch = fetchMcpResponse;
 const fetchFromReference: typeof fetchMcpResponse = referenceFetch;
@@ -33,7 +33,19 @@ import {
   McpError,
   type JsonRpcRequestOptions,
   type McpRequestContext
-} from "../src/index.js";
+} from "../dist/index.js";
+import { HttpTransport, type HttpTransportOptions } from "../dist/index.js";
+import { HttpTransport as ReferenceHttpTransport, type HttpTransportOptions as ReferenceHttpOptions } from "tiny-mcp-client";
+declare const ownHttpOptions: HttpTransportOptions;
+declare const referenceHttpOptions: ReferenceHttpOptions;
+const httpOptionsToReference: ReferenceHttpOptions = ownHttpOptions;
+const httpOptionsFromReference: HttpTransportOptions = referenceHttpOptions;
+const ownHttpTransport: Pick<ReferenceHttpTransport, "readable" | "writable" | "closed" | "filterTools" | "dispose"> = new HttpTransport(ownHttpOptions);
+const referenceHttpTransport: HttpTransport = new ReferenceHttpTransport(referenceHttpOptions);
+void httpOptionsToReference;
+void httpOptionsFromReference;
+void ownHttpTransport;
+void referenceHttpTransport;
 const layer = new JsonRpcMessageLayer(new PassThrough(), new PassThrough(), 1000, undefined, 4);
 const options: JsonRpcRequestOptions = {
   timeoutMs: null,

@@ -3,6 +3,7 @@ use napi_derive::napi;
 pub mod discovery_binding;
 #[path = "../../../mcp-oauth-rust/bindings/src/lib.rs"]
 pub mod embedded_oauth;
+pub mod http_transport_binding;
 #[napi]
 pub fn parse_bearer_challenge(header: Utf16String) -> convert::NativeJson {
     let value = tiny_mcp_client_rust::challenge::parse_bearer(&header)

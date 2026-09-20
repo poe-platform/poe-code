@@ -60,6 +60,23 @@ cache returns independent snapshots; explicit metadata URLs bypass cached result
 The native artifact embeds the own OAuth and credential support without npm runtime
 dependencies. Metadata bodies have a 1 MiB limit and a 10-second candidate deadline.
 
-HTTP transport support and additional SDK edge checks are still in progress.
+`HttpTransport` connects to HTTP MCP servers with JSON or SSE responses, legacy
+sessions and modern request headers. It mirrors schema-annotated tool arguments,
+supports OAuth providers and isolates cancellation to each modern request. Closing
+the transport aborts active fetches, cancels readers and bounds legacy session
+termination to one second. Response and SSE event limits default to 16 MiB.
+
+```ts
+import { HttpTransport, McpClient } from "tiny-mcp-client-rust";
+const client = new McpClient({ clientInfo: { name: "my-app", version: "1" } });
+await client.connect(new HttpTransport({ url: "https://example.com/mcp" }));
+try {
+  console.log(await client.callTool({ name: "echo", arguments: { text: "hello" } }));
+} finally {
+  await client.close();
+}
+```
+
+Additional SDK edge checks, platform validation and performance audits are still in progress.
 Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

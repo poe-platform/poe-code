@@ -3,10 +3,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import ts from "typescript";
 const referenceRoot = fileURLToPath(new URL("../tiny-mcp-client/src/", import.meta.url));
 const redirects = new Map([
+  ["index.js", "index.js"],
+  ["internal.js", "index.js"],
   ["oauth-discovery.js", "oauth-discovery.js"],
   ["http-response.js", "oauth/http.js"]
 ].map(([original, native]) => [fileURLToPath(new URL(original, new URL("../tiny-mcp-client/src/", import.meta.url))), fileURLToPath(new URL(native, new URL("./dist/", import.meta.url)))]));
 function redirect(source: string, importer: string) {
+  if (source === "mcp-oauth" && importer.startsWith(referenceRoot)) return fileURLToPath(new URL("./dist/oauth/index.js", import.meta.url));
   if (!source.startsWith(".") || !importer.startsWith(referenceRoot)) return;
   return redirects.get(fileURLToPath(new URL(source, pathToFileURL(importer))));
 }
@@ -33,5 +36,8 @@ export default defineConfig({
       return { code: code + "\n" + checks.join("\n"), map: null };
     }
   }],
-  test: { include: ["packages/tiny-mcp-client/src/oauth-discovery-*.test.ts"], cache: false, testTimeout: 2000 }
+  test: { include: ["packages/tiny-mcp-client/src/*.test.ts"], exclude: [
+    "**/mcp-client-sdk.test.ts", "**/mock-servers.test.ts", "**/package-runtime.test.ts",
+    "**/utilities.test.ts", "**/transports.test.ts", "**/sse-framing.test.ts", "**/sse-limits.test.ts", "**/stdio-line-bounds.test.ts"
+  ], cache: false, testTimeout: 2000 }
 });

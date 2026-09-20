@@ -1,6 +1,7 @@
 //! HTTP response stream correlation, independent of fetch, readers and OAuth.
 use crate::messages::{ParsedMessage, parse_message};
 use mcp_protocol_rust::json::{self, Limits, Value};
+use std::sync::Arc;
 const SUBSCRIPTION_METHODS: [&str; 5] = [
     "notifications/subscriptions/acknowledged",
     "notifications/tools/list_changed",
@@ -32,7 +33,7 @@ fn array_index(key: &[u16]) -> Option<u32> {
     }
     (number < u64::from(u32::MAX)).then_some(number as u32)
 }
-fn order_properties(value: &mut Value) {
+pub(crate) fn order_properties(value: &mut Value) {
     match value {
         Value::Object(fields) => {
             fields.sort_by_cached_key(|(name, _)| array_index(name).unwrap_or(u32::MAX));
@@ -49,12 +50,15 @@ fn order_properties(value: &mut Value) {
     }
 }
 pub struct HttpResponseMessages {
-    request: Value,
+    request: Arc<Value>,
     completed: bool,
     acknowledged: bool,
 }
 impl HttpResponseMessages {
     pub fn new(request: Value) -> Result<Self, String> {
+        Self::from_shared(Arc::new(request))
+    }
+    pub fn from_shared(request: Arc<Value>) -> Result<Self, String> {
         if !matches!(request.get("id"), Some(Value::Number(_) | Value::String(_)))
             || !matches!(request.get("method"), Some(Value::String(_)))
         {

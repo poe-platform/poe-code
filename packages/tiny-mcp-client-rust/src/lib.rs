@@ -2,6 +2,7 @@ pub mod challenge;
 pub mod client;
 pub mod discovery;
 pub mod http;
+pub mod http_transport;
 pub mod layer;
 pub mod messages;
 pub mod retries;

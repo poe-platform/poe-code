@@ -399,6 +399,26 @@ export declare class StdioTransport implements McpTransport {
   getStderrOutput(): string;
   dispose(reason?: Error): void;
 }
+import type { OAuthClientProviderOptions } from "./oauth/index.js";
+export type { OAuthClientProvider, OAuthClientProviderOptions, OAuthSessionStore } from "./oauth/index.js";
+export type HttpTransportFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
+export interface HttpTransportOptions {
+  url: string;
+  headers?: RequestInit["headers"];
+  fetch?: HttpTransportFetch;
+  oauth?: OAuthClientProviderOptions;
+  oauthDiscoveryCache?: OAuthDiscoveryCache;
+  onWarning?: (message: string) => void;
+  maxResponseBytes?: number;
+}
+export declare class HttpTransport implements McpTransport {
+  readonly readable: Readable;
+  readonly writable: Writable;
+  readonly closed: Promise<McpTransportClosedEvent>;
+  constructor(options: HttpTransportOptions);
+  filterTools(tools: Tool[], reset?: boolean): Tool[];
+  dispose(reason?: Error): void;
+}
 export declare class McpClient {
   constructor(options: McpClientOptions);
   readonly state: "disconnected" | "initializing" | "ready" | "closed";

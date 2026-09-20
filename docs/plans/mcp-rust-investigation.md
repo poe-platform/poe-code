@@ -224,6 +224,18 @@ the completed cursor and releases partial-event buffers. This is an internal
 framing checkpoint, not a completed HTTP transport. Checks include 18 Rust and
 42 native test groups plus maintained public TypeScript fixtures.
 
+The own Rust HTTP-response correlation core now enforces originating request IDs,
+single completion, notification admission, acknowledgement ordering and subscription
+completion metadata. Subscription methods cannot enter unrelated request streams;
+progress tokens use JavaScript's strict primitive equality, rejecting structurally
+equal object/array tokens. Error envelopes with null/missing IDs normalize only
+under the reference's eligibility rules, preserving ECMAScript numeric property
+ordering recursively and stringify behavior for overflow numbers/UTF-16. Native
+oracle tests reproduce and fix object-token and property-order differences, plus
+fractional/string/zero IDs, invalid envelopes and cross-subscription messages.
+Checks expand to 21 Rust and 45 native groups plus public type fixtures. The fetch
+adapter, HTTP lifecycle/reader ownership, SDK adapter and OAuth remain required.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

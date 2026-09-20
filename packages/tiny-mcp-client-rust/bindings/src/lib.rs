@@ -754,3 +754,33 @@ impl NativeSseParser {
         convert::NativeJson(Value::Array(vec![]))
     }
 }
+
+use tiny_mcp_client_rust::http::HttpResponseMessages;
+#[napi]
+pub struct NativeHttpResponseMessages {
+    state: RefCell<HttpResponseMessages>,
+}
+#[napi]
+impl NativeHttpResponseMessages {
+    #[napi(constructor)]
+    pub fn new(env: Env, request: Unknown<'_>) -> Result<Self> {
+        let request = input::read(&env, request, input::Mode::Json)?.unwrap_or(Value::Null);
+        Ok(Self {
+            state: RefCell::new(
+                HttpResponseMessages::new(request).map_err(napi::Error::from_reason)?,
+            ),
+        })
+    }
+    #[napi(getter)]
+    pub fn completed(&self) -> bool {
+        self.state.borrow().completed()
+    }
+    #[napi]
+    pub fn validate(&self, line: Utf16String, allow_notifications: bool) -> Result<Utf16String> {
+        self.state
+            .borrow_mut()
+            .validate(&line, allow_notifications)
+            .map(Utf16String::from)
+            .map_err(napi::Error::from_reason)
+    }
+}

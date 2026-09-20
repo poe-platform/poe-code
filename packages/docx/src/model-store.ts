@@ -73,6 +73,7 @@ export class ModelStore {
   private archive: DocumentArchive;
   private readonly editors = new Map<string, DocumentXmlEditor>();
   private readonly handles = new Map<number, Handle>();
+  private handleIndex: WeakMap<XmlElement, Map<string, Handle>> | undefined;
   private readonly objects = new Map<number, object>();
   private readonly elements = new Map<number, XmlElementView>();
   private nextId = 0;
@@ -125,6 +126,7 @@ export class ModelStore {
         for (const part of this.editors.keys()) if (!unchanged.has(part)) this.editors.delete(part);
         for (const handle of this.handles.values())
           if (!unchanged.has(handle.ref.part)) handle.node = null;
+        this.handleIndex = undefined;
         this.revision++;
       },
       save: (output, options) => this.save(output, options)
@@ -194,6 +196,7 @@ export class ModelStore {
       const rel = findRelationshipPart(graph, owner, this.context.budget);
       if (rel) this.editors.delete("/" + rel.name);
       this.editors.delete("/[Content_Types].xml");
+      this.handleIndex = undefined;
       this.revision++;
       return "/" + added.name;
     });
@@ -255,6 +258,7 @@ export class ModelStore {
           ".rels")
       );
       this.editors.delete("/[Content_Types].xml");
+      this.handleIndex = undefined;
       this.revision++;
       this.bindStyles("/" + added.name);
     }
@@ -291,6 +295,7 @@ export class ModelStore {
       for (const [part, xml] of editors) this.editors.set(part, xml);
       this.handles.clear();
       for (const [id, handle] of handles) this.handles.set(id, handle);
+      this.handleIndex = undefined;
       this.revision = revision;
       this.mainPartName = mainPart;
       this.boundStyles = boundStyles;
@@ -347,6 +352,7 @@ export class ModelStore {
     this.editors.delete("/" + name);
     for (const handle of this.handles.values())
       if (handle.ref.part === "/" + name) handle.node = null;
+    this.handleIndex = undefined;
     this.revision++;
   }
   snapshot(): DocumentArchive {
@@ -383,12 +389,29 @@ export class ModelStore {
   }
   ref(part: string, node: XmlElement): ModelRef {
     part = "/" + this.memberName(part);
-    for (const handle of this.handles.values())
-      if (handle.ref.part === part && handle.node === node) return handle.ref;
-    this.context.budget.charge("retainedBytes", 192);
+    this.context.budget.charge("work", 1);
+    if (!this.handleIndex) {
+      const index = new WeakMap<XmlElement, Map<string, Handle>>();
+      for (const handle of this.handles.values()) {
+        this.context.budget.charge("work", 1);
+        if (!handle.node) continue;
+        this.context.budget.charge("retainedBytes", 128);
+        let parts = index.get(handle.node);
+        if (!parts) index.set(handle.node, parts = new Map());
+        parts.set(handle.part, handle);
+      }
+      this.handleIndex = index;
+    }
+    const existing = this.handleIndex.get(node)?.get(part);
+    if (existing) return existing.ref;
+    this.context.budget.charge("retainedBytes", 320);
     const id = this.nextId++, handles = this.handles;
     const ref = Object.freeze({ get part() { return handles.get(id)?.part ?? part; }, id });
-    this.handles.set(ref.id, { ref, part, node, identity: Object.freeze({}) });
+    const handle = { ref, part, node, identity: Object.freeze({}) };
+    this.handles.set(ref.id, handle);
+    let parts = this.handleIndex.get(node);
+    if (!parts) this.handleIndex.set(node, parts = new Map());
+    parts.set(part, handle);
     return ref;
   }
   node(ref: ModelRef): XmlElement {
@@ -414,6 +437,7 @@ export class ModelStore {
     visit(root);
     for (const handle of this.handles.values())
       if (handle.node && descendants.has(handle.node)) handle.node = null;
+    this.handleIndex = undefined;
   }
   change(part: string, action: (xml: DocumentXmlEditor) => void): void {
     this.writable();
@@ -435,6 +459,7 @@ export class ModelStore {
     retained.forEach((handle) => {
       if (handle.node) handle.node = oldToCandidate.get(handle.node) ?? null;
     });
+    this.handleIndex = undefined;
     const replacements = new Map<XmlElement, readonly XmlElement[]>();
     const insertions = new Map<XmlElement, { before: XmlElement | undefined; count: number }[]>();
     const fragment = (node: XmlElement, markup: string): readonly XmlElement[] => {
@@ -548,12 +573,14 @@ export class ModelStore {
       reconcile(candidate.root, next.root);
       for (const handle of retained) if (handle.node) handle.node = map.get(handle.node) ?? null;
       this.editors.set(part, next);
+      this.handleIndex = undefined;
       this.revision++;
     } catch (error) {
       this.editors.set(part, old);
       retained.forEach((handle, index) => {
         handle.node = prior[index]!;
       });
+      this.handleIndex = undefined;
       throw error;
     }
   }
@@ -769,6 +796,7 @@ export class ModelStore {
           }
         ]
       };
+    this.handleIndex = undefined;
     this.revision++;
     if (contentType)
       this.change("/[Content_Types].xml", (xml) => {

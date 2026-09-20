@@ -52,6 +52,14 @@ does not import it at runtime. Both helpers provide asynchronous cleanup.
 schemes, quoted parameters and duplicate names. It preserves Unicode strings and
 returns parameters without an object prototype.
 
-HTTP transport support, OAuth discovery and additional SDK edge checks are still in progress.
+`OAuthMetadataDiscovery` validates protected-resource and authorization-server
+metadata, preserves exact issuer identifiers and tries the standard OAuth/OIDC
+metadata fallbacks. Inject a fetch function or shared cache when needed. Its memory
+cache returns independent snapshots; explicit metadata URLs bypass cached results.
+`discoverOAuthMetadata` performs a one-off lookup. `fetchMcpResponse` rejects redirects.
+The native artifact embeds the own OAuth and credential support without npm runtime
+dependencies. Metadata bodies have a 1 MiB limit and a 10-second candidate deadline.
+
+HTTP transport support and additional SDK edge checks are still in progress.
 Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

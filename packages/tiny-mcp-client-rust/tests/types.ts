@@ -9,6 +9,20 @@ const challengeFromReference: OAuthUnauthorizedChallenge = referenceChallenge;
 void challengeToReference;
 void challengeFromReference;
 void parseBearerWwwAuthenticateHeader(null);
+import { discoverOAuthMetadata, OAuthMetadataDiscovery, fetchMcpResponse } from "../src/index.js";
+import { discoverOAuthMetadata as referenceDiscover, OAuthMetadataDiscovery as ReferenceDiscovery, fetchMcpResponse as referenceFetch } from "tiny-mcp-client";
+const fetchToReference: typeof referenceFetch = fetchMcpResponse;
+const fetchFromReference: typeof fetchMcpResponse = referenceFetch;
+void fetchToReference;
+void fetchFromReference;
+const discoveryToReference: typeof referenceDiscover = discoverOAuthMetadata;
+const discoveryFromReference: typeof discoverOAuthMetadata = referenceDiscover;
+const ownLookup: ReferenceDiscovery["discover"] = new OAuthMetadataDiscovery().discover;
+const referenceLookup: OAuthMetadataDiscovery["discover"] = new ReferenceDiscovery().discover;
+void discoveryToReference;
+void discoveryFromReference;
+void ownLookup;
+void referenceLookup;
 import {
   McpClient,
   StdioTransport,

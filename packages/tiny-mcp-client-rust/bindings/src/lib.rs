@@ -1,5 +1,8 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+pub mod discovery_binding;
+#[path = "../../../mcp-oauth-rust/bindings/src/lib.rs"]
+pub mod embedded_oauth;
 #[napi]
 pub fn parse_bearer_challenge(header: Utf16String) -> convert::NativeJson {
     let value = tiny_mcp_client_rust::challenge::parse_bearer(&header)
@@ -16,8 +19,7 @@ pub fn parse_bearer_challenge(header: Utf16String) -> convert::NativeJson {
         .unwrap_or(Value::Null);
     convert::NativeJson(value)
 }
-#[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
-mod convert;
+use embedded_oauth::convert;
 #[napi]
 pub fn parse_json_rpc_message(line: Utf16String) -> convert::NativeJson {
     convert::NativeJson(tiny_mcp_client_rust::messages::parse_message(line.as_ref()).into_value())

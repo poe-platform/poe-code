@@ -460,3 +460,40 @@ export interface OAuthUnauthorizedChallenge {
   raw: string;
 }
 export declare function parseBearerWwwAuthenticateHeader(headerValue: string | null): OAuthUnauthorizedChallenge | null;
+export type OAuthMetadataFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
+export declare function fetchMcpResponse(fetchImpl: OAuthMetadataFetch, input: string | URL, init?: RequestInit): Promise<Response>;
+export interface OAuthProtectedResourceMetadata extends Record<string, unknown> {
+  resource: string;
+  authorization_servers: string[];
+}
+export interface OAuthAuthorizationServerMetadata extends Record<string, unknown> {
+  issuer: string;
+  authorization_endpoint: string;
+  token_endpoint: string;
+  registration_endpoint?: string;
+  response_types_supported: string[];
+  code_challenge_methods_supported: string[];
+  authorization_response_iss_parameter_supported?: boolean;
+}
+export interface OAuthDiscoveryResult {
+  resource: string;
+  resourceMetadataUrl: string;
+  resourceMetadata: OAuthProtectedResourceMetadata;
+  authorizationServer: string;
+  authorizationServerMetadataUrl: string;
+  authorizationServerMetadata: OAuthAuthorizationServerMetadata;
+}
+export interface OAuthDiscoveryCache {
+  get(resourceUrl: string): OAuthDiscoveryResult | null | undefined | Promise<OAuthDiscoveryResult | null | undefined>;
+  set(resourceUrl: string, value: OAuthDiscoveryResult): void | Promise<void>;
+  delete?(resourceUrl: string): void | Promise<void>;
+}
+export interface OAuthMetadataDiscoveryOptions { fetch?: OAuthMetadataFetch; cache?: OAuthDiscoveryCache; }
+export interface OAuthMetadataLookupOptions { resourceMetadataUrl?: string | URL; }
+export declare class OAuthMetadataDiscovery {
+  constructor(options?: OAuthMetadataDiscoveryOptions);
+  discover(resourceUrl: string | URL, options?: OAuthMetadataLookupOptions): Promise<OAuthDiscoveryResult>;
+}
+export declare function discoverOAuthMetadata(resourceUrl: string | URL, options?: OAuthMetadataDiscoveryOptions & OAuthMetadataLookupOptions): Promise<OAuthDiscoveryResult>;
+export declare function resolveAuthorizationServerMetadataUrl(issuer: string | URL): string;
+export declare function resolveProtectedResourceMetadataUrl(resourceUrl: string | URL, resourceMetadataUrl?: string | URL): string;

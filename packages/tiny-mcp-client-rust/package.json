@@ -14,9 +14,9 @@
     }
   },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
-    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+    "build": "node scripts/cargo.mjs build",
+    "test:unit": "node scripts/cargo.mjs test && vitest run --config vitest.reference.config.ts && tsc --project tsconfig.types.json",
+    "lint": "node scripts/cargo.mjs lint"
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
@@ -25,7 +25,10 @@
     "tiny-mcp-client": "*",
     "tiny-stdio-mcp-server-rust": "*",
     "tsx": ">=4.21.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "mcp-oauth-rust": "*",
+    "auth-store-rust": "*",
+    "vitest": "4.1.11"
   },
   "files": [
     "dist",

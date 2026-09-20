@@ -973,8 +973,6 @@ No production integration or publication is part of the independent-port milesto
 Completion means behavior and native artifacts are verified, not that directories
 with `-rust` names exist. Python wheels can be a later milestone using the proven core.
 
-## Sources
-
 The additive client now exposes own Bearer challenge parsing. Rust scans UTF-16
 authentication schemes, token68 credentials, quoted escapes and comma boundaries;
 Node's string lowercase primitive normalizes parameter names into a null-prototype
@@ -983,6 +981,34 @@ a Unicode dependency. A deterministic malformed corpus plus mixed-scheme cases
 compares 4,816 headers with the original implementation. Package checks pass 23 Rust
 tests and 54 native groups, with bidirectional challenge types and focused build/lint.
 HTTP transport and discovery remain incomplete; this is a parsing delivery only.
+
+The client now implements protected-resource and authorization-server OAuth
+discovery with native secure URL rules, metadata checks, exact issuer binding,
+standard metadata path plans and cache identities. Node supplies WHATWG parsing,
+fetch/AbortSignal/body primitives and structured clones. Scoped native capture
+ignores unrelated cyclic/bigint fields while preserving valid sparse cached arrays.
+UTF-16 diagnostic plans preserve lone surrogates; hostile records reproduced a
+lossy diagnostic and stale default fetch reference before their correction.
+The artifact embeds the maintained own OAuth/credential modules and their Rust
+cores with no external npm runtime dependencies. One converter is shared by the
+embedded binding modules rather than compiled twice. Package checks pass 27 Rust
+tests, 62 native groups, 42 original discovery contracts in five files, bidirectional
+lookup/fetch/result types and focused build/lint. Differential cases include 162
+URL combinations and 146 hostile metadata scenarios. Cache-index replacement
+churn covers 4,096 updates; an actual addon GC child verifies 64 old snapshots are
+released on replacement and the final snapshot on owner drop. Unique-resource
+history remains unbounded, matching the original; no total memory bound is claimed.
+The standalone packed addon validates discovery/cache isolation, challenges and
+embedded PKCE without workspace resolution. Its temporary tarball/extraction was
+purged. HTTP transport/controller/SSE/OAuth lifecycle remains unfinished.
+
+A local warmed challenge microbenchmark on Node 22.23.2/darwin/arm64 uses seven
+alternating 10,000-call samples. Native median is 611 ns versus 339 ns for the TS
+reference on a 48-unit header, and 777 ns versus 726 ns on a 102-unit mixed header.
+This path does not establish a speed win; native marshalling has a visible cost
+on small inputs. Broader sustained and end-to-end performance work remains required.
+
+## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and

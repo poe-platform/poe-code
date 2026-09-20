@@ -1,5 +1,6 @@
 pub mod challenge;
 pub mod client;
+pub mod discovery;
 pub mod http;
 pub mod layer;
 pub mod messages;

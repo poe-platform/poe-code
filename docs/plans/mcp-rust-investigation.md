@@ -4,7 +4,11 @@ Date: 2026-09-19. Repository inspected: `1a9316310` on local `main`.
 Status: implementation active. The reusable `mcp-protocol-rust` JSON foundation
 is implemented, including a tested napi-rs JSON binding; MCP package rewrites
 and the complete poe-agent dependency rewrite are in progress.
-No consumer integration, publication, or performance measurements have been performed.
+An additive native server checkpoint now covers sessions, tool callbacks, direct
+value conversion, request admission, cancellation, and modern result metadata.
+A first callback-heavy benchmark is recorded below. Consumer integration and
+publication have not been performed; transports and complete server conformance
+remain in progress.
 
 The active goal began on 2026-09-20 at 02:45 UTC (September 19 at 21:45 Chicago).
 The user's minimum effort requirement is 24 hours, with a deadline of Monday,
@@ -331,6 +335,17 @@ latency distribution, event-loop responsiveness, peak and steady RSS, and retain
 memory after close. Separate callback-heavy cases from native tool cases. Repeated
 sessions should plateau in retained memory. Real model calls cannot isolate engine
 performance and are not benchmark or unit-test dependencies.
+
+The first callback-heavy checkpoint measurement used separate Node 22.23.2
+processes, release addons, 1,000 warmup calls, five batches of 20,000 legacy echo
+calls, and explicit GC before and after. Median time per call was 5.14 µs for
+TypeScript and 15.09 µs for Rust. Final RSS was 83.31 MiB and 65.72 MiB,
+respectively; retained JS heap changes were about 132 and 135 KiB. This synthetic
+measurement establishes a regression to address, not a general speed or memory
+guarantee. Prioritize parsing wire messages once in Rust, reducing boundary
+crossings, and measuring equivalent schema-heavy and native-tool workloads before
+choosing production defaults. Repeat memory measurements over sustained session
+churn and cancellation; a single RSS endpoint does not establish leak freedom.
 
 ## Implementation sequence and acceptance
 

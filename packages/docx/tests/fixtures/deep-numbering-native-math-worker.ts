@@ -4,6 +4,7 @@ import { Document, DocumentBudget, createDocxInspectionCommandEngine, editDocume
 import { textFixture, textContext } from "./text.js";
 import { Shell, MemoryFileSystem } from "virtual-bash";
 import { docxCommands } from "virtual-bash/commands/docx";
+import { nativeMathNumberingVariantFixture, nativeMathVariantArchiveLimits } from "./deep-native-math-numbering-variants.js";
 import { readPackage } from "../assertions.js";
 
 const strict = process.argv[2] === "strict", radicals = Number(process.argv[3] ?? 1280);
@@ -12,15 +13,19 @@ const text = "Native 日本 עברית ẹ́ 🌊 𠀀";
 const equation = `<w:p xmlns:m="${mathNamespace}"><m:oMath>${"<m:rad><m:deg/><m:e>".repeat(radicals)}<m:r><m:t>x</m:t></m:r>${"</m:e></m:rad>".repeat(radicals)}</m:oMath></w:p>`;
 let input = await textFixture(`<w:p><w:r><w:t>${text}</w:t></w:r></w:p>` + equation, {}, strict);
 const kind = process.argv[6] ?? "docx";
-if (kind === "dotx") {
+if (kind === "dotx" && !process.argv[7]) {
   const archive = await readDocumentArchive(input, { ...textContext, budget: new DocumentBudget({ xmlDepth: radicals * 2 + 16, work: 4294967296, retainedBytes: 4294967296 }, textContext.signal) });
   const staging = Volume.fromJSON({ "/template": "" });
   await writeArchive({ comment: archive.comment, members: archive.members.map(member => ({ ...member, bytes: member.name === "[Content_Types].xml" ? new TextEncoder().encode(new TextDecoder().decode(member.bytes).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")) : member.bytes })) }, { async write(bytes) { staging.appendFileSync("/template", bytes); } }, { order: "input", compression: "store" }, textContext);
   input = new Uint8Array(staging.readFileSync("/template") as Buffer);
 }
+const variant = process.argv[7] ? await nativeMathNumberingVariantFixture(strict, radicals, process.argv[7]!, process.argv[8]!, process.argv[9]!, kind) : undefined;
+if (variant) input = variant.input;
+const archiveLimits = variant ? nativeMathVariantArchiveLimits : textContext.limits;
+const decode = (bytes: Uint8Array): string => new TextDecoder(bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8").decode(bytes);
 const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "", "/destination": "Retain destination" });
 const host = radicals > 100 ? { xmlDepth: radicals * 2 + 16, work: 4294967296, retainedBytes: 4294967296 } : {};
-const context = () => ({ ...textContext, budget: new DocumentBudget(host, textContext.signal) });
+const context = () => ({ ...textContext, limits: archiveLimits, budget: new DocumentBudget(host, textContext.signal) });
 const route = process.argv[4] ?? "sdk", dryRun = process.argv[5] === "dry";
 const stdout = { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } };
 const operations = [{ operation: "lists.add" as const, arguments: { kind: "decimal" as const, text: "Added" } }];
@@ -32,7 +37,7 @@ if (route === "sdk") {
   assert.equal(r.results.length, 1); assert.equal(r.results[0]!.affected, 1); if (dryRun) assert.equal(r.publication!.output, null);
 } else {
   const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/destination", new TextEncoder().encode("Retain destination"));
-  const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits, documentLimits: host }) }));
+  const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: archiveLimits, documentLimits: host }) }));
   try {
     const command = route === "cli-batch" ? `docx batch /input --ops-json '${JSON.stringify({ version: 1, operations })}'` : "docx lists add /input --kind decimal --text Added";
     const r = await shell.exec(command + (dryRun ? " --dry-run --json" : " --output -")); assert.equal(r.exitCode, 0, r.stdout + r.stderr);
@@ -44,9 +49,20 @@ if (route === "sdk") {
 if (dryRun) assert.equal(memory.readFileSync("/output").length, 0);
 else {
 const output = new Uint8Array(memory.readFileSync("/output") as Buffer), before = readPackage(input), after = readPackage(output);
-assert.ok(new TextDecoder().decode(after.get("word/document.xml")).includes(equation));
-for (const [name, bytes] of before) if (!["word/document.xml", "word/_rels/document.xml.rels", "[Content_Types].xml"].includes(name)) assert.deepEqual(after.get(name), bytes);
+assert.ok(decode(after.get("word/document.xml")!).includes(variant?.equationRepresentation ?? equation));
+for (const [name, bytes] of before) if (!(variant ? ["word/document.xml", "word/numbering.xml"] : ["word/document.xml", "word/_rels/document.xml.rels", "[Content_Types].xml"]).includes(name)) assert.deepEqual(after.get(name), bytes);
 const doc = await Document(output, context()); assert.equal(doc.paragraphs.length, 3); assert.equal(doc.paragraphs[0]!.text, text); assert.equal(doc.paragraphs[2]!.text, "Added");
+if (variant) {
+  assert.equal(doc.paragraphs[0]!.runs[0]!.font.rtl, true);
+  assert.ok(decode(after.get("word/document.xml")!).includes(variant.body));
+  assert.ok(decode(after.get("word/numbering.xml")!).includes(variant.representation));
+  assert.ok(decode(after.get("word/numbering.xml")!).includes('nl:abstractNumId="1"'));
+  for (const name of ["word/document.xml", "word/numbering.xml"]) {
+    const framing = name === "word/document.xml" ? "story" : "numbering", source = decode(after.get(name)!);
+    assert.ok(source.startsWith(`<!--${framing}-before-->`)); assert.ok(source.endsWith(`<!--${framing}-after-->`));
+    if (process.argv[9] !== "utf8") assert.deepEqual(after.get(name)!.slice(0, process.argv[9] === "bom" ? 3 : 2), before.get(name)!.slice(0, process.argv[9] === "bom" ? 3 : 2));
+  }
+}
 }
 assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input); assert.equal(memory.readFileSync("/destination", "utf8"), "Retain destination");
-console.log(JSON.stringify({ strict, radicals, exactNativeMathAndNumberingPreservation: true, ...(process.argv[4] ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}), ...(process.argv[6] ? { kind } : {}) }));
+console.log(JSON.stringify({ strict, radicals, exactNativeMathAndNumberingPreservation: true, ...(process.argv[4] ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}), ...(process.argv[6] ? { kind } : {}), ...(variant ? { prefix: process.argv[7], carrier: process.argv[8], codec: process.argv[9], exactDirtyFramingCodecRTLAndOpaqueSignatureInteraction: true } : {}) }));

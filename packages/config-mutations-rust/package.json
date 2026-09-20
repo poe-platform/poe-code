@@ -17,6 +17,10 @@
     "./yaml": {
       "types": "./dist/yaml.d.ts",
       "import": "./dist/yaml.js"
+    },
+    "./execution": {
+      "types": "./dist/execution.d.ts",
+      "import": "./dist/execution.js"
     }
   },
   "scripts": {
@@ -30,7 +34,9 @@
     "mcp-protocol-rust": "*",
     "typescript": "5.9.3",
     "smol-toml": "^1.7.0",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "memfs": "4.56.10",
+    "@poe-code/config-mutations": "*"
   },
   "files": [
     "dist",

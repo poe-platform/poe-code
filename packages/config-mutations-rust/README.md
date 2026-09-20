@@ -16,6 +16,13 @@ const toml=tomlFormat.serialize(servers);
 import {yamlFormat} from '@poe-code/config-mutations-rust/yaml';
 const settings=yamlFormat.parse('extensions:\n  terminal:\n    enabled: true\n');
 const yaml=yamlFormat.serialize(settings);
+
+import {runMutations} from '@poe-code/config-mutations-rust/execution';
+const result=await runMutations([
+  {kind:'ensureDirectory',path:'~/.agent'},
+  {kind:'chmod',target:'~/.agent',mode:0o700},
+  {kind:'removeFile',target:'~/.agent/empty',whenEmpty:true}
+], {fs:yourFileSystem,homeDir:yourHomeDirectory,dryRun:true});
 ```
 
 The own Rust parser and editor preserve UTF-16 strings, trailing commas, indentation,
@@ -40,8 +47,15 @@ promptly instead of overflowing the original configuration clone.
 Exact YAML SDK warnings/error metadata, all authored complex-key formatting and
 merge-source alias admission are still under conformance review. SDK-specific
 Document/node objects are not serialization inputs. Standalone Rust callers can
-supply Date-key coercion; the Node adapter uses the host time zone. The original
-mutation execution and root/testing exports are not available yet. It is not integrated into applications. JSON nesting is bounded to 512
+supply Date-key coercion; the Node adapter uses the host time zone. The `./execution` API runs directory creation/removal, guarded file removal and
+permission changes in order. Its Rust state machine checks symbolic links before
+writes, retains dry-run outcomes and requests host controls lazily; injected
+filesystem errors and observers retain their identities. Paths must start with
+`~` and remain inside the managed home before optional mapping.
+
+Backup/restore, configuration/template execution, mutation factories and the
+original root/testing exports remain under development. It is not integrated into
+applications. JSON nesting is bounded to 512
 levels; malformed edit input
 is rejected rather than recovered by the development oracle's tolerant editor.
 Unlike the original JSONC parser, `__proto__` keys are retained as ordinary own
@@ -59,3 +73,8 @@ serialization for small, 64-property and 4,096-property workloads. The largest
 parse took 5.3 ms versus 233 ms; serialization took 4.2 ms versus 10.5 ms.
 This is workload-specific evidence, not a guarantee on other platforms. Peak RSS
 was about 156 MB for either implementation; no memory reduction is claimed.
+
+In-memory file mutation measurements take about 13–18 µs in the native binding
+versus 2–3 µs in TypeScript. Real filesystem latency is additional. The finite
+memory check retains about the same JS heap and more native-process RSS; it does
+not establish a speedup, memory reduction or universal stability guarantee.

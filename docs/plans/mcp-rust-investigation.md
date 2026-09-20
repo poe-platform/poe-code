@@ -1451,6 +1451,39 @@ leak-free or lower-memory claim. Thirty-two retained outputs add1.14/0.31MB heap
 Evidence: out/rust-design-template-data-*. Existing design imports remain intact;
 the full rewrite, remaining design APIs and configuration execution are incomplete.
 
+Configuration file execution now has the additive `./execution` subpath for
+ensureDirectory, removeDirectory, removeFile and chmod. An own Rust state machine
+requests injected stat/lstat/read/readdir/mkdir/rm/unlink/chmod effects and owns
+sequencing, ECMAScript UTF-16 trimming, permission masking, guard admission,
+symlink diagnostics and outcomes. Node supplies platform path operations and
+foreign resolver/regex/observer behavior. Runtime controls are requested lazily,
+including dryRun after awaited I/O and permission mode again at the host call.
+This avoids capturing unrelated or unused option getters. Pending details still
+resolve separately from application, and onStart remains outside the error
+boundary. Unknown/remaining mutation kinds reject as unsupported in this partial
+subpath; backup/restore, config/template handlers and root/testing/factory exports
+remain outstanding. Production wiring is unchanged.
+
+Validation: forty Rust groups, twenty-six native groups, strict declarations,
+maintained fmt/clippy and seven-workspace uncached maintained build pass. Native
+comparisons use the current TS execution with memfs only: path quirks/containment,
+mapping, resolver count, symlink rejection in dry runs, force/empty/support cases,
+BOM/Unicode trimming, regex lastIndex, inherited error codes, host exceptions,
+observer boundaries, getter order and async context mutation. The lazy-control
+regression was reproduced before replacing eager captured options with Rust
+requests. Both 4 MiB workers pass depth512 and 2048 mixed mutation cycles.
+Packed standalone execution passes with bare npm resolution blocked and zero
+production/peer/optional dependencies. Original SDK and memfs are dev only.
+
+In-memory original/native median ns: ensure3074/14131, remove2189/12835,
+directory2599/15770, chmod2967/17798 (Node22.23.2/macOSARM64). These crossings
+cost more than JS when platform operations are instant; real filesystem latency
+is additional. Separate 1280-cycle original/native processes end at72.1/77.4MB
+RSS and8.66/8.65MB retained heap,2.18MB external either. Both implementations
+are loaded in each memory process, so this measures operation deltas, not isolated
+package load size. No performance, lower-memory or universal leak-free claim is
+made. Evidence: out/rust-config-execution-*. The full goal remains incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

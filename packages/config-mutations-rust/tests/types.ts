@@ -8,3 +8,8 @@ modifyAtPath(text,['nested',0],new Date());detectIndent(text);serializeUpdate(te
 const toml:ConfigFormat=tomlFormat;toml.serialize({updated:new Date()});toml.parse('[section]\nkey=1');
 import {yamlFormat} from '../dist/yaml.js';
 const yaml:ConfigFormat=yamlFormat;yaml.serialize({enabled:true});yaml.parse('key: value');
+import {runMutations} from '../dist/execution.js';
+import type {FileSystem,MutationResult} from '../dist/execution.js';
+declare const fs:FileSystem;
+const operation:Promise<MutationResult>=runMutations([{kind:'ensureDirectory',path:'~/config'},{kind:'chmod',target:'~/config',mode:0o700},{kind:'removeFile',target:ctx=>String(ctx.target),whenEmpty:true}],{fs,homeDir:'/home/test'},{target:'~/empty'});
+void operation;

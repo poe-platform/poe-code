@@ -91,3 +91,72 @@ pub fn check_http_redirect(redirected: bool, response_type: String) -> Result<()
     mcp_oauth_rust::response::validate_redirect(redirected, &response_type)
         .map_err(napi::Error::from_reason)
 }
+
+use mcp_oauth_rust::tokens::{ResponseError, TokenFields};
+use mcp_protocol_rust::json::{self, Limits};
+#[napi]
+pub struct NativeTokenFields {
+    fields: TokenFields,
+}
+#[napi]
+impl NativeTokenFields {
+    #[napi(constructor)]
+    pub fn new(text: Utf16String) -> Result<Self> {
+        let payload = json::parse_utf16(&text, Limits::default())
+            .map_err(|_| napi::Error::from_reason("OAuth response must be a JSON object"))?;
+        Ok(Self {
+            fields: TokenFields::parse(&payload).map_err(napi::Error::from_reason)?,
+        })
+    }
+    #[napi(getter)]
+    pub fn needs_clock(&self) -> bool {
+        self.fields.needs_clock()
+    }
+    #[napi]
+    pub fn complete(&self, now: Option<f64>) -> Result<convert::NativeJson> {
+        self.fields
+            .complete(now)
+            .map(convert::NativeJson)
+            .map_err(napi::Error::from_reason)
+    }
+}
+#[napi]
+pub fn read_token_response(
+    text: Utf16String,
+    ok: bool,
+    status: f64,
+) -> Result<convert::NativeJson> {
+    let (key, value) = match mcp_oauth_rust::tokens::read_json_response(&text, ok, status) {
+        Ok(value) => ("payload", value),
+        Err(ResponseError::OAuth(shape)) => ("error", shape),
+        Err(ResponseError::InvalidObject) => {
+            return Err(napi::Error::from_reason(
+                "OAuth response must be a JSON object",
+            ));
+        }
+    };
+    Ok(convert::NativeJson(Value::Object(vec![(
+        key.encode_utf16().collect(),
+        value,
+    )])))
+}
+#[napi]
+pub fn is_retryable_token_error(error: Utf16String, status: f64) -> bool {
+    mcp_oauth_rust::tokens::is_retryable(&error, status)
+}
+#[napi]
+pub fn encode_token_form(text: Utf16String) -> Result<String> {
+    let payload = json::parse_utf16(&text, Limits::default())
+        .map_err(|_| napi::Error::from_reason("Invalid OAuth form"))?;
+    let Value::Object(properties) = payload else {
+        return Err(napi::Error::from_reason("Invalid OAuth form"));
+    };
+    let pairs = properties
+        .into_iter()
+        .map(|(key, value)| match value {
+            Value::String(value) => Ok((key, value)),
+            _ => Err(napi::Error::from_reason("Invalid OAuth form value")),
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(mcp_oauth_rust::tokens::encode_form(&pairs))
+}

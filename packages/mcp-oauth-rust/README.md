@@ -19,7 +19,12 @@ issuer/flag fields. Its decoder preserves Node-compatible base64url and UTF-16
 behavior. Host bindings supply operating-system randomness; protocol logic stays
 in Rust.
 
-Token exchange/refresh, session storage, browser
+Token exchange and refresh validate token fields and expiry in Rust, encode OAuth
+form bodies and classify protocol errors. The host adapter bounds token responses
+to 1 MiB, refuses redirects and uses a 30-second request deadline. Public
+`OAuthError` instances preserve protocol fields and retry/terminal classification.
+
+Session storage, browser
 callbacks and JWKS verification are still being implemented. Keep applications on
 their existing OAuth package until conformance and integration are complete.
 

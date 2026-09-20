@@ -283,7 +283,19 @@ limits, BOM/split Unicode at exact byte boundaries, invalid UTF-8, ignored malfo
 lengths, oversize declared/actual lengths, redirects, pre/mid-read abort and reader
 cleanup. Public wrappers preserve plain Error shapes rather than leaking napi's
 GenericFailure code on validation errors. Maintained public type fixtures cover
-both helpers. Token/browser/provider/session/JWKS functionality remains pending.
+both helpers. Browser/provider/session/JWKS functionality remains pending.
+
+Token exchange and refresh now use own Rust field validation, ECMAScript UTF-16
+trimming, Date-range expiry arithmetic, form encoding and OAuth error extraction
+and retry classification. Node supplies fetch, the 30-second deadline and clock;
+the clock is only invoked for valid present expiry fields. Responses are bounded
+at 1 MiB and return own fields, including undefined optional token properties.
+Regression tests first reproduced inherited native-envelope contamination and
+verify the boundary ignores inherited optional and error fields. Native/oracle
+checks cover grants, request secrets/Unicode/surrogates, all protocol error aliases,
+512 seeded token strings and 512 expiry calculations, malformed UTF-8, byte limits
+and abort reasons. The maintained build/lint/type checks and nine Rust / eighteen
+native groups pass. Full URL/IDNA normalization still uses the Node host primitive.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

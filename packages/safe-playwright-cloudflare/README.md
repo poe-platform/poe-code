@@ -95,7 +95,13 @@ replayed; the original DOM and in-flight JavaScript cannot be reconstructed.
 Browser acquisitions retain one owned provider session and its physical sockets.
 Release is idempotent and shares deletion with Worker retirement. Ordinary guest
 script errors retain the session; cancellation, deadlines, and resource failures
-retire it. Browser traffic, redirects, fetch/request APIs, WebSockets, and workers
+retire it. A pre-existing foreign private context rejects `run-code` and retires
+the browser. That error includes the owned target/context IDs, the observed
+private-context IDs, and foreign page IDs with private-context flags and URL
+states (`empty`, `about:blank`, or `other`);
+it omits URLs and titles. These observations come from successive CDP calls,
+so they describe admission evidence rather than an atomic lifecycle snapshot.
+Browser traffic, redirects, fetch/request APIs, WebSockets, and workers
 remain enabled. Remote downloads report unsupported artifact retrieval through
 the existing command result; CLI help is unchanged.
 

@@ -170,7 +170,20 @@ async function prepareAndRun(
 			)
 		)
 			throw new Error(
-				"Run-code cannot reconnect another existing browser context",
+				// Keep the admission census in the message: callers commonly retain only String(error).
+				// URL/title content is unnecessary to explain the guard and may contain private data.
+				`Run-code cannot reconnect another existing browser context: ${JSON.stringify({
+					ownedTargetId: metadata.targetId,
+					ownedContextId: metadata.contextId,
+					browserContextIds,
+					foreignTargets: foreign.map((target) => ({
+						targetId: target.targetId,
+						contextId: target.browserContextId ?? null,
+						type: target.type,
+						urlState: target.url === "" ? "empty" : target.url === "about:blank" ? "about:blank" : "other",
+						isPrivateContext: browserContextIds.includes(target.browserContextId ?? ""),
+					})),
+				})}`,
 			);
 		await Promise.all(
 			foreign.map((target) =>

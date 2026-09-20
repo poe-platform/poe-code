@@ -121,6 +121,45 @@ export default {
 			);
 			cleanup = f.cleanup;
 			switch (new URL(request.url).pathname) {
+				case "/foreign-context": {
+					const foreignContext = await f.browser.newContext();
+					const foreignPage = await foreignContext.newPage();
+					const foreignCDP = await browserPageCDP(foreignPage);
+					const { targetInfo: foreign } = await foreignCDP.send("Target.getTargetInfo");
+					const ownedCDP = await browserPageCDP(f.page);
+					const { targetInfo: owned } = await ownedCDP.send("Target.getTargetInfo");
+					await assert.rejects(f.run("async page => 1n"), error => {
+						assert.ok(error instanceof Error);
+						const prefix = "Run-code cannot reconnect another existing browser context: ";
+						assert.ok(error.message.startsWith(prefix), error.message);
+						const census = JSON.parse(error.message.slice(prefix.length));
+						assert.equal(census.ownedTargetId, owned.targetId);
+						assert.equal(census.ownedContextId, owned.browserContextId);
+						assert.ok(census.browserContextIds.includes(foreign.browserContextId));
+						assert.ok(census.foreignTargets.some((target: { targetId: string; contextId: string; urlState: string; isPrivateContext: boolean }) =>
+							target.targetId === foreign.targetId && target.contextId === foreign.browserContextId && target.urlState === "about:blank" && target.isPrivateContext));
+						return true;
+					});
+					assert.equal(f.retired(), true);
+					break;
+				}
+				case "/default-target": {
+					const cdp = await f.browser.newBrowserCDPSession();
+					const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" });
+					assert.equal(await f.run("async page => page.title()"), "");
+					const { targetInfos } = await cdp.send("Target.getTargets");
+					assert.equal(targetInfos.some(target => target.targetId === targetId), false);
+					assert.equal(f.retired(), false);
+					await cdp.detach();
+					break;
+				}
+				case "/serialization-after-context-close": {
+					const extra = await f.browser.newContext();
+					await extra.newPage();
+					await extra.close();
+					await assertRunCodeSerialization(f);
+					break;
+				}
 				case "/serialization":
 					await assertRunCodeSerialization(f);
 					break;

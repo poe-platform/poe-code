@@ -1276,6 +1276,63 @@ config-mutations package: TOML, YAML, mutation execution, and its original root
 and testing exports remain to implement. Applications retain original imports.
 The full ten-MCP and nineteen-package poe-agent closure goal remains active.
 
+The next configuration improvement adds the private `./toml` export. The own
+UTF-16 Rust parser supports dotted/quoted keys, inline and explicit tables,
+arrays of tables, multiline strings/continuations, numeric radices/separators,
+safe-integer admission, nonfinite numbers and temporal values. Own Gregorian
+arithmetic preserves authored offsets, local date/time forms, millisecond
+truncation and the development SDK's observable day-rollover behavior. Node
+restores mutable Date subclasses without importing the SDK. The SDK is a
+production-free development oracle; adapted table metadata and serialization
+layout carry its BSD-3-Clause notice.
+
+The serializer preserves stable getter call order/counts, BigInt, nonfinite
+numbers, custom Date ISO hooks and UTF-16 strings. It snapshots host properties
+into a compact binary Buffer instead of invoking foreign toJSON hooks or
+building/parsing a second JSON document. Native snapshot decoding, Rust literal
+parsing, arena tree assembly and Rust formatting use explicit work stacks.
+Failing default-stack tests reproduced a real Rust stack overflow at admitted
+nesting; the iterative parser and serializer fix it without enlarging the Rust
+test stacks. Two isolated 4-MiB-stack Node workers also pass depth-999 array
+parsing/serialization, depth-999 Date restoration and 512 configuration cycles.
+
+Two explicit TOML differences remain: overall nesting is bounded to 1,000,
+including dotted paths combined with literal nesting (the SDK only bounds its
+literal recursion), and array-of-tables headers require both adjacent closing
+brackets instead of accepting the reproduced `[[section]` SDK bug. Lone-surrogate
+serialization follows the SDK's escaped text; neither parser admits surrogate
+Unicode escape values as valid TOML. Raw UTF-16 literals preserve SDK behavior.
+Cycle admission fails promptly with the SDK's maximum-depth message. Stable
+getter conformance does not prove arbitrary state-changing accessor parity.
+
+The maintained package route passes 21 Rust tests, 13 actual native groups and
+shipped declarations. The oracle includes hundreds of valid/truncated/deleted
+cases, 750 generated temporal cases, extreme float formatting and complete
+UTF-16 error/codeblock/line/column comparison. Lint and the maintained
+four-workspace uncached build closure pass. Extracted packed JSONC/TOML exports
+pass temporal, UTF-16, safe-own-key, binary-buffer growth and 4,096-property
+round trips with all bare npm imports rejected. Metadata has no production,
+peer or optional npm dependencies. Evidence is `out/rust-config-toml-*`.
+
+Final seven-batch median original/additive times in ns on Node 22.23.2 macOS
+arm64 are small parse 874/1,976 and serialize 334/1,924; 1,979-unit connection
+configuration parse 46,876/51,502 and serialize 15,265/54,955; 87,892-unit,
+4,096-property parse 10,823,157/3,132,517 and serialize 1,017,862/2,733,178.
+Large parsing benefits, while native transfer and snapshot costs still outweigh
+savings in smaller parsing and in serialization. No universal or whole-agent
+speedup is claimed. Separate GC-enabled processes load only the measured codec;
+32 retained large results add about 10.3 MB heap to either implementation and
+return near warm heap after release. In 2,048 parse/serialize/parse cycles,
+additive first/last GC heap is 4.255/4.278 MB, external memory stays 1.794 MB
+and RSS is 84.6/82.6 MB. Observed peak original/additive RSS is
+105,744/87,168 KiB. These are bounded local observations, not sustained leak,
+platform-matrix or end-to-end evidence.
+
+This remains an atomic package improvement: YAML, mutation execution, factories,
+template rendering and the original root/testing exports remain outstanding.
+Existing application imports and release wiring are unchanged. The full MCP and
+poe-agent dependency-closure rewrite remains active.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

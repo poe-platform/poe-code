@@ -3,6 +3,7 @@ use mcp_protocol_rust::json::{self as json, Limits, Value};
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+mod snapshot;
 fn input(source: &[u16]) -> Result<Value> {
     json::parse_utf16(
         source,
@@ -96,5 +97,44 @@ pub fn config_json_plan(
         .collect::<Result<_>>()?;
     jsonc::plan(source.to_vec(), &path, has_value)
         .map(|plan| ConfigJsonEdit { plan: Some(plan) })
+        .map_err(|e| Error::from_reason(e.to_string()))
+}
+
+fn object(fields: Vec<(&str, Value)>) -> Value {
+    Value::Object(
+        fields
+            .into_iter()
+            .map(|(key, value)| (key.encode_utf16().collect(), value))
+            .collect(),
+    )
+}
+#[napi]
+pub fn config_toml_parse(source: Utf16String) -> NativeJson {
+    use config_mutations_rust::toml;
+    NativeJson(match toml::parse(&source) {
+        Ok(value) => {
+            let mut temporals = vec![];
+            let value = snapshot::parsed(value, &mut vec![], &mut temporals);
+            object(vec![
+                ("value", value),
+                ("temporals", Value::Array(temporals)),
+            ])
+        }
+        Err(error) => object(vec![(
+            "error",
+            object(vec![
+                ("message", Value::String(error.message_utf16())),
+                ("line", Value::Number(error.line as f64)),
+                ("column", Value::Number(error.column as f64)),
+                ("codeblock", Value::String(error.codeblock)),
+            ]),
+        )]),
+    })
+}
+#[napi]
+pub fn config_toml_serialize(serialized: Buffer) -> Result<Utf16String> {
+    let value = snapshot::decode(&serialized).map_err(Error::from_reason)?;
+    config_mutations_rust::toml::stringify(&value)
+        .map(Utf16String::from)
         .map_err(|e| Error::from_reason(e.to_string()))
 }

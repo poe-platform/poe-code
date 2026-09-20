@@ -220,7 +220,7 @@ fn tree(source: &[u16]) -> Result<Option<Node>, Error> {
     }
     Ok(Some(node))
 }
-fn trim_space(ch: u16) -> bool {
+pub(crate) fn trim_space(ch: u16) -> bool {
     matches!(ch,9..=13|32|160|0x1680|0x2000..=0x200a|0x2028|0x2029|0x202f|0x205f|0x3000|0xfeff)
 }
 pub fn parse_object(source: &[u16]) -> Result<Value, Error> {
@@ -296,7 +296,7 @@ fn compact(value: &Value) -> Vec<u16> {
     }
     output
 }
-fn property_index(key: &[u16]) -> Option<u32> {
+pub(crate) fn property_index(key: &[u16]) -> Option<u32> {
     if key.is_empty() || (key.len() > 1 && key[0] == 48) {
         return None;
     }

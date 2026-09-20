@@ -31,6 +31,7 @@ export interface HandlerRequestContext {
 export interface MessageRequestContext {
   signal?: AbortSignal;
   requestId?: string | number;
+  parameterHeaders?: Record<string, string | string[] | undefined>;
 }
 
 export interface ToolDefinition {

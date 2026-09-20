@@ -23,6 +23,13 @@ issues for invalid input. Set `validateToolArguments: false` to skip rejecting
 schema mismatches. Arguments must still be JSON objects. Failed schema compilation
 leaves an existing registration intact.
 
+Annotate static string, integer or boolean input properties with `"x-mcp-header"`
+to declare MCP parameter mirrors. For modern direct calls, pass the transport's
+headers through `handleMessage(method, params, { parameterHeaders })`. Rust checks
+mirrors before handlers run and rejects mismatches with error `-32020`, even when
+argument validation is disabled. Header names and paths are snapshotted at tool
+registration. Omit the header context for transports without parameter mirrors.
+
 Use `defineSchema({ name: { type: "string" }, limit: { type: "integer", optional: true } })`
 to build object schemas with inferred TypeScript argument types. Arbitrary JSON
 Schema keywords are preserved; `optional` controls the required-property list.

@@ -569,6 +569,15 @@ impl NativeServer {
             return Ok(NativeJson(object([("type", string("none"))])));
         }
         let params = input::read(&env, source, input::Mode::Json)?;
+        let headers = context
+            .as_ref()
+            .map(|context| {
+                context
+                    .get_named_property::<Unknown>("parameterHeaders")
+                    .and_then(|source| input::read_headers(&env, source))
+            })
+            .transpose()?
+            .flatten();
         let request_id = context
             .map(|context| {
                 context
@@ -579,7 +588,7 @@ impl NativeServer {
             .flatten();
         self.state
             .borrow_mut()
-            .dispatch(id, &method, params, request_id)
+            .dispatch(id, &method, params, request_id, headers)
             .map(NativeJson)
     }
 
@@ -635,7 +644,7 @@ impl ServerState {
                     Some(wire_id.clone())
                 };
                 let method = String::from_utf16_lossy(&request.method);
-                let action = self.dispatch(id, &method, request.params, context_id)?;
+                let action = self.dispatch(id, &method, request.params, context_id, None)?;
                 (wire_id, notification, action)
             }
         };
@@ -654,6 +663,7 @@ impl ServerState {
         method: &str,
         params: Option<Value>,
         request_id: Option<mcp_protocol_rust::jsonrpc::Id>,
+        headers: Option<tiny_stdio_mcp_server_rust::headers::HeaderValues>,
     ) -> Result<Value> {
         let modern = if method == "notifications/cancelled" {
             false
@@ -705,7 +715,40 @@ impl ServerState {
                 requests.finish(token);
                 return Err(Error::from_reason("Native request identifier exhausted"));
             }
-            let action = if modern && method == "subscriptions/listen" {
+            let empty_arguments = object([]);
+            let header_error = if modern && method == "tools/call" {
+                headers.as_ref().and_then(|headers| {
+                    let name = match params.as_ref()?.get("name")? {
+                        Value::String(name) => name,
+                        _ => return None,
+                    };
+                    let arguments = params
+                        .as_ref()?
+                        .get("arguments")
+                        .unwrap_or(&empty_arguments);
+                    if !matches!(arguments, Value::Object(_)) || !arguments.is_json_value() {
+                        return None;
+                    }
+                    server
+                        .parameter_header_contract(name)
+                        .and_then(|definitions| {
+                            tiny_stdio_mcp_server_rust::headers::validate_parameter_headers(
+                                definitions,
+                                arguments,
+                                headers,
+                            )
+                        })
+                })
+            } else {
+                None
+            };
+            let action = if let Some(message) = header_error {
+                Action::Error(RpcError {
+                    code: -32020,
+                    message,
+                    data: None,
+                })
+            } else if modern && method == "subscriptions/listen" {
                 server.listen(
                     session,
                     token,

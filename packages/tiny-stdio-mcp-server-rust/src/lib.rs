@@ -8,6 +8,7 @@ use toolcraft_schema_rust::CompiledSchema;
 
 pub mod content;
 pub mod features;
+pub mod headers;
 pub mod media;
 pub mod notifications;
 pub mod output;
@@ -50,6 +51,7 @@ struct RegisteredTool {
     handler: u64,
     input_validator: CompiledSchema,
     output: Arc<tool_result::ToolOutput>,
+    parameter_headers: Vec<headers::ParameterHeader>,
 }
 
 pub struct Session {
@@ -167,6 +169,9 @@ impl Server {
                 schema: output_schema,
                 validator: output_validator,
             }),
+            parameter_headers: headers::get_parameter_headers(
+                definition.get("inputSchema").expect("validated schema"),
+            )?,
             descriptor: definition,
             handler,
         };
@@ -182,6 +187,13 @@ impl Server {
             .iter()
             .find(|tool| tool.handler == handler)
             .map(|tool| tool.output.clone())
+    }
+
+    pub fn parameter_header_contract(&self, name: &[u16]) -> Option<&[headers::ParameterHeader]> {
+        self.tools
+            .iter()
+            .find(|tool| tool.name == name)
+            .map(|tool| tool.parameter_headers.as_slice())
     }
 
     pub fn remove_tool(&mut self, name: &[u16]) -> bool {

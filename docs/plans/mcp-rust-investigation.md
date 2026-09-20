@@ -98,6 +98,16 @@ setters. Local Rust medians changed from 0.55 to 0.37 us for one scalar and 46.4
 final trial); these single-process samples establish
 no general Rust speed advantage. Evidence is in `out/rust-content-converter-*.json`.
 
+MCP parameter-header contracts now compile at tool registration in own Rust code.
+Static nested string/integer/boolean paths, ASCII token names, case-insensitive
+duplicates, safe integers and canonical UTF-8/base64 mirrors match the reference.
+Modern direct requests reject mismatches before handlers with error -32020;
+legacy requests and omitted transport header contexts retain their existing behavior.
+Native header copying uses own descriptors without invoking field getters, and
+proxy reentrancy occurs before borrowing server state. Contracts are snapshotted.
+Checks expand to 66 Rust and 347 native tests, including malformed/encoded headers,
+unsupported annotation locations and safe getter/reentrancy behavior.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

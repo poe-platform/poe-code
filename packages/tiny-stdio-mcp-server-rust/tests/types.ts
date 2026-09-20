@@ -56,6 +56,14 @@ const removed: boolean = server.removeTool("other");
 const session = server.createMessageSession();
 void session.handleMessage("ping", undefined, { requestId: 1 });
 void server.handleMessage("ping");
+void server.handleMessage(
+  "tools/call",
+  { name: "echo", arguments: { message: "Hello" } },
+  {
+    requestId: "header-call",
+    parameterHeaders: { "mcp-param-message": "Hello", optional: undefined }
+  }
+);
 session.close();
 void removed;
 void server.connect({ readable: new PassThrough(), writable: new PassThrough() });

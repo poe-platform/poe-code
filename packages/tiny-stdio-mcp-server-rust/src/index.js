@@ -204,7 +204,9 @@ export function createServer(options) {
           id,
           method,
           params,
-          context === undefined ? undefined : { requestId: context.requestId }
+          context === undefined
+            ? undefined
+            : { requestId: context.requestId, parameterHeaders: context.parameterHeaders }
         );
         return executeAction(action, context);
       },

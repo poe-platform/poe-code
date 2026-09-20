@@ -112,3 +112,22 @@ test('rooted async canonical paths and overlays match SDK results, reads and fai
   assert.deepEqual(result,expected,JSON.stringify({canonical,options}));assert.deepEqual(first.calls,second.calls);
  }
 });
+
+test('async document admission stays native and registers temporal aliases without retransferring trees',async()=>{
+ const {resolve}=await import('../dist/index.js'),original=native.extendsParseDocument;
+ native.extendsParseDocument=()=>{throw new Error('Unexpected full document transfer');};
+ try{
+  const result=await resolve([{source:'doc',filePath:'/work/job.yaml',content:'date: &d !!timestamp 2026-01-01\nfirst: *d\nsecond: *d\nsymbol: &s !!merge <<\nsymbolCopy: *s\nunknownSymbol: !!js/symbol shared\nprompt: Hello {{name}}'}],{fs:{async readFile(){throw new Error('Unexpected read');}},view:{name:'World'}});
+  assert.equal(result.data.prompt,'Hello World');assert.equal(result.data.date,result.data.first);assert.equal(result.data.first,result.data.second);assert.ok(result.data.date instanceof Date);assert.equal(result.data.symbol,result.data.symbolCopy);assert.equal(typeof result.data.symbol,'symbol');assert.equal(result.data.symbol.description,'<<');assert.equal(result.data.unknownSymbol,'shared');
+ }finally{native.extendsParseDocument=original;}
+});
+
+test('direct async admission preserves frontmatter classes, JSON diagnostics and date-key spelling',async()=>{
+ const {resolve}=await import('../dist/index.js'),{resolve:sdk}=await import('../../config-extends/dist/index.js');
+ for(const[filePath,content]of [['/work/job.md','---\n[unclosed\n---\nBody'],['/work/job.json','{invalid'],['/work/job.yaml','? !!timestamp 2026-01-01\n: keyed\ndate: &d !!timestamp 2026-01-01\nfirst: *d\nlist: [*d]']]){
+  const chain=[{source:'doc',filePath,content}],options={fs:{async readFile(){throw new Error('Unexpected read');}}};let actual,expected;
+  try{actual=await resolve(chain,options);}catch(error){actual={name:error.name,message:error.message};}
+  try{expected=await sdk(chain,options);}catch(error){expected={name:error.name,message:error.message};}
+  assert.deepEqual(actual,expected);if(actual.data){assert.equal(actual.data.date,actual.data.first);assert.equal(actual.data.first,actual.data.list[0]);}
+ }
+});

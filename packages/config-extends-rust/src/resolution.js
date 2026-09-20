@@ -47,7 +47,9 @@ async function drive(mode,config,fs,view){
     case 'basename':result=path.basename(first,path.extname(first));break;
     case 'extension':result=path.extname(first).toLowerCase();break;
     case 'absolute':result=path.isAbsolute(first);break;
-    case 'admit':result=parseDocument(first,second);break;
+    case 'parseError':result=parseDocument(first,second);break;
+    case 'dateKey':result=new Date(first).toString();break;
+    case 'temporals':{const dates=new Map(),symbols=new Map();result=first.map(([kind,id,value])=>{const aliases=kind==='date'?dates:symbols;if(!aliases.has(id))aliases.set(id,kind==='date'?new Date(value):Symbol(value));const handle=references.length;references.push(aliases.get(id));return handle;});break;}
     case 'render':result=renderTemplate(first,view??{},{escape:'none',validate:second});break;
     default:throw new Error(`Unknown resolution host operation: ${operation}`);
    }

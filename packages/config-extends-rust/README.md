@@ -84,7 +84,9 @@ explicit work stacks with a depth bound of 1,000. This additive package currentl
 provides owned merging, async rooted document resolution, templates and portable
 foreign-handle merge decisions. The Node async bridge manually drives standard
 Rust futures on their originating thread and awaits host filesystem calls without
-replaying reads. Original data layers remain foreign until final merging; views
+replaying reads. Admitted document trees stay native; only temporal allocation
+metadata crosses to Node to retain Date/Symbol identities. Original data layers
+remain foreign until final merging; views
 can contain getters and template lambdas. Missing filesystem errors retain their
 original exception identity. The bridge bounds transfer snapshots at depth 512
 and 100,000 nodes. Document/base metadata is captured before native preparation;

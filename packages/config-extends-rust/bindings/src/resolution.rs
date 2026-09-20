@@ -7,7 +7,7 @@ use config_extends_rust::{
     prompt_document::{self, BaseDocument},
     resolve::{self, BaseLayer, ChainLayer, DocumentLayer, Options},
 };
-use config_mutations_rust::{snapshot, value::Value as V, yaml};
+use config_mutations_rust::{snapshot, value::Value as V};
 use mcp_protocol_rust::json::Value as J;
 use napi::{Env, bindgen_prelude::*};
 use napi_derive::napi;
@@ -191,37 +191,126 @@ impl resolve::Host for Host {
         content: &[u16],
         file: &[u16],
     ) -> std::result::Result<document::ParsedDocument, ResolutionError<HostError>> {
-        let value = self
-            .call(
-                "admit",
-                vec![J::String(content.to_vec()), J::String(file.to_vec())],
-            )
-            .map_err(ResolutionError::Host)?;
-        let read = || {
-            let extends = match field(&value, "extends")? {
-                V::Bool(false) => document::Extends::Disabled,
-                V::Bool(true) => document::Extends::Enabled,
-                V::String(value) => document::Extends::Path(value.clone()),
-                _ => return Err(invalid("Invalid extends admission")),
+        let extension = self.extension(file);
+        let mut absolute_error = None;
+        let mut date_error = None;
+        let mut absolute =
+            |path: &[u16]| match self.call("absolute", vec![J::String(path.to_vec())]) {
+                Ok(V::Bool(value)) => value,
+                Ok(_) => {
+                    absolute_error = Some(invalid("Expected absolute path predicate"));
+                    false
+                }
+                Err(error) => {
+                    absolute_error = Some(error);
+                    false
+                }
             };
-            let format = match String::from_utf16_lossy(&string(&value, "format")?).as_str() {
-                "markdown" => document::Format::Markdown,
-                "yaml" => document::Format::Yaml,
-                "json" => document::Format::Json,
-                _ => return Err(invalid("Invalid admitted format")),
-            };
-            Ok(document::ParsedDocument {
-                yaml: yaml::Parsed {
-                    value: field(&value, "data")?.clone(),
-                    date_ids: vec![],
-                    symbol_ids: vec![],
-                },
-                extends,
-                format,
-                has_extends: boolean(&value, "hasExtendsField"),
-            })
+        let mut date_key = |epoch: i64| match self
+            .call("dateKey", vec![J::Number(epoch as f64)])
+            .and_then(text)
+        {
+            Ok(value) => value,
+            Err(error) => {
+                date_error = Some(error);
+                vec![]
+            }
         };
-        read().map_err(ResolutionError::Host)
+        let parsed = document::parse_document(
+            content,
+            &extension,
+            file,
+            &mut absolute,
+            Some(&mut date_key),
+        );
+        if let Some(error) = absolute_error.or(date_error) {
+            return Err(ResolutionError::Host(error));
+        }
+        let mut parsed = match parsed {
+            Ok(parsed) => parsed,
+            Err(error) => {
+                // Error-only admission preserves Node JSON diagnostics and frontmatter classes.
+                if let Err(error) = self.call(
+                    "parseError",
+                    vec![J::String(content.to_vec()), J::String(file.to_vec())],
+                ) {
+                    return Err(ResolutionError::Host(error));
+                }
+                return Err(ResolutionError::Policy(error.message));
+            }
+        };
+        let mut temporals = vec![];
+        let mut date_index = 0;
+        let mut symbol_index = 0;
+        let mut pending = vec![&mut parsed.yaml.value];
+        while let Some(value) = pending.pop() {
+            match value {
+                V::Date(date) => {
+                    let alias = parsed.yaml.date_ids.get(date_index).ok_or_else(|| {
+                        ResolutionError::Host(invalid("Missing admitted date identity"))
+                    })?;
+                    date_index += 1;
+                    let temporal = J::Array(vec![
+                        J::String(u("date")),
+                        J::Number(*alias as f64),
+                        J::Number(date.epoch_millis as f64),
+                    ]);
+                    *value = V::Unsupported(u(&temporals.len().to_string()));
+                    temporals.push(temporal);
+                }
+                V::Symbol(description) => {
+                    let alias = parsed.yaml.symbol_ids.get(symbol_index).ok_or_else(|| {
+                        ResolutionError::Host(invalid("Missing admitted symbol identity"))
+                    })?;
+                    symbol_index += 1;
+                    let temporal = J::Array(vec![
+                        J::String(u("symbol")),
+                        J::Number(*alias as f64),
+                        J::String(description.clone()),
+                    ]);
+                    *value = V::Unsupported(u(&temporals.len().to_string()));
+                    temporals.push(temporal);
+                }
+                V::Object(fields) => {
+                    pending.extend(fields.iter_mut().rev().map(|(_, value)| value))
+                }
+                V::Array(items) => pending.extend(items.iter_mut().rev()),
+                _ => {}
+            }
+        }
+        if !temporals.is_empty() {
+            let handles = self
+                .call("temporals", vec![J::Array(temporals)])
+                .map_err(ResolutionError::Host)?;
+            let V::Array(handles) = handles else {
+                return Err(ResolutionError::Host(invalid("Expected temporal handles")));
+            };
+            let mut pending = vec![&mut parsed.yaml.value];
+            while let Some(value) = pending.pop() {
+                match value {
+                    V::Unsupported(local) => {
+                        let local = String::from_utf16(local)
+                            .ok()
+                            .and_then(|value| value.parse::<usize>().ok())
+                            .and_then(|index| handles.get(index))
+                            .ok_or_else(|| {
+                                ResolutionError::Host(invalid("Invalid temporal handle index"))
+                            })?;
+                        *value = V::Unsupported(u(&id(local)
+                            .map_err(ResolutionError::Host)?
+                            .to_string()));
+                    }
+                    V::Object(fields) => {
+                        pending.extend(fields.iter_mut().rev().map(|(_, value)| value))
+                    }
+                    V::Array(items) => pending.extend(items.iter_mut().rev()),
+                    _ => {}
+                }
+            }
+        }
+        parsed.yaml.date_ids.clear();
+        parsed.yaml.symbol_ids.clear();
+        Ok(parsed)
     }
     fn render(
         &mut self,

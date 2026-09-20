@@ -2061,6 +2061,33 @@ frontmatter package's Rust/native/oracle/type routes and lint pass, with the
 these EOF diagnostics only; general YAML diagnostic/recovery parity remains open.
 Evidence: `out/rust-frontmatter-flow-pretty-*`.
 
+### Native resolver document admission optimization, 2026-09-20
+
+Removed full admitted-tree JS round trips from async resolution. Rust invokes
+its document parser directly, retains the owned tree, and registers temporal
+allocation metadata with Node in one call when needed. Date aliases remain
+identical within their document and host formatting still supplies date-valued
+keys. Error-only admission uses the existing own Node adapter to preserve JSON
+diagnostics and frontmatter classes. A failing native test blocked the former
+full-tree parse callback; it now passes with direct native admission and Date
+alias checks. Unresolved !!js/symbol tags retain the SDK's scalar string value.
+
+36 Rust groups,19 native groups, all117 actual SDK cases, strict types, package
+fmt/clippy and the11-workspace uncached build pass. New comparisons cover date
+keys, frontmatter error classes and exact JSON diagnostics. Packed direct
+admission and packed two4MiB workers pass with bare imports blocked; temporary
+packed assets are purged. Evidence is `out/rust-config-extends-direct-admission-*`.
+
+Fresh native fixture measurements improve resolver96.4–107.1us→65.3–72.8us and
+rooted prompt155.1–166.1us→108.5–118.0us. The earlier fresh SDK reference measured
+45.0–62.1us/94.8–101.0us, so speed remains below the SDK on these inputs. After4096
+additional cycles of each, RSS66.4→68.3MiB/heap4.63→4.65MiB. A separate524,288-cycle
+resolver run with GC/idle readings each65,536 cycles fluctuatesRSS52.8–70.2MiB,
+ending53.5MiB, while heap remains4.56–4.58MiB. This fixture shows no sustained RSS
+or heap growth across the sampled run; it is not a general leak-free guarantee.
+Document/base metadata accessors, full YAML fidelity, cross-platform packaging,
+remaining MCP applications and the complete poe-agent closure are still open.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

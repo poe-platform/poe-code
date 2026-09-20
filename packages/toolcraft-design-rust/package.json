@@ -1,0 +1,42 @@
+{
+  "name": "toolcraft-design-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Additive Rust template parsing, composition and rendering with zero npm runtime dependencies",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "mcp-protocol-rust": "*",
+    "toolcraft-design": "*",
+    "typescript": "5.9.3"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "toolcraft-design-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/toolcraft-design-rust"
+  }
+}

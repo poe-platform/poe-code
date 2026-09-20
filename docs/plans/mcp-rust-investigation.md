@@ -1383,6 +1383,43 @@ execution, factories, templates and the original root/testing exports remain
 outstanding, as does the full MCP/poe-agent closure. Existing application imports,
 defaults and release wiring remain intact. The overall goal is still active.
 
+The additive private `toolcraft-design-rust` now has its template foundation:
+UTF-16 token-arena parsing, partial discovery/composition, standalone indentation,
+sections/inverted sections, dotted own-property lookup with parent fallback,
+HTML/raw escaping, lambdas, yield substitution and optional variable validation.
+The core uses std only and accepts a caller-supplied environment. Token ownership,
+rendering, partial validation and expansion use explicit work stacks. Partial
+nesting remains bounded to 100 with explicit cycle diagnostics. Native callbacks
+keep arbitrary JavaScript values, lazy getters, receiver identity and array
+iterator overrides in the caller; host exceptions retain their identity.
+
+Validation: seven Rust groups, six native groups (including hundreds of generated
+layout/output/error cases), TypeScript declarations, fmt/clippy and the six-workspace
+uncached maintained build closure pass. Development comparisons use the actual
+original design template implementation. Iterator cleanup now matches for-of:
+child lookup errors close active iterators; iterator-next errors do not close the
+failing iterator. Unused partial getters are never read. Malformed-tag errors
+retain their name, description and UTF-16 line/column. Two separate 4 MiB workers
+each pass depth-512 rendering and 2048 repeated scope-render cycles. Extracted
+packed APIs pass with every bare runtime npm import rejected; there are no npm
+production/peer/optional dependencies.
+
+This callback boundary is conformance-oriented and currently slower than JS.
+Measured original/native median nanoseconds on Node 22.23.2/macOS ARM64:
+literal 509/1696, single name 985/3925, configuration template 3405/11203,
+256-item section 69547/1202090. This evidence makes a data-oriented binding path
+the next performance step; reducing per-lookup native/host crossings is required.
+Standalone Rust callers do not have that native callback overhead. In separate
+1280-cycle processes, final RSS is about 59.4/60.0 MB, retained heap 3.70/3.63 MB
+and external memory 1.40 MB either. Retaining 32 large section outputs adds about
+1.14/0.17 MB heap (JS ropes versus native flat strings); no general RSS reduction
+is claimed. Evidence is under `out/rust-design-template-*`.
+
+This does not complete toolcraft-design: colors, layouts, tables, interactive
+components and other design APIs remain outstanding. The original production
+design imports are intact, and config mutation execution has not been integrated
+with this package yet. The full MCP and poe-agent closure goal remains active.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -2,9 +2,7 @@ use mcp_protocol_rust::jsonrpc::Id;
 use napi::{ValueType, bindgen_prelude::*};
 use tiny_stdio_mcp_server_rust::headers::{HeaderValue, HeaderValues};
 
-#[path = "../../../mcp-protocol-rust/bindings/src/json_input.rs"]
-mod json_input;
-pub use json_input::{Mode, read};
+pub use mcp_protocol_rust_napi_core::json_input::{Mode, read};
 
 pub fn read_headers<'env>(env: &Env, source: Unknown<'env>) -> Result<Option<HeaderValues>> {
     if source.get_type()? == ValueType::Undefined {

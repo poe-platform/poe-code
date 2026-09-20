@@ -9,6 +9,7 @@ license = "MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
+mcp-protocol-rust-napi-core = { path = "../../mcp-protocol-rust/bindings/shared" }
 tiny-stdio-mcp-server-rust = { path = ".." }
 mcp-protocol-rust = { path = "../../mcp-protocol-rust" }
 napi = { version = "=3.12.6", default-features = false, features = ["napi6"] }

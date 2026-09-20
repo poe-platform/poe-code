@@ -53,6 +53,12 @@ writes, retains dry-run outcomes and requests host controls lazily; injected
 filesystem errors and observers retain their identities. Paths must start with
 `~` and remain inside the managed home before optional mapping.
 
+The Rust core also includes `atomic::AtomicMachine` for exclusive temporary
+writes, ten collision retries, rename and cleanup. It executes through injected
+platform requests and preserves host error tokens. Terminal states release owned
+buffers immediately. This is an internal foundation
+for the remaining handlers; it is not a new public npm API.
+
 Backup/restore, configuration/template execution, mutation factories and the
 original root/testing exports remain under development. It is not integrated into
 applications. JSON nesting is bounded to 512

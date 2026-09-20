@@ -1484,6 +1484,37 @@ are loaded in each memory process, so this measures operation deltas, not isolat
 package load size. No performance, lower-memory or universal leak-free claim is
 made. Evidence: out/rust-config-execution-*. The full goal remains incomplete.
 
+The configuration core now includes `atomic::AtomicMachine` and an internal native
+platform adapter for document/restore writes. Exclusive creation and rename,
+symlink walks, exactly ten collision retries, cleanup policy and host error-token
+propagation are owned in Rust. Write collisions preserve another writer's temp;
+rename collisions clean the created temp before retry. Other write/rename errors
+clean before rethrow, while cleanup failure retains the original host error.
+Target checks and temporary-path generation remain outside the retry boundary;
+collision-code getters are not read for those errors. UTF-16 diagnostics retain
+authored paths. Core ownership and traversal are iterative. No existing
+application uses this adapter, and it is not a public npm export yet; integrating
+backup/config/template/restore handlers remains outstanding.
+
+Validation: forty-seven Rust groups, thirty-four native groups, types,
+maintained lint and the uncached seven-workspace maintained build pass. Rust tests
+cover protocol sequencing and error tokens. Native tests use memfs for actual
+exclusive creation, rename, collision preservation, cleanup, error identity,
+symlink boundaries and lazy error-code getters. Success/failure/collision effect
+traces match the current SDK writer via its configMerge handler, with only
+nondeterministic temporary names normalized. Both 4 MiB workers pass depth512,
+2048 successful 32768-unit writes and128 failed-rename cleanup cycles. An initial
+microtask-only memory run exposed deferred-finalizer retention of Rust buffers:
+RSS reached96.9MB at1280 writes despite stable JS heap. Terminal states now release
+their owned payloads immediately, and file mutation states release path walks.
+At the same1280 writes RSS is54.4MB; an extended5120 writes ends56.2MB, then1024
+failed renames ends57.4MB, with4.12MB retained heap and1.76MB external. This fixes
+this implementation's buffer lifetime; it is not evidence of superiority over JS.
+Evidence is captured in out/rust-config-atomic-*; no relative performance,
+lower-memory or universal leak-free claim is made.
+The packed internal adapter passes with all external npm resolution blocked.
+The full goal remains active and incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

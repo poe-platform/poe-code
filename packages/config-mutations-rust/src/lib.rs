@@ -1,4 +1,5 @@
 //! Additive configuration mutation rewrite. Host I/O remains dependency-injected.
+pub mod atomic;
 pub mod execution;
 pub mod jsonc;
 pub mod temporal;

@@ -131,6 +131,7 @@ impl FileMachine {
     }
     fn done(&mut self, outcome: Outcome) -> Request {
         self.stage = Stage::Done;
+        self.write_walk = vec![];
         Request::Done(outcome)
     }
     fn effect(&mut self, request: Request, outcome: Outcome) -> Request {
@@ -152,6 +153,7 @@ impl FileMachine {
                 let mut message = error("Refusing mutation write through symbolic link: ");
                 message.extend_from_slice(&self.write_walk[self.link_index]);
                 self.stage = Stage::Done;
+                self.write_walk = vec![];
                 Err(message)
             }
             (Stage::Link, Response::Link(false) | Response::Missing) => {

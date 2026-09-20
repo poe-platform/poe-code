@@ -1,3 +1,4 @@
+import {writeWalk} from './path.js';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 const native=createRequire(import.meta.url)('./config-mutations-rust.node');
@@ -26,7 +27,7 @@ function pendingDetails(mutation,context,options){
   catch{return {kind:mutation.kind,label:mutation.label??label(mutation.kind,raw),targetPath:undefined};}
  }catch{return {kind:mutation.kind,label:mutation.label??mutation.kind};}
 }
-function writeWalk(target,home){const boundary=path.dirname(path.resolve(home)),walk=[];let current=path.resolve(target);while(current!==boundary){walk.push(current);const parent=path.dirname(current);if(parent===current)break;current=parent;}return walk;}
+
 async function applyFile(mutation,context,options){
  const targetPath=resolvePath(resolveTarget(mutation,options),context),details={kind:mutation.kind,label:mutation.label??label(mutation.kind,targetPath),targetPath};
  const machine=new native.ConfigFileMachine(mutation.kind,writeWalk(targetPath,context.homeDir));

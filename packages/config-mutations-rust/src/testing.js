@@ -1,9 +1,8 @@
 import path from 'node:path';
-import {createRequire} from 'node:module';
+import {native} from './native.js';
 import {jsonFormat} from './json.js';
 import {tomlFormat} from './toml.js';
 import {yamlFormat} from './yaml.js';
-const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 export const parseJson=jsonFormat.parse,serializeJson=jsonFormat.serialize,
  parseToml=tomlFormat.parse,serializeToml=tomlFormat.serialize,
  parseYaml=yamlFormat.parse,serializeYaml=yamlFormat.serialize;

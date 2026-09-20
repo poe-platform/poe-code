@@ -1739,6 +1739,25 @@ runs with bare npm resolution blocked; runtime dependency categories remain zero
 Evidence underout/rust-agent-defs-mcp-*. No performance/memory advantage claimed;
 the full MCP/poe-agent goal remains active and incomplete.
 
+Configuration native bridge conversion/registration now resides in the own
+config-mutations-rust-napi-core path crate; the original additive config addon
+reexports it. All private JS adapters load one central native module, so an own
+dependent addon can embed the same Rust bridge and redirect that one bootstrap
+without duplicating converters or shipping a second addon. napi-derive remains
+declared directly on the addon manifest for napi-rs CLI artifact generation.
+The maintained lint route also checks the shared bridge's format/clippy scope.
+No public SDK behavior, production imports, release wiring or runtime npm
+dependencies changed. This is the green/refactor phase against the existing
+failing-first SDK/binding tests, preparing own agent-mcp-config embedding.
+
+Validation: eighty-one Rust groups, sixty-four native groups, all260 current SDK
+cases, declarations, maintained lint including the shared bridge, eight-workspace
+uncached build and packed root/testing/template/config smoke with bare npm
+imports blocked pass. Native artifact generation actually compiles the new
+shared bridge; no skip-artifact warning appears. Evidence underout/rust-config-
+embed-*. Existing finite performance/memory/platform limitations remain. The full
+MCP/poe-agent goal remains active and incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -1,7 +1,6 @@
-import {createRequire} from 'node:module';
+import {native} from './native.js';
 import {writeWalk} from './path.js';
 import {writeAtomically} from './io.js';
-const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 function hasCode(error,code){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code===code;}
 export async function applyBackup(mutation,context,target,content){
  const machine=new native.ConfigBackupMachine(mutation.kind,target,mutation.kind==='backup'?writeWalk(target,context.homeDir):[],content);let request=machine.start(),pendingError;

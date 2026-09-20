@@ -9,11 +9,8 @@ license = "MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
-config-mutations-rust = { path = ".." }
-toolcraft-design-rust-napi-core = { path = "../../toolcraft-design-rust/bindings/shared" }
-mcp-protocol-rust = { path = "../../mcp-protocol-rust" }
-mcp-protocol-rust-napi-core = { path = "../../mcp-protocol-rust/bindings/shared" }
-napi = { version = "=3.12.6", default-features = false, features = ["napi6"] }
+config-mutations-rust-napi-core = { path = "shared" }
+# napi-rs CLI inspects the addon manifest for artifact/type generation.
 napi-derive = "=3.6.7"
 
 [build-dependencies]

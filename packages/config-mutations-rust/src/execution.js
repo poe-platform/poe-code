@@ -4,8 +4,7 @@ import {applyTemplate} from './template.js';
 import {applyBackup} from './backup.js';
 import {writeWalk} from './path.js';
 import path from 'node:path';
-import {createRequire} from 'node:module';
-const native=createRequire(import.meta.url)('./config-mutations-rust.node');
+import {native} from './native.js';
 function factories(specifications){return Object.fromEntries(specifications.map(({name,kind,fields})=>[name,options=>Object.fromEntries([['kind',kind],...fields.map(field=>[field,options[field]])])]));}
 const layouts=native.configMutationFactories(),knownKinds=new Set(Object.values(layouts).flatMap(group=>group.map(factory=>factory.kind)));
 export const fileMutation=factories(layouts.file);

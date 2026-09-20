@@ -1,7 +1,6 @@
-import {createRequire} from 'node:module';
+import {native} from './native.js';
 import {Snapshot} from './snapshot.js';
 import {setConfigEntry,merge,prune} from './object.js';
-const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 function graphSnapshot(root){
  const nodes=[],sources=new WeakMap();let anchor=0;
  function allocate(){const id=nodes.length;nodes.push({anchor:null});return id;}

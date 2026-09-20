@@ -1,7 +1,6 @@
-import {createRequire} from 'node:module';
+import {native} from './native.js';
 import {randomUUID} from 'node:crypto';
 import {writeWalk} from './path.js';
-const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 function hasCode(error,code){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code===code;}
 // Internal platform adapter for config/template/restore handlers. The core owns
 // retry and cleanup policy; temporaryPath is injected for deterministic tests.

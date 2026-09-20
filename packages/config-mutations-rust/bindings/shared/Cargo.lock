@@ -34,15 +34,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "config-mutations-rust-node"
-version = "0.1.0"
-dependencies = [
- "config-mutations-rust-napi-core",
- "napi-build",
- "napi-derive",
-]
-
-[[package]]
 name = "convert_case"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

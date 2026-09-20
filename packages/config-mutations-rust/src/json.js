@@ -1,6 +1,5 @@
-import {createRequire} from 'node:module';
+import {native} from './native.js';
 import {isConfigObject,hasConfigEntry,merge,prune} from './object.js';
-const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 export const detectIndent=native.configJsonIndent;
 export function modifyAtPath(content,path,value){
  const plan=native.configJsonPlan(content,path.slice(),value!==undefined);

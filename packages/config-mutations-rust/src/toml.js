@@ -1,8 +1,7 @@
-import {createRequire} from 'node:module';
+import {native} from './native.js';
 import {Snapshot} from './snapshot.js';
 import {TomlDate} from './temporal.js';
 import {setConfigEntry,merge,prune} from './object.js';
-const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 const depthError='Could not stringify the object: maximum object depth exceeded';
 function extendedTypeOf(value){if(typeof value==='object'){if(Array.isArray(value))return 'array';if(value instanceof Date)return 'date';}return typeof value;}
 function arrayOfTables(array){for(let i=0;i<array.length;i++)if(extendedTypeOf(array[i])!=='object')return false;return array.length!==0;}

@@ -39,6 +39,27 @@ resume, and intentionally has no Poe configure/unconfigure flow or ACP pretence.
 
 Codex read mode enables its Landlock compatibility sandbox on Linux, retaining read-only filesystem and restricted network enforcement without requiring bubblewrap to configure a loopback interface. This avoids `RTM_NEWADDR: Operation not permitted` on restricted hosts. It requires a Codex installation supporting `use_legacy_landlock` and a host supporting Landlock; unsupported sandbox policies still fail closed. Other platforms use their native Codex sandbox.
 
+If a separately launched Codex session fails before executing a command with
+`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`, the host rejected
+bubblewrap's network namespace initialization. Verify the compatibility path
+without an LLM request (syntax verified with Codex CLI 0.155.1):
+
+```bash
+codex -c 'sandbox_mode="read-only"' sandbox /bin/pwd
+codex --enable use_legacy_landlock -c 'sandbox_mode="read-only"' sandbox /bin/pwd
+```
+
+When the first command fails with the loopback error and the second prints your
+working directory, launch a new read-only session with
+`codex --enable use_legacy_landlock -s read-only`. Poe Code supplies these flags
+for `mode: "read"` automatically; changing its spawn configuration cannot change
+the sandbox of an already running or independently launched Codex session.
+If the compatibility command also fails, preserve its diagnostic and use a host
+that supports the required sandbox policy. The compatibility flag keeps sandbox
+enforcement enabled; it does not grant write or network access. See the
+[official OpenAI sandbox documentation](https://learn.chatgpt.com/docs/permissions#how-enforcement-works)
+for Linux compatibility requirements.
+
 Omitting `mode` uses the shared `auto` default. Mode-specific args and env vars are declared in each agent config. `auto` is optional per config: agents without a native auto/approval mode omit it, and requesting it fails before launch with the supported-mode list (`supportsSpawnMode(agentId, mode)` exposes the same check for static validation). Over ACP, auto mode answers `session/request_permission` with an explicit rejection so the agent adapts instead of ending the turn. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
 
 ## MCP at spawn time

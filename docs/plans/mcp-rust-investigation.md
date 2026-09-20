@@ -1906,6 +1906,25 @@ Initial missing-module and property-order failures and final green/lint logs are
 in `out/rust-config-extends-document-*` and `out/rust-config-extends-order-red.log`.
 Discovery, resolution, native bindings and full package acceptance remain open.
 
+### config-extends owned discovery and resolution, 2026-09-20
+
+Added Rust directory/extension-priority discovery with containment before reads
+and host error identity. Owned resolver classifies typed chain layers, resolves
+named/relative bases, detects cycles, caps extends depth at five, handles optional
+auto-extension, recursively loads Markdown partials in DFS order, composes prompts,
+renders optional owned template graphs through the own design core, and retains
+field/prompt provenance and document/partial chains. Paths and I/O are supplied
+by a host; cores retain zero external Rust dependencies. The host must classify
+own ENOENT separately and own ENOTDIR only for relative base reads.
+
+Validation: 26 Rust groups and fmt/clippy pass. An additional 64 generated
+resolver cases match the current SDK's results, errors and ordered filesystem
+reads; memory-only fixtures and stdin/stdout comparisons create no fixture files.
+Evidence: `out/rust-config-extends-{discover,resolve}-{red,green,lint}.log`.
+Rooted prompt-document resolution, native/foreign-graph adapters and performance
+acceptance are still incomplete. These are additive cores, not full acceptance
+of config-extends or the larger MCP/poe-agent rewrite.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -10,3 +10,4 @@ description = "Owned layered configuration and provenance composition"
 config-mutations-rust = { path = "../config-mutations-rust" }
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
 frontmatter-rust = { path = "../frontmatter-rust" }
+toolcraft-design-rust = { path = "../toolcraft-design-rust" }

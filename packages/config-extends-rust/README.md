@@ -30,8 +30,17 @@ path predicate; document parsing does not read files. The extension argument is
 the already normalized lowercase extension. YAML diagnostics use the own parser;
 JSON diagnostics and bounded parsing differ from Node's engine-specific messages.
 
+`discover::find_base` searches each configured directory in `.md`, `.yaml`,
+`.yml`, `.json` order. Its host validates containment before reading and reports
+missing reads separately from errors. `resolve::resolve` combines one document
+with overrides, fallback data and inherited bases, loads Markdown partials,
+composes prompts and renders an optional owned template graph. It records every
+document and partial in the returned chain and limits extends depth to five.
+Supply a `resolve::Host` for platform paths and in-memory or real filesystem I/O.
+Host errors are returned intact through `discover::Error::Host`.
+
 The core uses the standard library and own path crates. Merging and cloning use
 explicit work stacks with a depth bound of 1,000. This additive package currently
-provides the owned Rust merge/prompt/document core. Document resolution, filesystem
-adapters, JavaScript graph behavior and Node/Python bindings are still in
+provides owned merging, document resolution and templates. Rooted prompt-document
+resolution, filesystem adapters, JavaScript graph behavior and Node/Python bindings are still in
 progress; existing TypeScript packages and production imports are unchanged.

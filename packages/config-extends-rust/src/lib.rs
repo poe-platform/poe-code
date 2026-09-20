@@ -1,8 +1,11 @@
 //! Portable layered configuration and prompt composition policies.
+pub mod discover;
 pub mod document;
 pub mod prompt;
+pub mod resolve;
 use config_mutations_rust::value::Value;
 use std::collections::HashSet;
+#[derive(Clone, Debug)]
 pub struct Layer {
     pub source: Vec<u16>,
     pub data: Value,

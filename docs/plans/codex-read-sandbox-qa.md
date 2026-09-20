@@ -116,3 +116,30 @@ recovery diagnostic `59baca37f`. GitHub Release run `35514943296` succeeded,
 and the npm registry reports `poe-code@latest` as `17.0.27`. No additional runtime
 change is justified by this repeated report; this entry records the fresh
 verification and the boundary of the existing recovery.
+
+## Repeated occurrence (issue 142)
+
+Fresh verification on 2026-09-20 in this checkout with Codex CLI 0.155.1
+reproduced the loopback initialization error in both the default command executor
+and explicit read-only and workspace-write sandbox probes. The read-only Landlock
+probe printed the checkout path and read the Codex spawn configuration. Attempts
+to create a file under `/tmp` and an IPv4 stream socket both raised
+`PermissionError`. All 675 maintained agent-spawn tests and focused ESLint checks
+passed.
+
+The issue describes read-only commands, but the active session has a managed
+workspace-write permission profile. Read-only command text does not change that
+profile. The workspace-write Landlock probe explicitly refused it with
+`permission profiles requiring direct runtime enforcement are incompatible with
+--use-legacy-landlock`. This confirms the existing recovery boundary rather than
+an additional defect in Poe Code's launcher. New Poe Code read-mode launches
+already supply the compatibility flag; the API command executor's managed
+sandbox is initialized outside this repository and cannot be repaired by
+changing these spawn arguments.
+
+The [official OpenAI enforcement documentation](https://learn.chatgpt.com/docs/permissions#how-enforcement-works)
+confirms that restricted Linux hosts can require Landlock compatibility paths
+and that unsupported split policies are refused. Keep the enforcement refusal
+for workspace-write. Use a compatible host for that profile, or launch a new
+read-only session with the documented compatibility flags for read-only work.
+No additional runtime change is justified by this repeated report.

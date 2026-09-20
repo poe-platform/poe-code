@@ -2127,6 +2127,32 @@ Evidence is `out/rust-agent-hook-*`; the larger goal and24-hour requirement rema
 unfinished. The goal tool's blocked status still freezes its50,023-second effort
 counter; separately resumed coding has continued since2026-09-20 18:44:42 UTC.
 
+### Hook native transformation and file API subset — 2026-09-20
+
+Added a private independent `@poe-code/agent-hook-config-rust` npm workspace with
+one napi-rs addon, own snapshot transport and builtin path/filesystem adapters.
+The catalog, pairs, mappings, transformations and read/write APIs have compatible
+TypeScript declarations. Filesystem errors preserve original Node exception
+identity, own ENOENT/EEXIST classification, and builtin JSON SyntaxError causes.
+Drops preserve original source references. Additional red/green native coverage
+caught and fixed explicit null versus absent read matcher conversion.
+
+Validation:13 Rust groups,3 native groups, all75 existing SDK cases for the five
+implemented modules, strict bidirectional type assignability, fmt/clippy warnings
+denied, and the uncached maintained14-workspace build closure. Direct and packed
+imports succeed in4MiB workers with external imports blocked, each4096 transform
+and support calls. The packed manifest has no runtime/peer/optional dependencies
+and exactly one addon. Evidence: `out/rust-agent-hook-native-*`,
+`out/rust-agent-hook-read-null-red.log`, and `out/rust-agent-hook-worker-check.json`.
+
+Initial32-entry Node transform measurements:114.3–133.4µs native versus12.0–12.3µs
+SDK. The adapter is slower and has no performance acceptance claim. After262,144
+additional transforms, sampled RSS94.4→95.3MB and heap9.51→9.53MB with explicit GC;
+no sustained sampled growth after stabilization. This is bounded evidence only.
+Symlink/bridge/ownership cleanup, full malformed/accessor stages, cross-platform
+artifacts, the overall rewrite and minimum24-hour effort remain unfinished.
+
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

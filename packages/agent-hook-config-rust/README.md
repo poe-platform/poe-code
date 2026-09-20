@@ -43,7 +43,29 @@ Text uses UTF-16 to retain JavaScript source values, including lone surrogates.
 `Catalog::resolve_normalized` expects ECMAScript-trimmed lowercase lookup input;
 mapping and transformation functions resolve ordinary aliases case-insensitively.
 
-This additive package currently exposes the Rust core only. napi-rs/TypeScript
-bindings, symlink bridging, overlapping-run ownership and cleanup, Python adapters,
-full malformed-input fidelity and cross-platform packaging remain in progress.
-Existing applications continue to use the original TypeScript package.
+The independent Node workspace provides `getAgentConfig`, `resolveAgentSupport`,
+`supportedHookAgents`, `supportedTransformPairs`, `formatSupportedTransformPairs`,
+`isTransformSupported`, `resolveHookPath`, event/handler/placeholder rules,
+`transformHooks`, `readClaudeHooks`, and `writeCodexHooks`. The napi-rs addon and
+own host adapters have no npm runtime, peer or optional dependencies.
+
+```typescript
+import { transformHooks } from '@poe-code/agent-hook-config-rust';
+
+const result = transformHooks([
+  { event: 'PreToolUse', matcher: 'Bash', handler: {
+    type: 'command', command: '${CLAUDE_PROJECT_DIR}/check'
+  } }
+], 'claude', 'codex', { runId: 'check' });
+```
+
+Drop records retain the original source object. Read handlers retain unknown JSON
+fields, and missing and explicit null read matchers remain distinct. Transfer
+metadata is bounded at 128 levels and 262,144 values; filesystem documents use
+the own Rust parser. Development tests cross-check the existing SDK in memory.
+
+The initial Node transformation bridge is slower than the existing SDK for small
+hooks. It remains experimental. Symlink bridging, overlapping-run ownership and
+cleanup, Python adapters, getter-stage/malformed-input fidelity and cross-platform
+packaging remain in progress. Existing applications continue to use the original
+TypeScript package.

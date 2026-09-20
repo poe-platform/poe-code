@@ -1,0 +1,18 @@
+{
+  "name": "mcp-protocol-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dependency-free Rust JSON and MCP protocol primitives",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/cargo.mjs build",
+    "test:unit": "node scripts/cargo.mjs test",
+    "lint": "node scripts/cargo.mjs lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/mcp-protocol-rust"
+  }
+}

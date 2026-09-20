@@ -22,6 +22,13 @@ issues for invalid input. Set `validateToolArguments: false` to skip rejecting
 schema mismatches. Arguments must still be JSON objects. Failed schema compilation
 leaves an existing registration intact.
 
+Output schemas also compile at registration. Successful calls normalize their
+structured content and validate it in Rust; mismatches return JSON-RPC errors with
+schema issues. Explicit tool error results skip output validation. Each active
+invocation retains its original contract until its callback settles, including
+when a tool is replaced or removed. Legacy scalar/array schemas retain the existing
+text fallback and omit structured content; modern calls validate those schemas.
+
 Set `maxActiveRequests` to bound running requests across sessions (default: 128).
 Concurrent requests with the same ID in one session are rejected. A
 `notifications/cancelled` message aborts that request; callbacks that continue
@@ -57,6 +64,6 @@ budgets are 1 MiB each, with at most 128 pending messages. Set
 them. Caller-owned streams remain open when a connection completes.
 
 This is an additive implementation checkpoint. HTTP transports,
-output-schema enforcement, resources, prompts, subscriptions, and full result
+resources, prompts, subscriptions, and full result
 compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

@@ -55,14 +55,7 @@ export function createServer(options) {
               ...action.context,
               signal: directLegacy ? controller.signal : request.signal
             });
-            try {
-              return { result: native.normalizeResult(result, action.modern) };
-            } catch (error) {
-              if (error?.code === "InvalidMcpResult") {
-                return { error: { code: -32603, message: error.message } };
-              }
-              throw error;
-            }
+            return native.completeTool(result, action.modern, action.token);
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             if (error instanceof ToolError) {

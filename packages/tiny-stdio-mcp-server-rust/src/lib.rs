@@ -3,6 +3,7 @@ use mcp_protocol_rust::{
     json::Value,
     jsonrpc::{self, RpcError},
 };
+use std::sync::Arc;
 use toolcraft_schema_rust::CompiledSchema;
 
 pub mod content;
@@ -10,6 +11,7 @@ pub mod output;
 pub mod requests;
 mod schema;
 pub mod stdio;
+pub mod tool_result;
 pub mod wire;
 
 pub const MODERN_PROTOCOL_VERSION: &str = "2026-07-28";
@@ -40,6 +42,7 @@ struct RegisteredTool {
     descriptor: Value,
     handler: u64,
     input_validator: CompiledSchema,
+    output: Arc<tool_result::ToolOutput>,
 }
 
 pub struct Session {
@@ -117,6 +120,17 @@ impl Server {
         }) {
             return Err("inputSchema must have type object".into());
         }
+        let output_schema = definition.get("outputSchema").cloned();
+        if output_schema
+            .as_ref()
+            .is_some_and(|schema| !matches!(schema, Value::Object(_)))
+        {
+            return Err("outputSchema must be a JSON Schema object".into());
+        }
+        let output_validator = output_schema
+            .as_ref()
+            .map(|schema| CompiledSchema::compile(schema.clone(), Default::default()))
+            .transpose()?;
         let tool = RegisteredTool {
             name: name.clone(),
             input_validator: CompiledSchema::compile(
@@ -126,6 +140,10 @@ impl Server {
                     .clone(),
                 Default::default(),
             )?,
+            output: Arc::new(tool_result::ToolOutput {
+                schema: output_schema,
+                validator: output_validator,
+            }),
             descriptor: definition,
             handler,
         };
@@ -134,6 +152,13 @@ impl Server {
             None => self.tools.push(tool),
         }
         Ok(())
+    }
+
+    pub fn output_contract(&self, handler: u64) -> Option<Arc<tool_result::ToolOutput>> {
+        self.tools
+            .iter()
+            .find(|tool| tool.handler == handler)
+            .map(|tool| tool.output.clone())
     }
 
     pub fn remove_tool(&mut self, name: &[u16]) -> bool {

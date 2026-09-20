@@ -4,7 +4,7 @@ use mcp_protocol_rust::{
 };
 use napi::{Error, bindgen_prelude::*};
 use napi_derive::napi;
-use std::{cell::RefCell, collections::HashMap};
+use std::{cell::RefCell, collections::HashMap, sync::Arc};
 use tiny_stdio_mcp_server_rust::{Action, Server, ServerOptions, Session};
 use tiny_stdio_mcp_server_rust::{requests::RequestTracker, select_protocol};
 
@@ -47,6 +47,7 @@ struct ServerState {
     next_handler: u32,
     requests: RequestTracker,
     stdio: StdioOptions,
+    outputs: HashMap<u64, Arc<tiny_stdio_mcp_server_rust::tool_result::ToolOutput>>,
 }
 
 #[napi]
@@ -75,6 +76,7 @@ impl NativeServer {
                 sessions: HashMap::new(),
                 next_session: 0,
                 next_handler: 0,
+                outputs: HashMap::new(),
                 requests: RequestTracker::new(limit as usize).map_err(Error::from_reason)?,
                 stdio: StdioOptions {
                     max_line_bytes: capacity(
@@ -136,10 +138,71 @@ impl NativeServer {
 
     #[napi]
     pub fn finish_request(&self, token: f64) -> bool {
-        token.is_finite()
-            && token.fract() == 0.0
-            && (1.0..=9_007_199_254_740_991.0).contains(&token)
-            && self.state.borrow_mut().requests.finish(token as u64)
+        if !token.is_finite()
+            || token.fract() != 0.0
+            || !(1.0..=9_007_199_254_740_991.0).contains(&token)
+        {
+            return false;
+        }
+        let mut state = self.state.borrow_mut();
+        state.outputs.remove(&(token as u64));
+        state.requests.finish(token as u64)
+    }
+
+    #[napi(ts_return_type = "unknown")]
+    pub fn complete_tool(
+        &self,
+        env: Env,
+        source: Unknown<'_>,
+        modern: bool,
+        token: f64,
+    ) -> Result<NativeJson, String> {
+        use tiny_stdio_mcp_server_rust::tool_result::ResultError;
+        let value = input::read(&env, source, input::Mode::Tool)
+            .map_err(|error| Error::new("GenericFailure".to_owned(), error.reason))?;
+        if modern && value.as_ref().and_then(|value| value.get("resultType")).is_some_and(|value| matches!(value, Value::String(units) if units.iter().copied().eq("input_required".encode_utf16()))) {
+            return Ok(NativeJson(object([("error", rpc_error_value(RpcError { code: -32603, message: "Invalid MCP input_required result".into(), data: None }))])));
+        }
+        let output = self
+            .state
+            .borrow()
+            .outputs
+            .get(&(token as u64))
+            .cloned()
+            .ok_or_else(|| {
+                Error::new(
+                    "GenericFailure".to_owned(),
+                    "Tool invocation no longer active",
+                )
+            })?;
+        match output.normalize(value, modern) {
+            Ok(result) => {
+                let result = if modern {
+                    match self.state.borrow().server.decorate_result(result) {
+                        Ok(result) => result,
+                        Err(message) => {
+                            return Ok(NativeJson(object([(
+                                "error",
+                                rpc_error_value(RpcError {
+                                    code: -32603,
+                                    message,
+                                    data: None,
+                                }),
+                            )])));
+                        }
+                    }
+                } else {
+                    result
+                };
+                Ok(NativeJson(object([("result", result)])))
+            }
+            Err(ResultError::Rpc(error)) => {
+                Ok(NativeJson(object([("error", rpc_error_value(error))])))
+            }
+            Err(ResultError::Content(message)) => {
+                Err(Error::new("GenericFailure".to_owned(), message))
+            }
+        }
     }
 
     #[napi(ts_return_type = "unknown")]
@@ -274,6 +337,7 @@ impl ServerState {
                 server,
                 sessions,
                 requests,
+                outputs,
                 ..
             } = self;
             // A descriptor trap may have closed the session during conversion.
@@ -309,7 +373,14 @@ impl ServerState {
                 return Err(Error::from_reason("Native request identifier exhausted"));
             }
             let action = server.dispatch(session, method, params);
-            if !matches!(action, Action::Invoke { .. }) {
+            if let Action::Invoke { handler, .. } = &action {
+                outputs.insert(
+                    token,
+                    server
+                        .output_contract(*handler)
+                        .expect("admitted tool output contract"),
+                );
+            } else {
                 requests.finish(token);
             }
             (action, token)
@@ -329,19 +400,8 @@ impl ServerState {
 fn action_value(action: Action) -> Value {
     match action {
         Action::Reply(value) => object([("type", string("reply")), ("value", value)]),
-        Action::Error(RpcError {
-            code,
-            message,
-            data,
-        }) => {
-            let mut error = vec![
-                ("code".encode_utf16().collect(), Value::Number(code as f64)),
-                ("message".encode_utf16().collect(), string(&message)),
-            ];
-            if let Some(data) = data {
-                error.push(("data".encode_utf16().collect(), data));
-            }
-            object([("type", string("error")), ("value", Value::Object(error))])
+        Action::Error(error) => {
+            object([("type", string("error")), ("value", rpc_error_value(error))])
         }
         Action::NoReply => object([("type", string("none"))]),
         Action::Invoke {
@@ -355,6 +415,20 @@ fn action_value(action: Action) -> Value {
             ("context", context),
         ]),
     }
+}
+
+fn rpc_error_value(error: RpcError) -> Value {
+    let mut fields = vec![
+        (
+            "code".encode_utf16().collect(),
+            Value::Number(error.code as f64),
+        ),
+        ("message".encode_utf16().collect(), string(&error.message)),
+    ];
+    if let Some(data) = error.data {
+        fields.push(("data".encode_utf16().collect(), data));
+    }
+    Value::Object(fields)
 }
 
 fn string(value: &str) -> Value {

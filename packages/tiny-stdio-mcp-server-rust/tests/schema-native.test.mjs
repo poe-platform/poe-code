@@ -118,3 +118,81 @@ test("schema compilation is snapshotted and invalid replacements preserve existi
     -32602
   );
 });
+
+test("output normalization and validation match reference across legacy and modern schemas", async () => {
+  for (const modern of [false, true]) {
+    for (const outputSchema of [
+      {
+        type: "object",
+        properties: { value: { type: "integer", minimum: 1 } },
+        required: ["value"],
+        additionalProperties: false
+      },
+      { type: "string", pattern: "^a+$" },
+      { type: "array", items: { type: "integer" } },
+      {}
+    ]) {
+      for (const result of [
+        { value: 1 },
+        { value: 0 },
+        {},
+        "aaa",
+        "bad",
+        1,
+        null,
+        undefined,
+        [1, 2],
+        [1, "bad"],
+        { content: [], structuredContent: { value: 1 } },
+        { content: [{ type: "text", text: "custom" }], structuredContent: { value: 0 } },
+        { content: [], structuredContent: "aaa" },
+        { content: [{ type: "text", text: "failure" }], isError: true },
+        { content: [] },
+        { content: [{ type: "text" }] }
+      ]) {
+        const native = createServer({ name: "test", version: "0" }),
+          reference = referenceCreateServer({ name: "test", version: "0" });
+        for (const server of [native, reference]) {
+          server.registerTool(
+            { name: "check", inputSchema: { type: "object" }, outputSchema },
+            () => result
+          );
+          await server.handleMessage("initialize");
+        }
+        const params = { name: "check", ...(modern ? { _meta: metadata } : {}) };
+        assert.deepEqual(
+          await native.handleMessage("tools/call", params),
+          await reference.handleMessage("tools/call", params),
+          JSON.stringify({ modern, outputSchema, result })
+        );
+      }
+    }
+  }
+});
+
+test("in-flight calls retain their output contract after tool replacement or removal", async () => {
+  for (const remove of [false, true]) {
+    let release;
+    const native = createServer({ name: "test", version: "0" });
+    native.registerTool(
+      {
+        name: "check",
+        inputSchema: { type: "object" },
+        outputSchema: { type: "object", required: ["original"] }
+      },
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        })
+    );
+    await native.handleMessage("initialize");
+    const pending = native.handleMessage("tools/call", { name: "check" });
+    await Promise.resolve();
+    if (remove) native.removeTool("check");
+    else native.tool("check", "Replacement", { type: "object" }, () => "replacement");
+    release({});
+    const result = await pending;
+    assert.equal(result.error.code, -32603);
+    assert.match(result.error.message, /original/);
+  }
+});

@@ -15,15 +15,18 @@ remain in progress. The format foundation cross-checks canonical base64 padding
 bits and resource URI syntax/authorities against the TypeScript implementation.
 Complete Unicode IDNA mapping, contextual joining, combining marks, and bidi host
 rules remain an explicit conformance gap; the current host checks are not a full
-replacement for WHATWG URL processing. Content helper classes and output-schema
-normalization/validation also remain pending.
+replacement for WHATWG URL processing. Content helper classes remain pending.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument
 rejection is exposed with `validateToolArguments: false`; invalid JSON/object
 arguments remain rejected. Failed replacement compilation preserves the original
-registration. Output schema normalization/enforcement remains pending.
+registration. Output contracts compile at registration, normalize structured
+content, enforce successful output schemas, and retain per-invocation snapshots
+through replacement/removal. Legacy scalar/array schemas preserve text fallback
+and skip output validation; explicit error results bypass schema checks. Tests
+cross-check legacy/modern behavior and prove retained contracts survive changes.
 
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,

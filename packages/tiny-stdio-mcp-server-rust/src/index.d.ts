@@ -37,6 +37,7 @@ export interface ToolDefinition {
   name: string;
   description?: string;
   inputSchema: { type: "object"; [keyword: string]: unknown };
+  outputSchema?: Record<string, unknown>;
   [field: string]: unknown;
 }
 

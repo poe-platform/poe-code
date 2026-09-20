@@ -1872,6 +1872,24 @@ declarations, lint/shared lint, nine-workspace uncached build and packed root
 smoke with bare npm imports blocked pass. The build genuinely compiles the new
 shared bridge; evidence under `out/rust-frontmatter-embed-*.log`.
 
+## Owned configuration composition core
+
+Added the initial own `config-extends-rust` crate with portable merge and prompt
+composition cores. Merging owns first-layer priority, null deletion, undefined
+and empty-prompt inheritance, nested gap filling, array replacement/cloning and
+UTF-16 escaped provenance. Explicit work stacks admit depth1,000 and reject
+greater depth; a 4 MiB Rust thread checks both nested merging and array cloning
+at the boundary. Owned Rust trees cannot express object-reference cycles.
+Prompt composition owns higher/lower yield wrappers, consumed base indexes,
+first nonempty source, nonstring stop behavior and typed policy error messages.
+
+Validation: ten Rust groups and maintained fmt/clippy pass; 64 generated
+priority/null/array/provenance cases compare with the actual current SDK through
+in-memory stdin/stdout. Failing-first core/prompt logs and green/lint evidence
+reside under `out/rust-config-extends-*.log`. This is a Rust core phase, not the
+full package rewrite: document discovery/resolution, arbitrary JavaScript graph
+semantics, Node/Python adapters and performance/memory acceptance remain.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

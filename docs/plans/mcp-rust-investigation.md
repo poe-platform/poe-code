@@ -15,7 +15,7 @@ remain in progress. The format foundation cross-checks canonical base64 padding
 bits and resource URI syntax/authorities against the TypeScript implementation.
 Complete Unicode IDNA mapping, contextual joining, combining marks, and bidi host
 rules remain an explicit conformance gap; the current host checks are not a full
-replacement for WHATWG URL processing. Content helper classes remain pending.
+replacement for WHATWG URL processing. Remote content helpers remain pending.
 
 The JSON foundation now formats binary64 values with ECMAScript shortest notation,
 fixed/exponent boundaries and exact decimal midpoint ties using integer arithmetic.
@@ -59,6 +59,18 @@ permitted. Differential tests reproduce the prior missing helper, ignored output
 schema, duplicate replacement and whitespace rejection. In-flight contract tests
 now replace registrations via removal followed by registration, matching the
 reference public API. The package check expands to 326 native tests.
+
+Synchronous Image/Audio/File helpers now use own Rust media detection, MIME rules,
+base64 encoding/decoding and content construction. File UTF-8 decoding strips the
+leading BOM and replaces malformed sequences; text retains UTF-16 input verbatim.
+File byte inputs preserve live mutation semantics, while binary helpers snapshot
+inputs. Branded helpers convert in nested tool arrays without invoking overridden
+methods. Descriptor conversion preserves cycles, holes, accessors and serialization
+hooks for safe native rejection. Differential tests cover all eleven magic-byte
+signatures, every truncation, unaligned byte slices, MIME aliases, noncanonical
+helper base64 versus canonical protocol content, text/binary MIME families, byte
+mutation, 512 seeded base64 lengths and 4096 seeded malformed UTF-8 samples.
+Remote factories are still pending. The package checks expand to 333 native tests.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

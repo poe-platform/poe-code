@@ -82,6 +82,16 @@ explicit JSON-RPC error, preserving its code and optional data.
 Numeric text and JSON fallbacks use JavaScript's shortest number spelling,
 including exponent boundaries, subnormals, midpoint ties and negative zero.
 
+Create media with `Image.fromBytes(bytes, "png")`,
+`Audio.fromBase64(base64, "audio/wav")`, or `File.fromText("Hello")`.
+Return helpers directly or inside nested tool-result arrays, or call
+`toContentBlock()` for a plain MCP content object. Rust detects common media
+signatures, validates MIME aliases, encodes/decodes base64 and constructs content.
+File byte helpers decode text MIME types with UTF-8 replacement/BOM handling;
+binary MIME types produce blob resources. File byte inputs remain live until
+conversion, while image/audio helpers snapshot their input when created.
+Use `fileTypeFromBuffer(bytes)` to inspect a media signature without creating content.
+
 Modern requests validate client capabilities and retry responses against embedded
 normative MCP schemas using the independent Rust schema engine. Malformed retry
 fields are rejected before handlers run. `validateProtocolValue(definition, value)`
@@ -131,6 +141,6 @@ and closing or failing startup disposes the session. Notification send failures
 propagate to their caller. A canceled callback retains global request capacity
 until its underlying operation settles.
 
-This is an additive implementation checkpoint. HTTP transports, content helpers,
+This is an additive implementation checkpoint. HTTP transports, remote media helpers,
 and full result compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

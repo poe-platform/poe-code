@@ -1,6 +1,10 @@
 import {
   createServer,
   defineSchema,
+  Image,
+  Audio,
+  File,
+  fileTypeFromBuffer,
   parseUriTemplate,
   validateProtocolValue,
   type HandlerRequestContext
@@ -9,6 +13,11 @@ import { PassThrough } from "node:stream";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 
 const server = createServer({ name: "typed", version: "1", validateToolArguments: true });
+const imageType: "image" = Image.fromBytes(new Uint8Array(), "png").toContentBlock().type;
+const audioType: "audio" = Audio.fromBase64("", "audio/wav").toContentBlock().type;
+const resourceType: "resource" = File.fromText("Hello").toContentBlock().type;
+const detected: string | undefined = fileTypeFromBuffer(new Uint8Array())?.mime;
+void [imageType, audioType, resourceType, detected];
 server.tool("inferred", "Typed schema", defineSchema({
   name: { type: "string" }, count: { type: "integer", optional: true }
 }), args => {

@@ -13,6 +13,7 @@ use tiny_stdio_mcp_server_rust::{requests::RequestTracker, select_protocol};
 mod convert;
 use convert::NativeJson;
 mod input;
+pub mod media;
 mod stdio;
 mod uri_template;
 

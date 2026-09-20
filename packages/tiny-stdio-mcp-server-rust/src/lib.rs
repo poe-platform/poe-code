@@ -8,6 +8,7 @@ use toolcraft_schema_rust::CompiledSchema;
 
 pub mod content;
 pub mod features;
+pub mod media;
 pub mod notifications;
 pub mod output;
 pub mod protocol;

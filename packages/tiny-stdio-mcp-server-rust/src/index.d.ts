@@ -233,3 +233,52 @@ export interface UriTemplate {
   match(uri: string): Record<string, string> | null;
 }
 export declare function parseUriTemplate(source: string): UriTemplate;
+
+export interface FileTypeResult {
+  mime: string;
+  ext: string;
+}
+export declare function fileTypeFromBuffer(data: Uint8Array): FileTypeResult | undefined;
+export interface ImageContent {
+  type: "image";
+  data: string;
+  mimeType: string;
+}
+export interface AudioContent {
+  type: "audio";
+  data: string;
+  mimeType: string;
+}
+export interface TextResourceContents {
+  uri: string;
+  mimeType: string;
+  text: string;
+}
+export interface BlobResourceContents {
+  uri: string;
+  mimeType: string;
+  blob: string;
+}
+export interface EmbeddedResource {
+  type: "resource";
+  resource: TextResourceContents | BlobResourceContents;
+}
+export declare class Image {
+  private constructor();
+  static fromBytes(data: Uint8Array, format?: string): Image;
+  static fromBase64(base64: string, mimeType: string): Image;
+  toContentBlock(): ImageContent;
+}
+export declare class Audio {
+  private constructor();
+  static fromBytes(data: Uint8Array, format?: string): Audio;
+  static fromBase64(base64: string, mimeType: string): Audio;
+  toContentBlock(): AudioContent;
+}
+export declare class File {
+  private constructor();
+  static fromBytes(data: Uint8Array, mimeType: string): File;
+  static fromBase64(base64: string, mimeType: string): File;
+  static fromText(text: string, mimeType?: string): File;
+  toContentBlock(): EmbeddedResource;
+}

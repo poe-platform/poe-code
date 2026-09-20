@@ -228,14 +228,14 @@ test('restore aggregates combined-tab rejection and lease release failure', asyn
   assert.equal(item.release.mock.callCount(), 1);
 });
 
-test('restore accepts existing tabs within the combined limit and defers provider state and navigation', async () => {
+test('restore accepts existing tabs within the combined limit and defers provider state and explicit navigation', async () => {
   const item = host(1);
   const events: string[] = [];
   const runtimeState = { offline: true };
   const restore = mock.fn(async (_state: unknown, _signal: AbortSignal) => { events.push('restore'); });
   Object.assign(item.context, { browserProfile: { async capture() {}, restore } });
   const value = { ...profile, runtimeState, contextOptions: { locale: 'pl' }, configuration: { headless: false }, expiresAt: 100, idleTimeoutMs: 123 };
-  const restored: NonNullable<Awaited<ReturnType<PlaywrightSessionPersistence['restore']>>> = await restoreBrowserProfile({ ...item.options, profile: value, limits: { ...limits, maxTabs: 3 } });
+  const restored: NonNullable<Awaited<ReturnType<PlaywrightSessionPersistence['restore']>>> = await restoreBrowserProfile({ ...item.options, profile: value, limits: { ...limits, maxTabs: 3 }, tabRestoration: 'navigate' });
   assert.equal(item.pages.length, 3);
   assert.equal(restored.selectedPage, item.pages[2]);
   assert.equal(restored.expiresAt, value.expiresAt);
@@ -254,6 +254,46 @@ test('restore accepts existing tabs within the combined limit and defers provide
   assert.deepEqual(events, ['restore', ...profile.tabs]);
   assert.deepEqual(restore.mock.calls[0]!.arguments, [runtimeState, item.controller.signal]);
   assert.equal(item.release.mock.callCount(), 0);
+});
+
+test('cold restore after a lost navigation receipt never consumes a saved action again', async () => {
+  const action = 'https://synthetic.example/consume';
+  let requests = 0;
+  let effects = 0;
+  const consumed = host(2);
+  const page = consumed.pages[1]!;
+  page.goto = async url => {
+    if (url === action) { requests++; if (effects === 0) effects++; }
+  };
+  page.url = () => action;
+  await page.goto(action); // The effect completes; its navigation receipt is discarded.
+  const configuration = { headless: false, initScripts: ['globalThis.configured = true'] };
+  const runtimeState = { offline: true };
+  Object.assign(consumed.context, { browserProfile: { async capture() { return runtimeState; } } });
+  const saved = parseBrowserProfile(await checkpointBrowserProfile({
+    ...consumed.session, selectedPage: page, configuration, contextOptions: { locale: 'pl' },
+  }, limits, consumed.controller.signal), limits);
+  const cold = host(); // A replacement native runtime has no live pages or receipt.
+  const restore = mock.fn(async () => {});
+  Object.assign(cold.context, { browserProfile: { restore } });
+  cold.newPage.mock.mockImplementation(async () => {
+    const blank = { url: () => 'about:blank', goto: page.goto } as PlaywrightPage;
+    cold.pages.push(blank);
+    return blank;
+  });
+  const restored = await restoreBrowserProfile({ ...cold.options, profile: saved });
+  await restored.initialize!({ signal: cold.controller.signal });
+  assert.equal(requests, 1);
+  assert.equal(effects, 1);
+  assert.equal(cold.pages.length, 2);
+  assert.equal(restored.selectedPage, cold.pages[1]);
+  assert.deepEqual(cold.pages.map(page => page.url()), ['about:blank', 'about:blank']);
+  assert.deepEqual(restored.configuration, configuration);
+  assert.deepEqual(cold.acquire.mock.calls[0]!.arguments[0].contextOptions, { locale: 'pl', storageState: state });
+  assert.deepEqual(restore.mock.calls[0]!.arguments, [runtimeState, cold.controller.signal]);
+  assert.equal(cold.release.mock.callCount(), 0);
+  await restored.lease.release();
+  assert.equal(cold.release.mock.callCount(), 1);
 });
 
 test('restore preserves acquired cancellation and aggregates cleanup without allocating', async () => {

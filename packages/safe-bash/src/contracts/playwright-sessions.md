@@ -156,8 +156,12 @@ scripts. Adopt its result through `restoreSession`; the returned
 original live page explicit in subsequent inspection. The host can also supply
 that marker directly on `restoreSession`. This does not reattach the original
 provider session or restore its DOM, JavaScript heap, or outstanding operation.
-Legacy profile restoration still replays saved URLs and settings; select inert
-recovery explicitly after interruption. Both profile restoration modes return
+Ordinary profile restoration defaults to `tabRestoration: 'blank'`: it restores
+storage, configuration, provider settings, tab count, and selection without
+navigating saved URLs. Hosts may explicitly authorize `tabRestoration: 'navigate'`
+to replay saved URLs, which can repeat consumed login links or other actions.
+Select inert recovery after interruption when configuration and provider scripts
+must also be suppressed. Both profile restoration modes return
 `livePageStateLost: true`, so adopting a reconstructed profile cannot imply that
 the original live page survived. Recovery metadata has no guest CLI command.
 

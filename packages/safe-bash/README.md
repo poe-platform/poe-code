@@ -276,6 +276,12 @@ commands. With both work budgets set to 10,000, `while true; do :; done` reaches
 `maxCommands` first. Work budgets bound execution counts, not elapsed latency.
 Await execution settlement and shell disposal before closing backing storage,
 including after a caller timeout; cancellation is cooperative.
+
+Portable browser profiles restore blank tabs by default, preserving storage,
+settings, tab count, and selection. Only pass `tabRestoration: 'navigate'` to
+`restoreBrowserProfile` when replaying saved URLs is authorized; action URLs can
+repeat effects. Use `recovery: true` to also suppress configuration and provider scripts.
+
 For Cloudflare Workers, start with the exported `cloudflareWorkerLimits` profile
 and configure command-family buffers at no more than 8 MiB. Create a separate
 `Shell`, environment object, and quota-wrapped filesystem view for each tenant or

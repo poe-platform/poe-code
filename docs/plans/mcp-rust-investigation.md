@@ -1644,6 +1644,28 @@ Both modules are loaded in each process; no speed or lower-memory advantage,
 universal stability or leak-free claim follows. Evidence underout/rust-config-
 template-*. The full MCP/poe-agent goal remains active and incomplete.
 
+The config-mutations-rust root now exposes every runtime symbol from the actual
+original SDK, including all mutation families, runner, raw render helper,
+isConfigObject, filesystem read/existence helpers, own-code ENOENT classification
+and safe timestamps. Node handles foreign error/property/Date and injected fs
+behavior; own Rust safe_timestamp is shared by backup naming and the public
+timestamp bridge. The root types are assignable to typeof the original SDK in
+strict TypeScript. Unknown mutation kinds now preserve the SDK's default pending
+details/error and never read an unsupported target getter, validated by a
+failing-first test. Export/main/types metadata is additive; no production imports
+or release changes. Testing export remains outstanding.
+
+Validation: seventy-six Rust groups, sixty native groups, declarations including
+whole-root SDK assignability, maintained fmt/clippy and eight-workspace uncached
+maintained build pass. New tests cover root symbol equality, actual Date admission
+without a patched global clock, raw render behavior, own/inherited/function error
+codes, code getter exceptions, read/stat receiver/error identity, extended-year
+host clock formatting and unknown observer details. Packed root/config/template
+APIs pass with bare npm resolution blocked; all dependency categories remain
+empty at runtime. Evidence underout/rust-config-public-*. Prior finite workload
+and memory limits still apply; no general performance/memory/stability advantage
+is claimed. The full MCP/poe-agent goal remains active and incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

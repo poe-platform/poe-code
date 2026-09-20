@@ -4,10 +4,10 @@ import {tomlFormat} from './toml.js';
 import {yamlFormat} from './yaml.js';
 import {isConfigObject,mergeWithPruneByPrefix} from './object.js';
 import {writeAtomically} from './io.js';
+import {isNotFound} from './fs-utils.js';
 import {applyBackup} from './backup.js';
 const native=createRequire(import.meta.url)('./config-mutations-rust.node'),formats={json:jsonFormat,toml:tomlFormat,yaml:yamlFormat};
 function resolveValue(value,options){return typeof value==='function'?value(options):value;}
-function isNotFound(error){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code==='ENOENT';}
 // Foreign documents stay in one interpreter for the complete operation. Rust
 // owns request order and outcomes, including the separate template merge policy.
 export function configRequests(mutation,context,options,raw,target,initial={}){

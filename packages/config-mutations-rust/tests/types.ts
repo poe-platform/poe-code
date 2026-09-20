@@ -22,3 +22,10 @@ runMutations([configMutation.merge({target:'~/config.json',value:{enabled:true}}
 
 import {templateMutation} from '../dist/execution.js';
 runMutations([templateMutation.write({target:'~/config',templateId:'agent',context:ctx=>({name:String(ctx.name)})}),templateMutation.mergeJson({target:'~/config.json',templateId:'agent'}),templateMutation.mergeToml({target:'~/config.toml',templateId:'agent'})],{fs,homeDir:'/home/test',templates:async id=>id});
+
+const rootApi:typeof import('../../config-mutations/dist/index.js')=await import('../dist/index.js');
+rootApi.renderTemplate('{{name}}',{name:'<K>'});
+const read:Promise<string|null>=rootApi.readFileIfExists(fs,'~/config');
+const exists:Promise<boolean>=rootApi.pathExists(fs,'~/config');
+const timestamp:string=rootApi.createTimestamp();
+void read;void exists;void timestamp;

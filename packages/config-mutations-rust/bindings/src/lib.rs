@@ -222,3 +222,7 @@ mod config;
 pub use config::config_select_format;
 mod template;
 pub use toolcraft_design_rust_napi_core::*;
+#[napi]
+pub fn config_safe_timestamp(iso: Utf16String) -> Utf16String {
+    config_mutations_rust::backup::safe_timestamp(&iso).into()
+}

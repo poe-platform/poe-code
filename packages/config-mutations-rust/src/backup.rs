@@ -1,6 +1,11 @@
 //! Backup/restore policy with lazy controls and injected filesystem/calendar effects.
 pub use crate::atomic::WriteError;
 use crate::execution::Outcome;
+pub fn safe_timestamp(iso: &[u16]) -> Vec<u16> {
+    iso.iter()
+        .map(|unit| if matches!(unit, 58 | 46) { 45 } else { *unit })
+        .collect()
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
     Backup,
@@ -417,11 +422,7 @@ impl BackupMachine {
                 } else {
                     ".backup-"
                 }));
-                self.base_backup.extend(
-                    timestamp
-                        .into_iter()
-                        .map(|c| if matches!(c, 58 | 46) { 45 } else { c }),
-                );
+                self.base_backup.extend(safe_timestamp(&timestamp));
                 if self.kind == Kind::Invalid {
                     self.base_backup.push(46);
                     let extension = self

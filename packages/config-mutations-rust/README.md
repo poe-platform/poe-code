@@ -17,7 +17,7 @@ import {yamlFormat} from '@poe-code/config-mutations-rust/yaml';
 const settings=yamlFormat.parse('extensions:\n  terminal:\n    enabled: true\n');
 const yaml=yamlFormat.serialize(settings);
 
-import {runMutations,fileMutation,configMutation,templateMutation} from '@poe-code/config-mutations-rust/execution';
+import {runMutations,fileMutation,configMutation,templateMutation} from '@poe-code/config-mutations-rust';
 const result=await runMutations([
   fileMutation.ensureDirectory({path:'~/.agent'}),
   {kind:'chmod',target:'~/.agent',mode:0o700},
@@ -98,7 +98,10 @@ platform requests and preserves host error tokens. Terminal states release owned
 buffers immediately. This is an internal foundation
 for the remaining handlers; it is not a new public npm API.
 
-The original root/testing exports remain under development. It is not integrated into
+The root SDK also exposes raw `renderTemplate`, filesystem read/existence helpers,
+`isConfigObject`, `isNotFound` and filename-safe timestamps. Filesystem helpers
+remain host adapters over your injected filesystem; own Rust formats timestamps.
+The original testing export remains under development. It is not integrated into
 applications. JSON nesting is bounded to 512
 levels; malformed edit input
 is rejected rather than recovered by the development oracle's tolerant editor.

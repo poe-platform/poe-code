@@ -4,8 +4,8 @@ import {jsonFormat} from './json.js';
 import {tomlFormat} from './toml.js';
 import {configRequests} from './config.js';
 import {writeAtomically} from './io.js';
+import {isNotFound} from './fs-utils.js';
 const native=createRequire(import.meta.url)('./config-mutations-rust.node'),engine=createTemplateEngine(native);
-function isNotFound(error){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code==='ENOENT';}
 /** Configuration-facing templates deliberately disable HTML escaping. */
 export function renderTemplate(template,variables){return engine.renderTemplate(template,variables,{escape:'none'});}
 export async function applyTemplate(mutation,context,options,prepareTarget){

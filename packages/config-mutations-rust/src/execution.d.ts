@@ -1,4 +1,4 @@
-import type {ConfigObject} from './index.js';
+import type {ConfigObject,PathMapper} from './index.js';
 export type ValueResolver<T>=T|((options:MutationOptions)=>T);
 export interface MutationOptions{[key:string]:unknown;}
 export interface FileSystem{
@@ -14,7 +14,7 @@ export interface FileSystem{
  chmod?(path:string,mode:number):Promise<void>;
 }
 export interface MutationDetails{kind:string;label:string;targetPath?:string;}
-export interface MutationOutcome{changed:boolean;effect:'none'|'mkdir'|'delete'|'chmod'|'copy'|'write';detail:'create'|'update'|'delete'|'noop'|'backup'|'restore';}
+export interface MutationOutcome{changed:boolean;effect:'none'|'mkdir'|'delete'|'chmod'|'copy'|'write';detail?:'create'|'update'|'delete'|'noop'|'backup'|'restore';}
 export interface MutationObservers{
  onStart?(details:MutationDetails):void;
  onComplete?(details:MutationDetails,outcome:MutationOutcome):void;
@@ -26,7 +26,7 @@ export interface MutationContext{
  dryRun?:boolean;
  observers?:MutationObservers;
  templates?:TemplateLoader;
- pathMapper?:{mapTargetDirectory(input:{targetDirectory:string}):string};
+ pathMapper?:PathMapper;
 }
 interface BaseMutation{label?:string;}
 export interface EnsureDirectoryMutation extends BaseMutation{kind:'ensureDirectory';path:ValueResolver<string>;}

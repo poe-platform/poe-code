@@ -6,6 +6,10 @@
   "type": "module",
   "license": "MIT",
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./json": {
       "types": "./dist/json.d.ts",
       "import": "./dist/json.js"
@@ -54,5 +58,7 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/config-mutations-rust"
-  }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
 }

@@ -1694,6 +1694,29 @@ No general performance/memory/stability advantage or leak-free guarantee.
 Evidence underout/rust-config-testing-*. The full MCP/poe-agent goal is active
 and incomplete; codec metadata/edge conformance and platform acceptance remain.
 
+The maintained config Rust unit route now cross-runs every current original
+config-mutations/fs-utils unit case against own Rust-backed APIs through a
+development-only Vitest resolve mapping. The original source/tests are unchanged;
+no original implementations execute as the mapped handlers/codecs/mock helpers.
+The mapping is restricted to the two actual current SDK test importers, so
+normal production resolution is untouched. Vitest stays dev-only, uses no cache,
+one fork and a2-second case timeout. Internal format registry/get/detect behavior
+now also has own Rust selectors and a stable host codec registry, including
+unsupported-empty error distinction versus mutation's cannot-detect admission.
+Private format adapters do not expand the package's public export set.
+
+Validation: eighty-one Rust groups, sixty-four native groups and all260 current
+SDK unit cases pass, plus strict root/testing SDK type assignability, maintained
+fmt/clippy and eight-workspace uncached maintained build. The failing-first SDK
+run proves original tests resolve the missing own format module before the new
+implementation; its three fs utility cases already ran against own helpers.
+Packed whole root/testing/template/config APIs still pass with bare npm imports
+blocked; no production/peer/optional dependencies added. Evidence underout/rust-
+config-full-*. This is concrete current-suite conformance, not proof of every
+codec/SDK edge or native platform parity. Prior intentional documented parser/
+editor divergences and finite memory/performance limits remain. Full MCP and
+poe-agent closure work remains active and incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -44,16 +44,19 @@ pub fn select_format(raw: &[u16], explicit: Option<&[u16]>) -> Result<Format, Ve
         message.extend(u("\". Provide explicit format option."));
         return Err(message);
     };
+    get_format(&selected)
+}
+pub fn get_format(selected: &[u16]) -> Result<Format, Vec<u16>> {
     for format in [Format::Json, Format::Toml, Format::Yaml] {
         if selected == u(format.name()) {
             return Ok(format);
         }
     }
-    if let Some(format) = detect_format(&selected) {
+    if let Some(format) = detect_format(selected) {
         return Ok(format);
     }
     let mut message = u("Unsupported config format. Cannot detect format from \"");
-    message.extend(selected);
+    message.extend_from_slice(selected);
     message.extend(u("\". Supported extensions: .json, .toml, .yaml, .yml. Supported format names: json, toml, yaml."));
     Err(message)
 }

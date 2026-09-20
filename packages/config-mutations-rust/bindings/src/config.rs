@@ -112,6 +112,17 @@ pub fn config_select_format(raw: Utf16String, explicit: Option<Utf16String>) -> 
         },
     )
 }
+#[napi]
+pub fn config_detect_format(path: Utf16String) -> Option<String> {
+    config::detect_format(&path).map(|format| format.name().to_owned())
+}
+#[napi]
+pub fn config_get_format(name: Utf16String) -> NativeJson {
+    NativeJson(match config::get_format(&name) {
+        Ok(format) => super::object(vec![("format", s(format.name()))]),
+        Err(error) => super::object(vec![("error", Value::String(error))]),
+    })
+}
 
 pub(super) fn response_value(response: NativeConfigResponse) -> Result<Response> {
     Ok(match response.kind.as_str() {

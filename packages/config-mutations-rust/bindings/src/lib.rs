@@ -220,6 +220,7 @@ mod execution;
 pub use execution::config_mutation_factories;
 mod config;
 pub use config::config_select_format;
+pub use config::{config_detect_format, config_get_format};
 mod template;
 pub use toolcraft_design_rust_napi_core::*;
 #[napi]

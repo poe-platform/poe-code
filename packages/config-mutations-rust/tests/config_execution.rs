@@ -28,6 +28,28 @@ fn format_detection_matches_extension_and_override_contract() {
         Format::Toml
     );
 }
+
+#[test]
+fn format_registry_admits_names_and_paths_but_keeps_unsupported_empty_errors() {
+    use config_mutations_rust::config::get_format;
+    for (name, format) in [
+        ("json", Format::Json),
+        ("file.JSON", Format::Json),
+        ("toml", Format::Toml),
+        ("file.YML", Format::Yaml),
+    ] {
+        assert_eq!(get_format(&u(name)), Ok(format));
+    }
+    for name in ["", "constructor", "toString", "unknown"] {
+        let message = get_format(&u(name)).unwrap_err();
+        assert_eq!(
+            String::from_utf16(&message).unwrap(),
+            format!(
+                "Unsupported config format. Cannot detect format from \"{name}\". Supported extensions: .json, .toml, .yaml, .yml. Supported format names: json, toml, yaml."
+            )
+        );
+    }
+}
 #[test]
 fn missing_prune_stops_before_format_guard_and_shape() {
     let mut m = m(Kind::Prune);

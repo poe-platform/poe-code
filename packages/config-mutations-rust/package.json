@@ -33,7 +33,7 @@
   },
   "scripts": {
     "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json && vitest run --config vitest.sdk.config.mjs",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -45,7 +45,8 @@
     "yaml": "^2.9.0",
     "memfs": "4.56.10",
     "@poe-code/config-mutations": "*",
-    "toolcraft-design-rust": "*"
+    "toolcraft-design-rust": "*",
+    "vitest": "4.1.11"
   },
   "files": [
     "dist",

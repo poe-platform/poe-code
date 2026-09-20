@@ -333,7 +333,8 @@
     "oxlint": "1.83.0",
     "safe-bash-contracts": "*",
     "safe-bash-command-wkhtmltopdf": "*",
-    "safe-bash-command-exiftool": "*"
+    "safe-bash-command-exiftool": "*",
+    "safe-bash-command-fmt": "*"
   },
   "repository": {
     "type": "git",

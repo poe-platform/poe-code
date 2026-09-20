@@ -145,6 +145,7 @@ export default defineConfig({
       "packages/op/src/*.test.ts",
       "packages/safe-bash-command-wkhtmltopdf/src/*.test.ts",
       "packages/safe-bash-command-exiftool/src/*.test.ts",
+      "packages/safe-bash-command-fmt/src/*.test.ts",
       "packages/safe-bash-contracts/src/*.test.ts",
       "scripts/**/*.lifecycle.test.ts",
       // Share the package's temporary quarantine with root/shared unit runs.

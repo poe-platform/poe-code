@@ -1,3 +1,4 @@
+import "./safe-packages-fmt-types.mjs";
 import "./safe-packages-portable-search-types.mjs";
 import { agentCommands, createAgentCommands, createBoundedRegexProvider, createZipCommand, createUnzipCommand, type AgentCommandsOptions, type ArchiveCommandsOptions, type CsplitCommandsOptions } from "@poe-platform/safe-bash";
 import { createCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";

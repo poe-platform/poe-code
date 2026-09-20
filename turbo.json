@@ -146,6 +146,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-fmt#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

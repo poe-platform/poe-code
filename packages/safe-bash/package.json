@@ -370,6 +370,10 @@
     "./commands/exiftool": {
       "types": "./dist/commands/exiftool/index.d.ts",
       "import": "./dist/commands/exiftool/index.js"
+    },
+    "./commands/fmt": {
+      "types": "./dist/commands/fmt/index.d.ts",
+      "import": "./dist/commands/fmt/index.js"
     }
   },
   "files": [
@@ -459,7 +463,8 @@
     "safe-bash-contracts": "*",
     "safe-bash-command-wkhtmltopdf": "*",
     "safe-bash-command-exiftool": "*",
-    "@poe-code/package-lint": "*"
+    "@poe-code/package-lint": "*",
+    "safe-bash-command-fmt": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -537,6 +542,14 @@
           }
         },
         "safe-bash-command-exiftool": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-fmt": {
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {

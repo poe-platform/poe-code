@@ -1,3 +1,4 @@
+import "./safe-packages-fmt.mjs";
 import assert from "node:assert/strict";
 import "./safe-packages-atomic.mjs";
 import "./safe-packages-mkdir.mjs";

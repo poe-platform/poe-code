@@ -22,7 +22,7 @@ tasks:
 
       Executed MAXWORDS qualification:144 additional released fmt9.10/LC_ALL=C controls: word counts996,997,998,999,1000,1001,1002,1003,1004,1998,1999,2000 crossed widths7/17/20/75 and recipes all-a, alternating a/bb, cyclic a/bb./c; words separated by singleASCIIspace, terminalLF. All144 return0/emptystderr. Width17 all-a: N996 has111 lines beginning8,8,8 words and ending nine-word lines; N997 starts8,8,9; N998 starts8,9,9. At N999 bounded-window flush creates112 lines beginning8,9,9 and ending8,2; N1000 ends8,3, N1001 ends8,4, through N1004 ends8,7. N1998..2000 has223 lines with final sequence8,8,4/5/6. These observed discontinuities qualify the actual flush boundary and retained suffix behavior, not a whole-paragraph DP equivalence. Preserve exact input recipes and byte comparisons; line-word counts are supplemental summaries, not replacement byte evidence. Prefix/crown/tagged/tab/punctuation/tie/window combinations outside this matrix remain open.
     status:
-      implement: open
+      implement: done
   - id: engine-fmt
     title: Implement fmt parsing and engine contracts
     prompt: |
@@ -41,9 +41,9 @@ tasks:
 
       Executed MAXWORDS qualification:144 additional released fmt9.10/LC_ALL=C controls: word counts996,997,998,999,1000,1001,1002,1003,1004,1998,1999,2000 crossed widths7/17/20/75 and recipes all-a, alternating a/bb, cyclic a/bb./c; words separated by singleASCIIspace, terminalLF. All144 return0/emptystderr. Width17 all-a: N996 has111 lines beginning8,8,8 words and ending nine-word lines; N997 starts8,8,9; N998 starts8,9,9. At N999 bounded-window flush creates112 lines beginning8,9,9 and ending8,2; N1000 ends8,3, N1001 ends8,4, through N1004 ends8,7. N1998..2000 has223 lines with final sequence8,8,4/5/6. These observed discontinuities qualify the actual flush boundary and retained suffix behavior, not a whole-paragraph DP equivalence. Preserve exact input recipes and byte comparisons; line-word counts are supplemental summaries, not replacement byte evidence. Prefix/crown/tagged/tab/punctuation/tie/window combinations outside this matrix remain open.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
   - id: behavior-fmt
     title: Implement fmt intended behavior
     prompt: |
@@ -62,9 +62,9 @@ tasks:
 
       Executed MAXWORDS qualification:144 additional released fmt9.10/LC_ALL=C controls: word counts996,997,998,999,1000,1001,1002,1003,1004,1998,1999,2000 crossed widths7/17/20/75 and recipes all-a, alternating a/bb, cyclic a/bb./c; words separated by singleASCIIspace, terminalLF. All144 return0/emptystderr. Width17 all-a: N996 has111 lines beginning8,8,8 words and ending nine-word lines; N997 starts8,8,9; N998 starts8,9,9. At N999 bounded-window flush creates112 lines beginning8,9,9 and ending8,2; N1000 ends8,3, N1001 ends8,4, through N1004 ends8,7. N1998..2000 has223 lines with final sequence8,8,4/5/6. These observed discontinuities qualify the actual flush boundary and retained suffix behavior, not a whole-paragraph DP equivalence. Preserve exact input recipes and byte comparisons; line-word counts are supplemental summaries, not replacement byte evidence. Prefix/crown/tagged/tab/punctuation/tie/window combinations outside this matrix remain open.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
   - id: command-fmt
     title: Wire fmt CLI SDK and safe-bash export
     prompt: |
@@ -83,9 +83,9 @@ tasks:
 
       Executed MAXWORDS qualification:144 additional released fmt9.10/LC_ALL=C controls: word counts996,997,998,999,1000,1001,1002,1003,1004,1998,1999,2000 crossed widths7/17/20/75 and recipes all-a, alternating a/bb, cyclic a/bb./c; words separated by singleASCIIspace, terminalLF. All144 return0/emptystderr. Width17 all-a: N996 has111 lines beginning8,8,8 words and ending nine-word lines; N997 starts8,8,9; N998 starts8,9,9. At N999 bounded-window flush creates112 lines beginning8,9,9 and ending8,2; N1000 ends8,3, N1001 ends8,4, through N1004 ends8,7. N1998..2000 has223 lines with final sequence8,8,4/5/6. These observed discontinuities qualify the actual flush boundary and retained suffix behavior, not a whole-paragraph DP equivalence. Preserve exact input recipes and byte comparisons; line-word counts are supplemental summaries, not replacement byte evidence. Prefix/crown/tagged/tab/punctuation/tie/window combinations outside this matrix remain open.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
   - id: safety-fmt
     title: Verify fmt VFS resource and failure boundaries
     prompt: |
@@ -104,7 +104,7 @@ tasks:
 
       Executed MAXWORDS qualification:144 additional released fmt9.10/LC_ALL=C controls: word counts996,997,998,999,1000,1001,1002,1003,1004,1998,1999,2000 crossed widths7/17/20/75 and recipes all-a, alternating a/bb, cyclic a/bb./c; words separated by singleASCIIspace, terminalLF. All144 return0/emptystderr. Width17 all-a: N996 has111 lines beginning8,8,8 words and ending nine-word lines; N997 starts8,8,9; N998 starts8,9,9. At N999 bounded-window flush creates112 lines beginning8,9,9 and ending8,2; N1000 ends8,3, N1001 ends8,4, through N1004 ends8,7. N1998..2000 has223 lines with final sequence8,8,4/5/6. These observed discontinuities qualify the actual flush boundary and retained suffix behavior, not a whole-paragraph DP equivalence. Preserve exact input recipes and byte comparisons; line-word counts are supplemental summaries, not replacement byte evidence. Prefix/crown/tagged/tab/punctuation/tie/window combinations outside this matrix remain open.
     status:
-      test: open
+      test: done
   - id: compatibility-fmt
     title: Qualify fmt against independent controls
     prompt: |
@@ -123,7 +123,7 @@ tasks:
 
       Executed MAXWORDS qualification:144 additional released fmt9.10/LC_ALL=C controls: word counts996,997,998,999,1000,1001,1002,1003,1004,1998,1999,2000 crossed widths7/17/20/75 and recipes all-a, alternating a/bb, cyclic a/bb./c; words separated by singleASCIIspace, terminalLF. All144 return0/emptystderr. Width17 all-a: N996 has111 lines beginning8,8,8 words and ending nine-word lines; N997 starts8,8,9; N998 starts8,9,9. At N999 bounded-window flush creates112 lines beginning8,9,9 and ending8,2; N1000 ends8,3, N1001 ends8,4, through N1004 ends8,7. N1998..2000 has223 lines with final sequence8,8,4/5/6. These observed discontinuities qualify the actual flush boundary and retained suffix behavior, not a whole-paragraph DP equivalence. Preserve exact input recipes and byte comparisons; line-word counts are supplemental summaries, not replacement byte evidence. Prefix/crown/tagged/tab/punctuation/tie/window combinations outside this matrix remain open.
     status:
-      test: open
+      test: done
   - id: ship-fmt
     title: Verify packed exports and document fmt capabilities
     prompt: |
@@ -142,9 +142,12 @@ tasks:
 
       Executed MAXWORDS qualification:144 additional released fmt9.10/LC_ALL=C controls: word counts996,997,998,999,1000,1001,1002,1003,1004,1998,1999,2000 crossed widths7/17/20/75 and recipes all-a, alternating a/bb, cyclic a/bb./c; words separated by singleASCIIspace, terminalLF. All144 return0/emptystderr. Width17 all-a: N996 has111 lines beginning8,8,8 words and ending nine-word lines; N997 starts8,8,9; N998 starts8,9,9. At N999 bounded-window flush creates112 lines beginning8,9,9 and ending8,2; N1000 ends8,3, N1001 ends8,4, through N1004 ends8,7. N1998..2000 has223 lines with final sequence8,8,4/5/6. These observed discontinuities qualify the actual flush boundary and retained suffix behavior, not a whole-paragraph DP equivalence. Preserve exact input recipes and byte comparisons; line-word counts are supplemental summaries, not replacement byte evidence. Prefix/crown/tagged/tab/punctuation/tie/window combinations outside this matrix remain open.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
+finalization: completed
+name: safe-bash-fmt
+state: archived
 ---
 
 

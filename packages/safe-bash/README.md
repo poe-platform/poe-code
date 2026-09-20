@@ -70,12 +70,26 @@ filesystem and byte streams, not host executables.
 | Browse | `pwd`, `ls`, `tree`, `find`, `du`, `file`, `basename`, `dirname`, `realpath`, `readlink`, `which` |
 | Files | `mkdir`, `touch`, `cp`, `mv`, `rm`, `rmdir`, `ln`, `chmod`, `stat`, `mktemp` |
 | Filter/search | `cat`, `head`, `tail`, `wc`, `tee`, `cut`, `tr`, `sort`, `uniq`, `sed`, `awk`, `grep`, `rg`, `egrep`, `fgrep` |
-| Format/combine | `nl`, `seq`, `rev`, `tac`, `expand`, `unexpand`, `fold`, `strings`, `paste`, `comm`, `join`, `column`, `split` |
+| Format/combine | `nl`, `seq`, `rev`, `tac`, `expand`, `unexpand`, `fold`, `fmt`, `strings`, `paste`, `comm`, `join`, `column`, `split` |
 | Structured text | `jq`, `html-to-markdown` |
 | Bytes/checksums | `base64`, `base32`, `xxd`, `od`, `md5sum`, `sha1sum`, `sha256sum`, `cksum` |
 | Archives | `gzip`, `gunzip`, `zcat`, `tar` |
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |
 | Changes/review | `diff`, `patch`, `apply_patch` |
+
+`/commands/fmt` exports `parseFmtArguments`, the pure byte coroutine
+`createFmtEngine`, and equivalent `fmtCommand({ limits?, profile? })` /
+`fmt(context, { width?, goal?, crown?, tagged?, split?, uniform?, prefix?, files?, limits?, profile? })`
+execution APIs, with literal byte `arguments` available as an alternative to typed
+formatting options. `fmtCommands({ limits?, profile?, replace? })` registers an
+explicit plugin. Formatting defaults to GNU coreutils 9.10 byte lengths and
+bounded paragraph optimization;
+an explicit historical 8.30 profile retains its older width boundary. Supports
+`-w`, `-g`, `-c`, `-t`, `-s`, `-u` and `-p`; for example,
+`printf 'aa bb cc dd ee' | fmt -w8` produces `aa bb cc\ndd ee\n`. Private
+implementation and declarations ship inside safe-bash. See the
+[fmt contract](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-fmt/README.md)
+for spacing, prefix, cancellation and resource limits.
 
 ### Opt-in commands and storage
 

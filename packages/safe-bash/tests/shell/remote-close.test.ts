@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import { build } from "esbuild";
 import { runRemoteCloseChild } from "./remote-close-child.js";
 
@@ -34,9 +35,11 @@ for (const scenario of [
     const entry = fileURLToPath(new URL(scenario.startsWith("first-read-") ? "./first-read-probe.ts" : "./remote-close-probe.ts", import.meta.url));
     let prepared = probes.get(entry);
     if (prepared === undefined) {
+      const privateWorkspaces = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")).poeCode.integration.privateWorkspaces;
       prepared = build({ entryPoints: [entry], bundle: true, packages: "external", platform: "node",
         alias: {
-          "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/dist", import.meta.url)),
+          ...Object.fromEntries(Object.keys(privateWorkspaces).map(name => [name,
+            fileURLToPath(new URL(`../../../${name}/dist`, import.meta.url))])),
           "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
         },
         format: "esm", target: "es2022", write: false }).then(result => result.outputFiles[0]!.text);

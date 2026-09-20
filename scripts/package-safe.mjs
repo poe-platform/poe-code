@@ -7,7 +7,7 @@ import semver from "semver";
 import glob from "fast-glob";
 import ts from "typescript";
 import { build } from "esbuild";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild, resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
 import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
@@ -289,6 +289,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         if (canonical.some(name => specifier === name || specifier.startsWith(name + "/"))) delete alias[specifier];
       }
       external.push(...canonical);
+      const commands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, { alias, external });
+      if (commands) recipes.push(commands);
       if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
         const browser = resolveBrowserShellBuild(rootDir);
         recipes.push({ ...browser,

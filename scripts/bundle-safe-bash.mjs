@@ -1,6 +1,48 @@
 import path from "node:path";
 import * as fileSystem from "node:fs/promises";
+import { isDeepStrictEqual } from "node:util";
 import { rewriteModuleSpecifiers } from "./package-safe.mjs";
+
+export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alias, external }) {
+  const entryPoints = {};
+  for (const [name, profile] of Object.entries(profiles)) {
+    if (!name.startsWith("safe-bash-command-")) continue;
+    const workspace = workspaces.find(({ pkg }) => pkg.name === name);
+    // Only prepare workspaces present in this build. Referenced missing owners
+    // still fail admission in the artifact traversal.
+    if (!workspace) continue;
+    const pkg = workspace?.pkg;
+    if (!pkg || workspace.dir !== name || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
+        !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
+        !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
+        Object.keys(pkg.peerDependencies ?? {}).length || Object.keys(pkg.optionalDependencies ?? {}).length) {
+      throw new Error("Qualified private workspace profile mismatch: " + name);
+    }
+    for (const target of Object.values(pkg.exports ?? {})) {
+      // This recipe prepares ESM import entries only. Other runtime profiles
+      // need their own qualified build before they can be admitted here.
+      for (const condition of Object.keys(target ?? {})) {
+        if (condition !== "types" && condition !== "import") {
+          throw new Error("Unsupported private command export condition: " + name + " " + condition);
+        }
+      }
+      const runtime = target?.import;
+      if (typeof runtime !== "string" || !runtime.startsWith("./dist/") || !runtime.endsWith(".js") ||
+          runtime.split("/").some(component => component === ".." || component === "" || component.includes("\\") || component.includes("*")) ||
+          target.types !== runtime.slice(0, -3) + ".d.ts") {
+        throw new Error("Invalid private command build entrypoint: " + name);
+      }
+      entryPoints[name + "/" + runtime.slice(2, -3)] = path.join(rootDir, "packages", name, runtime);
+    }
+  }
+  if (!Object.keys(entryPoints).length) return undefined;
+  return {
+    absWorkingDir: rootDir, entryPoints, alias, external,
+    outdir: path.join(rootDir, "packages"), allowOverwrite: true,
+    bundle: true, splitting: true, chunkNames: "safe-bash/dist/command-chunks/[name]-[hash]",
+    platform: "node", format: "esm", target: "node22", sourcemap: true, write: false,
+  };
+}
 
 export async function publishRootOptionalPackage(rootDir, files = fileSystem) {
   const source = path.join(rootDir, "packages/safe-bash/dist/opt-in");

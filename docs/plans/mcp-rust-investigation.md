@@ -1828,6 +1828,38 @@ packed configuration root/codecs/template smoke pass. Evidence under
 `out/rust-config-yaml-snapshot-*.log`; default configuration API behavior is
 unchanged, while the own frontmatter package remains in progress.
 
+## Frontmatter rewrite
+
+Added `frontmatter-rust` with the complete current root API and strict SDK type
+assignability. Its portable Rust core owns UTF-16 fence/body offsets, BOM and
+line-ending handling, YAML duplicate/root admission, source-line starts and
+diagnostic translation. The own YAML parser is embedded through the shared
+bridge into one addon. Host adapters retain Date/Symbol identities, structural
+kind-error narrowing, mutable/lexically-bound line-counter methods, JavaScript
+getters/toJSON/iterators and acyclic traversal with iterator cleanup. Shared
+objects stringify independently without aliases. No npm runtime/peer/optional
+dependencies or production integrations were added.
+
+Validation: seven Rust groups, eight native groups, all18 actual current SDK
+cases, declarations, maintained fmt/clippy, nine-workspace uncached build and
+packed root smoke with bare npm imports blocked pass. Failing-first evidence
+covers fence/offset/parse/native APIs. Two 4 MiB-stack workers handle 400-level
+documents, 2,048 round trips and rejection past the 512-depth limit. Foreign
+getter errors, no-options access for absent/missing fences, timestamp aliases,
+prototype-safe keys, scalar schema, shared-object emission and lexical line
+counter receivers are checked against the actual SDK.
+
+Separate-process 64-field/32-item round trips measure native 114.8–117.4 us and
+original449.4–478.1 us. Across 8,192 subsequent cycles with GC and event-loop
+idle between blocks, originalRSS97.1–99.6 MiB and heap6.01–6.09 MiB compare with
+nativeRSS117.4–119.1 MiB and heap3.92–3.18 MiB. This workload shows faster native
+round trips, lower measured JS heap and higher resident memory; it establishes
+no universal advantage or leak-free guarantee. YAML recovery/warnings/all
+diagnostics/complex keys remain incompletely matched, cyclic aliases reject
+under bounded expansion, and depth512 is an intentional bound. Evidence under
+`out/rust-frontmatter-{test,lint,build,pack-smoke,original-performance,native-performance}.log`.
+The overall MCP/poe-agent rewrite and minimum effort requirement remain unfinished.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

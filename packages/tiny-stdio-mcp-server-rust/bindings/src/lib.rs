@@ -16,6 +16,15 @@ mod input;
 mod stdio;
 mod uri_template;
 
+#[napi(ts_return_type = "unknown")]
+pub fn define_schema(env: Env, source: Unknown<'_>) -> Result<NativeJson> {
+    let definition = input::read(&env, source, input::Mode::Json)?
+        .ok_or_else(|| Error::from_reason("Schema definition must be an object"))?;
+    tiny_stdio_mcp_server_rust::schema::define_schema(definition)
+        .map(NativeJson)
+        .map_err(Error::from_reason)
+}
+
 #[napi]
 pub fn validate_protocol_value(env: Env, definition: String, source: Unknown<'_>) -> bool {
     input::read(&env, source, input::Mode::Json)

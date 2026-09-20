@@ -41,6 +41,31 @@ export interface ToolDefinition {
   [field: string]: unknown;
 }
 
+export type TypedSchema<T> = ToolDefinition["inputSchema"] & {
+  __type?: T;
+};
+export interface TypedOutputSchema<T> {
+  __type?: T;
+  [keyword: string]: unknown;
+}
+type SchemaPropertyType = "string" | "number" | "integer" | "boolean" | "object" | "array";
+interface SchemaPropertyDefinition {
+  type: SchemaPropertyType;
+  optional?: boolean;
+  [keyword: string]: unknown;
+}
+type SchemaValue<T extends SchemaPropertyType> = T extends "string" ? string
+  : T extends "number" | "integer" ? number : T extends "boolean" ? boolean
+  : T extends "object" ? Record<string, unknown> : unknown[];
+type SchemaValues<T extends Record<string, SchemaPropertyDefinition>> = {
+  [K in keyof T as T[K]["optional"] extends true ? never : K]: SchemaValue<T[K]["type"]>
+} & {
+  [K in keyof T as T[K]["optional"] extends true ? K : never]?: SchemaValue<T[K]["type"]>
+};
+export declare function defineSchema<T extends Record<string, SchemaPropertyDefinition>>(
+  definition: T
+): TypedSchema<SchemaValues<T>>;
+
 export interface PromptArgument {
   name: string;
   title?: string;
@@ -142,11 +167,12 @@ export interface Transport {
 }
 
 export interface Server {
-  tool<T>(
+  tool<T, TOut = unknown>(
     name: string,
     description: string,
-    inputSchema: ToolDefinition["inputSchema"],
-    handler: (arguments_: T, context: HandlerRequestContext) => unknown | Promise<unknown>
+    inputSchema: TypedSchema<T>,
+    handler: (arguments_: T, context: HandlerRequestContext) => unknown | Promise<unknown>,
+    outputSchema?: TypedOutputSchema<TOut>
   ): Server;
   registerTool(
     definition: ToolDefinition,

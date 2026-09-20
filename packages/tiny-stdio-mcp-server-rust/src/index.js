@@ -4,7 +4,7 @@ import { connectStreams } from "./stdio.js";
 const { NativeServer, NativeUriTemplate } = createRequire(import.meta.url)(
   "./tiny-stdio-mcp-server-rust.node"
 );
-export const { validateProtocolValue } = createRequire(import.meta.url)(
+export const { validateProtocolValue, defineSchema } = createRequire(import.meta.url)(
   "./tiny-stdio-mcp-server-rust.node"
 );
 
@@ -30,9 +30,9 @@ export function createServer(options) {
   const featureHandlers = new Map();
   const notificationListeners = new Set();
   const sessionListeners = new Map();
-  function registerTool(definition, handler, replace = false) {
+  function registerTool(definition, handler) {
     if (typeof handler !== "function") throw new TypeError("Tool handler must be a function");
-    const { handler: id, name } = native.setTool(definition, replace);
+    const { handler: id, name } = native.setTool(definition, false);
     handlers.delete(toolHandlers.get(name));
     handlers.set(id, handler);
     toolHandlers.set(name, id);
@@ -234,8 +234,9 @@ export function createServer(options) {
   }
   const defaultSession = createMessageSession();
   const server = {
-    tool(name, description, inputSchema, handler) {
-      return registerTool({ name, description, inputSchema }, handler, true);
+    tool(name, description, inputSchema, handler, outputSchema) {
+      return registerTool({ name, description, inputSchema,
+        ...(outputSchema === undefined ? {} : { outputSchema }) }, handler);
     },
     registerTool,
     removeTool(name) {

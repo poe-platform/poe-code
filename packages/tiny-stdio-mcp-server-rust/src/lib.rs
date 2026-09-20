@@ -12,7 +12,7 @@ pub mod notifications;
 pub mod output;
 pub mod protocol;
 pub mod requests;
-mod schema;
+pub mod schema;
 pub mod stdio;
 pub mod subscriptions;
 pub mod tool_result;
@@ -127,7 +127,7 @@ impl Server {
         let Some(Value::String(name)) = definition.get("name") else {
             return Err("Tool name required".into());
         };
-        if name.is_empty() || String::from_utf16_lossy(name).trim().is_empty() {
+        if name.is_empty() {
             return Err("Tool name required".into());
         }
         let existing = self.tools.iter().position(|tool| &tool.name == name);

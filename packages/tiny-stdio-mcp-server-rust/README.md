@@ -23,6 +23,13 @@ issues for invalid input. Set `validateToolArguments: false` to skip rejecting
 schema mismatches. Arguments must still be JSON objects. Failed schema compilation
 leaves an existing registration intact.
 
+Use `defineSchema({ name: { type: "string" }, limit: { type: "integer", optional: true } })`
+to build object schemas with inferred TypeScript argument types. Arbitrary JSON
+Schema keywords are preserved; `optional` controls the required-property list.
+The shorthand `server.tool(name, description, inputSchema, handler, outputSchema)`
+also accepts an output schema. Both registration methods reject duplicate names;
+remove a tool before registering a replacement.
+
 Output schemas also compile at registration. Successful calls normalize their
 structured content and validate it in Rust; mismatches return JSON-RPC errors with
 schema issues. Explicit tool error results skip output validation. Each active

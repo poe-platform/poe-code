@@ -1,5 +1,6 @@
 import {
   createServer,
+  defineSchema,
   parseUriTemplate,
   validateProtocolValue,
   type HandlerRequestContext
@@ -8,6 +9,16 @@ import { PassThrough } from "node:stream";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 
 const server = createServer({ name: "typed", version: "1", validateToolArguments: true });
+server.tool("inferred", "Typed schema", defineSchema({
+  name: { type: "string" }, count: { type: "integer", optional: true }
+}), args => {
+  const name: string = args.name;
+  const count: number | undefined = args.count;
+  // @ts-expect-error schema inference keeps strings distinct from numbers
+  const invalid: number = args.name;
+  void invalid;
+  return { value: name + count };
+}, defineSchema({ value: { type: "string" } }));
 server.tool<{ message: string }>("echo", "Echo", { type: "object" }, (args, context) => {
   const signal: AbortSignal = context.signal;
   const state: string | undefined = context.requestState;

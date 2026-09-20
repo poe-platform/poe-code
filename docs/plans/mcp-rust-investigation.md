@@ -52,6 +52,14 @@ official SDK in-memory transports. The expanded package checks include 62 Rust
 and 323 native tests, including concurrent worker use of cached capability/retry
 validators and cancellation/reused-ID snapshot cleanup checks.
 
+The server exposes independent Rust `defineSchema` construction and inferred
+TypeScript argument types. Shorthand tool registration now accepts output schemas
+and rejects duplicate names like the reference; whitespace-only names remain
+permitted. Differential tests reproduce the prior missing helper, ignored output
+schema, duplicate replacement and whitespace rejection. In-flight contract tests
+now replace registrations via removal followed by registration, matching the
+reference public API. The package check expands to 326 native tests.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

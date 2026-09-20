@@ -19,7 +19,7 @@ if (!childProcess.spawn[installed]) {
         execArgv: [], detached: true, stdio: ['ignore', 'ignore', 'inherit', 'ipc'],
       });
       guardian.unref();
-      guardian.channel.unref();
+      guardian.channel.unref?.();
       guardian.on('error', error => { throw error; });
     }
     let directory;

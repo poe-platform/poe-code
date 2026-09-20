@@ -50,8 +50,9 @@ test('forced owner reset during outstanding POST inspects unknown outcome and re
   } finally {
     abort.abort();
     await worker.dispose();
+    const closed = new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     server.closeAllConnections();
-    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    await closed;
     await running;
     await rm(persistence, { recursive: true, force: true });
   }

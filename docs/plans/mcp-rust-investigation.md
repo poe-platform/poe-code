@@ -145,6 +145,15 @@ The package unit route now includes these static fixtures; runtime checks expand
 to 357 native tests alongside 68 Rust tests. This API checkpoint does not resolve
 the documented URI/regex completeness gaps or complete the remaining package ports.
 
+The additive `tiny-mcp-client-rust` package now has a std/path-only Rust core and
+self-contained napi-rs addon. Its initial client envelope parser handles requests,
+notifications and success/error responses independently of server admission rules.
+Native/reference checks cover invalid envelope combinations, preserved IDs,
+fractional/overflow numbers, duplicate JSON fields, UTF-16 and arbitrary JSON
+params. Error diagnostics use the public McpError class. This is a parsing checkpoint,
+not complete client parity: lifecycle, requests/retries, transports, subscriptions
+and OAuth remain in progress. No production imports or releases change.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

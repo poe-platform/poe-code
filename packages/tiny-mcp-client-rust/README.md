@@ -1,0 +1,20 @@
+# tiny-mcp-client-rust
+
+An independent Rust MCP client with native Node bindings and zero external npm
+runtime dependencies. This private additive package is under development.
+
+The first checkpoint implements client JSON-RPC envelope parsing: requests,
+notifications, successful/error responses and malformed-message diagnostics.
+Rust preserves UTF-16 values and legacy numeric IDs, including fractional IDs.
+The client parser accepts arbitrary JSON params; server admission has separate
+rules. Native diagnostics use the public `McpError` class and error constants.
+
+```ts
+import { parseJsonRpcMessage } from "tiny-mcp-client-rust";
+const reply = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}');
+if (reply.type === "response") console.log(reply.message);
+```
+
+Complete client lifecycle, request/retry management and transports are still being
+implemented. Keep applications on their current MCP client until conformance and
+integration are complete. Existing consumers and release wiring remain unchanged.

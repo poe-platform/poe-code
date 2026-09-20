@@ -17,41 +17,59 @@ export function createServer(options) {
   function createMessageSession() {
     const id = native.createSession();
     const controller = new AbortController();
+    const requests = new Map();
     return {
       async handleMessage(method, params, context) {
-        const action = native.dispatch(id, method, params);
+        if (context?.signal?.aborted) return { result: undefined };
+        const action = native.dispatch(
+          id,
+          method,
+          params,
+          context === undefined ? undefined : { requestId: context.requestId }
+        );
+        if (action.type === "cancel") {
+          requests.get(action.token)?.abort(new Error("Request cancelled"));
+          return { result: undefined };
+        }
         if (action.type === "reply") return { result: action.value };
         if (action.type === "error") return { error: action.value };
         if (action.type === "none") return { result: undefined };
         const handler = handlers.get(action.handler);
         const request = new AbortController();
+        requests.set(action.token, request);
+        const directLegacy = context === undefined && !action.modern;
         const abortSession = () => request.abort(controller.signal.reason);
         const abortCaller = () => request.abort(context.signal.reason);
         controller.signal.addEventListener("abort", abortSession, { once: true });
         if (controller.signal.aborted) abortSession();
         context?.signal?.addEventListener("abort", abortCaller, { once: true });
         if (context?.signal?.aborted) abortCaller();
-        const operation = Promise.resolve().then(async () => {
-          if (request.signal.aborted) return { result: undefined };
-          try {
-            const result = await handler(action.arguments, {
-              ...action.context,
-              signal: request.signal
-            });
-            return {
-              result: native.normalizeResult(result)
-            };
-          } catch (error) {
-            return {
-              error: {
-                code: -32603,
-                message: error instanceof Error ? error.message : String(error)
-              }
-            };
-          }
-        });
+        const operation = Promise.resolve()
+          .then(async () => {
+            if (request.signal.aborted) return { result: undefined };
+            try {
+              const result = await handler(action.arguments, {
+                ...action.context,
+                signal: directLegacy ? controller.signal : request.signal
+              });
+              return {
+                result: native.normalizeResult(result)
+              };
+            } catch (error) {
+              return {
+                error: {
+                  code: -32603,
+                  message: error instanceof Error ? error.message : String(error)
+                }
+              };
+            }
+          })
+          .finally(() => {
+            native.finishRequest(action.token);
+            requests.delete(action.token);
+          });
         try {
-          if (context === undefined) return await operation;
+          if (directLegacy) return await operation;
           return await new Promise((resolve) => {
             const abort = () => resolve({ result: undefined });
             request.signal.addEventListener("abort", abort, { once: true });
@@ -64,6 +82,7 @@ export function createServer(options) {
         } finally {
           controller.signal.removeEventListener("abort", abortSession);
           context?.signal?.removeEventListener("abort", abortCaller);
+          request.abort();
         }
       },
       close() {

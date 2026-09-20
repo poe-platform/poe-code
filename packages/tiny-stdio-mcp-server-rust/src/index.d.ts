@@ -3,6 +3,7 @@ export interface ServerOptions {
   version: string;
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;
+  maxActiveRequests?: number;
 }
 
 export interface HandleResult {

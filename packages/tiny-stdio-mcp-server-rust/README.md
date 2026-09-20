@@ -15,6 +15,11 @@ modern discovery, tool registration and listing, asynchronous tool calls, text
 results, and cancellation. The reusable Rust core uses the standard library and
 the sibling `mcp-protocol-rust` core.
 
+Set `maxActiveRequests` to bound running requests across sessions (default: 128).
+Concurrent requests with the same ID in one session are rejected. A
+`notifications/cancelled` message aborts that request; callbacks that continue
+running retain capacity until they settle.
+
 ```ts
 import { createServer } from "tiny-stdio-mcp-server-rust";
 

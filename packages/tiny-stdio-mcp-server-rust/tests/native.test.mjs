@@ -5,6 +5,96 @@ import { Worker } from "node:worker_threads";
 import { createServer } from "../dist/index.js";
 import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
 
+test("native admission keeps duplicate IDs and cancelled operations active until settlement", async () => {
+  const server = createServer({ name: "test", version: "0", maxActiveRequests: 1 });
+  let release;
+  let started;
+  const ready = new Promise((resolve) => {
+    started = resolve;
+  });
+  server.tool("wait", "Wait", { type: "object" }, () => {
+    started();
+    return new Promise((resolve) => {
+      release = resolve;
+    });
+  });
+  const session = server.createMessageSession();
+  await session.handleMessage("initialize");
+  const operation = session.handleMessage("tools/call", { name: "wait" }, { requestId: "one" });
+  await ready;
+  assert.deepEqual(await session.handleMessage("ping"), {
+    error: { code: -32000, message: "Too many active requests" }
+  });
+  assert.deepEqual(await session.handleMessage("notifications/cancelled", { requestId: "one" }), {
+    result: undefined
+  });
+  assert.deepEqual(await operation, { result: undefined });
+  assert.deepEqual(await session.handleMessage("ping"), {
+    error: { code: -32000, message: "Too many active requests" }
+  });
+  release("late");
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(await session.handleMessage("ping"), { result: {} });
+  session.close();
+});
+
+test("native admission rejects duplicate IDs within one session and isolates other sessions", async () => {
+  const server = createServer({ name: "test", version: "0" });
+  let release, started;
+  const ready = new Promise((resolve) => {
+    started = resolve;
+  });
+  server.tool("wait", "Wait", { type: "object" }, () => {
+    started();
+    return new Promise((resolve) => {
+      release = resolve;
+    });
+  });
+  const session = server.createMessageSession();
+  await session.handleMessage("initialize");
+  const operation = session.handleMessage("tools/call", { name: "wait" }, { requestId: 1 });
+  await ready;
+  assert.deepEqual(await session.handleMessage("ping", undefined, { requestId: 1 }), {
+    error: { code: -32600, message: "Request ID is already active" }
+  });
+  const other = server.createMessageSession();
+  assert.deepEqual(await other.handleMessage("ping", undefined, { requestId: 1 }), { result: {} });
+  release("done");
+  await operation;
+  assert.deepEqual(await session.handleMessage("ping", undefined, { requestId: 1 }), {
+    result: {}
+  });
+  session.close();
+  other.close();
+});
+
+test("modern requests validate context IDs and abort their context signal after completion", async () => {
+  const server = createServer({ name: "test", version: "0" });
+  let signal;
+  let calls = 0;
+  server.tool("echo", "Echo", { type: "object" }, (_args, context) => {
+    calls++;
+    signal = context.signal;
+    return "done";
+  });
+  const params = {
+    name: "echo",
+    _meta: {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  };
+  assert.deepEqual(await server.handleMessage("tools/call", params, { requestId: 0.5 }), {
+    error: { code: -32600, message: "Invalid Request ID" }
+  });
+  assert.equal(calls, 0);
+  assert.equal(
+    (await server.handleMessage("tools/call", params, { requestId: "one" })).error,
+    undefined
+  );
+  assert.equal(signal.aborted, true);
+});
+
 test("proxy descriptor traps can reenter native state and close the converting session", async () => {
   const { NativeServer } = createRequire(import.meta.url)(
     "../dist/tiny-stdio-mcp-server-rust.node"

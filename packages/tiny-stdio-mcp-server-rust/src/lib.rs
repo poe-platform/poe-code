@@ -5,6 +5,7 @@ use mcp_protocol_rust::{
 };
 
 pub mod content;
+pub mod requests;
 
 pub const MODERN_PROTOCOL_VERSION: &str = "2026-07-28";
 pub const DEFAULT_LEGACY_PROTOCOL_VERSION: &str = "2025-11-25";
@@ -330,7 +331,7 @@ impl Server {
     }
 }
 
-fn select_protocol(method: &str, params: Option<&Value>) -> Result<bool, RpcError> {
+pub fn select_protocol(method: &str, params: Option<&Value>) -> Result<bool, RpcError> {
     let missing = || {
         rpc_error(
             jsonrpc::INVALID_PARAMS,

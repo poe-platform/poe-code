@@ -1,3 +1,4 @@
+import './fs-setup.mjs';
 import {EventEmitter}from'node:events';import {PassThrough}from'node:stream';import {spawn}from'node:child_process';import {randomBytes}from'node:crypto';import {existsSync,readFileSync,readdirSync}from'node:fs';import {tmpdir}from'node:os';import {afterEach,expect,it,vi}from'vitest';
 import {createDockerRunner as own}from'../dist/docker-runner.js';import {createDockerRunner as sdk}from'../../process-runner/dist/docker/docker-runner.js';
 vi.mock('node:child_process',()=>({spawn:vi.fn(),execSync:vi.fn()}));vi.mock('node:crypto',()=>({randomBytes:vi.fn()}));

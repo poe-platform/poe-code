@@ -1,3 +1,4 @@
+import './fs-setup.mjs';
 import {expect,it}from'vitest';import {fs,vol}from'memfs';
 import {readDockerBuildContextFiles as own}from'../dist/docker-build-context.js';import {readDockerBuildContextFiles as sdk}from'../../process-runner/dist/docker/build-context.js';
 it('matches SDK context bytes and sorting through nested ignore rules and symbolic links',async()=>{

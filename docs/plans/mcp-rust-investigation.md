@@ -2652,6 +2652,23 @@ portable download/shell/container-filesystem controllers, remaining MCP/agent
 closure and24-hour effort remain unfinished. Remote Docker-template delivery
 verified as `9ad78d736`; release publication still unverified.
 
+### Process runner root test registration correction — 2026-09-20
+
+Release35544228030 validates a root/shared discovery failure: own three filesystem
+test modules also run from root without the package-only setupFiles entry, so they
+reach real files instead of memfs. Local root config reproduces the eight failures
+(symlink/read fixtures, canonical paths and temporary-file cleanup). Each module
+now explicitly imports its own memfs setup. No root membership/workflow or shared
+runner logic changes. Focused root discovery passes all10 own cases and maintained
+process-runner-rust unit passes170 Vitest/34 Rust/20 native groups; existing files
+remain preserved. Evidence: `out/rust-process-root-registration-*`.
+
+Lock-correction Release35541696723 completed all validation gates successfully.
+Its semantic publisher explicitly skipped a new version because remote main had
+advanced; successful workflow is not successful publication. The newer template
+release failed root unit before this correction. Publication remains unverified.
+The overall additive rewrite and minimum24-hour effort remain unfinished.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

@@ -1,3 +1,4 @@
+import './fs-setup.mjs';
 import {beforeEach,expect,it,vi}from'vitest';
 import{fs}from'memfs';import{Readable}from'node:stream';import{createHash}from'node:crypto';
 import{buildDockerRuntimeTemplate}from'../dist/docker-template.js';

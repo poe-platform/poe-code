@@ -40,6 +40,64 @@ pub fn file_type(data: &[u8]) -> Option<FileType> {
     Some(FileType { mime, ext })
 }
 
+pub fn parse_content_type(value: &str) -> Value {
+    let mut fields = Vec::new();
+    let mut segments = value.split(';');
+    let mime = segments.next().unwrap_or("").trim().to_lowercase();
+    if !mime.is_empty() {
+        fields.push(("mimeType".encode_utf16().collect(), string(&mime)));
+    }
+    if let Some(parameter) =
+        segments.find(|segment| segment.trim().to_lowercase().starts_with("charset="))
+    {
+        let raw = parameter.trim().split('=').nth(1).unwrap_or("").trim();
+        let charset = raw
+            .strip_prefix('"')
+            .and_then(|value| value.strip_suffix('"'))
+            .unwrap_or(raw);
+        if !charset.is_empty() {
+            fields.push(("charset".encode_utf16().collect(), string(charset)));
+        }
+    }
+    Value::Object(fields)
+}
+
+/// Bounded remote ingestion retains only admitted bytes; no capacity is reserved
+/// from an untrusted advertised content length.
+pub struct RemoteBytes {
+    limit: usize,
+    data: Vec<u8>,
+    failed: bool,
+}
+
+impl RemoteBytes {
+    pub fn new(limit: usize) -> Self {
+        Self {
+            limit,
+            data: Vec::new(),
+            failed: false,
+        }
+    }
+    pub fn append(&mut self, bytes: &[u8]) -> Result<bool, String> {
+        if self.failed {
+            return Ok(false);
+        }
+        if bytes.len() > self.limit.saturating_sub(self.data.len()) {
+            self.data = Vec::new();
+            self.failed = true;
+            return Ok(false);
+        }
+        self.data
+            .try_reserve(bytes.len())
+            .map_err(|_| "Remote content allocation failed".to_owned())?;
+        self.data.extend_from_slice(bytes);
+        Ok(true)
+    }
+    pub fn take(&mut self) -> Vec<u8> {
+        std::mem::take(&mut self.data)
+    }
+}
+
 pub fn binary_bytes(kind: &str, data: &[u8], format: Option<&str>) -> Result<Value, String> {
     let mime = match format.filter(|format| !format.is_empty()) {
         Some(format) => {

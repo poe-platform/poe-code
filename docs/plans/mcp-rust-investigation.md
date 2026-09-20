@@ -15,7 +15,7 @@ remain in progress. The format foundation cross-checks canonical base64 padding
 bits and resource URI syntax/authorities against the TypeScript implementation.
 Complete Unicode IDNA mapping, contextual joining, combining marks, and bidi host
 rules remain an explicit conformance gap; the current host checks are not a full
-replacement for WHATWG URL processing. Remote content helpers remain pending.
+replacement for WHATWG URL processing. Full public content conversion parity remains pending.
 
 The JSON foundation now formats binary64 values with ECMAScript shortest notation,
 fixed/exponent boundaries and exact decimal midpoint ties using integer arithmetic.
@@ -70,7 +70,17 @@ hooks for safe native rejection. Differential tests cover all eleven magic-byte
 signatures, every truncation, unaligned byte slices, MIME aliases, noncanonical
 helper base64 versus canonical protocol content, text/binary MIME families, byte
 mutation, 512 seeded base64 lengths and 4096 seeded malformed UTF-8 samples.
-Remote factories are still pending. The package checks expand to 333 native tests.
+The package checks expand to 333 native tests at this synchronous checkpoint.
+
+All three media helpers now expose bounded remote factories. Node's built-in fetch
+handles I/O and its platform decoder supports remote charsets; own Rust code owns
+MIME/header parsing and bounded byte accumulation. No advertised content length
+preallocates memory. Overflow discards retained bytes and permanently rejects later
+chunks, cancels the reader, and preserves lock cleanup. Error labels omit credentials,
+queries and fragments. Mocked in-memory responses cross-check signature/header
+precedence, Windows-1252/UTF-16/UTF-8 and unsupported charset fallback, HTTP failures,
+declared/streamed/array-buffer limits and every invalid byte budget against TypeScript.
+Checks now include 63 Rust and 336 native tests; no live network fixtures are used.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

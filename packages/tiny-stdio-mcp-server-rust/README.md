@@ -91,6 +91,13 @@ File byte helpers decode text MIME types with UTF-8 replacement/BOM handling;
 binary MIME types produce blob resources. File byte inputs remain live until
 conversion, while image/audio helpers snapshot their input when created.
 Use `fileTypeFromBuffer(bytes)` to inspect a media signature without creating content.
+Use `await Image.fromUrl(url)`, `Audio.fromUrl(url)` or `File.fromUrl(url)` for remote
+content. Loading uses Node's built-in fetch and a Rust byte accumulator, with a
+5 MiB default budget; pass `{ maxBytes }` to change it. Oversized streams are
+canceled, readers are released, and error labels omit credentials, queries and
+fragments. Recognized media signatures take precedence over response headers.
+Remote text files use the response charset through the platform decoder; unsupported
+charsets produce binary resources.
 
 Modern requests validate client capabilities and retry responses against embedded
 normative MCP schemas using the independent Rust schema engine. Malformed retry
@@ -141,6 +148,6 @@ and closing or failing startup disposes the session. Notification send failures
 propagate to their caller. A canceled callback retains global request capacity
 until its underlying operation settles.
 
-This is an additive implementation checkpoint. HTTP transports, remote media helpers,
+This is an additive implementation checkpoint. HTTP transports, complete content API parity,
 and full result compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

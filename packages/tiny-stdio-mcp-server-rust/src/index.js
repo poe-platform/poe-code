@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { connectStreams } from "./stdio.js";
 import { prepareToolValue } from "./media.js";
-export { Image, Audio, File, fileTypeFromBuffer } from "./media.js";
+export { Image, Audio, File, fileTypeFromBuffer, DEFAULT_FROM_URL_MAX_BYTES } from "./media.js";
 
 const { NativeServer, NativeUriTemplate } = createRequire(import.meta.url)(
   "./tiny-stdio-mcp-server-rust.node"

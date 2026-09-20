@@ -239,6 +239,8 @@ export interface FileTypeResult {
   ext: string;
 }
 export declare function fileTypeFromBuffer(data: Uint8Array): FileTypeResult | undefined;
+export declare const DEFAULT_FROM_URL_MAX_BYTES: number;
+export interface FromUrlOptions { maxBytes?: number; }
 export interface ImageContent {
   type: "image";
   data: string;
@@ -267,12 +269,14 @@ export declare class Image {
   private constructor();
   static fromBytes(data: Uint8Array, format?: string): Image;
   static fromBase64(base64: string, mimeType: string): Image;
+  static fromUrl(url: string, options?: FromUrlOptions): Promise<Image>;
   toContentBlock(): ImageContent;
 }
 export declare class Audio {
   private constructor();
   static fromBytes(data: Uint8Array, format?: string): Audio;
   static fromBase64(base64: string, mimeType: string): Audio;
+  static fromUrl(url: string, options?: FromUrlOptions): Promise<Audio>;
   toContentBlock(): AudioContent;
 }
 export declare class File {
@@ -280,5 +284,6 @@ export declare class File {
   static fromBytes(data: Uint8Array, mimeType: string): File;
   static fromBase64(base64: string, mimeType: string): File;
   static fromText(text: string, mimeType?: string): File;
+  static fromUrl(url: string, options?: FromUrlOptions): Promise<File>;
   toContentBlock(): EmbeddedResource;
 }

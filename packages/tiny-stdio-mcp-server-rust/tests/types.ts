@@ -18,6 +18,10 @@ const audioType: "audio" = Audio.fromBase64("", "audio/wav").toContentBlock().ty
 const resourceType: "resource" = File.fromText("Hello").toContentBlock().type;
 const detected: string | undefined = fileTypeFromBuffer(new Uint8Array())?.mime;
 void [imageType, audioType, resourceType, detected];
+const remoteImage: Promise<Image> = Image.fromUrl("https://example.test/image", { maxBytes: 1024 });
+const remoteAudio: Promise<Audio> = Audio.fromUrl("https://example.test/audio");
+const remoteFile: Promise<File> = File.fromUrl("https://example.test/file");
+void [remoteImage, remoteAudio, remoteFile];
 server.tool("inferred", "Typed schema", defineSchema({
   name: { type: "string" }, count: { type: "integer", optional: true }
 }), args => {

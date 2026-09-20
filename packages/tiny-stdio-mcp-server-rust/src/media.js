@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 
 const native = createRequire(import.meta.url)("./tiny-stdio-mcp-server-rust.node");
 export const { fileTypeFromBuffer } = native;
+export const DEFAULT_FROM_URL_MAX_BYTES = 5 * 1024 * 1024;
 const helpers = new WeakMap();
 const construction = Symbol("media construction");
 
@@ -9,8 +10,9 @@ class ContentHelper {
   toContentBlock() {
     const stored = helpers.get(this);
     if (stored === undefined) throw new TypeError("Invalid content helper");
-    if (stored.kind === "bytes") return native.fileBytes(stored.data, stored.mime);
-    if (stored.kind === "text") return native.fileText(stored.data, stored.mime);
+    if (stored.kind === "bytes")
+      return native.fileBytes(stored.data, stored.mime, stored.name, stored.forceBinary);
+    if (stored.kind === "text") return native.fileText(stored.data, stored.mime, stored.name);
     return { ...stored.block };
   }
 }
@@ -26,6 +28,15 @@ class BinaryMedia extends ContentHelper {
   }
   static fromBase64(base64, mimeType) {
     return new this(construction, native.mediaBase64(this.kind, base64, mimeType));
+  }
+  static async fromUrl(url, options) {
+    const { data, contentType } = await readRemote(url, this.kind, options);
+    const detected = fileTypeFromBuffer(data);
+    const mime = detected && native.supportedMediaMime(this.kind, detected.mime)
+      ? detected.mime : contentType.mimeType;
+    if (!mime || !native.supportedMediaMime(this.kind, mime))
+      throw new Error(`Unable to detect ${this.kind} MIME type from ${remoteLabel(url)}`);
+    return new this(construction, native.mediaBytes(this.kind, data, mime));
   }
 }
 
@@ -50,6 +61,63 @@ export class File extends ContentHelper {
   static fromBase64(base64, mimeType) {
     return new File(construction, { kind: "bytes", data: native.decodeMediaBase64(base64), mime: mimeType });
   }
+  static async fromUrl(url, options) {
+    const { data, contentType } = await readRemote(url, "file", options);
+    const mime = fileTypeFromBuffer(data)?.mime ?? contentType.mimeType;
+    if (!mime) throw new Error(`Unable to detect MIME type from ${remoteLabel(url)}`);
+    const name = new URL(url).pathname.split("/").pop() || "file";
+    if (native.isTextMediaMime(mime)) {
+      try {
+        const decoder = new TextDecoder(contentType.charset ?? "utf-8");
+        return new File(construction, { kind: "text", data: decoder.decode(data), mime, name });
+      } catch {
+        return new File(construction, { kind: "bytes", data, mime, name, forceBinary: true });
+      }
+    }
+    return new File(construction, { kind: "bytes", data, mime, name });
+  }
+}
+
+function remoteLabel(url) {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return "remote resource";
+  }
+}
+
+async function readRemote(url, kind, options) {
+  const response = await fetch(url);
+  if (!response.ok)
+    throw new Error(`Failed to fetch ${kind} from ${remoteLabel(url)}: ${response.status} ${response.statusText}`);
+  const maxBytes = options?.maxBytes ?? DEFAULT_FROM_URL_MAX_BYTES;
+  const bytes = new native.NativeRemoteBytes(maxBytes);
+  const sizeError = () => new Error(`Remote ${kind} from ${remoteLabel(url)} exceeds maximum size of ${maxBytes} bytes`);
+  const declared = response.headers.get("content-length");
+  const length = declared === null ? undefined : Number(declared.trim());
+  if (Number.isSafeInteger(length) && length >= 0 && length > maxBytes) throw sizeError();
+  if (response.body) {
+    const reader = response.body.getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!bytes.push(value)) {
+          await reader.cancel().catch(() => undefined);
+          throw sizeError();
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  } else if (!bytes.push(new Uint8Array(await response.arrayBuffer()))) {
+    throw sizeError();
+  }
+  return {
+    data: bytes.finish(),
+    contentType: native.parseMediaContentType(response.headers.get("content-type") ?? "")
+  };
 }
 
 // Replace only branded helpers in tool-return array positions. Descriptor

@@ -1,0 +1,10 @@
+[package]
+name = "agent-hook-config-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Declarative Rust coding-agent hook configuration and bridge policies"
+[dependencies]
+agent-defs-rust = { path = "../agent-defs-rust" }
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

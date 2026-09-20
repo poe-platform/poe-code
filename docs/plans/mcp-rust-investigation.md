@@ -2102,6 +2102,31 @@ the12-workspace uncached agent-mcp-config build closure passes. This is a reusab
 prerequisite for agent-hook-config-rust, not a completed hook bridge rewrite.
 Evidence is `out/rust-agent-defs-hook-*`.
 
+### Portable agent-hook-config core, 2026-09-20
+
+Started `agent-hook-config-rust` as a Rust-only additive crate. Its catalog derives
+hook configuration from agent-defs descriptors. Rust owns event/handler mapping,
+placeholder rewrites, drop order and source indexes, stable generated IDs, portable
+home/scope plans, parsed-record admission, fully-generated-file ownership checks
+and generated-handler mutation. Unknown fields and user handler order are retained;
+missing/empty matchers remain distinct, and malformed existing groups precede
+incoming marker/finite-timeout validation. Platform I/O hosts execute Rust read
+and atomic-write decisions: final symlink refusal, user-before-project scopes,
+own missing/collision classification, exclusive temporary retries, partial-write/
+rename cleanup, preserved targets on failure and JS numeric-key file formatting.
+
+TDD red/green evidence covers absent core APIs, case-insensitive alias mapping,
+missing I/O policies and a reproduced numeric-key text-order mismatch.13 Rust
+groups pass, including128 generated SDK transform cases and64 SDK read/mutation
+fixtures against memfs. No unit fixture writes to disk. Cargo fmt/clippy with
+warnings denied and the locked release core build pass. The own std-only core adds
+no external Rust runtime dependency; no npm adapter or production import is wired.
+Native bindings, symlink strategy, run ownership/cleanup, malformed-input parity,
+performance/memory evidence and complete package acceptance are still pending.
+Evidence is `out/rust-agent-hook-*`; the larger goal and24-hour requirement remain
+unfinished. The goal tool's blocked status still freezes its50,023-second effort
+counter; separately resumed coding has continued since2026-09-20 18:44:42 UTC.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

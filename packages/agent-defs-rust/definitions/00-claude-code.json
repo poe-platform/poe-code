@@ -31,5 +31,11 @@
         "light": "#C15F3C"
       }
     }
+  },
+  "mcpConfig": {
+    "configFile": "~/.claude.json",
+    "configKey": "mcpServers",
+    "format": "json",
+    "shape": "standard"
   }
 }

@@ -11,6 +11,9 @@ pub struct Definition {
     pub export_name: String,
     pub metadata: Value,
     pub argument_templates: Option<Vec<Vec<u16>>>,
+    /// Rust MCP integrations derive support from this same declarative file.
+    /// It remains separate from the public SDK agent metadata.
+    pub mcp_config: Option<Value>,
     id: Vec<u16>,
     aliases: Vec<Vec<u16>>,
     capabilities: Vec<Vec<u16>>,
@@ -142,6 +145,13 @@ impl Registry {
             } else {
                 None
             };
+            let mcp_config = value.get("mcpConfig").cloned();
+            if mcp_config
+                .as_ref()
+                .is_some_and(|config| !matches!(config, Value::Object(_)))
+            {
+                return Err("Agent MCP configuration object is required");
+            }
             let Value::Object(fields) = &mut metadata else {
                 return Err("Agent definition object is required");
             };
@@ -167,6 +177,7 @@ impl Registry {
                 export_name,
                 metadata,
                 argument_templates,
+                mcp_config,
                 id,
                 aliases,
                 capabilities,

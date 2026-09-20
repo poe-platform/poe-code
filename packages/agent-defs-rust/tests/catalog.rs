@@ -36,6 +36,62 @@ fn registry_owns_order_aliases_and_capability_policy() {
     assert!(registry.list(&units("missing"), true).is_empty());
 }
 #[test]
+fn mcp_descriptors_share_one_agent_definition_without_changing_public_metadata() {
+    let registry = Registry::builtins();
+    let ids: Vec<_> = registry
+        .definitions()
+        .iter()
+        .filter(|definition| definition.mcp_config.is_some())
+        .map(|definition| definition.metadata.get("id").unwrap().clone())
+        .collect();
+    use mcp_protocol_rust::json::Value;
+    assert_eq!(
+        ids,
+        [
+            "claude-code",
+            "claude-desktop",
+            "codex",
+            "cursor",
+            "opencode",
+            "goose"
+        ]
+        .map(|id| Value::String(units(id)))
+    );
+    for definition in registry.definitions() {
+        assert!(definition.metadata.get("mcpConfig").is_none());
+        if let Some(config) = &definition.mcp_config {
+            assert!(config.get("configFile").is_some());
+            assert!(config.get("configKey").is_some());
+            assert!(config.get("format").is_some());
+            assert!(config.get("shape").is_some());
+        }
+    }
+    let desktop = registry
+        .definitions()
+        .iter()
+        .find(|definition| {
+            definition.metadata.get("id") == Some(&Value::String(units("claude-desktop")))
+        })
+        .unwrap();
+    assert_eq!(
+        desktop.mcp_config.as_ref().unwrap().get("mcpOutputFormat"),
+        Some(&Value::String(units("markdown_instructions")))
+    );
+}
+#[test]
+fn custom_agent_mcp_descriptor_is_optional_and_must_be_a_json_object() {
+    let source = r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"mcpConfig":{"configFile":"~/custom.json","configKey":"mcp","format":"json","shape":"standard"}}"#;
+    let registry = Registry::from_json([source]).unwrap();
+    assert!(registry.definitions()[0].mcp_config.is_some());
+    assert!(
+        registry.definitions()[0]
+            .metadata
+            .get("mcpConfig")
+            .is_none()
+    );
+    assert!(Registry::from_json([r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"mcpConfig":false}"#]).is_err());
+}
+#[test]
 fn specifiers_preserve_model_case_colons_and_lone_surrogates() {
     let spec = parse_specifier(&units("\u{feff} claude : Provider/Model:variant \u{a0}")).unwrap();
     assert_eq!(spec.agent, units("claude"));

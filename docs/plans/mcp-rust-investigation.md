@@ -1717,6 +1717,28 @@ codec/SDK edge or native platform parity. Prior intentional documented parser/
 editor divergences and finite memory/performance limits remain. Full MCP and
 poe-agent closure work remains active and incomplete.
 
+MCP support descriptors now live in the six relevant existing own Rust agent
+definition JSON files. Registry::from_json reads optional object-valued
+mcpConfig into Definition::mcp_config, separate from public agent metadata.
+Static paths, config keys/formats/server shapes and Claude Desktop's declarative
+platform/default paths/output format match the actual agent-mcp-config data.
+The existing ordered definition discovery derives supported order without a
+second provider list, provider conditionals or new ordinal fields. Future own
+MCP catalog generation can derive support from that same one agent file.
+This is preparatory data/API for agent-mcp-config-rust; its own handlers are not
+implemented yet. The Node catalog's runtime API, metadata and freeze semantics
+are unchanged; original TS definitions/providers/configs remain untouched.
+
+Validation: seven Rust groups, six native groups, all63 current catalog SDK
+unit cases, strict declarations, maintained fmt/clippy and five-workspace
+uncached maintained build pass. Failing-first groups validate ordered six-agent
+MCP discovery, hidden metadata separation, desktop output-format data, optional
+custom descriptors and rejection of nonobject MCP descriptors. Packed catalog
+retains nine frozen public definitions/aliases without exposing mcpConfig and
+runs with bare npm resolution blocked; runtime dependency categories remain zero.
+Evidence underout/rust-agent-defs-mcp-*. No performance/memory advantage claimed;
+the full MCP/poe-agent goal remains active and incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

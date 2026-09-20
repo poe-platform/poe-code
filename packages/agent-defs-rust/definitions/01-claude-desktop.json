@@ -19,5 +19,16 @@
         "light": "#D97757"
       }
     }
+  },
+  "mcpConfig": {
+    "configFile": {
+      "darwin": "~/Library/Application Support/Claude/claude_desktop_config.json",
+      "win32": "~/AppData/Roaming/Claude/claude_desktop_config.json",
+      "default": "~/.config/Claude/claude_desktop_config.json"
+    },
+    "configKey": "mcpServers",
+    "format": "json",
+    "shape": "standard",
+    "mcpOutputFormat": "markdown_instructions"
   }
 }

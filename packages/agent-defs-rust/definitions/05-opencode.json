@@ -28,5 +28,11 @@
         "light": "#2F3338"
       }
     }
+  },
+  "mcpConfig": {
+    "configFile": "~/.config/opencode/opencode.json",
+    "configKey": "mcp",
+    "format": "json",
+    "shape": "opencode"
   }
 }

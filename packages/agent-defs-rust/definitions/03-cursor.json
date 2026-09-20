@@ -23,5 +23,11 @@
         "light": "#000000"
       }
     }
+  },
+  "mcpConfig": {
+    "configFile": "~/.cursor/mcp.json",
+    "configKey": "mcpServers",
+    "format": "json",
+    "shape": "standard"
   }
 }

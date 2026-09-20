@@ -24,5 +24,11 @@
         "light": "#E85D26"
       }
     }
+  },
+  "mcpConfig": {
+    "configFile": "~/.config/goose/config.yaml",
+    "configKey": "extensions",
+    "format": "yaml",
+    "shape": "goose"
   }
 }

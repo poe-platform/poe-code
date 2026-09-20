@@ -33,8 +33,11 @@ and telemetry overlays preserve the original freeze behavior. Each list call
 returns an independent array.
 
 The standard-library Rust core also exposes `Registry`, UTF-16 `Specifier`
-parsing/formatting and reusable `Registry::from_json` catalogs. Telemetry argument
-templates escape endpoints as JSON and preserve Unicode, including lone
+parsing/formatting and reusable `Registry::from_json` catalogs.
+Each Rust definition can also carry optional `mcp_config` settings, including
+platform paths, configuration format and server shape, alongside its capabilities.
+These settings stay separate from the existing Node agent metadata.
+Telemetry argument templates escape endpoints as JSON and preserve Unicode, including lone
 surrogates. This package does not load application configuration or read
 environment variables.
 

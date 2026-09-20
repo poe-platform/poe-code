@@ -31,5 +31,11 @@
     "otel.exporter={\"otlp-http\"={endpoint=${endpointJson:/v1/logs},protocol=\"json\"}}",
     "-c",
     "otel.log_user_prompt=${content}"
-  ]
+  ],
+  "mcpConfig": {
+    "configFile": "~/.codex/config.toml",
+    "configKey": "mcp_servers",
+    "format": "toml",
+    "shape": "standard"
+  }
 }

@@ -701,3 +701,56 @@ impl NativeStderr {
         Utf16String::from(self.state.borrow().snapshot())
     }
 }
+
+use tiny_mcp_client_rust::sse::SseParser;
+#[napi]
+pub struct NativeSseParser {
+    state: RefCell<SseParser>,
+}
+#[napi]
+impl NativeSseParser {
+    #[napi(constructor)]
+    pub fn new(limit: Option<f64>) -> Result<Self> {
+        let limit = limit.unwrap_or(16.0 * 1024.0 * 1024.0);
+        if !limit.is_finite()
+            || limit.fract() != 0.0
+            || !(1.0..=9_007_199_254_740_991.0).contains(&limit)
+        {
+            return Err(napi::Error::from_reason(
+                "SSE event byte limit must be a positive safe integer",
+            ));
+        }
+        Ok(Self {
+            state: RefCell::new(SseParser::new(limit as usize).map_err(napi::Error::from_reason)?),
+        })
+    }
+    #[napi(getter)]
+    pub fn last_event_id(&self) -> Option<Utf16String> {
+        self.state.borrow().last_event_id().map(Utf16String::from)
+    }
+    #[napi]
+    pub fn push(&self, chunk: Utf16String) -> Result<convert::NativeJson> {
+        let messages = self
+            .state
+            .borrow_mut()
+            .push(&chunk)
+            .map_err(napi::Error::from_reason)?;
+        Ok(convert::NativeJson(Value::Array(
+            messages
+                .into_iter()
+                .map(|message| {
+                    let mut fields = vec![("data", Value::String(message.data))];
+                    if let Some(id) = message.id {
+                        fields.push(("id", Value::String(id)));
+                    }
+                    object(fields)
+                })
+                .collect(),
+        )))
+    }
+    #[napi]
+    pub fn flush(&self) -> convert::NativeJson {
+        self.state.borrow_mut().flush();
+        convert::NativeJson(Value::Array(vec![]))
+    }
+}

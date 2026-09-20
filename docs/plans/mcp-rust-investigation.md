@@ -213,6 +213,17 @@ malformed byte samples. In-memory transports exchange bytes and preserve closure
 reasons. A manual default-spawn check reads actual process stdout, stderr and exit
 code without fixture files. HTTP/SDK transports and OAuth remain in progress.
 
+An independent Rust SSE core now frames CR/LF/CRLF (including split CRLF),
+filters event types, preserves UTF-16 fields/cursors and discards incomplete EOF
+events. It bounds both individual lines and accumulated event data/metadata by
+UTF-8 bytes. Metadata byte counts are cached; event data uses one bounded buffer
+rather than retaining a vector per data line. Napi tests compare every split point
+of ten framing fixtures, malformed limits, comment streams, aggregate/Unicode
+overflow and 128 seeded event streams against the original parser. Flush preserves
+the completed cursor and releases partial-event buffers. This is an internal
+framing checkpoint, not a completed HTTP transport. Checks include 18 Rust and
+42 native test groups plus maintained public TypeScript fixtures.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

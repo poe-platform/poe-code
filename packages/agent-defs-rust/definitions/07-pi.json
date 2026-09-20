@@ -1,0 +1,21 @@
+{
+  "exportName": "piAgent",
+  "definition": {
+    "id": "pi",
+    "aliases": [
+      "pi-agent"
+    ],
+    "label": "Pi",
+    "summary": "Minimal AI coding agent for the terminal.",
+    "binaryName": "pi",
+    "capabilities": [
+      "spawn"
+    ],
+    "branding": {
+      "colors": {
+        "dark": "#F2F2F2",
+        "light": "#242424"
+      }
+    }
+  }
+}

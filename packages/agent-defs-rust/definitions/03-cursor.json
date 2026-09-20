@@ -1,0 +1,27 @@
+{
+  "exportName": "cursorAgent",
+  "definition": {
+    "id": "cursor",
+    "aliases": [
+      "cursor-agent"
+    ],
+    "label": "Cursor",
+    "summary": "Cursor's CLI coding agent.",
+    "binaryName": "cursor-agent",
+    "configPath": "~/.cursor/mcp.json",
+    "capabilities": [
+      "spawn",
+      "configure",
+      "install",
+      "test",
+      "skill",
+      "mcp"
+    ],
+    "branding": {
+      "colors": {
+        "dark": "#FFFFFF",
+        "light": "#000000"
+      }
+    }
+  }
+}

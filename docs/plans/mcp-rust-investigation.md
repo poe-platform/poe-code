@@ -1185,6 +1185,47 @@ from ~52 MB to ~63 MB. This bounded run is not sustained leak or platform proof.
 Evidence is `out/rust-stdio-fixture-*`. Full MCP/poe-agent closure implementation,
 supported-platform artifacts and broader stability/performance remain active.
 
+The agent closure now also includes private `@poe-code/agent-defs-rust`. Each
+agent has one declarative JSON definition. Both Cargo and the Node build discover
+these files; registry order, named exports/types, aliases and capability data
+derive automatically. Names default to ids, and argument templates infer an
+OTel capture overlay without repeating an empty object. There are no agent-id
+branches. Generic templates insert JSON-escaped endpoint suffixes and content
+flags. The pure Rust `Registry`, specifiers, capability diagnostics and custom
+`Registry::from_json` catalogs use only std and the own protocol path crate.
+Bindings share the canonical own NAPI JSON conversion crate.
+
+Node's Unicode lowercase primitive supplies normalized caller keys. Rust derives
+lookup/capability data once, and Node caches that immutable policy for routine
+checks. A native mismatch in alias-option getter evaluation was reproduced and
+fixed while retaining independent returned arrays. Records preserve original
+freeze boundaries, including its mutable nested configPaths object. Empty-agent
+TypeErrors, model getter order and own-property admission remain compatible.
+The first native specifier wrapper measured 573 ns versus 77 ns for the original
+small parser. The final Node adapter applies Rust's delimiter/error policy with
+V8 string primitives, retaining model substrings in Node and removing per-call
+native string copies; the complete UTF-16 Rust parser remains available for Rust
+and direct native callers. A test temporarily rejects all native specifier calls
+and proves the public Node parser/formatter/normalizer still work. All 63 original
+contracts execute the additive adapter; five Rust tests, six native groups,
+bidirectional shipped namespace/types, lint and the five-workspace maintained
+build closure pass. Actual extracted metadata/exports/Unicode/capability/telemetry
+smokes pass with every external npm resolution blocked. Temporary extraction
+and tarball are purged.
+
+Final seven-batch medians on Node 22.23.2 macOS arm64 are original versus additive:
+resolve 43/37 ns, capability check 247/69 ns, parse 89/67 ns, normalize 135/130 ns,
+and typo diagnostic 7,670/2,832 ns. Small differences are machine/workload-specific;
+these do not establish end-to-end agent speed. GC-enabled isolated processes
+retain 64 specifiers sharing a 917,504-unit model with only ~7.6 KB original/~7.5 KB
+additive additional heap. No model copies accumulate. After 32,768 parse,
+normalize and diagnostic calls each, additive GC heap grows ~60 KB from first
+to last churn samples; RSS grows ~51.5 MB to ~56.3 MB. Warmed standalone RSS is
+~45.3 MB original/~45.5 MB additive. The bounded run completes without errors;
+broader sustained stability and supported-platform proof remain outstanding.
+Evidence is `out/rust-agent-defs-*`. This is another package delivery, not full
+MCP or poe-agent completion, and applications still use their original imports.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

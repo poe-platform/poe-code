@@ -19,6 +19,7 @@ import {
   WD_TABLE_DIRECTION,
   WD_CELL_VERTICAL_ALIGNMENT,
   WD_ROW_HEIGHT_RULE,
+  enumValue,
   type Length as LengthValue
 } from "./formatting-values.js";
 import type { DocxEnumValue, DocxLength, DocxEnumNames } from "./operation-types.js";
@@ -57,8 +58,9 @@ function enumName<E extends keyof DocxEnumNames>(
   names: Record<string, string>
 ): string | null {
   if (value === null) return null;
-  if (!value || value.enum !== family || !Object.hasOwn(names, value.name))
-    throw new TypeError(`Expected ${family}.`);
+  enumValue(value);
+  if (value.enum !== family) throw new InputTypeError(`Expected ${family}.`);
+  if (!Object.hasOwn(names, value.name)) throw new InvalidValueError(`Unknown ${family} value.`);
   return names[value.name]!;
 }
 function readEnum<E extends keyof DocxEnumNames>(

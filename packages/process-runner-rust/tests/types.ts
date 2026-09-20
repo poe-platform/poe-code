@@ -1,0 +1,1 @@
+import *as own from'../dist/index.js';import *as sdk from'@poe-code/process-runner';type Subset=Pick<typeof sdk,keyof typeof own>;const original:Subset=own;const native:typeof own=sdk;void[original,native];

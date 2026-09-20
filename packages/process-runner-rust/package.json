@@ -1,0 +1,5 @@
+{
+ "name":"@poe-code/process-runner-rust","version":"0.1.0","private":true,"description":"Own Rust process policies with interchangeable native Node host execution","type":"module","license":"MIT","main":"dist/index.js","types":"dist/index.d.ts","exports":{".":{"types":"./dist/index.d.ts","import":"./dist/index.js"}},
+ "scripts":{"build":"node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build","test:unit":"node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/process-runner-rust/vitest.sdk.config.mjs","lint":"node ../mcp-protocol-rust/scripts/cargo.mjs lint"},
+ "devDependencies":{"@napi-rs/cli":"3.10.4","@poe-code/process-runner":"*","mcp-protocol-rust":"*","typescript":"5.9.3","vitest":"4.1.11"},"files":["dist","LICENSE"],"engines":{"node":">=18.18"},"napi":{"binaryName":"process-runner-rust"},"repository":{"type":"git","url":"git+https://github.com/poe-platform/poe-code.git","directory":"packages/process-runner-rust"}
+}

@@ -2341,6 +2341,38 @@ Current root APIs are implemented; malformed/getter-stage, recursive workload
 limits, cross-platform packaging and broad acceptance remain unfinished, along
 with the overall rewrite and minimum24-hour actual effort requirement.
 
+### Process runner native host subset — 2026-09-20
+
+Added private `process-runner-rust` with a dependency-free Rust core and one addon.
+Rust handles active-run stdio/group plans, exactly-once result settlement, Unix
+group signal targets and lazy shell fallback selection. The Node transport uses
+only builtin child processes and retains stream, signal and environment identity;
+it ignores inherited options and supplies null-prototype spawn options.
+
+All25 current SDK host/host-environment cases,3 Rust groups,4 native groups,
+strict bidirectional subset API types, fmt/clippy and the uncached5-workspace
+build closure pass. Real deterministic subprocess checks cover binary-to-text
+UTF8 stream content, stderr, explicit environments, nonzero exits, ordinary/group
+signals and cancellation. Additional failing-first native cases caught unused
+shell getter reads and premature NAPI validation of malformed unused stdio for
+pre-aborted runs. Rust requests fallback facts lazily and original getter errors
+retain identity; pre-aborted transport admission avoids the unused native call.
+The initial Rust test draft needed a syntax correction; its first recorded red
+log is a syntax error, not behavioral red evidence. SDK API-absence and the two
+native compatibility regressions provide the concrete failing evidence.
+
+Direct/packed8MiB workers each pass4096 pre-aborted admissions and16 real stream/
+exit runs with external imports blocked.4MiB workers exhaust their heap; no4MiB
+acceptance is claimed. The packed package has one addon and zero npm runtime/peer/
+optional dependency groups. After eliminating unused transport work, three8192-
+admission samples are0.106–0.196µs own versus0.187–0.396µs SDK; the own fast path
+does not call Rust and is not evidence of a Rust computation speedup.262,144
+additional admissions keep sampled heap near4.04MB and buffers10.5KB. Evidence:
+`out/rust-process-host-*`.
+
+Docker/mock/workspace-transfer APIs, full host malformed/getter fidelity, Python
+bindings, cross-platform artifacts and the larger goal remain unfinished.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

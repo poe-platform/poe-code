@@ -1,0 +1,7 @@
+[package]
+name="process-runner-rust"
+version="0.1.0"
+edition="2024"
+rust-version="1.88"
+license="MIT"
+description="Portable process execution planning and lifecycle policies"

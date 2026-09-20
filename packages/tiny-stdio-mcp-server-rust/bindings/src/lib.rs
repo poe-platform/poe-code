@@ -433,8 +433,45 @@ impl NativeServer {
 
     #[napi(ts_return_type = "unknown")]
     pub fn dispatch_line(&self, id: u32, source: Utf16String) -> Result<NativeJson> {
-        use tiny_stdio_mcp_server_rust::wire::{LineMessage, parse_line};
-        let (wire_id, notification, action) = match parse_line(&source, Limits::default()) {
+        use tiny_stdio_mcp_server_rust::wire::parse_line;
+        self.state
+            .borrow_mut()
+            .dispatch_wire(id, parse_line(&source, Limits::default()))
+            .map(NativeJson)
+    }
+
+    #[napi(ts_return_type = "unknown")]
+    pub fn dispatch_sdk(
+        &self,
+        env: Env,
+        id: u32,
+        method: Utf16String,
+        source: Unknown<'_>,
+        request_id: Unknown<'_>,
+    ) -> Result<NativeJson> {
+        let params = input::read(&env, source, input::Mode::Json)?;
+        let request_id = input::read_id(request_id)?;
+        let message =
+            tiny_stdio_mcp_server_rust::wire::admit(mcp_protocol_rust::jsonrpc::Request {
+                id: request_id,
+                method: method.to_vec(),
+                params,
+            });
+        self.state
+            .borrow_mut()
+            .dispatch_wire(id, message)
+            .map(NativeJson)
+    }
+}
+
+impl ServerState {
+    fn dispatch_wire(
+        &mut self,
+        id: u32,
+        message: tiny_stdio_mcp_server_rust::wire::LineMessage,
+    ) -> Result<Value> {
+        use tiny_stdio_mcp_server_rust::wire::LineMessage;
+        let (wire_id, notification, action) = match message {
             LineMessage::Ignore => (Id::Null, true, object([("type", string("none"))])),
             LineMessage::Error { id, error } => (id, false, action_value(Action::Error(error))),
             LineMessage::Dispatch(request) => {
@@ -446,18 +483,15 @@ impl NativeServer {
                     Some(wire_id.clone())
                 };
                 let method = String::from_utf16_lossy(&request.method);
-                let action =
-                    self.state
-                        .borrow_mut()
-                        .dispatch(id, &method, request.params, context_id)?;
+                let action = self.dispatch(id, &method, request.params, context_id)?;
                 (wire_id, notification, action)
             }
         };
-        Ok(NativeJson(object([
+        Ok(object([
             ("id", wire_id.into_value()),
             ("isNotification", Value::Bool(notification)),
             ("action", action),
-        ])))
+        ]))
     }
 }
 

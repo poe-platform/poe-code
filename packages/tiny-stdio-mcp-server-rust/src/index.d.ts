@@ -87,6 +87,36 @@ export interface JSONRPCNotification {
   method: string;
   params?: Record<string, unknown>;
 }
+export interface JSONRPCRequest {
+  jsonrpc: "2.0";
+  id: string | number | null;
+  method: string;
+  params?: Record<string, unknown>;
+}
+export interface JSONRPCResponse {
+  jsonrpc: "2.0";
+  id: string | number | null;
+  result?: unknown;
+  error?: { code: number; message: string; data?: unknown };
+}
+export type JSONRPCMessage = JSONRPCRequest | JSONRPCResponse | JSONRPCNotification;
+export type SDKMessage =
+  | JSONRPCNotification
+  | (Omit<JSONRPCRequest, "id"> & { id: string | number })
+  | { jsonrpc: "2.0"; id: string | number; result: Record<string, unknown> }
+  | {
+      jsonrpc: "2.0";
+      id?: string | number;
+      error: { code: number; message: string; data?: unknown };
+    };
+export interface SDKTransport {
+  onmessage?(message: SDKMessage): void;
+  onclose?: () => void;
+  onerror?: (error: Error) => void;
+  start(): Promise<void>;
+  close(): Promise<void>;
+  send(message: SDKMessage): Promise<void>;
+}
 export type CustomMethodHandler = (
   params: Record<string, unknown> | undefined,
   context: MessageSessionContext
@@ -103,6 +133,7 @@ export interface MessageSession {
     line: string,
     write?: (response: string) => Promise<void>
   ): Promise<string | undefined>;
+  handleSDKMessage(message: JSONRPCMessage): Promise<JSONRPCResponse | undefined>;
 }
 
 export interface Transport {
@@ -142,6 +173,7 @@ export interface Server {
   ): MessageSession;
   handleMessage: MessageSession["handleMessage"];
   connect(transport: Transport): Promise<void>;
+  connectSDK(transport: SDKTransport): Promise<void>;
   listen(): Promise<void>;
 }
 

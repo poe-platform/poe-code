@@ -135,6 +135,20 @@ export function createServer(options) {
         request.abort();
       }
     }
+    function handleParsed(parsed) {
+      function complete(handled) {
+        if (parsed.isNotification || (handled.error === undefined && handled.result === undefined))
+          return undefined;
+        return { jsonrpc: "2.0", id: parsed.id, ...handled };
+      }
+      if (parsed.action.type === "reply") return complete({ result: parsed.action.value });
+      if (parsed.action.type === "error") return complete({ error: parsed.action.value });
+      if (parsed.action.type === "none") return undefined;
+      return executeAction(
+        parsed.action,
+        parsed.isNotification || parsed.id === null ? undefined : { requestId: parsed.id }
+      ).then(complete, () => complete({ error: { code: -32603, message: "Internal error" } }));
+    }
     const session = {
       async handleMessage(method, params, context) {
         if (context?.signal?.aborted) return { result: undefined };
@@ -148,23 +162,27 @@ export function createServer(options) {
       },
       async handleLine(line, write) {
         const parsed = native.dispatchLine(id, line);
-        let handled;
-        try {
-          if (parsed.action.type === "reply") handled = { result: parsed.action.value };
-          else if (parsed.action.type === "error") handled = { error: parsed.action.value };
-          else
-            handled = await executeAction(
-              parsed.action,
-              parsed.isNotification || parsed.id === null ? undefined : { requestId: parsed.id }
-            );
-        } catch {
-          handled = { error: { code: -32603, message: "Internal error" } };
-        }
-        if (parsed.isNotification || (handled.error === undefined && handled.result === undefined))
-          return undefined;
-        const response = `${JSON.stringify({ jsonrpc: "2.0", id: parsed.id, ...handled })}\n`;
+        const pending = handleParsed(parsed);
+        const handled = pending instanceof Promise ? await pending : pending;
+        if (handled === undefined) return undefined;
+        const response = `${JSON.stringify(handled)}\n`;
         if (write !== undefined) await write(response);
         return response;
+      },
+      async handleSDKMessage(message) {
+        if (controller.signal.aborted || !("method" in message)) return undefined;
+        let parsed;
+        try {
+          parsed = native.dispatchSdk(id, message.method, message.params, message.id);
+        } catch {
+          if (message.id === undefined) return undefined;
+          return {
+            jsonrpc: "2.0",
+            id: message.id,
+            error: { code: -32603, message: "Internal error" }
+          };
+        }
+        return handleParsed(parsed);
       },
       close() {
         controller.abort();
@@ -194,6 +212,25 @@ export function createServer(options) {
     handleMessage: defaultSession.handleMessage,
     connect(transport) {
       return connectStreams(transport, createMessageSession, native.stdioOptions);
+    },
+    connectSDK(transport) {
+      return new Promise((resolve, reject) => {
+        const session = createMessageSession((notification) => transport.send(notification));
+        transport.onmessage = async (message) => {
+          const response = await session.handleSDKMessage(message);
+          if (response !== undefined) await transport.send(response);
+        };
+        transport.onclose = () => {
+          session.close();
+          resolve();
+        };
+        Promise.resolve()
+          .then(() => transport.start())
+          .catch((error) => {
+            session.close();
+            reject(error);
+          });
+      });
     },
     listen() {
       return connectStreams(

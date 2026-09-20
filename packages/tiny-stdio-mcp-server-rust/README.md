@@ -87,8 +87,17 @@ budgets are 1 MiB each, with at most 128 pending messages. Set
 `maxStdioLineBytes`, `maxStdioOutputBytes`, and `maxPendingStdioMessages` to change
 them. Caller-owned streams remain open when a connection completes.
 
+Use `await server.connectSDK(transport)` with a transport exposing `start`, `send`,
+`close`, `onmessage` and `onclose`. The adapter accepts the official SDK's transports
+without importing its implementation or types. Rust admits decoded requests
+directly, preserving UTF-16 IDs and values without a JSON serialization round trip.
+Transport responses are ignored, initialization remains isolated per connection,
+and closing or failing startup disposes the session. Notification send failures
+propagate to their caller. A canceled callback retains global request capacity
+until its underlying operation settles.
+
 This is an additive implementation checkpoint. HTTP transports,
 modern long-lived subscription requests, input-required/retry schemas, content helpers,
-SDK transport adapters, and full result
+and full result
 compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

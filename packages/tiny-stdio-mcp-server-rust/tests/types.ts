@@ -1,5 +1,6 @@
 import { createServer, parseUriTemplate, type HandlerRequestContext } from "../src/index.js";
 import { PassThrough } from "node:stream";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 
 const server = createServer({ name: "typed", version: "1", validateToolArguments: true });
 server.tool<{ message: string }>("echo", "Echo", { type: "object" }, (args, context) => {
@@ -19,6 +20,10 @@ session.close();
 void removed;
 void server.connect({ readable: new PassThrough(), writable: new PassThrough() });
 void server.listen();
+const [sdkClient, sdkServer] = InMemoryTransport.createLinkedPair();
+void sdkClient;
+void server.connectSDK(sdkServer);
+void session.handleSDKMessage({ jsonrpc: "2.0", id: "sdk", method: "ping" });
 const line: Promise<string | undefined> = server
   .createMessageSession()
   .handleLine('{"jsonrpc":"2.0","id":1,"method":"ping"}');

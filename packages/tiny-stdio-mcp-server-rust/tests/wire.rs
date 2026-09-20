@@ -8,6 +8,10 @@ fn line(source: &str) -> LineMessage {
     )
 }
 
+fn value(source: &str) -> mcp_protocol_rust::json::Value {
+    mcp_protocol_rust::json::parse(source.as_bytes(), Limits::default()).unwrap()
+}
+
 #[test]
 fn ignores_initialize_notifications_and_modern_requests_without_ids() {
     assert_eq!(
@@ -74,5 +78,38 @@ fn malformed_lines_produce_wire_errors_with_recoverable_ids() {
         };
         assert_eq!(id, expected_id);
         assert_eq!(error.code, code);
+    }
+}
+#[test]
+fn sdk_admission_shares_wire_protocol_id_and_notification_rules() {
+    use mcp_protocol_rust::jsonrpc::Request;
+    use tiny_stdio_mcp_server_rust::wire::admit;
+    for (method, params, id) in [
+        ("initialize", None, None),
+        (
+            "tools/call",
+            Some(value(
+                r#"{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}"#,
+            )),
+            None,
+        ),
+    ] {
+        assert_eq!(
+            admit(Request {
+                method: method.encode_utf16().collect(),
+                params,
+                id
+            }),
+            LineMessage::Ignore
+        );
+    }
+    for id in [
+        Id::Null,
+        Id::Number(1.5),
+        Id::Number(9_007_199_254_740_992.0),
+    ] {
+        assert!(
+            matches!(admit(Request { method: "tools/list".encode_utf16().collect(), params: Some(value(r#"{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}"#)), id: Some(id) }), LineMessage::Error { id: Id::Null, error } if error.code == -32600)
+        );
     }
 }

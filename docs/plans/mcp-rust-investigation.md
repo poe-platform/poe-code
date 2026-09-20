@@ -47,8 +47,15 @@ Checks cover disabled capabilities, repeated initialization, cancellation, close
 delivery failures and observer subscription changes before delivery. The official
 SDK subscribes/unsubscribes and receives resource/tool notifications over stdio.
 This checkpoint passes 56 Rust and 301 native tests plus focused build/lint/types.
-Modern long-lived subscription requests, complete input-required/retry payloads
-and SDK adapters remain pending.
+An SDK transport adapter now admits decoded messages through Rust without JSON
+serialization or an SDK runtime dependency. Official `InMemoryTransport`/Client
+checks cover tools, prompts, resources and updates; differential checks cover IDs,
+notification admission, ignored responses, startup failure, close, delivery errors
+and capacity retained by canceled callbacks. Its public transport types compile
+against the actual official SDK class without a consumer cast or type import.
+The expanded checkpoint passes 57 Rust and 305 native tests.
+Modern long-lived subscription requests and complete input-required/retry payloads
+remain pending.
 
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,

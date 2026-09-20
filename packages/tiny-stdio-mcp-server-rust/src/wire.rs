@@ -17,6 +17,12 @@ pub fn parse_line(line: &[u16], limits: Limits) -> LineMessage {
         }
         mcp_protocol_rust::jsonrpc::ParsedMessage::Request(request) => request,
     };
+    admit(request)
+}
+
+/// Admission for already decoded SDK transport requests uses the same protocol
+/// and notification rules as stdio without serializing the host message.
+pub fn admit(request: Request) -> LineMessage {
     let method = String::from_utf16_lossy(&request.method);
     if request.id.is_none()
         && (method == "initialize"
@@ -33,6 +39,21 @@ pub fn parse_line(line: &[u16], limits: Limits) -> LineMessage {
             error: RpcError {
                 code: -32600,
                 message: "Invalid Request".into(),
+                data: None,
+            },
+        };
+    }
+    if request
+        .id
+        .as_ref()
+        .is_some_and(|id| !id.is_safe_request_id())
+        && crate::select_protocol(&method, request.params.as_ref()) == Ok(true)
+    {
+        return LineMessage::Error {
+            id: Id::Null,
+            error: RpcError {
+                code: -32600,
+                message: "Invalid Request ID".into(),
                 data: None,
             },
         };

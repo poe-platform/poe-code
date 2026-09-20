@@ -298,3 +298,42 @@ fn trim(source: &[u16]) -> &[u16] {
         .map_or(start, |n| n + 1);
     &source[start..end]
 }
+
+/// Declarative host factory layouts preserve foreign resolver/guard identities.
+pub struct Factory {
+    pub name: &'static str,
+    pub kind: &'static str,
+    pub fields: &'static [&'static str],
+}
+pub const FILE_FACTORIES: &[Factory] = &[
+    Factory {
+        name: "ensureDirectory",
+        kind: "ensureDirectory",
+        fields: &["path", "label"],
+    },
+    Factory {
+        name: "remove",
+        kind: "removeFile",
+        fields: &["target", "whenEmpty", "whenContentMatches", "label"],
+    },
+    Factory {
+        name: "removeDirectory",
+        kind: "removeDirectory",
+        fields: &["path", "force", "label"],
+    },
+    Factory {
+        name: "chmod",
+        kind: "chmod",
+        fields: &["target", "mode", "label"],
+    },
+    Factory {
+        name: "backup",
+        kind: "backup",
+        fields: &["target", "once", "label"],
+    },
+    Factory {
+        name: "restoreBackup",
+        kind: "restoreBackup",
+        fields: &["target", "label"],
+    },
+];

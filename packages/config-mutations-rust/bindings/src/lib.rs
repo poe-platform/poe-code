@@ -215,4 +215,6 @@ pub fn config_yaml_serialize(serialized: Buffer) -> Result<Utf16String> {
 }
 
 mod atomic;
+mod backup;
 mod execution;
+pub use execution::config_file_factories;

@@ -13,7 +13,7 @@ export interface FileSystem{
  chmod?(path:string,mode:number):Promise<void>;
 }
 export interface MutationDetails{kind:string;label:string;targetPath?:string;}
-export interface MutationOutcome{changed:boolean;effect:'none'|'mkdir'|'delete'|'chmod';detail:'create'|'update'|'delete'|'noop';}
+export interface MutationOutcome{changed:boolean;effect:'none'|'mkdir'|'delete'|'chmod'|'copy';detail:'create'|'update'|'delete'|'noop'|'backup'|'restore';}
 export interface MutationObservers{
  onStart?(details:MutationDetails):void;
  onComplete?(details:MutationDetails,outcome:MutationOutcome):void;
@@ -31,7 +31,18 @@ export interface EnsureDirectoryMutation extends BaseMutation{kind:'ensureDirect
 export interface RemoveDirectoryMutation extends BaseMutation{kind:'removeDirectory';path:ValueResolver<string>;force?:boolean;}
 export interface RemoveFileMutation extends BaseMutation{kind:'removeFile';target:ValueResolver<string>;whenEmpty?:boolean;whenContentMatches?:RegExp;}
 export interface ChmodMutation extends BaseMutation{kind:'chmod';target:ValueResolver<string>;mode:number;}
-export type FileMutation=EnsureDirectoryMutation|RemoveDirectoryMutation|RemoveFileMutation|ChmodMutation;
+export interface BackupMutation extends BaseMutation{kind:'backup';target:ValueResolver<string>;once?:boolean;}
+export interface RestoreBackupMutation extends BaseMutation{kind:'restoreBackup';target:ValueResolver<string>;}
+export type FileMutation=BackupMutation|RestoreBackupMutation|EnsureDirectoryMutation|RemoveDirectoryMutation|RemoveFileMutation|ChmodMutation;
 export interface MutationResult{changed:boolean;effects:MutationOutcome[];}
 /** Execute file mutations with platform operations supplied by the caller. */
 export function runMutations(mutations:FileMutation[],context:MutationContext,options?:MutationOptions):Promise<MutationResult>;
+
+export const fileMutation:{
+ ensureDirectory(options:Omit<EnsureDirectoryMutation,'kind'>):EnsureDirectoryMutation;
+ remove(options:Omit<RemoveFileMutation,'kind'>):RemoveFileMutation;
+ removeDirectory(options:Omit<RemoveDirectoryMutation,'kind'>):RemoveDirectoryMutation;
+ chmod(options:Omit<ChmodMutation,'kind'>):ChmodMutation;
+ backup(options:Omit<BackupMutation,'kind'>):BackupMutation;
+ restoreBackup(options:Omit<RestoreBackupMutation,'kind'>):RestoreBackupMutation;
+};

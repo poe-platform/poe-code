@@ -2,7 +2,7 @@
   "name": "@poe-code/config-mutations-rust",
   "version": "0.1.0",
   "private": true,
-  "description": "Additive own Rust configuration codecs with zero npm runtime dependencies",
+  "description": "Additive own Rust configuration codecs and file mutations with zero npm runtime dependencies",
   "type": "module",
   "license": "MIT",
   "exports": {

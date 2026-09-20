@@ -136,3 +136,28 @@ impl ConfigFileMachine {
         Ok(value(self.machine.respond(response)))
     }
 }
+
+#[napi]
+pub fn config_file_factories() -> NativeJson {
+    NativeJson(Value::Array(
+        config_mutations_rust::execution::FILE_FACTORIES
+            .iter()
+            .map(|factory| {
+                super::object(vec![
+                    ("name", Value::String(factory.name.encode_utf16().collect())),
+                    ("kind", Value::String(factory.kind.encode_utf16().collect())),
+                    (
+                        "fields",
+                        Value::Array(
+                            factory
+                                .fields
+                                .iter()
+                                .map(|name| Value::String(name.encode_utf16().collect()))
+                                .collect(),
+                        ),
+                    ),
+                ])
+            })
+            .collect(),
+    ))
+}

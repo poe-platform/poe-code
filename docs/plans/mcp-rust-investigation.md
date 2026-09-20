@@ -1503,7 +1503,7 @@ exclusive creation, rename, collision preservation, cleanup, error identity,
 symlink boundaries and lazy error-code getters. Success/failure/collision effect
 traces match the current SDK writer via its configMerge handler, with only
 nondeterministic temporary names normalized. Both 4 MiB workers pass depth512,
-2048 successful 32768-unit writes and128 failed-rename cleanup cycles. An initial
+2048 successful 32768-byte writes and128 failed-rename cleanup cycles. An initial
 microtask-only memory run exposed deferred-finalizer retention of Rust buffers:
 RSS reached96.9MB at1280 writes despite stable JS heap. Terminal states now release
 their owned payloads immediately, and file mutation states release path walks.
@@ -1514,6 +1514,51 @@ Evidence is captured in out/rust-config-atomic-*; no relative performance,
 lower-memory or universal leak-free claim is made.
 The packed internal adapter passes with all external npm resolution blocked.
 The full goal remains active and incomplete.
+
+File backup and restoration now run through an own Rust BackupMachine in the
+`./execution` API. The core owns first-baseline/missing-marker admission, generated
+name scanning, UTF-16 lexical latest selection, timestamp formatting, exclusive
+collision suffixes, cleanup, restoration ordering and backup consumption. The
+Node adapter supplies injected filesystem/path/calendar effects, including the
+host Date.parse admission behavior. Controls stay lazy: once is read after target
+link checks and again only for a missing target; dryRun after reads/discovery.
+Restore checks the backup before reading/deleting and invokes the own atomic
+write engine before consuming it. Missing target deletion is admitted only for a
+missing marker; missing backup read/delete errors propagate. Terminal states
+release owned buffers. The adapter retains only the one pending host error, so
+collision retries do not accumulate exceptions. The SDK's .missing-N collision
+names remain unrecognized on restore, and lexical suffix ordering remains
+lexical rather than numeric; this round preserves actual behavior.
+
+All six fileMutation factories are generated from declarative Rust layouts;
+foreign resolver/regex identity and option getter order remain in the host.
+No original production imports or release wiring changed. Configuration/template
+handlers and factories plus root/testing exports remain outstanding.
+
+Validation: fifty-five Rust groups, forty-one native groups, strict declarations,
+maintained fmt/clippy and the uncached seven-workspace maintained build pass.
+Native comparisons use the actual current SDK with memfs and a fixed clock for
+backup baselines/consumption/dry runs, forgery/date/suffix cases, lexical latest,
+partial write cleanup, error identity, missing-code boundaries, symlinks, lazy
+controls/date predicates and all factory getter/identity cases. Both4 MiB workers
+pass depth512 and2048 16384-byte backup/restore cycles. A further test admits256
+exclusive collisions then succeeds and proves cleanup code getters stay unused.
+The packed file factories and native round trip pass with bare npm resolution
+blocked; production/peer/optional dependencies remain zero.
+
+Sequential measured16KiB round trip in memfs: original159993/native212065ns
+(Node22.23.2/macOSARM64). Memfs memory growth appears in both implementations:
+its rename-over-existing path retains replaced inodes. A standalone memfs-only
+reproduction (no Rust or config package) shows1 visible file but4/260/516 retained
+inodes after0/256/512 replacements. Draining event queues does not remove those
+inodes. This makes its process memory samples insufficient to attribute growth
+to the rewrite. A separate controlled string-map protocol host with drained
+queues runs5120 cycles: original/native final RSS77.6/108.6MB, retained heap8.88/
+8.86MB, external2.18MB either; last three native RSS samples108.51/108.56/108.56MB.
+Both implementations are loaded in each process, so this measures operation
+deltas, not isolated package load. This finite stability evidence does not show
+a speed/lower-memory advantage or universal leak-free behavior. Evidence under
+out/rust-config-backup-*. The full MCP/poe-agent goal remains active and incomplete.
 
 ## Sources
 

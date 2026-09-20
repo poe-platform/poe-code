@@ -17,12 +17,19 @@ import {yamlFormat} from '@poe-code/config-mutations-rust/yaml';
 const settings=yamlFormat.parse('extensions:\n  terminal:\n    enabled: true\n');
 const yaml=yamlFormat.serialize(settings);
 
-import {runMutations} from '@poe-code/config-mutations-rust/execution';
+import {runMutations,fileMutation} from '@poe-code/config-mutations-rust/execution';
 const result=await runMutations([
-  {kind:'ensureDirectory',path:'~/.agent'},
+  fileMutation.ensureDirectory({path:'~/.agent'}),
   {kind:'chmod',target:'~/.agent',mode:0o700},
   {kind:'removeFile',target:'~/.agent/empty',whenEmpty:true}
 ], {fs:yourFileSystem,homeDir:yourHomeDirectory,dryRun:true});
+
+// Preserve the first baseline, including an originally missing file.
+await runMutations([fileMutation.backup({target:'~/.agent/config.json',once:true})],
+  {fs:yourFileSystem,homeDir:yourHomeDirectory});
+// Later, restore and consume the most recent generated backup.
+await runMutations([fileMutation.restoreBackup({target:'~/.agent/config.json'})],
+  {fs:yourFileSystem,homeDir:yourHomeDirectory});
 ```
 
 The own Rust parser and editor preserve UTF-16 strings, trailing commas, indentation,
@@ -47,8 +54,11 @@ promptly instead of overflowing the original configuration clone.
 Exact YAML SDK warnings/error metadata, all authored complex-key formatting and
 merge-source alias admission are still under conformance review. SDK-specific
 Document/node objects are not serialization inputs. Standalone Rust callers can
-supply Date-key coercion; the Node adapter uses the host time zone. The `./execution` API runs directory creation/removal, guarded file removal and
-permission changes in order. Its Rust state machine checks symbolic links before
+supply Date-key coercion; the Node adapter uses the host time zone.
+
+The `./execution` API runs directory creation/removal, guarded file removal,
+permission changes, backups and restoration in order. The `fileMutation` factory
+keeps resolver and guard identities while deriving its layouts from Rust. Its Rust state machine checks symbolic links before
 writes, retains dry-run outcomes and requests host controls lazily; injected
 filesystem errors and observers retain their identities. Paths must start with
 `~` and remain inside the managed home before optional mapping.
@@ -59,8 +69,8 @@ platform requests and preserves host error tokens. Terminal states release owned
 buffers immediately. This is an internal foundation
 for the remaining handlers; it is not a new public npm API.
 
-Backup/restore, configuration/template execution, mutation factories and the
-original root/testing exports remain under development. It is not integrated into
+Configuration/template execution, config/template factories and the original
+root/testing exports remain under development. It is not integrated into
 applications. JSON nesting is bounded to 512
 levels; malformed edit input
 is rejected rather than recovered by the development oracle's tolerant editor.
@@ -84,3 +94,8 @@ In-memory file mutation measurements take about 13–18 µs in the native bindin
 versus 2–3 µs in TypeScript. Real filesystem latency is additional. The finite
 memory check retains about the same JS heap and more native-process RSS; it does
 not establish a speedup, memory reduction or universal stability guarantee.
+
+A 16 KiB backup/restore round trip in memfs takes about212 µs native versus160 µs
+in TypeScript on Node22/macOSARM64. A separate controlled-host run of5120 cycles
+levels near109 MB RSS for native and78 MB for TypeScript, with about8.9 MB retained
+JS heap either. These results do not show a general speed or memory advantage.

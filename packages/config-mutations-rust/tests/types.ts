@@ -13,3 +13,6 @@ import type {FileSystem,MutationResult} from '../dist/execution.js';
 declare const fs:FileSystem;
 const operation:Promise<MutationResult>=runMutations([{kind:'ensureDirectory',path:'~/config'},{kind:'chmod',target:'~/config',mode:0o700},{kind:'removeFile',target:ctx=>String(ctx.target),whenEmpty:true}],{fs,homeDir:'/home/test'},{target:'~/empty'});
 void operation;
+
+import {fileMutation} from '../dist/execution.js';
+runMutations([fileMutation.backup({target:'~/config',once:true}),fileMutation.restoreBackup({target:'~/config'})],{fs,homeDir:'/home/test'});

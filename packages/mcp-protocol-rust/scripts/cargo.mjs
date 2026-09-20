@@ -73,7 +73,10 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
     "--",
     "--locked"
   ]);
-  copyFileSync(path.join(packageDirectory, "src/index.js"), path.join(output, "index.js"));
+  for (const name of readdirSync(path.join(packageDirectory, "src"))) {
+    if (name.endsWith(".js"))
+      copyFileSync(path.join(packageDirectory, "src", name), path.join(output, name));
+  }
   if (existsSync(path.join(packageDirectory, "src/index.d.ts"))) {
     copyFileSync(path.join(packageDirectory, "src/index.d.ts"), path.join(output, "index.d.ts"));
   }

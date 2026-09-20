@@ -36,6 +36,11 @@ exponent formatting is not promised to be byte-identical to `JSON.stringify`.
 As with `JSON.parse`, numeric overflow can produce infinity, which serializes
 as `null`, matching `JSON.stringify`.
 
+`parse_utf16` also accepts JavaScript source strings containing raw unpaired
+surrogates. Its byte limit counts UTF-8 widths, with three bytes per unpaired unit;
+escaping those units internally does not consume extra input budget. Parse error
+offsets refer to the normalized UTF-8 source.
+
 This additive package is under development. MCP dispatch APIs and the native
 TypeScript binding are being added; existing MCP packages continue to operate
 independently.

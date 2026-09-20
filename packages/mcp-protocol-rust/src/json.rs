@@ -74,6 +74,75 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// Accept JavaScript source strings without replacing unpaired UTF-16 units.
+/// The byte budget uses UTF-8 lengths, counting each unpaired unit as three bytes.
+/// Error offsets refer to the normalized UTF-8 source.
+pub fn parse_utf16(input: &[u16], limits: Limits) -> Result<Value, Error> {
+    if limits.max_depth > 512 {
+        return Err(Error {
+            offset: 0,
+            kind: ErrorKind::InvalidLimits,
+        });
+    }
+    if input.len() > limits.max_bytes {
+        return Err(Error {
+            offset: limits.max_bytes,
+            kind: ErrorKind::ByteLimit,
+        });
+    }
+    let mut normalized = String::new();
+    let mut bytes = 0usize;
+    let mut in_string = false;
+    let mut escaped = false;
+    for decoded in char::decode_utf16(input.iter().copied()) {
+        let width = decoded.as_ref().map_or(3, |character| character.len_utf8());
+        if width > limits.max_bytes - bytes {
+            return Err(Error {
+                offset: limits.max_bytes,
+                kind: ErrorKind::ByteLimit,
+            });
+        }
+        bytes += width;
+        match decoded {
+            Ok(character) => {
+                normalized.push(character);
+                if in_string {
+                    if escaped {
+                        escaped = false;
+                    } else if character == '\\' {
+                        escaped = true;
+                    } else if character == '"' {
+                        in_string = false;
+                    }
+                } else if character == '"' {
+                    in_string = true;
+                }
+            }
+            Err(error) if in_string && !escaped => {
+                write!(normalized, "\\u{:04x}", error.unpaired_surrogate())
+                    .expect("writing to a String cannot fail");
+            }
+            Err(_) => {
+                return Err(Error {
+                    offset: normalized.len(),
+                    kind: if in_string {
+                        ErrorKind::InvalidString
+                    } else {
+                        ErrorKind::UnexpectedValue
+                    },
+                });
+            }
+        }
+    }
+    parse(
+        normalized.as_bytes(),
+        Limits {
+            max_bytes: normalized.len(),
+            ..limits
+        },
+    )
+}
+
 pub fn parse(input: &[u8], limits: Limits) -> Result<Value, Error> {
     if limits.max_depth > 512 {
         return Err(Error {

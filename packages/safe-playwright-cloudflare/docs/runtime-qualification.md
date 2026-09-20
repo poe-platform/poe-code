@@ -7,6 +7,26 @@ Keep cold restart and storage assertions inside those scenarios; process
 isolation is not permission to omit them. No minimum Bun version is established
 by this qualification.
 
+Native Node fixture hosts must preload
+`tests/browser-process-lifetime.setup.mjs` before loading Miniflare (Node's
+`--import` option). The native Vitest configuration installs it automatically.
+Pinned Miniflare launches detached Chromium with SIGTERM handling disabled;
+normal `dispose()` alone cannot retire browsers after a host is killed. The
+preload gives an independent IPC guardian ownership of each matching detached
+Browser Rendering process group. Browser exit or host disconnection retires
+that group. A private working directory identifies double-forked crashpad
+helpers through `lsof`, so their cleanup excludes other browsers. The directory
+is removed after helper retirement. These hosts require `lsof` on PATH.
+This protection applies to these native test hosts, not deployed Cloudflare
+Browser Run or arbitrary consumer hosts. Windows native hosts are unsupported.
+
+Run `npm run test:native --workspace=@poe-code/safe-playwright-cloudflare --
+tests/browser-process-lifetime.test.native.ts` from the repository root for the
+fresh process-lifetime contract. It launches Miniflare's pinned Chromium and
+checks group absence within five seconds after normal disposal, setup failure,
+SIGTERM, SIGKILL, and SIGKILL during startup. It needs local Chromium prerequisites
+and permission to launch macOS browser helpers.
+
 ## Qualification on September 19, 2026
 
 Profile: macOS 15.7.7 ARM64, published `@poe-platform/safe-bash@0.1.701`,

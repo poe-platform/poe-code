@@ -5,3 +5,4 @@ export { buildSuccessPage, extractCodeFromInput, createLoopbackAuthorizationSess
 export { createAuthStoreSessionStore } from "./session-store.js";
 export { canonicalizeResourceIndicator } from "./resource.js";
 export { createOAuthClientProvider, createDefaultOAuthClientProvider } from "./provider.js";
+export { createJwksTokenVerifier } from "./jwks.js";

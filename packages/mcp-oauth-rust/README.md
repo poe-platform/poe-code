@@ -48,8 +48,30 @@ const provider = createDefaultOAuthClientProvider({
 });
 ```
 
-JWKS verification is still being implemented. Keep applications on
-their existing OAuth package until conformance and integration are complete.
+JWKS verification supports ES256/384/512, RS256/384/512, PS256/384/512 and EdDSA.
+Rust validates protected headers, selects verification keys, enforces issuer,
+expiry, clock tolerance, optional access-token type and required scopes, and owns
+JWKS cache/refresh policy. Node's built-in WebCrypto supplies signature primitives.
+Unknown key IDs trigger one coalesced refresh within the configured cooldown.
+JWKS responses have a 1 MiB bound and configured fetch deadline; requests refuse
+redirects and release body readers on failure or timeout.
+
+```ts
+import { createJwksTokenVerifier } from "mcp-oauth-rust";
+const verifier = createJwksTokenVerifier({
+  jwksUrl: "https://auth.example/keys",
+  requireAccessTokenType: true
+});
+const accessToken = await verifier.verify({
+  token: "signed-access-token",
+  resource: "https://api.example/mcp",
+  authorizationServers: ["https://auth.example"],
+  requiredScopes: ["mcp.read"]
+});
+```
+
+This package exposes the original public OAuth APIs without changing application
+imports. Integration and broader performance validation remain separate work.
 
 `fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.
 `readBoundedResponseText` enforces declared and actual byte limits, decodes strict

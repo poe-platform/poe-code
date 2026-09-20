@@ -371,6 +371,28 @@ part of the maintained unit command. Nineteen Rust tests, thirty-nine native gro
 fifty reference contracts and public type fixtures pass with focused build/lint.
 JWKS verification and general native memory/performance auditing remain required.
 
+The Rust JWKS verifier now exposes the original public factory/types. Rust owns
+compact protected-header admission, base64 decoding, key filtering/import plans,
+claim-validation order, issuer/expiry/not-before/tolerance/type policy, scope
+selection and cache TTL/forced-refresh cooldown. Node's built-in WebCrypto supplies
+asynchronous signature/import primitives without jose or other npm runtime
+dependencies. All ten default algorithms verify official JOSE signatures. Cached
+documents use shared immutable Rust snapshots; 4,096 replacements demonstrate
+that old documents are released after in-flight snapshots drop. This verifies
+that retention property, not general process leak freedom or faster verification.
+Failed refreshes share one pending operation, consume cooldown, clear pending
+state and permit later attempts; failed documents preserve existing snapshots.
+The maintained unit command now runs all 95 original public OAuth/JWKS contracts
+against the Rust factories with identity assertions. An additional 296 signed
+hostile header/claim/scope cases and 32 configuration cases match the TS oracle.
+Twenty-eight Rust tests, fifty-six native groups, public type compatibility,
+focused build and lint pass. All currently exported OAuth APIs are implemented;
+internal lifecycle conformance and broader memory/performance auditing continue.
+Claim admission deliberately uses own JSON entries, so inherited prototype claims
+cannot supply a missing issuer/expiry. Shared JSON depth/node/byte limits still
+apply to decoded documents. Cross-platform native artifact delivery remains a
+separate unfinished validation item.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

@@ -17,6 +17,7 @@
     "@napi-rs/cli": "3.10.4",
     "@modelcontextprotocol/sdk": "1.29.0",
     "auth-store-rust": "*",
+    "jose": "6.2.3",
     "memfs": "4.56.10",
     "mcp-protocol-rust": "*",
     "mcp-oauth": "*",

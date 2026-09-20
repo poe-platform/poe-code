@@ -2,6 +2,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 #[path = "../../../auth-store-rust/bindings/src/api.rs"]
 pub mod credential_api;
+pub mod jwks_binding;
 pub mod provider_binding;
 #[napi]
 pub fn encode_code_verifier(entropy: Buffer) -> Result<String> {

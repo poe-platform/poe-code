@@ -13,3 +13,5 @@ export function createDockerRunner(options:DockerRunnerOptions):Runner;
 export {createMockRunner,createMockRunnerByCommand}from'./mock-runner.js';
 export {readDockerBuildContextFiles,type DockerBuildContextFile}from'./docker-build-context.js';
 export {uploadWorkspace,downloadWorkspace,type WorkspaceDownloadOptions,type WorkspaceTransferDirent,type WorkspaceTransferEnv,type WorkspaceTransferFileSystem,type WorkspaceTransferOptions,type WorkspaceTransferRunnerOptions,type WorkspaceTransferStats}from'./workspace-transfer.js';
+export {buildDockerRuntimeTemplate}from'./docker-template.js';
+export type {BuildDockerRuntimeTemplateInput,BuildDockerRuntimeTemplateResult}from'./docker-template.js';

@@ -145,3 +145,5 @@ pub fn host_shell(facts: ShellFacts, read: Function<String, ShellRead>) -> Resul
 pub const HOST_ATTACH_ERROR: &str = host::ATTACH_ERROR;
 #[napi]
 pub const HOST_DETACH_ERROR: &str = host::DETACH_ERROR;
+
+pub mod docker_template;

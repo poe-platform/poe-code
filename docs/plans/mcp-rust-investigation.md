@@ -2575,6 +2575,42 @@ real-engine/cross-platform acceptance, the remaining MCP/agent packages and
 24-hour actual effort remain unfinished. Lock-correction release build, audit,
 checks, cached-unit and Bash shards pass; uncached unit/publication still pending.
 
+### Process runner Docker runtime templates — 2026-09-20
+
+Added root `buildDockerRuntimeTemplate` with portable own content hashing, cache
+admission, canonical-relative containment and sorted build argv policies. Own
+streamed SHA hashes Dockerfile, engine, filtered context files and development
+host locale-sorted argument pairs with exact SDK delimiters/UTF-16 replacement.
+Only hash state remains in the controller; payload buffers are borrowed for the
+synchronous call. Node resolves canonical paths, executes processes and calls
+the supplied cache. No external runtime dependencies or TS implementation imports.
+
+Failing-first core/addon/module tests precede implementation. The initial drafted
+expected hash was corrected from a directly computed development Node reference
+before the core existed; it is not a behavioral regression. Three Rust groups,
+128 generated native reference comparisons and five memfs transport cases cover
+engine keys, binary/UTF-16 hashes, context exclusion, sorted args, missing cached
+images, force, canonical outside paths and failed-build cache refusal. All103 SDK
+cases plus10 own Vitest cases,31 Rust groups,18 native groups, strict subset types
+and denied-warning fmt/clippy pass. Maintained uncached10-workspace closure passes.
+An initial private binding module caused denied dead-code warning; publishing
+the binding module fixes it without suppressions.
+
+Direct and packed16MiB workers add64 Docker template builds each to the previous
+workloads with external production imports blocked. One addon, zero npm runtime/
+peer/optional groups. Portable scalar SHA is materially slower than Node crypto:
+4KiB12–14µs versus2.1–2.2µs,64KiB150–179µs versus22–24µs. Across32,768 extra
+hashes, native heap4.12→4.15MB with steady buffers;4KiB RSS58.8→58.9MB,64KiB
+54.3→55.9MB. Reference heap4.18→4.20MB,4KiB RSS56.8→57.1MB,64KiB56.9→57.6MB.
+Both measurement processes load the addon for consistent baseline. Hardware
+acceleration/broad performance acceptance remain unfinished. Evidence:
+`out/rust-process-template-*`.
+
+Docker detached environments, full malformed/getter/real-engine/cross-platform
+acceptance, remaining MCP/agent closure and24-hour effort remain unfinished.
+Remote transfer delivery verified as `e71f18764`; successful publication is not
+yet verified.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

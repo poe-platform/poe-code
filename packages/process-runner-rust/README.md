@@ -14,6 +14,7 @@ independent Rust execution policies and no npm runtime dependencies.
 | Replay deterministic runs and timed stream output | `createMockRunner`, `createMockRunnerByCommand` |
 | Read filtered build-context files and binary bytes | `readDockerBuildContextFiles` |
 | Upload and download workspaces with rollback and conflict checks | `uploadWorkspace`, `downloadWorkspace` |
+| Cache and build Dockerfile runtime images by content | `buildDockerRuntimeTemplate` |
 
 ```typescript
 import { createHostRunner } from '@poe-code/process-runner-rust';
@@ -109,3 +110,12 @@ The memory fixture releases only unreachable development memfs inodes at sample
 checkpoints. Direct and packed16MiB workers pass;8MiB workers exhaust the heap
 with the development filesystem loaded. These results establish neither a broad
 performance gain nor lower total memory use.
+
+Docker runtime templates resolve canonical paths within the project, hash filtered
+build-context bytes and locale-sorted build arguments, inspect cached images and
+rebuild missing images. Rust owns streamed content hashing, cache admission and
+build arguments; Node handles filesystem and process I/O and the supplied cache.
+The current portable scalar SHA implementation is slower than Node crypto:
+4KiB hash calls measured12–14µs versus2.1–2.2µs, and64KiB calls150–179µs versus
+22–24µs. Sampled memory stayed steady across32,768 further calls. Hardware
+acceleration remains work for performance acceptance.

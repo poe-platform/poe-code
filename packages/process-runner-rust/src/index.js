@@ -4,3 +4,4 @@ export {createDockerRunner}from'./docker-runner.js';
 export {createMockRunner,createMockRunnerByCommand}from'./mock-runner.js';
 export {readDockerBuildContextFiles}from'./docker-build-context.js';
 export {uploadWorkspace,downloadWorkspace}from'./workspace-transfer.js';
+export {buildDockerRuntimeTemplate}from'./docker-template.js';

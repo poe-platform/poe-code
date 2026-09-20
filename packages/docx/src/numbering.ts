@@ -56,6 +56,7 @@ export class NumberingGraph {
   readonly #children = new WeakMap<XmlElement, readonly XmlElement[]>();
   readonly #attributes = new WeakMap<XmlElement, readonly XmlAttribute[]>();
   readonly #scalarText = new WeakSet<XmlElement>();
+  #stylesById?: Map<string, XmlElement[]>;
   readonly #restarts = new Map<XmlElement, { id: number; position: number; starts: Map<number, number> }>();
   readonly reservedInstances = new Set<number>();
   readonly reservedAbstracts = new Set<number>();
@@ -138,7 +139,21 @@ export class NumberingGraph {
     }
   }
   style(id: string, type: string): XmlElement {
-    const found = this.children(this.styles).filter(n => n.namespace === this.xml.root.namespace && n.localName === "style" && numberingAttribute(n, "styleId") === id);
+    this.budget.charge("work", 1);
+    if (!this.#stylesById) {
+      const definitions = new Map<string, XmlElement[]>();
+      for (const node of this.children(this.styles)) {
+        this.budget.charge("work", 1);
+        if (node.namespace !== this.xml.root.namespace || node.localName !== "style") continue;
+        const key = numberingAttribute(node, "styleId");
+        if (key === undefined) continue;
+        this.budget.charge("retainedBytes", 64);
+        const matches = definitions.get(key);
+        if (matches) matches.push(node); else definitions.set(key, [node]);
+      }
+      this.#stylesById = definitions;
+    }
+    const found = this.#stylesById.get(id) ?? [];
     if (found.length !== 1 || (numberingAttribute(found[0], "type") ?? "paragraph") !== type) throw new UnsupportedEditError("Numbering style reference is missing or ambiguous.");
     return found[0]!;
   }
@@ -186,80 +201,87 @@ export class NumberingGraph {
     return { id: integer(id), level: 0 };
   }
   resolve(id: number, seen = new Set<number>()): ResolvedNumbering {
-    this.budget.charge("work", 1);
-    if (seen.has(id) || seen.size >= this.budget.limits.xmlDepth) throw new UnsupportedEditError("Cyclic or excessively deep numbering style links.");
-    seen.add(id);
-    const instances = this.instances.get(id);
-    if (id === 0 || instances?.length !== 1) throw new UnsupportedEditError("Numbering instance is missing or ambiguous.");
-    const num = instances[0]!;
-    this.attributes(num, ["numId"]);
-    const reference = this.child(num, "abstractNumId");
-    if (reference) this.scalar(reference, ["val"]);
-    const definitions = this.abstracts.get(integer(numberingAttribute(reference)));
-    if (definitions?.length !== 1) throw new UnsupportedEditError("Abstract numbering definition is missing or ambiguous.");
-    let definition = definitions[0]!;
-    this.attributes(definition, ["abstractNumId"]);
-    const link = numberingAttribute(this.child(definition, "numStyleLink"));
+    const pending: { num: XmlElement; definition: XmlElement }[] = [];
     let inherited: ResolvedNumbering | undefined;
-    if (link !== undefined) {
+    for (;;) {
+      this.budget.charge("work", 1);
+      if (seen.has(id) || seen.size >= this.budget.limits.xmlDepth) throw new UnsupportedEditError("Cyclic or excessively deep numbering style links.");
+      seen.add(id);
+      const instances = this.instances.get(id);
+      if (id === 0 || instances?.length !== 1) throw new UnsupportedEditError("Numbering instance is missing or ambiguous.");
+      const num = instances[0]!;
+      this.attributes(num, ["numId"]);
+      const reference = this.child(num, "abstractNumId");
+      if (reference) this.scalar(reference, ["val"]);
+      const definitions = this.abstracts.get(integer(numberingAttribute(reference)));
+      if (definitions?.length !== 1) throw new UnsupportedEditError("Abstract numbering definition is missing or ambiguous.");
+      const definition = definitions[0]!;
+      this.attributes(definition, ["abstractNumId"]);
+      this.budget.charge("retainedBytes", 64);
+      pending.push({ num, definition });
+      const link = numberingAttribute(this.child(definition, "numStyleLink"));
+      if (link === undefined) break;
       const style = this.style(link, "numbering");
-      const reference = this.child(this.child(this.child(style, "pPr"), "numPr"), "numId");
-      inherited = this.resolve(integer(numberingAttribute(reference)), seen);
-      definition = inherited.definition;
+      const binding = this.child(this.child(this.child(style, "pPr"), "numPr"), "numId");
+      id = integer(numberingAttribute(binding));
     }
-    const styleLink = numberingAttribute(this.child(definition, "styleLink"));
-    if (styleLink !== undefined) this.style(styleLink, "numbering");
-    const levels = new Map<number, XmlElement>();
-    for (const node of this.children(definition)) {
-      this.budget.charge("work", 1);
-      if (node.namespace !== definition.namespace) throw new UnsupportedEditError("Extended numbering definitions cannot be edited.");
-      if (node.localName !== "lvl") {
-        if (!["nsid", "multiLevelType", "tmpl", "name", "styleLink"].includes(node.localName)) throw new UnsupportedEditError("Unsupported numbering definition cannot be edited.");
-        continue;
-      }
-      const index = integer(numberingAttribute(node, "ilvl"), 8);
-      if (levels.has(index)) throw new UnsupportedEditError("Duplicate numbering levels.");
-      this.validateLevel(node, index);
-      levels.set(index, node);
-    }
-    if (inherited) for (const [index, node] of inherited.levels) levels.set(index, node);
-    const overrides = new Map(inherited?.overrides);
-    const starts = new Map(inherited?.starts);
-    const local = new Set<number>();
-    for (const node of this.children(num)) {
-      this.budget.charge("work", 1);
-      if (node.namespace !== num.namespace || !["abstractNumId", "lvlOverride"].includes(node.localName)) throw new UnsupportedEditError("Unsupported numbering instance cannot be edited.");
-      if (node.localName !== "lvlOverride") continue;
-      this.attributes(node, ["ilvl"]);
-      const index = integer(numberingAttribute(node, "ilvl"), 8);
-      if (local.has(index) || !levels.has(index)) throw new UnsupportedEditError("Duplicate or unresolved numbering override.");
-      local.add(index);
-      const start = this.child(node, "startOverride");
-      if (start) {
-        this.scalar(start, ["val"]);
-        integer(numberingAttribute(start));
-        starts.set(index, start);
-      }
-      const level = this.child(node, "lvl");
-      if (level) this.validateLevel(level, index);
-      if (this.children(node).some(c => c.namespace !== node.namespace || !["startOverride", "lvl"].includes(c.localName))) throw new UnsupportedEditError("Unsupported numbering override.");
-      overrides.set(index, node);
-    }
-    for (const [index, node] of overrides) {
-      const level = this.child(node, "lvl");
-      if (level) levels.set(index, level);
-    }
-    for (const start of levels.keys()) {
-      const seen = new Set<number>(); let current: number | undefined = start;
-      while (current !== undefined && levels.has(current)) {
+    while (pending.length) {
+      const frame = pending.pop()!, num = frame.num, definition = inherited?.definition ?? frame.definition;
+      const styleLink = numberingAttribute(this.child(definition, "styleLink"));
+      if (styleLink !== undefined) this.style(styleLink, "numbering");
+      const levels = new Map<number, XmlElement>();
+      for (const node of this.children(definition)) {
         this.budget.charge("work", 1);
-        if (seen.has(current)) throw new UnsupportedEditError("Cyclic numbering restart dependency.");
-        seen.add(current);
-        const restart = this.child(levels.get(current), "lvlRestart"), ordinal = restart ? integer(numberingAttribute(restart), 9) : 0;
-        current = ordinal === 0 ? undefined : ordinal - 1;
+        if (node.namespace !== definition.namespace) throw new UnsupportedEditError("Extended numbering definitions cannot be edited.");
+        if (node.localName !== "lvl") {
+          if (!["nsid", "multiLevelType", "tmpl", "name", "styleLink"].includes(node.localName)) throw new UnsupportedEditError("Unsupported numbering definition cannot be edited.");
+          continue;
+        }
+        const index = integer(numberingAttribute(node, "ilvl"), 8);
+        if (levels.has(index)) throw new UnsupportedEditError("Duplicate numbering levels.");
+        this.validateLevel(node, index);
+        levels.set(index, node);
       }
+      if (inherited) for (const [index, node] of inherited.levels) levels.set(index, node);
+      const overrides = new Map(inherited?.overrides);
+      const starts = new Map(inherited?.starts);
+      const local = new Set<number>();
+      for (const node of this.children(num)) {
+        this.budget.charge("work", 1);
+        if (node.namespace !== num.namespace || !["abstractNumId", "lvlOverride"].includes(node.localName)) throw new UnsupportedEditError("Unsupported numbering instance cannot be edited.");
+        if (node.localName !== "lvlOverride") continue;
+        this.attributes(node, ["ilvl"]);
+        const index = integer(numberingAttribute(node, "ilvl"), 8);
+        if (local.has(index) || !levels.has(index)) throw new UnsupportedEditError("Duplicate or unresolved numbering override.");
+        local.add(index);
+        const start = this.child(node, "startOverride");
+        if (start) {
+          this.scalar(start, ["val"]);
+          integer(numberingAttribute(start));
+          starts.set(index, start);
+        }
+        const level = this.child(node, "lvl");
+        if (level) this.validateLevel(level, index);
+        if (this.children(node).some(c => c.namespace !== node.namespace || !["startOverride", "lvl"].includes(c.localName))) throw new UnsupportedEditError("Unsupported numbering override.");
+        overrides.set(index, node);
+      }
+      for (const [index, node] of overrides) {
+        const level = this.child(node, "lvl");
+        if (level) levels.set(index, level);
+      }
+      for (const start of levels.keys()) {
+        const seen = new Set<number>(); let current: number | undefined = start;
+        while (current !== undefined && levels.has(current)) {
+          this.budget.charge("work", 1);
+          if (seen.has(current)) throw new UnsupportedEditError("Cyclic numbering restart dependency.");
+          seen.add(current);
+          const restart = this.child(levels.get(current), "lvlRestart"), ordinal = restart ? integer(numberingAttribute(restart), 9) : 0;
+          current = ordinal === 0 ? undefined : ordinal - 1;
+        }
+      }
+      inherited = { num, definition, levels, overrides, starts };
     }
-    return { num, definition, levels, overrides, starts };
+    return inherited!;
   }
   private attributes(node: XmlElement, allowed: readonly string[]): void {
     if ((this.#attributes.get(node) ?? node.attributes).some(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && (a.namespace !== node.namespace || !allowed.includes(a.localName)))) throw new UnsupportedEditError("Unverified numbering attributes cannot be interpreted.");

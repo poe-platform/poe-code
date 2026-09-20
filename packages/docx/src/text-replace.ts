@@ -90,8 +90,21 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     const containers = new Set(xml.compatibility[compatibilityContainers]);
     const branches = new Map(xml.compatibility.branches.map(branch => [branch.alternateContent, branch.selected]));
     const activeChildren = activeXmlChildren(xml, budget);
-    const containsActiveRevision = (element: XmlElement): boolean =>
-      revisionInfo(element) !== undefined || activeChildren(element).some(containsActiveRevision);
+    const containsActiveRevision = (element: XmlElement): boolean => {
+      const pending = [element];
+      budget.charge("retainedBytes", 8);
+      while (pending.length) {
+        budget.charge("work", 1);
+        const current = pending.pop()!;
+        if (revisionInfo(current) !== undefined) return true;
+        const children = activeChildren(current);
+        for (let index = children.length - 1; index >= 0; index--) {
+          budget.charge("retainedBytes", 8);
+          pending.push(children[index]!);
+        }
+      }
+      return false;
+    };
     let node = xml.root;
     const ancestors: XmlElement[] = [node];
     for (const index of paragraph.value.path) { node = node.children[index]!; ancestors.push(node); }

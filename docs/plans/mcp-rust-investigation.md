@@ -1111,6 +1111,25 @@ the explicit required-devDependency diagnostic. Packed token/fixture/own-client
 smokes also pass, and temporary tarball/extraction artifacts are purged. CLI,
 broader performance/platform acceptance and the rest of the full rewrite remain.
 
+The expanded agent closure now includes private `@poe-code/user-error-rust`.
+Its pure standard-library Rust core owns recovery messages/hints and typed boxed
+source chains, implements Error/Display/Send/Sync, and releases source owners.
+Native bindings expose the shared error taxonomy once; the Node Error adapter
+preserves original message/hint/cause descriptors, getter evaluation order, stack
+behavior, foreign-bundle recognition and same-realm guard behavior. Arbitrary
+causes stay in Node's heap rather than being copied into a native JSON snapshot.
+Construction and classification have no per-call native transition. Three Rust
+tests cover source chains, concrete type recognition, worker-safe bounds and
+4,096 source drops. Four actual-addon groups compare Node behavior with originals
+and verify cyclic causes are collectible. All seven original contracts execute
+the own adapter under identity gates; bidirectional shipped constructor/error/
+guard types and focused lint/build closure pass. The actual packed artifact passes
+Unicode/lone-surrogate/NUL messages, cyclic/bigint causes and foreign error guards
+with all external npm resolution disabled. Its manifest has no runtime/peer/
+optional npm dependencies. Temporary pack/extraction artifacts are purged. This
+is an additional closure package, not completion of poe-agent; no speed or lower
+standalone memory claim is made for the Node adapter.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

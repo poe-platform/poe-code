@@ -1,0 +1,10 @@
+import {UserError,isUserError} from '../dist/index.js';
+import type * as Original from '@poe-code/user-error';
+const value=new UserError('Missing key',{hint:'Create a key',cause:new Error('missing')});
+const oldError:Original.UserError=value;
+declare const original:Original.UserError;
+const nativeError:UserError=original;
+const oldGuard:typeof Original.isUserError=isUserError;
+const oldConstructor:typeof Original.UserError=UserError;
+const nativeConstructor:typeof UserError={} as typeof Original.UserError;
+void [oldError,nativeError,oldGuard,oldConstructor,nativeConstructor];

@@ -85,7 +85,7 @@ pub fn hash_bytes(bytes: Buffer) -> Buffer {
 }
 
 #[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
-mod convert;
+pub(crate) mod convert;
 use mcp_protocol_rust::json::Value;
 #[napi]
 pub fn create_authorization_state(

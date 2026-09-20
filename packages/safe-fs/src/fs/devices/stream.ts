@@ -6,8 +6,10 @@ export function deviceReadStream(open: () => Promise<ByteSource>, signal?: Abort
   return { [Symbol.asyncIterator]() {
     let opened: Promise<AsyncIterator<Uint8Array>> | undefined;
     let closing: Promise<IteratorResult<Uint8Array>> | undefined;
-    const iterator = () => opened ??= open().then(source => source[Symbol.asyncIterator]());
-    const close = () => closing ??= iterator().then(async source => source.return ? source.return() : { done: true, value: undefined });
+    const iterator = () => opened ??= Promise.resolve().then(open).then(source => source[Symbol.asyncIterator]());
+    const close = () => closing ??= !opened && signal?.aborted
+      ? Promise.resolve({ done: true, value: undefined })
+      : iterator().then(async source => source.return ? source.return() : { done: true, value: undefined });
     return {
       async next() {
         if (closing) { await closing; return { done: true, value: undefined }; }

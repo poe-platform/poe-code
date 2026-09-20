@@ -17,7 +17,7 @@ it("provides immutable zero-based RGB numeric lookup and explicit signed at", ()
   expect(color.at(-1)).toBe(0);
   expect(color.at(-3)).toBe(0);
   expect(() => color[3]).toThrow(RangeError);
-  expect(color[-1]).toBe(0);
+  expect(() => color[-1]).toThrow(api.BoundsError);
   expect(() => color[-4]).toThrow(RangeError);
   expect(() => color[0.5]).toThrow(TypeError);
   expect(() => Reflect.set(color, "0", 12)).toThrow(TypeError);
@@ -57,7 +57,7 @@ it("keeps tab numeric lookup zero-based and supports signed at without slicing",
   tabs.add_tab_stop(api.Pt(10));
   expect(tabs[0]!.position.emu).toBe(0);
   expect(tabs.at(-1).position.pt).toBe(10);
-  expect(tabs[-1]!.position.pt).toBe(10);
+  expect(() => tabs[-1]).toThrow(api.BoundsError);
   expect(() => tabs[-3]).toThrow(RangeError);
   expect(() => tabs[0.5]).toThrow(TypeError);
   expect(() => tabs[2]).toThrow(RangeError);

@@ -2,3 +2,9 @@ export type {RunHandle,RunResult,RunSpec,Runner,HostRunnerOptions,ExecutionEnvFa
 import type {HostRunnerOptions,Runner,ExecutionEnvFactory}from'./types.js';
 export function createHostRunner(options?:HostRunnerOptions):Runner;
 export const hostExecutionEnvFactory:ExecutionEnvFactory;
+export type {Engine,DockerMount,DockerPortMapping,DockerRunArgs,DockerRunnerOptions,MockRunBehavior}from'./types.js';
+import type {Engine}from'./types.js';
+export function buildContextArgs(engine:Engine,context:string|null):string[];
+export function detectContext():string|null;
+export function detectEngine():Engine;
+export function isEngineAvailable(engine:Engine):boolean;

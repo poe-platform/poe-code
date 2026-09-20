@@ -2373,6 +2373,37 @@ additional admissions keep sampled heap near4.04MB and buffers10.5KB. Evidence:
 Docker/mock/workspace-transfer APIs, full host malformed/getter fidelity, Python
 bindings, cross-platform artifacts and the larger goal remain unfinished.
 
+### Process runner Docker policies and hook lock correction — 2026-09-20
+
+The process core now uses std and the own JSON core for Docker argument ordering,
+port checks, UTF-16 environment-file serialization, lazy engine probing and
+Colima discovery. Root context/engine APIs match the current SDK signatures.
+Values stay outside argv; first running-profile discovery short-circuits later
+malformed lines. Nullish/empty name precedence and JavaScript trim units are
+covered. SDK failures caught null-context DTO normalization; an additional
+failing-first check caught unused empty-environment env-file getter reads.
+
+All64 SDK host/helper cases,6 Rust groups and7 native groups pass, including64
+generated Unicode/flag/port comparisons and exact validation-message checks.
+Fmt/clippy denied warnings and the maintained uncached5-workspace build pass.
+Direct/packed8MiB workers each run8192 Docker-policy cycles plus4096 pre-aborts
+and16 real host children with external imports blocked. One addon and zero npm
+runtime/peer/optional dependency groups remain. Across262,144 further policy
+cycles, native heap4.11→4.14MB and buffers10.5KB; SDK4.05→4.08MB and10.5KB.
+Cycle speed is5.18–5.20µs native versus0.54–1.00µs SDK, so this small workload
+is slower through the binding. Evidence: `out/rust-process-docker-*`.
+
+Release804351ea failed because the hook core/binding lockfiles did not include
+the skill core's new own SHA dependency. Updated only those two lockfiles and
+pushed `caa5cf3af`; remote ancestry is verified. Hook121 SDK cases, native/Rust
+groups, lint and maintained build pass, followed by an explicitly uncached build
+verification. Earlier build invocations used the maintained route's default
+cache; the latter checks explicitly disable it. Release publication is pending.
+
+Docker-runner/environment, mock and workspace-transfer behavior, full malformed/
+getter-stage fidelity, cross-platform binaries and overall acceptance remain
+unfinished. The24-hour actual-effort requirement remains unfinished.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

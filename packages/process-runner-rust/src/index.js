@@ -1,1 +1,2 @@
 export {createHostRunner}from'./host-runner.js';export {hostExecutionEnvFactory}from'./host-execution-env.js';
+export {buildContextArgs,detectContext}from'./docker-context.js';export {detectEngine,isEngineAvailable}from'./docker-engine.js';

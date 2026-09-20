@@ -1,6 +1,7 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use process_runner_rust::host::{self, KillTarget, Stdio};
+pub mod docker;
 #[napi(object)]
 pub struct HostFacts {
     pub stdin: Option<String>,

@@ -34,6 +34,8 @@ await handle.close();
 | HTTP admission, observability and storage | `allowedHosts`, `allowedOrigins`, `observability`, `sessionStore` |
 | Isolated test bearer tokens | `./testing`: `createInMemoryTokenVerifier` |
 | HTTP fixtures and in-memory listeners | `./test-support`: `createTestMcpServer`, `installInMemoryHttp`, `nodeFetch` |
+| Standalone native-client test pairs | `./testing`: `createHttpTestPairWithTinyClient` |
+| Official SDK conformance oracle | `./testing`: `createHttpTestPair` (SDK as a development dependency) |
 
 Rust owns protocol/schema dispatch, HTTP admission, configuration limits, JWT
 policy and bounded replay retention. Node built-ins supply HTTP/URL objects,
@@ -58,6 +60,13 @@ Call `installInMemoryHttp()` explicitly to exercise HTTP listeners without socke
 `nodeFetch` preserves streamed responses and propagates cancellation to the server.
 Unregistered hosts use the built-in HTTP/HTTPS client.
 
-The client-pair testing helpers and CLI are still being ported. Broader platform artifacts,
+Use `createHttpTestPairWithTinyClient(createTestMcpServer())` to connect the embedded
+Rust client without installing any runtime npm packages. The returned pair exposes
+its client, transport, listener, request log and `cleanup()`. Setup failure closes
+the listener; cleanup settles both client and listener even if one fails.
+`createHttpTestPair` explicitly loads the official SDK for development conformance
+tests; install that SDK as a development dependency when using this oracle.
+
+The CLI is still being ported. Broader platform artifacts,
 performance measurements and inherited schema/URI corner cases remain in progress.
 Existing applications continue using the original packages.

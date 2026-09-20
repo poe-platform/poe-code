@@ -158,46 +158,6 @@ pub fn http_test_reverse(text: Utf16String) -> Utf16String {
     tiny_http_mcp_server_rust::testing::reverse_units(&text).into()
 }
 
-#[path = "../../../mcp-oauth-rust/bindings/src/jwks_binding.rs"]
-pub mod jwks_binding;
-use mcp_oauth_rust::response::ResponseBudget;
-#[napi]
-pub struct NativeResponseBudget {
-    state: RefCell<ResponseBudget>,
-}
-#[napi]
-impl NativeResponseBudget {
-    #[napi(constructor)]
-    pub fn new(limit: f64) -> Result<Self> {
-        Ok(Self {
-            state: RefCell::new(ResponseBudget::new(limit).map_err(napi::Error::from_reason)?),
-        })
-    }
-    #[napi]
-    pub fn check_content_length(&self, length: Option<Utf16String>) -> Result<()> {
-        self.state
-            .borrow_mut()
-            .check_content_length(length.as_ref().map(|v| v.as_ref()))
-            .map_err(napi::Error::from_reason)
-    }
-    #[napi]
-    pub fn admit(&self, bytes: f64) -> Result<()> {
-        if !bytes.is_finite()
-            || bytes.fract() != 0.0
-            || !(0.0..=9_007_199_254_740_991.0).contains(&bytes)
-        {
-            return Err(napi::Error::from_reason(
-                "HTTP response chunk size must be a nonnegative safe integer",
-            ));
-        }
-        self.state
-            .borrow_mut()
-            .admit(bytes as u64)
-            .map_err(napi::Error::from_reason)
-    }
-}
-#[napi]
-pub fn check_http_redirect(redirected: bool, response_type: String) -> Result<()> {
-    mcp_oauth_rust::response::validate_redirect(redirected, &response_type)
-        .map_err(napi::Error::from_reason)
-}
+#[path = "../../../tiny-mcp-client-rust/bindings/src/lib.rs"]
+pub mod embedded_client;
+use embedded_client::NativeHttpResponseMessages;

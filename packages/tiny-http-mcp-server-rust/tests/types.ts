@@ -47,3 +47,18 @@ const oldFetch:typeof OriginalSupport.nodeFetch=nodeFetch;
 const oldInstall:typeof OriginalSupport.installInMemoryHttp=installInMemoryHttp;
 nodeFetch(new Request('https://resource.example'));
 void [testServer,oldFixtureFactory,nativeFixtureFactory,oldFetch,oldInstall];
+
+import {createHttpTestPair,createHttpTestPairWithTinyClient,type HttpTestPair,type TinyHttpTestPair,type TinyHttpRequestLogEntry} from '../dist/testing.js';
+declare const sdkPair:HttpTestPair;
+const originalSdkPair:OriginalTesting.HttpTestPair=sdkPair;
+declare const oldSdkPair:OriginalTesting.HttpTestPair;
+const nativeSdkPair:HttpTestPair=oldSdkPair;
+declare const tinyPair:TinyHttpTestPair;
+const originalTinyPair:OriginalTesting.TinyHttpTestPair=tinyPair;
+declare const oldTinyPair:OriginalTesting.TinyHttpTestPair;
+const nativeTinyPair:TinyHttpTestPair=oldTinyPair;
+const oldPairFactory:typeof OriginalTesting.createHttpTestPair=createHttpTestPair;
+const oldTinyPairFactory:typeof OriginalTesting.createHttpTestPairWithTinyClient=createHttpTestPairWithTinyClient;
+declare const oldLog:OriginalTesting.TinyHttpRequestLogEntry;
+const nativeLog:TinyHttpRequestLogEntry=oldLog;
+void [originalSdkPair,nativeSdkPair,originalTinyPair,nativeTinyPair,oldPairFactory,oldTinyPairFactory,nativeLog];

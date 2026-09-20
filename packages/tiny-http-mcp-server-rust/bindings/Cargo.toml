@@ -7,7 +7,10 @@ license = "MIT"
 [lib]
 crate-type = ["cdylib"]
 [dependencies]
+mcp-protocol-rust-napi-core = { path = "../../mcp-protocol-rust/bindings/shared" }
 mcp-oauth-rust = { path = "../../mcp-oauth-rust" }
+auth-store-rust = { path = "../../auth-store-rust" }
+tiny-mcp-client-rust = { path = "../../tiny-mcp-client-rust" }
 tiny-http-mcp-server-rust = { path = ".." }
 tiny-stdio-mcp-server-rust = { path = "../../tiny-stdio-mcp-server-rust" }
 mcp-protocol-rust = { path = "../../mcp-protocol-rust" }

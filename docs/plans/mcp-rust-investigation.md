@@ -1085,6 +1085,32 @@ all four protocol/response combinations, alongside token isolation and zero npm
 runtime dependency checks. Packed temporary artifacts are purged. Client-pair
 exports and CLI remain in progress.
 
+HTTP testing pairs now include a standalone embedded native client, HTTP transport,
+OAuth/credential host modules and own Rust path dependencies. No external npm
+package is loaded by `createHttpTestPairWithTinyClient`; it returns the client,
+transport, listener, request log and cleanup. Setup failure preserves the original
+error while closing both resources. Cleanup settles both operations even when
+one fails and works on repeated calls. The explicit `createHttpTestPair` SDK oracle
+loads the official development SDK only when invoked; it reports a missing SDK
+before opening any listener. SDK imports/types are confined to this testing API,
+and no runtime/peer/optional npm dependencies are declared. Tests mock both SDK
+and original client absence and still execute the standalone native pair.
+The combined addon reproduced clippy errors from compiling shared JSON ingress
+and egress source modules twice. The new binding-only `mcp-protocol-rust-napi-core`
+path crate provides one canonical NativeJson/JSON ingress implementation. Protocol,
+stdio, OAuth and client packages each adopt it in separate verified main commits;
+their pure Rust cores retain their std/own-path dependency contracts. Stdio's
+existing transitive napi versions remain unchanged. Focused maintained tests/lint
+pass for all affected packages, plus the client build closure covering the family.
+The HTTP package passes 21 Rust tests, 41 native groups, 144 original contracts in
+17 files and two own missing-development-oracle contracts. Public SDK/native pair,
+request log and factory declarations are checked bidirectionally against originals.
+Packed native pairs pass four protocol/JSON/SSE combinations with all external
+npm module resolution disabled. Calling the SDK oracle in that environment gives
+the explicit required-devDependency diagnostic. Packed token/fixture/own-client
+smokes also pass, and temporary tarball/extraction artifacts are purged. CLI,
+broader performance/platform acceptance and the rest of the full rewrite remain.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "auth-store-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -143,6 +150,14 @@ dependencies = [
 [[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
+
+[[package]]
+name = "mcp-protocol-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "napi",
+]
 
 [[package]]
 name = "memchr"
@@ -290,12 +305,23 @@ dependencies = [
 name = "tiny-http-mcp-server-rust-node"
 version = "0.1.0"
 dependencies = [
+ "auth-store-rust",
  "mcp-oauth-rust",
  "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
  "napi",
  "napi-build",
  "napi-derive",
  "tiny-http-mcp-server-rust",
+ "tiny-mcp-client-rust",
+ "tiny-stdio-mcp-server-rust",
+]
+
+[[package]]
+name = "tiny-mcp-client-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
  "tiny-stdio-mcp-server-rust",
 ]
 

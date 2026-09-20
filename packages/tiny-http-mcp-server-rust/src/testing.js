@@ -1,5 +1,7 @@
 import {createRequire} from 'node:module';
 import {TokenVerificationError} from './auth.js';
+import {McpClient,HttpTransport} from './client/index.js';
+import {installInMemoryHttp,nodeFetch} from './test-support.js';
 const native=createRequire(import.meta.url)('./tiny-http-mcp-server-rust.node');
 export {createTestMcpServer,installInMemoryHttp,nodeFetch} from './test-support.js';
 
@@ -27,4 +29,49 @@ export function createInMemoryTokenVerifier(options={}){
    return {...token,audience:[...token.audience],scopes:[...token.scopes],claims:structuredClone(token.claims)};
   }}
  };
+}
+
+export async function createHttpTestPairWithTinyClient(server,clientOptions={}){
+ installInMemoryHttp();
+ const handle=await server.listenHttp({port:0}),requests=[];
+ let client,transport;
+ try{
+  client=new McpClient({clientInfo:{name:'tiny-http-test-client',version:'1.0.0'},...clientOptions});
+  transport=new HttpTransport({url:handle.url,fetch:async(input,init={})=>{
+   let jsonRpcMethod;
+   if(typeof init.body==='string'&&init.body.length>0){try{const parsed=JSON.parse(init.body);if(typeof parsed.method==='string')jsonRpcMethod=parsed.method;}catch{}}
+   const response=await nodeFetch(input,init);
+   requests.push({method:init.method??'GET',sessionId:new Headers(init.headers).get('mcp-session-id'),jsonRpcMethod,responseContentType:response.headers.get('content-type')});
+   return response;
+  }});
+  await client.connect(transport);
+ }catch(error){
+  await Promise.allSettled([Promise.resolve().then(()=>client?.close()),Promise.resolve().then(()=>handle.close())]);
+  throw error;
+ }
+ return {client,transport,handle,url:handle.url,requests,async cleanup(){
+  const results=await Promise.allSettled([Promise.resolve().then(()=>client.close()),Promise.resolve().then(()=>handle.close())]);
+  const failure=results.find(result=>result.status==='rejected');if(failure!==undefined)throw failure.reason;
+ }};
+}
+
+// An explicitly requested development oracle; the native pair above needs no SDK.
+export async function createHttpTestPair(server){
+ let sdkClient,sdkTransport;
+ try{[sdkClient,sdkTransport]=await Promise.all([import('@modelcontextprotocol/sdk/client/index.js'),import('@modelcontextprotocol/sdk/client/streamableHttp.js')]);}
+ catch(error){throw new Error('createHttpTestPair requires @modelcontextprotocol/sdk; install it as a devDependency or use createHttpTestPairWithTinyClient',{cause:error});}
+ installInMemoryHttp();
+ const handle=await server.listenHttp({port:0});let client,transport;
+ try{
+  client=new sdkClient.Client({name:'sdk-test-client',version:'1.0.0'});
+  transport=new sdkTransport.StreamableHTTPClientTransport(new URL(handle.url),{fetch:nodeFetch});
+  await client.connect(transport);
+ }catch(error){
+  await Promise.allSettled([Promise.resolve().then(()=>client?.close()),Promise.resolve().then(()=>handle.close())]);
+  throw error;
+ }
+ return {client,transport,handle,url:handle.url,async cleanup(){
+  const results=await Promise.allSettled([Promise.resolve().then(()=>client.close()),Promise.resolve().then(()=>handle.close())]);
+  const failure=results.find(result=>result.status==='rejected');if(failure!==undefined)throw failure.reason;
+ }};
 }

@@ -81,6 +81,8 @@ export async function coldRestore(
 			);
 			const loaded = await first.run(["state-load", "supplied.json", "--json"]);
 			assert.equal(loaded.exitCode, 0, JSON.stringify(loaded));
+			assert.equal(session.selectedPage.url(), 'about:blank');
+			await session.selectedPage.goto(input.origin);
 			await seed(session.selectedPage, "current");
 			const history = await session.context.newPage();
 			await history.goto(input.history);
@@ -123,6 +125,8 @@ export async function coldRestore(
 		assert.ok(session?.selectedPage);
 		assert.equal(session.context.pages().length, 2);
 		assert.equal(session.selectedPage, session.context.pages()[1]);
+		assert.deepEqual(session.context.pages().map(page => page.url()), ['about:blank', 'about:blank']);
+		for (const page of session.context.pages()) await page.goto(input.origin);
 		assert.ok(session.selectedPage.evaluate);
 		assert.deepEqual(
 			await session.selectedPage.evaluate(
@@ -369,6 +373,11 @@ export async function largeScriptRestore(f: Fixture, phase: 'save' | 'restore') 
     }
     const session = f.client.inspectSessions()[0]!;
     assert.ok(session.selectedPage);
+    if (phase === 'restore') {
+      assert.equal(session.selectedPage.url(), 'about:blank');
+      assert.equal(await session.selectedPage.evaluate(() => Reflect.get(window, 'largeProfileScript'), undefined), undefined);
+      await session.selectedPage.goto('about:blank');
+    }
     assert.equal(await session.selectedPage.evaluate(() => Reflect.get(window, 'largeProfileScript'), undefined), true);
     const checkpoint = parseBrowserProfile((await f.profiles.load('default'))!, PROFILE_LIMITS);
     assert.deepEqual(checkpoint.configuration?.initScripts, [script]);

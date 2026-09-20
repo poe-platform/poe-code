@@ -50,6 +50,8 @@ export async function mobileStorage(f: Fixture, input: Origins) {
 	const session = f.client.inspectSessions()[0]!;
 	assert.ok(session.selectedPage);
 	const page = session.selectedPage;
+	assert.equal(page.url(), 'about:blank');
+	await page.goto(input.origin);
 	await seed(page, "mobile-tab");
 	const before = await mobileProbe(page);
 	assert.deepEqual(before, {

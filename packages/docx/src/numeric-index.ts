@@ -31,6 +31,7 @@ export function numericSequence<T extends { at(index: number): unknown }>(value:
   return new Proxy(value, {
     get(target, key, receiver) {
       const resolved = index(key);
+      if (resolved !== undefined && resolved < 0) throw new BoundsError("Sequence index is out of bounds.");
       return resolved === undefined ? Reflect.get(target, key, receiver) as unknown : target.at(resolved);
     },
     set(target, key, item, receiver) {

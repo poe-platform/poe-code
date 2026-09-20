@@ -74,6 +74,56 @@ test("EOF reaches retirement subscribers even when there is no pending CDP comma
 	expect(events.map((event) => event.method)).toEqual(["Inspector.detached"]);
 });
 
+test.each([1000, undefined])(
+  "peer closure before a retirement reply preserves the pending command failure (code %s)",
+  async (code) => {
+    const owned = peer(true);
+    const received = new Promise<void>((resolve) =>
+      owned.server.addEventListener("message", () => resolve(), { once: true })
+    );
+    const pending = owned.control.send("Target.closeTarget", {
+      targetId: "private"
+    });
+    const rejected = expect(pending).rejects.toThrow(`disconnected: ${code ?? 1005}`);
+    await received;
+    owned.server.close(code);
+    await rejected;
+    const failure = await owned.control.close().catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect((failure as AggregateError).errors.map(String)).toEqual([
+      `Error: Owned storage control disconnected: ${code ?? 1005} `
+    ]);
+  }
+);
+
+test("a retirement reply immediately followed by peer EOF settles the reply but retains disposal diagnostics", async () => {
+  const owned = peer(true);
+  owned.server.addEventListener(
+    "message",
+    () => {
+      owned.server.send('{"id":1,"result":{"success":true}}');
+      owned.server.close();
+    },
+    { once: true }
+  );
+  const detached = new Promise<void>((resolve) =>
+    owned.control.subscribe((event) => {
+      if (event.method === "Inspector.detached") resolve();
+    })
+  );
+  expect(await owned.control.send("Target.closeTarget", { targetId: "private" })).toEqual({
+    success: true
+  });
+  await detached;
+  await expect(owned.control.close()).rejects.toThrow("cleanup failed");
+  expect(owned.observed).toEqual([
+    {
+      method: "Inspector.detached",
+      params: { reason: "Owned storage control disconnected: 1005 " }
+    }
+  ]);
+});
+
 test("session-scoped Inspector detach remains scoped and leaves root and other sessions usable", async () => {
 	const owned = peer();
 	const events: PlaywrightStorageControlEvent[] = [];

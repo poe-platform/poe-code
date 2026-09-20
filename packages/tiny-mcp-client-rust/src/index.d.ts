@@ -84,6 +84,7 @@ export declare class JsonRpcMessageLayer {
 }
 
 import type { Readable, Writable } from "node:stream";
+import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
 import type { Implementation, Resource, ResourceTemplate, Prompt, Tool as CoreTool, ContentItem as CoreContentItem, ResourceContents as CoreResourceContents } from "tiny-stdio-mcp-server-rust";
 export type { Implementation, Resource, ResourceTemplate, Prompt, ResourceLink, PromptArgument, ToolAnnotations, Icon, ContentAnnotations, ToolExecution } from "tiny-stdio-mcp-server-rust";
 export interface ServerCapabilities {
@@ -374,6 +375,29 @@ export interface McpTransport {
     closed: Promise<McpTransportClosedEvent>;
     dispose(reason?: Error): void;
     filterTools?(tools: Tool[], reset?: boolean): Tool[];
+}
+
+export interface InMemoryServerTransport { readable: Readable; writable: Writable; }
+export interface InMemoryTransportPair {
+  clientTransport: McpTransport;
+  serverTransport: InMemoryServerTransport;
+}
+export declare function createInMemoryTransportPair(): InMemoryTransportPair;
+export type StdioSpawn = (command: string, args: ReadonlyArray<string>, options: SpawnOptions) => ChildProcessWithoutNullStreams;
+export interface StdioTransportOptions {
+  command: string;
+  args?: string[];
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+  spawn?: StdioSpawn;
+}
+export declare class StdioTransport implements McpTransport {
+  readonly readable: Readable;
+  readonly writable: Writable;
+  readonly closed: Promise<McpTransportClosedEvent>;
+  constructor(options: StdioTransportOptions);
+  getStderrOutput(): string;
+  dispose(reason?: Error): void;
 }
 export declare class McpClient {
   constructor(options: McpClientOptions);

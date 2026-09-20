@@ -1,6 +1,8 @@
 import { PassThrough } from "node:stream";
 import {
   McpClient,
+  StdioTransport,
+  createInMemoryTransportPair,
   JsonRpcMessageLayer,
   McpError,
   type JsonRpcRequestOptions,
@@ -45,6 +47,12 @@ void client.getPrompt({ name: "review" }).then(({ messages }) => messages[0]?.ro
 void client.complete({ ref: { type: "ref/prompt", name: "review" }, argument: { name: "topic", value: "r" } });
 void client.close();
 void client.subscribe("file:///workspace");
+const pair = createInMemoryTransportPair();
+void client.connect(pair.clientTransport);
+const stdio = new StdioTransport({ command: "mock", args: ["--stdio"], env: { TASK: "yes" } });
+const stderr: string = stdio.getStderrOutput();
+void stderr;
+stdio.dispose();
 void client.unsubscribe("file:///workspace");
 void client.listenNotifications({ toolsListChanged: true }).then(subscription => {
   const closed: Promise<void> = subscription.closed;

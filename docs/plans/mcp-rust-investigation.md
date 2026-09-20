@@ -203,6 +203,16 @@ pre-abort, timeout, capacity recovery, cancellation and immutable native snapsho
 End-to-end notifications pass for both clients, both servers and both protocols.
 Standalone stdio/HTTP/SDK transports, OAuth and additional edge auditing remain.
 
+Standalone in-memory transport pairs and stdio process transports now use own
+Node platform I/O with zero npm runtime dependencies. The reusable Rust stderr
+tail retains at most 65,536 UTF-16 units, including raw/split surrogates, while the
+platform decoder incrementally handles byte chunks. Tests cross-check spawn
+arguments/environment, closure idempotence, stream/process errors, exit metadata,
+UTF-8/BOM/end-of-stream behavior, already-exited/killed children and 256 seeded
+malformed byte samples. In-memory transports exchange bytes and preserve closure
+reasons. A manual default-spawn check reads actual process stdout, stderr and exit
+code without fixture files. HTTP/SDK transports and OAuth remain in progress.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

@@ -38,6 +38,11 @@ callbacks automatically open a stream. Resource subscriptions use legacy request
 or modern streams; concurrent callers share setup, and subscriptions can reopen
 after completion. Filters and stream counts have explicit bounds.
 
-Standalone transports and OAuth are still being implemented.
+`createInMemoryTransportPair` connects local stream-based peers without a process.
+`StdioTransport` starts an MCP process with configurable arguments, directory and
+environment, tracks exit/error metadata, and terminates it on disposal. Stderr
+diagnostics retain at most 65,536 UTF-16 units in the Rust core.
+
+HTTP/SDK transport support and OAuth are still being implemented.
 Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

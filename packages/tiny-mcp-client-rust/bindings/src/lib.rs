@@ -679,3 +679,25 @@ impl NativeSubscriptions {
         self.state.borrow_mut().clear();
     }
 }
+
+use tiny_mcp_client_rust::stdio::StderrTail;
+#[napi]
+#[derive(Default)]
+pub struct NativeStderr {
+    state: RefCell<StderrTail>,
+}
+#[napi]
+impl NativeStderr {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn append(&self, chunk: Utf16String) {
+        self.state.borrow_mut().append(&chunk);
+    }
+    #[napi]
+    pub fn snapshot(&self) -> Utf16String {
+        Utf16String::from(self.state.borrow().snapshot())
+    }
+}

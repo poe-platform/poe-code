@@ -22,12 +22,10 @@ pub enum Mode {
 /// Copy values directly through Node-API. Descriptor inspection rejects
 /// accessors before reading them, and never calls a serialization hook.
 pub fn read(env: &Env, source: Unknown<'_>, mode: Mode) -> Result<Option<Value>> {
-    let global = env.get_global()?;
-    let object: Object = global.get_named_property_unchecked("Object")?;
     let mut reader = Reader {
         env,
-        descriptor: object.get_named_property("getOwnPropertyDescriptor")?,
-        object_prototype: object.get_named_property("prototype")?,
+        descriptor: None,
+        object_prototype: None,
         ancestors: Vec::new(),
         nodes: 0,
         bytes: 0,
@@ -38,8 +36,8 @@ pub fn read(env: &Env, source: Unknown<'_>, mode: Mode) -> Result<Option<Value>>
 
 struct Reader<'env> {
     env: &'env Env,
-    descriptor: Function<'env, FnArgs<(Unknown<'env>, Utf16String)>, Unknown<'env>>,
-    object_prototype: Unknown<'env>,
+    descriptor: Option<Function<'env, FnArgs<(Unknown<'env>, Utf16String)>, Unknown<'env>>>,
+    object_prototype: Option<Unknown<'env>>,
     ancestors: Vec<Unknown<'env>>,
     nodes: usize,
     bytes: usize,
@@ -94,9 +92,17 @@ impl<'env> Reader<'env> {
                 let object: Object = unsafe { source.cast()? };
                 let array = object.is_array()?;
                 let prototype = object.get_prototype()?;
+                if !array && self.object_prototype.is_none() {
+                    let global = self.env.get_global()?;
+                    let constructor: Object = global.get_named_property_unchecked("Object")?;
+                    self.object_prototype = Some(constructor.get_named_property("prototype")?);
+                }
                 if !array
                     && prototype.get_type()? != ValueType::Null
-                    && !self.env.strict_equals(prototype, self.object_prototype)?
+                    && !self.env.strict_equals(
+                        prototype,
+                        self.object_prototype.expect("loaded object prototype"),
+                    )?
                 {
                     return Err(Error::from_reason(
                         "JSON objects must have a plain prototype",
@@ -173,16 +179,25 @@ impl<'env> Reader<'env> {
         Ok(())
     }
 
-    fn data_property(&self, source: Unknown<'env>, key: &str) -> Result<Option<Unknown<'env>>> {
+    fn data_property(&mut self, source: Unknown<'env>, key: &str) -> Result<Option<Unknown<'env>>> {
         self.data_property_utf16(source, key.encode_utf16().collect::<Vec<_>>().into())
     }
 
     fn data_property_utf16(
-        &self,
+        &mut self,
         source: Unknown<'env>,
         key: Utf16String,
     ) -> Result<Option<Unknown<'env>>> {
-        let descriptor = self.descriptor.call(FnArgs::from((source, key)))?;
+        if self.descriptor.is_none() {
+            let global = self.env.get_global()?;
+            let constructor: Object = global.get_named_property_unchecked("Object")?;
+            self.descriptor = Some(constructor.get_named_property("getOwnPropertyDescriptor")?);
+        }
+        let descriptor = self
+            .descriptor
+            .as_ref()
+            .expect("loaded descriptor function")
+            .call(FnArgs::from((source, key)))?;
         if descriptor.get_type()? == ValueType::Undefined {
             return Ok(None);
         }
@@ -195,7 +210,7 @@ impl<'env> Reader<'env> {
         object.get_named_property("value").map(Some)
     }
 
-    fn reject_serialization_hook(&self, source: Unknown<'env>) -> Result<()> {
+    fn reject_serialization_hook(&mut self, source: Unknown<'env>) -> Result<()> {
         let mut owner = source;
         for _ in 0..64 {
             if owner.get_type()? == ValueType::Null {

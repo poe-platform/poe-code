@@ -311,6 +311,29 @@ into the shipped implementation.
 
 ## Performance, memory, and stability
 
+A stdio checkpoint on Node 22.23.2 used separate processes, release addons,
+in-memory Node streams, one sequential legacy request at a time, 1,000 warmups,
+and five batches of 20,000 requests. The same host loop serialized requests,
+parsed responses, and checked successful echo text in both implementations.
+The tool schema was only `{ type: "object" }`; this is not a schema-enforcement
+benchmark or proof of full behavioral parity.
+
+| Workload | TypeScript median | Rust median | TypeScript RSS after GC | Rust RSS after GC |
+| --- | --- | --- | --- | --- |
+| Ping | 6.09 µs | 6.06 µs | 89.50 MiB | 82.23 MiB |
+| JavaScript echo, initial wire path | 8.30 µs | 15.75 µs | 87.50 MiB | 102.95 MiB |
+| JavaScript echo, lazy primitive copying | 8.30 µs (same reference run) | 13.04 µs | 87.50 MiB | 103.56 MiB |
+
+Primitive copying now avoids looking up object descriptors/prototypes for scalar
+values, with a failing-then-passing native regression test. The rerun is consistent
+with less conversion overhead, but does not establish a durable speedup by itself.
+Rust remains slower for this callback workload. Echo retained heap after GC was
+about 369 KiB for TypeScript and 301 KiB for the optimized Rust run. Endpoint RSS
+is neither peak memory nor leak evidence, and it did not improve for Rust echo.
+These results supersede any general inference of lower memory from the first
+in-memory callback measurement below. Investigate meaningful batching and fewer
+native crossings after completing protocol/schema parity.
+
 Native bindings remove the extra process and JSON-over-stdio boundary between the
 SDK and engine. MCP's own network or stdio transport remains, of course. Core state,
 framing, validation, scheduling, and native transports stay in Rust. Transfer complete

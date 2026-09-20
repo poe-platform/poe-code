@@ -17,3 +17,10 @@ import { createAuthStoreSessionStore, canonicalizeResourceIndicator, type OAuthS
 const sessions: OAuthSessionStore = createAuthStoreSessionStore({backend:"file",fileStore:{salt:"example"}});
 const resource: string = canonicalizeResourceIndicator(new URL("https://example.test/mcp#fragment"));
 void sessions; void resource;
+import { createDefaultOAuthClientProvider, createOAuthClientProvider, type DefaultOAuthClientProviderOptions, type OAuthClientProvider } from "../dist/index.js";
+import type { OAuthClientProvider as ReferenceProvider, DefaultOAuthClientProviderOptions as ReferenceOptions } from "../../mcp-oauth/dist/index.js";
+const providerOptions: DefaultOAuthClientProviderOptions = { client:{mode:"static",clientId:"client"},browser:{openBrowser:async()=>undefined},sessionStore:sessions,now:()=>1000 };
+const provider: ReferenceProvider = createDefaultOAuthClientProvider(providerOptions);
+const referenceOptions: ReferenceOptions = providerOptions;
+const supplied: OAuthClientProvider = createOAuthClientProvider({provider});
+void supplied;void referenceOptions;

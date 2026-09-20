@@ -35,7 +35,20 @@ package, including resource normalization and machine-bound encrypted documents.
 Session admission and client-field projection run in Rust. The package ships these
 capabilities in its own addon and has no runtime import of `auth-store`.
 
-The default provider and JWKS verification are still being implemented. Keep applications on
+The default provider supports cached tokens, coalesced refresh/authorization,
+static clients and dynamic registration. Its Rust effect machine owns expiry,
+credential binding, endpoint security, registration plans, PKCE parameters and
+bounded retry decisions. Host callbacks provide browser input, fetch and storage.
+
+```ts
+import { createDefaultOAuthClientProvider } from "mcp-oauth-rust";
+const provider = createDefaultOAuthClientProvider({
+  client: { mode: "static", clientId: "my-client" },
+  browser: { openBrowser: async (url) => { /* open your browser */ } }
+});
+```
+
+JWKS verification is still being implemented. Keep applications on
 their existing OAuth package until conformance and integration are complete.
 
 `fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.

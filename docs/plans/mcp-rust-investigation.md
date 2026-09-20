@@ -352,6 +352,25 @@ JSON parsing retains the shared core's depth/node/byte limits; metadata beyond t
 limits is rejected rather than promising unbounded JSON.parse parity. Default
 provider and JWKS verification remain incomplete.
 
+The own Rust default OAuth provider now implements session/token normalization,
+issuer/resource binding, endpoint transport policy, cached discovery, client
+resolution, dynamic-registration bodies/results, authorization parameters and
+separate bounded transient/re-registration retry decisions. A reusable Rust effect
+machine requests clocks at the same expiry checks and instructs the host to use,
+refresh, clear or authorize sessions. Node executes/coalesces fetch/storage/browser
+operations and closes loopback sessions in finally blocks. Registered-client state
+is owned natively for each provider; optional own undefined client-secret fields
+are preserved at the JS boundary. Tests first reproduced inherited action-field
+contamination and loss of cached own undefined fields during retry, then verified
+their fixes. Native/oracle checks cover successful/failed refresh, force refresh,
+static/dynamic flows, state/issuer/PKCE parameters, concurrent caller coalescing,
+distinct retry budgets, abort reader cleanup and fresh attempts after failure.
+All 50 original client/persistence contracts execute the Rust public APIs through
+a development-only import adapter with a factory-identity assertion; this gate is
+part of the maintained unit command. Nineteen Rust tests, thirty-nine native groups,
+fifty reference contracts and public type fixtures pass with focused build/lint.
+JWKS verification and general native memory/performance auditing remain required.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

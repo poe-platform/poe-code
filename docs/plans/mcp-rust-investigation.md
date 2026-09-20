@@ -1151,6 +1151,40 @@ shutdown with external npm resolution blocked. Evidence is under
 This is package delivery, not completion of the broader rewrite or platform,
 memory/stability/performance acceptance.
 
+The private `tiny-stdio-mcp-test-server-rust` now embeds the own native stdio
+server rather than importing a runtime npm package. Its Rust core owns lossless
+UTF-16 Caesar encryption, finite f64 integer wrapping, tool/schema descriptions,
+safe-decimal spawn counting and CLI grammar/help/errors. The three Node factories
+preserve the original MCP fixture identity, schema, optional shift and text-only
+results. Node built-ins supply streams, fixture recording and startup file/gate
+operations. Startup counters and PID writes precede delay/gate waiting; unknown
+tools fail before any startup operation. Filesystem behavior is checked with
+memfs, with no unit-test files created. Rust/native red evidence precedes the
+implementation. The expanded Commander development oracle reproduced missing
+inherited-option suggestions, implicit-help ordering and bundled version flags;
+each parser discrepancy was corrected before acceptance. The parser oracle now
+executes in process rather than spawning every case, reducing its test duration
+from roughly 2 seconds to milliseconds. Original CLI contracts still execute the
+actual suffix bin; separate native subprocesses verify both fixtures through EOF.
+Checks pass: four Rust tests, five native groups, all 23 original contracts plus
+five startup contracts, bidirectional shipped factory/server types and lint.
+The maintained seven-workspace build closure passes. Help/error screenshots were
+inspected. Extracted executable, factory, UTF-16 and real stdio protocol smokes
+pass with external npm module resolution blocked; pack/extraction artifacts are
+purged after verification.
+
+On Node 22.23.2 macOS arm64, seven-batch median cipher measurements show original
+versus native 2,151/134 ns at 128 UTF-16 units and 33,823,177/521,974 ns at 1,048,576
+units. Empty calls favor JavaScript (26/68 ns); these are cipher microbenchmarks,
+not whole-agent performance claims. Separate GC-enabled processes retained 16
+one-million-unit outputs with similar additional heap (~16 MiB); observed peak
+RSS was 218,736 KiB original and 70,368 KiB native. Released outputs return heap
+near warmed levels. A separate 2,048-call/512-server-session churn run completes
+without errors; final GC heap is ~4.56 MB versus initial ~4.52 MB, while RSS grows
+from ~52 MB to ~63 MB. This bounded run is not sustained leak or platform proof.
+Evidence is `out/rust-stdio-fixture-*`. Full MCP/poe-agent closure implementation,
+supported-platform artifacts and broader stability/performance remain active.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

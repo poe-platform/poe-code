@@ -1,0 +1,40 @@
+{
+  "name": "tiny-stdio-mcp-test-server-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic native Rust MCP fixtures with zero npm runtime dependencies",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": { "tiny-stdio-mcp-test-server-rust": "dist/cli.js" },
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./cli": { "types": "./dist/cli.d.ts", "import": "./dist/cli.js" }
+  },
+  "scripts": {
+    "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && vitest run --config vitest.reference.config.ts && tsc --project tsconfig.types.json",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint",
+    "prepack": "node ../../scripts/set-bin-executable.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "commander": "13.1.0",
+    "mcp-protocol-rust": "*",
+    "tiny-stdio-mcp-server-rust": "*",
+    "tiny-stdio-mcp-test-server": "*",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "memfs": "4.56.10"
+  },
+  "files": ["dist", "LICENSE", "UNICODE-LICENSE.txt", "MCP-LICENSE.txt"],
+  "engines": { "node": ">=18.18" },
+  "napi": { "binaryName": "tiny-stdio-mcp-test-server-rust" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-stdio-mcp-test-server-rust"
+  }
+}

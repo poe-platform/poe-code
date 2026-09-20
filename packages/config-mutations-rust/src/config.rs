@@ -62,6 +62,7 @@ pub enum Kind {
     Merge,
     Prune,
     Transform,
+    TemplateMerge,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Request {
@@ -136,7 +137,7 @@ impl ConfigMachine {
         if self.stage != Stage::New {
             return Err(u("Config mutation already started"));
         }
-        if self.kind == Kind::Prune {
+        if matches!(self.kind, Kind::Prune | Kind::TemplateMerge) {
             self.stage = Stage::Read;
             Ok(Request::Read)
         } else {
@@ -168,6 +169,10 @@ impl ConfigMachine {
             Kind::Transform => {
                 self.stage = Stage::Transform;
                 Request::Transform
+            }
+            Kind::TemplateMerge => {
+                self.stage = Stage::Merge;
+                Request::Merge
             }
         }
     }
@@ -220,7 +225,7 @@ impl ConfigMachine {
             }
             (Stage::Read, Response::Content(content)) => {
                 self.raw = Some(content.clone());
-                self.preserve = true;
+                self.preserve = self.kind != Kind::TemplateMerge;
                 if self.kind == Kind::Prune {
                     self.stage = Stage::Format;
                     Request::Format

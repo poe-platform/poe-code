@@ -17,7 +17,7 @@ import {yamlFormat} from '@poe-code/config-mutations-rust/yaml';
 const settings=yamlFormat.parse('extensions:\n  terminal:\n    enabled: true\n');
 const yaml=yamlFormat.serialize(settings);
 
-import {runMutations,fileMutation,configMutation} from '@poe-code/config-mutations-rust/execution';
+import {runMutations,fileMutation,configMutation,templateMutation} from '@poe-code/config-mutations-rust/execution';
 const result=await runMutations([
   fileMutation.ensureDirectory({path:'~/.agent'}),
   {kind:'chmod',target:'~/.agent',mode:0o700},
@@ -38,6 +38,12 @@ await runMutations([
   configMutation.transform({target:'~/.agent/config.json',
     transform:doc=>({content:{...doc,version:2},changed:true})})
 ], {fs:yourFileSystem,homeDir:yourHomeDirectory});
+
+await runMutations([
+  templateMutation.write({target:'~/.agent/prompt.md',templateId:'prompt',
+    context:{name:'agent'}})
+], {fs:yourFileSystem,homeDir:yourHomeDirectory,
+  templates:async id=>yourTemplates[id]});
 ```
 
 The own Rust parser and editor preserve UTF-16 strings, trailing commas, indentation,
@@ -81,14 +87,18 @@ their merge/prune property operations currently run in JavaScript. Standalone
 Rust callers can use `config_data::merge` and `config_data::prune` with owned
 codec values, explicit work stacks and a depth limit of 1,000.
 
+Template writes and JSON/TOML template merges use the embedded own Rust renderer.
+Supply a template loader and static or resolved variables. Execution preserves
+the existing SDK's HTML escaping default; template merges serialize the entire
+merged document. Loader failures and parse causes retain their host identities.
+
 The Rust core also includes `atomic::AtomicMachine` for exclusive temporary
 writes, ten collision retries, rename and cleanup. It executes through injected
 platform requests and preserves host error tokens. Terminal states release owned
 buffers immediately. This is an internal foundation
 for the remaining handlers; it is not a new public npm API.
 
-Template execution, template factories and the original
-root/testing exports remain under development. It is not integrated into
+The original root/testing exports remain under development. It is not integrated into
 applications. JSON nesting is bounded to 512
 levels; malformed edit input
 is rejected rather than recovered by the development oracle's tolerant editor.
@@ -123,3 +133,8 @@ about 223 µs native versus 180 µs in TypeScript. A controlled-host check of 5,
 round trips retains about 104/106 MB RSS and 9.1/9.5 MB JS heap respectively;
 both implementations are loaded in each process. This finite check does not
 establish a general memory advantage or leak-free guarantee.
+
+A 64-item prompt write plus 64-field JSON template merge takes about 135 µs
+native versus 48 µs in TypeScript. A controlled-host 5,120-cycle check retains
+about 109/104 MB RSS and 9.4/9.5 MB heap respectively, with both modules loaded.
+These measurements do not show a speed or memory advantage.

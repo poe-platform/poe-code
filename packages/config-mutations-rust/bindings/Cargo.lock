@@ -31,6 +31,7 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
+ "toolcraft-design-rust-napi-core",
 ]
 
 [[package]]
@@ -296,6 +297,24 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "toolcraft-design-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "toolcraft-design-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust",
 ]
 
 [[package]]

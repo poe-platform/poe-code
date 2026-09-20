@@ -19,3 +19,6 @@ runMutations([fileMutation.backup({target:'~/config',once:true}),fileMutation.re
 
 import {configMutation} from '../dist/execution.js';
 runMutations([configMutation.merge({target:'~/config.json',value:{enabled:true}}),configMutation.prune({target:'~/config.json',shape:{enabled:null},onlyIf:(doc,ctx)=>doc.enabled===true&&ctx.remove===true}),configMutation.transform({target:'~/config.json',transform:doc=>({content:doc,changed:false})})],{fs,homeDir:'/home/test'});
+
+import {templateMutation} from '../dist/execution.js';
+runMutations([templateMutation.write({target:'~/config',templateId:'agent',context:ctx=>({name:String(ctx.name)})}),templateMutation.mergeJson({target:'~/config.json',templateId:'agent'}),templateMutation.mergeToml({target:'~/config.toml',templateId:'agent'})],{fs,homeDir:'/home/test',templates:async id=>id});

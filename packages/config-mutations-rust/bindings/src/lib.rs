@@ -217,7 +217,8 @@ pub fn config_yaml_serialize(serialized: Buffer) -> Result<Utf16String> {
 mod atomic;
 mod backup;
 mod execution;
-pub use execution::config_file_factories;
+pub use execution::config_mutation_factories;
 mod config;
 pub use config::config_select_format;
-pub use execution::config_config_factories;
+mod template;
+pub use toolcraft_design_rust_napi_core::*;

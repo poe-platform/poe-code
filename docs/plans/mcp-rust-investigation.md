@@ -1610,6 +1610,40 @@ partial/error behavior pass with bare npm resolution blocked. Evidence under
 out/rust-design-embed-*. This is preparatory reuse for config template handlers,
 which remain outstanding; the full goal remains active and incomplete.
 
+Template write/JSON merge/TOML merge handlers and all three templateMutation
+factories now run through own TemplateMachine. It checks loader support before
+application target resolution, then load/context/render/parse/read stages.
+Write compares the rendered string and retains dry-run/create/update/noop
+outcomes. Merge composes ConfigMachine::TemplateMerge, which skips value/format
+admission and uses full serialization while retaining invalid-backup/dry-run/
+atomic-write policy. The own design bridge embeds directly into the config
+addon; the private parameterized JS engine/data adapter is copied into its
+packed dist by the maintained build preparation. Its dev dependency declares
+the build closure; runtime npm dependencies and production integrations stay
+unchanged. HTML escaping during execution differs intentionally from the raw
+configuration-facing render helper, matching the actual SDK. Callback exceptions
+and template parse causes stay in the host; discarded machines release owned
+buffers on exit. Shared factory metadata now exposes all layouts in one own
+native snapshot; it does not duplicate layout converters per factory family.
+
+Validation: seventy-five Rust groups, fifty-six native groups, declarations,
+maintained fmt/clippy and eight-workspace uncached maintained build pass.
+Failing-first tests cover loader-before-target ordering, write outcomes,
+rendered parse failure, full serialization, invalid recovery, all factories'
+getter/reference order, canonical noops, raw helper escaping and foreign loader/
+context/getter/filesystem error identity. Two4 MiB workers pass500 cyclic render
+scopes, depth512 path and2048 template write/merge cycles each. Packed template
+and config execution run with external npm resolution blocked, including the
+embedded native bridge. Original root/testing exports remain outstanding.
+
+Controlled-host64-item prompt write plus64-field JSON template merge round trip:
+original48000/native135105ns onNode22.23.2/macOSARM64. Separate5120-cycle runs
+retain original/native RSS103.96/109.22MB and heap9.46/9.43MB, external2.30/2.58MB.
+Native last three RSS109.13/109.15/109.22MB; original103.96MB allthree.
+Both modules are loaded in each process; no speed or lower-memory advantage,
+universal stability or leak-free claim follows. Evidence underout/rust-config-
+template-*. The full MCP/poe-agent goal remains active and incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

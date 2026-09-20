@@ -355,3 +355,21 @@ pub const CONFIG_FACTORIES: &[Factory] = &[
         fields: &["target", "format", "transform", "label"],
     },
 ];
+
+pub const TEMPLATE_FACTORIES: &[Factory] = &[
+    Factory {
+        name: "write",
+        kind: "templateWrite",
+        fields: &["target", "templateId", "context", "label"],
+    },
+    Factory {
+        name: "mergeToml",
+        kind: "templateMergeToml",
+        fields: &["target", "templateId", "context", "label"],
+    },
+    Factory {
+        name: "mergeJson",
+        kind: "templateMergeJson",
+        fields: &["target", "templateId", "context", "label"],
+    },
+];

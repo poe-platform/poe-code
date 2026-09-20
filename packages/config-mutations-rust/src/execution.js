@@ -1,12 +1,15 @@
 import {applyConfig} from './config.js';
+import {applyTemplate} from './template.js';
 import {applyBackup} from './backup.js';
 import {writeWalk} from './path.js';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 function factories(specifications){return Object.fromEntries(specifications.map(({name,kind,fields})=>[name,options=>Object.fromEntries([['kind',kind],...fields.map(field=>[field,options[field]])])]));}
-export const fileMutation=factories(native.configFileFactories());
-export const configMutation=factories(native.configConfigFactories());
+const layouts=native.configMutationFactories();
+export const fileMutation=factories(layouts.file);
+export const configMutation=factories(layouts.config);
+export const templateMutation=factories(layouts.template);
 function isNotFound(error){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code==='ENOENT';}
 function expandHome(target,home){
  if(target.startsWith('~./'))target=`~/.${target.slice(3)}`;
@@ -25,7 +28,7 @@ function resolvePath(raw,context){
  return filename.length===0?directory:path.join(directory,filename);
 }
 function resolveTarget(mutation,options){const value=['ensureDirectory','removeDirectory'].includes(mutation.kind)?mutation.path:mutation.target;return typeof value==='function'?value(options):value;}
-function label(kind,target){const display=target??'target';switch(kind){case 'ensureDirectory':return `Create ${display}`;case 'removeDirectory':return `Remove directory ${display}`;case 'removeFile':return `Remove ${display}`;case 'chmod':return `Set permissions on ${display}`;case 'backup':return `Backup ${display}`;case 'restoreBackup':return `Restore ${display}`;case 'configMerge':case 'configPrune':case 'configTransform':return `Update ${display}`;default:return 'Operation';}}
+function label(kind,target){const display=target??'target';switch(kind){case 'ensureDirectory':return `Create ${display}`;case 'removeDirectory':return `Remove directory ${display}`;case 'removeFile':return `Remove ${display}`;case 'chmod':return `Set permissions on ${display}`;case 'backup':return `Backup ${display}`;case 'restoreBackup':return `Restore ${display}`;case 'configMerge':case 'configPrune':case 'configTransform':case 'templateMergeJson':case 'templateMergeToml':return `Update ${display}`;case 'templateWrite':return `Write ${display}`;default:return 'Operation';}}
 function pendingDetails(mutation,context,options){
  try{const raw=resolveTarget(mutation,options);if(raw===undefined)return {kind:mutation.kind,label:mutation.label??mutation.kind};
   try{const targetPath=resolvePath(raw,context);return {kind:mutation.kind,label:mutation.label??label(mutation.kind,targetPath),targetPath};}
@@ -33,8 +36,10 @@ function pendingDetails(mutation,context,options){
  }catch{return {kind:mutation.kind,label:mutation.label??mutation.kind};}
 }
 
+function prepareTarget(mutation,context,options){const raw=resolveTarget(mutation,options),target=resolvePath(raw,context);return {raw,target,details:{kind:mutation.kind,label:mutation.label??label(mutation.kind,target),targetPath:target}};}
 async function applyFile(mutation,context,options){
- const raw=resolveTarget(mutation,options),targetPath=resolvePath(raw,context),details={kind:mutation.kind,label:mutation.label??label(mutation.kind,targetPath),targetPath};
+ if(['templateWrite','templateMergeJson','templateMergeToml'].includes(mutation.kind))return applyTemplate(mutation,context,options,()=>prepareTarget(mutation,context,options));
+ const {raw,target:targetPath,details}=prepareTarget(mutation,context,options);
  if(['configMerge','configPrune','configTransform'].includes(mutation.kind))return {outcome:await applyConfig(mutation,context,options,raw,targetPath),details};
  if(mutation.kind==='backup'||mutation.kind==='restoreBackup')return {outcome:await applyBackup(mutation,context,targetPath),details};
  const machine=new native.ConfigFileMachine(mutation.kind,writeWalk(targetPath,context.homeDir));

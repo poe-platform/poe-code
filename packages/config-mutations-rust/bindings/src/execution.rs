@@ -138,51 +138,43 @@ impl ConfigFileMachine {
 }
 
 #[napi]
-pub fn config_file_factories() -> NativeJson {
-    NativeJson(Value::Array(
-        config_mutations_rust::execution::FILE_FACTORIES
-            .iter()
-            .map(|factory| {
-                super::object(vec![
-                    ("name", Value::String(factory.name.encode_utf16().collect())),
-                    ("kind", Value::String(factory.kind.encode_utf16().collect())),
-                    (
-                        "fields",
-                        Value::Array(
-                            factory
-                                .fields
-                                .iter()
-                                .map(|name| Value::String(name.encode_utf16().collect()))
-                                .collect(),
-                        ),
-                    ),
-                ])
-            })
-            .collect(),
-    ))
-}
-
-#[napi]
-pub fn config_config_factories() -> NativeJson {
-    NativeJson(Value::Array(
-        config_mutations_rust::execution::CONFIG_FACTORIES
-            .iter()
-            .map(|factory| {
-                super::object(vec![
-                    ("name", Value::String(factory.name.encode_utf16().collect())),
-                    ("kind", Value::String(factory.kind.encode_utf16().collect())),
-                    (
-                        "fields",
-                        Value::Array(
-                            factory
-                                .fields
-                                .iter()
-                                .map(|name| Value::String(name.encode_utf16().collect()))
-                                .collect(),
-                        ),
-                    ),
-                ])
-            })
-            .collect(),
+pub fn config_mutation_factories() -> NativeJson {
+    use config_mutations_rust::execution::{CONFIG_FACTORIES, FILE_FACTORIES, TEMPLATE_FACTORIES};
+    NativeJson(super::object(
+        [
+            ("file", FILE_FACTORIES),
+            ("config", CONFIG_FACTORIES),
+            ("template", TEMPLATE_FACTORIES),
+        ]
+        .into_iter()
+        .map(|(group, factories)| {
+            (
+                group,
+                Value::Array(
+                    factories
+                        .iter()
+                        .map(|factory| {
+                            super::object(vec![
+                                ("name", Value::String(factory.name.encode_utf16().collect())),
+                                ("kind", Value::String(factory.kind.encode_utf16().collect())),
+                                (
+                                    "fields",
+                                    Value::Array(
+                                        factory
+                                            .fields
+                                            .iter()
+                                            .map(|name| {
+                                                Value::String(name.encode_utf16().collect())
+                                            })
+                                            .collect(),
+                                    ),
+                                ),
+                            ])
+                        })
+                        .collect(),
+                ),
+            )
+        })
+        .collect(),
     ))
 }

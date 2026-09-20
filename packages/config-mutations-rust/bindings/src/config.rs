@@ -19,7 +19,7 @@ pub struct ConfigMutationMachine {
 fn s(value: &str) -> Value {
     Value::String(value.encode_utf16().collect())
 }
-fn value(result: std::result::Result<Request, Vec<u16>>) -> NativeJson {
+pub(super) fn value(result: std::result::Result<Request, Vec<u16>>) -> NativeJson {
     let request = match result {
         Ok(request) => request,
         Err(error) => return NativeJson(super::object(vec![("error", Value::String(error))])),
@@ -90,45 +90,7 @@ impl ConfigMutationMachine {
     }
     #[napi]
     pub fn respond(&mut self, response: NativeConfigResponse) -> Result<NativeJson> {
-        let response = match response.kind.as_str() {
-            "unit" => Response::Unit,
-            "missing" => Response::Missing,
-            "content" => Response::Content(
-                response
-                    .content
-                    .ok_or_else(|| Error::from_reason("Missing config content"))?
-                    .to_vec(),
-            ),
-            "parsed" => Response::Parsed(
-                response
-                    .flag
-                    .ok_or_else(|| Error::from_reason("Missing config parse flag"))?,
-            ),
-            "bool" => Response::Bool(
-                response
-                    .flag
-                    .ok_or_else(|| Error::from_reason("Missing config control flag"))?,
-            ),
-            "pruned" => Response::Pruned {
-                changed: response
-                    .changed
-                    .ok_or_else(|| Error::from_reason("Missing config prune changed flag"))?,
-                empty: response.empty.unwrap_or(false),
-            },
-            "transformed" => Response::Transformed {
-                changed: response
-                    .changed
-                    .ok_or_else(|| Error::from_reason("Missing config transform changed flag"))?,
-                deleted: response.deleted.unwrap_or(false),
-            },
-            "serialized" => Response::Serialized(
-                response
-                    .content
-                    .ok_or_else(|| Error::from_reason("Missing config serialized content"))?
-                    .to_vec(),
-            ),
-            _ => return Err(Error::from_reason("Unknown config mutation response kind")),
-        };
+        let response = response_value(response)?;
         Ok(value(
             self.machine
                 .as_mut()
@@ -149,4 +111,46 @@ pub fn config_select_format(raw: Utf16String, explicit: Option<Utf16String>) -> 
             Err(error) => super::object(vec![("error", Value::String(error))]),
         },
     )
+}
+
+pub(super) fn response_value(response: NativeConfigResponse) -> Result<Response> {
+    Ok(match response.kind.as_str() {
+        "unit" => Response::Unit,
+        "missing" => Response::Missing,
+        "content" => Response::Content(
+            response
+                .content
+                .ok_or_else(|| Error::from_reason("Missing config content"))?
+                .to_vec(),
+        ),
+        "parsed" => Response::Parsed(
+            response
+                .flag
+                .ok_or_else(|| Error::from_reason("Missing config parse flag"))?,
+        ),
+        "bool" => Response::Bool(
+            response
+                .flag
+                .ok_or_else(|| Error::from_reason("Missing config control flag"))?,
+        ),
+        "pruned" => Response::Pruned {
+            changed: response
+                .changed
+                .ok_or_else(|| Error::from_reason("Missing config prune changed flag"))?,
+            empty: response.empty.unwrap_or(false),
+        },
+        "transformed" => Response::Transformed {
+            changed: response
+                .changed
+                .ok_or_else(|| Error::from_reason("Missing config transform changed flag"))?,
+            deleted: response.deleted.unwrap_or(false),
+        },
+        "serialized" => Response::Serialized(
+            response
+                .content
+                .ok_or_else(|| Error::from_reason("Missing config serialized content"))?
+                .to_vec(),
+        ),
+        _ => return Err(Error::from_reason("Unknown config mutation response kind")),
+    })
 }

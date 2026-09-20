@@ -25,6 +25,7 @@ export interface MutationContext{
  homeDir:string;
  dryRun?:boolean;
  observers?:MutationObservers;
+ templates?:TemplateLoader;
  pathMapper?:{mapTargetDirectory(input:{targetDirectory:string}):string};
 }
 interface BaseMutation{label?:string;}
@@ -39,7 +40,12 @@ export interface ConfigMergeMutation extends BaseMutation{kind:'configMerge';tar
 export interface ConfigPruneMutation extends BaseMutation{kind:'configPrune';target:ValueResolver<string>;shape:ValueResolver<ConfigObject>;format?:'json'|'toml'|'yaml';onlyIf?:(doc:ConfigObject,options:MutationOptions)=>boolean;}
 export interface ConfigTransformMutation extends BaseMutation{kind:'configTransform';target:ValueResolver<string>;format?:'json'|'toml'|'yaml';transform:(doc:ConfigObject,options:MutationOptions)=>{content:ConfigObject|null;changed:boolean};}
 export type ConfigMutation=ConfigMergeMutation|ConfigPruneMutation|ConfigTransformMutation;
-export type Mutation=FileMutation|ConfigMutation;
+export type TemplateLoader=(templateId:string)=>Promise<string>;
+export interface TemplateWriteMutation extends BaseMutation{kind:'templateWrite';target:ValueResolver<string>;templateId:string;context?:ValueResolver<ConfigObject>;}
+export interface TemplateMergeTomlMutation extends BaseMutation{kind:'templateMergeToml';target:ValueResolver<string>;templateId:string;context?:ValueResolver<ConfigObject>;}
+export interface TemplateMergeJsonMutation extends BaseMutation{kind:'templateMergeJson';target:ValueResolver<string>;templateId:string;context?:ValueResolver<ConfigObject>;}
+export type TemplateMutation=TemplateWriteMutation|TemplateMergeTomlMutation|TemplateMergeJsonMutation;
+export type Mutation=FileMutation|ConfigMutation|TemplateMutation;
 export interface MutationResult{changed:boolean;effects:MutationOutcome[];}
 /** Execute file and configuration mutations with platform operations supplied by the caller. */
 export function runMutations(mutations:Mutation[],context:MutationContext,options?:MutationOptions):Promise<MutationResult>;
@@ -57,4 +63,10 @@ export const configMutation:{
  merge(options:Omit<ConfigMergeMutation,'kind'>):ConfigMergeMutation;
  prune(options:Omit<ConfigPruneMutation,'kind'>):ConfigPruneMutation;
  transform(options:Omit<ConfigTransformMutation,'kind'>):ConfigTransformMutation;
+};
+
+export const templateMutation:{
+ write(options:Omit<TemplateWriteMutation,'kind'>):TemplateWriteMutation;
+ mergeToml(options:Omit<TemplateMergeTomlMutation,'kind'>):TemplateMergeTomlMutation;
+ mergeJson(options:Omit<TemplateMergeJsonMutation,'kind'>):TemplateMergeJsonMutation;
 };

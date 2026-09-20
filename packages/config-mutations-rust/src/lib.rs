@@ -5,6 +5,7 @@ pub mod config;
 pub mod config_data;
 pub mod execution;
 pub mod jsonc;
+pub mod template_execution;
 pub mod temporal;
 pub mod toml;
 pub mod value;

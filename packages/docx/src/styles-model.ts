@@ -1,6 +1,7 @@
 import { requireComparisonOperand } from "./comparison-operand.js";
 import { storedBoolean } from "./stored-lexical.js";
 import { InvalidDocumentError } from "./document-error.js";
+import { SemanticValidationError } from "./validation.js";
 import { styleLinkPatches } from "./style-links.js";
 import { admitDocumentModel } from "./model-admission.js";
 import { PackageView, StylesPart, packageBindStyles, packageAdmitImages, packageStyleAllocationIds } from "./package-view.js";
@@ -460,7 +461,9 @@ export async function bindDocumentStyleModel({ archive: admitted, settings, sour
     const root = store.editor().root, ids = new Set<string>();
     for (const node of store.nodes(store.editor())) {
       const id = attr(node, "styleId"), type = attr(node, "type") ?? "paragraph";
-      if (!Object.values(types).includes(type) || id !== undefined && ids.has(id)) throw new InvalidValueError("Invalid style definition graph.");
+      if (!Object.values(types).includes(type) || id !== undefined && ids.has(id)) throw new SemanticValidationError([
+        { code: "style-definition-graph", part: "/" + stylesPart, location: "/styles", message: "Invalid style definition graph." }
+      ]);
       if (id !== undefined) ids.add(id);
     }
     if (!documentDialects[admitted.dialect] || root.namespace !== documentDialects[admitted.dialect].w || root.localName !== "styles") throw new InvalidValueError("Invalid styles part root.");

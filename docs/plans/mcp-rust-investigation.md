@@ -403,6 +403,28 @@ loopback callbacks, resource normalization, state/PKCE and issuer credential bin
 The independent native tests remain required for real addon execution and host
 lifecycle paths outside mocked interaction boundaries.
 
+The new private `mcp-oauth-server-rust` checkpoint implements all public in-memory
+store methods and CSRF helpers. Rust owns table retention, single-use takes,
+atomic refresh rotation, replay-family/grant revocation and notification record
+selection. The Node host uses built-in structuredClone/V8 serialization for opaque
+record snapshots, including own undefined fields, cycles, dates, bigint and typed
+values; these are host primitives, not TS implementation delegation. Immutable
+record payloads are shared across native refresh-history entries, avoiding a copy
+of the original serialized record on every rotation. A 4,096-rotation/64 KiB payload
+test verifies sharing and release after store drop. The store intentionally retains
+replay history for its lifetime like the original; no total-memory bound or general
+process leak-freedom claim is made. Family revocation collects affected grant IDs
+once rather than rescanning the refresh table for each grant.
+Native oracle checks cover 512 mixed replacement/rotation/revocation operations,
+expiry/NaN/infinity/same-hash edge cases, clone isolation, 32 concurrent transaction
+and code takers, cookie validation/call order and timing-safe UTF-8 CSRF comparison.
+An expiry/NaN mismatch was reproduced red before correction. Seven Rust tests,
+eight native groups and structural public type compatibility pass; focused build
+and lint pass. The actual npm tarball's standalone addon/store/security APIs were
+extracted and smoke-checked, then temporary artifacts purged. Authorization
+endpoints, token issuance/verification and original server end-to-end contracts
+remain outstanding; this checkpoint is not the completed server package rewrite.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

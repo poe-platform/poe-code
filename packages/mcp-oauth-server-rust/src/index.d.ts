@@ -1,0 +1,54 @@
+export interface OAuthClientRecord { id: string; redirectUris: readonly string[]; createdAt: number; }
+export interface AuthorizationTransactionRecord {
+  id: string; clientId: string; redirectUri: string; codeChallenge: string;
+  resource: string; scopes: readonly string[]; state?: string; createdAt: number; expiresAt: number;
+}
+export interface AuthorizationCodeRecord {
+  tokenHash: string; grantId: string; clientId: string; subject: string;
+  redirectUri: string; codeChallenge: string; resource: string; scopes: readonly string[]; expiresAt: number;
+}
+export interface AuthorizationGrantRecord {
+  id: string; clientId: string; subject: string; resource: string;
+  scopes: readonly string[]; createdAt: number; revokedAt?: number;
+}
+export interface RefreshTokenRecord {
+  tokenHash: string; familyId: string; grantId: string; clientId: string;
+  subject: string; resource: string; scopes: readonly string[];
+  createdAt: number; expiresAt: number; status: "active" | "rotated" | "revoked";
+}
+export interface AccessTokenRecord {
+  tokenHash: string; tokenId: string; grantId: string; subject: string;
+  clientId: string; resource: string; expiresAt: number; revokedAt?: number;
+}
+export type RefreshTokenRotationResult =
+  | { status: "rotated"; previous: RefreshTokenRecord }
+  | { status: "replay"; grant?: AuthorizationGrantRecord }
+  | { status: "invalid" };
+export interface AuthorizationServerStore {
+  putClient(client: OAuthClientRecord): Promise<void>;
+  getClient(clientId: string): Promise<OAuthClientRecord | undefined>;
+  putAuthorizationTransaction(transaction: AuthorizationTransactionRecord): Promise<void>;
+  takeAuthorizationTransaction(transactionId: string): Promise<AuthorizationTransactionRecord | undefined>;
+  putAuthorizationCode(code: AuthorizationCodeRecord): Promise<void>;
+  takeAuthorizationCode(tokenHash: string): Promise<AuthorizationCodeRecord | undefined>;
+  putGrant(grant: AuthorizationGrantRecord): Promise<void>;
+  getGrant(grantId: string): Promise<AuthorizationGrantRecord | undefined>;
+  putAccessToken(token: AccessTokenRecord): Promise<void>;
+  getAccessToken(tokenHash: string): Promise<AccessTokenRecord | undefined>;
+  putRefreshToken(token: RefreshTokenRecord): Promise<void>;
+  rotateRefreshToken(tokenHash: string, replacementTokenHash: string, now: number, expiresAt: number): Promise<RefreshTokenRotationResult>;
+  revokeToken(tokenHash: string, now: number): Promise<void | AuthorizationGrantRecord>;
+  revokeGrant(grantId: string, now: number): Promise<void>;
+}
+export interface AuthorizationInteractionSecurity {
+  csrfToken: string; state: string; nonce: string; setCookie: string;
+}
+export interface AuthorizationInteractionSecurityOptions {
+  cookieName?: string; maxAgeSeconds?: number; randomToken?: () => string;
+}
+export interface VerifyAuthorizationInteractionCsrfInput {
+  cookieHeader: string | null; submittedToken: string; cookieName?: string;
+}
+export declare function createInMemoryAuthorizationServerStore(): AuthorizationServerStore;
+export declare function createAuthorizationInteractionSecurity(options?: AuthorizationInteractionSecurityOptions): AuthorizationInteractionSecurity;
+export declare function verifyAuthorizationInteractionCsrf(input: VerifyAuthorizationInteractionCsrfInput): boolean;

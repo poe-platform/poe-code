@@ -3,8 +3,8 @@ use mcp_protocol_rust::jsonrpc::{self, ParsedMessage};
 use napi::{Env, bindgen_prelude::*};
 use napi_derive::napi;
 
-mod convert;
 use convert::NativeJson;
+use mcp_protocol_rust_napi_core::convert;
 
 #[napi]
 pub fn is_base64(input: Utf16String) -> bool {

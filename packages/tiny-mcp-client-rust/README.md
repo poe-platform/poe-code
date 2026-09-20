@@ -26,6 +26,12 @@ const reply = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}
 if (reply.type === "response") console.log(reply.message);
 ```
 
-Complete client lifecycle, subscriptions and standalone transports are still being
+`McpClient` discovers modern servers or initializes legacy servers, with automatic
+fallback, callback-derived client capabilities, owned connection snapshots and
+reconnection. It exposes tool, resource, prompt and completion calls over a
+caller-provided transport. Progress callbacks follow active tool calls, and aborts
+or timeouts send cancellation notifications. TypeScript contracts cover these APIs.
+
+Notification subscriptions and standalone transports are still being
 implemented. Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

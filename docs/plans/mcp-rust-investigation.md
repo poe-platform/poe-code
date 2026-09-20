@@ -179,6 +179,18 @@ argument mutation, invalid roots, aggregate missing subcapabilities and pre-abor
 requests. Check coverage expands to 8 Rust and 18 native tests plus type fixtures.
 Full client lifecycle, subscriptions, HTTP/stdio adapters and OAuth remain pending.
 
+The public `McpClient` now uses an owned Rust connection state with generation
+guards, legacy initialization and modern discovery validation, cloned server
+snapshots, callback-derived capabilities and reconnect support. Its Node adapter
+exposes tool/resource/prompt/completion calls, progress tracking, cancellation,
+roots changes, logging, ping and cleanup. Differential native tests exercise both
+clients against both server implementations/protocol versions, discovery fallback
+and terminal negotiation errors, invalid capabilities before network I/O, legacy
+roots/elicitation callbacks, stale closure after reconnect and canceled progress.
+Maintained TypeScript fixtures cover the new public contracts. This checkpoint
+does not include notification streams or resource subscriptions; those and
+standalone transports/OAuth remain required before client parity is complete.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

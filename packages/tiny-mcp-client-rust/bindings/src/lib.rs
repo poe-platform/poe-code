@@ -380,3 +380,204 @@ fn rpc_error(error: mcp_protocol_rust::jsonrpc::RpcError) -> convert::NativeJson
     }
     convert::NativeJson(object(vec![("error", object(fields))]))
 }
+
+use tiny_mcp_client_rust::client::{ClientError, ClientState, ConnectionState};
+#[napi]
+#[derive(Default)]
+pub struct NativeClient {
+    state: RefCell<ClientState>,
+}
+#[napi]
+impl NativeClient {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self {
+            state: RefCell::new(ClientState::default()),
+        }
+    }
+    #[napi(getter)]
+    pub fn status(&self) -> &'static str {
+        match self.state.borrow().state() {
+            ConnectionState::Disconnected => "disconnected",
+            ConnectionState::Initializing => "initializing",
+            ConnectionState::Ready => "ready",
+            ConnectionState::Closed => "closed",
+        }
+    }
+    #[napi(getter)]
+    pub fn modern(&self) -> bool {
+        self.state.borrow().modern()
+    }
+    #[napi(getter)]
+    pub fn server_capabilities(&self) -> convert::NativeJson {
+        convert::NativeJson(
+            self.state
+                .borrow()
+                .server_capabilities()
+                .unwrap_or(Value::Null),
+        )
+    }
+    #[napi(getter)]
+    pub fn server_info(&self) -> convert::NativeJson {
+        convert::NativeJson(self.state.borrow().server_info().unwrap_or(Value::Null))
+    }
+    #[napi(getter)]
+    pub fn instructions(&self) -> Option<Utf16String> {
+        self.state.borrow().instructions().map(Into::into)
+    }
+    #[napi]
+    pub fn begin_connect(&self) -> convert::NativeJson {
+        match self.state.borrow_mut().begin_connect() {
+            Ok(generation) => convert::NativeJson(object(vec![(
+                "generation",
+                Value::Number(generation as f64),
+            )])),
+            Err(error) => client_error(error),
+        }
+    }
+    #[napi]
+    pub fn connection_closed(&self, generation: f64) -> bool {
+        self.state.borrow_mut().connection_closed(generation as u64)
+    }
+    #[napi]
+    pub fn connection_failed(&self, generation: f64) -> bool {
+        self.state.borrow_mut().connection_failed(generation as u64)
+    }
+    #[napi]
+    pub fn prepare_capabilities(
+        &self,
+        env: Env,
+        source: Unknown<'_>,
+        roots: bool,
+        sampling: bool,
+        elicitation: bool,
+    ) -> convert::NativeJson {
+        let value = match input::read(&env, source, input::Mode::Json) {
+            Ok(value) => value,
+            Err(_) => {
+                return client_error(ClientError {
+                    code: Some(-32602),
+                    message: "Invalid client capabilities".encode_utf16().collect(),
+                });
+            }
+        };
+        let mut caps = match value {
+            Some(Value::Object(caps)) => caps,
+            _ => vec![],
+        };
+        for (name, enabled) in [
+            ("roots", roots),
+            ("sampling", sampling),
+            ("elicitation", elicitation),
+        ] {
+            if !enabled {
+                continue;
+            }
+            let key = name.encode_utf16().collect::<Vec<_>>();
+            if let Some((_, previous)) = caps.iter_mut().find(|(name, _)| name == &key) {
+                if name == "roots" && !matches!(previous, Value::Object(_)) {
+                    *previous = Value::Object(vec![]);
+                }
+            } else {
+                caps.push((key, Value::Object(vec![])));
+            }
+        }
+        let caps = Value::Object(caps);
+        match self
+            .state
+            .borrow_mut()
+            .set_client_capabilities(caps.clone())
+        {
+            Ok(()) => convert::NativeJson(object(vec![("capabilities", caps)])),
+            Err(error) => client_error(error),
+        }
+    }
+    #[napi]
+    pub fn accept_connection(
+        &self,
+        env: Env,
+        generation: f64,
+        result: Unknown<'_>,
+        discovery: bool,
+    ) -> Result<convert::NativeJson> {
+        let result = input::read(&env, result, input::Mode::Json)?.unwrap_or(Value::Null);
+        let mut state = self.state.borrow_mut();
+        let accepted = if discovery {
+            state.accept_discovery(generation as u64, result)
+        } else {
+            state.accept_initialize(generation as u64, result)
+        };
+        Ok(match accepted {
+            Ok(result) => convert::NativeJson(object(vec![("result", result)])),
+            Err(error) => client_error(error),
+        })
+    }
+    #[napi]
+    pub fn check_capability(&self, capability: String) -> convert::NativeJson {
+        match self.state.borrow().require_capability(&capability) {
+            Ok(()) => convert::NativeJson(object(vec![])),
+            Err(error) => client_error(error),
+        }
+    }
+    #[napi]
+    pub fn check_connection(&self) -> convert::NativeJson {
+        match self.state.borrow().require_connection() {
+            Ok(()) => convert::NativeJson(object(vec![])),
+            Err(error) => client_error(error),
+        }
+    }
+    #[napi]
+    pub fn validate_result(
+        &self,
+        env: Env,
+        method: String,
+        result: Unknown<'_>,
+    ) -> Result<convert::NativeJson> {
+        let result = input::read(&env, result, input::Mode::Json)?.unwrap_or(Value::Null);
+        Ok(
+            match self.state.borrow().validate_result(&method, &result) {
+                Ok(()) => convert::NativeJson(object(vec![])),
+                Err(error) => client_error(error),
+            },
+        )
+    }
+    #[napi]
+    pub fn notification_allowed(&self, env: Env, method: String, params: Unknown<'_>) -> bool {
+        let params = input::read(&env, params, input::Mode::Json)
+            .ok()
+            .flatten()
+            .unwrap_or(Value::Null);
+        self.state.borrow().notification_allowed(&method, &params)
+    }
+    #[napi]
+    pub fn track_progress(&self, env: Env, token: Unknown<'_>, add: bool) -> Result<()> {
+        if let Some(token) = input::read(&env, token, input::Mode::Json)? {
+            self.state.borrow_mut().track_progress(&token, add);
+        }
+        Ok(())
+    }
+    #[napi]
+    pub fn set_subscription(&self, uri: Utf16String, active: bool) {
+        let mut state = self.state.borrow_mut();
+        if active {
+            state.add_subscription(uri.to_vec());
+        } else {
+            state.remove_subscription(&uri);
+        }
+    }
+    #[napi(getter)]
+    pub fn roots_changes_allowed(&self) -> bool {
+        self.state.borrow().roots_changes_allowed()
+    }
+    #[napi]
+    pub fn close(&self) {
+        self.state.borrow_mut().close();
+    }
+}
+fn client_error(error: ClientError) -> convert::NativeJson {
+    let mut fields = vec![("message", Value::String(error.message))];
+    if let Some(code) = error.code {
+        fields.push(("code", Value::Number(code.into())));
+    }
+    convert::NativeJson(object(vec![("error", object(fields))]))
+}

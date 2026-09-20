@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 export { JsonRpcMessageLayer } from "./layer.js";
+export { McpClient } from "./client.js";
 const native = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 export const ERROR_PARSE = -32700;
 export const ERROR_INVALID_REQUEST = -32600;

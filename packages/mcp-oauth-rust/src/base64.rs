@@ -17,3 +17,32 @@ pub fn encode_url(bytes: &[u8]) -> String {
     }
     output
 }
+
+/// Buffer-compatible decoding: mixed alphabets, ignored junk, early padding and
+/// low-byte lookup for UTF-16 code units. This intentionally is not validation.
+pub fn decode_lenient(text: &[u16]) -> Vec<u8> {
+    let mut bytes = Vec::new();
+    let mut word = 0u32;
+    let mut bits = 0u8;
+    for unit in text {
+        let byte = *unit as u8;
+        if byte == b'=' {
+            break;
+        }
+        let digit = match byte {
+            b'A'..=b'Z' => byte - b'A',
+            b'a'..=b'z' => byte - b'a' + 26,
+            b'0'..=b'9' => byte - b'0' + 52,
+            b'+' | b'-' => 62,
+            b'/' | b'_' => 63,
+            _ => continue,
+        };
+        word = (word << 6) | u32::from(digit);
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            bytes.push((word >> bits) as u8);
+        }
+    }
+    bytes
+}

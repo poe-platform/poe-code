@@ -14,6 +14,11 @@ const verifier = generateCodeVerifier();
 const challenge = generateCodeChallenge(verifier);
 ```
 
-Authorization-state handling, token exchange/refresh, session storage, browser
+The Rust authorization-state core creates opaque nonce payloads and validates
+issuer/flag fields. Its decoder preserves Node-compatible base64url and UTF-16
+behavior. Host bindings supply operating-system randomness; protocol logic stays
+in Rust.
+
+Token exchange/refresh, session storage, browser
 callbacks and JWKS verification are still being implemented. Keep applications on
 their existing OAuth package until conformance and integration are complete.

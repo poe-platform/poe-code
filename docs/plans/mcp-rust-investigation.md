@@ -266,6 +266,15 @@ build/lint/type routes pass; no existing consumer or release wiring changes.
 Authorization state, client/token/browser/session/JWKS functionality remains
 required before OAuth package parity is complete.
 
+Authorization-state creation/parsing now lives in the own Rust OAuth core with
+16-byte host entropy, version/nonempty nonce/issuer/boolean checks, owned fields
+and own JSON/base64url codecs. The decoder reproduces Node's mixed alphabet,
+ignored-junk, early-padding and UTF-16 low-byte lookup behavior. Native/reference
+tests cover field validation, issuer/BOM/surrogate round trips, decorated valid
+states, 1,024 malformed UTF-8/base64 states and 1,024 direct arbitrary UTF-16
+byte-decoder comparisons. No prototype lookup can supply decoded fields. This is
+an internal state checkpoint; token/browser/provider/session/JWKS parity remains.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

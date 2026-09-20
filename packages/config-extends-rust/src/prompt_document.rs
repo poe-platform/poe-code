@@ -7,7 +7,10 @@ use config_mutations_rust::value::Value;
 use toolcraft_design_rust::data::{Graph, Node};
 pub trait Host: resolve::Host {
     /// None is an own ENOENT; errors must not be reclassified as missing files.
-    fn realpath(&mut self, path: &[u16]) -> Result<Option<Vec<u16>>, Self::Error>;
+    fn realpath(
+        &mut self,
+        path: &[u16],
+    ) -> impl std::future::Future<Output = Result<Option<Vec<u16>>, Self::Error>>;
 }
 #[derive(Clone, Debug)]
 pub struct BaseDocument {
@@ -79,7 +82,7 @@ impl<H: Host> discover::Host for Rooted<'_, H> {
     fn contains(&mut self, directory: &[u16], file: &[u16]) -> bool {
         inside(self.host, file, directory)
     }
-    fn read(&mut self, file: &[u16]) -> Result<Option<Vec<u16>>, Self::Error> {
+    async fn read(&mut self, file: &[u16]) -> Result<Option<Vec<u16>>, Self::Error> {
         let normalized = self.host.resolve(file);
         let overlay = self
             .documents
@@ -89,7 +92,7 @@ impl<H: Host> discover::Host for Rooted<'_, H> {
         let resolved = if overlay.is_some() {
             normalized.clone()
         } else {
-            let Some(path) = self.host.realpath(file).map_err(Error::Host)? else {
+            let Some(path) = self.host.realpath(file).await.map_err(Error::Host)? else {
                 return Ok(None);
             };
             self.host.resolve(&path)
@@ -99,7 +102,7 @@ impl<H: Host> discover::Host for Rooted<'_, H> {
             .iter()
             .find(|root| inside(self.host, file, root))
             .ok_or_else(|| named("Prompt document path escapes configured root: ", file))?;
-        let canonical_root = match self.host.realpath(root) {
+        let canonical_root = match self.host.realpath(root).await {
             Ok(Some(path)) => self.host.resolve(&path),
             _ => self.host.resolve(root),
         };
@@ -112,7 +115,7 @@ impl<H: Host> discover::Host for Rooted<'_, H> {
         if let Some(document) = overlay {
             return Ok(Some(document.content.clone()));
         }
-        self.host.read(file).map_err(Error::Host)
+        self.host.read(file).await.map_err(Error::Host)
     }
 }
 impl<H: Host> resolve::Host for Rooted<'_, H> {
@@ -150,7 +153,7 @@ fn prompt<E>(data: &Value, file: &[u16]) -> Result<Vec<u16>, Error<E>> {
     };
     Ok(prompt.clone())
 }
-pub fn resolve_prompt_document<H: Host>(
+pub async fn resolve_prompt_document<H: Host>(
     input: &Input<'_>,
     host: &mut H,
 ) -> Result<Resolved, Error<H::Error>> {
@@ -196,7 +199,7 @@ pub fn resolve_prompt_document<H: Host>(
     };
     let content = match &input.content {
         Some(content) => content.clone(),
-        None => match discover::Host::read(&mut fs, &file_path)? {
+        None => match discover::Host::read(&mut fs, &file_path).await? {
             Some(content) => content,
             None if input.optional => u("---\nextends: true\n---\n"),
             None => return Err(named("Prompt document not found: ", &file_path)),
@@ -214,7 +217,9 @@ pub fn resolve_prompt_document<H: Host>(
             path,
         })
     }));
-    let composed = resolve::resolve(&chain, &Options::default(), &mut fs).map_err(flatten)?;
+    let composed = resolve::resolve(&chain, &Options::default(), &mut fs)
+        .await
+        .map_err(flatten)?;
     let empty = Graph {
         root: 0,
         nodes: vec![Node::Object(vec![])],
@@ -228,6 +233,7 @@ pub fn resolve_prompt_document<H: Host>(
         },
         &mut fs,
     )
+    .await
     .map_err(flatten)?;
     let template = prompt(&composed.data, &file_path)?;
     let prompt = prompt(&rendered.data, &file_path)?;

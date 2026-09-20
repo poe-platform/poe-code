@@ -1,9 +1,11 @@
+mod support;
 use config_extends_rust::{
     Layer, discover,
     resolve::{BaseLayer, ChainLayer, DocumentLayer, Host, Options, resolve},
 };
 use config_mutations_rust::value::Value;
 use std::collections::HashMap;
+use support::complete;
 fn u(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }
@@ -25,7 +27,7 @@ impl discover::Host for Memory {
         root.push(47);
         self.resolve(file).starts_with(&root)
     }
-    fn read(&mut self, path: &[u16]) -> Result<Option<Vec<u16>>, Self::Error> {
+    async fn read(&mut self, path: &[u16]) -> Result<Option<Vec<u16>>, Self::Error> {
         self.reads.push(path.to_vec());
         Ok(self.files.get(path).cloned())
     }
@@ -82,7 +84,7 @@ fn memory(files: &[(&str, &str)]) -> Memory {
 }
 
 impl config_extends_rust::prompt_document::Host for Memory {
-    fn realpath(&mut self, path: &[u16]) -> Result<Option<Vec<u16>>, Self::Error> {
+    async fn realpath(&mut self, path: &[u16]) -> Result<Option<Vec<u16>>, Self::Error> {
         Ok(Some(
             self.canonical
                 .get(path)
@@ -108,7 +110,7 @@ fn rooted_prompt_documents_use_overlays_and_return_template_rendered_prompt_and_
         file_path: u("/bases/review.md"),
         content: u("Base {{name}}"),
     });
-    let result = resolve_prompt_document(&input, &mut fs).unwrap();
+    let result = complete(resolve_prompt_document(&input, &mut fs)).unwrap();
     assert_eq!(result.template, u("Doc(Base {{name}})"));
     assert_eq!(result.prompt, u("Doc(Base Rust)"));
     assert_eq!(result.metadata.get("title"), Some(&text("Demo")));
@@ -121,14 +123,14 @@ fn prompt_document_lexical_and_symlink_escapes_are_rejected_and_roots_can_resolv
     let mut fs = memory(&[("/project/review.md", "Body")]);
     let input = Input::new(u("/project"), u("../secret.md"));
     assert_eq!(
-        resolve_prompt_document(&input, &mut fs).unwrap_err(),
+        complete(resolve_prompt_document(&input, &mut fs)).unwrap_err(),
         discover::Error::Policy(u("Prompt document path must remain inside cwd: /secret.md"))
     );
     fs.canonical
         .insert(u("/project/review.md"), u("/elsewhere/review.md"));
     let input = Input::new(u("/project"), u("review.md"));
     assert_eq!(
-        resolve_prompt_document(&input, &mut fs).unwrap_err(),
+        complete(resolve_prompt_document(&input, &mut fs)).unwrap_err(),
         discover::Error::Policy(u(
             "Prompt document path escapes configured root: /project/review.md"
         ))
@@ -138,7 +140,9 @@ fn prompt_document_lexical_and_symlink_escapes_are_rejected_and_roots_can_resolv
     fs.canonical
         .insert(u("/project/review.md"), u("/private/project/review.md"));
     assert_eq!(
-        resolve_prompt_document(&input, &mut fs).unwrap().prompt,
+        complete(resolve_prompt_document(&input, &mut fs))
+            .unwrap()
+            .prompt,
         u("Body")
     );
 }
@@ -150,12 +154,14 @@ fn optional_missing_prompt_documents_extend_bases_and_relative_base_paths_reject
     input.optional = true;
     input.base_paths.push(u("/bases"));
     assert_eq!(
-        resolve_prompt_document(&input, &mut fs).unwrap().prompt,
+        complete(resolve_prompt_document(&input, &mut fs))
+            .unwrap()
+            .prompt,
         u("Base")
     );
     input.base_paths[0] = u("relative");
     assert_eq!(
-        resolve_prompt_document(&input, &mut fs).unwrap_err(),
+        complete(resolve_prompt_document(&input, &mut fs)).unwrap_err(),
         discover::Error::Policy(u("Prompt document base paths must be absolute: relative"))
     );
 }
@@ -194,7 +200,7 @@ fn owned_resolution_loads_nested_bases_composes_prompts_and_preserves_priority()
         base("/first", "first"),
         base("/second", "second"),
     ];
-    let result = resolve(&chain, &Options::default(), &mut fs).unwrap();
+    let result = complete(resolve(&chain, &Options::default(), &mut fs)).unwrap();
     assert_eq!(
         result.data.get("prompt"),
         Some(&Value::String(u("Doc(First(Second))")))
@@ -219,24 +225,24 @@ fn optional_autoextend_can_miss_but_explicit_false_never_reads_bases() {
         ..Options::default()
     };
     assert!(
-        resolve(
+        complete(resolve(
             &[document("Body"), base("/missing", "base")],
             &options,
             &mut fs
-        )
+        ))
         .is_ok()
     );
     assert_eq!(fs.reads.len(), 4);
     fs.reads.clear();
     assert!(
-        resolve(
+        complete(resolve(
             &[
                 document("---\nextends: false\n---\nBody"),
                 base("/missing", "base")
             ],
             &options,
             &mut fs
-        )
+        ))
         .is_ok()
     );
     assert!(fs.reads.is_empty());
@@ -247,11 +253,11 @@ fn relative_paths_cycles_and_maximum_depth_are_rejected_before_extra_reads() {
         ("/project/base.yaml", "extends: ./review.md"),
         ("/project/review.md", "---\nextends: ./base.yaml\n---\nBody"),
     ]);
-    let result = resolve(
+    let result = complete(resolve(
         &[document("---\nextends: ./base.yaml\n---\nBody")],
         &Options::default(),
         &mut fs,
-    )
+    ))
     .unwrap_err();
     assert!(
         matches!(result,discover::Error::Policy(message) if String::from_utf16(&message).unwrap().starts_with("Circular extends detected."))
@@ -263,11 +269,11 @@ fn relative_paths_cycles_and_maximum_depth_are_rejected_before_extra_reads() {
             u(&format!("extends: ./{}.yaml", index + 1)),
         );
     }
-    let result = resolve(
+    let result = complete(resolve(
         &[document("---\nextends: ./0.yaml\n---\nBody")],
         &Options::default(),
         &mut fs,
-    )
+    ))
     .unwrap_err();
     assert_eq!(
         result,
@@ -282,14 +288,14 @@ fn partials_expand_in_dfs_order_and_can_introduce_yield_composition() {
         ("/project/nested.md", "nested"),
         ("/bases/review.yaml", "prompt: Base"),
     ]);
-    let result = resolve(
+    let result = complete(resolve(
         &[
             document("---\nextends: true\n---\n{{> wrap}}"),
             base("/bases", "base"),
         ],
         &Options::default(),
         &mut fs,
-    )
+    ))
     .unwrap();
     assert_eq!(
         result.data.get("prompt"),
@@ -309,18 +315,18 @@ fn partials_expand_in_dfs_order_and_can_introduce_yield_composition() {
 #[test]
 fn empty_document_prompt_inherits_base_provenance_and_chain_requires_one_document() {
     let mut fs = memory(&[("/bases/review.yaml", "prompt: inherited")]);
-    let result = resolve(
+    let result = complete(resolve(
         &[
             document("---\nextends: true\n---\n"),
             base("/bases", "base"),
         ],
         &Options::default(),
         &mut fs,
-    )
+    ))
     .unwrap();
     assert!(result.sources.contains(&(u("prompt"), u("base"))));
     assert_eq!(
-        resolve(&[], &Options::default(), &mut fs).unwrap_err(),
+        complete(resolve(&[], &Options::default(), &mut fs)).unwrap_err(),
         discover::Error::Policy(u("Exactly one document layer is required, received 0."))
     );
 }
@@ -336,7 +342,7 @@ fn template_rendering_uses_the_owned_graph_and_validates_missing_variables() {
         ],
     };
     let mut fs = memory(&[]);
-    let result = resolve(
+    let result = complete(resolve(
         &[document("Hello {{name}}")],
         &Options {
             view: Some(&graph),
@@ -344,21 +350,21 @@ fn template_rendering_uses_the_owned_graph_and_validates_missing_variables() {
             ..Options::default()
         },
         &mut fs,
-    )
+    ))
     .unwrap();
     assert_eq!(
         result.data.get("prompt"),
         Some(&Value::String(u("Hello <Rust>")))
     );
     assert!(
-        resolve(
+        complete(resolve(
             &[document("Hello {{missing}}")],
             &Options {
                 validate: true,
                 ..Options::default()
             },
             &mut fs
-        )
+        ))
         .is_err()
     );
 }
@@ -493,7 +499,7 @@ fn generated_resolution_cases_match_current_sdk_including_reads_and_errors() {
                 ]),
             ),
         ]));
-        let result = match resolve(&chain, &options, &mut fs) {
+        let result = match complete(resolve(&chain, &options, &mut fs)) {
             Ok(result) => obj(vec![
                 ("data", result.data),
                 (
@@ -637,7 +643,7 @@ fn generated_rooted_overlay_optional_and_template_cases_match_sdk_results_and_re
             fields.push(("variables", obj(vec![("name", text("World"))])));
         }
         cases.push(obj(vec![("input", obj(fields)), ("files", files)]));
-        let result = match resolve_prompt_document(&input, &mut fs) {
+        let result = match complete(resolve_prompt_document(&input, &mut fs)) {
             Ok(result) => obj(vec![
                 ("template", Value::String(result.template)),
                 ("prompt", Value::String(result.prompt)),

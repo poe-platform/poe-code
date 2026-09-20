@@ -1940,6 +1940,21 @@ read ordering. Tests explicitly cover symlink escapes and canonical roots. Logs:
 `out/rust-config-extends-rooted-{red,green,lint}.log`. Async/native/foreign-graph
 adapters and full package acceptance remain unfinished.
 
+### config-extends resumable async cores, 2026-09-20
+
+Discovery, resolution and rooted prompt-document resolution now return standard
+Rust futures. Host reads/canonical lookups may suspend; no executor/runtime crate
+is added. Resolver state stays in the future across I/O rather than rerunning
+prior parsing, discovery or reads. Public futures intentionally need not be Send
+so native adapters can drive them on the originating JavaScript/Python thread.
+
+Validation: 32 Rust groups and fmt/clippy, including all 240 generated SDK
+document/resolver/rooted cases. Manual pending-I/O tests assert repeated polls do
+not replay requests, resumption retains ordered discovery, and cancellation stops
+later reads. Ready in-memory hosts must complete in one poll. Failing-first and
+green evidence: `out/rust-config-extends-async-{red,green,lint}.log`. Native adapters
+and arbitrary foreign-runtime graph behavior are still unfinished.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

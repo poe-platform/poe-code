@@ -38,6 +38,9 @@ composes prompts and renders an optional owned template graph. It records every
 document and partial in the returned chain and limits extends depth to five.
 Supply a `resolve::Host` for platform paths and in-memory or real filesystem I/O.
 Host errors are returned intact through `discover::Error::Host`.
+Discovery and resolution return standard Rust futures. Host reads and canonical
+path lookups may suspend; use your runtime to await them. The core adds no async
+runtime dependency and does not replay earlier work when a read resumes.
 
 `prompt_document::resolve_prompt_document` adds rooted document paths, symlink
 containment, absolute base directories, in-memory base-document overlays and
@@ -48,6 +51,6 @@ core's policy errors rather than retaining an absent host exception object.
 
 The core uses the standard library and own path crates. Merging and cloning use
 explicit work stacks with a depth bound of 1,000. This additive package currently
-provides owned merging, rooted document resolution and templates. Async filesystem
-adapters, JavaScript graph behavior and Node/Python bindings are still in
+provides owned merging, async rooted document resolution and templates. Node/Python
+adapters and JavaScript graph behavior are still in
 progress; existing TypeScript packages and production imports are unchanged.

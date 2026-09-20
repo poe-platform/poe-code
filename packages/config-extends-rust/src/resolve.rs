@@ -92,7 +92,7 @@ fn set_prompt(layer: &mut Layer, prompt: Vec<u16>) {
 }
 type BaseChain = (Vec<Layer>, Vec<Vec<u16>>);
 type Partial = (Vec<u16>, Vec<u16>);
-fn load_bases<H: Host>(
+async fn load_bases<H: Host>(
     document: &DocumentLayer,
     extends: Extends,
     bases: &[BaseLayer],
@@ -119,7 +119,7 @@ fn load_bases<H: Host>(
                 let directory = host.dirname(&from);
                 let joined = host.join(&directory, path);
                 let file = host.resolve(&joined);
-                let content = match host.read(&file) {
+                let content = match host.read(&file).await {
                     Ok(Some(content)) => content,
                     Ok(None) => return Err(named("base file not found at ", &file, "")),
                     Err(error) if host.path_not_found(&error) => {
@@ -134,7 +134,7 @@ fn load_bases<H: Host>(
                     .iter()
                     .map(|base| base.path.clone())
                     .collect();
-                let discovered = match discover::find_base(&name, &paths, host) {
+                let discovered = match discover::find_base(&name, &paths, host).await {
                     Ok(discovered) => discovered,
                     Err(Error::Policy(message))
                         if optional && message.starts_with(&u("Base \"")) =>
@@ -196,7 +196,7 @@ fn load_bases<H: Host>(
     }
     Ok((layers, files))
 }
-fn partial<H: Host>(
+async fn partial<H: Host>(
     name: &[u16],
     directories: &[Vec<u16>],
     host: &mut H,
@@ -214,7 +214,7 @@ fn partial<H: Host>(
             ));
         }
         checked.push(path.clone());
-        if let Some(content) = host.read(&path).map_err(Error::Host)? {
+        if let Some(content) = host.read(&path).await.map_err(Error::Host)? {
             return Ok((content, path));
         }
     }
@@ -232,7 +232,7 @@ fn partial<H: Host>(
 fn template_error<E>(error: template::Error) -> Error<E> {
     Error::Policy(error.description)
 }
-fn expand<H: Host>(
+async fn expand<H: Host>(
     document: &mut Layer,
     bases: &mut [Layer],
     files: &[Vec<u16>],
@@ -261,7 +261,7 @@ fn expand<H: Host>(
             if partials.iter().any(|(key, _)| *key == name) {
                 continue;
             }
-            let (content, file) = partial(&name, &directories, host)?;
+            let (content, file) = partial(&name, &directories, host).await?;
             let nested = template::partial_names(&content).map_err(template_error)?;
             partials.push((name, content));
             partial_files.push(file);
@@ -293,7 +293,7 @@ impl Partials for NoPartials {
     }
 }
 impl DataHost for NoPartials {}
-pub fn resolve<H: Host>(
+pub async fn resolve<H: Host>(
     chain: &[ChainLayer],
     options: &Options<'_>,
     host: &mut H,
@@ -325,7 +325,7 @@ pub fn resolve<H: Host>(
         parsed.extends != Extends::Disabled || options.auto_extend && !parsed.has_extends;
     let (mut base_layers, base_files) = if should_extend {
         let optional = parsed.extends == Extends::Disabled;
-        load_bases(document, parsed.extends, &bases, optional, host)?
+        load_bases(document, parsed.extends, &bases, optional, host).await?
     } else {
         (vec![], vec![])
     };
@@ -340,7 +340,8 @@ pub fn resolve<H: Host>(
         &mut base_layers,
         &prompt_files,
         host,
-    )?;
+    )
+    .await?;
     let composed = prompt::compose_prompts(&expanded_document, &base_layers).map_err(policy)?;
     if let Some(composed) = &composed {
         let prompt = if options.view.is_some() || options.validate {

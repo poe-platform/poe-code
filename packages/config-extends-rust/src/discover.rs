@@ -15,9 +15,12 @@ pub trait Host {
     fn join(&mut self, directory: &[u16], file: &[u16]) -> Vec<u16>;
     fn contains(&mut self, directory: &[u16], file: &[u16]) -> bool;
     /// None means ENOENT; every other host error must remain an error.
-    fn read(&mut self, file: &[u16]) -> Result<Option<Vec<u16>>, Self::Error>;
+    fn read(
+        &mut self,
+        file: &[u16],
+    ) -> impl std::future::Future<Output = Result<Option<Vec<u16>>, Self::Error>>;
 }
-pub fn find_base<H: Host>(
+pub async fn find_base<H: Host>(
     name: &[u16],
     bases: &[Vec<u16>],
     host: &mut H,
@@ -36,7 +39,7 @@ pub fn find_base<H: Host>(
                 ));
             }
             checked.push(file_path.clone());
-            if let Some(content) = host.read(&file_path).map_err(Error::Host)? {
+            if let Some(content) = host.read(&file_path).await.map_err(Error::Host)? {
                 return Ok(DiscoveredBase {
                     content,
                     file_path,

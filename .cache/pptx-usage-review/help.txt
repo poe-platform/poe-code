@@ -1,8 +1,0 @@
-$ pptx images add --help
-Usage: pptx images add INPUT --slide N --file PATH [--placeholder IDX] [--content-type image/png|image/jpeg|image/gif|image/bmp|image/tiff|image/x-wmf]
-  [--left LENGTH --top LENGTH] [--width LENGTH --height LENGTH --fit contain|cover|stretch]
-  [--alt-text TEXT] [--output PATH | --in-place] [--force] [--dry-run] [--json]
-Placeholder IDX is a nonnegative sparse key; PNG/JPEG only, inherited box with cover fit; no geometry/fit flags.
-Lengths require emu, in, cm, mm or pt. Both dimensions default to stretch; one dimension preserves aspect.
-
-exit 0

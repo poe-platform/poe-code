@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/pptx-conversion.test.ts (24 tests) 4333ms
+   ✓ preserves original nested list structure in the conversion round trip  364ms
+   ✓ resolves presentation relationship order independently for more than nine slides  613ms
+   ✓ retains mixed list nesting, numbering starts and continuation paragraphs  368ms
+
+ Test Files  1 passed (1)
+      Tests  24 passed (24)
+   Start at  22:51:50
+   Duration  6.16s (transform 1.29s, setup 39ms, import 1.71s, tests 4.33s, environment 0ms)
+

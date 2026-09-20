@@ -1,6 +1,6 @@
 # @poe-code/agent-harness
 
-Shared harness loader, template, schema, and runtime orchestration APIs for `.md` + `.ajs` SafeJS harness pairs.
+Shared harness loader, template, schema, and runtime orchestration APIs for `.md` + `.ajs` SafeJS harness pairs. This private workspace package is not included in the published `poe-code` package.
 
 ## Public API
 
@@ -20,16 +20,11 @@ A harness is a Markdown document plus a sibling `.ajs` script. The Markdown fron
 
 Pass `snapshotPath` to control where snapshots are read and written. `resume` defaults to `true`; set `resume: false` to remove a completed snapshot and force a fresh run. If a snapshot exists, the underlying SafeJS source hash must still match the `.ajs` source.
 
-The CLI mirrors these options:
-
-```sh
-poe-code harness run harness.md --snapshot-path .poe-code/harnesses/demo/snapshot.json --resume
-poe-code harness new coverage-demo coverage.md
-```
+The former `poe-code harness` CLI is unavailable. Use the workspace API directly.
 
 ## Built-in templates
 
-`listBuiltinTemplates()` exposes template metadata with `kind`, `mdPath`, and `ajsPath`. `poe-code harness new <kind> <path>` copies both files into a new harness pair.
+`listBuiltinTemplates()` exposes template metadata with `kind`, `mdPath`, and `ajsPath`.
 
 ## Environment Variables
 
@@ -37,4 +32,4 @@ This package does not read any environment variables.
 
 ## Configuration
 
-This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `budget`, `resume`, `signal`, and `snapshotPath`. `budget` accepts a SafeJS `Budget`; current failure checkpoints never raise limits automatically. The CLI exposes `--max-steps` and `--data-size`; see [SafeJS recovery](../safe-js/RECOVERY.md).
+This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `budget`, `resume`, `signal`, and `snapshotPath`. `budget` accepts a SafeJS `Budget`; current failure checkpoints never raise limits automatically. See [SafeJS recovery](../safe-js/RECOVERY.md) for budget and checkpoint behavior.

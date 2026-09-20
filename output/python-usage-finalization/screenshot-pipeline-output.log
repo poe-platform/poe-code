@@ -1,5 +1,0 @@
-
-> poe-code@0.0.0-dev screenshot
-> tsx scripts/screenshot.ts --no-header --output output/python-usage-finalization/cli-pipeline-output.png node dist/bin.cjs bash --root output/python-usage-finalization --python-runtime file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs --python-trusted -c printf "hello\n" | python -c 'import sys; print(sys.stdin.read().upper(), end="")'
-
-output/python-usage-finalization/cli-pipeline-output.png

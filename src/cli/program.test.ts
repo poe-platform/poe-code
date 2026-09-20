@@ -362,7 +362,7 @@ describe("createProgram", () => {
     const usageLineOf = (help: string): string =>
       help.split("\n").find((line) => line.startsWith("Usage:")) ?? "";
 
-    it.each(["skill", "utils", "usage", "ralph", "worktree", "harness", "provider", "runtime"])(
+    it.each(["skill", "utils", "usage", "ralph", "worktree",  "provider", "runtime"])(
       "advertises the required subcommand in the %s usage line",
       async (command) => {
         const usageLine = usageLineOf(await renderHelp([command, "--help"]));
@@ -371,7 +371,7 @@ describe("createProgram", () => {
       }
     );
 
-    it.each(["provider", "runtime", "harness", "skill"])(
+    it.each(["provider", "runtime",  "skill"])(
       "omits commander's implicit help subcommand from %s help",
       async (command) => {
         const output = await renderHelp([command, "--help"]);
@@ -508,7 +508,7 @@ describe("createProgram", () => {
     it("collapses forwarded command rows instead of dumping every flag inline", async () => {
       const output = await renderHelp(["superintendent", "--help"]);
 
-      expect(output).toContain("run [docs...] [+8 options]");
+      expect(output).toContain("run [docs...] [+9 options]");
       expect(output).not.toContain("--runner-sync");
     });
 

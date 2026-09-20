@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Budget, declareHostOperation, makeFsModule, run } from "poe-code/safe-js";
+import { Budget, declareHostOperation, makeFsModule, run } from "@poe-code/safe-js";
 import { createNodeCommand, createNodeCommands, nodeCommands, NODE_PROFILE } from "../../src/commands/node/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { createSafeJsCommands, safeJsCommands, type SafeJsRuntime } from "../../src/commands/safejs/index.js";

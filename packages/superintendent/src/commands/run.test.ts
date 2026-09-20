@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import { Volume, createFsFromVolume } from "memfs";
 import type { RunLoopOptions, SuperintendentFileSystem } from "../runtime/loop.js";
-import type { Dashboard } from "toolcraft-design";
+import type { Dashboard, DashboardOptions } from "toolcraft-design";
+import { createRunQueue } from "@poe-code/agent-harness-tools";
 
 function createDoc(builderAgent: string): string {
   return [
@@ -145,11 +146,6 @@ function createDashboardMock(): {
   };
 }
 
-const expectedTimestamp = (() => {
-  const date = new Date(0);
-  return `[${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}]`;
-})();
-
 function createStreamingResult(
   events: unknown[],
   result: SpawnResult
@@ -172,6 +168,140 @@ function createStreamingResult(
 describe("superintendent run command", () => {
   beforeEach(() => {
     vi.useRealTimers();
+  });
+
+  it("keeps one dashboard through live follow-ups and appended plans", async () => {
+    const fs = createFs({ "/repo/one.md": createDoc("codex"), "/repo/two.md": createDoc("goose") });
+    const queue = createRunQueue({ plans: ["/repo/one.md"], cwd: "/repo" });
+    const ui = createDashboardMock();
+    const factory = vi.fn((_options?: DashboardOptions) => ui.dashboard);
+    const calls: string[] = [];
+    const runLoopMock = vi.fn(async (options: RunLoopOptions) => {
+      calls.push(options.docPath);
+      if (calls.length === 1) {
+        const submit = factory.mock.calls[0]![0]!.onSubmit!;
+        await submit({ kind: "message", text: "Review the API", afterPlanId: queue.getSnapshot().activePlanId });
+        await submit({ kind: "message", text: "Check docs", afterPlanId: queue.getSnapshot().activePlanId });
+        await submit({ kind: "plan", text: "two.md" });
+      }
+      return { state: "completed" as const, round: 1, reviewTurn: 0, maxRounds: 100, maxReviewTurns: 5, stopReason: "completed" as const };
+    });
+    const executeAgent = vi.fn(async (_agent: string, input: import("../runtime/loop.js").AgentRunInput) => {
+      calls.push(input.prompt.split("\n\n").at(-1)!);
+      return { stdout: "Done", stderr: "", exitCode: 0 };
+    });
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo", homeDir: "/home/test", docPath: "one.md", queue, fs,
+      useDashboard: true, assumeYes: true, createDashboard: factory, runLoop: runLoopMock, executeAgent
+    });
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual(["/repo/one.md", "Review the API", "Check docs", "/repo/two.md"]);
+    expect(executeAgent.mock.calls.map(([agent]) => agent)).toEqual(["codex", "codex"]);
+    expect(ui.start).toHaveBeenCalledTimes(1);
+    expect(ui.destroy).toHaveBeenCalledTimes(1);
+    expect(result.messages).toHaveLength(2);
+    expect(result.queue?.status).toBe("completed");
+  });
+
+  it.each(["paused", "failed", "cancelled"] as const)("reports a %s sequence and its pending work without a success claim", async (status) => {
+    const queue = createRunQueue({ plans: ["one.md", "two.md"], afterEachPlan: ["Review"] });
+    const snapshot = await queue.run({ execute: async () => status });
+    const { runCommand } = await import("./run.js");
+    const logger = { success: vi.fn(), error: vi.fn(), warn: vi.fn(), message: vi.fn() };
+    runCommand.render!.rich!({
+      state: "in_progress", round: 2, reviewTurn: 0, maxRounds: 2, maxReviewTurns: 5,
+      stopReason: "max_rounds", docPath: "one.md", builderAgent: "codex", queue: snapshot
+    }, { logger } as unknown as import("toolcraft").RenderPrimitives);
+    expect(logger.success).not.toHaveBeenCalled();
+    expect(status === "failed" ? logger.error : logger.warn).toHaveBeenCalled();
+    expect(logger.message).toHaveBeenCalledWith("0/2 plans · 0/2 messages · 3 pending");
+  });
+
+  it("previews every selected plan and follow-up without starting the queue", async () => {
+    const fs = createFs({ "/repo/one.md": createDoc("codex"), "/repo/two.md": createDoc("goose") });
+    const mkdir = vi.spyOn(fs, "mkdir");
+    const writeFile = vi.spyOn(fs, "writeFile");
+    const executeAgent = vi.fn();
+    const factory = vi.fn();
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo", homeDir: "/home/test", docs: ["one.md", "two.md"], afterEachPlan: ["Review"],
+      dryRun: true, fs, useDashboard: true, createDashboard: factory, executeAgent
+    });
+    expect(result.plans?.map((plan) => [plan.docPath, plan.builderAgent])).toEqual([["/repo/one.md", "codex"], ["/repo/two.md", "goose"]]);
+    expect(result.queue?.status).toBe("idle");
+    expect(result.queue?.items).toHaveLength(4);
+    expect(result.queue?.items.every((item) => item.status === "pending")).toBe(true);
+    expect(executeAgent).not.toHaveBeenCalled();
+    expect(factory).not.toHaveBeenCalled();
+    expect(mkdir).not.toHaveBeenCalled();
+    expect(writeFile).not.toHaveBeenCalled();
+    const { runCommand } = await import("./run.js");
+    const logger = { success: vi.fn(), error: vi.fn(), warn: vi.fn(), message: vi.fn() };
+    runCommand.render!.rich!(result, { logger } as unknown as import("toolcraft").RenderPrimitives);
+    expect(logger.success).not.toHaveBeenCalled();
+    expect(logger.message).toHaveBeenCalledWith(expect.stringContaining("2. two.md"));
+    expect(logger.message).toHaveBeenCalledWith(expect.stringContaining("Review"));
+  });
+
+  it("preserves the original role failure when a plan cannot be refreshed", async () => {
+    const fs = createFs({ "/repo/one.md": createDoc("codex") });
+    const ui = createDashboardMock();
+    const roleError = new Error("Builder disconnected");
+    const { runSuperintendentCommand } = await import("./run.js");
+    await expect(runSuperintendentCommand({
+      cwd: "/repo", homeDir: "/home/test", docPath: "one.md", fs, useDashboard: true,
+      createDashboard: () => ui.dashboard,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      runLoop: async (options) => {
+        await options.callbacks!.runRole!("builder", undefined, async () => {
+          await fs.writeFile("/repo/one.md", "Incomplete document");
+          throw roleError;
+        });
+        throw new Error("Unreachable");
+      }
+    })).rejects.toBe(roleError);
+    expect(ui.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ text: expect.stringContaining("Task list could not refresh") }));
+  });
+
+  it("finishes the active follow-up and retains pending work after graceful stop", async () => {
+    const fs = createFs({ "/repo/one.md": createDoc("codex"), "/repo/two.md": createDoc("codex") });
+    const ui = createDashboardMock();
+    const runLoop = vi.fn(async () => ({ state: "completed" as const, round: 1, reviewTurn: 0, maxRounds: 2, maxReviewTurns: 5, stopReason: "completed" as const }));
+    const executeAgent = vi.fn(async () => {
+      ui.onCommand.mock.calls[0]![0]("quit");
+      return { stdout: "Done", stderr: "", exitCode: 0 };
+    });
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo", homeDir: "/home/test", docs: ["one.md", "two.md"], afterEachPlan: ["Review", "Check"],
+      fs, useDashboard: true, createDashboard: () => ui.dashboard, runLoop, executeAgent
+    });
+    expect(result.stopReason).toBe("stopped");
+    expect(result.queue?.status).toBe("paused");
+    expect(result.queue?.items.map((item) => item.status)).toEqual(["completed", "completed", "pending", "pending", "pending", "pending"]);
+    expect(runLoop).toHaveBeenCalledTimes(1);
+    expect(executeAgent).toHaveBeenCalledTimes(1);
+  });
+
+  it("releases a paused dashboard when its external signal is cancelled", async () => {
+    const fs = createFs({ "/repo/one.md": createDoc("codex") });
+    const ui = createDashboardMock();
+    const controller = new AbortController();
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo", homeDir: "/home/test", docPath: "one.md", fs,
+      signal: controller.signal, useDashboard: true, createDashboard: () => ui.dashboard,
+      runLoop: async (options) => {
+        const paused = options.callbacks!.onPause!();
+        controller.abort();
+        await paused;
+        return { state: "in_progress", round: 1, reviewTurn: 0, maxRounds: 2, maxReviewTurns: 5, stopReason: "aborted" };
+      }
+    });
+    expect(result.stopReason).toBe("aborted");
+    expect(ui.destroy).toHaveBeenCalledTimes(1);
   });
 
   it("uses discovered defaults with --yes and skips the pre-dashboard prompts", async () => {
@@ -821,108 +951,8 @@ describe("superintendent run command", () => {
     }
   });
 
-  it("preserves a completed CLI run when integration shutdown fails", async () => {
-    const volume = Volume.fromJSON({ "/repo/docs/plans/plan.md": createDoc("codex") }, "/");
-    const rawFs = createFsFromVolume(volume).promises;
-    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
-    const originalHome = process.env.HOME;
-    const loadIntegrationsMock = vi.fn(async () => ({
-      traceRun: async (_surface: string, _name: string, run: () => Promise<unknown>) => run(),
-      shutdown: vi.fn(async () => {
-        throw new Error("shutdown failed");
-      })
-    }));
-    const runLoopMock = vi.fn(async () => ({
-      state: "completed" as const,
-      round: 0,
-      reviewTurn: 0,
-      maxRounds: 100,
-      maxReviewTurns: 5,
-      stopReason: "completed" as const
-    }));
-
-    process.env.HOME = "/home/test";
-    vi.resetModules();
-    vi.doMock("node:fs/promises", () => rawFs);
-    vi.doMock("@poe-code/braintrust", () => ({ loadIntegrations: loadIntegrationsMock }));
-    vi.doMock("../runtime/loop.js", async () => {
-      const actual =
-        await vi.importActual<typeof import("../runtime/loop.js")>("../runtime/loop.js");
-      return { ...actual, runLoop: runLoopMock };
-    });
-
-    try {
-      const { runCommand } = await import("./run.js");
-      await expect(
-        runCommand.handler({
-          params: { doc: "/repo/docs/plans/plan.md" },
-          secrets: {},
-          fetch: globalThis.fetch,
-          fs: rawFs as never,
-          env: { get: vi.fn(() => undefined) },
-          progress: vi.fn()
-        })
-      ).resolves.toMatchObject({ state: "completed", stopReason: "completed" });
-    } finally {
-      vi.doUnmock("node:fs/promises");
-      vi.doUnmock("@poe-code/braintrust");
-      vi.doUnmock("../runtime/loop.js");
-      vi.resetModules();
-      cwdSpy.mockRestore();
-      if (originalHome === undefined) delete process.env.HOME;
-      else process.env.HOME = originalHome;
-    }
-  });
-
-  it("preserves a completed MCP run when integration shutdown fails", async () => {
-    const volume = Volume.fromJSON({ "/repo/docs/plans/plan.md": createDoc("codex") }, "/");
-    const rawFs = createFsFromVolume(volume).promises;
-    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
-    const originalHome = process.env.HOME;
-    const loadIntegrationsMock = vi.fn(async () => ({
-      traceRun: async (_surface: string, _name: string, run: () => Promise<unknown>) => run(),
-      shutdown: vi.fn(async () => {
-        throw new Error("shutdown failed");
-      })
-    }));
-    const runLoopMock = vi.fn(async () => ({
-      state: "completed" as const,
-      round: 0,
-      reviewTurn: 0,
-      maxRounds: 100,
-      maxReviewTurns: 5,
-      stopReason: "completed" as const
-    }));
-
-    process.env.HOME = "/home/test";
-    vi.resetModules();
-    vi.doMock("node:fs/promises", () => rawFs);
-    vi.doMock("@poe-code/braintrust", () => ({ loadIntegrations: loadIntegrationsMock }));
-
-    try {
-      const { createRunMcpCommand } = await import("./run.js");
-      const command = createRunMcpCommand({ runLoop: runLoopMock });
-      await expect(
-        command.handler({
-          params: { doc: "/repo/docs/plans/plan.md" },
-          secrets: {},
-          fetch: globalThis.fetch,
-          fs: rawFs as never,
-          env: { get: vi.fn(() => undefined) },
-          progress: vi.fn()
-        })
-      ).resolves.toMatchObject({ state: "completed", stopReason: "completed" });
-    } finally {
-      vi.doUnmock("node:fs/promises");
-      vi.doUnmock("@poe-code/braintrust");
-      vi.resetModules();
-      cwdSpy.mockRestore();
-      if (originalHome === undefined) delete process.env.HOME;
-      else process.env.HOME = originalHome;
-    }
-  });
-
-  it("captures ACP session logs and usage through shared middleware for CLI streaming agents", async () => {
+  it.each([false, true])("captures structured actions, logs and usage with tui=%s", async (useDashboard) => {
+    const ui = createDashboardMock();
     const applyMiddlewaresMock = vi.fn(async (middlewares, ctx) => {
       let index = -1;
       const dispatch = async (position: number): Promise<void> => {
@@ -948,8 +978,8 @@ describe("superintendent run command", () => {
             event: "tool_start",
             id: "tool-1",
             kind: "execute",
-            title: "read_file",
-            input: { path: "plan.md" }
+            title: "cat plan.md",
+            input: { command: "cat plan.md" }
           },
           {
             event: "tool_complete",
@@ -1004,7 +1034,7 @@ describe("superintendent run command", () => {
           outputTokens: 8,
           cachedTokens: 5
         },
-        toolCalls: [{ title: "read_file", input: { path: "plan.md" } }]
+        toolCalls: [{ title: "cat plan.md", input: { command: "cat plan.md" } }]
       });
       return {
         state: "completed" as const,
@@ -1021,7 +1051,8 @@ describe("superintendent run command", () => {
       homeDir: "/home/test",
       docPath: "/repo/.poe-code/superintendent/plan.md",
       interactive: false,
-      useDashboard: false,
+      useDashboard,
+      createDashboard: () => ui.dashboard,
       fs: createFs({
         "/repo/.poe-code/superintendent/plan.md": createDoc("claude-code")
       }),
@@ -1047,7 +1078,12 @@ describe("superintendent run command", () => {
         logPath: "/logs/builder.jsonl"
       })
     );
-    expect(renderAcpStreamMock).toHaveBeenCalledTimes(1);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(useDashboard ? 0 : 1);
+    if (useDashboard) {
+      expect(ui.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ role: "agent", text: "builder summary" }));
+      expect(ui.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ role: "action", kind: "success", text: "Read plan.md" }));
+      expect(ui.updateStats).toHaveBeenCalledWith(expect.objectContaining({ run: expect.objectContaining({ activity: "Read plan.md" }) }));
+    }
     expect(result).toMatchObject({
       docPath: "/repo/.poe-code/superintendent/plan.md",
       builderAgent: "claude-code",
@@ -1160,16 +1196,16 @@ describe("superintendent run command", () => {
     expect(dashboardMock.start).toHaveBeenCalledTimes(1);
     expect(dashboardMock.onCommand).toHaveBeenCalledTimes(1);
     expect(dashboardMock.appendOutput.mock.calls.map(([item]) => item)).toEqual([
-      { kind: "status", text: `${expectedTimestamp} Builder starting`, ts: 0 },
-      { kind: "success", text: `${expectedTimestamp} Builder completed`, ts: 0 },
-      { kind: "status", text: `${expectedTimestamp} Inspector code-quality starting`, ts: 0 },
-      { kind: "info", text: `${expectedTimestamp} Inspector code-quality completed`, ts: 0 },
-      { kind: "status", text: `${expectedTimestamp} Superintendent reviewing`, ts: 0 },
-      { kind: "info", text: `${expectedTimestamp} Superintendent requested owner review`, ts: 0 },
-      { kind: "status", text: `${expectedTimestamp} Owner reviewing`, ts: 0 },
-      { kind: "success", text: `${expectedTimestamp} Owner approved`, ts: 0 },
-      { kind: "success", text: `${expectedTimestamp} Round 1 completed`, ts: 0 },
-      { kind: "success", text: `${expectedTimestamp} Loop completed`, ts: 0 }
+      { kind: "status", text: `Builder starting`, ts: 0 },
+      { kind: "success", text: `Builder completed`, ts: 0 },
+      { kind: "status", text: `Inspector code-quality starting`, ts: 0 },
+      { kind: "info", text: `Inspector code-quality completed`, ts: 0 },
+      { kind: "status", text: `Superintendent reviewing`, ts: 0 },
+      { kind: "info", text: `Superintendent requested owner review`, ts: 0 },
+      { kind: "status", text: `Owner reviewing`, ts: 0 },
+      { kind: "success", text: `Owner approved`, ts: 0 },
+      { kind: "success", text: `Round 1 completed`, ts: 0 },
+      { kind: "success", text: `Loop completed`, ts: 0 }
     ]);
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1221,62 +1257,10 @@ describe("superintendent run command", () => {
     expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(
       expect.objectContaining({
         status: "done",
-        currentAction: "state=completed · round=1"
+        currentAction: "Round 1 · Plan completed"
       })
     );
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
-  });
-
-  it("runs integration superintendent callbacks after dashboard callbacks", async () => {
-    const fs = createFs({
-      "/repo/docs/plans/plan.md": createDoc("claude-code")
-    });
-    const calls: string[] = [];
-    const dashboardMock = createDashboardMock();
-    dashboardMock.appendOutput.mockImplementation((entry: { text?: string }) => {
-      if (entry.text?.includes("Builder starting")) {
-        calls.push("dashboard");
-      }
-    });
-    const runLoopMock = vi.fn(async (options: RunLoopOptions) => {
-      options.callbacks?.onBuilderStart?.();
-      return {
-        state: "completed" as const,
-        round: 1,
-        reviewTurn: 0,
-        maxRounds: 100,
-        maxReviewTurns: 5,
-        stopReason: "completed" as const
-      };
-    });
-
-    const { runSuperintendentCommand } = await import("./run.js");
-    await runSuperintendentCommand({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      docPath: "/repo/docs/plans/plan.md",
-      assumeYes: true,
-      interactive: true,
-      useDashboard: true,
-      fs,
-      createDashboard: () => dashboardMock.dashboard,
-      runLoop: runLoopMock,
-      now: () => 0,
-      setInterval: (() => 0) as typeof global.setInterval,
-      clearInterval: vi.fn(),
-      openInEditor: vi.fn(),
-      env: {},
-      stderr: { write: () => true } as NodeJS.WritableStream,
-      integrations: {
-        superintendentCallbacks: {
-          onBuilderStart: () => calls.push("integration")
-        },
-        traceRun: async (_surface, _name, run) => run(),
-        shutdown: vi.fn(async () => undefined)
-      }
-    });
-
-    expect(calls).toEqual(["dashboard", "integration"]);
   });
 
   it("streams agent stdout and stderr lines into the dashboard output", async () => {
@@ -1347,10 +1331,10 @@ describe("superintendent run command", () => {
     const texts = outputs.map((item: { text: string }) => item.text);
     expect(texts).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("[builder] thinking..."),
-        expect.stringContaining("[builder] planning next step"),
-        expect.stringContaining("[builder] partial line completes"),
-        expect.stringContaining("[builder] warning: low disk")
+        expect.stringContaining("thinking..."),
+        expect.stringContaining("planning next step"),
+        expect.stringContaining("partial line completes"),
+        expect.stringContaining("warning: low disk")
       ])
     );
     const toolKind = outputs.find(
@@ -1462,7 +1446,7 @@ describe("superintendent run command", () => {
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
-      outputs.some((item: { text: string }) => item.text.includes("[builder] thinking..."))
+      outputs.some((item: { text: string }) => item.text.includes("thinking..."))
     ).toBe(true);
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({

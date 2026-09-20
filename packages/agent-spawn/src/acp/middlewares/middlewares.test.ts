@@ -82,6 +82,15 @@ describe("acp/middlewares/sessionMetadataCapture", () => {
 });
 
 describe("acp/middlewares/sessionCapture", () => {
+  it.each(["completed", "failed", "cancelled"] as const)("retains %s tool outcomes in captured sessions", async (status) => {
+    const ctx = createContext({ events: [
+      { event: "tool_start", id: "transition", kind: "other", title: "owner-workflow.workflow_transition", input: { action: "approve_completion" } },
+      { event: "tool_complete", id: "transition", kind: "other", path: "owner-workflow.workflow_transition", status }
+    ] });
+    await sessionCapture(ctx, async () => {});
+    expect(ctx.sessionResult?.toolCalls[0]).toMatchObject({ status });
+  });
+
   it("captures a large live text burst within the interactive latency budget", async () => {
     const ctx = createContext();
     const text = "response word ".repeat(20);
@@ -514,7 +523,8 @@ describe("acp/middlewares/spawnLog", () => {
         event: "tool_start",
         id: "cmd-1",
         kind: "exec",
-        title: command
+        title: command,
+        input: { command }
       }
     ]);
     const content = await fs.readFile(ctx.logFile!, "utf8");
@@ -523,7 +533,8 @@ describe("acp/middlewares/spawnLog", () => {
       event: "tool_start",
       id: "cmd-1",
       kind: "exec",
-      title: "[redacted]"
+      title: "[redacted]",
+      input: "[redacted]"
     });
   });
 

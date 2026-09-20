@@ -1,0 +1,42 @@
+{
+  "name": "toolcraft-schema-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent Rust JSON Schema compiler with native Node bindings",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "mcp-protocol-rust": "*",
+    "toolcraft-schema": "*"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "UNICODE-LICENSE.txt"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "toolcraft-schema-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/toolcraft-schema-rust"
+  }
+}

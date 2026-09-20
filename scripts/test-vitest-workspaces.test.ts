@@ -1,6 +1,7 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { runSharedVitest, sharedVitestStages } from "./test-vitest-workspaces.mjs";
+import { createCheckCache } from "./check-cache.mjs";
 
 const mocks = vi.hoisted(() => ({ createVitest: vi.fn(), reportStarted: vi.fn(), reportFinished: vi.fn(), reportModule: vi.fn(), reporterOptions: vi.fn() }));
 vi.mock("vitest/node", () => ({
@@ -177,7 +178,8 @@ describe("batched shared Vitest execution", () => {
       standalone: vi.fn(async () => undefined),
       globTestSpecifications: vi.fn(async (filters?: string[]) => filters === undefined
         ? [rootFile, alphaFile, betaFile]
-        : filters[0] === "packages/alpha/src" ? [alphaFile] : [betaFile]),
+        : filters[0].startsWith("/repo/") ? [rootFile, alphaFile, betaFile].filter(file => filters.includes(file.moduleId))
+          : filters[0] === "packages/alpha/src" ? [alphaFile] : [betaFile]),
       runTestSpecifications: vi.fn(async (_specifications: unknown[], _allTestsRun: boolean) => ({ testModules: [{ ok: (): boolean => true }], unhandledErrors: [] as Error[] })),
       close: vi.fn(async () => undefined),
       snapshot: { summary: {} },
@@ -193,6 +195,110 @@ describe("batched shared Vitest execution", () => {
     mocks.reportFinished.mockReset();
     mocks.reportModule.mockReset();
     mocks.reporterOptions.mockReset();
+  });
+
+  it("caches workspace results separately and batches only misses while root checks stay fresh", async () => {
+    const { fileSystem } = fixture();
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const first = contexts();
+    first.execution.runTestSpecifications.mockResolvedValueOnce({ testModules: [rootFile, alphaFile, betaFile].map(file => ({ ...file, ok: () => true })), unhandledErrors: [] });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints });
+    const second = contexts();
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints });
+    expect(second.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile], false);
+    const third = contexts();
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints: new Map([...fingerprints, ["alpha", "c".repeat(64)]]) });
+    expect(third.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile, alphaFile], false);
+  });
+
+  it("does not cache successful unit results under inputs that changed during execution", async () => {
+    const { fileSystem } = fixture();
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const first = contexts();
+    first.execution.runTestSpecifications.mockImplementationOnce(async () => {
+      fingerprints.set("alpha", "c".repeat(64));
+      return { testModules: [rootFile, alphaFile, betaFile].map(file => ({ ...file, ok: () => true })), unhandledErrors: [] };
+    });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints });
+    fingerprints.set("alpha", "a".repeat(64));
+    const second = contexts();
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints });
+    expect(second.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile, alphaFile], false);
+  });
+
+  it("keeps explicitly uncached workspace phases fresh even with a successful record", async () => {
+    const { fileSystem } = fixture();
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const first = contexts();
+    first.execution.runTestSpecifications.mockResolvedValueOnce({ testModules: [rootFile, alphaFile, betaFile].map(file => ({ ...file, ok: () => true })), unhandledErrors: [] });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints });
+    const second = contexts();
+    await runSharedVitest("/repo", phases.map(phase => phase.name === "alpha" ? { ...phase, cache: false } : phase), { cacheStore, fingerprints });
+    expect(second.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile, alphaFile], false);
+  });
+
+  it("releases each bounded runner before continuing and caches only complete workspace execution", async () => {
+    const { fileSystem } = fixture();
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const first = contexts();
+    const continuation = () => ({
+      ...first.execution,
+      globTestSpecifications: vi.fn(async () => [rootFile, alphaFile, betaFile]),
+      standalone: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
+      runTestSpecifications: vi.fn(async (files: typeof rootFile[]) => ({ testModules: files.map(file => ({ ...file, ok: () => true })), unhandledErrors: [] }))
+    });
+    const second = continuation(), third = continuation();
+    first.execution.runTestSpecifications.mockImplementation(second.runTestSpecifications);
+    mocks.createVitest.mockImplementationOnce(async () => {
+      expect(first.execution.close).toHaveBeenCalledOnce();
+      return second;
+    }).mockImplementationOnce(async () => {
+      expect(second.close).toHaveBeenCalledOnce();
+      return third;
+    });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, batchSize: 1 });
+    expect(third.close).toHaveBeenCalledOnce();
+    expect(first.execution.globTestSpecifications).toHaveBeenCalledWith([rootFile.moduleId]);
+    expect(first.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile], false);
+    expect(third.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([betaFile], false);
+    const warm = contexts();
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints });
+    expect(warm.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile], false);
+  });
+
+  it("runs production batches in fresh processes and caches only complete workspace results", async () => {
+    const { fileSystem } = fixture();
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const first = contexts();
+    const runBatch = vi.fn(async (_root, files) => {
+      expect(first.execution.close).toHaveBeenCalledOnce();
+      return files;
+    });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, runBatch, batchSize: 1 });
+    expect(first.execution.runTestSpecifications).not.toHaveBeenCalled();
+    expect(runBatch).toHaveBeenCalledTimes(3);
+    const second = contexts();
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, runBatch });
+    expect(second.execution.runTestSpecifications).not.toHaveBeenCalled();
+    expect(runBatch).toHaveBeenLastCalledWith("/repo", [rootFile.moduleId]);
+  });
+
+  it("does not cache a batch after failed execution or cleanup", async () => {
+    const { fileSystem } = fixture();
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
+    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const first = contexts();
+    first.execution.runTestSpecifications.mockResolvedValueOnce({ testModules: [{ ok: () => false }], unhandledErrors: [] });
+    await expect(runSharedVitest("/repo", phases, { cacheStore, fingerprints })).rejects.toThrow("failed");
+    const second = contexts();
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints });
+    expect(second.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile, alphaFile, betaFile], false);
   });
 
   it("discovers actual ownership and queues all isolated files without changing workers", async () => {
@@ -261,7 +367,7 @@ describe("batched shared Vitest execution", () => {
     first.execution.globTestSpecifications.mockImplementation(async filters => filters === undefined ? [rootFile] : []);
     await expect(runSharedVitest("/repo", phases)).rejects.toThrow("No test files: alpha");
     const second = contexts();
-    second.execution.globTestSpecifications.mockImplementation(async filters => filters === undefined ? [rootFile, alphaFile] : filters[0] === "packages/alpha/src" ? [alphaFile] : []);
+    second.execution.globTestSpecifications.mockImplementation(async filters => filters === undefined ? [rootFile, alphaFile] : filters[0].startsWith("/repo/") ? [rootFile, alphaFile].filter(file => filters.includes(file.moduleId)) : filters[0] === "packages/alpha/src" ? [alphaFile] : []);
     await runSharedVitest("/repo", phases);
     expect(second.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile, alphaFile], false);
   });

@@ -1,0 +1,598 @@
+{
+  "oracles": {
+    "pythonZipXml": "Python standard library zipfile/ElementTree",
+    "pypdf": "6.0.0",
+    "PyMuPDF": "1.26.4",
+    "MuPDF": "1.26.7"
+  },
+  "outputs": [
+    {
+      "id": "commonmark->epub",
+      "artifact": "docs/pandoc/matrix-owned/commonmark-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->epub3",
+      "artifact": "docs/pandoc/matrix-owned/commonmark-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->pdf",
+      "artifact": "docs/pandoc/matrix-owned/commonmark-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/commonmark-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark->pptx",
+      "artifact": "docs/pandoc/matrix-owned/commonmark-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->epub",
+      "artifact": "docs/pandoc/matrix-owned/gfm-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->epub3",
+      "artifact": "docs/pandoc/matrix-owned/gfm-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->pdf",
+      "artifact": "docs/pandoc/matrix-owned/gfm-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/gfm-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm->pptx",
+      "artifact": "docs/pandoc/matrix-owned/gfm-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->epub",
+      "artifact": "docs/pandoc/matrix-owned/html-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->epub3",
+      "artifact": "docs/pandoc/matrix-owned/html-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->pdf",
+      "artifact": "docs/pandoc/matrix-owned/html-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/html-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "html->pptx",
+      "artifact": "docs/pandoc/matrix-owned/html-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->epub",
+      "artifact": "docs/pandoc/matrix-owned/json-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->epub3",
+      "artifact": "docs/pandoc/matrix-owned/json-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->pdf",
+      "artifact": "docs/pandoc/matrix-owned/json-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/json-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "json->pptx",
+      "artifact": "docs/pandoc/matrix-owned/json-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->epub",
+      "artifact": "docs/pandoc/matrix-owned/latex-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->epub3",
+      "artifact": "docs/pandoc/matrix-owned/latex-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->pdf",
+      "artifact": "docs/pandoc/matrix-owned/latex-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/latex-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "latex->pptx",
+      "artifact": "docs/pandoc/matrix-owned/latex-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->epub",
+      "artifact": "docs/pandoc/matrix-owned/rst-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->epub3",
+      "artifact": "docs/pandoc/matrix-owned/rst-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->pdf",
+      "artifact": "docs/pandoc/matrix-owned/rst-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/rst-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "rst->pptx",
+      "artifact": "docs/pandoc/matrix-owned/rst-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->epub",
+      "artifact": "docs/pandoc/matrix-owned/rtf-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->epub3",
+      "artifact": "docs/pandoc/matrix-owned/rtf-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->pdf",
+      "artifact": "docs/pandoc/matrix-owned/rtf-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/rtf-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "rtf->pptx",
+      "artifact": "docs/pandoc/matrix-owned/rtf-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->epub",
+      "artifact": "docs/pandoc/matrix-owned/csv-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "\n\n\nMatrix\n\n\n\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->epub3",
+      "artifact": "docs/pandoc/matrix-owned/csv-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "\n\n\nMatrix\n\n\n\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->pdf",
+      "artifact": "docs/pandoc/matrix-owned/csv-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/csv-pdf.pdf.png",
+      "wordBox": [
+        52,
+        51.99999237060547,
+        95.19998931884766,
+        67.8399887084961
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "csv->pptx",
+      "artifact": "docs/pandoc/matrix-owned/csv-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->epub",
+      "artifact": "docs/pandoc/matrix-owned/tsv-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "\n\n\nMatrix\n\n\n\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->epub3",
+      "artifact": "docs/pandoc/matrix-owned/tsv-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "\n\n\nMatrix\n\n\n\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->pdf",
+      "artifact": "docs/pandoc/matrix-owned/tsv-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/tsv-pdf.pdf.png",
+      "wordBox": [
+        52,
+        51.99999237060547,
+        95.19998931884766,
+        67.8399887084961
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->pptx",
+      "artifact": "docs/pandoc/matrix-owned/tsv-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->epub",
+      "artifact": "docs/pandoc/matrix-owned/epub2-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->epub3",
+      "artifact": "docs/pandoc/matrix-owned/epub2-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->pdf",
+      "artifact": "docs/pandoc/matrix-owned/epub2-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/epub2-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->epub",
+      "artifact": "docs/pandoc/matrix-owned/epub3-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->epub3",
+      "artifact": "docs/pandoc/matrix-owned/epub3-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->pdf",
+      "artifact": "docs/pandoc/matrix-owned/epub3-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/epub3-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->epub",
+      "artifact": "docs/pandoc/matrix-owned/pptx-epub.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->epub3",
+      "artifact": "docs/pandoc/matrix-owned/pptx-epub3.epub",
+      "members": 6,
+      "spine": [
+        "chapter-1"
+      ],
+      "bodyText": "Matrix\n",
+      "checks": "ZIP CRC/container/OPF/manifest/spine/XHTML/navigation closure",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->pdf",
+      "artifact": "docs/pandoc/matrix-owned/pptx-pdf.pdf",
+      "pages": 1,
+      "text": "Matrix",
+      "image": "docs/pandoc/matrix-owned/pptx-pdf.pdf.png",
+      "wordBox": [
+        48,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "checks": "pypdf strict parse/text/pages; MuPDF independent parse/text/pages/render/word geometry",
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->pptx",
+      "artifact": "docs/pandoc/matrix-owned/pptx-pptx.pptx",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "Independent ZIP CRC/content-types/slide XML/text",
+      "outcome": "pass"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "epub2",
+      "outcome": "pass",
+      "validation": {
+        "members": 5,
+        "spine": [
+          "chapter"
+        ],
+        "bodyText": "Matrix"
+      },
+      "navigationValidation": "Independent NCX namespace, UID, ordered playOrder, unique IDs, labels and content target closure passed."
+    },
+    {
+      "id": "epub3",
+      "outcome": "pass",
+      "validation": {
+        "members": 5,
+        "spine": [
+          "chapter"
+        ],
+        "bodyText": "Matrix"
+      }
+    }
+  ],
+  "counts": {
+    "total": 46,
+    "pass": 46,
+    "fail": 0
+  },
+  "renderedComparisons": {
+    "renderer": {
+      "PyMuPDF": "1.26.4",
+      "MuPDF": "1.26.7"
+    },
+    "total": 12,
+    "pass": 12,
+    "fail": 0,
+    "unsupported": 0,
+    "notRun": 0,
+    "method": "Rendered all reader-to-PDF artifacts, checked independent text/page/word geometry, manually compared 12 labelled crops against the owned Matrix prose/table expectations; inspected full CSV page for table closure. No cross-engine byte equality.",
+    "contactSheet": "docs/pandoc/matrix-pdf-contact.png",
+    "limitation": "Single-page representable content only; no multipage visual or complex layout certification."
+  }
+}

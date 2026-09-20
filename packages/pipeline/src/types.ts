@@ -52,6 +52,7 @@ export interface PipelineTask {
 }
 
 export interface PipelinePlan {
+  name?: string;
   finalization?: PipelineFinalizationStatus;
   setupCompleted?: boolean;
   extends?: string;
@@ -167,6 +168,12 @@ export interface PlanSummary {
   total: number;
 }
 
+/** Ordered task state for a live view, detached from the runner's mutable plan. */
+export interface PlanProgress {
+  planPath: string;
+  tasks: Array<Pick<PipelineTask, "id" | "title" | "status">>;
+}
+
 export interface PipelineRunOptions {
   agent: string;
   cwd: string;
@@ -189,6 +196,8 @@ export interface PipelineRunOptions {
   /** Called once when the run encounters an existing plan lock. */
   onLockWait?: (planPath: string) => void;
   onPlanResolved?: (summary: PlanSummary) => void;
+  /** Published before setup, after reloads, and when task statuses change, with the plan's shared spawn context. */
+  onPlanProgress?: (progress: PlanProgress, context?: Pick<AgentRunInput, "mcpServers" | "logDir">) => void;
   onTaskStart?: (progress: TaskProgress) => void;
   onTaskComplete?: (progress: TaskCompletion) => void;
   onPlanReloadError?: (error: Error) => void;
@@ -198,6 +207,7 @@ export interface PipelineRunOptions {
 export interface PipelineRunResult {
   stopReason: "completed" | "failed" | "cancelled" | "max_runs" | "nothing_to_run";
   planPath: string;
+  archivedPath?: string;
   runsCompleted: number;
   totalDurationMs: number;
   metrics: PipelineMetrics;

@@ -421,7 +421,7 @@ describe("agent command", () => {
     expect(events).toEqual([
       { event: "reasoning", text: "Checking workspace." },
       { event: "tool_start", kind: "read", title: "src/index.ts", id: "call-1" },
-      { event: "tool_complete", kind: "read", path: '{"reason":"stopped"}', id: "call-1" },
+      { event: "tool_complete", kind: "read", path: '{"reason":"stopped"}', id: "call-1", status: "cancelled" },
       { event: "agent_message", text: "Here are the files." },
       {
         event: "usage",
@@ -1200,7 +1200,6 @@ describe("root command", () => {
       "plan",
       "pipeline",
       "experiment",
-      "harness",
       "ralph",
       "usage"
     ]) {

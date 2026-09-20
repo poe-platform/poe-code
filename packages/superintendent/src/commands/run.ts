@@ -13,6 +13,11 @@ import {
   formatPlanReadinessLabel,
   resolveLoopAgent,
   resolveWorkflowPath,
+  createRunQueue,
+  type RunQueue,
+  type RunQueueSnapshot,
+  mapSourcePathIntoWorktree,
+  formatRunQueueSummary,
   type RuntimeOverrideOptions
 } from "@poe-code/agent-harness-tools";
 import {
@@ -24,6 +29,7 @@ import {
   spawnLog,
   spawnStreaming,
   usageCapture,
+  streamAcpEventsToDashboard,
   type AcpSpawnContext,
   type SpawnMode
 } from "@poe-code/agent-spawn";
@@ -46,12 +52,11 @@ import {
   resolveOutputFormat,
   select,
   shouldUseInteractiveDashboard,
-  text,
-  type Dashboard
+  type Dashboard,
+  type DashboardOptions
 } from "toolcraft-design";
 import {
   planConfigScope,
-  mergeLoopCallbacks,
   readMergedDocument,
   readMergedDocumentReadonly,
   resolveConfigPath,
@@ -59,7 +64,6 @@ import {
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config/core";
-import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import { superintendentConfigScope } from "../config-scope.js";
 import { resolveSuperintendentDoc } from "../document/parse.js";
 import {
@@ -72,6 +76,8 @@ import {
   type SuperintendentRunResult
 } from "../runtime/loop.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
+import { parseTaskBoard } from "../document/tasks.js";
+import { runSuperintendentSequence, type SuperintendentSequenceOptions, type SuperintendentSequenceResult } from "../runtime/sequence.js";
 
 const execShell = promisify(nodeExec);
 type SharedDiscoverPlansFs = NonNullable<Parameters<typeof discoverPlans>[0]["fs"]>;
@@ -87,12 +93,20 @@ type NormalizedWorktreeOptions = {
 export type SuperintendentRunCommandResult = SuperintendentRunResult & {
   docPath: string;
   builderAgent: string;
+  plans?: SuperintendentSequenceResult["plans"];
+  messages?: SuperintendentSequenceResult["messages"];
+  queue?: RunQueueSnapshot;
 };
 
 export type RunCommandOptions = {
   cwd: string;
   homeDir: string;
   docPath?: string;
+  docs?: readonly string[];
+  queue?: RunQueue;
+  afterEachPlan?: readonly string[];
+  signal?: AbortSignal;
+  sourceCwd?: string;
   builderAgent?: string;
   runtime?: "host" | "docker";
   runtimeImage?: string;
@@ -108,12 +122,7 @@ export type RunCommandOptions = {
   env?: Record<string, string | undefined>;
   fs?: SuperintendentFileSystem;
   now?: () => number;
-  createDashboard?: (options?: {
-    title?: string;
-    statsTitle?: string;
-    hints?: Array<{ key: string; label: string }>;
-    rightPaneWidth?: number;
-  }) => Dashboard;
+  createDashboard?: (options?: DashboardOptions) => Dashboard;
   selectPrompt?: typeof select;
   runLoop?: (options: RunLoopOptions) => Promise<SuperintendentRunResult>;
   executeAgent?: (
@@ -129,7 +138,6 @@ export type RunCommandOptions = {
   openInEditor?: (absolutePath: string, env: Record<string, string | undefined>) => void;
   stderr?: NodeJS.WritableStream;
   exit?: (code: number) => never;
-  integrations?: Integrations | null;
   worktree?: WorktreeExecutionOptions;
   worktreeDeps?: WorktreeDeps;
 };
@@ -149,6 +157,9 @@ type RunSession = {
   tokensOut: number;
   resumeWaiters: Array<() => void>;
   latestLogFile?: string;
+  activity?: string;
+  syncStats?: () => void;
+  usageAvailable?: boolean;
 };
 
 const coreDefaultAgentConfigSchema = {
@@ -188,6 +199,7 @@ const runParams = S.Object({
   tui: S.Optional(
     S.Boolean({ description: "Show a live dashboard while Superintendent is running" })
   ),
+  afterPlan: S.Optional(S.Array(S.String(), { description: "Queue a message after every completed plan (repeatable)" })),
   dryRun: S.Optional(
     S.Boolean({
       description: "Preview the loop without launching agents or writing changes",
@@ -212,59 +224,56 @@ export const runCommand = defineCommand({
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
     const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
-    const integrations = await loadIntegrations(commandConfig.configDoc);
     const tuiEnabled = params.tui ?? commandConfig.tui;
 
-    try {
-      const docs: Array<string | undefined> =
-        params.docs && params.docs.length > 0 ? params.docs : [params.doc];
-      let result: Awaited<ReturnType<typeof runSuperintendentCommand>> | undefined;
-      for (const doc of docs) {
-        const runOptions: RunCommandOptions = {
-          cwd,
-          homeDir,
-          docPath: doc,
-          ...(params.agent ? { builderAgent: params.agent } : {}),
-          ...(params.runtime ? { runtime: params.runtime } : {}),
-          ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
-          ...(params.detach ? { detach: params.detach } : {}),
-          ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
-          configuredDefaultAgent: commandConfig.configuredDefaultAgent,
-          assumeYes: process.argv.includes("--yes"),
-          interactive: Boolean(process.stdin.isTTY),
-          useDashboard:
-            shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
-          dryRun: params.dryRun === true,
-          worktree: pickWorktreeOptions(params),
-          env: process.env,
-          integrations,
-          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
-        };
-        result = integrations
-          ? await integrations.traceRun("superintendent", doc ?? "run", () =>
-              runSuperintendentCommand(runOptions)
-            )
-          : await runSuperintendentCommand(runOptions);
-      }
-      if (!result) {
-        throw new UserError("No superintendent plan was selected.");
-      }
-      return result;
-    } finally {
-      await integrations?.shutdown().catch(() => undefined);
-    }
+    const docs = params.docs?.length ? params.docs : params.doc ? [params.doc] : undefined;
+    const runOptions: RunCommandOptions = {
+      cwd,
+      homeDir,
+      docs,
+      afterEachPlan: params.afterPlan,
+      ...(params.agent ? { builderAgent: params.agent } : {}),
+      ...(params.runtime ? { runtime: params.runtime } : {}),
+      ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
+      ...(params.detach ? { detach: params.detach } : {}),
+      ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
+      configuredDefaultAgent: commandConfig.configuredDefaultAgent,
+      assumeYes: process.argv.includes("--yes"),
+      interactive: Boolean(process.stdin.isTTY),
+      useDashboard:
+        shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
+      dryRun: params.dryRun === true,
+      worktree: pickWorktreeOptions(params),
+      env: process.env,
+      ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
+    };
+    const result = await runSuperintendentCommand(runOptions);
+    if (result.queue?.status === "failed") process.exitCode = 1;
+    else if (result.queue?.status === "cancelled" || result.stopReason === "aborted") process.exitCode = 130;
+    return result;
   },
   render: {
     rich: (result, { logger }) => {
-      logger.success(`Superintendent run finished: ${result.stopReason}.`);
-      logger.message(text.section("Run:"));
-      logger.message(`Plan: ${result.docPath}`);
-      logger.message(`Builder agent: ${result.builderAgent}`);
-      logger.message(`State: ${result.state}`);
-      logger.message(`Round: ${result.round}`);
-      if (result.state === "review") {
-        logger.message(`Review turn: ${result.reviewTurn}`);
+      if (result.stopReason === "dry_run") {
+        logger.message("Superintendent preview");
+        const plans = result.plans ?? [result];
+        let index = 0;
+        for (const item of result.queue?.items ?? [{ kind: "plan" as const, path: result.docPath }]) {
+          if (item.kind === "plan") {
+            logger.message(`${++index}. ${path.basename(item.path)} · ${plans[index - 1]?.builderAgent ?? result.builderAgent}`);
+          } else {
+            logger.message(`   ↳ ${item.text}`);
+          }
+        }
+        return;
       }
+      if (result.queue?.status === "failed") logger.error("Superintendent stopped: a queued follow-up failed.");
+      else if (result.queue?.status === "cancelled" || result.stopReason === "aborted") logger.warn("Superintendent run cancelled.");
+      else if (result.stopReason === "max_rounds") logger.warn("Superintendent stopped at the round limit.");
+      else if (result.queue?.status === "paused" || result.stopReason === "paused" || result.stopReason === "stopped") logger.warn("Superintendent run stopped.");
+      else logger.success("Superintendent completed.");
+      if (result.queue) logger.message(formatRunQueueSummary(result.queue));
+      logger.message(`${path.basename(result.docPath)} · ${result.builderAgent} · ${result.round} ${result.round === 1 ? "round" : "rounds"}`);
     },
     markdown: (result) => {
       const lines = [
@@ -277,6 +286,7 @@ export const runCommand = defineCommand({
         `- Round: ${result.round}`,
         `- Review turn: ${result.reviewTurn}`
       ];
+      if (result.queue) lines.push(`- Queue: ${result.queue.status} · ${formatRunQueueSummary(result.queue)}`);
 
       return lines.join("\n");
     },
@@ -299,36 +309,28 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
       const cwd = process.cwd();
       const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
       const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
-      const integrations = await loadIntegrations(commandConfig.configDoc);
 
-      try {
-        const runOptions: RunCommandOptions = {
-          cwd,
-          homeDir,
-          docPath: params.doc,
-          ...(params.agent ? { builderAgent: params.agent } : {}),
-          ...(params.runtime ? { runtime: params.runtime } : {}),
-          ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
-          ...(params.detach ? { detach: params.detach } : {}),
-          ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
-          configuredDefaultAgent: commandConfig.configuredDefaultAgent,
-          assumeYes: true,
-          interactive: false,
-          useDashboard: false,
-          env: process.env,
-          integrations,
-          worktree: pickWorktreeOptions(params),
-          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
-          ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
-        };
-        return integrations
-          ? await integrations.traceRun("superintendent", params.doc ?? "run", () =>
-              runSuperintendentCommand(runOptions)
-            )
-          : await runSuperintendentCommand(runOptions);
-      } finally {
-        await integrations?.shutdown().catch(() => undefined);
-      }
+      const runOptions: RunCommandOptions = {
+        cwd,
+        homeDir,
+        docPath: params.doc,
+        docs: params.docs,
+        afterEachPlan: params.afterPlan,
+        ...(params.agent ? { builderAgent: params.agent } : {}),
+        ...(params.runtime ? { runtime: params.runtime } : {}),
+        ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
+        ...(params.detach ? { detach: params.detach } : {}),
+        ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
+        configuredDefaultAgent: commandConfig.configuredDefaultAgent,
+        assumeYes: true,
+        interactive: false,
+        useDashboard: false,
+        env: process.env,
+        worktree: pickWorktreeOptions(params),
+        ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
+        ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
+      };
+      return await runSuperintendentCommand(runOptions);
     },
     render: runCommand.render
   });
@@ -468,33 +470,18 @@ export async function runSuperintendentCommand(
   const useDashboard = options.useDashboard ?? resolveOutputFormat() === "terminal";
   const stderr = options.stderr ?? process.stderr;
   const exitProcess = options.exit ?? ((code: number) => process.exit(code));
-  const integrations = options.integrations ?? null;
-  const shutdownAndExit = (code: number): void => {
-    if (!integrations) {
-      exitProcess(code);
-      return;
-    }
-    void integrations.shutdown().finally(() => {
-      exitProcess(code);
-    });
-  };
 
-  const selectedDocPath = await resolveDocPath({
+
+  let selectedDocPath = await resolveDocPath({
     cwd: options.cwd,
     homeDir: options.homeDir,
-    docPath: options.docPath,
+    docPath: options.docPath ?? options.docs?.[0] ?? options.queue?.getSnapshot().items.find((item) => item.kind === "plan")?.path,
     planDirectory: options.planDirectory,
     assumeYes,
     interactive,
     env,
     fs,
     selectPrompt
-  });
-  const runLogDir = await ensureSafeRunLogDir({
-    planPath: selectedDocPath,
-    runner: "superintendent",
-    homeDir: options.homeDir,
-    fs
   });
   const documentContent = await fs.readFile(selectedDocPath, "utf8");
   const { document, frontmatterData } = await resolveSuperintendentDoc(
@@ -518,14 +505,35 @@ export async function runSuperintendentCommand(
     throw new UserError("Operation cancelled.");
   }
 
-  const selectedBuilderAgent = selectedBuilder.agent;
+  const initialBuilderAgent = selectedBuilder.agent;
+  let selectedBuilderAgent = initialBuilderAgent;
 
   if (options.dryRun === true) {
+    const previewQueue = options.queue ?? createRunQueue({
+      plans: options.docs?.length ? options.docs : [selectedDocPath],
+      afterEachPlan: options.afterEachPlan,
+      cwd: options.cwd
+    });
+    const snapshot = previewQueue.getSnapshot();
+    const plans: SuperintendentSequenceResult["plans"] = [];
+    for (const item of snapshot.items) {
+      if (item.kind !== "plan") continue;
+      const docPath = resolveWorkflowPath(item.path, options.cwd, options.homeDir);
+      const resolved = docPath === selectedDocPath
+        ? { document, frontmatterData }
+        : await resolveSuperintendentDoc(docPath, await fs.readFile(docPath, "utf8"), fs);
+      plans.push({
+        ...createLoopState(resolved.document),
+        stopReason: "dry_run",
+        docPath,
+        builderAgent: normalizeAgentSelection(options.builderAgent)
+          ?? normalizeAgentSelection(readConfiguredBuilderAgent(resolved.frontmatterData))
+          ?? normalizeAgentSelection(options.configuredDefaultAgent) ?? initialBuilderAgent
+      });
+    }
     return {
-      ...createLoopState(document),
-      stopReason: "dry_run",
-      docPath: selectedDocPath,
-      builderAgent: selectedBuilderAgent
+      ...plans[0]!,
+      ...(snapshot.items.length > 1 ? { plans, messages: [], queue: snapshot } : {})
     };
   }
 
@@ -537,62 +545,93 @@ export async function runSuperintendentCommand(
     });
   }
 
+  let runLogDir = await ensureSafeRunLogDir({
+    planPath: selectedDocPath,
+    runner: "superintendent",
+    homeDir: options.homeDir,
+    fs
+  });
+
+  const queue = options.queue ?? createRunQueue({
+    plans: options.docs?.length ? options.docs : [selectedDocPath], afterEachPlan: options.afterEachPlan, cwd: options.cwd
+  });
+  async function executeSequence(runtime: Pick<SuperintendentSequenceOptions, "signal" | "callbacks" | "runAgent" | "runPlan" | "onPlanResolved">): Promise<SuperintendentRunCommandResult> {
+    const result = await runSuperintendentSequence({
+      cwd: options.cwd, homeDir: options.homeDir, queue, ...(options.fs ? { fs } : {}),
+      sourceCwd: options.sourceCwd,
+      ...runtime,
+      async preparePlan(nextDocument) {
+        if (nextDocument.filePath !== selectedDocPath) {
+          selectedDocPath = nextDocument.filePath;
+          const content = await fs.readFile(selectedDocPath, "utf8");
+          const resolved = await resolveSuperintendentDoc(selectedDocPath, content, fs);
+          selectedBuilderAgent = normalizeAgentSelection(options.builderAgent)
+            ?? normalizeAgentSelection(readConfiguredBuilderAgent(resolved.frontmatterData))
+            ?? normalizeAgentSelection(options.configuredDefaultAgent) ?? initialBuilderAgent;
+          runLogDir = await ensureSafeRunLogDir({ planPath: selectedDocPath, runner: "superintendent", homeDir: options.homeDir, fs });
+        }
+        return { builderAgent: selectedBuilderAgent, logDir: runLogDir };
+      }
+    });
+    const last = result.plans.at(-1);
+    if (!last) return { ...createLoopState(document), docPath: selectedDocPath, builderAgent: selectedBuilderAgent, stopReason: "aborted", queue: result.queue };
+    const queueUsed = result.queue.items.length > 1;
+    return {
+      ...last,
+      ...(result.status === "cancelled" ? { stopReason: "aborted" as const } : {}),
+      ...(result.status === "paused" && last.stopReason === "completed" ? { stopReason: "stopped" as const } : {}),
+      ...(queueUsed ? { plans: result.plans, messages: result.messages, queue: result.queue } : {})
+    };
+  }
+
   if (!useDashboard) {
     let activeStage: RunSession["activeStage"] = undefined;
     const headlessAbort = new AbortController();
     const headlessSigint = () => {
       headlessAbort.abort();
-      shutdownAndExit(130);
+      exitProcess(130);
     };
-    process.on("SIGINT", headlessSigint);
+    if (!options.signal) process.on("SIGINT", headlessSigint);
     try {
-      const result = await runLoopImpl({
-        docPath: selectedDocPath,
-        cwd: options.cwd,
-        homeDir: options.homeDir,
-        ...(options.fs ? { fs } : {}),
-        signal: headlessAbort.signal,
-        logDir: runLogDir,
-        callbacks: mergeLoopCallbacks(
-          {
-            onBuilderStart: () => {
-              activeStage = "builder";
-            },
-            onBuilderComplete: () => {
-              activeStage = undefined;
-            },
-            onBuilderFailed: () => {
-              activeStage = undefined;
-            },
-            onInspectorStart: (name) => {
-              activeStage = { inspector: name };
-            },
-            onInspectorComplete: () => {
-              activeStage = undefined;
-            },
-            onInspectorFailed: () => {
-              activeStage = undefined;
-            },
-            onSuperintendentStart: () => {
-              activeStage = "superintendent";
-            },
-            onSuperintendentComplete: () => {
-              activeStage = undefined;
-            },
-            onOwnerStart: () => {
-              activeStage = "owner";
-            },
-            onOwnerComplete: () => {
-              activeStage = undefined;
-            }
+      return await executeSequence({
+        runPlan: runLoopImpl,
+        signal: options.signal ?? headlessAbort.signal,
+        callbacks: {
+          onBuilderStart: () => {
+            activeStage = "builder";
           },
-          integrations?.superintendentCallbacks
-        ),
+          onBuilderComplete: () => {
+            activeStage = undefined;
+          },
+          onBuilderFailed: () => {
+            activeStage = undefined;
+          },
+          onInspectorStart: (name) => {
+            activeStage = { inspector: name };
+          },
+          onInspectorComplete: () => {
+            activeStage = undefined;
+          },
+          onInspectorFailed: () => {
+            activeStage = undefined;
+          },
+          onSuperintendentStart: () => {
+            activeStage = "superintendent";
+          },
+          onSuperintendentComplete: () => {
+            activeStage = undefined;
+          },
+          onOwnerStart: () => {
+            activeStage = "owner";
+          },
+          onOwnerComplete: () => {
+            activeStage = undefined;
+          }
+        },
         runAgent: createAgentRunner({
           session: undefined,
           executeAgent: options.executeAgent,
-          selectedBuilderAgent,
-          integrations,
+          selectedBuilderAgent: () => selectedBuilderAgent,
           runtime: {
             runtime: options.runtime,
             runtimeImage: options.runtimeImage,
@@ -606,11 +645,6 @@ export async function runSuperintendentCommand(
         })
       });
 
-      return {
-        ...result,
-        docPath: selectedDocPath,
-        builderAgent: selectedBuilderAgent
-      };
     } finally {
       process.off("SIGINT", headlessSigint);
     }
@@ -619,13 +653,29 @@ export async function runSuperintendentCommand(
   const session: RunSession = {
     dashboard: dashboardFactory({
       title: "Superintendent",
+      appearance: "conversation",
+      keymap: { pause: ["Space"] },
+      async onSubmit(input) {
+        if (input.kind === "message") queue.enqueueMessage(input.text, input.afterPlanId);
+        else {
+          const resolvedPath = resolveWorkflowPath(input.text, options.cwd, options.homeDir);
+          const planPath = options.sourceCwd ? mapSourcePathIntoWorktree(options.sourceCwd, resolvedPath, options.cwd) : resolvedPath;
+          await queue.enqueueValidatedPlan(planPath, async (path) => {
+            await resolveSuperintendentDoc(path, await fs.readFile(path, "utf8"), fs);
+            return path;
+          });
+        }
+      },
       statsTitle: "Loop",
       rightPaneWidth: 32,
       hints: [
+        { key: "i", label: "Message" },
+        { key: "p", label: "Add plan" },
+        { key: "v", label: "Tasks & plans" },
+        { key: "Space", label: "Pause" },
         { key: "q", label: "Quit" },
         { key: "e", label: "Edit" },
         { key: "l", label: "Log" },
-        { key: "p", label: "Pause" },
         { key: "↑↓", label: "Scroll" },
         { key: "F", label: "Follow" }
       ]
@@ -642,29 +692,70 @@ export async function runSuperintendentCommand(
     resumeWaiters: []
   };
 
+  let taskBoard = parseTaskBoard(document.body);
+  const abortController = new AbortController();
+  const runSignal = options.signal ? AbortSignal.any([options.signal, abortController.signal]) : abortController.signal;
+
   const syncStats = () => {
+    const snapshot = queue.getSnapshot();
+    const activeItem = snapshot.items.find((item) => item.id === snapshot.activeItemId);
     session.dashboard?.updateStats({
-      status: readDashboardStatus(session),
+      status: session.paused ? "paused" : snapshot.status === "running" ? "running"
+        : snapshot.status === "failed" ? "error" : snapshot.status === "paused" || snapshot.status === "cancelled" ? "paused" : readDashboardStatus(session),
       iterations: session.state.round,
       tokensIn: session.tokensIn,
       tokensOut: session.tokensOut,
+      usageAvailable: session.usageAvailable ?? false,
       elapsedMs: Math.max(0, now() - session.startedAt),
-      currentAction: formatCurrentAction(session)
+      currentAction: formatCurrentAction(session),
+      run: {
+        agent: selectedBuilderAgent, cwd: options.cwd, queue: snapshot.items, activePlanId: snapshot.activePlanId,
+        phase: activeItem?.kind === "message" ? "Follow-up" : formatCurrentAction(session),
+        activity: session.activity,
+        tasks: taskBoard.tasks.map((task, index) => ({ id: `task-${index}`, title: task.text, status: task.done ? "completed" : "pending" }))
+      }
     });
   };
+  session.syncStats = syncStats;
+
+  const unsubscribeQueue = queue.onChange((snapshot) => {
+    const active = snapshot.items.find((item) => item.id === snapshot.activeItemId);
+    if (active?.kind === "message" && active.status === "running") {
+      session.dashboard.appendOutput({ id: active.id, kind: "info", role: "user", text: active.text, ts: now() });
+    }
+    syncStats();
+  });
 
   const appendEvent = (kind: OutputKind, message: string) => {
     session.dashboard?.appendOutput({
       kind,
-      text: `${formatTimestamp(now())} ${message}`,
+      text: message,
       ts: now()
     });
   };
 
   const callbacks: LoopCallbacks = {
+    async onPause() {
+      session.paused = true;
+      session.pauseRequested = false;
+      syncStats();
+      await waitForResume(session, runSignal);
+    },
+    async runRole(_role, _name, run) {
+      try { return await run(); }
+      finally {
+        try {
+          const updated = await resolveSuperintendentDoc(selectedDocPath, await fs.readFile(selectedDocPath, "utf8"), fs);
+          taskBoard = parseTaskBoard(updated.document.body);
+        } catch (error) {
+          appendEvent("error", `Task list could not refresh: ${toError(error).message}`);
+        }
+        syncStats();
+      }
+    },
     onBuilderStart: () => {
       session.activeStage = "builder";
-      session.currentAction = "builder";
+      session.currentAction = "Builder";
       appendEvent("status", "Builder starting");
       syncStats();
     },
@@ -683,7 +774,7 @@ export async function runSuperintendentCommand(
     },
     onInspectorStart: (name) => {
       session.activeStage = { inspector: name };
-      session.currentAction = `inspector: ${name}`;
+      session.currentAction = `Inspector · ${name}`;
       appendEvent("status", `Inspector ${name} starting`);
       syncStats();
     },
@@ -702,7 +793,7 @@ export async function runSuperintendentCommand(
     },
     onSuperintendentStart: () => {
       session.activeStage = "superintendent";
-      session.currentAction = "superintendent";
+      session.currentAction = "Superintendent";
       appendEvent("status", "Superintendent reviewing");
       syncStats();
     },
@@ -720,7 +811,7 @@ export async function runSuperintendentCommand(
     },
     onOwnerStart: () => {
       session.activeStage = "owner";
-      session.currentAction = "owner";
+      session.currentAction = "Owner review";
       appendEvent("status", "Owner reviewing");
       syncStats();
     },
@@ -767,13 +858,11 @@ export async function runSuperintendentCommand(
     syncStats();
   }, 1_000);
 
-  const abortController = new AbortController();
-
   const forceQuit = () => {
     abortController.abort();
     session.dashboard.stop();
     session.dashboard.destroy();
-    shutdownAndExit(130);
+    exitProcess(130);
   };
 
   const handleDashboardCommand = (command: string) => {
@@ -848,68 +937,52 @@ export async function runSuperintendentCommand(
 
   let caughtError: unknown;
   try {
-    while (true) {
-      session.paused = false;
-      syncStats();
-
-      const result = await runLoopImpl({
-        docPath: selectedDocPath,
-        cwd: options.cwd,
-        homeDir: options.homeDir,
-        ...(options.fs ? { fs } : {}),
-        callbacks: mergeLoopCallbacks(callbacks, integrations?.superintendentCallbacks),
-        signal: abortController.signal,
-        logDir: runLogDir,
-        runAgent: createAgentRunner({
-          session,
-          executeAgent: options.executeAgent,
-          selectedBuilderAgent,
-          integrations,
-          runtime: {
-            runtime: options.runtime,
-            runtimeImage: options.runtimeImage,
-            detach: options.detach,
-            mountPoeCode: options.mountPoeCode,
-            runnerSync: options.runnerSync
-          },
-          activeStage: () => session.activeStage,
-          now,
-          stderr
-        })
-      });
-
-      session.state = stripStopReason(result);
-
-      if (result.stopReason === "paused") {
-        session.paused = true;
-        session.pauseRequested = false;
+    return await executeSequence({
+      callbacks,
+      signal: runSignal,
+      onPlanResolved(nextDocument) {
+        session.state = createLoopState(nextDocument);
+        session.currentAction = undefined;
+        taskBoard = parseTaskBoard(nextDocument.body);
         syncStats();
-
-        if (session.stopRequested) {
-          return {
-            ...session.state,
-            stopReason: "stopped",
-            docPath: selectedDocPath,
-            builderAgent: selectedBuilderAgent
-          };
+      },
+      async runPlan(loopOptions) {
+        while (true) {
+          session.paused = false;
+          syncStats();
+          const result = await runLoopImpl(loopOptions);
+          session.state = stripStopReason(result);
+          if (result.stopReason !== "paused") return result;
+          session.paused = true;
+          session.pauseRequested = false;
+          syncStats();
+          if (session.stopRequested) return { ...result, stopReason: "stopped" };
+          await waitForResume(session, runSignal);
+          if (runSignal.aborted) return { ...result, stopReason: "aborted" };
         }
-
-        await waitForResume(session);
-        continue;
-      }
-
-      return {
-        ...result,
-        docPath: selectedDocPath,
-        builderAgent: selectedBuilderAgent
-      };
-    }
+      },
+      runAgent: createAgentRunner({
+        session,
+        executeAgent: options.executeAgent,
+        selectedBuilderAgent: () => selectedBuilderAgent,
+        runtime: {
+          runtime: options.runtime,
+          runtimeImage: options.runtimeImage,
+          detach: options.detach,
+          mountPoeCode: options.mountPoeCode,
+          runnerSync: options.runnerSync
+        },
+        activeStage: () => session.activeStage,
+        now,
+        stderr
+      })
+    });
   } catch (error) {
     caughtError = error;
     session.currentAction = undefined;
     session.dashboard.appendOutput({
       kind: "error",
-      text: `${formatTimestamp(now())} ${toError(error).message}`,
+      text: toError(error).message,
       ts: now()
     });
     session.dashboard.updateStats({
@@ -917,6 +990,7 @@ export async function runSuperintendentCommand(
       elapsedMs: Math.max(0, now() - session.startedAt)
     });
   } finally {
+    unsubscribeQueue();
     clearIntervalImpl(intervalId);
     process.off("SIGINT", sigintHandler);
     session.dashboard.stop();
@@ -959,6 +1033,7 @@ async function runSuperintendentInWorktree(input: {
     result = await runSuperintendentCommand({
       ...input.options,
       cwd: worktree.path,
+      sourceCwd: input.options.sourceCwd ?? input.options.cwd,
       docPath: mapSourcePathIntoWorktree(input.options.cwd, input.selectedDocPath, worktree.path),
       builderAgent: input.selectedBuilderAgent,
       configuredDefaultAgent: input.selectedBuilderAgent,
@@ -975,6 +1050,14 @@ async function runSuperintendentInWorktree(input: {
       deps
     });
     throw error;
+  }
+
+  if (result.queue?.status === "failed" || result.queue?.status === "cancelled" || result.stopReason === "aborted") {
+    await markFailedSuperintendentWorktree({
+      sourceCwd: input.options.cwd, worktree, selectedBuilderAgent: input.selectedBuilderAgent,
+      worktreeOptions, deps, signal: input.options.signal
+    });
+    return result;
   }
 
   await reconcileWorktree({
@@ -1007,6 +1090,7 @@ async function markFailedSuperintendentWorktree(input: {
   selectedBuilderAgent: string;
   worktreeOptions: NormalizedWorktreeOptions;
   deps: WorktreeDeps;
+  signal?: AbortSignal;
 }): Promise<void> {
   const worktreeHead = (
     await input.deps.exec("git rev-parse HEAD", {
@@ -1041,7 +1125,7 @@ async function markFailedSuperintendentWorktree(input: {
     { fs: input.deps.fs }
   );
 
-  if (hasCommittedChanges || hasUncommittedChanges) {
+  if (hasCommittedChanges || hasUncommittedChanges || input.signal?.aborted) {
     return;
   }
 
@@ -1103,21 +1187,6 @@ function defaultRegistryFile(cwd: string): string {
 
 function defaultWorktreeDir(cwd: string): string {
   return path.join(cwd, ".poe-code", "worktrees");
-}
-
-function mapSourcePathIntoWorktree(
-  sourceCwd: string,
-  sourcePath: string,
-  worktreeCwd: string
-): string {
-  if (!path.isAbsolute(sourcePath)) {
-    return sourcePath;
-  }
-  const relativePath = path.relative(sourceCwd, sourcePath);
-  if (relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))) {
-    return path.join(worktreeCwd, relativePath);
-  }
-  return sourcePath;
 }
 
 function buildFailedRunCleanupPrompt(worktree: Worktree): string {
@@ -1251,8 +1320,7 @@ function normalizeAgentSelection(value?: string | null): string | undefined {
 function createAgentRunner(options: {
   session: RunSession | undefined;
   executeAgent: RunCommandOptions["executeAgent"];
-  selectedBuilderAgent: string;
-  integrations: Integrations | null;
+  selectedBuilderAgent: () => string;
   runtime: Pick<
     RunCommandOptions,
     "runtime" | "runtimeImage" | "detach" | "mountPoeCode" | "runnerSync"
@@ -1263,11 +1331,11 @@ function createAgentRunner(options: {
 }): RunLoopOptions["runAgent"] {
   return async (input) => {
     const activeStage = options.activeStage();
-    const agent = activeStage === "builder" ? options.selectedBuilderAgent : input.agent;
+    const agent = activeStage === "builder" ? options.selectedBuilderAgent() : input.agent;
     const executeAgent =
       options.executeAgent ??
       ((nextAgent: string, nextInput: AgentRunInput) =>
-        executeSpawnAgent(nextAgent, nextInput, options.integrations));
+        executeSpawnAgent(nextAgent, nextInput, options.session));
     const stageLabel = formatStageLabel(activeStage);
 
     const emitLine = (kind: OutputKind, line: string) => {
@@ -1277,7 +1345,8 @@ function createAgentRunner(options: {
       if (options.session) {
         options.session.dashboard.appendOutput({
           kind,
-          text: `${formatTimestamp(options.now())} [${stageLabel}] ${line}`,
+          text: line,
+          role: "agent",
           ts: options.now()
         });
       } else {
@@ -1302,12 +1371,17 @@ function createAgentRunner(options: {
       if (options.session && result.usage) {
         options.session.tokensIn += result.usage.inputTokens;
         options.session.tokensOut += result.usage.outputTokens;
+        options.session.usageAvailable = true;
       }
 
       return result;
     } finally {
       stdoutBuffer.flush();
       stderrBuffer.flush();
+      if (options.session) {
+        options.session.activity = undefined;
+        options.session.syncStats?.();
+      }
     }
   };
 }
@@ -1352,7 +1426,7 @@ function formatStageLabel(stage: RunSession["activeStage"]): string {
 async function executeSpawnAgent(
   agent: string,
   input: AgentRunInput,
-  integrations: Integrations | null
+  session?: RunSession
 ): Promise<
   AgentRunResult & {
     usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
@@ -1363,7 +1437,7 @@ async function executeSpawnAgent(
   }
 
   if ((input.onStdout || input.onStderr) && supportsStreaming(agent)) {
-    return executeSpawnAgentStreaming(agent, input, integrations);
+    return executeSpawnAgentStreaming(agent, input, session);
   }
 
   const tee =
@@ -1407,7 +1481,7 @@ function supportsStreaming(agent: string): boolean {
 async function executeSpawnAgentStreaming(
   agent: string,
   input: AgentRunInput,
-  integrations: Integrations | null
+  session?: RunSession
 ): Promise<
   AgentRunResult & {
     usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
@@ -1446,20 +1520,20 @@ async function executeSpawnAgentStreaming(
     ...(input.mode ? { mode: input.mode as SpawnMode } : {})
   };
 
-  await applyMiddlewares(
-    [
-      spawnLog,
-      usageCapture,
-      sessionCapture,
-      ...(integrations?.spawnMiddleware ? [integrations.spawnMiddleware] : [])
-    ],
-    middlewareContext
-  );
+  await applyMiddlewares([spawnLog, usageCapture, sessionCapture], middlewareContext);
 
-  await acp.withAcpWriter(writer, () =>
-    renderAcpStream(middlewareContext.eventStream ?? rawEvents)
-  );
-  const final = await done;
+  const stream = session
+    ? streamAcpEventsToDashboard({
+      events: middlewareContext.eventStream ?? rawEvents,
+      signal: input.signal,
+      onOutput: (item) => session.dashboard.appendOutput(item),
+      onActivity(activity) { session.activity = activity; session.syncStats?.(); }
+    })
+    : acp.withAcpWriter(writer, () => renderAcpStream(middlewareContext.eventStream ?? rawEvents));
+  const [completion, rendered] = await Promise.allSettled([done, stream]);
+  if (completion.status === "rejected") throw completion.reason;
+  if (rendered.status === "rejected") throw rendered.reason;
+  const final = completion.value;
 
   const logFile = middlewareContext.logFile ?? final.logFile;
   const sessionResult = middlewareContext.sessionResult;
@@ -1489,6 +1563,7 @@ async function executeSpawnAgentStreaming(
               ? [
                   {
                     title: toolCall.title,
+                    ...(toolCall.status ? { status: toolCall.status } : {}),
                     ...(toolCall.input !== undefined ? { input: toolCall.input } : {})
                   }
                 ]
@@ -1515,25 +1590,13 @@ function readDashboardStatus(
 
 function formatCurrentAction(session: RunSession): string {
   if (session.paused) {
-    return "paused";
+    return "Paused · Space to resume";
   }
-
-  const segments = [
-    `state=${session.state.state}`,
-    `round=${session.state.round}`,
-    ...(session.state.state === "review" ? [`review=${session.state.reviewTurn}`] : []),
-    ...(session.currentAction ? [session.currentAction] : [])
-  ];
-
-  return segments.join(" · ");
-}
-
-function formatTimestamp(timestamp: number): string {
-  const date = new Date(timestamp);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-  return `[${hours}:${minutes}:${seconds}]`;
+  if (session.stopRequested) return "Stopping after current action";
+  if (session.pauseRequested) return "Pausing after current action";
+  const action = session.currentAction
+    ?? (session.state.state === "completed" ? "Plan completed" : session.state.state === "review" ? "Owner review" : "Preparing");
+  return session.state.round > 0 ? `Round ${session.state.round} · ${action}` : action;
 }
 
 function editPlan(
@@ -1606,13 +1669,20 @@ function releaseWaiters(session: RunSession): void {
   }
 }
 
-async function waitForResume(session: RunSession): Promise<void> {
-  if (session.stopRequested || !session.paused) {
+async function waitForResume(session: RunSession, signal?: AbortSignal): Promise<void> {
+  if (session.stopRequested || !session.paused || signal?.aborted) {
     return;
   }
 
   await new Promise<void>((resolve) => {
-    session.resumeWaiters.push(resolve);
+    const finish = () => {
+      signal?.removeEventListener("abort", finish);
+      const index = session.resumeWaiters.indexOf(finish);
+      if (index !== -1) session.resumeWaiters.splice(index, 1);
+      resolve();
+    };
+    session.resumeWaiters.push(finish);
+    signal?.addEventListener("abort", finish, { once: true });
   });
 }
 

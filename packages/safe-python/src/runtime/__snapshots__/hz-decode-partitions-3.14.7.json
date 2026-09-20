@@ -1,0 +1,811 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 17.0.0 (clang-1700.6.4.2)]",
+    "unicode": "16.0.0",
+    "byteorder": "little"
+  },
+  "results": [
+    {
+      "kind": "decode",
+      "policy": "strict",
+      "mode": 0,
+      "count": 65536,
+      "digest": "eb6b97d781531ca2ecb90587bf4c8c1436d11aeb0ca0343c12874ac0467d45d7",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "4d76cb3c98701683f7f66f62fc7aff433a7cdc339e00ce5c398c4b16407b6187"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "e952f80862b6b05c0cf1751549237286cedbad6ef2906054749166a70d459c92"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "ef9e51c16aae7a4e151e6c8b3632fa2ca6405735c8480441127d43eeedd5850e"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "722ec5fbf8dfd8aebf0bb7c113c7b1d89785c8def66aa9e76b692724b7458d8a"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "c4eae2f506f13139ab7cd97d3061c8354b334db07627eb4ab7e902f21a0058ae"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "7cbfacc73e49e4945b9d023efcdfa071007d1fcb9bd59d58bfeb8d6bdcfbb441"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "b21cd62a4878eb28d823c716c27693cdae4ae5ccb051c59593de7c9e7fd40cd8"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "8023a0f7c9ec181bbfd8057a934ee386981a429a9a3cb93bb081988a13266ab0"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "177f4b04afc6f5d06d856dd1cebc5114cdc4c72798e96cb1cd392c9fdf2ee882"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "84c96c79f31978a61ec9986ee2f417e8e3457a3dbe89f0f54de2f12926ddd590"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "194a1cc7a7f85a11f9bb34f3664d90be9be53b7054f5e3c8406c49196a30c393"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "f06d2429ccfe4a1ce73eff89d6b0d84243849e61699351d68bc47231506fa29f"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "7f103219ab2866a09720437336e1611138bbca06a2c93183f39071a2ec940750"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "f084f88e3feba596f58bed1e11e41e8e4b11560d6848a838b9cdb4e4a05f58f8"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "0a18fae5e8d66fe0a52da5a4785adf2e687836aa84dd1f4786c97aae1930d5a6"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "b891f6996b40397c4b988309d2c7e0198575a3cbad59d370cdaaea8977830157"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "strict",
+      "mode": 1,
+      "count": 65536,
+      "digest": "3d03535d947f19ca5393a67e7e557fc38406cf5f6241463a68a511cf52223dfc",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "2a331960b1c5ac0f9a272381641df7f8291a544d7b52ef3e18bf6e72553918ef"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "f34c7459fe5536c28090f9e50a59c8d2064fc2cab27215197ba7ad6a366a4fab"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "71762b212e657c25a54717e1d0731a9405ccccfc0cd6ad10371619da4aa10704"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "a36ed63ac54d253d0aaa4078f820c605373b1bb0486ea1e4cc0259f7ca17cb14"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "087d9c1eef09ffb8fdb511734ebd479f9371795439561afeedae91e40fa60905"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "754bcd67eda76dd00b6fb93a5d83167877cf1fb268600b37e77b82860d9f56b2"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "273e165a244cba1765bdac3dff010604e2a1a42adb1fa3826900067e7b53e68e"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "24145861822baf29733fd17f011a21806c31cedc511d4393b80f69d5f3e6a80f"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "50901c0ef645b89013d8dffd046b18acdc2e56348a91f100bb74b451f3d7c70d"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "121f87b601151e7086516d6e03b1770f07b140de10d2710648b7846585eb62fb"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "f67c28af8305de985101d2db72af4a73d573855c555eb80eccd6609909088af4"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "00791dbc9ef762bfd0931c9c05dc46621d44276f84c8793b24a07305e41b7b13"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "65548cf6f91085abbd554f672f4659a1270ba2ee3d2cbac7a4e994bcdcc4bace"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "c37caedbd44fbcf413b19108d9cc48e6d55830c310f8803887674232e2e72465"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "b4d38458ccef6adae93c1212d463aec7dd58580595a9b11148669a803d2927d6"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "7dc4263263573d47dfbc581297731430befedce5b14395e5a5a35cb6d794ec97"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "strict",
+      "mode": 2,
+      "count": 65536,
+      "digest": "b0782a17898b1b2966e8f5880fcc801fe59ccfe0af9063ee9681d503c6da877b",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "4693f390a5a16868f41afeb815c985bcc6e003381a2f48b41ba33d50907e7143"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "c7354782cf2f1c7bfc7391e7ce82c3b99d654f180ba594a111f5656dea217e3b"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "bf1644b3dcf8d9b5c5089d6423f89a04cfae56ff77fa9a18aac2191cd3d53624"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "a3178fdc01caa7ed8b6353acc3dd25684a96333597ce62fdced9c185bc01be07"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "6e0016f37276d5fc7cb29f518f50371672a10453c7ab6a8b6a0d0269cb2a0d06"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "b738f983d15119d65d843809a7e3f15eda629758a76d0550f5cad2273fa11d39"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "741586e80df93b64c63b80c9a8b9435edbefed9eccc47974a5a587e4872a5d5f"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "ead104b1a0b49cd0efc010042d7cb9b9d66b79e990aeb884e3ebafb81290715d"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "adf8aa712dbaf66bd0ccb6ebd38cbe6cbe7ca2e65cba42d43ecc771d20120e82"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "032516a6a975d25c2156aae2a4ea2b804aa03b00a6d2b944c6197351ce1a3412"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "a30da91727d24f728659f188161d667a9e7a204b1fed9165a7cfb4a731515e11"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "297d074448d219030b5c7daf343b8452fda02b5f9d2a3a4c6624ad77eb9620f1"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "bb1c388e8a509c7c663bb1b1dfe34bf2a2315ab50c1b5c9212d3586b4bef31f1"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "c86c06d1acb0ac9672d3bf74dab63a33359893c76a5a3a6c2397c4235dc5d511"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "de6a369739087a9af6eb4ca7f5b474c9bb82a3810401c5f2cb07316b01a8bb87"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "447ec929c891b3e7b0f9c588df790a7ad71ed36a19d59a56bc58337f34a5f031"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "ignore",
+      "mode": 0,
+      "count": 65536,
+      "digest": "50dea577b36657eb03b6ca903e15917b93a9584b252cb7fc0e8a74b0d889393f",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "a23e08526fa405475201da40f13faa3fd6db02826580efb87c8df417e24e6a9a"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "beeaf9d852d52a12559a8399b085744b6c126539f3bd1d0e723e1f26a21e0fe0"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "71f8ac2a2cd159bd1ef0f33dbba9be7324e17c9a98c5e5b6e6c8ba71afe0aef6"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "677c241f8275b467f931619a32fe2244657cd2a4c86e99d3f24f012c00d9e7e9"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "f945a60a5c942d2eca152aa9fa39c1b982b8b2d1a29fd08a94f98b4df2b768cd"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "d85192f42807e6eef4e3c9182f4a12892a99542d35036e2598d148037641fb0a"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "7e2a37954107369a315c0e6306b8c77af0c295989454c6267b3a965fb0db796f"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "570f38075703394e30e8f8352d6f61e323d2e9d7f4919d5ef941e80d263743fe"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "8a307a3e0f29981f71f0d4028c48482f0ed65e7f195c2a2ee239ca49177ed6c3"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "ignore",
+      "mode": 1,
+      "count": 65536,
+      "digest": "f87b787f9d398853d98c4a880f31d17b3852b06a99c5bc29a5f76fb9d471883b",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "37768fe46eb307d7a8a7ba3050f85b5b5676029feeb9e5536290b45b9c997b88"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "8ae3768c3a99863bfb45ec9713642942093021e9be33b6fd5e174ef3c634aa91"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "b05410880ae60151912d969162cf64b2bd35c9ef93caf9f06d040c6def1b1faf"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "2246d1c7aa278d501581d3ec750243c43456e2f70cbbe62ebd8d3927c2da95e9"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "32fa6e66e648eb8e0eb25e7ce102a95c20cf1dfe3a2433a878b7a147fde2ec53"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "a68ca91003d7e23ee343800cce8aeaadbbc5549cd73913ddcfc22c20462858a1"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "7c4c586165d9d694fcc7f89778c918cbcf65beb26a185c090d16cf5dfa6a92a4"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "0222f971d13bc85b1328effa8b10028e608d5e3b9950b3997c75404ad8f22b3e"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "de6767feeef82c8047dc6feb9003f33d3e7d0451cd9c9207be7087f7ef53382c"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "ignore",
+      "mode": 2,
+      "count": 65536,
+      "digest": "6200418c7eac229c638d14a1feb08abd9be14b7bdf97e8b049be0354b247c8ca",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "eeaa5519535c764f8485d93d9dbc42c3112325fb6bb13b3be56f1ee97eed6edf"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "fff8ea3f4b397069780bea5fb90e0818587e684881e189666579e399d4391d74"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "c2dc2a1c9f0883a0aa3f50479ef8532809d050987702eb3a4af8643db92a2723"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "c2b6cef111088e6f54cc1f988d5082c7451abf747d23a7c863c9ae299096e040"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "682c24a25940e04302a1c9f0bc755f2841de843a13fa7c73eefe1fd90ad44058"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "bda41f42e4f165314e29181d9bf3a924475b109c2be4cb4653b9b36816d951d9"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "8e3a1f593ca89f79f855acf94899122631378d4a62daedaa9b7077628aac1aed"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "e11a91b3040fd17aefcefae02f7638ded85bdeab5e50a8cfcd7359823b0908e9"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "beac9c5a6a5f5bb18a4498e2c975d24b0ff03f168c0b482fcea724bcee240c85"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "replace",
+      "mode": 0,
+      "count": 65536,
+      "digest": "c0d7f07b12aa0e91aa322208fbb41c2cefd44ebd17e8725a6d5865a7e77ddbed",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "90d5ce1db4a3ebbbd2adf6c472c22244a4fa02428f083efb55856b56109f1ab9"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "ac4d2afe2773568455438e5beb1811b6d04aa5ce1248e409eb95baa62e3aa3bf"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "d58c866e7d390fe6255487b955814345182151c3de0643e055d8bb3f31e4afaf"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "75b161e86c0c6c73b493cb7972311c806d1965c36d594f34a429a9b60ea0b46b"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "bba5bda282663ac593405cb846180b28f1a4d31dd001778ee34492132a4c0582"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "1c1fc1c40e3c7c1aa35be2237ebe977db19f3ec57ff782170526fce8f028cd03"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "643ecc6cf7ea0e213625c413230b34b1fcc99abe51a35a7c8391897070ff98ca"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "2d142748b27ccff3469c23dcc21d781dcb26567548e49818c1832b1dc538e527"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "2158100f69ff5dee9aa4fb32829b7350f22f3a32e2884a8cfa05e8cad3f6f4a1"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "replace",
+      "mode": 1,
+      "count": 65536,
+      "digest": "aed2ec718f164e0bdb7b9660a345af8c01a6e1fc0dbe7ccd23aa7fa764b2430a",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "c4ac6dfd54946bfce2492b79173e072b99b0d87a937d8a1f4b476994d9837e5d"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "102e8a37c7d255c33caedf1d24c7ae74b5a9daec58fe92c93b7d57057c745dff"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "9b34f2cd7d6391ac61dab72c47e2f057e4d4b0d32f96b16aa16356258663fab4"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "429ae0f3d5a48d49c5d6d259d989fc3f3b22da13dcd0674e726345be9b1b7129"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "16a8c529db2bea21794448416ecb1ed5fee78592ced4f3aeb0ad3f5d2a075899"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "0cfc65fa1d74622c2fb683d750e5796ace86776da07507ba99c395fbdb9934fc"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "f7c543f6d79bccfec628f891ac183d5e29e80d75463fd610116a11f00e0985cf"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "9bf7c2f3641e018e04061a02f085b93d6c73f05a0965518fc1dea3a9b85a95e4"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "2373d502c7abdaa9c8150d6c7aa46722155f814ad48a18014b06bff6cd360324"
+        }
+      ]
+    },
+    {
+      "kind": "decode",
+      "policy": "replace",
+      "mode": 2,
+      "count": 65536,
+      "digest": "462d68866878bf2309e85b65c1e28fb3b4b31783de6e0333640df83fc9c283c0",
+      "partitions": [
+        {
+          "block": 0,
+          "count": 4096,
+          "digest": "684bbcb999e685d08fd620b1ffd4e86602dad547bb62b4320cb03df69bf0acac"
+        },
+        {
+          "block": 1,
+          "count": 4096,
+          "digest": "1237bbdde42295366d72774a524c20df345d35a395dd48b21b2e5d635a97aa99"
+        },
+        {
+          "block": 2,
+          "count": 4096,
+          "digest": "19948a210e6e5e81b3038972d0b597b9b5e896ed19a445e362f4edd591fe61de"
+        },
+        {
+          "block": 3,
+          "count": 4096,
+          "digest": "e55844cfb8050a447f07d9c3bf09a2f522ee419a75e1135a0f2e382e17b17266"
+        },
+        {
+          "block": 4,
+          "count": 4096,
+          "digest": "45b296af99fb865d6adafd3be34f6f0cd2743a3e27d038fe81739626fc876575"
+        },
+        {
+          "block": 5,
+          "count": 4096,
+          "digest": "5ab9cbe8bc4d4355d71daea33cbea3faa6a3a705804f43ebb86b07ab12cdd796"
+        },
+        {
+          "block": 6,
+          "count": 4096,
+          "digest": "c87350b94cf276bf61753b374b94c2cd3656471fefedc8553c04068f8f2d683f"
+        },
+        {
+          "block": 7,
+          "count": 4096,
+          "digest": "5b22058cd6bef24b484ad88b812fefb47163d895757d5d33fb17cbd57b905c3b"
+        },
+        {
+          "block": 8,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        },
+        {
+          "block": 9,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        },
+        {
+          "block": 10,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        },
+        {
+          "block": 11,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        },
+        {
+          "block": 12,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        },
+        {
+          "block": 13,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        },
+        {
+          "block": 14,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        },
+        {
+          "block": 15,
+          "count": 4096,
+          "digest": "2e49bd7cfddf5e8fa355400ae0394ea1c17596cdd6d2b57590dc2ce7490ad0fa"
+        }
+      ]
+    }
+  ],
+  "oracleSource": "import codecs,sys,unicodedata,hashlib,json,itertools,platform\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\ndef attempt(f):\n try:\n  result=f()\n  return ['ok', list(result) if isinstance(result,bytes) else list(map(ord,result))]\n except (UnicodeEncodeError,UnicodeDecodeError) as e:\n  return ['error', list(e.object) if isinstance(e.object,bytes) else list(map(ord,e.object)),e.start,e.end,e.reason]\ndef add(h,row): h.update((json.dumps(row,separators=(',',':'),ensure_ascii=True)+'\\n').encode('ascii'))\nresults=[]\nfor policy in ('strict','ignore','replace'):\n for mode in (0,1,2):\n  whole=hashlib.sha256();partitions=[]\n  for block in range(16):\n   h=hashlib.sha256();count=0\n   for a in range(block*16,(block+1)*16):\n    for b in range(256):\n     d=codecs.getincrementaldecoder('hz')(policy);d.setstate((b'',0x123400+mode))\n     row=[]\n     for chunk,final in [(bytes([a]),False),(bytes([b]),False),(b'',True),(b'~}A',True)]:\n      row.append(attempt(lambda:d.decode(chunk,final)))\n      pending,state=d.getstate();row.append([list(pending),str(state)])\n     add(h,row);add(whole,row);count+=1\n   partitions.append(dict(block=block,count=count,digest=h.hexdigest()))\n  results.append(dict(kind='decode',policy=policy,mode=mode,count=sum(part['count'] for part in partitions),digest=whole.hexdigest(),partitions=partitions))\nprint(json.dumps(dict(reference=dict(version=sys.version,unicode=unicodedata.unidata_version,byteorder=sys.byteorder),results=results),indent=2))\n"
+}

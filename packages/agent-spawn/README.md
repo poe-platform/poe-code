@@ -37,6 +37,8 @@ resume, and intentionally has no Poe configure/unconfigure flow or ACP pretence.
 | `edit` | File-editing mode when the agent supports scoped permissions.                    |
 | `read` | Read-only/research mode when the agent supports it.                              |
 
+Codex read mode enables its Landlock compatibility sandbox on Linux, retaining read-only filesystem and restricted network enforcement without requiring bubblewrap to configure a loopback interface. This avoids `RTM_NEWADDR: Operation not permitted` on restricted hosts. It requires a Codex installation supporting `use_legacy_landlock` and a host supporting Landlock; unsupported sandbox policies still fail closed. Other platforms use their native Codex sandbox.
+
 Omitting `mode` uses the shared `auto` default. Mode-specific args and env vars are declared in each agent config. `auto` is optional per config: agents without a native auto/approval mode omit it, and requesting it fails before launch with the supported-mode list (`supportsSpawnMode(agentId, mode)` exposes the same check for static validation). Over ACP, auto mode answers `session/request_permission` with an explicit rejection so the agent adapts instead of ending the turn. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
 
 ## MCP at spawn time
@@ -52,6 +54,10 @@ Pass `resumeThreadId` to continue a prior provider thread/session. Declarative a
 ## Autonomous streaming
 
 `spawnAutonomous(streamSpawn, options)` drives a streaming ACP spawn to completion, renders events through the design-system ACP writer, and retries activity timeouts. It is shared by SDK autonomous spawn flows and loop runners.
+
+For a live conversation dashboard, `createDashboardAgentRunner({ spawn, onOutput, onActivity, onUsage })` connects your normal streaming spawn function to the design system. Tool starts and completions update one entry in place, with concise Read, Search, List files, and Edit labels. Full command details stay available separately. The runner preserves spawn settings, reconciles streamed usage with final totals, and accepts `maxTimeoutRetries` for autonomous loops.
+
+`streamAcpEventsToDashboard` also accepts an event stream directly. Structured input and failure states are retained across adapters; action summaries are presentation only and never execute shell text. Codex todo lists and ACP plan updates appear as an agent checklist with completion markers, separate from harness tasks and queued plan files. Long checklists stay compact, with the full list available in Details and replay output.
 
 ## ACP middlewares
 

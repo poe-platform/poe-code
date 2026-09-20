@@ -1,0 +1,10 @@
+Collecting pypdf==6.0.0
+  Using cached pypdf-6.0.0-py3-none-any.whl (310 kB)
+Collecting PyMuPDF==1.26.4
+  Using cached pymupdf-1.26.4-cp39-abi3-macosx_11_0_arm64.whl (22.4 MB)
+Collecting typing_extensions>=4.0
+  Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Installing collected packages: typing-extensions, pypdf, PyMuPDF
+Successfully installed PyMuPDF-1.26.4 pypdf-6.0.0 typing-extensions-4.16.0
+WARNING: You are using pip version 21.2.4; however, version 26.0.1 is available.
+You should consider upgrading via the '/Users/kjopek/Workspace/poe-code-5/out/pdf-serialization-oracles/bin/python3 -m pip install --upgrade pip' command.

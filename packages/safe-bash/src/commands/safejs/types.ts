@@ -1,4 +1,4 @@
-import type { FileSystem, FsBridgeOptions } from "poe-code/safe-fs/core";
+import type { FileSystem, FsBridgeOptions } from "@poe-code/safe-fs/core";
 
 export type SafeJsHostFunction = { call(...args: readonly unknown[]): unknown }["call"];
 export type SafeJsHostValue = string | number | boolean | null | undefined | SafeJsHostFunction

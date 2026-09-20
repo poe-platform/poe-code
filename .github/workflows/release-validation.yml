@@ -6,6 +6,9 @@ on:
         description: Digest of the same-run build archive
         value: ${{ jobs.build.outputs.archive-sha256 }}
     inputs:
+      build_only:
+        type: boolean
+        default: false
       cold_cache:
         type: boolean
         default: false
@@ -48,6 +51,7 @@ jobs:
           compression-level: 6
           retention-days: 1
   checks:
+    if: ${{ !inputs.build_only }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:
@@ -82,6 +86,7 @@ jobs:
         run: npm run smoke -- --prebuilt
       - run: npm run lint:packages
   audit:
+    if: ${{ !inputs.build_only }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -105,6 +110,7 @@ jobs:
         run: npm run test:stress:lint
         timeout-minutes: 7
   unit:
+    if: ${{ !inputs.build_only }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:
@@ -150,6 +156,7 @@ jobs:
       - name: Run fresh unit and native checks
         run: npm run test:ci:fresh
   unit-cached:
+    if: ${{ !inputs.build_only }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:
@@ -198,6 +205,7 @@ jobs:
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
         run: npm exec -- turbo run test:ci:cached --filter=// --cache-dir=.turbo/ci-cache --cache=local:rw --output-logs=new-only --summarize
   bash:
+    if: ${{ !inputs.build_only }}
     needs: build
     runs-on: ubuntu-24.04
     permissions:
@@ -241,4 +249,4 @@ jobs:
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - uses: ./.github/actions/setup-bash-oracle
       - name: Run balanced Bash shard
-        run: npm run test:unit --workspace=virtual-bash
+        run: npm run test:unit --workspace=@poe-platform/safe-bash

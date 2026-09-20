@@ -139,7 +139,7 @@ with optional exponents; arithmetic uses IEEE-754 doubles.
 | Output | `print`, `printf`, `sprintf`, `OFMT`, `CONVFMT`; virtual-file `>`/`>>` and `close(path)`. The first open chooses truncate/append; subsequent writes append until close. |
 | Explicit file input | `getline [variable/field/array] < expression` returns 1/0/-1 for record/EOF/I/O error. It respects RS, leaves NR/FNR unchanged, and resplits fields only when replacing `$0`. File cursors persist until `close(path)` or invocation cleanup; at most 256 may be retained. `"-"` reads stdin; `"./-"` names a literal VFS file. |
 | Arguments/environment | Mutable `ARGC`, `ARGV`, and `ENVIRON` initialized only from the command context. Clearing/deleting ARGV entries skips files. ENVIRON changes do not mutate the parent context. |
-| String and regex functions | `length`, `substr`, `index`, `split`, `match` with `RSTART`/`RLENGTH`, `sub`, `gsub`, `tolower`, `toupper`. Substitution supports `&` and escaped literals, not sed-style capture backreferences. |
+| String and regex functions | `length`, `substr`, `index`, `split`, `match` with `RSTART`/`RLENGTH`, `sub`, `gsub`, `tolower`, `toupper`. Substitution supports `&` and escaped literals; decoded `\1`…`\9` remain literal backslash+digit, not capture references. After string decoding, replacement `\&` and `\\` produce literal ampersands and backslashes (POSIX rules); other backslashes remain literal, so `"\\n"` inserts backslash+n rather than a newline. |
 | Math functions | `int`, `sqrt`, `exp`, `log`, `sin`, `cos`, `atan2`; invalid/nonfinite results and division by zero are errors. |
 
 Numeric strings from fields, input assignments, and array keys retain their

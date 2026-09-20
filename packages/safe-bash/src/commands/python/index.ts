@@ -1,14 +1,15 @@
-import { PythonFileSystem, PythonStatTranslator, type FileStat } from 'poe-code/safe-fs/core';
+import { PythonFileSystem, PythonStatTranslator, type FileStat } from '@poe-code/safe-fs/core';
 import type { CommandContext, CommandDefinition, VirtualShellPlugin } from '../../contracts/index.js';
 import { validateExitCode } from '../../contracts/command.js';
 import { openCommandFile } from '../../contracts/filesystem-descriptor.js';
 import { encodePythonReply } from './reply.js';
 import { parsePythonInvocation, PythonInvocationError } from './invocation.js';
 import { parsePythonInstallation, pythonInstallationHelp } from './installation.js';
-import { createPythonPackageEnvironment, type PythonPackageOptions, type PythonPackageStart } from './provisioning.js';
+import { createPythonPackageEnvironment, pythonDocumentPackages, type PythonPackageOptions, type PythonPackageStart, type PythonPackageEnvironment } from './provisioning.js';
 import { readBytes, writeBytes } from '../../contracts/io.js';
 import { createOutputOperation, type OutputOperation } from '../../contracts/output.js';
 import { inheritYieldCheckpoint, yieldTurn } from '../../contracts/yield.js';
+import { PythonFailure, isPythonFailureCategory, reportPythonFailure, type PythonDiagnosticObserver, type PythonFailureCategory } from './diagnostics.js';
 
 class PythonInputChunkError extends RangeError {}
 
@@ -23,15 +24,18 @@ export interface PythonInitializationProgress {
   readonly command: string;
 }
 export interface PythonCommandsOptions {
-  readonly createWorker: () => PythonWorkerEndpoint;
+  readonly createWorker?: () => PythonWorkerEndpoint;
+  readonly createExecutor?: () => PythonAsyncExecutor;
   /** Explicit distribution requirements; no import scanning or implicit package downloads. */
   readonly packages?: readonly string[];
   /** Requirements files in the canonical filesystem. */
   readonly requirements?: readonly string[];
   readonly packageProfile?: 'documents';
   readonly provisioning?: PythonPackageOptions;
+  readonly environment?: PythonPackageEnvironment;
   /** Host UI lifecycle; never written to guest stdout/stderr. */
   readonly onProgress?: (event: PythonInitializationProgress) => void;
+  readonly onDiagnostic?: PythonDiagnosticObserver;
   readonly runtimeMount?: string;
   readonly maxTransferBytes?: number;
   readonly maxOpenFiles?: number;
@@ -46,13 +50,28 @@ export interface PythonWorkerStart {
   readonly packages?: PythonPackageStart;
   readonly installOnly?: boolean;
   readonly shared: SharedArrayBuffer;
-  readonly invocation: { readonly args: readonly string[]; readonly cwd: string; readonly env: Readonly<Record<string, string>> };
+  readonly invocation: { readonly command?: string; readonly args: readonly string[]; readonly cwd: string; readonly env: Readonly<Record<string, string>> };
   readonly runtimeMount: string;
   readonly maxTransferBytes: number;
 }
 
+export interface PythonExecutorStart extends Omit<PythonWorkerStart, 'type' | 'shared'> {
+  readonly signal: AbortSignal;
+  dispatch(request: { readonly op: string; readonly args: unknown[] }): Promise<unknown>;
+  onReady(): void;
+}
+
+export interface PythonAsyncExecutor {
+  run(start: PythonExecutorStart): Promise<number>;
+  terminate(): void | Promise<void>;
+}
+
 export function createPythonCommands(options: PythonCommandsOptions): readonly CommandDefinition[] {
-  if (typeof options?.createWorker !== 'function') throw new TypeError('Python requires an explicit interpreter worker factory');
+  if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')
+    || options.createWorker !== undefined && typeof options.createWorker !== 'function'
+    || options.createExecutor !== undefined && typeof options.createExecutor !== 'function') throw new PythonFailure('executor-unavailable');
+  if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
+  if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const maxTransferBytes = options.maxTransferBytes ?? 65536;
   const maxOpenFiles = options.maxOpenFiles ?? 256;
   const maxConcurrentWorkers = options.maxConcurrentWorkers ?? 4;
@@ -63,12 +82,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   for (const size of [maxTransferBytes, maxOpenFiles]) if (!Number.isSafeInteger(size) || size < 1 || size > 1048576) throw new RangeError('Invalid Python resource limit');
   const runtimeMount = options.runtimeMount ?? '/.pyodide-runtime';
   if (!runtimeMount.startsWith('/') || runtimeMount === '/' || runtimeMount.slice(1).includes('/') || runtimeMount.includes('\0') || runtimeMount.split('/').some(part => part === '..' || part === '.')) throw new TypeError('Python runtime mount must be an absolute top-level canonical path');
-  const environment = createPythonPackageEnvironment({
-    ...options.provisioning,
-    requirements: [...(options.provisioning?.requirements ?? []), ...(options.packages ?? [])],
-    requirementFiles: [...(options.provisioning?.requirementFiles ?? []), ...(options.requirements ?? [])],
-    ...(options.packageProfile ? { profile: options.packageProfile } : {}),
-  });
+  const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
   const execute = async (context: CommandContext) => {
     let installation;
     try {
@@ -85,7 +99,8 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     }
     context.signal.throwIfAborted();
     if (activeWorkers >= maxConcurrentWorkers) {
-      await writeBytes(context.stderr, new TextEncoder().encode('python: worker capacity exhausted\n'), context.signal);
+      const failure = reportPythonFailure('capacity', undefined, options.onDiagnostic);
+      await writeBytes(context.stderr, new TextEncoder().encode('python: ' + failure.message + '\n'), context.signal);
       return { exitCode: 1 };
     }
     const controller = new AbortController();
@@ -99,6 +114,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     let stdoutOperation: OutputOperation | undefined;
     let stderrOperation: OutputOperation | undefined;
     let endpoint: PythonWorkerEndpoint | undefined;
+    let executor: PythonAsyncExecutor | undefined;
     let packages: PythonPackageStart | undefined;
     let unsubscribe: (() => void) | undefined;
     let admitted = false;
@@ -120,8 +136,9 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       void (async () => {
         signal.removeEventListener('abort', aborted);
         const subscription = Promise.resolve().then(() => unsubscribe?.());
-        const termination = Promise.resolve().then(() => endpoint?.terminate());
-        const results = await Promise.allSettled([subscription, termination, service.close(), stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
+        const termination = Promise.resolve().then(() => executor ? executor.terminate() : endpoint?.terminate());
+        const filesystemRetirement = termination.finally(() => service.close());
+        const results = await Promise.allSettled([subscription, termination, filesystemRetirement, stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
         await input.return?.(undefined);
         fragment = undefined;
         if (packages) environment.finish(packages);
@@ -131,13 +148,15 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         finish();
       }, reason => {
         // A failed termination cannot establish retirement: retain its capacity slot.
-        fail(reason);
+        fail(reportPythonFailure('cleanup', reason, options.onDiagnostic));
       });
       return closing;
     };
     const aborted = (): void => { rejectRun?.(signal.reason); };
     context.registerCleanup?.(close);
     let primary: { reason: unknown } | undefined;
+    let ready = false;
+    const filesystemDiagnostics = new Set<PythonFailureCategory>();
     let result = 1;
     try {
       signal.throwIfAborted();
@@ -146,24 +165,20 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       const outputContext = { signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) };
       stdoutOperation = createOutputOperation(outputContext, context.stdout);
       stderrOperation = createOutputOperation(outputContext, context.stderr);
-      if (typeof SharedArrayBuffer !== 'function') throw new Error('Python worker filesystem requires SharedArrayBuffer');
-      const shared = new SharedArrayBuffer(8 + maxTransferBytes * 6 + 65536);
-      const control = new Int32Array(shared, 0, 2);
-      const payload = new Uint8Array(shared, 8);
-      const reply = (value: unknown, status: number): void => {
-        if (closed) return;
-        let bytes: Uint8Array;
-        try { bytes = encodePythonReply(value, payload.length); }
-        catch (error) {
-          if (typeof error !== 'object' || error === null || !('code' in error) || error.code !== 'EFBIG') throw error;
-          bytes = encodePythonReply({ code: 'EFBIG' }, payload.length); status = 2;
+      const diagnoseFilesystemFailure = async (operation: string, error: unknown): Promise<void> => {
+        if (typeof error !== 'object' || error === null || !('code' in error) || error.code !== 'ENOTSUP') return;
+        const category: PythonFailureCategory = operation === 'open' ? 'filesystem-open'
+          : operation === 'read' ? 'filesystem-read'
+            : operation === 'write' || operation === 'ftruncate' ? 'filesystem-write'
+              : operation === 'readdir' ? 'filesystem-directory' : 'filesystem-operation';
+        if (!filesystemDiagnostics.has(category)) {
+          filesystemDiagnostics.add(category);
+          const failure = reportPythonFailure(category, error, options.onDiagnostic);
+          await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + failure.message + '\n'), signal);
         }
-        payload.set(bytes);
-        Atomics.store(control, 1, bytes.length);
-        Atomics.store(control, 0, status);
-        Atomics.notify(control, 0);
       };
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
+        if (request.op === 'close') return service.dispatch(request);
         signal.throwIfAborted();
         if (request.op.startsWith('package-')) return environment.dispatch(request.op, request.args, {fs:context.fs, cwd:context.cwd, signal});
         if (request.op === 'stdin') {
@@ -199,91 +214,198 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       };
       options.onProgress?.({ phase: 'initializing', command: context.command });
       const preparation = environment.prepare({ fs: context.fs, cwd: context.cwd, signal,
-        ...(installation ? { requirements: installation.packages, requirementFiles: installation.requirements } : {}),
+        requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.packages ?? [])],
+        requirementFiles: [...(options.requirements ?? []), ...(installation?.requirements ?? [])],
       }).then(value => { packages = value; });
       pending.add(preparation);
       try { await preparation; } finally { pending.delete(preparation); }
       signal.throwIfAborted();
-      endpoint = options.createWorker();
+      if (options.createExecutor) {
+        try { executor = options.createExecutor(); }
+        catch (reason) { throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : 'startup', reason, options.onDiagnostic); }
+        if (!executor || typeof executor.run !== 'function' || typeof executor.terminate !== 'function') throw reportPythonFailure('executor-unavailable', undefined, options.onDiagnostic);
+        let requesting = false;
+        let running = true;
+        const start: PythonExecutorStart = {
+          invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } },
+          runtimeMount, maxTransferBytes, signal, ...(packages ? { packages } : {}), installOnly: !!installation,
+          onReady() {
+            if (closed || !running || signal.aborted || ready) return;
+            ready = true;
+            try { options.onProgress?.({ phase: 'ready', command: context.command }); }
+            catch (reason) { running = false; rejectRun?.(reason); throw reason; }
+          },
+          async dispatch(request) {
+            if (!request || typeof request.op !== 'string' || !Array.isArray(request.args)) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+            const releasing = request.op === 'close';
+            if (!releasing) signal.throwIfAborted();
+            if (closed && !releasing || !running || requesting) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+            requesting = true;
+            const operation = Promise.resolve().then(() => dispatch(request)).catch(async error => {
+              if (releasing) throw error;
+              signal.throwIfAborted();
+              if (error instanceof PythonInputChunkError) rejectRun?.(error);
+              if (request.op.startsWith('package-')) throw Object.assign(reportPythonFailure('runtime-assets', error, options.onDiagnostic), { code: 'EPACKAGE' });
+              await diagnoseFilesystemFailure(request.op, error);
+              throw error;
+            });
+            const tracked = operation.then(() => {}, () => {});
+            pending.add(tracked);
+            try { return await operation; }
+            finally { requesting = false; pending.delete(tracked); }
+          },
+        };
+        const execution = Promise.resolve().then(() => {
+          signal.throwIfAborted();
+          return executor!.run(start);
+        }).catch(reason => {
+          running = false;
+          if (signal.aborted) throw signal.reason;
+          throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : ready ? 'runtime' : 'startup', reason, options.onDiagnostic);
+        }).then(status => {
+          running = false;
+          if (requesting) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+          try { return validateExitCode(status); }
+          catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+        });
+        const tracked = execution.then(() => {}, () => {});
+        pending.add(tracked);
+        void tracked.then(() => pending.delete(tracked));
+        result = await new Promise<number>((resolve, reject) => {
+          rejectRun = reject;
+          signal.addEventListener('abort', aborted, { once: true });
+          if (signal.aborted) aborted();
+          execution.then(resolve, reject);
+        });
+      } else {
+      let shared: SharedArrayBuffer;
+      try { shared = new SharedArrayBuffer(8 + maxTransferBytes * 6 + 65536); }
+      catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+      const control = new Int32Array(shared, 0, 2);
+      const payload = new Uint8Array(shared, 8);
+      const reply = (value: unknown, status: number): void => {
+        if (closed) return;
+        let bytes: Uint8Array;
+        try { bytes = encodePythonReply(value, payload.length); }
+        catch (error) {
+          if (typeof error !== 'object' || error === null || !('code' in error) || error.code !== 'EFBIG') throw error;
+          bytes = encodePythonReply({ code: 'EFBIG' }, payload.length); status = 2;
+        }
+        payload.set(bytes);
+        try {
+          Atomics.store(control, 1, bytes.length);
+          Atomics.store(control, 0, status);
+          Atomics.notify(control, 0);
+        } catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+      };
+      try { endpoint = options.createWorker!(); }
+      catch (reason) { throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : 'startup', reason, options.onDiagnostic); }
       signal.throwIfAborted();
       result = await new Promise<number>((resolve, reject) => {
         let settled = false;
         const fail = (reason: unknown): void => { settled = true; reject(reason); };
         rejectRun = fail;
         signal.addEventListener('abort', aborted, { once: true });
-        unsubscribe = endpoint!.subscribe(value => {
+        const transportFailure = (reason: unknown): void => { fail(reportPythonFailure('transport-unavailable', reason, options.onDiagnostic)); };
+        try { unsubscribe = endpoint!.subscribe(value => {
           if (closed || settled) return;
-          if (typeof value !== 'object' || value === null) { fail(new TypeError('Invalid Python worker message')); return; }
+          if (typeof value !== 'object' || value === null) { transportFailure(new TypeError('Invalid Python worker message')); return; }
           const message = value as Record<string, unknown>;
           if (message.type === 'ready') {
+            ready = true;
             try { options.onProgress?.({ phase: 'ready', command: context.command }); }
             catch (error) { fail(error); }
             return;
           }
           if (message.type === 'exit') {
-            if (pending.size) { fail(new TypeError('Python worker exited with an outstanding request')); return; }
+            if (pending.size) { transportFailure(new TypeError('Python worker exited with an outstanding request')); return; }
             try {
               const status = validateExitCode(message.exitCode as number);
               settled = true;
               resolve(status);
-            } catch (error) { fail(error); }
+            } catch (error) { transportFailure(error); }
             return;
           }
           if (message.type === 'error') {
-            settled = true;
-            const diagnostic = 'python: ' + (typeof message.message === 'string' ? message.message : 'Python worker failed') + '\n';
-            const work = writeBytes(stderrOperation!.output, new TextEncoder().encode(diagnostic), signal).then(
-              () => { pending.delete(work); resolve(1); },
-              error => { pending.delete(work); reject(error); },
-            );
-            pending.add(work);
+            fail(reportPythonFailure(isPythonFailureCategory(message.category) ? message.category : ready ? 'runtime' : 'startup', message.message, options.onDiagnostic));
             return;
           }
-          if (typeof message.op !== 'string' || !Array.isArray(message.args) || pending.size) { fail(new TypeError('Invalid concurrent Python worker request')); return; }
+          if (typeof message.op !== 'string' || !Array.isArray(message.args) || pending.size) { transportFailure(new TypeError('Invalid concurrent Python worker request')); return; }
           const work = dispatch({ op: message.op, args: message.args }).then(
             value => { pending.delete(work); reply(value, 1); },
-            error => {
-              pending.delete(work);
-              if (signal.aborted) { fail(signal.reason); return; }
+            async error => {
+              if (signal.aborted) { pending.delete(work); fail(signal.reason); return; }
               if (typeof message.op === 'string' && message.op.startsWith('package-')) {
-                reply({code:'EPACKAGE', message:error instanceof Error ? error.message : String(error)}, 2);
+                const failure = reportPythonFailure('runtime-assets', error, options.onDiagnostic);
+                pending.delete(work);
+                reply({code:'EPACKAGE', message:failure.message}, 2);
                 return;
               }
-              if (typeof error !== 'object' || error === null || !('code' in error) || typeof error.code !== 'string') { fail(error); return; }
+              if (typeof error !== 'object' || error === null || !('code' in error) || typeof error.code !== 'string') { pending.delete(work); fail(error); return; }
+              await diagnoseFilesystemFailure(message.op as string, error);
+              pending.delete(work);
               reply({ code: error.code }, 2);
             },
           );
           pending.add(work);
-          void work.catch(fail);
-        }, fail);
+          void work.catch(reason => { pending.delete(work); fail(reason); });
+        }, transportFailure); }
+        catch (reason) { transportFailure(reason); }
         if (settled) return;
-        const start: PythonWorkerStart = { type: 'start', shared, invocation: { args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
+        const start: PythonWorkerStart = { type: 'start', shared, invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
         signal.throwIfAborted();
-        endpoint!.postMessage(start);
+        try { endpoint!.postMessage(start); }
+        catch (reason) { transportFailure(reason); }
       });
+      }
     } catch (reason) {
-      if (!signal.aborted && (reason instanceof PythonInputChunkError || (reason instanceof Error && 'code' in reason && reason.code === 'EPACKAGE'))) {
+      if (!signal.aborted && reason instanceof PythonInputChunkError) {
         try { await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + reason.message + '\n'), signal); }
         catch (error) { primary = {reason:error}; }
+      } else if (!signal.aborted && typeof reason === 'object' && reason !== null && 'code' in reason && reason.code === 'EPACKAGE') {
+        primary = { reason: reportPythonFailure('runtime-assets', reason, options.onDiagnostic) };
       } else primary = { reason };
     }
-    try { await close(); } catch (reason) { primary ??= { reason }; }
+    try { await close(); } catch (reason) {
+      primary ??= { reason };
+    }
     try { options.onProgress?.({ phase: 'finished', command: context.command }); }
     catch (reason) { primary ??= { reason }; }
     context.signal.throwIfAborted();
-    if (primary) throw primary.reason;
+    if (primary) {
+      if (!(primary.reason instanceof PythonFailure)) throw primary.reason;
+      const failure = primary.reason;
+      await writeBytes(context.stderr, new TextEncoder().encode('python: ' + failure.message + '\n'), context.signal);
+      return { exitCode: 1 };
+    }
     return { exitCode: result };
   };
-  return ['python', 'python3'].map(name => ({ name, description: 'Python with an explicit synchronous interpreter worker and canonical filesystem', execute }));
+  return ['python', 'python3'].map(name => ({ name, description: 'Python with an explicit interpreter executor and canonical filesystem', execute }));
 }
 
 export function pythonCommands(options: PythonCommandsOptions): VirtualShellPlugin {
-  const commands = createPythonCommands(options);
-  return { name: 'python-commands', setup(host) {
+  if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')) throw new PythonFailure('executor-unavailable');
+  if (options?.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
+  const { provisioning, ...configuration } = options;
+  const environment = options.environment ?? createPythonPackageEnvironment(provisioning);
+  const commands = createPythonCommands({ ...configuration, environment });
+  return { name: 'python-commands', ...(options.environment ? {} : { dispose: environment.dispose }), setup(host) {
     if (!options.replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
     for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
   } };
 }
 
 export { createPythonPackageEnvironment, pythonDocumentPackages } from './provisioning.js';
-export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext } from './provisioning.js';
+export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
+export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
+export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';
+export { createPythonPackageCache } from './cache.js';
+export { createPythonExecutorPool } from './executor-pool.js';
+export type { PythonExecutorPool, PythonExecutorPoolOptions } from './executor-pool.js';
+export { createPythonJspiExecutor } from './jspi.js';
+export type { PythonJspiExecutorOptions, PythonJspiRuntimeConfiguration } from './jspi.js';
+export { createPythonJspiAssets } from './jspi-assets.js';
+export type { PythonJspiAssetsOptions } from './jspi-assets.js';
+export { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from './jspi-trampoline.js';
+export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
+export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';

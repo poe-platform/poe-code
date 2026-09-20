@@ -1,6 +1,6 @@
 import { acp, resolveOutputFormat, text } from "toolcraft-design";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
-import type { AcpEvent, SpawnResultEvent } from "./types.js";
+import type { AcpEvent, PlanEvent, SpawnResultEvent } from "./types.js";
 import { toRenderKind } from "./session-update-converter.js";
 
 function writeLine(line: string): void {
@@ -31,6 +31,9 @@ export function renderAcpEvent(event: AcpEvent): void {
       return;
     case "reasoning":
       acp.renderReasoning((event as { text: string }).text);
+      return;
+    case "plan":
+      acp.renderAgentPlan((event as PlanEvent).entries);
       return;
     case "usage":
       acp.renderUsage({
@@ -117,6 +120,10 @@ export async function renderAcpStream(
 }
 
 function renderSessionUpdate(update: SessionUpdate): void {
+  if (update.sessionUpdate === "plan") {
+    acp.renderAgentPlan(update.entries);
+    return;
+  }
   if (update.sessionUpdate === "agent_message_chunk" && update.content.type === "text") {
     acp.renderAgentMessage(update.content.text);
     return;

@@ -213,7 +213,7 @@ export function findBundleIssues(
     const dependency = packageName(specifier);
     const reason = !dependency
       ? "invalid-external"
-      : dependency === manifest.name || workspaceNames.has(dependency)
+      : dependency === manifest.name || (workspaceNames.has(dependency) && !runtimeDependencies.has(dependency))
         ? "workspace-not-inlined"
         : !runtimeDependencies.has(dependency)
           ? "undeclared-dependency"

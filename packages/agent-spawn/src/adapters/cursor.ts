@@ -20,6 +20,7 @@ function toolInfo(event: Record<string, unknown>): {
   kind: string;
   title: string;
   path: string;
+  input: Record<string, unknown>;
 } {
   const toolCall = asObject(event.tool_call) ?? asObject(event.toolCall) ?? {};
   const [toolName = "tool", rawTool = {}] = Object.entries(toolCall)[0] ?? [];
@@ -32,7 +33,7 @@ function toolInfo(event: Record<string, unknown>): {
     shellToolCall: "exec",
     bashToolCall: "exec"
   };
-  return { kind: kinds[toolName] ?? "other", title: path || toolName, path };
+  return { kind: kinds[toolName] ?? "other", title: path || toolName, path, input: args };
 }
 
 export async function* adaptCursor(lines: AsyncIterable<string>): AsyncGenerator<AcpEvent> {
@@ -69,7 +70,7 @@ export async function* adaptCursor(lines: AsyncIterable<string>): AsyncGenerator
       const info = toolInfo(event);
       const id = typeof event.call_id === "string" ? event.call_id : undefined;
       if (event.subtype === "started") {
-        yield { event: "tool_start", kind: info.kind, title: info.title, id };
+        yield { event: "tool_start", kind: info.kind, title: info.title, id, input: info.input };
       } else if (event.subtype === "completed") {
         yield { event: "tool_complete", kind: info.kind, path: info.path, id };
       }

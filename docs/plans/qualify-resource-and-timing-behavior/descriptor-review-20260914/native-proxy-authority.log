@@ -1,2 +1,0 @@
-{"observed":{"thrown":"Unsupported proxy sandbox value."},"traps":0,"currentCallDepth":0,"retained":0}
-unregistered native Proxy rejected before traps; no new authority or leaked roots: passed

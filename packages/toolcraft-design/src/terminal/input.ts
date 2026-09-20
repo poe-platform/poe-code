@@ -30,9 +30,10 @@ export function createInputParser(options: { escTimeoutMs?: number; onEvent?: (e
     if (timer !== undefined) return;
     timer = setTimeout(() => {
       timer = undefined;
-      if (options.onEvent !== undefined && pending.length === 1 && pending[0] === ESC) {
-        pending = pending.subarray(1);
-        options.onEvent(key("escape"));
+      if (options.onEvent !== undefined && pending.length > 0 && pending.every((byte) => byte === ESC)) {
+        const count = pending.length;
+        pending = Buffer.alloc(0);
+        for (let index = 0; index < count; index++) options.onEvent(key("escape"));
       } else {
         escapeReady = true;
       }
@@ -52,11 +53,12 @@ export function createInputParser(options: { escTimeoutMs?: number; onEvent?: (e
       }
 
       if (pending[0] === ESC) {
-        if (pending.length === 1) {
+        if (pending.every((byte) => byte === ESC)) {
           if (escapeReady) {
-            pending = pending.subarray(1);
+            const count = pending.length;
+            pending = Buffer.alloc(0);
             escapeReady = false;
-            events.push(key("escape"));
+            for (let index = 0; index < count; index++) events.push(key("escape"));
           } else {
             armEscapeTimer();
           }
@@ -68,13 +70,15 @@ export function createInputParser(options: { escTimeoutMs?: number; onEvent?: (e
           paste = true;
           continue;
         }
-        if (pending[1] === 0x5b) {
-          const final = findCsiFinal(pending);
+        const altCsi = pending[1] === ESC && pending[2] === 0x5b;
+        if (pending[1] === 0x5b || altCsi) {
+          const offset = altCsi ? 1 : 0;
+          const final = findCsiFinal(pending.subarray(offset));
           if (final < 0) break;
-          const sequence = pending.subarray(0, final + 1).toString("ascii");
-          pending = pending.subarray(final + 1);
+          const sequence = pending.subarray(offset, offset + final + 1).toString("ascii");
+          pending = pending.subarray(offset + final + 1);
           const event = parseCsi(sequence);
-          if (event !== undefined) events.push(event);
+          if (event !== undefined) events.push(altCsi && event.type === "key" ? { ...event, alt: true } : event);
           continue;
         }
         if (pending[1] === 0x4f) {
@@ -87,6 +91,11 @@ export function createInputParser(options: { escTimeoutMs?: number; onEvent?: (e
         if (pending[1] === 0x03) {
           pending = pending.subarray(1);
           events.push(key("escape"));
+          continue;
+        }
+        if (pending[1]! < 0x20 || pending[1] === 0x7f) {
+          events.push({ ...control(pending[1]!), alt: true });
+          pending = pending.subarray(2);
           continue;
         }
         const decoded = decodeFirstCharacter(pending.subarray(1));
@@ -113,7 +122,7 @@ export function createInputParser(options: { escTimeoutMs?: number; onEvent?: (e
   return {
     feed(chunk) {
       if (chunk.length > 0) {
-        if (pending.length === 1 && pending[0] === ESC) clearEscapeTimer();
+        if (pending.length > 0 && pending.every((byte) => byte === ESC)) clearEscapeTimer();
         pending = pending.length === 0 ? Buffer.from(chunk) : Buffer.concat([pending, chunk]);
       }
       return parse();
@@ -149,7 +158,7 @@ function parseCsi(sequence: string): TerminalInputEvent | undefined {
     }
   }
   const final = sequence.at(-1)!;
-  const name = navigationName(final) ?? ({ "5": "pageup", "6": "pagedown" }[sequence.slice(2, -1)]);
+  const name = navigationName(final) ?? ({ "1": "home", "3": "delete", "4": "end", "5": "pageup", "6": "pagedown", "7": "home", "8": "end" }[sequence.slice(2, -1)]);
   if (name === undefined) return undefined;
   const parameters = sequence.slice(2, -1).split(";");
   const modifier = parameters.length > 1 ? Number(parameters.at(-1)) : 1;

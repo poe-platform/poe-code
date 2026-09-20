@@ -48,10 +48,10 @@ it("times out async tests which never report completion", async () => {
   } finally { vi.useRealTimers(); }
 });
 
-it("reports unsupported modules and fixtures without counting passes", async () => {
+it("executes standalone modules and accounts for helper fixtures separately", async () => {
   expect(await executeTest262("dep_FIXTURE.js", "export {}", { harness, timeoutMs: 1000 })).toEqual({ kind: "fixture" });
   expect(await executeTest262("example.js", '/*---\nflags: [module]\n---*/\nexport {}', { harness, timeoutMs: 1000 }))
-    .toMatchObject({ kind: "test", results: [{ mode: "module", status: "unsupported" }] });
+    .toMatchObject({ kind: "test", results: [{ mode: "module", status: "passed" }] });
 });
 
 it.each([
@@ -99,9 +99,9 @@ it("requires DONE for runtime-negative async tests", async () => {
   } finally { vi.useRealTimers(); }
 });
 
-it("keeps raw module parsing unqualified even when script parsing would pass", async () => {
+it("executes raw modules without changing their enumerated mode", async () => {
   expect(await executeTest262("raw-module.js", '/*---\nflags: [raw, module]\n---*/\n0', { harness, timeoutMs: 1000 }))
-    .toMatchObject({ results: [{ mode: "raw", status: "unsupported", reason: "module" }] });
+    .toMatchObject({ results: [{ mode: "raw", status: "passed" }] });
 });
 
 it("executes only an explicitly enumerated worker mode and rejects invented modes", async () => {
@@ -146,9 +146,9 @@ it.each([
   expect(result).toMatchObject({ results: [{ status, ...(reason ? { reason } : {}) }] });
 });
 
-it.each(["CanBlockIsTrue"])("accounts for %s as a host blocking-mode boundary", async flag => {
+it.each(["CanBlockIsTrue"])("executes %s and classifies its thrown completion", async flag => {
   expect(await executeTest262("blocking.js", `/*---\nflags: [onlyStrict, ${flag}]\n---*/\nthrow 42`, { harness, timeoutMs: 1000 }))
-    .toMatchObject({ results: [{ status: "unsupported", reason: "blocking-mode" }] });
+    .toMatchObject({ results: [{ status: "failed", reason: "unexpected-throw" }] });
 });
 
 it("keeps resource-policy exhaustion distinct from a matching guest negative", async () => {

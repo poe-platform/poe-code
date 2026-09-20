@@ -1,4 +1,4 @@
-import { PublicDiagnostic } from "../../diagnostics.js";
+import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { foldAscii } from "./ascii.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";

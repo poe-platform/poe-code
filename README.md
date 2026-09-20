@@ -77,6 +77,8 @@ interactive terminal, but **required in CI**: without a TTY, `spawn` fails unles
 `--mode` (or `--yes`, which uses the shared `auto` default). The same choices apply to
 `gaslight` and `harness run`, and values are case-insensitive (`--mode READ` works).
 Only `--mode yolo` skips the agent's permission prompts, so keep it out of untrusted CI jobs.
+Codex `read` mode uses its Landlock compatibility sandbox on Linux to retain file and
+network restrictions on hosts that reject bubblewrap loopback setup.
 
 #### Spawn against a GitHub repository
 
@@ -166,7 +168,7 @@ poe-code models --search claude
 
 ## SDK
 
-The isolated `poe-code/safe-bash` entrypoint and its public subpaths require Node.js 22 or newer. They expose the private workspace package `virtual-bash` through `poe-code`; the existing root entrypoints retain their current Node.js requirement and do not load this feature.
+SafeJS, safe-bash, the SafeJS harness, and PowerPoint are workspace tools and are not included in the published `poe-code` package. The `bash` and `harness` commands, SafeJS binaries, sandbox SDK subpaths, and `poe-code/pptx` are unavailable in `poe-code`. Terminal automation is available through the separate `terminal-pilot` and `terminal-pilot-mcp` packages.
 
 Use `poe-code` programmatically in your own code:
 
@@ -278,14 +280,14 @@ sequentially, with a 180-second budget per case. These are explicit stress-test
 budgets, not evidence that the former 30/20-second unit deadlines passed. Release
 CI requires this exclusive stress step, bounded to seven minutes, after workspace
 tests and before smoke testing or publication. See the
-[stress separation plan](docs/plans/lint-stress-separation.md).
+[stress separation plan](https://github.com/poe-platform/poe-code/blob/2ce2f45fc438579d1bbdb022e0ed333c2f17cb10/docs/plans/lint-stress-separation.md).
 
 ## Research Preview
 
 These features are available but subject to breaking changes.
 
-- **[SafeJS](packages/safe-js/README.md)** — Budgeted JavaScript execution with explicit host capabilities and resumable checkpoints. Recent local fixes preserve buffer object state in public dumps, share numeric parser identities within each realm, and correct built-in property descriptors and function lengths. See [development status](packages/safe-js/README.md#development-status) for unreleased and unfinished work, validation results and remaining compatibility gaps; full JavaScript conformance is not claimed.
-- **[Pipeline](packages/pipeline/)** — Run YAML task plans through agents with configurable steps
+- **[SafeJS](packages/safe-js/README.md)** — A JavaScript interpreter with explicit host capabilities, execution budgets, and resumable checkpoints. Supports classes, async functions and generators, guest `eval`, dynamic functions, Proxy/Reflect, and Temporal. Published as `@poe-platform/safe-js`; see [development status](packages/safe-js/README.md#development-status) and [compatibility limitations](packages/safe-js/README.md#meaningful-limitations). Targets published ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), with separately tracked newer APIs. The pinned corpus run is incomplete and contains failures/unsupported modes; minimum-Node and runtime-matrix blockers remain open. See the [compatibility evidence and release disposition](https://github.com/poe-platform/poe-code/blob/2ce2f45fc438579d1bbdb022e0ed333c2f17cb10/docs/plans/safejs-gap-closure-evidence.md#publish-compatibility-documentation--2026-09-15) and [runtime matrix](https://github.com/poe-platform/poe-code/blob/2ce2f45fc438579d1bbdb022e0ed333c2f17cb10/docs/plans/safejs-runtime-support-matrix-final-audit-20260915.md). Full conformance is not established. Source modules use the built-in parser and explicitly granted source resolvers.
+- **[Pipeline](packages/pipeline/)** — Run task plans with configurable steps, live task progress, queued follow-up messages, and plans you can add while the TUI is running.
 - **[Ralph](packages/ralph/)** — Agentic build loop that iterates on a markdown doc
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.
 - **[Poe Agent](packages/poe-agent/)** — Composable agent runtime
@@ -296,12 +298,12 @@ eval, Proxy/Reflect and Temporal are implemented, but **full conformance is not
 established**: the corpus aborted and failures/unsupported modes remain. Node
 18.18+ ESM is declared; minimum-Node, full runtime and recovery qualification
 remain open. Host authority requires explicit grants. See the
-[compatibility summary](packages/safe-js/README.md#compatibility-evidence--2026-09-15)
-and [commands and release evidence](docs/plans/safejs-gap-closure-evidence.md#compatibility-documentation-delivery--2026-09-15).
+[compatibility summary](packages/safe-js/README.md#development-status)
+and [commands and release evidence](https://github.com/poe-platform/poe-code/blob/2ce2f45fc438579d1bbdb022e0ed333c2f17cb10/docs/plans/safejs-gap-closure-evidence.md#compatibility-documentation-delivery--2026-09-15).
 
 SafeJS compatibility is measured against published ECMA-262 edition 16 /
 ECMA-402 edition 12 (June 2025), with newer APIs tracked separately. The
-[dated compatibility report](docs/plans/safejs-gap-closure-evidence.md#publish-compatibility-documentation--2026-09-15)
+[dated compatibility report](https://github.com/poe-platform/poe-code/blob/2ce2f45fc438579d1bbdb022e0ed333c2f17cb10/docs/plans/safejs-gap-closure-evidence.md#publish-compatibility-documentation--2026-09-15)
 links corpus results, runtime coverage, transport restrictions and release
 receipts. An aborted corpus, unsupported required modes and remaining failures
 prevent a full-conformance claim. Published predecessor versions do not establish

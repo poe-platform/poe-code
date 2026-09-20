@@ -1,0 +1,21 @@
+
+> @poe-code/pdf@0.0.1 test
+> cd ../.. && vitest run packages/pdf
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pdf/src/serialization.test.ts (5 tests) 17ms
+ ✓ packages/pdf/src/objects.test.ts (13 tests) 1093ms
+   ✓ emits deterministic Unicode metadata, without clock-derived fields  427ms
+ ✓ packages/pdf/src/layout.test.ts (16 tests) 1613ms
+   ✓ has deterministic empty/one/multiple page geometry with all boxes inside margins  402ms
+ ✓ packages/pdf/src/images.test.ts (5 tests) 570ms
+ ✓ packages/pdf/src/index.test.ts (8 tests) 623ms
+ ✓ packages/pdf/src/line-height.test.ts (2 tests) 123ms
+
+ Test Files  6 passed (6)
+      Tests  49 passed (49)
+   Start at  21:50:25
+   Duration  3.92s (transform 323ms, setup 234ms, import 2.33s, tests 4.04s, environment 0ms)
+

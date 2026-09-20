@@ -1678,6 +1678,32 @@ describe("createDashboard", () => {
     }
   });
 
+  it("keeps pipeline output and drafts visible when shrinking and expanding", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(140, 36);
+      const dashboard = createDashboard({ title: "Pipeline", appearance: "conversation", stdin, stdout, onSubmit: vi.fn() });
+      dashboard.updateStats({ run: {
+        activePlanId: "first", phase: "Implement",
+        queue: [{ kind: "plan", id: "first", path: "docs/plans/release.md", status: "running" }]
+      } });
+      dashboard.appendOutput({ kind: "info", role: "agent", text: "Latest pipeline result", ts: 0 });
+      dashboard.start();
+      stdin.emit("data", Buffer.from("Review this result"));
+      for (const [columns, rows] of [[60, 12], [140, 36]] as const) {
+        stdout.output = "";
+        stdout.columns = columns;
+        stdout.rows = rows;
+        stdout.emit("resize");
+        const text = renderTerminalOutput("\u001b[?7l" + stdout.output, columns, rows).join("\n");
+        expect(text).toContain("Latest pipeline result");
+        expect(text).toContain("Review this result");
+        expect(text).toContain("Esc Browse");
+      }
+      dashboard.destroy();
+    });
+  });
+
   it("redraws only within the new terminal bounds after shrinking", () => {
     withOutputFormat("terminal", () => {
       const stdin = new TestDashboardStdin();

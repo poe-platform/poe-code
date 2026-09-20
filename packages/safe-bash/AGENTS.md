@@ -3,7 +3,7 @@
 ## Authority and ownership
 
 - Work in packages/safe-bash within the authorized poe-code worktree. The
-  integration does not rename the package: it remains private virtual-bash.
+  workspace uses the published name @poe-platform/safe-bash and remains private.
   Root coordinates Git ownership; do not stage, commit, or push without assignment.
 - User statements are authoritative. Preserve exact requirements without
   invention, reinterpretation or silent scope reduction.
@@ -17,7 +17,7 @@
 
 ## Exact requirements and scope
 
-- Build an extensible virtual Bash companion to poe-code packages/safejs,
+- Build an extensible Safe Bash companion to poe-code packages/safejs,
   with Express-like plugins; memory, real, S3-compatible
   (including a mock), WebDAV and further filesystems; many agent-used tools;
   full piping, stdin and shell support. A scaffold or passing subset is not completion.
@@ -58,6 +58,12 @@
 
 ## Codebase and public API
 
+- New commands belong in their own `packages/safe-bash-command-<name>`
+  workspace, named `safe-bash-command-<name>`, with `private: true`.
+  Do not publish these packages unless the user explicitly instructs it.
+  Expose them through safe-bash exports; safe-bash composes packages while
+  command logic stays in the command package. Packed exports must work without
+  installing private workspaces. See `../../docs/plans/safe-bash-command-package-pattern.md`.
 - TypeScript ESM, strict NodeNext, Node.js >=22; use .js specifiers in TS imports.
   Runtime dependencies stay empty. Product virtual commands never spawn native
   processes or access implicit host files; native utilities are test oracles only.

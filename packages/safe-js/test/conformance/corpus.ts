@@ -103,7 +103,7 @@ export async function runTest262Corpus(options: CorpusOptions) {
   const harness = new Map<string, string>();
   const entries: CorpusEntry[] = [];
   const indexedFiles = new Map(manifest.files.map(file => [file.filename, file]));
-  const executor = createTest262Executor({ timeoutMs: options.timeoutMs, budget: options.budget });
+  const executor = createTest262Executor({ timeoutMs: options.timeoutMs, budget: options.budget, sourceRoot:join(options.corpus,"test") });
   try {
   for (const filename of files) {
     let entry: CorpusEntry;

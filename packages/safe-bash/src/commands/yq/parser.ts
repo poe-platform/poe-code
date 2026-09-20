@@ -118,7 +118,7 @@ function stripComment(text: string): string {
       return flowDepth > 0 ? text.trimEnd() : text.slice(0, index).trimEnd();
     }
   }
-  return text.trimEnd();
+  return single || double ? text : text.trimEnd();
 }
 
 function mappingColon(text: string, flow = false): number {
@@ -273,20 +273,35 @@ function normalizeTag(raw: string): string {
   return name;
 }
 
+function scanQuotedWhitespace(raw: string, start: number, end: number): { end: number; breaks: number } {
+  let position = start;
+  let breaks = 0;
+  while (position < end) {
+    const character = raw[position]!;
+    if (character === "\r" || character === "\n") {
+      breaks++;
+      if (character === "\r" && position + 1 < end && raw[position + 1] === "\n") position++;
+    } else if (character !== " " && character !== "\t") break;
+    position++;
+  }
+  return { end: position, breaks };
+}
+
 function decodeDouble(raw: string): string {
   let result = "";
   for (let index = 1; index < raw.length - 1; index++) {
     const character = raw[index]!;
-    if (character === "\n" || character === "\r") {
-      if (character === "\r" && raw[index + 1] === "\n") index++;
-      while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
-      result += " ";
+    if (" \t\r\n".includes(character)) {
+      const whitespace = scanQuotedWhitespace(raw, index, raw.length - 1);
+      result += whitespace.breaks === 0 ? raw.slice(index, whitespace.end)
+        : whitespace.breaks === 1 ? " " : "\n".repeat(whitespace.breaks - 1);
+      index = whitespace.end - 1;
       continue;
     }
     if (character !== "\\") {
-      const codePoint = character.codePointAt(0)!;
+      const codePoint = raw.codePointAt(index)!;
       if (codePoint === 0) throw syntax();
-      result += character;
+      result += String.fromCodePoint(codePoint);
       if (codePoint > 0xffff) index++;
       continue;
     }
@@ -301,8 +316,9 @@ function decodeDouble(raw: string): string {
       continue;
     }
     if (escape === "\n" || escape === "\r") {
-      if (escape === "\r" && raw[index + 1] === "\n") index++;
-      while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
+      const whitespace = scanQuotedWhitespace(raw, index, raw.length - 1);
+      result += "\n".repeat(whitespace.breaks - 1);
+      index = whitespace.end - 1;
       continue;
     }
     const digits = escape === "x" ? 2 : escape === "u" ? 4 : escape === "U" ? 8 : 0;
@@ -330,14 +346,14 @@ function projectDoubleBytes(raw: string, start = 0, end = raw.length): number {
   let bytes = 0;
   for (let index = start + 1; index < end - 1; index++) {
     const character = raw[index]!;
-    if (character === "\n" || character === "\r") {
-      if (character === "\r" && raw[index + 1] === "\n") index++;
-      while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
-      bytes++;
+    if (" \t\r\n".includes(character)) {
+      const whitespace = scanQuotedWhitespace(raw, index, end - 1);
+      bytes += whitespace.breaks === 0 ? whitespace.end - index : Math.max(1, whitespace.breaks - 1);
+      index = whitespace.end - 1;
       continue;
     }
     if (character !== "\\") {
-      const codePoint = character.codePointAt(0)!;
+      const codePoint = raw.codePointAt(index)!;
       if (codePoint === 0) throw syntax();
       bytes += utf8Width(codePoint);
       if (codePoint > 0xffff) index++;
@@ -354,8 +370,9 @@ function projectDoubleBytes(raw: string, start = 0, end = raw.length): number {
       continue;
     }
     if (escape === "\n" || escape === "\r") {
-      if (escape === "\r" && raw[index + 1] === "\n") index++;
-      while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
+      const whitespace = scanQuotedWhitespace(raw, index, end - 1);
+      bytes += whitespace.breaks - 1;
+      index = whitespace.end - 1;
       continue;
     }
     const digits = escape === "x" ? 2 : escape === "u" ? 4 : escape === "U" ? 8 : 0;
@@ -379,8 +396,20 @@ function projectDoubleBytes(raw: string, start = 0, end = raw.length): number {
 }
 
 function decodeSingle(raw: string): string {
-  const inner = raw.slice(1, -1);
-  return inner.replace(/''/gu, "'").replace(/\r\n|\r|\n[ \t]*/gu, " ");
+  let result = "";
+  for (let index = 1; index < raw.length - 1; index++) {
+    const character = raw[index]!;
+    if (" \t\r\n".includes(character)) {
+      const whitespace = scanQuotedWhitespace(raw, index, raw.length - 1);
+      result += whitespace.breaks === 0 ? raw.slice(index, whitespace.end)
+        : whitespace.breaks === 1 ? " " : "\n".repeat(whitespace.breaks - 1);
+      index = whitespace.end - 1;
+    } else {
+      result += character;
+      if (character === "'" && raw[index + 1] === "'") index++;
+    }
+  }
+  return result;
 }
 
 function projectSingleBytes(raw: string, start = 0, end = raw.length): number {
@@ -390,12 +419,12 @@ function projectSingleBytes(raw: string, start = 0, end = raw.length): number {
     if (character === "'" && raw[index + 1] === "'") {
       bytes++;
       index++;
-    } else if (character === "\r" || character === "\n") {
-      if (character === "\r" && raw[index + 1] === "\n") index++;
-      if (character === "\n" || raw[index] === "\n") while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
-      bytes++;
+    } else if (" \t\r\n".includes(character)) {
+      const whitespace = scanQuotedWhitespace(raw, index, end - 1);
+      bytes += whitespace.breaks === 0 ? whitespace.end - index : Math.max(1, whitespace.breaks - 1);
+      index = whitespace.end - 1;
     } else {
-      const codePoint = character.codePointAt(0)!;
+      const codePoint = raw.codePointAt(index)!;
       bytes += utf8Width(codePoint);
       if (codePoint > 0xffff) index++;
     }
@@ -1009,7 +1038,8 @@ class BlockParser {
       }
       balanced = !single && !double && (negativeDepth || depth === 0);
       if (balanced || this.#index >= this.lines.length) break;
-      fragment = `\n${this.lines[this.#index++]!.text.trimStart()}`;
+      const continuation = this.lines[this.#index++]!.text;
+      fragment = `\n${single || double ? continuation : continuation.trimStart()}`;
       fragments.push(fragment);
     }
     if (!balanced) throw syntax(lineNumber, 1);
@@ -1158,7 +1188,7 @@ export async function* parseYamlDocuments(text: string, work: YqOwnedWork, ledge
       let codePoints = 0;
       for (let index = 0; index < line.text.length; index++) {
         const character = line.text[index]!;
-        const point = character.codePointAt(0)!;
+        const point = line.text.codePointAt(index)!;
         if (doubleQuoted) {
           if (escaped) escaped = false;
           else if (character === "\\") escaped = true;

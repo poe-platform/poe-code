@@ -46,8 +46,30 @@ operand) for source from stdin. File and inline-code entry leave stdin for progr
 data. Unsupported interpreter flags and missing `-c`/`-m` operands fail with
 status 2. Python exceptions and `SystemExit` use Python exit status behavior;
 stream flush failure selects status 120. This is not an interactive REPL.
+`sys.orig_argv` retains the invoked command alias and original interpreter
+arguments, independently of the execution mode's `sys.argv`. Custom worker
+start messages may supply `invocation.command`; omission uses `python`.
 
 ## Configuration and ownership
+
+### Temporary-directory cleanup
+
+On filesystems advertising `atomicTreeRemoval` with `removeTreeConditional`,
+Python's `shutil.rmtree` uses identity-checked backend subtree removal. This lets
+`tempfile.TemporaryDirectory` clean normal and exceptional scopes without
+pretending that the bridge exposes retained POSIX directory descriptors.
+Supported compositions preserve readonly policy, quotas, protected mounts,
+symlink targets and operation cancellation. Cleanup errors still flow through
+the standard `onexc`/`onerror` and `ignore_errors` handling.
+
+Capability absence leaves CPython's original descriptor-safe implementation in
+place; its global symlink-protection setting is never disabled. Generic `dir_fd`
+operations and cleanup on backends lacking the required capability remain
+unsupported. A delayed Memory-backed implementation is not evidence of deployed
+object-store support. Remote hosts must provide authoritative conditional
+subtree removal or a separately qualified retained-directory implementation.
+
+### Options
 
 - `createWorker` is required. It must place the synchronous interpreter on a
   different event loop from filesystem and shell stream service work.
@@ -65,11 +87,23 @@ stream flush failure selects status 120. This is not an interactive REPL.
   oversized upstream stdin fragment returns status 1 before the bridge retains
   a copy. This bounds bridge retention, not allocation already made by its producer.
 - `replace` defaults to false and controls command-registration collisions.
+- `onDiagnostic` is an optional host-only callback receiving `{ failure, cause }`.
+  `failure` is a `PythonFailure` with a stable `category` and fixed safe message;
+  `cause` contains private underlying details. Do not forward `cause` to agents.
+  Callback failures are observed and ignored, and callbacks are not awaited.
 - `packages`, `requirements`, `packageProfile` and `provisioning` configure
   explicit package installation, canonical input files, the opt-in document
   profile, and installer transport/cache policy. The complete configuration and
   supported `python -m pip install` options are documented in
   [package environments](../../docs/python-packages.md).
+- `environment` borrows a host-owned `PythonPackageEnvironment` instead of
+  creating a private one. It cannot be combined with `provisioning`. Closing a
+  shell retires its sessions/workers, not that borrowed environment or its cache.
+  The owner awaits `environment.dispose()` after all its consumers are finished.
+  Shared artifact caches do not implicitly share requirements: durable/shared
+  manifests use an explicit `manifestStore` and tenant/environment `scope` with
+  conditional publication. Stale revisions report `PythonPackageConflictError`
+  to the host diagnostic callback and remain retryable without lost updates.
 
 All application filesystem requests use the invocation's scoped caller
 filesystem. Retained acquisitions use `openCommandFile` for shell file-output
@@ -77,6 +111,43 @@ accounting. The service is registered for invocation cleanup before acquisition
 and owns descriptor retirement, including late acquisitions. Backend errors and
 caller cancellation remain observable; cancellation does not undo completed
 mutations. An uncooperative backend promise can delay cleanup indefinitely.
+
+## Capability and failure diagnostics
+
+`inspectPythonCapabilities({ createWorker, createExecutor, fs, requiredFileSystem, runtimeVersion })`
+returns `{ configurationValid, failures }` without starting an interpreter or
+opening files. Supply exactly one of `createWorker` or `createExecutor`;
+missing or conflicting factories report `executor-unavailable`. This portable API
+never imports or selects a host transport. Supplying a factory does not prove
+that a host can actually run it; shared-memory checks for `createWorker` are
+structural only and do not apply to `createExecutor`.
+This is not a Cloudflare Python execution qualification.
+
+`requiredFileSystem` defaults to an empty list. Request `open`, `read`, `write`
+or `directory` only for workflows that need them. Missing `fs.open` does not
+reject unrelated inline/stdin programs. Read/write checks inspect advertised
+capabilities and retained-open availability, not path permissions or backend
+connectivity. Retained directory operations remain unsupported (#749), so a
+requested `directory` capability currently always fails preflight. An optional
+`runtimeVersion` must match `314.0.6`; omission does not validate runtime assets
+or the private ABI.
+
+Categories distinguish `executor-unavailable`, `transport-unavailable`,
+`runtime-abi`, `runtime-assets`, `filesystem-open`, `filesystem-read`,
+`filesystem-write`, `filesystem-directory`, `filesystem-operation`, `capacity`,
+`cleanup`, `startup`, `runtime`, `isolation-unavailable` and `deadline`. Unknown worker error categories never become
+agent-facing text. Loader/transport/factory failures yield status 1 with fixed
+messages; worker-provided and host error details go only to `onDiagnostic`.
+Unsupported filesystem requests retain ENOTSUP and emit one capability hint per
+category per invocation. Python application output and normal Python exception
+tracebacks are not rewritten.
+
+Caller cancellation, stream failures and work-budget/checkpoint exceptions retain
+their original control-flow behavior. Cleanup failures reject with a sanitized
+`PythonFailure` when observed through the shell cleanup barrier; the private
+cause is sent once to the host callback. An unconfirmed retirement retains its
+capacity slot, while confirmed failed-startup retirement releases it for the
+next invocation. Repeated shell disposal does not re-run retirement.
 
 The interpreter alone may block in `Atomics.wait`. The host services bounded
 stdin pulls, awaited stdout/stderr writes and asynchronous filesystem requests
@@ -119,12 +190,18 @@ replacing its exhausted plugin.
 
 Already admitted host effects cannot be undone. Uncooperative filesystem,
 transport or sink promises may delay cleanup indefinitely; worker termination
-cannot preempt arbitrary host JavaScript. There is no enforced Python instruction
+cannot preempt arbitrary host JavaScript. The trusted worker has no enforced Python instruction
 quota, per-command CPU budget, WebAssembly heap cap or RSS cap. Host deadline
 cancellation can terminate execution while the host event loop is responsive;
 it is not a hard CPU-time guarantee. Worker count, bounded bridge buffers and
 cache limits reduce retained host resources without bounding guest allocations,
 installed package expansion or total process memory.
+
+The separate [Docker host](python-docker.md) supplies a concrete opt-in
+`createExecutor` implementation with container-wide memory/CPU-rate controls,
+external wall supervision and fresh invocation isolation. Its application-wide
+pool, operating-system prerequisites and precise limits are explicit; they are
+not guarantees of an arbitrary injected executor or the trusted Node worker.
 
 ## Preserved refusals and qualification limits
 
@@ -207,7 +284,7 @@ not forced cancellation of an arbitrary backend promise that never settles.
 
 `pythonCommands({ createWorker, runtimeMount?, maxTransferBytes?, maxOpenFiles?,
 maxConcurrentWorkers?, maxInputChunkBytes?,
-onProgress?, packages?, requirements?, packageProfile?, provisioning?, replace? })` registers both `python` and `python3`. Registration
+onProgress?, onDiagnostic?, packages?, requirements?, packageProfile?, provisioning?, environment?, replace? })` registers both `python` and `python3`. Registration
 creates no interpreter. Each command creates and terminates its own dedicated
 worker; interpreter instances are not pooled. `onProgress` reports `initializing`,
 `ready`, and `finished` for the host UI, separately from guest output streams.

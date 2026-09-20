@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const gitLocalVariablesByPath = new Map();
 const dependencyFields = ["dependencies", "devDependencies", "optionalDependencies"];
 const identityFields = ["dev", "ino", "mode", "size", "nlink", "mtimeMs", "ctimeMs"];
 const compareNames = (left, right) => left < right ? -1 : left > right ? 1 : 0;
@@ -235,10 +236,34 @@ function selectBuildStages(plan, roots) {
   return { stages: plan.stages.filter(stage => selected.has(stage.name)).map(stage => events.get(stage.name) === "build" ? stage : { ...stage, event: events.get(stage.name) }), noBuild: plan.noBuild.filter(stage => selected.has(stage.name)) };
 }
 
+export function affectedWorkspaceNames(plan, reference, files) {
+  assert.ok(typeof reference === "string" && reference.length && !reference.startsWith("-") && !reference.includes("\0"), "Invalid affected reference");
+  if (files === undefined) {
+    const options = { cwd: plan.root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 };
+    files = [...execFileSync("git", ["diff", "--name-only", "--no-renames", "-z", reference, "--"], options).split("\0"),
+      ...execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z"], options).split("\0")].filter(Boolean);
+  }
+  const selected = new Set();
+  for (const file of files) {
+    assert.ok(typeof file === "string" && !path.isAbsolute(file) && !file.split("/").includes(".."), "Invalid affected path");
+    const owner = plan.workspaces.find(workspace => file.startsWith(workspace.path + "/"));
+    if (!owner) return new Set(plan.workspaces.map(workspace => workspace.name));
+    selected.add(owner.name);
+  }
+  let changed;
+  do {
+    changed = false;
+    for (const edge of plan.edges) if (selected.has(edge.to) && !selected.has(edge.from)) {
+      selected.add(edge.from); changed = true;
+    }
+  } while (changed);
+  return selected;
+}
+
 export function createWorkspaceTestPlan(rootDirectory, options = {}) {
-  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup } = options;
+  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, affected, affectedFiles } = options;
   assert.ok(concurrency === 1 || concurrency === 4, "Unit concurrency must be 1 or 4");
-  assert.ok(excludeWorkspace === undefined || excludeWorkspace === "virtual-bash", "Only the Node20 virtual-bash exclusion is supported");
+  assert.ok(excludeWorkspace === undefined || excludeWorkspace === "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported");
   assert.ok(Array.isArray(testArguments) && testArguments.every(value => typeof value === "string" && !value.includes("\0")), "Invalid test arguments");
   assert.ok(ciGroup === undefined || ciGroup === "fresh" || ciGroup === "cached", "Invalid CI unit group");
   assert.ok(ciGroup === undefined || (!excludeWorkspace && !testArguments.length), "CI unit groups do not accept exclusions or test arguments");
@@ -256,7 +281,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
         const command = `cd ../.. && vitest run ${config}${workspace?.path}/src`;
         return [command, `${command}/`];
       });
-      assert.ok(name !== "virtual-bash" && workspace && commands.includes(scripts["test:unit"])
+      assert.ok(name !== "@poe-platform/safe-bash" && workspace && commands.includes(scripts["test:unit"])
         && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined, `Workspace is not cacheable: ${name}`);
     }
   }
@@ -277,6 +302,8 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     }
     if (task.cache !== undefined) assert.equal(typeof task.cache, "boolean");
   }
+  const affectedNames = affected === undefined ? undefined : affectedWorkspaceNames(plan, affected, affectedFiles);
+  assert.ok(affected === undefined || ciGroup === undefined, "Affected selection does not accept CI groups");
   const candidates = [{ name: plan.rootManifest.name, path: null, manifest: plan.rootManifest }, ...plan.workspaces];
   const testStages = [], noTest = [], buildRoots = new Set();
   for (const workspace of candidates) {
@@ -290,8 +317,9 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     const id = workspace.path === null ? "//#test:unit" : workspace.name + "#test:unit";
     const settings = { ...tasks["test:unit"], ...tasks[id] };
     if (workspace.path === null) assert.ok(!settings.dependsOn?.length, "Root test build dependencies are unsupported");
+    if (affectedNames && workspace.path !== null && !affectedNames.has(workspace.name)) continue;
     if (workspace.name === excludeWorkspace && workspace.path !== null) continue;
-    if (ciGroup !== undefined && (workspace.name === "virtual-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
+    if (ciGroup !== undefined && (workspace.name === "@poe-platform/safe-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
     testStages.push({ id, name: workspace.name, path: workspace.path, event: "test:unit" });
     for (const dependency of settings.dependsOn ?? []) {
       if (dependency === "build") buildRoots.add(workspace.name);
@@ -299,22 +327,50 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     }
   }
   const selected = selectBuildStages(plan, buildRoots);
-  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(ciGroup === undefined ? {} : { ciGroup }) };
+  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(affected === undefined ? {} : { affected }), ...(ciGroup === undefined ? {} : { ciGroup }) };
 }
 
 function taskEnvironment(environment, stage, unitMode) {
   const selected = { ...environment };
-  if (unitMode && !(stage.path !== null && stage.name === "virtual-bash" && stage.event === "test:unit")) {
+  if (unitMode && !(stage.path !== null && stage.name === "@poe-platform/safe-bash" && stage.event === "test:unit")) {
     for (const name of ["SAFE_BASH_TEST_RG", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT", "SAFE_BASH_TEST_SHARD", "SAFE_BASH_TEST_CONCURRENCY"]) delete selected[name];
   }
   return selected;
 }
 
-async function executeStages(plan, { environment, spawn, host, concurrency = 1, unitMode = false, testArguments = [] }) {
+async function executeStages(plan, { environment, spawn, host, concurrency = 1, unitMode = false, testArguments = [], dependencyOrder = false, taskCache }) {
   assert.equal(host.platform === "win32", false, "Workspace process-group cleanup currently supports POSIX hosts");
   const active = new Set(), registered = [], failures = [];
   const remember = (context, error) => { context?.errors.push(error); failures.push(error); };
-  let interrupted, failed = false, next = 0, completed = 0;
+  let interrupted, failed = false, completed = 0;
+  const pending = new Set(plan.stages);
+  const selectedNames = new Set(plan.stages.map(stage => stage.name));
+  const finished = new Set(), waiting = new Set(), inFlight = new Set();
+  const prerequisites = new Map();
+  if (dependencyOrder) {
+    const edges = new Map();
+    for (const edge of plan.edges) {
+      if (!edges.has(edge.from)) edges.set(edge.from, []);
+      edges.get(edge.from).push(edge.to);
+    }
+    for (const stage of plan.stages) {
+      const required = new Set(), visited = new Set();
+      const visit = name => {
+        if (visited.has(name)) return;
+        visited.add(name);
+        for (const dependency of edges.get(name) ?? []) {
+          if (selectedNames.has(dependency)) required.add(dependency);
+          visit(dependency);
+        }
+      };
+      visit(stage.name);
+      prerequisites.set(stage.name, required);
+    }
+  }
+  const notifyReady = () => {
+    for (const resolve of waiting) resolve();
+    waiting.clear();
+  };
   const signal = (pid, value) => {
     try { host.kill(-pid, value); } catch (error) { if (error?.code !== "ESRCH") throw error; }
   };
@@ -340,6 +396,11 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
   };
   const handlers = new Map(["SIGINT", "SIGTERM"].map(value => [value, () => stop(value)]));
   const run = async stage => {
+    const startedAt = performance.now();
+    if (taskCache?.restore(stage)) {
+      completed++;
+      return;
+    }
     const context = { stage, child: undefined, stopped: false, errors: [], forceTimer: undefined };
     active.add(context);
     const event = stage.event ?? "build";
@@ -397,16 +458,33 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
           assert.ok(!exists(), "Workspace process group did not exit");
         } catch (error) { remember(context, error); failure(); }
       }
-      if (!context.errors.length && !context.stopped) completed++;
+      if (!context.errors.length && !context.stopped) {
+        taskCache?.save(stage, Math.round(performance.now() - startedAt));
+        completed++;
+      }
     } finally {
       clearTimeout(context.forceTimer);
       active.delete(context);
     }
   };
   const work = async () => {
-    while (!failed && next < plan.stages.length) {
-      const stage = plan.stages[next++];
-      await run(stage);
+    while (!failed && pending.size) {
+      const stage = [...pending].find(candidate =>
+        [...(prerequisites.get(candidate.name) ?? [])].every(name => finished.has(name)));
+      if (!stage) {
+        assert.ok(inFlight.size, "Workspace dependencies cannot make progress");
+        await new Promise(resolve => waiting.add(resolve));
+        continue;
+      }
+      pending.delete(stage);
+      inFlight.add(stage);
+      try {
+        await run(stage);
+        if (!failed) finished.add(stage.name);
+      } finally {
+        inFlight.delete(stage);
+        notifyReady();
+      }
     }
   };
   try {
@@ -414,6 +492,7 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
     const workers = Array.from({ length: concurrency }, () => work().catch(error => {
       failures.push(error); failed = true;
       for (const context of active) terminate(context, "SIGTERM");
+      notifyReady();
     }));
     await Promise.all(workers);
   } catch (error) { failures.push(error); failed = true; }
@@ -426,40 +505,65 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
 }
 
 export async function buildWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace, concurrency = 2 } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace, concurrency = 2, cache, cacheStore, cacheFiles, affected, affectedFiles } = options;
   assert.ok(concurrency === 1 || concurrency === 2, "Build concurrency must be 1 or 2");
   validateEnvironment(environment);
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
-  const selected = { ...plan, ...selectBuildStages(plan, workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) };
-  let completed = 0;
-  for (const layer of plan.layers) {
-    const names = new Set(layer);
-    const stages = selected.stages.filter(stage => names.has(stage.name));
-    if (stages.length) completed += await executeStages({ ...selected, stages }, { environment, spawn, host, concurrency });
+  assert.ok(workspace === undefined || affected === undefined, "Select a workspace or affected reference");
+  const selected = { ...plan, ...selectBuildStages(plan, affected === undefined ? (workspace === undefined ? plan.workspaces.map(stage => stage.name) : [workspace]) : affectedWorkspaceNames(plan, affected, affectedFiles)) };
+  let buildCache;
+  if (cache !== false && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs))
+    && selected.stages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc"))) {
+    const { prepareBuildCache } = await import("./check-cache.mjs");
+    buildCache = prepareBuildCache(plan, selected.stages, { cacheStore, cacheFiles, environment, fileSystem });
   }
-  return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless };
+  const started = performance.now();
+  const completed = await executeStages(selected, { environment, spawn, host, concurrency, dependencyOrder: true, taskCache: buildCache });
+  buildCache?.flush();
+  return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless,
+    ...(buildCache ? { cache: "SHARED", ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
 
 export async function testWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles } = options;
   validateEnvironment(environment);
-  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup });
+  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup, affected, affectedFiles });
   let testStages = plan.testStages;
   if (plan.rootManifest.scripts["test:unit:shared"]) {
     const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
     testStages = sharedVitestStages(plan, fileSystem);
   }
   const childEnvironment = { ...environment };
-  const localGitVariables = execFileSync("git", ["rev-parse", "--local-env-vars"], {
+  const gitPath = environment.PATH ?? process.env.PATH;
+  let localGitVariables = gitLocalVariablesByPath.get(gitPath);
+  if (!localGitVariables) localGitVariables = execFileSync("git", ["rev-parse", "--local-env-vars"], {
     cwd: plan.root,
-    env: { PATH: environment.PATH, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
+    env: { PATH: gitPath, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
     encoding: "utf8", timeout: 10000, maxBuffer: 65536
   }).trim().split("\n");
   assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
+  gitLocalVariablesByPath.set(gitPath, localGitVariables);
   for (const name of localGitVariables) delete childEnvironment[name];
-  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true });
-  await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments });
-  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: "UNCACHED", excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless };
+  const caching = cache !== false && ciGroup !== "fresh" && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs));
+  childEnvironment.POE_CHECK_CACHE = caching ? "1" : "0";
+  let buildCache;
+  if (caching && plan.buildStages.some(stage => stage.manifest.scripts.build.split(" ").includes("tsc"))) {
+    const { prepareBuildCache } = await import("./check-cache.mjs");
+    buildCache = prepareBuildCache(plan, plan.buildStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
+  }
+  const started = performance.now();
+  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency: 2, dependencyOrder: true, taskCache: buildCache });
+  buildCache?.flush();
+  let unitCache;
+  if (caching && testStages.some(stage => stage.path !== null && stage.event === "test:unit"
+    && plan.workspaces.find(workspace => workspace.name === stage.name).manifest.scripts["test:unit"].split(" ").includes("vitest"))) {
+    const { prepareNativeUnitCache } = await import("./check-cache.mjs");
+    unitCache = prepareNativeUnitCache(plan, testStages, { cacheStore, cacheFiles, environment: childEnvironment, fileSystem });
+  }
+  await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments, taskCache: unitCache });
+  unitCache?.flush();
+  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: caching ? "SHARED" : "UNCACHED", ...(unitCache ? unitCache.stats : {}), excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless,
+    ...(buildCache ? { ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
 
 export function parseWorkspaceArguments(args) {
@@ -467,7 +571,14 @@ export function parseWorkspaceArguments(args) {
   if (args[0] !== "--test-unit") {
     const result = { mode: "build" };
     for (const argument of args) {
-      if (argument.startsWith("--concurrency=")) {
+      if (argument === "--no-cache") {
+        assert.ok(result.cache === undefined, "Duplicate cache option");
+        result.cache = false;
+      } else if (argument.startsWith("--affected=")) {
+        assert.ok(result.affected === undefined, "Duplicate affected option");
+        result.affected = argument.slice("--affected=".length);
+        affectedWorkspaceNames({ workspaces: [], edges: [] }, result.affected, []);
+      } else if (argument.startsWith("--concurrency=")) {
         assert.ok(!Object.hasOwn(result, "concurrency"), "Duplicate build concurrency");
         const value = argument.slice("--concurrency=".length);
         assert.ok(value === "1" || value === "2", "Build concurrency must be 1 or 2");
@@ -479,6 +590,7 @@ export function parseWorkspaceArguments(args) {
         result.workspace = workspace;
       }
     }
+    assert.ok(result.workspace === undefined || result.affected === undefined, "Select a workspace or affected reference");
     return result;
   }
   const result = { mode: "test-unit", concurrency: 1, excludeWorkspace: undefined, testArguments: [] };
@@ -488,17 +600,25 @@ export function parseWorkspaceArguments(args) {
     if (argument === "--") { result.testArguments.push(...args.slice(index + 1)); break; }
     const equals = argument.indexOf("=");
     const name = equals < 0 ? argument : argument.slice(0, equals);
-    if (name === "--concurrency" || name === "--exclude-workspace" || name === "--ci-group") {
+    if (name === "--no-cache") {
+      assert.ok(equals < 0 && !seen.has(name), "Invalid or duplicate cache option");
+      seen.add(name); result.cache = false;
+    } else if (name === "--affected") {
+      assert.ok(equals >= 0 && !seen.has(name), "Invalid or duplicate affected option");
+      seen.add(name); result.affected = argument.slice(equals + 1);
+      affectedWorkspaceNames({ workspaces: [], edges: [] }, result.affected, []);
+    } else if (name === "--concurrency" || name === "--exclude-workspace" || name === "--ci-group") {
       assert.ok(!seen.has(name), "Duplicate runner option"); seen.add(name);
       const value = equals < 0 ? undefined : argument.slice(equals + 1);
       if (name === "--concurrency") { assert.ok(value === "1" || value === "4", "Unit concurrency must be 1 or 4"); result.concurrency = Number(value); }
       else if (name === "--ci-group") { assert.ok(value === "fresh" || value === "cached", "Invalid CI unit group"); result.ciGroup = value; }
-      else { assert.equal(value, "virtual-bash", "Only the Node20 virtual-bash exclusion is supported"); result.excludeWorkspace = value; }
+      else { assert.equal(value, "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported"); result.excludeWorkspace = value; }
     } else {
       assert.ok(!["--workspace", "--test-unit"].includes(name), "Unsupported unit runner option");
       result.testArguments.push(...args.slice(index)); break;
     }
   }
+  assert.ok(result.affected === undefined || result.ciGroup === undefined, "Affected selection does not accept CI groups");
   assert.ok(result.ciGroup === undefined || (!result.excludeWorkspace && !result.testArguments.length), "CI unit groups do not accept exclusions or test arguments");
   return result;
 }

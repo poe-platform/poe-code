@@ -50,12 +50,13 @@ function fixture(
   native = true,
   empty = false,
   configure?: (files: Map<string, Buffer>) => void,
-  release = false
+  release = false,
+  playwright = true
 ) {
   const root = "/checkout/packages/safe-bash",
     snapshot = "/snapshot";
   const bash = {
-    name: "virtual-bash",
+    name: "@poe-platform/safe-bash",
     private: true,
     peerDependencies: { "poe-code": ">=13.0.0" },
     devDependencies: { "poe-code": release ? "13.0.0" : "file:../.." },
@@ -68,7 +69,11 @@ function fixture(
     devDependencies: { "poe-code": "file:." },
     exports: {
       "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: `./${runtime}` },
-      "./safe-fs/core": { types: "./packages/safe-fs/dist/core.d.ts", import: `./${core}` }
+      "./safe-fs/core": { types: "./packages/safe-fs/dist/core.d.ts", import: `./${core}` },
+      ...(!release ? {
+        "./safe-playwright": { types: "./packages/safe-playwright/dist/index.d.ts", import: "./packages/safe-playwright/dist/index.js" },
+        "./safe-playwright/adapter": { types: "./packages/safe-playwright/dist/adapter.d.ts", import: "./packages/safe-playwright/dist/adapter.js" }
+      } : {})
     },
     ...(native
       ? {
@@ -125,6 +130,12 @@ function fixture(
     ["packages/safe-js/dist/shared.js", Buffer.from("export const fs = {};")],
     ["packages/safe-fs/dist/index.d.ts", Buffer.from("export declare const fs: unknown;")],
     ["packages/safe-fs/dist/core.d.ts", Buffer.from("export declare const fs: unknown;")],
+    ...(!release ? [
+      ["packages/safe-playwright/dist/index.js", Buffer.from("export const browser = {};")],
+      ["packages/safe-playwright/dist/adapter.js", Buffer.from("export const adapter = {};")],
+      ["packages/safe-playwright/dist/index.d.ts", Buffer.from("export declare const browser: unknown;")],
+      ["packages/safe-playwright/dist/adapter.d.ts", Buffer.from("export declare const adapter: unknown;")]
+    ] as [string, Buffer][] : []),
     ...(native
       ? ([
           [loaderPath, Buffer.from(loader)],
@@ -165,7 +176,7 @@ function fixture(
       [`${snapshot}/package-lock.json`]: JSON.stringify(lock),
       [`${snapshot}/dist/index.js`]: release
         ? 'import "poe-code/safe-fs";'
-        : 'import "poe-code/safe-fs"; import "poe-code/safe-fs/core";'
+        : 'import "poe-code/safe-fs"; import "poe-code/safe-fs/core";' + (playwright ? ' import "poe-code/safe-playwright"; import "poe-code/safe-playwright/adapter";' : '')
     })
   );
   const declarations = {
@@ -177,7 +188,13 @@ function fixture(
         ["poe-code/safe-fs", "packages/safe-fs/dist/index.d.ts"],
         ...(release
           ? []
-          : [["poe-code/safe-fs/core", "packages/safe-fs/dist/core.d.ts"] as [string, string]])
+          : [
+              ["poe-code/safe-fs/core", "packages/safe-fs/dist/core.d.ts"],
+              ...(playwright ? [
+                ["poe-code/safe-playwright", "packages/safe-playwright/dist/index.d.ts"],
+                ["poe-code/safe-playwright/adapter", "packages/safe-playwright/dist/adapter.d.ts"]
+              ] : [])
+            ] as [string, string][])
       ]),
       declarations: new Map(
         [...files]
@@ -262,7 +279,9 @@ for (const empty of [false, true])
       assert.equal(result.integrity, null);
       assert.deepEqual(result.entries, {
         "poe-code/safe-fs": `${prefix}${runtime}`,
-        "poe-code/safe-fs/core": `${prefix}${core}`
+        "poe-code/safe-fs/core": `${prefix}${core}`,
+        "poe-code/safe-playwright": `${prefix}packages/safe-playwright/dist/index.js`,
+        "poe-code/safe-playwright/adapter": `${prefix}packages/safe-playwright/dist/adapter.js`
       });
       assert.deepEqual(result.edges[`${prefix}${runtime}`], {
         [specifier]: `${prefix}${loaderPath}`
@@ -286,6 +305,17 @@ for (const empty of [false, true])
     });
   });
 
+test("required peer follows authenticated checkout entries when Playwright is local", async (context) => {
+  const setup = fixture(false, false, undefined, false, false);
+  await withIo(context, setup, async () => {
+    const result = await captureRequiredPeer(setup.snapshot, setup.emitted, setup.tools, setup.binding);
+    assert.deepEqual(result.entries, {
+      "poe-code/safe-fs": `${prefix}${runtime}`,
+      "poe-code/safe-fs/core": `${prefix}${core}`
+    });
+  });
+});
+
 test("required peer preserves branded no-native relative closure", async (context) => {
   const setup = fixture(false);
   await withIo(context, setup, async () => {
@@ -295,7 +325,7 @@ test("required peer preserves branded no-native relative closure", async (contex
       setup.tools,
       setup.binding
     );
-    assert.equal(Object.keys(result.files).length, 3);
+    assert.equal(Object.keys(result.files).length, 5);
     assert.deepEqual(result.edges[`${prefix}${core}`], {
       "./shared.js": `${prefix}packages/safe-js/dist/shared.js`
     });

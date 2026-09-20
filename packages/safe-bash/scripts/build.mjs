@@ -8,6 +8,7 @@ import ts from "typescript";
 import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 import { loadBoundaries, validateBoundaries } from "./integration-inputs.mjs";
 import { assertLiteralInputPath, isHeldInputPath } from "./typecheck-integration-inputs.mjs";
+import { renderNativeStorageSources } from "./generate-native-storage-sources.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const require = createRequire(import.meta.url);
@@ -232,6 +233,35 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         assert.equal(yaml.version, manifest.peerDependencies.yaml, "YAML declaration version must match the fixed peer");
       }
       let peerPaths;
+      // Explicit private workspace profiles admit declarations only, never sibling source.
+      for (const [name, profile] of Object.entries(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
+        assert.ok(name === "safe-bash-contracts" || name.startsWith("safe-bash-command-"), "private workspace must own command contracts or a command");
+        assertLiteralInputPath(name);
+        assert.ok(!name.includes("/"), "private workspace name must be a literal directory");
+        assert.equal(manifest.devDependencies?.[name], "*", "private workspace must be an explicit local build dependency");
+        const implementationRoot = resolve(root, "../" + name);
+        peerMetadata.add(join(implementationRoot, "package.json"));
+        const implementation = JSON.parse(read(join(implementationRoot, "package.json"), 65536));
+        assert.equal(implementation.name, name, "private workspace identity");
+        assert.equal(implementation.private, true, "command implementation must remain private");
+        assert.equal(implementation.version, profile.version, "private workspace version");
+        assert.equal(implementation.type, "module", "private workspace must use ESM");
+        assert.deepEqual(implementation.dependencies ?? {}, profile.dependencies, "private workspace runtime closure");
+        assert.deepEqual(implementation.devDependencies ?? {}, profile.devDependencies, "private workspace build closure");
+        assert.ok(!Object.keys(implementation.peerDependencies ?? {}).length && !Object.keys(implementation.optionalDependencies ?? {}).length, "private workspace has no implicit dependency closure");
+        const routes = Object.entries(implementation.exports ?? {});
+        assert.ok(routes.length > 0 && routes.length <= 32, "private workspace has bounded explicit exports");
+        for (const [route, target] of routes) {
+          assert.ok(route === "." || route.startsWith("./"), "private export route must be relative");
+          if (route !== ".") assertLiteralInputPath(route.slice(2));
+          assert.ok(typeof target?.types === "string" && target.types.startsWith("./dist/") && target.types.endsWith(".d.ts"), "private workspace declarations must remain below dist");
+          assertLiteralInputPath(target.types.slice(2));
+          assert.equal(target.import, target.types.slice(0, -5) + ".js", "private workspace runtime/declaration route pair");
+          peerPaths ??= {};
+          peerPaths[name + (route === "." ? "" : route.slice(1))] = [resolve(implementationRoot, target.types)];
+        }
+        toolRoots.push(join(implementationRoot, "dist"));
+      }
       if (manifest.peerDependencies?.["poe-code"]) {
         const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
         if (checkout) assert.equal(manifest.devDependencies?.["poe-code"], "file:../..", "checkout peer must use the explicit local root");
@@ -239,18 +269,37 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         peerMetadata.add(join(peerRoot, "package.json"));
         const peer = JSON.parse(read(join(peerRoot, "package.json")));
         assert.equal(peer.name, "poe-code", "canonical public peer identity");
-        const exported = peer.exports?.["./safe-fs"];
+        const detached = checkout && peer.exports?.["./safe-fs"] === undefined;
+        const exported = detached
+          ? { types: "./packages/safe-fs/dist/index.d.ts" }
+          : peer.exports?.["./safe-fs"];
         const target = typeof exported?.types === "string" ? exported.types : exported?.types?.default;
         assert.equal(target, "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
-        if (checkout) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
+        if (checkout && !detached) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
         toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
-        peerPaths = { "poe-code/safe-fs": [resolve(peerRoot, target)] };
-        const core = peer.exports?.["./safe-fs/core"];
+        peerPaths = { ...peerPaths, "poe-code/safe-fs": [resolve(peerRoot, target)] };
+        const core = detached
+          ? { types: "./packages/safe-fs/dist/core.d.ts" }
+          : peer.exports?.["./safe-fs/core"];
         if (core !== undefined) {
           const coreTarget = typeof core.types === "string" ? core.types : core.types?.default;
           assert.equal(coreTarget, "./packages/safe-fs/dist/core.d.ts", "canonical public SafeFS core declaration entry");
-          if (checkout) assert.equal(core.import, "./packages/safe-js/dist/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
+          if (checkout && !detached) assert.equal(core.import, "./packages/safe-js/dist/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
           peerPaths["poe-code/safe-fs/core"] = [resolve(peerRoot, coreTarget)];
+        }
+        if (manifest.devDependencies?.['@poe-code/safe-playwright'] !== undefined) {
+          assert.equal(manifest.devDependencies['@poe-code/safe-playwright'], '*', 'Playwright build dependency must be the local workspace');
+          for (const entry of ['index', 'adapter']) {
+            const name = entry === 'index' ? './safe-playwright' : './safe-playwright/adapter';
+            const exported = detached
+              ? { types: './packages/safe-playwright/dist/' + entry + '.d.ts', import: './packages/safe-playwright/dist/' + entry + '.js' }
+              : peer.exports?.[name];
+            const target = `./packages/safe-playwright/dist/${entry}.d.ts`;
+            assert.equal(exported?.types, target, 'canonical public Playwright declaration entry');
+            assert.equal(exported?.import, `./packages/safe-playwright/dist/${entry}.js`, 'canonical public Playwright runtime entry');
+            peerPaths['poe-code/' + name.slice(2)] = [resolve(peerRoot, target)];
+          }
+          toolRoots.push(join(peerRoot, 'packages/safe-playwright/dist'));
         }
       }
       const portableDependencies = Object.keys(manifest.dependencies ?? {}).length
@@ -295,6 +344,29 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           }
         }
       }
+      if (manifest.devDependencies?.["@poe-code/pandoc"] !== undefined) {
+        assert.equal(manifest.private, true, "Pandoc SDK build dependency is internal only");
+        assert.equal(manifest.devDependencies["@poe-code/pandoc"], "*", "Pandoc SDK build dependency must be the local workspace");
+        const exports = { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } };
+        const packages = {
+          pandoc: { "@poe-code/office-package": "*", entities: "^6.0.1", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", "@poe-code/pdf": "0.0.1", pptx: "*" },
+          pdf: { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1" },
+        };
+        peerPaths ??= {};
+        for (const [name, dependencies] of Object.entries(packages)) {
+          const dependencyRoot = resolve(root, "../" + name);
+          const metadataPath = join(dependencyRoot, "package.json");
+          peerMetadata.add(metadataPath);
+          const dependency = JSON.parse(read(metadataPath, 64 * 1024));
+          assert.equal(dependency.name, "@poe-code/" + name, "Pandoc SDK dependency identity");
+          assert.equal(dependency.version, "0.0.1", "Pandoc SDK dependency version");
+          assert.equal(dependency.private, true, "Pandoc SDK implementation must remain private");
+          assert.deepEqual(dependency.dependencies, dependencies, "Pandoc SDK dependency closure");
+          assert.deepEqual(dependency.exports, exports, "Pandoc SDK declaration exports");
+          toolRoots.push(join(dependencyRoot, "dist"));
+          peerPaths["@poe-code/" + name] = [join(dependencyRoot, "dist/index.d.ts")];
+        }
+      }
       if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
         assert.equal(manifest.private, true, "op build dependency is internal only");
         assert.equal(manifest.devDependencies["@poe-platform/op"], "*", "op build dependency must be the local workspace");
@@ -306,6 +378,11 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         assert.equal(op.exports?.["."]?.types, "./dist/index.d.ts", "internal op declaration entry");
         toolRoots.push(join(opRoot, "dist"));
         peerPaths = { ...peerPaths, "@poe-platform/op": [join(opRoot, "dist/index.d.ts")] };
+      }
+      if (peerPaths) {
+        for (const [name, declarations] of Object.entries(peerPaths)) {
+          if (name.startsWith("poe-code/safe-")) peerPaths["@poe-code/" + name.slice("poe-code/".length)] = declarations;
+        }
       }
       return peerPaths;
     },
@@ -450,6 +527,12 @@ export async function buildPackage({ root = packageRoot, args = [], profile = "d
     },
   };
   const program = ts.createProgram(parsed.fileNames, parsed.options, host);
+  const storageRealm = program.getSourceFile(join(root, "src/playwright/native-storage-realm.ts"));
+  const storageSources = program.getSourceFile(join(root, "src/playwright/native-storage-sources.generated.ts"));
+  if (storageRealm || storageSources) {
+    assert.ok(storageRealm && storageSources, "native storage realm sources are incomplete; regenerate literals");
+    assert.equal(storageSources.text, renderNativeStorageSources(storageRealm.text), "native storage realm literals are stale; run scripts/generate-native-storage-sources.mjs");
+  }
   const diagnostics = ts.getPreEmitDiagnostics(program);
   checkCancellation();
   if (optional) {

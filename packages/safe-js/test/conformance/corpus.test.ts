@@ -30,15 +30,18 @@ afterEach(() => { vol.reset(); vi.clearAllMocks(); });
 it("accounts for every selected source without treating fixtures or unsupported modes as passes", async () => {
   vol.fromJSON({
     "/corpus/test/pass.js": "1", "/corpus/test/fail.js": "throw 42",
-    "/corpus/test/module.js": "/*---\nflags: [module]\n---*/\nexport {}",
+    "/corpus/test/module.js": "/*---\nflags: [module]\n---*/\nif(this!==undefined)throw 42;export {}",
+    "/corpus/test/deferred.js": "/*---\nflags: [module]\nfeatures: [import-defer]\n---*/\nexport {}",
     "/corpus/test/dep_FIXTURE.js": "export {}",
     "/corpus/test/invalid.js": "/*---\nflags: [unknown]\n---*/\n0"
   });
   const report = await runTest262Corpus({ corpus: "/corpus", timeoutMs: 1000 });
   expect(report).toMatchObject({ revision: TEST262_REVISION, execution: { timeoutMs: 1000, budget: {} },
-    counts: { files: 5, fixtures: 1, metadataErrors: 1, executionErrors: 0, variants: 5, passed: 2, failed: 2, unsupported: 1 }
+    counts: { files: 6, fixtures: 1, metadataErrors: 1, executionErrors: 0, variants: 6, passed: 3, failed: 2, unsupported: 1 }
   });
-  expect(report.entries.map(entry => entry.filename)).toEqual(["dep_FIXTURE.js", "fail.js", "invalid.js", "module.js", "pass.js"]);
+  expect(report.entries.map(entry => entry.filename)).toEqual(["deferred.js", "dep_FIXTURE.js", "fail.js", "invalid.js", "module.js", "pass.js"]);
+  expect(report.entries.find(entry => entry.filename === "module.js")).toMatchObject({kind:"test",results:[{mode:"module",status:"passed"}]});
+  expect(report.entries.find(entry => entry.filename === "deferred.js")).toMatchObject({kind:"test",results:[{mode:"module",status:"unsupported"}]});
 });
 
 it.each(["wrong-revision", "dirty"])("refuses unverified corpus state: %s", condition => {

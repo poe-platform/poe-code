@@ -15,36 +15,6 @@
       "types": "./packages/memory/dist/index.d.ts",
       "import": "./packages/memory/dist/index.js"
     },
-    "./safe-bash/commands/op": {
-      "types": "./packages/safe-bash/dist/commands/op/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/op/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/op/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/op/index.js"
-    },
-    "./safejs": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/index.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/index.js"
-    },
-    "./safejs/core": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/core.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/core.js"
-    },
-    "./safejs/cli": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/cli.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/cli.js"
-    },
     "./agent": {
       "types": "./dist/agent.d.ts",
       "import": "./dist/agent.js"
@@ -64,364 +34,13 @@
     "./skills": {
       "types": "./dist/skills.d.ts",
       "import": "./dist/skills.js"
-    },
-    "./safe-bash": {
-      "types": {
-        "workerd": "./packages/safe-bash/dist/core.d.ts",
-        "browser": "./packages/safe-bash/dist/core.d.ts",
-        "default": "./packages/safe-bash/dist/index.d.ts"
-      },
-      "workerd": "./packages/safe-bash/dist/core.browser.js",
-      "browser": "./packages/safe-bash/dist/core.browser.js",
-      "import": "./packages/safe-bash/dist/index.js"
-    },
-    "./safe-bash/optional-host": {
-      "types": "./packages/safe-bash/dist/optional-host.d.ts",
-      "import": "./packages/safe-bash/dist/optional-host.js"
-    },
-    "./safe-bash/contracts": {
-      "types": {
-        "browser": "./packages/safe-bash/dist/contracts/index.d.ts",
-        "default": "./packages/safe-bash/dist/contracts/node.d.ts"
-      },
-      "browser": "./packages/safe-bash/dist/contracts/index.js",
-      "import": "./packages/safe-bash/dist/contracts/node.js"
-    },
-    "./safe-bash/contracts/index": {
-      "types": {
-        "browser": "./packages/safe-bash/dist/contracts/index.d.ts",
-        "default": "./packages/safe-bash/dist/contracts/node.d.ts"
-      },
-      "browser": "./packages/safe-bash/dist/contracts/index.js",
-      "import": "./packages/safe-bash/dist/contracts/node.js"
-    },
-    "./safe-bash/contracts/path": {
-      "types": {
-        "browser": "./packages/safe-bash/dist/contracts/path.d.ts",
-        "default": "./packages/safe-bash/dist/contracts/node-path.d.ts"
-      },
-      "browser": "./packages/safe-bash/dist/contracts/path.js",
-      "import": "./packages/safe-bash/dist/contracts/node-path.js"
-    },
-    "./safe-bash/contracts/*": {
-      "types": "./packages/safe-bash/dist/contracts/*.d.ts",
-      "import": "./packages/safe-bash/dist/contracts/*.js"
-    },
-    "./safe-bash/commands/network": {
-      "types": {
-        "workerd": "./packages/safe-bash/dist/commands/network/public.d.ts",
-        "browser": "./packages/safe-bash/dist/commands/network/public.d.ts",
-        "default": "./packages/safe-bash/dist/commands/network/index.d.ts"
-      },
-      "workerd": "./packages/safe-bash/dist/commands/network/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/network/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/network/index.js"
-    },
-    "./safe-bash/commands/node": {
-      "types": {
-        "workerd": "./packages/safe-bash/dist/commands/node/browser.d.ts",
-        "browser": "./packages/safe-bash/dist/commands/node/browser.d.ts",
-        "default": "./packages/safe-bash/dist/commands/node/index.d.ts"
-      },
-      "workerd": "./packages/safe-bash/dist/commands/node/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/node/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/node/index.js"
-    },
-    "./safe-bash/commands/metadata": {
-      "types": "./packages/safe-bash/dist/commands/metadata/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/metadata/index.js"
-    },
-    "./safe-bash/commands/archive": {
-      "types": "./packages/safe-bash/dist/commands/archive/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/archive/index.js"
-    },
-    "./safe-bash/commands/table-text": {
-      "types": "./packages/safe-bash/dist/commands/table-text/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/table-text/index.js"
-    },
-    "./safe-bash/commands/stream-inspection": {
-      "types": "./packages/safe-bash/dist/commands/stream-inspection/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/stream-inspection/index.js"
-    },
-    "./safe-bash/commands/stream-format": {
-      "types": "./packages/safe-bash/dist/commands/stream-format/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/stream-format/index.js"
-    },
-    "./safe-bash/commands/split": {
-      "types": "./packages/safe-bash/dist/commands/split/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/split/index.js"
-    },
-    "./safe-bash/commands/csplit": {
-      "types": "./packages/safe-bash/dist/commands/csplit/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/csplit/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/csplit/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/csplit/index.js"
-    },
-    "./safe-bash/commands/pr": {
-      "types": "./packages/safe-bash/dist/commands/pr/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/pr/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/pr/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/pr/index.js"
-    },
-    "./safe-bash/commands/tsort": {
-      "types": "./packages/safe-bash/dist/commands/tsort/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/tsort/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/tsort/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/tsort/index.js"
-    },
-    "./safe-bash/commands/factor": {
-      "types": "./packages/safe-bash/dist/commands/factor/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/factor/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/factor/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/factor/index.js"
-    },
-    "./safe-bash/commands/getopt": {
-      "types": "./packages/safe-bash/dist/commands/getopt/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/getopt/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/getopt/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/getopt/index.js"
-    },
-    "./safe-bash/commands/hexdump": {
-      "types": "./packages/safe-bash/dist/commands/hexdump/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/hexdump/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/hexdump/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/hexdump/index.js"
-    },
-    "./safe-bash/commands/iconv": {
-      "types": "./packages/safe-bash/dist/commands/iconv/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/iconv/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/iconv/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/iconv/index.js"
-    },
-    "./safe-bash/commands/time-env": {
-      "types": "./packages/safe-bash/dist/commands/time-env/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/time-env/index.js"
-    },
-    "./safe-bash/commands/tree": {
-      "types": "./packages/safe-bash/dist/commands/tree/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/tree/index.js"
-    },
-    "./safe-bash/commands/file": {
-      "types": "./packages/safe-bash/dist/commands/file/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/file/index.js"
-    },
-    "./safe-bash/commands/grep-aliases": {
-      "types": "./packages/safe-bash/dist/commands/grep-aliases/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/grep-aliases/index.js"
-    },
-    "./safe-bash/commands/column": {
-      "types": "./packages/safe-bash/dist/commands/column/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/column/index.js"
-    },
-    "./safe-bash/commands/html-to-markdown": {
-      "types": "./packages/safe-bash/dist/commands/html-to-markdown/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/html-to-markdown/index.js"
-    },
-    "./safe-bash/commands/du": {
-      "types": "./packages/safe-bash/dist/commands/du/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/du/index.js"
-    },
-    "./safe-bash/commands/expr": {
-      "types": "./packages/safe-bash/dist/commands/expr/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/expr/index.js"
-    },
-    "./safe-bash/commands/timeout": {
-      "types": "./packages/safe-bash/dist/commands/timeout/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/timeout/index.js"
-    },
-    "./safe-bash/commands/apply-patch": {
-      "types": "./packages/safe-bash/dist/commands/apply-patch/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/apply-patch/index.js"
-    },
-    "./safe-bash/commands/which": {
-      "types": "./packages/safe-bash/dist/commands/which/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/which/index.js"
-    },
-    "./safe-bash/commands/xml": {
-      "types": "./packages/safe-bash/dist/commands/xml/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/xml/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/xml/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/xml/index.js"
-    },
-    "./safe-bash/commands/yq": {
-      "types": "./packages/safe-bash/dist/commands/yq/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/yq/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/yq/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/yq/index.js"
-    },
-    "./safe-bash/fs/s3": {
-      "types": "./packages/safe-bash/dist/fs/s3/index.d.ts",
-      "import": "./packages/safe-bash/dist/fs/s3/index.js"
-    },
-    "./safe-bash/fs/s3/http": {
-      "types": "./packages/safe-bash/dist/fs/s3/http/index.d.ts",
-      "import": "./packages/safe-bash/dist/fs/s3/http/index.js"
-    },
-    "./safe-bash/fs/webdav": {
-      "types": "./packages/safe-bash/dist/fs/webdav/index.d.ts",
-      "import": "./packages/safe-bash/dist/fs/webdav/index.js"
-    },
-    "./safe-bash/fs/readonly": {
-      "types": "./packages/safe-bash/dist/fs/readonly/index.d.ts",
-      "import": "./packages/safe-bash/dist/fs/readonly/index.js"
-    },
-    "./safe-bash/fs/mount": {
-      "types": "./packages/safe-bash/dist/fs/mount/index.d.ts",
-      "import": "./packages/safe-bash/dist/fs/mount/index.js"
-    },
-    "./safe-bash/fs/overlay": {
-      "types": "./packages/safe-bash/dist/fs/overlay/index.d.ts",
-      "import": "./packages/safe-bash/dist/fs/overlay/index.js"
-    },
-    "./safe-fs": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/core.d.ts",
-        "default": "./packages/safe-fs/dist/index.d.ts"
-      },
-      "browser": "./packages/safe-js/dist/browser/safe-fs.js",
-      "import": "./packages/safe-js/dist/safe-fs.js"
-    },
-    "./safe-fs/core": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/core.d.ts",
-        "default": "./packages/safe-fs/dist/core.d.ts"
-      },
-      "browser": "./packages/safe-js/dist/browser/safe-fs-core.js",
-      "import": "./packages/safe-js/dist/safe-fs-core.js"
-    },
-    "./safe-fs/node": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-fs/dist/node-host.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/safe-fs-node.js"
-    },
-    "./safe-js": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/index.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/index.js"
-    },
-    "./safe-js/core": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/core.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/core.js"
-    },
-    "./safe-js/cli": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/cli.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/cli.js"
-    },
-    "./safe-bash/node": {
-      "types": "./packages/safe-bash/dist/node.d.ts",
-      "browser": null,
-      "import": "./packages/safe-bash/dist/node.js"
-    },
-    "./safe-js/workerd": {
-      "types": {
-        "workerd": "./packages/safe-js/dist/workerd.d.ts",
-        "browser": "./packages/safe-js/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/workerd.d.ts"
-      },
-      "workerd": "./packages/safe-js/dist/workerd.js",
-      "browser": null,
-      "import": "./packages/safe-js/dist/workerd.js"
-    },
-    "./safe-bash/commands/node/host": {
-      "types": {
-        "workerd": "./packages/safe-bash/dist/node-unavailable.d.ts",
-        "worker": "./packages/safe-bash/dist/node-unavailable.d.ts",
-        "browser": "./packages/safe-bash/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-bash/dist/commands/node/worker-provider.d.ts"
-      },
-      "workerd": null,
-      "worker": null,
-      "browser": null,
-      "import": "./packages/safe-bash/dist/commands/node/worker-provider.js"
-    },
-    "./safejs/workerd": {
-      "types": {
-        "workerd": "./packages/safe-js/dist/workerd.d.ts",
-        "browser": "./packages/safe-js/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-js/dist/workerd.d.ts"
-      },
-      "workerd": "./packages/safe-js/dist/workerd.js",
-      "browser": null,
-      "import": "./packages/safe-js/dist/workerd.js"
-    },
-    "./safe-bash/commands/llm": {
-      "types": "./packages/safe-bash/dist/commands/llm/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/llm/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/llm/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/llm/index.js"
-    },
-    "./safe-bash/commands/llm/providers": {
-      "types": "./packages/safe-bash/dist/commands/llm/providers/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/llm/providers/index.js"
-    },
-    "./safe-bash/commands/line-endings": {
-      "types": "./packages/safe-bash/dist/commands/line-endings/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/line-endings/index.js"
-    },
-    "./pptx": {
-      "types": "./packages/pptx/dist/index.d.ts",
-      "import": "./packages/pptx/dist/index.js"
-    },
-    "./safe-bash/commands/pptx": {
-      "types": "./packages/safe-bash/dist/commands/pptx/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/pptx/index.js"
-    },
-    "./safe-bash/commands/python": {
-      "types": "./packages/safe-bash/dist/commands/python/index.d.ts",
-      "browser": "./packages/safe-bash/dist/commands/python/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/python/index.js"
-    },
-    "./safe-bash/commands/python/worker": {
-      "types": "./packages/safe-bash/dist/commands/python/worker.d.ts",
-      "browser": "./packages/safe-bash/dist/commands/python/worker.browser.js",
-      "import": "./packages/safe-bash/dist/commands/python/worker.js"
-    },
-    "./safe-bash/commands/python/node": {
-      "types": "./packages/safe-bash/dist/commands/python/node.d.ts",
-      "browser": null,
-      "import": "./packages/safe-bash/dist/commands/python/node.js"
-    },
-    "./docx": {
-      "types": "./packages/docx/dist/index.d.ts",
-      "import": "./packages/docx/dist/index.js"
-    },
-    "./safe-bash/commands/docx": {
-      "types": "./packages/safe-bash/dist/commands/docx/index.d.ts",
-      "browser": "./packages/safe-bash/dist/commands/docx/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/docx/index.js"
-    },
-    "./safe-fs/node/filesystem": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safe-fs/dist/node/filesystem.d.ts"
-      },
-      "browser": null,
-      "import": "./packages/safe-js/dist/safe-fs-bridge.js"
     }
   },
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "build": "node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
+    "build": "node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && node --input-type=module -e 'import {rm} from \"node:fs/promises\"; import {assertSafeOutputDirectory} from \"./scripts/guard-package-dist.mjs\"; await assertSafeOutputDirectory(process.cwd()); await rm(\"dist\", {recursive:true, force:true});' && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
     "build:workspaces": "node scripts/build-workspaces.mjs",
     "build:deps": "node scripts/list-workspace-deps.mjs",
     "codegen:python-types": "tsx scripts/generate-agent-spawn-py-types.ts",
@@ -441,7 +60,7 @@
     "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
     "lint:packages": "tsx packages/package-lint/src/cli.ts",
     "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs",
-    "lint:types": "tsc -p tsconfig.build.json --noEmit && npm run typecheck:contracts --workspace=@poe-code/safe-js && npm run typecheck:contracts --workspace=tiny-mcp-client",
+    "lint:types": "tsc -p tsconfig.build.json --noEmit --incremental --tsBuildInfoFile .turbo/types/root.tsbuildinfo && npm run typecheck:contracts --workspace=@poe-code/safe-js && npm run typecheck:contracts --workspace=tiny-mcp-client",
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
     "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",
@@ -499,9 +118,7 @@
     "poe": "dist/bin.cjs",
     "poe-code": "dist/bin.cjs",
     "poe-agent": "dist/bin/poe-agent.js",
-    "poe-superintendent-mcp": "packages/superintendent/dist/mcp.js",
-    "poe-safejs": "packages/safe-js/dist/cli.js",
-    "poe-safe-js": "packages/safe-js/dist/cli.js"
+    "poe-superintendent-mcp": "packages/superintendent/dist/mcp.js"
   },
   "files": [
     "LICENSE",
@@ -511,7 +128,6 @@
     "packages/config-mutations/dist",
     "packages/toolcraft-design/dist",
     "packages/memory/dist",
-    "packages/op/dist/**/*.d.ts",
     "scripts/postinstall-sync-skills.mjs",
     "packages/superintendent/dist",
     "packages/tiny-stdio-mcp-server/dist",
@@ -520,7 +136,6 @@
     "packages/agent-code-review/dist",
     "packages/agent-defs/dist",
     "packages/agent-eval/dist",
-    "packages/agent-harness/dist",
     "packages/agent-harness-tools/dist",
     "packages/agent-gaslight/dist",
     "packages/agent-trace-viewer/dist",
@@ -528,59 +143,8 @@
     "packages/agent-hook-config/dist",
     "packages/agent-human-in-loop/dist",
     "packages/maestro/dist",
-    "packages/safe-bash/dist",
-    "!packages/safe-bash/dist/optional.js",
-    "!packages/safe-bash/dist/optional.js.map",
-    "!packages/safe-bash/dist/optional.d.ts",
-    "!packages/safe-bash/dist/optional.d.ts.map",
-    "!packages/safe-bash/dist/commands/cmp",
-    "!packages/safe-bash/dist/commands/dd",
-    "!packages/safe-bash/dist/commands/install",
-    "!packages/safe-bash/dist/commands/shuf",
-    "!packages/safe-bash/dist/commands/truncate",
-    "!packages/safe-bash/dist/commands/yes",
-    "!packages/safe-bash/dist/commands/yq/expression.js",
-    "!packages/safe-bash/dist/commands/yq/expression.js.map",
-    "!packages/safe-bash/dist/commands/yq/expression.d.ts",
-    "!packages/safe-bash/dist/commands/yq/expression.d.ts.map",
-    "!packages/safe-bash/dist/commands/yq/nodes.js",
-    "!packages/safe-bash/dist/commands/yq/nodes.js.map",
-    "!packages/safe-bash/dist/commands/yq/nodes.d.ts",
-    "!packages/safe-bash/dist/commands/yq/nodes.d.ts.map",
-    "!packages/safe-bash/dist/commands/yq/evaluate.js",
-    "!packages/safe-bash/dist/commands/yq/evaluate.js.map",
-    "!packages/safe-bash/dist/commands/yq/evaluate.d.ts",
-    "!packages/safe-bash/dist/commands/yq/evaluate.d.ts.map",
-    "!packages/safe-bash/dist/commands/yq/native-work.js",
-    "!packages/safe-bash/dist/commands/yq/native-work.js.map",
-    "!packages/safe-bash/dist/commands/yq/native-work.d.ts",
-    "!packages/safe-bash/dist/commands/yq/native-work.d.ts.map",
-    "!packages/safe-bash/dist/commands/yq/inplace.js",
-    "!packages/safe-bash/dist/commands/yq/inplace.js.map",
-    "!packages/safe-bash/dist/commands/yq/inplace.d.ts",
-    "!packages/safe-bash/dist/commands/yq/inplace.d.ts.map",
-    "!packages/safe-bash/dist/commands/yq/arguments.js",
-    "!packages/safe-bash/dist/commands/yq/arguments.js.map",
-    "!packages/safe-bash/dist/commands/yq/arguments.d.ts",
-    "!packages/safe-bash/dist/commands/yq/arguments.d.ts.map",
-    "!packages/safe-bash/dist/commands/yq/mike.js",
-    "!packages/safe-bash/dist/commands/yq/mike.js.map",
-    "!packages/safe-bash/dist/commands/yq/mike.d.ts",
-    "!packages/safe-bash/dist/commands/yq/mike.d.ts.map",
-    "!packages/safe-bash/dist/commands/yq/native-encoder.js",
-    "!packages/safe-bash/dist/commands/yq/native-encoder.js.map",
-    "!packages/safe-bash/dist/commands/yq/native-encoder.d.ts",
-    "!packages/safe-bash/dist/commands/yq/native-encoder.d.ts.map",
-    "!packages/safe-bash/dist/fs/devices",
-    "!packages/safe-bash/dist/shell/extensions/arrays",
-    "!packages/safe-bash/dist/shell/extensions/trap",
-    "!packages/safe-bash/dist/shell/extensions/jobs",
-    "!packages/safe-bash/dist/shell/extensions/mapfile",
-    "!packages/safe-bash/dist/shell/extensions/read",
-    "packages/safe-js/dist",
     "packages/agent-spawn/dist",
     "packages/auth-store/dist",
-    "packages/braintrust/dist",
     "packages/cached-resource/dist",
     "packages/config-extends/dist",
     "packages/e2e-test-runner/dist",
@@ -592,14 +156,10 @@
     "packages/maestro-tui/dist",
     "packages/markdown-reader/dist",
     "packages/mcp-oauth/dist",
-    "packages/office-package/dist",
-    "packages/office-package/LICENSE",
-    "packages/pptx/dist",
-    "packages/pptx/LICENSE",
-    "packages/pptx/THIRD_PARTY_NOTICES.txt",
     "packages/opencode-poe-auth/dist",
     "packages/package-lint/dist",
     "packages/pipeline/dist",
+    "packages/terminal-name/dist",
     "packages/plan-browser/dist",
     "packages/poe-acp-client/dist",
     "packages/poe-agent/dist",
@@ -610,8 +170,6 @@
     "packages/providers/dist",
     "packages/ralph/dist",
     "packages/task-list/dist",
-    "packages/terminal-pilot/dist",
-    "packages/terminal-pilot-mcp/dist",
     "packages/terminal-png/dist",
     "packages/terminal-png-mcp/dist",
     "packages/tiny-http-mcp-oauth-test-server/package.json",
@@ -619,36 +177,21 @@
     "packages/tiny-http-mcp-server/package.json",
     "packages/tiny-http-mcp-server/dist",
     "packages/tiny-mcp-client/dist",
-    "packages/tokenfill/dist",
     "packages/toolcraft/dist",
-    "packages/toolcraft-codemode/dist",
     "packages/toolcraft-landing-page/dist",
     "packages/toolcraft-openapi/dist",
     "packages/toolcraft-schema/dist",
     "packages/workspace-resolver/dist",
     "packages/worktree/dist",
-    "packages/safe-fs/dist/**/*.d.ts",
-    "packages/safe-fs/native/assets.json",
-    "packages/safe-fs/native/seek.c",
-    "packages/safe-fs/native/loader.mjs",
-    "packages/safe-fs/src/native/loader.d.ts",
-    "packages/docx/dist",
-    "packages/docx/LICENSE",
-    "packages/docx/THIRD_PARTY_NOTICES.txt"
+    "!dist/corpus",
+    "!packages/memory/dist/corpus",
+    "packages/user-error/dist"
   ],
   "engines": {
     "node": ">=18.18"
   },
   "packageManager": "npm@10.9.2",
   "dependencies": {
-    "@formatjs/bigdecimal": "0.2.7",
-    "@formatjs/intl-durationformat": "0.10.18",
-    "@formatjs/intl-localematcher": "0.8.13",
-    "@formatjs/intl-numberformat": "9.4.0",
-    "@formatjs/intl-pluralrules": "6.3.13",
-    "@noble/hashes": "2.4.0",
-    "@petamoriken/float16": "^3.9.3",
-    "@kayahr/text-encoding": "^2.2.0",
     "chalk": "^5.6.2",
     "commander": "^13.1.0",
     "console-table-printer": "^2.15.0",
@@ -659,7 +202,6 @@
     "gray-matter": "^4.0.3",
     "ignore": "^5.3.2",
     "jose": "^6.1.3",
-    "pako": "3.0.1",
     "jsonc-parser": "^3.3.1",
     "lru-cache": "^10.4.3",
     "mustache": "^4.2.0",
@@ -674,12 +216,8 @@
     "toolcraft": ">=0.0.51 <0.1.0",
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
-    "yaml": "^2.8.2",
-    "temporal-polyfill": "1.0.4",
-    "saxes": "6.0.0"
-  },
-  "optionalDependencies": {
-    "braintrust": "^3.17.0"
+    "yaml": "2.9.0",
+    "tokenfill": "^0.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -698,7 +236,6 @@
     "@poe-code/agent-spawn": "*",
     "@poe-code/agent-trace-viewer": "*",
     "@poe-code/agent-traces": "*",
-    "@poe-code/braintrust": "*",
     "@poe-code/cached-resource": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*",
@@ -726,6 +263,7 @@
     "@poe-code/safe-js": "*",
     "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*",
+    "@poe-code/terminal-name": "*",
     "@poe-code/user-error": "*",
     "@poe-code/workspace-resolver": "*",
     "@poe-code/worktree": "*",
@@ -767,7 +305,6 @@
     "tiny-oauth-test-server": "*",
     "tiny-stdio-mcp-server": "*",
     "tiny-stdio-mcp-test-server": "*",
-    "tokenfill": "*",
     "toolcraft": "*",
     "toolcraft-codemode": "*",
     "toolcraft-design": "*",
@@ -778,10 +315,25 @@
     "turbo": "^2.9.18",
     "typescript": "^5.9.3",
     "typescript-eslint": "8.55.0",
-    "virtual-bash": "*",
+    "@poe-platform/safe-bash": "*",
     "vite": "6.4.3",
     "vitest": "4.1.11",
-    "@poe-code/safe-python": "*"
+    "@poe-code/safe-python": "*",
+    "@poe-code/pandoc": "0.0.1",
+    "@poe-code/pdf": "0.0.1",
+    "@poe-code/safe-playwright": "*",
+    "@formatjs/bigdecimal": "0.2.7",
+    "@formatjs/intl-durationformat": "0.10.18",
+    "@formatjs/intl-localematcher": "0.8.13",
+    "@formatjs/intl-numberformat": "9.4.0",
+    "@formatjs/intl-pluralrules": "6.3.13",
+    "@petamoriken/float16": "^3.9.3",
+    "@kayahr/text-encoding": "^2.2.0",
+    "temporal-polyfill": "1.0.4",
+    "oxlint": "1.83.0",
+    "safe-bash-contracts": "*",
+    "safe-bash-command-wkhtmltopdf": "*",
+    "safe-bash-command-exiftool": "*"
   },
   "repository": {
     "type": "git",
@@ -795,22 +347,14 @@
     "toml": "3.0.0",
     "vite": "6.4.3"
   },
-  "imports": {
-    "#safe-fs-native-seek": {
-      "types": "./packages/safe-js/dist/native/fs-seek/loader.d.ts",
-      "workerd": null,
-      "browser": null,
-      "default": "./packages/safe-js/dist/native/fs-seek/loader.mjs"
-    },
-    "#safe-fs-platform": {
-      "types": {
-        "browser": "./packages/safe-fs/dist/platform/browser.d.ts",
-        "default": "./packages/safe-fs/dist/platform/node.d.ts"
-      },
-      "default": null
-    }
-  },
   "bundleDependencies": [
     "gray-matter"
-  ]
+  ],
+  "poeCode": {
+    "bundle": {
+      "external": [
+        "tokenfill"
+      ]
+    }
+  }
 }

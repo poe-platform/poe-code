@@ -1,0 +1,20 @@
+{
+  "scope": "Primary specification metadata/research inspection; not converter test evidence",
+  "selectedReferences": 9,
+  "allRetainedBytesAndHashesMatch": true,
+  "rtfVendorArchiveIdentityVerified": true,
+  "epub2ArchivedPrimaryIdentitiesVerified": true,
+  "pdfPrintedEditionDateVerified": true,
+  "documentRightsRecorded": true,
+  "inspectionParser": "pypdf 6.0.0, external research directory only",
+  "standardsFixturesImported": [],
+  "passingConverterTests": 0,
+  "retrievalLimitations": [],
+  "formattingCommand": "npx prettier --check docs/pandoc/primary-specifications.json docs/pandoc/primary-specification-validation.json docs/pandoc/corpus-inventory.md docs/plans/pandoc-corpus-inventory-review.md",
+  "pipelineValidation": {
+    "command": "npm run dev -- pipeline validate docs/plans/pandoc-typescript-safe-bash.md",
+    "exitCode": 0,
+    "evidence": "docs/pandoc/corpus-plan-validation.log",
+    "scope": "Configuration validation only; native predev build/bundle hooks ran. No converter conformance run is inferred."
+  }
+}

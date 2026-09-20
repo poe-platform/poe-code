@@ -5,6 +5,8 @@ import { run } from "../packages/safe-js/src/run.js";
 import { dump } from "../packages/safe-js/src/dump.js";
 import { makeMcpModule } from "../packages/safe-js/src/modules/mcp.js";
 import { runCli } from "../packages/safe-js/src/cli.js";
+// Admit cold CLI dependencies with the fixture imports, before protocol timing.
+import "../packages/safe-js/src/cli-runtime.js";
 
 const originalArguments = process.argv;
 afterEach(() => {
@@ -39,32 +41,6 @@ describe("packed smoke build selection", () => {
     const mcpFixture = source.slice(source.indexOf("for (const modernMcp"), source.indexOf("const envOptions"));
     const execute = new Function("run", "dump", "makeMcpModule", "runCli", `return (async () => { ${mcpFixture} })();`);
     await execute(run, dump, makeMcpModule, runCli);
-  });
-
-  it("exercises the opt-in op plugin from the installed root artifact", async () => {
-    const volume = Volume.fromJSON({}, "/smoke-owned/sdk");
-    volume.mkdirSync("/smoke-owned/sdk", { recursive: true });
-    const stop = new Error("packed runtime fixture ready");
-    vi.doMock("node:child_process", () => ({
-      execSync: vi.fn(() => ""),
-      spawnSync: vi.fn((_binary: string, args: string[]) => {
-        if (args[0]?.endsWith("safe-fs-smoke.mjs")) throw stop;
-        return { status: 0, stdout: "", stderr: "" };
-      })
-    }));
-    vi.doMock("node:fs", async (importOriginal) => ({
-      ...(await importOriginal<typeof import("node:fs")>()),
-      mkdtempSync: vi.fn().mockReturnValueOnce("/smoke-owned/pack").mockReturnValueOnce("/smoke-owned/sdk"),
-      readdirSync: vi.fn(() => ["poe-code.tgz"]),
-      writeFileSync: volume.writeFileSync.bind(volume),
-      rmSync: vi.fn()
-    }));
-    process.argv = [process.execPath, "scripts/smoke-test.ts", "--prebuilt"];
-    await expect(import("./smoke-test.js")).rejects.toBe(stop);
-    const source = volume.readFileSync("/smoke-owned/sdk/safe-fs-smoke.mjs", "utf8");
-    expect(source).toContain('from "poe-code/safe-bash/commands/op"');
-    expect(source).toContain("shell.use(opCommands(");
-    expect(source).toContain('assert.equal(secret.stdout, "synthetic-secret\\n")');
   });
 
   it("retains npm installation errors in quiet smoke runs", async () => {

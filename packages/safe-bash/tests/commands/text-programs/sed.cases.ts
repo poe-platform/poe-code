@@ -5,6 +5,27 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const [replacement, expected] of [
+  [String.raw`\n`, "\n"],
+  [String.raw`\t`, "\t"],
+  [String.raw`\,`, ","],
+  [String.raw`\;`, ";"],
+  [String.raw`\\n`, String.raw`\n`],
+  [String.raw`\\`, "\\"],
+  ["<&>", "<x>"],
+  [String.raw`\&`, "&"],
+  [String.raw`\\&`, "\\x"],
+  [String.raw`\\\&`, "\\&"],
+  [String.raw`\1`, "x"],
+] as const) {
+  test(`sed retains replacement semantics for ${JSON.stringify(replacement)}`, async () => {
+    const result = await runVirtual("sed", { args: ["-E", `s/(x)/${replacement}/g`], stdin: "xx\n" });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stderr.length, 0);
+    assert.deepEqual(result.stdout, Buffer.from(`${expected}${expected}\n`));
+  });
+}
+
 test("sed rejects unsupported or malformed programs before stdout, input, backup or file effects", async () => {
   for (const program of ["p;s/a/b/e", "p;w", "p;{", "p;b missing", "p;s/(/x/", "p;s/a/\\9/"]) {
     let consumed = false;

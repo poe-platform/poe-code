@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import { dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -15,28 +17,33 @@ export function parseLintArguments(argv) {
   for (let index = 0; index < args.length - 1; index++) {
     if (args[index] === '--max-warnings' && args[index + 1] === '-1') args.splice(index, 2, '--max-warnings=-1');
   }
-  const { values } = parseArgs({ args, strict: true, allowPositionals: false, options: { format: { type: 'string', short: 'f', default: 'stylish' }, 'max-warnings': { type: 'string', default: '-1' } } });
+  const { values } = parseArgs({ args, strict: true, allowPositionals: false, options: { format: { type: 'string', short: 'f', default: 'stylish' }, 'max-warnings': { type: 'string', default: '-1' }, 'no-cache': { type: 'boolean', default: false }, engine: { type: 'string', default: 'eslint' } } });
   assert.ok(values.format === 'stylish' || values.format === 'json', 'only built-in stylish/json formatters are supported');
+  assert.ok(['eslint', 'oxlint'].includes(values.engine), 'unsupported lint engine');
   const maximum = values['max-warnings'];
   assert.ok(maximum === '-1' || (maximum.length > 0 && [...maximum].every(character => '0123456789'.includes(character))), 'invalid max-warnings');
   const maxWarnings = Number(maximum);
   assert.ok(Number.isSafeInteger(maxWarnings), 'invalid max-warnings');
-  return Object.freeze({ format: values.format, maxWarnings });
+  return Object.freeze({ format: values.format, maxWarnings, ...(values['no-cache'] ? { cache: false } : {}), ...(values.engine !== 'eslint' ? { engine: values.engine } : {}) });
 }
 
-export async function lintRoot({ guard, config, receiptBinding = BOUNDARY_RECEIPTS, maxWarnings = -1 }) {
+export async function lintRoot({ guard, config, receiptBinding = BOUNDARY_RECEIPTS, maxWarnings = -1, diagnosticsCache, nativeBackend }) {
   const results = [];
   const gaps = [];
   const receiptResults = [];
   const directoryPins = [];
   const scope = { configured: 0, linted: 0, ignored: 0, unconfigured: 0, ignoredDirectories: 0, heldExcluded: 0 };
   const pending = [];
+  const nativeSubjects = [];
   let activeDirectory = null;
   let nextEntry = 0;
   let selection;
   let failure = null;
   let activePath = '';
   let traversalFinished = false;
+  let cacheHits = 0;
+  let parsingMs = 0;
+  const startedAt = performance.now();
   function deny(path, error) {
     gaps.push({ path, message: error instanceof Error ? error.message : String(error), descendantsUnknown: true });
   }
@@ -108,12 +115,34 @@ export async function lintRoot({ guard, config, receiptBinding = BOUNDARY_RECEIP
         }
         scope.configured++;
         const bytes = guard.read(child, 'subject');
-        const linted = await selection.eslint.lintText(bytes.toString('utf8'), { filePath: absolute, warnIgnored: false });
+        const subject = diagnosticsCache || nativeBackend ? { filename: absolute, bytes, configuration: await selection.eslint.calculateConfigForFile(absolute) } : undefined;
+        const cached = subject && diagnosticsCache?.read(subject);
+        if (!cached && nativeBackend?.admit(subject)) {
+          nativeSubjects.push(subject);
+          continue;
+        }
+        const parsingStarted = performance.now();
+        const linted = cached ? [cached] : await selection.eslint.lintText(bytes.toString('utf8'), { filePath: absolute, warnIgnored: false });
+        parsingMs += performance.now() - parsingStarted;
         assert.ok(Array.isArray(linted) && linted.length === 1 && linted[0].filePath === absolute, 'lintText subject identity changed');
+        if (cached) cacheHits++;
+        else if (subject) diagnosticsCache?.save(subject, linted[0]);
         results.push(linted[0]);
         scope.linted++;
       }
       activeDirectory = null;
+    }
+    if (nativeSubjects.length) {
+      const parsingStarted = performance.now();
+      const linted = await nativeBackend.lint(nativeSubjects);
+      parsingMs += performance.now() - parsingStarted;
+      assert.equal(linted.length, nativeSubjects.length, 'Native lint subject count changed');
+      for (const [index, result] of linted.entries()) {
+        assert.equal(result.filePath, nativeSubjects[index].filename, 'Native lint subject identity changed');
+        diagnosticsCache?.save(nativeSubjects[index], result);
+        results.push(result);
+        scope.linted++;
+      }
     }
     traversalFinished = true;
   } catch (error) {
@@ -127,7 +156,8 @@ export async function lintRoot({ guard, config, receiptBinding = BOUNDARY_RECEIP
   const complete = traversalFinished && failure === null && gaps.length === 0;
   const tooManyWarnings = maxWarnings >= 0 && warningCount > maxWarnings;
   const unprocessed = { directories: [...pending], entries: activeDirectory ? activeDirectory.entries.slice(nextEntry).map(name => activeDirectory.path === '' ? name : activeDirectory.path + '/' + name) : [], descendantsUnknown: !traversalFinished };
-  return { eslint: selection?.eslint, results, gaps, receipts: receiptResults, directoryPins, unprocessed, scope, counters: guard.snapshot(), complete, traversalFinished, failure, errorCount, warningCount, tooManyWarnings, exitCode: complete ? (errorCount > 0 || tooManyWarnings ? 1 : 0) : 2 };
+  return { eslint: selection?.eslint, results, gaps, receipts: receiptResults, directoryPins, unprocessed, scope, counters: guard.snapshot(), complete, traversalFinished, failure, errorCount, warningCount, tooManyWarnings, exitCode: complete ? (errorCount > 0 || tooManyWarnings ? 1 : 0) : 2,
+    cacheHits, timings: { traversalMs: Math.round(performance.now() - startedAt), parsingMs: Math.round(parsingMs) } };
 }
 
 export async function printLintResult(result, options, stdout, stderr) {
@@ -141,10 +171,10 @@ export async function printLintResult(result, options, stdout, stderr) {
   }
   if (result.tooManyWarnings && result.errorCount === 0) stderr.write('ESLint found too many warnings (maximum: ' + options.maxWarnings + ').\n');
   if (options.format === 'stylish' && result.complete && result.exitCode === 0 && result.warningCount === 0) {
-    stderr.write(JSON.stringify({ complete: result.complete, exitCode: result.exitCode, errorCount: result.errorCount, warningCount: result.warningCount, scope: result.scope, receiptCount: result.receipts.length, directoryCount: result.directoryPins.length }) + '\n');
+    stderr.write(JSON.stringify({ complete: result.complete, exitCode: result.exitCode, errorCount: result.errorCount, warningCount: result.warningCount, scope: result.scope, receiptCount: result.receipts.length, directoryCount: result.directoryPins.length, timings: result.timings, cacheHits: result.cacheHits }) + '\n');
     return;
   }
-  stderr.write(JSON.stringify({ complete: result.complete, exitCode: result.exitCode, errorCount: result.errorCount, warningCount: result.warningCount, scope: result.scope, counters: result.counters, bootstrapCounters: result.bootstrapCounters, receipts: result.receipts, gaps: result.gaps, failure: result.failure, directoryPins: result.directoryPins, unprocessed: result.unprocessed }) + '\n');
+  stderr.write(JSON.stringify({ complete: result.complete, exitCode: result.exitCode, errorCount: result.errorCount, warningCount: result.warningCount, scope: result.scope, counters: result.counters, bootstrapCounters: result.bootstrapCounters, receipts: result.receipts, gaps: result.gaps, failure: result.failure, directoryPins: result.directoryPins, unprocessed: result.unprocessed, timings: result.timings, cacheHits: result.cacheHits }) + '\n');
 }
 
 export async function main({ argv = process.argv.slice(2), root = fileURLToPath(new URL('../', import.meta.url)).slice(0, -1), fileSystem = fs, loadConfig, stdout = process.stdout, stderr = process.stderr } = {}) {
@@ -155,6 +185,7 @@ export async function main({ argv = process.argv.slice(2), root = fileURLToPath(
       const packageBytes = bootstrap.read('package.json', 'configuration');
       assert.equal(JSON.parse(packageBytes.toString('utf8')).scripts?.['lint:eslint'], 'node --max-old-space-size=1024 scripts/lint-eslint.mjs', 'Phase 2 root lint wiring is not installed');
       const configBytes = bootstrap.read('eslint.config.js', 'configuration');
+      const initializationStarted = performance.now();
       const module = await (loadConfig ? loadConfig() : import(pathToFileURL(root + '/eslint.config.js').href));
       assert.ok(module.lintInputGuard && module.lintInputGuard.root === root, 'guarded configuration context required');
       const guard = module.lintInputGuard;
@@ -163,7 +194,31 @@ export async function main({ argv = process.argv.slice(2), root = fileURLToPath(
       assert.ok(guard.read('eslint.config.js', 'configuration').equals(configBytes), 'root configuration changed during loading');
       const rootNames = guard.directory('').entries;
       assert.ok(!rootNames.includes('eslint-suppressions.json'), 'bulk suppressions require separate compatibility review');
-      const result = await lintRoot({ guard, config: module.default, maxWarnings: options.maxWarnings });
+      const initializationMs = Math.round(performance.now() - initializationStarted);
+      let diagnosticsCache;
+      if (options.cache !== false && fileSystem === fs) {
+        const { createCheckCache } = await import('./check-cache.mjs');
+        const { createLintDiagnosticsCache } = await import('./lint-diagnostics-cache.mjs');
+        const salt = createHash('sha256').update(configBytes).update(packageBytes)
+          .update(guard.read('package-lock.json', 'configuration')).update(options.engine ?? 'eslint').update(JSON.stringify(process.versions)).digest('hex');
+        diagnosticsCache = createLintDiagnosticsCache({ root, store: createCheckCache(), salt });
+      }
+      let nativeBackend;
+      if (options.engine === 'oxlint') {
+        const binary = dirname(require.resolve('oxlint/package.json')) + '/bin/oxlint';
+        const catalogue = spawnSync(process.execPath, [binary, '--rules', '--format=json'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 60000 });
+        if (catalogue.status === 0) {
+          const { createNativeLintBackend } = await import('./native-lint-backend.mjs');
+          const confirmationEngine = createLintSelection(root, module.default).eslint;
+          nativeBackend = createNativeLintBackend({
+            root, fileSystem, catalogue: JSON.parse(catalogue.stdout),
+            invoke: async (args, settings) => spawnSync(process.execPath, [binary, ...args], { ...settings, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 60000 }),
+            confirm: async subject => (await confirmationEngine.lintText(subject.bytes.toString('utf8'), { filePath: subject.filename, warnIgnored: false }))[0]
+          });
+        }
+      }
+      const result = await lintRoot({ guard, config: module.default, maxWarnings: options.maxWarnings, diagnosticsCache, nativeBackend });
+      result.timings.initializationMs = initializationMs;
       result.bootstrapCounters = bootstrap.snapshot();
       await printLintResult(result, options, stdout, stderr);
       return result.exitCode;

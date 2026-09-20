@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/latex-cancellation.test.ts (2 tests) 7ms
+ ✓ packages/pandoc/src/latex.test.ts (47 tests) 73ms
+
+ Test Files  2 passed (2)
+      Tests  49 passed (49)
+   Start at  19:24:07
+   Duration  1.70s (transform 2.19s, setup 98ms, import 2.99s, tests 80ms, environment 0ms)
+

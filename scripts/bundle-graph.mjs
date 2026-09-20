@@ -81,7 +81,7 @@ export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirec
  *   TypeScript source, so the bundle compiles workspace code just-in-time.
  * - `external`: the packages left for npm to install — root runtime deps,
  *   root optional runtime deps, plus the third-party deps of workspace packages,
- *   never the workspace packages themselves (those get inlined via `alias`).
+ *   workspace packages are inlined unless explicitly listed in poeCode.bundle.external.
  *
  * Extracted so the alias/external computation lives in one place.
  *
@@ -126,6 +126,16 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
   ].filter((dep) => !workspacePackageNames.has(dep));
   const externalSet = new Set([...runtimeDeps, ...workspaceDeps]);
   for (const name of workspacePackageNames) externalSet.delete(name);
+  for (const name of rootPackageJson.poeCode?.bundle?.external ?? []) {
+    if (!Object.hasOwn(rootPackageJson.dependencies ?? {}, name) &&
+        !Object.hasOwn(rootPackageJson.optionalDependencies ?? {}, name)) {
+      throw new Error(`External package ${name} must be declared as a runtime dependency`);
+    }
+    for (const specifier of Object.keys(alias)) {
+      if (specifier === name || specifier.startsWith(`${name}/`)) delete alias[specifier];
+    }
+    externalSet.add(name);
+  }
 
   return {
     entryPoints: [path.join(rootDir, "src/index.ts")],

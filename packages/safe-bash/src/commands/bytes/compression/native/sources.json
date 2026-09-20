@@ -220,8 +220,8 @@
     },
     {
       "path": "generated/xz.mjs",
-      "bytes": 203484,
-      "sha256": "e4795fbc3e71478bc4dc44fedb70a26fa27569353abd0e94db0daff63dd44a4e"
+      "bytes": 204540,
+      "sha256": "2c5e7515eff57c3190815368f8624ae3ade54a0a8150744c3b5acdabd11d468b"
     },
     {
       "path": "generated/zstd.mjs",

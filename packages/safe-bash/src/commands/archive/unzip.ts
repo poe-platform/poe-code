@@ -1,11 +1,13 @@
 import { dirname, collectBytes, readBytes, resolvePath, writeBytes, type CommandContext, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { createOutputOperation, type OutputOperation } from "../../contracts/output.js";
-import { publicDiagnosticMessage } from "../../diagnostics.js";
+import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { Budget, bounded, checkPath, display, fail, settings, text, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { decodeZipEntry, readZipArchive, type ZipEntry } from "./zip-format.js";
 import { Answers, parseArguments, Selection } from "./unzip/arguments.js";
 import { Extraction } from "./unzip/safety.js";
+import { readZipPassword } from "./zip/crypto.js";
+import { resolveZipVolumes } from "./zip/volumes.js";
 
 function filtered(name: string): string {
   let output = "";
@@ -85,26 +87,48 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
       const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, maxBytes: limits.maxArchiveBytes });
-      if (!parsed.pipe) await budget.output(`Archive:  ${filtered(archive)}\n`);
-      const zip = await readZipArchive(bytes, limits, context.signal);
-      if (!parsed.pipe) await comment(zip.comment, budget);
+      if (!parsed.pipe && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
+      const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
+      extraction.inputVolumes = resolved.volumes ?? [];
+      const zip = await readZipArchive(resolved.bytes, limits, context.signal, resolved.disks ? { disks: resolved.disks } : { prefix: true });
+      if (!parsed.pipe && !parsed.quiet) await comment(zip.comment, budget);
       if (!zip.entries.length) {
         await budget.output(`warning [${filtered(archive)}]:  zipfile is empty\n`, true);
         return { exitCode: 1 };
       }
       if (parsed.list) await budget.output("  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
       const rootRaw = parsed.destination === undefined ? context.cwd : vfsPath(context.cwd, parsed.destination);
-      const root = parsed.list || parsed.pipe ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
-      if (!parsed.list && !parsed.pipe) answers = new Answers(extraction.source(context.stdin), limits, context.signal);
+      const root = parsed.list || parsed.pipe || parsed.test ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
+      if (!parsed.list && !parsed.pipe && !parsed.test) answers = new Answers(extraction.source(context.stdin), limits, context.signal);
       let overwrite: "ask" | "all" | "none" = parsed.overwrite ? "all" : "ask";
       let exitCode = 0;
       let selected = 0;
+      let badPasswords = 0;
       let total = 0;
       let actualTotal = 0;
+      let password = parsed.password;
       const payload = async function* (entry: ZipEntry) {
         let actual = 0;
         const signal = output?.signal ?? context.signal;
-        for await (const chunk of readBytes(decodeZipEntry(entry, limits, signal), signal)) {
+        if (entry.flags! & 1) {
+          // A matching header byte does not authenticate the member. Verify
+          // each candidate completely before retaining a password or output.
+          for (let attempt = password !== undefined && parsed.password === undefined ? -1 : 0; attempt < 3; attempt++) {
+            if (password === undefined) password = await extraction.operation(() => readZipPassword(options.zipHost, limits.maxArgumentBytes, signal, false));
+            try {
+              const verified = await collectBytes(decodeZipEntry(entry, limits, signal, password), { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - actualTotal), signal });
+              actualTotal += verified.length;
+              yield verified;
+              return;
+            } catch (error) {
+              signal.throwIfAborted();
+              if (parsed.password !== undefined || !(error instanceof PublicDiagnostic) || error.message !== "ZIP incorrect password") throw error;
+              password = undefined;
+            }
+          }
+          fail("ZIP incorrect password");
+        }
+        for await (const chunk of readBytes(decodeZipEntry(entry, limits, signal, password), signal)) {
           if (chunk.length > limits.maxEntryBytes - actual || chunk.length > limits.maxTotalBytes - actualTotal) fail("actual decompressed byte limit exceeded");
           actual += chunk.length; actualTotal += chunk.length;
           yield chunk;
@@ -117,90 +141,102 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         checkPath(entry.name, limits);
         if (!await selection.matches(entry.name, parsed.pipe)) continue;
         selected++; total += entry.size;
-        if (parsed.pipe) {
-          for await (const chunk of payload(entry)) await output!.output.write(chunk);
-          continue;
-        }
-        if (parsed.list) {
-          await budget.output(`${String(entry.size).padStart(9)}  ${date(entry)}   ${filtered(entry.name)}\n`);
-          if (entry.comment) await comment(entry.comment, budget);
-          continue;
-        }
-        let path = extraction.member(root, entry.name);
-        const fileType = entry.mode & 0o170000;
-        if (fileType && fileType !== 0o100000 && fileType !== 0o040000 && fileType !== 0o120000 && fileType !== 0o010000) fail("unsupported special ZIP entry");
-        if (path === root && !entry.directory) fail("entry would replace extraction root");
-        let shown = parsed.destination === undefined ? entry.name : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${entry.name}`;
-        await extraction.parents(root, path, true);
-        if (entry.directory) {
-          if (entry.size) fail("directory has nonempty payload");
-          for await (const chunk of payload(entry)) {
-            await writeFileOutput(context, chunk, async () => { if (chunk.length) fail("directory has nonempty payload"); });
-          }
-          const parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
-          const existing = await extraction.stat(path);
-          let identity = existing;
-          if (existing && existing.type !== "directory") fail("directory destination is not a directory");
-          if (!existing) {
-            identity = await extraction.createDirectory(path, parent);
-            await budget.output(`   creating: ${filtered(shown)}\n`);
-          }
-          if (!identity || identity.type !== "directory") fail("directory changed during creation");
-          directories.push({ path, entry, identity, parent });
-          continue;
-        }
-        let parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
-        let existing = await extraction.destination(path, archivePath, archiveStat);
-        let skip = false;
-        let prompting = 0;
-        while (existing && overwrite !== "all") {
-          if (overwrite === "none") { skip = true; break; }
-          if (++prompting > limits.maxMembers) fail("overwrite prompt work limit exceeded");
-          await budget.output(`replace ${filtered(shown)}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `, true);
-          const answer = await answers!.read();
-          if (answer === undefined) {
-            await budget.output(' NULL\n(EOF or read error, treating as "[N]one" ...)\n', true);
-            overwrite = "none"; exitCode = 1; skip = true; break;
-          }
-          const choice = answer[0];
-          if (choice === "A") { overwrite = "all"; break; }
-          if (choice === "y" || choice === "Y") break;
-          if (choice === "n" || choice === "N") { if (choice === "N") overwrite = "none"; skip = true; break; }
-          if (choice === "r" || choice === "R") {
-            let renamed = "";
-            while (!renamed) {
-              await budget.output("new name: ", true);
-              const value = await answers!.read(limits.maxPathBytes);
-              if (value === undefined) fail("EOF while reading replacement name");
-              renamed = value.endsWith("\n") ? value.slice(0, -1) : value;
-            }
-            path = extraction.member(root, renamed);
-            shown = parsed.destination === undefined ? renamed : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${renamed}`;
-            await extraction.parents(root, path, true);
-            parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
-            existing = await extraction.destination(path, archivePath, archiveStat);
+        try {
+          if (parsed.test) {
+            for await (const chunk of payload(entry)) { if (chunk.length) context.signal.throwIfAborted(); }
+            if (!parsed.quiet) await budget.output(`    testing: ${padded(filtered(entry.name))} OK\n`);
             continue;
           }
-          const response = choice === "\n" || choice === "\r" ? "{ENTER}" : answer.endsWith("\n") ? answer.slice(0, -1) : answer;
-          await budget.output(`error:  invalid response [${response}]\n`, true);
-        }
-        if (skip) continue;
-        const chunks: Uint8Array[] = [];
-        let actual = 0;
-        for await (const chunk of payload(entry)) {
-          actual += chunk.length;
-          await writeFileOutput(context, chunk, async bytes => { chunks.push(Uint8Array.from(bytes)); });
-        }
-        if (entry.symlink) {
-          if (actual > limits.maxPathBytes) fail("symlink target byte limit exceeded");
-          const target = text(Buffer.concat(chunks));
-          await extraction.target(root, path, target);
-          if (!context.fs.symlink || context.fs.capabilities.symlinks === false) fail("filesystem does not support symlinks");
-          links.push({ path, shown, target, existing, parent, entry });
-          await budget.output(`    linking: ${padded(filtered(shown))}  -> ${filtered(target)} \n`);
-        } else {
-          await extraction.publish(root, path, chunks, existing, parent, entry.mode, entry.modified);
-          await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(shown))}  \n`);
+          if (parsed.pipe) {
+            for await (const chunk of payload(entry)) await output!.output.write(chunk);
+            continue;
+          }
+          if (parsed.list) {
+            await budget.output(`${String(entry.size).padStart(9)}  ${date(entry)}   ${filtered(entry.name)}\n`);
+            if (entry.comment) await comment(entry.comment, budget);
+            continue;
+          }
+          let path = extraction.member(root, entry.name);
+          const fileType = entry.mode & 0o170000;
+          if (fileType && fileType !== 0o100000 && fileType !== 0o040000 && fileType !== 0o120000 && fileType !== 0o010000) fail("unsupported special ZIP entry");
+          if (path === root && !entry.directory) fail("entry would replace extraction root");
+          let shown = parsed.destination === undefined ? entry.name : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${entry.name}`;
+          await extraction.parents(root, path, true);
+          if (entry.directory) {
+            if (entry.size) fail("directory has nonempty payload");
+            for await (const chunk of payload(entry)) {
+              await writeFileOutput(context, chunk, async () => { if (chunk.length) fail("directory has nonempty payload"); });
+            }
+            const parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
+            const existing = await extraction.stat(path);
+            let identity = existing;
+            if (existing && existing.type !== "directory") fail("directory destination is not a directory");
+            if (!existing) {
+              identity = await extraction.createDirectory(path, parent);
+              await budget.output(`   creating: ${filtered(shown)}\n`);
+            }
+            if (!identity || identity.type !== "directory") fail("directory changed during creation");
+            directories.push({ path, entry, identity, parent });
+            continue;
+          }
+          let parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
+          let existing = await extraction.destination(path, archivePath, archiveStat);
+          let skip = false;
+          let prompting = 0;
+          while (existing && overwrite !== "all") {
+            if (overwrite === "none") { skip = true; break; }
+            if (++prompting > limits.maxMembers) fail("overwrite prompt work limit exceeded");
+            await budget.output(`replace ${filtered(shown)}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `, true);
+            const answer = await answers!.read();
+            if (answer === undefined) {
+              await budget.output(' NULL\n(EOF or read error, treating as "[N]one" ...)\n', true);
+              overwrite = "none"; exitCode = 1; skip = true; break;
+            }
+            const choice = answer[0];
+            if (choice === "A") { overwrite = "all"; break; }
+            if (choice === "y" || choice === "Y") break;
+            if (choice === "n" || choice === "N") { if (choice === "N") overwrite = "none"; skip = true; break; }
+            if (choice === "r" || choice === "R") {
+              let renamed = "";
+              while (!renamed) {
+                await budget.output("new name: ", true);
+                const value = await answers!.read(limits.maxPathBytes);
+                if (value === undefined) fail("EOF while reading replacement name");
+                renamed = value.endsWith("\n") ? value.slice(0, -1) : value;
+              }
+              path = extraction.member(root, renamed);
+              shown = parsed.destination === undefined ? renamed : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${renamed}`;
+              await extraction.parents(root, path, true);
+              parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
+              existing = await extraction.destination(path, archivePath, archiveStat);
+              continue;
+            }
+            const response = choice === "\n" || choice === "\r" ? "{ENTER}" : answer.endsWith("\n") ? answer.slice(0, -1) : answer;
+            await budget.output(`error:  invalid response [${response}]\n`, true);
+          }
+          if (skip) continue;
+          const chunks: Uint8Array[] = [];
+          let actual = 0;
+          for await (const chunk of payload(entry)) {
+            actual += chunk.length;
+            await writeFileOutput(context, chunk, async bytes => { chunks.push(Uint8Array.from(bytes)); });
+          }
+          if (entry.symlink) {
+            if (actual > limits.maxPathBytes) fail("symlink target byte limit exceeded");
+            const target = text(Buffer.concat(chunks));
+            await extraction.target(root, path, target);
+            if (!context.fs.symlink || context.fs.capabilities.symlinks === false) fail("filesystem does not support symlinks");
+            links.push({ path, shown, target, existing, parent, entry });
+            await budget.output(`    linking: ${padded(filtered(shown))}  -> ${filtered(target)} \n`);
+          } else {
+            await extraction.publish(root, path, chunks, existing, parent, entry.mode, entry.modified);
+            await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(shown))}  \n`);
+          }
+        } catch (error) {
+          context.signal.throwIfAborted();
+          if (!(error instanceof PublicDiagnostic) || error.message !== "ZIP incorrect password") throw error;
+          badPasswords++;
+          await budget.output(`skipping: ${filtered(entry.name)}  incorrect password\n`, true);
         }
       }
       if (parsed.list) await budget.output(`---------                     -------\n${String(total).padStart(9)}                     ${selected} file${selected === 1 ? "" : "s"}\n`);
@@ -221,7 +257,8 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           exitCode = 11;
         }
       }
-      return { exitCode: selected ? exitCode : 11 };
+      if (parsed.test && parsed.quiet < 2 && selected && !badPasswords && !exitCode) await budget.output(`No errors detected in compressed data of ${filtered(archive)}.\n`);
+      return { exitCode: badPasswords ? badPasswords === selected ? 82 : 1 : selected ? exitCode : 11 };
     } catch (error) {
       original.signal.throwIfAborted();
       const message = display(publicDiagnosticMessage(error, original.onInternalError).slice(0, limits.maxDiagnosticBytes));

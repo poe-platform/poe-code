@@ -16,8 +16,12 @@ export interface BoundedCodec {
 
 export interface BoundedCodecOptions {
   readonly format: "bzip2" | "xz" | "zstd";
+  /** Explicit raw LZMA1 configuration for the liblzma asset; no XZ framing. */
+  readonly lzma?: Readonly<{ dictionary: number; properties: number; eos: boolean; size: number }>;
   readonly decompress: boolean;
   readonly level: number;
+  /** Stop at the first frame and return unread bytes to the input reader. */
+  readonly singleMember?: boolean;
   readonly onFailure?: (error: unknown) => void;
 }
 
@@ -103,6 +107,10 @@ export async function* boundedCodec(
       }
       if (result.status === "end") {
         if (!options.decompress) return;
+        if (options.singleMember) {
+          input.restore(current.subarray(offset));
+          return;
+        }
         ended = true;
       }
       needsInput = result.status !== "output";

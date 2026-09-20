@@ -86,6 +86,10 @@ import { encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
 import type { RunLifecycle } from "../snapshot/dump.js";
 
 const AsyncFunction = (async () => undefined).constructor;
+const domExceptionDiagnostics = {
+  name: Object.getOwnPropertyDescriptor(DOMException.prototype, "name")?.get,
+  message: Object.getOwnPropertyDescriptor(DOMException.prototype, "message")?.get
+};
 
 const hostErrorMetadata = {
   code: "string",
@@ -673,7 +677,7 @@ function createHostErrorValue(
   }
   const error =
     nativeError
-      ? createSubsetErrorValue(reason.name, reason.message, stackFrames, budget, {
+      ? createSubsetErrorValue(readHostErrorDiagnostic(reason, "name", "Error"), readHostErrorDiagnostic(reason, "message", ""), stackFrames, budget, {
           cause: reason,
           chargeBudget,
           transport: true
@@ -708,6 +712,21 @@ function createHostErrorValue(
 
   attachErrorSpan(error, span);
   return error;
+}
+
+function readHostErrorDiagnostic(error: object, key: "name" | "message", fallback: string): string {
+  let current: object | null = error;
+  while (current !== null && !types.isProxy(current)) {
+    const descriptor = Object.getOwnPropertyDescriptor(current, key);
+    if (descriptor !== undefined) {
+      if (descriptor.get !== undefined && descriptor.get === domExceptionDiagnostics[key]) {
+        try { return Reflect.apply(descriptor.get, error, []) as string; } catch { return fallback; }
+      }
+      return "value" in descriptor && typeof descriptor.value === "string" ? descriptor.value : fallback;
+    }
+    current = Object.getPrototypeOf(current);
+  }
+  return fallback;
 }
 
 function copyHostErrorMetadata(
@@ -1541,20 +1560,14 @@ function describeThrownReason(reason: unknown): string {
     }
   }
 
-  try {
-    return String(reason);
-  } catch {
-    return Object.prototype.toString.call(reason);
-  }
+  return "Host operation failed.";
 }
 
 function readStringProperty(value: object, key: string): string | undefined {
-  if (!Object.hasOwn(value, key)) {
-    return undefined;
-  }
-
-  const entry = (value as Record<string, unknown>)[key];
-  return typeof entry === "string" ? entry : undefined;
+  if (types.isProxy(value)) return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  return descriptor !== undefined && "value" in descriptor && typeof descriptor.value === "string"
+    ? descriptor.value : undefined;
 }
 
 function copyFunctionProperties(

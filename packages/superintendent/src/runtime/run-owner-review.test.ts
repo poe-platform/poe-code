@@ -150,6 +150,18 @@ describe("runOwnerReview", () => {
     );
   });
 
+  it.each(["mcp__owner-workflow__workflow_transition", "owner-workflow.workflow_transition"])("accepts the namespaced owner transition %s", async (title) => {
+    autonomousMock.mockResolvedValue({ toolCalls: [{ title, input: { action: "approve_completion" } }] });
+    const { runOwnerReview } = await import("./run-owner-review.js");
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo" })).resolves.toEqual({ transition: { action: "approve_completion" } });
+  });
+
+  it.each(["failed", "cancelled"])("does not approve completion from a %s workflow action", async (status) => {
+    autonomousMock.mockResolvedValue({ toolCalls: [{ title: "owner-workflow.workflow_transition", status, input: { action: "approve_completion" } }] });
+    const { runOwnerReview } = await import("./run-owner-review.js");
+    await expect(runOwnerReview(document, {}, { defaultCwd: "/repo" })).rejects.toThrow("Owner review must end with workflow_transition");
+  });
+
   it("resolves a relative owner cwd against the document directory", async () => {
     autonomousMock.mockImplementation(async (_, { cwd }) => {
       expect(cwd).toBe("/repo/packages/agent-harness-tools");

@@ -1,6 +1,6 @@
 import { FsError, dirname, resolvePath, type FileStat, type FileSystem } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { LineEndingError, missing, sameIdentity, type ConversionOptions } from "./internal.js";
 import { Lifecycle } from "./io.js";
 

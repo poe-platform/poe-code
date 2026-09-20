@@ -35,6 +35,10 @@ for (const scenario of [
     let prepared = probes.get(entry);
     if (prepared === undefined) {
       prepared = build({ entryPoints: [entry], bundle: true, packages: "external", platform: "node",
+        alias: {
+          "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/dist", import.meta.url)),
+          "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
+        },
         format: "esm", target: "es2022", write: false }).then(result => result.outputFiles[0]!.text);
       probes.set(entry, prepared);
     }

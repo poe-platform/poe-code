@@ -64,6 +64,23 @@ API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window
 #endif
  if(!ok){bridge_destroy();return -2;}return 0;
 }
+#if defined(XZ)
+/* ZIP method 14 is raw LZMA1, never an XZ stream. Admit before allocation. */
+API int bridge_create_lzma(int decode,int level,uint32_t memory_limit,uint32_t dictionary,uint32_t properties,int eos,uint32_t size_low,uint32_t size_high) {
+ if(active||memory_limit<1024||memory_limit>64*1024*1024||level<1||level>9||dictionary>8*1024*1024||properties>=225||(eos!=0&&eos!=1))return -1;
+ uint32_t lc=properties%9,lp=(properties/9)%5,pb=properties/45;
+ if(lc+lp>4)return -1;
+ lzma_options_lzma options;
+ if(lzma_lzma_preset(&options,level))return -1;
+ options.dict_size=dictionary<4096?4096:dictionary;options.lc=lc;options.lp=lp;options.pb=pb;
+ options.ext_flags=0;options.ext_size_low=size_low;options.ext_size_high=size_high;
+ lzma_filter filters[2]={{!eos?LZMA_FILTER_LZMA1EXT:LZMA_FILTER_LZMA1,&options},{LZMA_VLI_UNKNOWN,NULL}};
+ limit=memory_limit;peak=used=0;taken=made=0;decompressing=!!decode;active=1;
+ s=(lzma_stream)LZMA_STREAM_INIT;s.allocator=&allocator;
+ int ok=(decode?lzma_raw_decoder(&s,filters):lzma_raw_encoder(&s,filters))==LZMA_OK;
+ if(!ok){bridge_destroy();return -2;}return 0;
+}
+#endif
 API int bridge_step(uint8_t*in,uint32_t inlen,uint8_t*out,uint32_t outlen,int finish){
  taken=made=0;if(!active||inlen>CHUNK||outlen>CHUNK||!outlen)return -1;
 #if defined(BZ)

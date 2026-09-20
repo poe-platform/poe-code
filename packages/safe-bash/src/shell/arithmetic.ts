@@ -127,14 +127,44 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
   return tree;
 }
 
-export function arithmeticEnd(source: string, start: number): number {
+export function arithmeticEnd(source: string, start: number, allowSubshell = false): number {
   let depth = 0;
+  let quote = "";
+  let ansiQuote = false;
+  const quotedSubstitutions: number[] = [];
   for (let position = start; position < source.length; position++) {
     const character = source[position];
+    if (allowSubshell) {
+      if (character === "\\" && (quote !== "'" || ansiQuote)) { position++; continue; }
+      if (quote === '"' && character === "$" && source[position + 1] === "(") {
+        if (quotedSubstitutions.length >= 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", position);
+        quotedSubstitutions.push(depth);
+        depth++;
+        position++;
+        quote = "";
+        continue;
+      }
+      if (quote) {
+        if (character === quote) quote = "";
+        continue;
+      }
+      if (character === "'" || character === '"' || character === "`") {
+        quote = character;
+        ansiQuote = character === "'" && source[position - 1] === "$";
+        continue;
+      }
+    }
     if (character === "(") depth++;
     if (character === ")") {
       if (depth === 0 && source[position + 1] === ")") return position;
-      if (--depth < 0) break;
+      if (--depth < 0) {
+        if (allowSubshell) return -1;
+        break;
+      }
+      if (quotedSubstitutions.at(-1) === depth) {
+        quotedSubstitutions.pop();
+        quote = '"';
+      }
     }
   }
   throw new ShellSyntaxError("Unterminated arithmetic expression", start);

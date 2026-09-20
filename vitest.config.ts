@@ -108,6 +108,9 @@ function getPackageAliases(): Record<string, string> {
 
   // Longer subpaths must precede their parent aliases (including nested exports).
   return Object.fromEntries(Object.entries({
+    "poe-code/safe-fs/node/filesystem": path.resolve(packagesDir, "safe-fs/src/node/filesystem.ts"),
+    "poe-code/safe-fs/core": path.resolve(packagesDir, "safe-fs/src/core.ts"),
+    "poe-code/safe-fs": path.resolve(packagesDir, "safe-fs/src/index.ts"),
     ...bareSubpathAliases,
     ...subpathAliases,
     ...bareMainAliases,
@@ -138,7 +141,11 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "packages/safe-bash/**",
+      "packages/safe-playwright/**",
       "packages/op/src/*.test.ts",
+      "packages/safe-bash-command-wkhtmltopdf/src/*.test.ts",
+      "packages/safe-bash-command-exiftool/src/*.test.ts",
+      "packages/safe-bash-contracts/src/*.test.ts",
       "scripts/**/*.lifecycle.test.ts",
       // Share the package's temporary quarantine with root/shared unit runs.
       ...safePythonQuarantine.map(filename => `packages/safe-python/${filename}`),

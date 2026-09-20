@@ -112,7 +112,69 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
   const bytes = readFileSync(join(owned, "before-02.json"));
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1");
   const before = JSON.parse(bytes.toString()) as { before: { config: CompilerConfiguration } };
-  return { ...before.before.config, exclude: [...before.before.config.exclude, native, ...capturedTypePaths, ...stagedDuPaths, ...integrationTypePaths] };
+  return {
+    ...before.before.config,
+    compilerOptions: {
+      ...before.before.config.compilerOptions,
+      paths: {
+        "virtual-bash": [
+          "./dist/index.d.ts"
+        ],
+        "virtual-bash/*": [
+          "./dist/*"
+        ],
+        "virtual-bash/commands/table-text": [
+          "./dist/commands/table-text/index.d.ts"
+        ],
+        "poe-code/safe-fs": [
+          "../safe-fs/src/index.ts"
+        ],
+        "poe-code/safe-fs/core": [
+          "../safe-fs/src/core.ts"
+        ],
+        "poe-code/safe-fs/node": [
+          "../safe-fs/src/node-host.ts"
+        ],
+        "poe-code/safe-fs/node/filesystem": [
+          "../safe-fs/src/node/filesystem.ts"
+        ],
+        "poe-code/safe-playwright": [
+          "../safe-playwright/src/index.ts"
+        ],
+        "poe-code/safe-playwright/adapter": [
+          "../safe-playwright/src/adapter.ts"
+        ],
+        "poe-code/safe-js": [
+          "../safe-js/src/index.ts"
+        ],
+        "poe-code/safejs": [
+          "../safe-js/src/index.ts"
+        ],
+        "poe-code/safe-js/core": [
+          "../safe-js/src/core.ts"
+        ],
+        "@poe-code/safe-fs": [
+          "../safe-fs/src/index.ts"
+        ],
+        "@poe-code/safe-fs/core": [
+          "../safe-fs/src/core.ts"
+        ],
+        "@poe-code/safe-fs/node": [
+          "../safe-fs/src/node-host.ts"
+        ],
+        "poe-code/safejs/core": [
+          "../safe-js/src/core.ts"
+        ],
+        "@poe-code/safe-js": [
+          "../safe-js/src/index.ts"
+        ],
+        "@poe-code/safe-fs/node/filesystem": [
+          "../safe-fs/src/node/filesystem.ts"
+        ]
+      }
+    },
+    exclude: [...before.before.config.exclude, native, ...capturedTypePaths, ...stagedDuPaths, ...integrationTypePaths]
+  };
 }
 
 function assertApprovedCompilerConfiguration(current: unknown) {

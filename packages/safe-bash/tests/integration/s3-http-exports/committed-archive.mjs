@@ -199,6 +199,7 @@ export function mirrorArchiveExportTargets(target) {
       assert.ok(["*.js", "*.d.ts"].includes(parts.pop()), "archive export requires a single filename pattern");
       assertLiteralInputPath([...parts, "export-pattern"].join("/"));
     } else assertLiteralInputPath(local);
+    if (target.startsWith("./dist/opt-in/")) return `./dist/safe-bash-opt-in/${target.slice("./dist/opt-in/".length)}`;
     return `./${packagePrefix}/${target.slice(2)}`;
   }
   assert.ok(target && typeof target === "object" && !Array.isArray(target), "invalid archive export conditions");
@@ -456,14 +457,14 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
-    else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/op/package.json", "packages/op/tsconfig.json"].includes(path) || path.startsWith("packages/op/src/"), `unadmitted root archive path: ${path}`);
+    else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/op/package.json", "packages/op/tsconfig.json", "packages/pandoc/package.json", "packages/pdf/package.json"].includes(path) || path.startsWith("packages/op/src/"), `unadmitted root archive path: ${path}`);
     const entry = tree.get(path);
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
     assert.match(entry.oid, hashAlgorithm === "sha1" ? /^[a-f0-9]{40}$/u : /^[a-f0-9]{64}$/u);
     if (!admitted.has(path)) admitted.set(path, { path, oid: entry.oid, maximum });
   };
-  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs"];
+  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", "scripts/copy-compression-assets.mjs"];
   assert.ok(tree.has("scripts/guard-package-dist.mjs"), "missing committed root output guard");
   admit("scripts/guard-package-dist.mjs");
   for (const path of reviewed) admit(`${packagePrefix}/${path}`, 300000);
@@ -472,6 +473,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   admit("package.json", 300000);
   admit("package-lock.json");
   admit(`${packagePrefix}/README.md`);
+  for (const name of ["pandoc", "pdf"]) if (tree.has(`packages/${name}/package.json`)) admit(`packages/${name}/package.json`, 64 * 1024);
   if (tree.has(sharedPrefix + "/package.json")) {
     for (const path of sharedPaths) admit(path, 300000);
     for (const path of tree.keys()) if (path.startsWith(sharedPrefix + "/src/") && !path.endsWith(".test.ts")) {
@@ -525,7 +527,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       manifest = JSON.parse(bootstrap.get(`${packagePrefix}/package.json`));
       rootManifest = JSON.parse(bootstrap.get("package.json"));
       lock = JSON.parse(bootstrap.get("package-lock.json"));
-      assert.equal(manifest.name, "virtual-bash");
+      assert.equal(manifest.name, "@poe-platform/safe-bash");
       assert.equal(manifest.private, true);
       assert.equal(manifest.type, "module");
       assert.equal(manifest.engines.node, ">=22");
@@ -536,16 +538,22 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         ...["expression", "nodes", "evaluate", "native-work", "inplace", "arguments", "mike", "native-encoder"]
           .flatMap(name => ["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/${name}.${extension}`)),
         "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs",
-        "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read",
+        "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read", "!dist/opt-in",
       ], "committed dist packaging contract drift");
       assertArchiveDependencyContract(manifest);
-      for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
+      for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
+      if (Object.hasOwn(manifest.scripts, "postbuild")) assert.equal(manifest.scripts.postbuild, "node scripts/build-optional-cli.mjs", "unapproved package lifecycle: postbuild");
       assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs", "unreviewed committed build command");
       assert.equal(rootManifest.name, "poe-code");
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
       for (const [path, conditions] of Object.entries(manifest.exports)) {
         const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
-        assert.deepEqual(rootManifest.exports[name], mirrorArchiveExportTargets(conditions), `root export mismatch: ${name}`);
+        const expected = mirrorArchiveExportTargets(conditions);
+        if (path === "./commands/pandoc") expected.import = "./packages/pandoc/dist/public/command.js";
+        const detached = manifest.poeCode?.integration?.peerProfile === "checkout-root"
+          && rootManifest.exports["./safe-bash"] === undefined;
+        assert.deepEqual(rootManifest.exports[name], detached ? undefined : expected, `root export mismatch: ${name}`);
+        if (detached) assert.ok(!rootManifest.files.includes("packages/safe-bash/dist"), "private shell must not be shipped by root");
       }
       assert.equal(lock.lockfileVersion, 3, "workspace lock version");
       for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
@@ -556,8 +564,21 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
             `workspace lock drift: ${key || "root"} ${field}`);
         }
       }
-      assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
+      assert.deepEqual(lock.packages["node_modules/@poe-platform/safe-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
       const dependencies = assertArchiveDependencyLock(manifest, lock);
+      if (manifest.devDependencies?.["@poe-code/pandoc"] !== undefined) {
+        assert.equal(manifest.devDependencies["@poe-code/pandoc"], "*");
+        for (const name of ["pandoc", "pdf"]) {
+          const path = `packages/${name}`;
+          assert.ok(bootstrap.has(`${path}/package.json`), `missing committed ${name} build prerequisite`);
+          const metadata = JSON.parse(bootstrap.get(`${path}/package.json`));
+          assert.equal(metadata.name, `@poe-code/${name}`);
+          assert.equal(metadata.private, true);
+          assert.equal(metadata.version, "0.0.1");
+          assert.deepEqual(lock.packages[path]?.dependencies, metadata.dependencies, `${name} dependency workspace lock drift`);
+          assert.deepEqual(lock.packages[`node_modules/@poe-code/${name}`], { resolved: path, link: true }, `${name} workspace link drift`);
+        }
+      }
       if (Object.hasOwn(dependencies, sharedName)) sharedSourceInputs({ files: bootstrap, lock });
       if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
         assert.equal(manifest.devDependencies["@poe-platform/op"], "*");

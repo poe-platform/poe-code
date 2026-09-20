@@ -200,11 +200,14 @@ poe-code pipeline run --plan docs/plans/my-feature.md
 
 ## Dashboard Configuration
 
-Pipeline can render a live dashboard in terminal TTY runs.
+Pipeline's live dashboard shows the current task and step, the plan sequence, and concise agent actions. Type a message and press Enter to run it after the selected plan. Queue several messages with repeated submissions; Alt+Up/Down selects their target plan. Ctrl+P switches to adding another plan at the end of the sequence.
+
+Esc opens browsing controls: `v` shows all tasks and queued work, `d` expands action details, and `i` returns to the input. Ctrl+C cancels the run. Failed or limited plans leave later queue items pending.
 
 ```bash
 # One-off flags
 poe-code pipeline run --tui
+poe-code pipeline run docs/plans/first.md docs/plans/second.md --tui --after-plan "Review the API" --after-plan "Verify the tests"
 poe-code pipeline run --no-tui
 
 # Config default (.poe-code/config.json)
@@ -220,7 +223,7 @@ POE_PIPELINE_TUI=true poe-code pipeline run
 poe-code pipeline install [--agent <name>] [--local|--global] [--force]
 poe-code pipeline validate <file> [--preview]
 poe-code pipeline plan-path
-poe-code pipeline run [--agent <name>] [--model <model>] [--tui|--no-tui] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>] [--worktree]
+poe-code pipeline run [plans...] [--agent <name>] [--model <model>] [--tui|--no-tui] [--after-plan <message>] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>] [--worktree]
 ```
 
 Example:
@@ -246,7 +249,11 @@ const result = await runPipeline({
 });
 ```
 
-Exports: `runPipeline`, `resolvePlanPath`, `parsePlan`, `writeTaskStatus`, `loadPipelineConfig`, `loadResolvedSteps`, `selectNextExecution`, `buildExecutionPrompt`.
+`runPipelineSequence({ plans, afterEachPlan, ...options })` runs a sequence with the same agent runner. `afterEachPlan` mirrors the repeatable `--after-plan` flag and also applies to plans added while running. Follow-ups use the selected run agent/model and the target plan's MCP servers and log directory. When a plan is archived, its result includes `archivedPath`, and follow-up prompts reference that file.
+
+For live input, supply a `queue` from `createRunQueue` in `poe-code` instead of `plans` and `afterEachPlan`. Call `queue.enqueueMessage(text, planId?)` or `queue.enqueuePlan(path)` while the sequence is running. `onQueueChange` receives immutable ordered snapshots; results include every completed plan, message result, and the final queue state. The root `poe-code` SDK exports both `runPipelineSequence` and `createRunQueue` with its default agent runner and optional worktree support.
+
+Exports: `runPipeline`, `runPipelineSequence`, `resolvePlanPath`, `parsePlan`, `writeTaskStatus`, `loadPipelineConfig`, `loadResolvedSteps`, `selectNextExecution`, `buildExecutionPrompt`.
 
 ## Testing Helper
 

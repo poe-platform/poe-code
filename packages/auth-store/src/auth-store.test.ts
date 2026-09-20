@@ -1,3 +1,15 @@
+// Exercise AES authentication and storage policy without scheduling expensive KDF work.
+vi.mock("node:crypto", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:crypto")>();
+  return {
+    ...actual,
+    scrypt(password: string, salt: string, keyLength: number, callback: (error: Error | null, key: Buffer) => void) {
+      const key = actual.createHash("shake256", { outputLength: keyLength }).update(password).update(salt).digest();
+      queueMicrotask(() => callback(null, key));
+    }
+  };
+});
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";

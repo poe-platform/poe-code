@@ -7,7 +7,13 @@ import { createYesCommand } from "../../../src/commands/yes/index.js";
 import { capture, gnuHelp, gnuVersion, prefix, virtualVersion } from "./fixtures.js";
 
 async function oracle(executable: string, args: readonly string[], limit = 4096, extraEnv: Record<string, string> = {}, closeOutput = false) {
-  const child = spawn(executable, args, { argv0: executable === "/bin/bash" ? "bash" : "yes", stdio: ["ignore", "pipe", "pipe"], env: { LC_ALL: "C", LANG: "C", ...extraEnv } });
+  // Node stdout pipes can be sockets. A bounded head consumer creates the
+  // kernel pipe whose SIGPIPE behavior this probe observes through pipefail.
+  const command = closeOutput ? "/bin/bash" : executable;
+  const commandArgs = closeOutput
+    ? ["--noprofile", "--norc", "-c", 'set -o pipefail; "$1" "${@:3}" | /usr/bin/head -c "$2"; exit $?', "oracle", executable, String(limit), ...args]
+    : args;
+  const child = spawn(command, commandArgs, { argv0: command === "/bin/bash" ? "bash" : "yes", stdio: ["ignore", "pipe", "pipe"], env: { LC_ALL: "C", LANG: "C", ...extraEnv } });
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   let outputBytes = 0;
@@ -23,8 +29,7 @@ async function oracle(executable: string, args: readonly string[], limit = 4096,
     outputBytes += count;
     if (!capped && outputBytes === limit) {
       capped = true;
-      if (closeOutput) child.stdout.destroy();
-      else child.kill("SIGKILL");
+      if (!closeOutput) child.kill("SIGKILL");
     }
   });
   child.stderr.on("data", (chunk: Buffer) => {
@@ -67,8 +72,8 @@ test("bounded system oracle explicitly distinguishes Darwin BSD from GNU", async
   assert.equal(multiple.stdout.toString(), gnu ? "one two\n" : "one\none\n");
   const shortConsumer = await oracle(binary, [], 2, {}, true);
   assert.equal(shortConsumer.stdout.toString(), "y\n");
-  assert.equal(shortConsumer.signal, "SIGPIPE");
-  assert.equal(shortConsumer.code, null);
+  assert.equal(shortConsumer.signal, null);
+  assert.equal(shortConsumer.code, 141);
   assert.equal(shortConsumer.stderr.length, 0);
 });
 
@@ -127,7 +132,7 @@ test("pinned GNU 9.7 differential: permutations, abbreviations, errors, raw argv
   assert.deepEqual(Buffer.from(virtualRaw.bytes), nativeRaw.stdout);
   const shortConsumer = await oracle(binary, [], 2, {}, true);
   assert.equal(shortConsumer.stdout.toString(), "y\n");
-  assert.equal(shortConsumer.signal, "SIGPIPE");
-  assert.equal(shortConsumer.code, null);
+  assert.equal(shortConsumer.signal, null);
+  assert.equal(shortConsumer.code, 141);
   assert.equal(shortConsumer.stderr.length, 0);
 });

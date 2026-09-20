@@ -1,0 +1,586 @@
+{
+  "oracles": {
+    "python": "3.9.6 (default, Apr 30 2025, 02:07:17) \n[Clang 17.0.0 (clang-1700.0.13.5)]",
+    "pypdf": "6.0.0",
+    "PyMuPDF": "1.26.4",
+    "MuPDF": "1.26.7"
+  },
+  "normalization": "No EPUB content normalization. PDF extraction requires exact Matrix in pypdf and exact Matrix plus terminal LF in MuPDF. Rendering compares pixels with earlier owned artifacts under the same pinned renderer; no cross-engine PDF byte comparison.",
+  "outputs": [
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-epub.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-epub3.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf",
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        52.0,
+        51.99999237060547,
+        95.19998931884766,
+        67.8399887084961
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-pptx.pptx",
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-epub.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-epub3.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf",
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-epub.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-epub3.epub",
+      "sha256": "731e34fbe39c013ea6e27db1a4aa48a78cacc920cd357c52f74aad748eca8ba5",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf",
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/html-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/json-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-epub.epub",
+      "sha256": "fb11147a40fa7b15bea080a3f8968169e480ac21395925a97a211a9a608c0074",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-epub3.epub",
+      "sha256": "fb11147a40fa7b15bea080a3f8968169e480ac21395925a97a211a9a608c0074",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-epub.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-epub3.epub",
+      "sha256": "4c403e318de16fc717b6328a15cb4fa05bdc5bc330c093e714007638dc89d289",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf",
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        48.0,
+        47.99999237060547,
+        91.19998931884766,
+        63.839988708496094
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-pptx.pptx",
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-epub.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-epub3.epub",
+      "sha256": "d8a029271f6c1d6c91e1e6c2632bd9d7404e748441bae5cf377b6f600a8407c0",
+      "outcome": "fail",
+      "message": "AssertionError()"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf",
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "pages": 1,
+      "pypdfText": "Matrix",
+      "muPdfText": "Matrix\n",
+      "wordBox": [
+        52.0,
+        51.99999237060547,
+        95.19998931884766,
+        67.8399887084961
+      ],
+      "image": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf.png",
+      "checks": "Strict pypdf parse, independent MuPDF parse, exact text/pages, in-page geometry and pinned rendered comparison",
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-pptx.pptx",
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "slides": 1,
+      "text": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC/content types/independent slide XML and exact ordered text",
+      "outcome": "pass"
+    }
+  ],
+  "inputs": [
+    {
+      "profile": "epub2",
+      "artifact": "docs/pandoc/matrix-owned/input-epub2.bin",
+      "version": "2.0",
+      "members": 5,
+      "spine": [
+        "Book/chapter.xhtml"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC, first stored mimetype, container, OPF metadata/manifest/spine, XHTML namespace/body, ordered navigation targets and fragment closure",
+      "outcome": "pass"
+    },
+    {
+      "profile": "epub3",
+      "artifact": "docs/pandoc/matrix-owned/input-epub3.bin",
+      "version": "3.0",
+      "members": 5,
+      "spine": [
+        "Book/chapter.xhtml"
+      ],
+      "bodyText": [
+        "Matrix"
+      ],
+      "checks": "ZIP CRC, first stored mimetype, container, OPF metadata/manifest/spine, XHTML namespace/body, ordered navigation targets and fragment closure",
+      "outcome": "pass"
+    }
+  ],
+  "rendered": [
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/commonmark-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/csv-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/epub2-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/epub3-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/gfm-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/html-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/html-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/html-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/json-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/json-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/json-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/latex-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/pptx-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/rst-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/rtf-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    },
+    {
+      "artifact": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf",
+      "image": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf.png",
+      "reference": "docs/pandoc/matrix-owned/tsv-pdf.pdf",
+      "samePixels": true,
+      "outcome": "pass"
+    }
+  ],
+  "counts": {
+    "outputs": {
+      "total": 46,
+      "pass": 22,
+      "fail": 24,
+      "unsupported": 0,
+      "not-run": 0
+    },
+    "inputs": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "not-run": 0
+    },
+    "rendered": {
+      "total": 12,
+      "pass": 12,
+      "fail": 0,
+      "unsupported": 0,
+      "not-run": 0
+    }
+  }
+}

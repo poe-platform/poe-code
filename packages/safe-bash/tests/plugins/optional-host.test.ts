@@ -34,9 +34,9 @@ type CoreTypes = [
 for (const profile of [
   { name: "workspace", url: new URL("../../package.json", import.meta.url), key: "./optional-host", prefix: "./dist" },
   { name: "root", url: new URL("../../../../package.json", import.meta.url), key: "./safe-bash/optional-host", prefix: "./packages/safe-bash/dist" },
-]) test(`optional host has an explicit ${profile.name} public subpath only`, async () => {
+]) test(`optional host follows the ${profile.name} package boundary`, async () => {
   const manifest = JSON.parse(await readFile(profile.url, "utf8")) as { exports: Record<string, unknown> };
-  assert.deepEqual(manifest.exports[profile.key], {
+  assert.deepEqual(manifest.exports[profile.key], profile.name === "root" ? undefined : {
     types: `${profile.prefix}/optional-host.d.ts`, import: `${profile.prefix}/optional-host.js`,
   });
   assert.equal(Object.hasOwn(manifest.exports, profile.key.replace("optional-host", "optional")), false);

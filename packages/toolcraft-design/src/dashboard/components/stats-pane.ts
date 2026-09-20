@@ -4,6 +4,9 @@ import { plainTerminalText } from "../ansi.js";
 import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import type { CellStyle, DashboardStats, Rect } from "../types.js";
 import { computeVisualLines, type VisualLine } from "./output-pane.js";
+import { formatElapsed } from "../elapsed.js";
+
+export { formatElapsed } from "../elapsed.js";
 
 type StatusTone = "error" | "info" | "muted" | "success" | "warning";
 
@@ -83,16 +86,6 @@ export function renderStatsPane(buffer: ScreenBuffer, rect: Rect, stats: Dashboa
       line.style
     );
   }
-}
-
-export function formatElapsed(ms: number): string {
-  const safeMs = Number.isFinite(ms) ? ms : 0;
-  const totalSeconds = Math.max(0, Math.floor(safeMs / 1_000));
-  const hours = Math.floor(totalSeconds / 3_600);
-  const minutes = Math.floor((totalSeconds % 3_600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return [hours, minutes, seconds].map((value) => value.toString().padStart(2, "0")).join(":");
 }
 
 export function formatNumber(n: number): string {

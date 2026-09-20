@@ -1,26 +1,14 @@
 import * as esbuild from "esbuild";
-import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, cp, lstat, mkdir, open, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
-import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
-import { mergeRuntimeBundleOutputs, resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
-import { copyNativeAssets, nativeImportMapping, readNativeRegistry } from "../packages/safe-fs/scripts/native-assets.mjs";
-import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "../packages/package-lint/dist/native-assets.js";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
-import {
-  canonicalFs,
-  collectCanonicalDeclarations,
-  collectPackageFiles,
-  findBundleIssues
-} from "../packages/package-lint/dist/bundle-policy.js";
+import { resolveBundleGraph } from "./bundle-graph.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
-import { setBinExecutable } from "./set-bin-executable.mjs";
+import { collectPackageFiles, findBundleIssues } from "../packages/package-lint/dist/bundle-policy.js";
 import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
-import { rewriteWorkspaceRuntime } from "./rewrite-workspace-runtime.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -50,7 +38,8 @@ const {
   workspacePackageNames
 } = await resolveBundleGraph(rootDir, packageJsons);
 const consumerBuildOptions = {
-  ...resolveConsumerGraph({ alias: workspaceAliases, external: externalDeps }, canonicalFs),
+  alias: workspaceAliases,
+  external: externalDeps,
   absWorkingDir: rootDir,
   metafile: true
 };
@@ -66,7 +55,7 @@ const stripShebangPlugin = {
     build.onLoad({ filter: /\.ts$/ }, async (args) => {
       let contents = await readFile(args.path, "utf8");
       if (contents.startsWith("#!")) {
-        contents = contents.replace(/^#!.*\n/, "");
+        contents = contents.slice(contents.indexOf("\n") + 1);
       }
       return { contents, loader: "ts" };
     });
@@ -116,6 +105,7 @@ const mainBuild = await esbuild.build({
   format: "esm",
   outdir: path.join(rootDir, "dist"),
   splitting: true,
+  write: false,
   ...consumerBuildOptions,
   banner: undefined,
   sourcemap: true,
@@ -124,6 +114,11 @@ const mainBuild = await esbuild.build({
   metafile: true
 });
 
+await publishBundleOutputs(mainBuild, {
+  outdir: path.join(rootDir, "dist"),
+  entryPoints: [path.join(rootDir, "src/index.ts")],
+  workingDirectory: rootDir
+});
 consumerBuilds.push(mainBuild);
 
 consumerBuilds.push(
@@ -187,19 +182,6 @@ consumerBuilds.push(
 );
 
 const { entryPoints: providerEntryPoints, sourceNames: providerSourceNames } = await getProviderEntryPoints(rootDir);
-consumerBuilds.push(
-  await esbuild.build({
-    entryPoints: [path.join(rootDir, "packages/safe-bash/src/commands/op/index.ts")],
-    bundle: true,
-    platform: "node",
-    target: "es2022",
-    format: "esm",
-    outfile: path.join(rootDir, "packages/safe-bash/dist/commands/op/index.js"),
-    ...consumerBuildOptions,
-    sourcemap: true,
-    plugins: [stripShebangPlugin]
-  })
-);
 if (providerEntryPoints.length > 0) {
   consumerBuilds.push(
     await esbuild.build({
@@ -217,80 +199,6 @@ if (providerEntryPoints.length > 0) {
       loader: { ".md": "text", ".mustache": "text", ".log": "text" }
     })
   );
-}
-
-await assertSafeOutputDirectory(path.join(rootDir, "packages/safe-js"));
-const safejsEntryPoints = {
-  index: path.join(rootDir, "packages/safe-js/src/index.ts"),
-  core: path.join(rootDir, "packages/safe-js/src/core.ts"),
-  cli: path.join(rootDir, "packages/safe-js/src/cli.ts")
-};
-const nativeAssets = await readNativeRegistry({ rootDir });
-const fsBuildOptions = resolveCanonicalFsBuilds(
-  rootDir,
-  { alias: workspaceAliases, external: externalDeps },
-  safejsEntryPoints,
-  nativeAssets
-);
-const nativeRootPrefix = path.relative(rootDir, fsBuildOptions.node.outdir).split(path.sep).join("/");
-assert.equal(JSON.stringify(packageJson.imports?.[nativeAssets.specifier]),
-  JSON.stringify(nativeImportMapping(nativeAssets, nativeRootPrefix)), "Invalid root native private import mapping");
-const safejsScope = JSON.parse(await readFile(path.join(rootDir, "packages/safe-js/package.json"), "utf8"));
-assert.equal(JSON.stringify(safejsScope.imports?.[nativeAssets.specifier]),
-  JSON.stringify(nativeImportMapping(nativeAssets, "dist")), "Invalid worktree native private import mapping");
-const fsBuilds = {};
-const workerdOptions = resolveWorkerdRuntimeBuild(rootDir, consumerBuildOptions);
-const workerdBundle = await esbuild.build(workerdOptions);
-consumerBuilds.push(workerdBundle);
-for (const [profile, options] of Object.entries(fsBuildOptions)) {
-  const result = await esbuild.build(options);
-  const publication = profile === "node" ? mergeRuntimeBundleOutputs(result, workerdBundle) : result;
-  const entryPoints = Object.values(options.entryPoints);
-  if (profile === "node") entryPoints.push(...Object.values(workerdOptions.entryPoints));
-  await publishBundleOutputs(publication, {
-    outdir: options.outdir,
-    entryPoints,
-    workingDirectory: rootDir
-  });
-  fsBuilds[profile] = result;
-}
-await copyNativeAssets({ rootDir, outDir: fsBuildOptions.node.outdir });
-await setBinExecutable(path.join(rootDir, "packages/safe-js"));
-
-const shellOptions = resolveBrowserShellBuild(rootDir);
-const shellBundle = await esbuild.build(shellOptions);
-await publishBundleOutputs(shellBundle, {
-  outdir: shellOptions.outdir,
-  entryPoints: Object.values(shellOptions.entryPoints),
-  workingDirectory: rootDir
-});
-consumerBuilds.push(shellBundle);
-
-consumerBuilds.push(await esbuild.build({
-  absWorkingDir: rootDir,
-  entryPoints: [path.join(rootDir, "packages/docx/src/index.ts")],
-  outfile: path.join(rootDir, "packages/docx/dist/index.js"),
-  alias: { ...workspaceAliases, "@poe-code/safe-fs/core": "poe-code/safe-fs/core", "@poe-code/safe-fs/xml": "poe-code/safe-fs/core" },
-  external: ["poe-code/safe-fs/core"],
-  bundle: true,
-  platform: "browser",
-  conditions: ["workerd", "worker", "browser"],
-  format: "esm",
-  target: "es2022",
-  sourcemap: true,
-  metafile: true
-}));
-
-const officePackage = packageJsons.find(({ dir }) => dir === "office-package");
-assert(officePackage, "Missing shared office package workspace");
-const officeRoutes = Object.fromEntries(
-  Object.entries(officePackage.pkg.exports).map(([key, value]) => [
-    officePackage.pkg.name + (key === "." ? "" : key.slice(1)),
-    path.resolve(packagesDir, officePackage.dir, value.import)
-  ])
-);
-for (const directory of ["safe-bash", "pptx"]) {
-  await rewriteWorkspaceRuntime(path.join(packagesDir, directory, "dist"), officeRoutes);
 }
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
@@ -395,21 +303,25 @@ for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   });
 }
 
-await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, { rootDir, profile: "node" });
+const excludedDeclarationPaths = (packageJson.files ?? [])
+  .filter(entry => entry.startsWith("!") && !entry.includes("*"))
+  .map(entry => path.resolve(rootDir, entry.slice(1)));
+const publishedDeclarationInputs = await collectPackageFiles(rootDir,
+  (packageJson.files ?? []).filter(entry => !entry.startsWith("!")), {
+    readdir: directory => readdir(directory, { withFileTypes: true }), stat
+  });
+const includedDeclarationFiles = new Set([...publishedDeclarationInputs].map(filename => path.resolve(rootDir, filename)));
+await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, {
+  rootDir, profile: "node", excludedPaths: excludedDeclarationPaths, includedFiles: includedDeclarationFiles
+});
 for (const { dir } of packageJsons) {
   await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons, {
     rootDir,
-    profile: "node"
+    profile: "node",
+    excludedPaths: excludedDeclarationPaths,
+    includedFiles: includedDeclarationFiles
   });
 }
-
-// tokenfill is inlined into memory's bundle and resolves its corpus via
-// import.meta.url, so the corpus must sit next to packages/memory/dist/index.js.
-await cp(
-  path.join(rootDir, "packages", "tokenfill", "src", "corpus"),
-  path.join(rootDir, "packages", "memory", "dist", "corpus"),
-  { recursive: true }
-);
 
 // Generate a CJS entry point with a Node.js version gate.
 // Written in ES5 syntax so even ancient Node versions parse it and
@@ -460,12 +372,7 @@ await Promise.all([
   copyFile(
     path.join(rootDir, "packages", "experiment-loop", "src", "config", "default-run.yaml"),
     path.join(distDir, "default-run.yaml")
-  ),
-  // tokenfill resolves its built-in corpus via import.meta.url, so after
-  // bundling the directory must sit next to dist/index.js.
-  cp(path.join(rootDir, "packages", "tokenfill", "src", "corpus"), path.join(distDir, "corpus"), {
-    recursive: true
-  })
+  )
 ]);
 
 await Promise.all(
@@ -479,35 +386,8 @@ await Promise.all(
 );
 
 const metafile = {
-  inputs: Object.assign({}, ...consumerBuilds.map((result) => result.metafile.inputs)),
-  outputs: Object.assign(
-    {},
-    ...consumerBuilds.map((result) => result.metafile.outputs),
-    ...Object.values(fsBuilds).map((result) => result.metafile.outputs)
-  ),
-  canonicalBundle: {
-    entryPoints: Object.values(fsBuildOptions.node.entryPoints).map((entry) =>
-      path.relative(rootDir, entry).split(path.sep).join("/")
-    ),
-    metafile: fsBuilds.node.metafile
-  },
-  browserCanonicalBundle: {
-    entryPoints: Object.values(fsBuildOptions.browser.entryPoints).map((entry) =>
-      path.relative(rootDir, entry).split(path.sep).join("/")
-    ),
-    metafile: fsBuilds.browser.metafile
-  },
-  ...(await collectCanonicalNativeAssets(rootDir, {
-    readdir: (directory) => readdir(directory, { withFileTypes: true }),
-    readFile: (filename) => readFile(filename, "utf8"),
-    lstat,
-    realpath,
-    readBytes: (filename, maximum) => readBoundedNativeBytes(open, filename, maximum)
-  })),
-  ...(await collectCanonicalDeclarations(rootDir, {
-    readdir: (directory) => readdir(directory, { withFileTypes: true }),
-    readFile: (filename) => readFile(filename, "utf8")
-  }))
+  inputs: Object.assign({}, ...consumerBuilds.map(result => result.metafile.inputs)),
+  outputs: Object.assign({}, ...consumerBuilds.map(result => result.metafile.outputs))
 };
 const packedFiles = await collectPackageFiles(rootDir, packageJson.files, {
   readdir: (directory) => readdir(directory, { withFileTypes: true }),

@@ -1,0 +1,22 @@
+{
+  "scope": "External published CommonMark dependency inventory; documentation only",
+  "sourceCommit": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "rowCount": 5101,
+  "externalRegistrations": 890,
+  "checks": {
+    "exactPandocRevision": true,
+    "allSourceHashes": true,
+    "externalArchiveHashes": true,
+    "exactExampleLineAssignments": true,
+    "inlineAndPropertyDeclarationsReviewed": true,
+    "uniqueReservedIds": true,
+    "statusTotals": true,
+    "noFalsePasses": true,
+    "noFixturePayloadImports": true
+  },
+  "passingConverterTests": 0,
+  "limitations": [
+    "Exact Pandoc declaration review remains separate. No dependency or converter executable was run."
+  ],
+  "formattingCommand": "npx prettier --check docs/pandoc/upstream-cases.json docs/pandoc/corpus-inventory.md docs/plans/pandoc-corpus-inventory-review.md docs/pandoc/external-inventory-validation.json"
+}

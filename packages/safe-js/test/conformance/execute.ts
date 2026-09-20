@@ -1,3 +1,5 @@
+import { Test262Agents } from "./agents.js";
+import type {SourceResolver} from "../../src/modules/source-graph.js";
 import type { BudgetOptions } from "../../src/interp/budget.js";
 import { prepareTest262, type Test262Variant } from "./metadata.js";
 import { createTest262Realm } from "./realm.js";
@@ -9,6 +11,7 @@ type ExecutionResult = Test262Result
 
 export async function executeTest262(filename: string, source: string, options: {
   harness: ReadonlyMap<string, string>;
+  sourceResolver?: SourceResolver;
   timeoutMs: number;
   budget?: BudgetOptions;
   mode?: Test262Variant["mode"];
@@ -22,16 +25,13 @@ export async function executeTest262(filename: string, source: string, options: 
   const results: Array<ExecutionResult & { mode: Test262Variant["mode"] }> = [];
   for (const variant of prepared.variants) {
     if (options.mode !== undefined && variant.mode !== options.mode) continue;
-    if (prepared.flags.includes("module") || (prepared.negative?.phase !== "parse" &&
-        prepared.features.some(feature => ["dynamic-import", "import-defer", "source-phase-imports", "source-phase-imports-module-source"].includes(feature)))) {
+    if (prepared.negative?.phase !== "parse" &&
+        (prepared.features.some(feature => ["import-defer", "source-phase-imports", "source-phase-imports-module-source"].includes(feature)) ||
+        (prepared.features.includes("dynamic-import") && options.sourceResolver === undefined))) {
       results.push({ mode: variant.mode, status: "unsupported", reason: "module" });
       continue;
     }
-    if (prepared.flags.includes("CanBlockIsTrue")) {
-      results.push({ mode: variant.mode, status: "unsupported", reason: "blocking-mode" });
-      continue;
-    }
-    const requirement = variant.harness.includes("agent.js") || variant.harness.includes("atomicsHelper.js") ? "agent"
+    const requirement = variant.harness.includes("agent.js") ? "agent"
       : prepared.features.includes("IsHTMLDDA") ? "IsHTMLDDA" : undefined;
     if (requirement !== undefined) {
       results.push({ mode: variant.mode, status: "unsupported", reason: requirement });
@@ -42,6 +42,16 @@ export async function executeTest262(filename: string, source: string, options: 
     let asyncFailure = false;
     let completionCount = 0;
     const configuredDeadline = options.budget?.deadline;
+    const agentBudget = { ...options.budget, deadline: Math.min(Date.now() + options.timeoutMs,
+      configuredDeadline instanceof Date ? configuredDeadline.getTime() : configuredDeadline ?? Infinity) };
+    const agentFailure: { error?: Error } = {};
+    const onAgentError = (error: unknown) => {
+      agentFailure.error = error instanceof Error ? error : new Error(JSON.stringify(
+        classifyScriptOutcome({ status: "throw", phase: "runtime", error })));
+      complete();
+    };
+    const agents = new Test262Agents(agentBudget, onAgentError);
+    const readAgentFailure = () => agentFailure.error;
     const realm = createTest262Realm({ ...options.budget,
       deadline: Math.min(Date.now() + options.timeoutMs,
         configuredDeadline instanceof Date ? configuredDeadline.getTime() : configuredDeadline ?? Infinity)
@@ -54,7 +64,7 @@ export async function executeTest262(filename: string, source: string, options: 
         if (completionCount > 1) asyncFailure = true;
         complete();
       }
-    });
+    }, undefined, {resolver:options.sourceResolver,filename}, { agent: agents, canBlock: !prepared.flags.includes("CanBlockIsFalse"), onError: onAgentError });
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const timeout = new Promise<ExecutionResult>(resolve => {
@@ -69,8 +79,11 @@ export async function executeTest262(filename: string, source: string, options: 
           if (harnessOutcome.status !== "normal")
             return { status: "failed", reason: "harness-error", detail: { include, ...((classifyScriptOutcome(harnessOutcome) as { detail?: Record<string, string> }).detail ?? {}) } };
         }
-        const outcome = await realm.evaluate(variant.source);
+        const outcome = prepared.flags.includes("module") ? await realm.evaluateModule(variant.source,filename)
+          : await realm.evaluate(variant.source);
+        if (realm.unsupportedCapabilities.has("source-resolution")) return {status:"unsupported",reason:"module"};
         if (realm.unsupportedCapabilities.has("gc")) return { status: "unsupported", reason: "gc" };
+        if (agentFailure.error) return { status: "failed", reason: "host-error", detail: { message: agentFailure.error.message } };
         const result = classifyScriptOutcome(outcome, prepared.negative);
         if (result.status === "failed") return result;
         if (prepared.flags.includes("async")) {
@@ -84,13 +97,15 @@ export async function executeTest262(filename: string, source: string, options: 
           return { status: "failed", reason: settlement.status === "host-error" ? "host-error" : "unhandled-rejection",
             ...(failure.status === "failed" ? { detail: failure.detail } : {}) };
         }
+        const settledAgentFailure = readAgentFailure();
+        if (settledAgentFailure) return { status: "failed", reason: "host-error", detail: { message: settledAgentFailure.message } };
         if (asyncFailure) return { status: "failed", reason: "async-failure" };
         return result;
       })();
       results.push({ mode: variant.mode, ...await Promise.race([execution, timeout]) });
     } finally {
       clearTimeout(timer);
-      await realm.dispose();
+      await Promise.all([realm.dispose(), agents.dispose()]);
     }
   }
   return { kind: "test", results };

@@ -1,0 +1,110 @@
+[
+  {
+    "file": "generated-supported.pdf",
+    "renderer": [
+      "1.26.4",
+      "1.26.7",
+      null
+    ],
+    "pages": [
+      {
+        "page": 1,
+        "size": [
+          0.0,
+          0.0,
+          595.280029296875,
+          841.8900146484375
+        ],
+        "text": "Original QA document\ncafé Ελληνικά Привет é.\nSecond chapter and external target.\nconst answer = 42;\nconsole.log(answer);\n- First\n- Nested\n- Second\nColumn one\nColumn two\nRow 1\nContinuation text 1: café, \nΕλληνικά, Привет\nRow 2\nContinuation text 2: café, \nΕλληνικά, Привет\nRow 3\nContinuation text 3: café, \nΕλληνικά, Привет\nRow 4\nContinuation text 4: café, \nΕλληνικά, Привет\nRow 5\nContinuation text 5: café, \nΕλληνικά, Привет\nRow 6\nContinuation text 6: café, \nΕλληνικά, Привет\nRow 7\nContinuation text 7: café, \nΕλληνικά, Привет\nRow 8\nContinuation text 8: café, \nΕλληνικά, Привет\nRow 9\nContinuation text 9: café, \nΕλληνικά, Привет\nRow 10\nContinuation text 10: café, \nΕλληνικά, Привет\nRow 11\nContinuation text 11: café, \nΕλληνικά, Привет\nRow 12\nContinuation text 12: café, \n",
+        "links": [
+          {
+            "kind": 2,
+            "xref": 7,
+            "from": [
+              48.0,
+              108.8800048828125,
+              148.8000030517578,
+              124.72003173828125
+            ],
+            "uri": "https://example.invalid/second",
+            "id": ""
+          },
+          {
+            "kind": 2,
+            "xref": 8,
+            "from": [
+              184.8000030517578,
+              108.8800048828125,
+              292.79998779296875,
+              124.72003173828125
+            ],
+            "uri": "https://example.invalid/qa",
+            "id": ""
+          }
+        ],
+        "images": 1
+      },
+      {
+        "page": 2,
+        "size": [
+          0.0,
+          0.0,
+          595.280029296875,
+          841.8900146484375
+        ],
+        "text": "Column one\nColumn two\nΕλληνικά, Привет\nRow 13\nContinuation text 13: café, \nΕλληνικά, Привет\nRow 14\nContinuation text 14: café, \nΕλληνικά, Привет\nRow 15\nContinuation text 15: café, \nΕλληνικά, Привет\nRow 16\nContinuation text 16: café, \nΕλληνικά, Привет\nRow 17\nContinuation text 17: café, \nΕλληνικά, Привет\nRow 18\nContinuation text 18: café, \nΕλληνικά, Привет\nRow 19\nContinuation text 19: café, \nΕλληνικά, Привет\nRow 20\nContinuation text 20: café, \nΕλληνικά, Привет\nRow 21\nContinuation text 21: café, \nΕλληνικά, Привет\nRow 22\nContinuation text 22: café, \nΕλληνικά, Привет\nRow 23\nContinuation text 23: café, \nΕλληνικά, Привет\nRow 24\nContinuation text 24: café, \nΕλληνικά, Привет\nRow 25\nContinuation text 25: café, \nΕλληνικά, Привет\nRow 26\nContinuation text 26: café, \nΕλληνικά, Привет\nRow 27\nContinuation text 27: café, \nΕλληνικά, Привет\nRow 28\nContinuation text 28: café, \nΕλληνικά, Привет\nRow 29\nContinuation text 29: café, \nΕλληνικά, Привет\n",
+        "links": [],
+        "images": 0
+      },
+      {
+        "page": 3,
+        "size": [
+          0.0,
+          0.0,
+          595.280029296875,
+          841.8900146484375
+        ],
+        "text": "Column one\nColumn two\nRow 30\nContinuation text 30: café, \nΕλληνικά, Привет\nRow 31\nContinuation text 31: café, \nΕλληνικά, Привет\nRow 32\nContinuation text 32: café, \nΕλληνικά, Привет\nRow 33\nContinuation text 33: café, \nΕλληνικά, Привет\nRow 34\nContinuation text 34: café, \nΕλληνικά, Привет\nRow 35\nContinuation text 35: café, \nΕλληνικά, Привет\nRow 36\nContinuation text 36: café, \nΕλληνικά, Привет\nRow 37\nContinuation text 37: café, \nΕλληνικά, Привет\nRow 38\nContinuation text 38: café, \nΕλληνικά, Привет\nRow 39\nContinuation text 39: café, \nΕλληνικά, Привет\nRow 40\nContinuation text 40: café, \nΕλληνικά, Привет\nRow 41\nContinuation text 41: café, \nΕλληνικά, Привет\nRow 42\nContinuation text 42: café, \nΕλληνικά, Привет\nRow 43\nContinuation text 43: café, \nΕλληνικά, Привет\nRow 44\nContinuation text 44: café, \nΕλληνικά, Привет\nRow 45\nContinuation text 45: café, \nΕλληνικά, Привет\nRow 46\nContinuation text 46: café, \nΕλληνικά, Привет\nRow 47\nContinuation text 47: café, \nΕλληνικά, Привет\n",
+        "links": [],
+        "images": 0
+      },
+      {
+        "page": 4,
+        "size": [
+          0.0,
+          0.0,
+          595.280029296875,
+          841.8900146484375
+        ],
+        "text": "Column one\nColumn two\nRow 48\nContinuation text 48: café, \nΕλληνικά, Привет\nRow 49\nContinuation text 49: café, \nΕλληνικά, Привет\nRow 50\nContinuation text 50: café, \nΕλληνικά, Привет\nRow 51\nContinuation text 51: café, \nΕλληνικά, Привет\nRow 52\nContinuation text 52: café, \nΕλληνικά, Привет\nRow 53\nContinuation text 53: café, \nΕλληνικά, Привет\nRow 54\nContinuation text 54: café, \nΕλληνικά, Привет\nRow 55\nContinuation text 55: café, \nΕλληνικά, Привет\nRow 56\nContinuation text 56: café, \nΕλληνικά, Привет\nRow 57\nContinuation text 57: café, \nΕλληνικά, Привет\nRow 58\nContinuation text 58: café, \nΕλληνικά, Привет\nRow 59\nContinuation text 59: café, \nΕλληνικά, Привет\nRow 60\nContinuation text 60: café, \nΕλληνικά, Привет\nRow 61\nContinuation text 61: café, \nΕλληνικά, Привет\nRow 62\nContinuation text 62: café, \nΕλληνικά, Привет\nRow 63\nContinuation text 63: café, \nΕλληνικά, Привет\nRow 64\nContinuation text 64: café, \nΕλληνικά, Привет\nRow 65\nContinuation text 65: café, \nΕλληνικά, Привет\n",
+        "links": [],
+        "images": 0
+      },
+      {
+        "page": 5,
+        "size": [
+          0.0,
+          0.0,
+          595.280029296875,
+          841.8900146484375
+        ],
+        "text": "Second chapter\nReturn to start\n",
+        "links": [
+          {
+            "kind": 2,
+            "xref": 18,
+            "from": [
+              48.0,
+              85.0400390625,
+              156.0,
+              100.8800048828125
+            ],
+            "uri": "https://example.invalid/start",
+            "id": ""
+          }
+        ],
+        "images": 0
+      }
+    ]
+  }
+]

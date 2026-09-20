@@ -1,0 +1,52 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+Sourcemap for "/Users/kjopek/Workspace/poe-code-5/packages/pandoc/dist/public/chunks/chunk-BJZDMRXS.js" points to missing source files
+ ❯ scripts/pandoc-public.test.ts (4 tests | 1 failed) 4871ms
+   ✓ publishes the SDK and explicit plugin from the root package with their type closures 16ms
+   × ships a complete portable public runtime graph without native or Office engine imports 613ms
+   ✓ resolves SDK and plugin public declaration imports for a TypeScript consumer  2321ms
+   ✓ runs conversion and explicit registration from packaged public entries, preserving collisions  1919ms
+FAIL scripts/pandoc-public.test.ts > ships a complete portable public runtime graph without native or Office engine imports
+AssertionError: expected 'exports' to be 'poe-code/safe-fs/core' // Object.is equality
+
+Expected: "poe-code/safe-fs/core"
+Received: "exports"
+
+ ❯ inspect scripts/pandoc-public.test.ts:47:30
+     45|     for (const specifier of imports) {
+     46|       if (specifier.startsWith(".")) await inspect(path.resolve(path.d…
+     47|       else expect(specifier).toBe("poe-code/safe-fs/core");
+       |                              ^
+     48|     }
+     49|   }
+ ❯ inspect scripts/pandoc-public.test.ts:46:38
+ ❯ scripts/pandoc-public.test.ts:50:68
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/pandoc-public.test.ts > ships a complete portable public runtime graph without native or Office engine imports
+AssertionError: expected 'exports' to be 'poe-code/safe-fs/core' // Object.is equality
+
+Expected: "poe-code/safe-fs/core"
+Received: "exports"
+
+ ❯ inspect scripts/pandoc-public.test.ts:47:30
+     45|     for (const specifier of imports) {
+     46|       if (specifier.startsWith(".")) await inspect(path.resolve(path.d…
+     47|       else expect(specifier).toBe("poe-code/safe-fs/core");
+       |                              ^
+     48|     }
+     49|   }
+ ❯ inspect scripts/pandoc-public.test.ts:46:38
+ ❯ scripts/pandoc-public.test.ts:50:68
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  17:41:58
+   Duration  5.62s (transform 1.80s, setup 75ms, import 558ms, tests 4.87s, environment 0ms)
+

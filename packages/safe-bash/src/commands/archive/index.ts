@@ -12,7 +12,7 @@ import { createUnzipCommand } from "./unzip.js";
 export { DEFAULT_ARCHIVE_LIMITS } from "./internal.js";
 export { createZipCommand } from "./zip.js";
 export { createUnzipCommand } from "./unzip.js";
-export type { ArchiveCommandsOptions, ArchiveLimits } from "./internal.js";
+export type { ArchiveCommandsOptions, ArchiveLimits, ZipHost, ZipEncryptionProfile } from "./internal.js";
 
 export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);

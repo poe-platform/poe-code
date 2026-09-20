@@ -134,11 +134,12 @@ poe-code experiment run docs/experiments/optimize-tests.md
 
 ## Dashboard Configuration
 
-Experiment runs can use the live terminal dashboard.
+The live dashboard shows experiment progress and the plan sequence. Type a message and press Enter to queue it after the selected experiment plan, using its agent and model. Alt+Up/Down changes the target. Ctrl+P switches to appending another experiment plan; Esc then `v` shows the full ordered queue.
 
 ```bash
 # One-off flags
 poe-code experiment run --tui
+poe-code experiment run docs/plans/first.md docs/plans/second.md --tui --after-plan "Review the winning change"
 poe-code experiment run --no-tui
 
 # Config default (.poe-code/config.json)
@@ -151,7 +152,7 @@ POE_EXPERIMENT_TUI=true poe-code experiment run
 ## CLI
 
 ```bash
-poe-code experiment run [doc]       [--agent <name>] [--max-experiments <n>] [--tui|--no-tui] [--worktree]
+poe-code experiment run [docs...]  [--agent <name>] [--max-experiments <n>] [--tui|--no-tui] [--after-plan <message>] [--worktree]
 poe-code experiment validate [doc]
 poe-code experiment journal [doc]
 poe-code experiment plan-path
@@ -159,3 +160,5 @@ poe-code experiment install
 ```
 
 Pass `--worktree` to the `poe-code experiment run` CLI to run the whole experiment loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts. Worktree execution is provided by the CLI and root `poe-code` SDK wrapper, not an option on this package's runner.
+
+`runExperimentSequence({ docs, afterEachPlan, ...options })` provides the same sequence through the SDK. Repeatable `--after-plan` messages and SDK `afterEachPlan` apply to every initial or subsequently added plan. Supply a `queue` from `createRunQueue` in `poe-code` instead to append plans and targeted messages during execution. `onQueueChange` observes progress, and results include `plans`, `messages`, and the final queue. Selected plans and their journals are kept outside experiment Git scopes.

@@ -26,12 +26,6 @@ ALWAYS monitor the build after push until the release is successful.
 
 Prefer adding code to specific packages e.g. `agent-spawn`. The core should be lightweight and only wire packages and expose public apis, sdk, cli, no real logic.
 
-### Rules
-
-- Package must have own readme
-  - includes all env variables exposed
-  - includes all config options via config
-
 ## github workflows
 
 Do NOT write unit tests for github workflows
@@ -44,8 +38,7 @@ Use `npm run lint:workflows`
 - Commit specific files that you edited, never blanket git add -A
 - Do not add yourself as co-author!
 - Do not commit files that are in gitignore
-- Never use --no-verify on either push or commit. You should figure out the issue.
-- Relevant plans belongs to commits
+- We rebase not merge
 
 ## Delivery
 
@@ -83,8 +76,8 @@ A provider may define an optional `spawn(context, options)` conversation functio
 
 - Use `npm run build` for the normal workspace build and root suffix stages; use `npm run build:workspaces -- --workspace=<exact-name>` only for an explicitly selected workspace build closure.
 - Use `npm test` for root and every declared workspace unit task, including required build dependencies and native npm pre/event/post scripts. Root-only `npm run test:unit` is not a normal pre-push or CI substitute.
-- Keep execution uncached and derive task membership/dependency closure from maintained declarations; do not replace them with fixed task counts or a root-plus-Bash shortcut.
-- In unit mode, keep caller-supplied `SAFE_BASH_TEST_RG`, `SAFEJS_LOCAL_ROOT`, `S3_HTTP_EXPORTS_REVISION` and `FULL_GATE_ROOT` scoped to the actual virtual-bash workspace unit task. Do not synthesize optional profiles or count unavailable cases as passes.
+- Use the shared machine cache by default and explicit `--no-cache` execution for fresh verification. Derive task membership/dependency closure from maintained declarations; do not replace them with fixed task counts or a root-plus-Bash shortcut. Native and external-state checks remain fresh unless their complete execution inputs are represented in the cache.
+- In unit mode, keep caller-supplied `SAFE_BASH_TEST_RG`, `SAFEJS_LOCAL_ROOT`, `S3_HTTP_EXPORTS_REVISION` and `FULL_GATE_ROOT` scoped to the actual @poe-platform/safe-bash workspace unit task. Do not synthesize optional profiles or count unavailable cases as passes.
 - Before unit-mode children run, clear repository-local hook variables using `git rev-parse --local-env-vars`; leave the parent environment and global/private Git configuration unchanged so fixture Git commands use their own working directories.
 
 ### Unit Testing - speed is crucial
@@ -135,13 +128,23 @@ Do not use libraries like @clack/prompts or chalk directly, otherwise we won't a
 
 Use judgement when to run these `npm run e2e:verbose`
 
-## Readme
+## Root README
 
-Keep the readme up to date but you are not allowed to add anything to readme without user's permission.
+Keep the main README up to date, changing in API or different behaviors
+Do not add new sections, new additions unless specifically requested. 
+Readme is our landing page, keep it simple
+
+## Package README
+
+- Package must have own readme. Approach it from user perspective, not contributor perspective (nothing about contributing in readme)
+- Readme should be treated as marketing page for users, focus on solving their problems, use cases and code examples.
+- It should typically include some index card of features e.g. commands available
 
 ## Planning
 
 Planning docs MUST be in `docs/plans` folder, NO EXCEPTIONS even in planning. ABSOLUTELY NO OTHER PLANNING LOCATIONS!!!!!
+
+Store temporary logs, run output, and generated evidence in `/out`, purge them after use, and keep `docs/plans` limited to actual planning documents.
 
 WE ARE NOT USING CLAUDE PLANS
 

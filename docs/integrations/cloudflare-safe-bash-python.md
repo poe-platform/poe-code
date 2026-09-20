@@ -1,4 +1,96 @@
-# Cloudflare safe-bash Python integration boundary
+# Cloudflare and standalone safe-bash Python
+
+## Current embedding status — September 17, 2026
+
+The standalone `@poe-platform/safe-bash` package publishes the opt-in
+`pythonCommands` plugin, `runPythonWorker` runner and `createNodePythonWorker`
+endpoint. The older absence review below describes commit `937588145`, not the
+current API. See the [standalone setup guide](../../packages/safe-bash/docs/pyodide.md)
+for installation, public imports and an executable example.
+
+The qualified convenience host is a **dedicated Node interpreter thread running
+trusted Python**, with explicitly supplied **Pyodide 314.0.6 / CPython 3.14.2 /
+wasm32 ABI 2026_0** assets. The fresh packed-package checks use Node 22.22.0;
+earlier public-runtime records use Node 22.23.2. `agentCommands()` does not register
+Python automatically. Each command owns a fresh interpreter; the application
+supplies the canonical asynchronous filesystem rather than mirroring its workspace
+into interpreter MEMFS.
+
+Published `0.1.653` includes the standalone runner-resolution fix (#745), quota
+descriptors (#748) and typed host diagnostics (#752). GitHub scoped release
+`35247726840` succeeded, and all three scoped packages were verified on npm.
+The separate `poe-code` CLI release is tracked independently; candidate CLI
+tarball tests do not establish CLI registry publication.
+
+### Three different execution models
+
+| Model | Current status |
+| --- | --- |
+| Dedicated Node `worker_threads` interpreter | Implemented; synchronous guest calls wait for asynchronous host replies using shared memory. Requires `trustedPython: true`; not an untrusted-code sandbox. |
+| Dedicated Web Worker interpreter | The runner protocol and historical fixtures exist, but require a separately scheduled interpreter, compatible assets and browser cross-origin isolation. This is not a deployed Cloudflare Worker service. |
+| Existing workerd isolate with JSPI | Requested in #746, not implemented or qualified for Python. JSPI suspension at I/O boundaries is different from a thread and does not preempt CPU-only loops. |
+
+The September 17 issue #746 probe reports that workerd exposes
+`SharedArrayBuffer`, `Atomics` and JSPI primitives, while importing
+`node:worker_threads` fails and `Atomics.wait` is rejected in that context. Its
+small Wasm async-import probe passed; that does **not** qualify the pinned Python
+build, native filesystem callbacks, local imports or C-extension paths. Do not
+infer that all shared-memory/JSPI APIs are absent, or that merely placing this
+Node endpoint in a separate Cloudflare deployment makes it work. The ordinary
+shell's `workerd` export condition is not a Python executor.
+
+### Filesystem, packages and lifetime
+
+Ordinary Python file opens currently require canonical retained `fs.open`
+handles. A `readFile`/stream-capable backend alone is insufficient. The #748
+implementation adds quota-checked retained descriptors, with real Node document
+creation/reopening and ENOSPC recovery through quota and delayed-quota views.
+Immutable flat object stores (#747) and descriptor-safe `TemporaryDirectory`
+cleanup (#749) remain required failing workflows. Memory and delayed-memory
+successes are not remote-storage, physical-memory or full POSIX guarantees.
+Readonly/mount layers must retain their authority; never unwrap a quota view or
+substitute recursive path deletion for retained directory operations.
+
+The host owns runtime installation and its adjacent Wasm, standard-library ZIP,
+lock/native package assets. Pin and authenticate those bytes before evaluating
+or decompressing them; a URL is not integrity evidence. The package environment
+is currently plugin-owned; injected artifact caches may persist bytes, but
+independent writers need external serialization. Reusing cached wheels does not
+reuse an interpreter. Host-owned shared environments and conditional manifest
+publication are tracked in #751. The default cache limit is 128 MiB per plugin,
+not a bound on interpreter memory, artifact expansion or total application use.
+
+Await command completion and `shell.dispose()`. Node endpoint termination can
+interrupt its interpreter, including CPU loops; cooperative host filesystem
+cleanup must still settle, and acknowledged writes are not rolled back. Per-plugin
+admission is not application-wide admission. Untrusted execution with enforceable
+CPU/memory/egress limits remains #750, and typed sanitized host diagnostics remain
+#752. Do not forward arbitrary loader errors, credential-bearing URLs, source,
+environment or file contents to agents or telemetry.
+
+### Verification and upgrades
+
+The [maintained packed consumer](../../packages/safe-bash/tests/integration/pyodide-runtime/public-package.test.mjs)
+executes public imports, inline Python, binary I/O, a pipeline and awaited
+termination. The [public runtime tests](../../packages/safe-bash/tests/integration/pyodide-runtime/package.json)
+cover command/document/lifecycle cases; provisioning is separate from test
+execution. Their required TODOs remain failures, not passing support claims.
+The [delivery record](../plans/python-standalone-runtime-issues.md) distinguishes
+candidate evidence from registry publication.
+
+For upgrades, pin the runtime ABI and native package inventory, retain the
+previous immutable artifact/assets/cache manifest, rebuild and rerun affected
+public tests before rollout. The host owns asset hosting, authorization, cache
+writer coordination, admission and teardown. No current Python workerd adapter,
+disposable deployment, upload-size/memory qualification, or exercised Cloudflare
+upgrade/rollback is claimed. A deployed service boundary alone does not establish
+independent scheduling, preemption or confinement.
+
+## Historical absence review — commit `937588145`
+
+The following record is preserved unchanged apart from this heading. Its use of
+"current", missing-API statements and commands refer to that historical review.
+They do not override the implemented Node API and limitations described above.
 
 Status: **unavailable / production qualification blocked**.
 The [current public user edge review](../plans/cloudflare-user-edge-review-937588145.md)

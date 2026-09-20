@@ -1,0 +1,119 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/latex.test.ts (50 tests | 2 failed | 48 skipped) 8ms
+   ↓ parses escaped braces, comments, whitespace and nested emphasis groups
+   ↓ maps document metadata, starred sections, optional titles, labels and forward references
+   ↓ maps nested lists, quotes, links and exact verbatim terminators
+   ↓ retains typed inline and display math source and escaped dollars
+   ↓ maps figures and multicolumn tables with alignment and caption
+   ↓ expands bounded simple macros, optional defaults and Unicode commands
+     ↓ rejects malformed EOF/delimiters: {oops
+     ↓ rejects malformed EOF/delimiters: oops}
+     ↓ rejects malformed EOF/delimiters: \emph
+     ↓ rejects malformed EOF/delimiters: $oops
+     ↓ rejects malformed EOF/delimiters: $$oops$
+     ↓ rejects malformed EOF/delimiters: \(x\]
+     ↓ rejects malformed EOF/delimiters: \begin{quote}x\end{itemize}
+     ↓ rejects malformed EOF/delimiters: \begin{quote}
+     ↓ rejects malformed EOF/delimiters: \verb|oops
+     ↓ rejects malformed EOF/delimiters: \begin{verbatim}oops
+     ↓ rejects malformed EOF/delimiters: \section[short{title}
+     ↓ rejects malformed EOF/delimiters: \newcommand{\x}[1]{#2}\x{a}
+     ↓ never accepts forbidden primitive catcode, including lossy
+     ↓ never accepts forbidden primitive write, including lossy
+     ↓ never accepts forbidden primitive write18, including lossy
+     ↓ never accepts forbidden primitive directlua, including lossy
+     ↓ never accepts forbidden primitive def, including lossy
+     ↓ never accepts forbidden primitive gdef, including lossy
+     ↓ never accepts forbidden primitive csname, including lossy
+     ↓ never accepts forbidden primitive usepackage, including lossy
+     ↓ never accepts forbidden primitive openout, including lossy
+     ↓ never accepts forbidden primitive read, including lossy
+     ↓ never accepts forbidden primitive special, including lossy
+   ↓ rejects recursion, undefined macros and excessive expansion
+   ↓ preserves the complete unknown command and arguments under explicit loss policy
+   ↓ resolves nested includes only through injected memfs resources before output
+   ↓ rejects include cycles, traversal, depth and byte excess before publication
+   ↓ keeps group-local macro definitions local and supports renewal/provision
+   ↓ rejects replacing supported Unicode, accent and line-break commands under every loss policy
+   ↓ supports nested optional argument groups and escaped math dollars
+   ↓ preserves unknown environments whole, including command arguments and comments
+   ↓ rejects invalid table geometry and unresolved/duplicate labels
+   ↓ bounds nested groups, expansion bytes and exact aggregate include bytes
+   ↓ preserves argument-adjacent comments and starred unknown commands whole
+   ↓ preserves significant whitespace inside nested groups
+   ↓ does not treat comment parameter markers as macro parameters
+   × preserves macro parameter and comment control-word boundaries 6ms
+   × does not substitute parameter markers inside macro verbatim regions 1ms
+   ↓ rejects repeated captions instead of deleting their arguments
+   ↓ decodes escaped characters in braced link targets
+   ↓ rejects cyclic reference titles without constructing a cyclic AST
+   ↓ rejects empty tabular and forbidden commands inside math and macro bodies
+   ↓ retains table column/rule source attributes inside a float
+   ↓ bounds include depth and propagates cancellation before publication
+FAIL packages/pandoc/src/latex.test.ts > preserves macro parameter and comment control-word boundaries
+PandocError: Unsupported LaTeX syntax: \aex
+ ❯ Session.readOwned packages/pandoc/src/engine.ts:171:15
+    169|     } catch (error) {
+    170|       if (error instanceof PandocError && locations.length && error.co…
+    171|         throw new PandocError(error.code, this.operation, error.messag…
+       |               ^
+    172|       if (error instanceof PandocError && input.base && error.code ===…
+    173|         throw new PandocError(error.code, this.operation, error.messag…
+ ❯ readDocument packages/pandoc/src/engine.ts:339:12
+ ❯ packages/pandoc/src/latex.test.ts:133:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'E_CAPABILITY', operation: 'read', format: 'latex', location: '/book/main.tex:1:1' }
+FAIL packages/pandoc/src/latex.test.ts > does not substitute parameter markers inside macro verbatim regions
+PandocError: Invalid macro parameter
+ ❯ Session.readOwned packages/pandoc/src/engine.ts:171:15
+    169|     } catch (error) {
+    170|       if (error instanceof PandocError && locations.length && error.co…
+    171|         throw new PandocError(error.code, this.operation, error.messag…
+       |               ^
+    172|       if (error instanceof PandocError && input.base && error.code ===…
+    173|         throw new PandocError(error.code, this.operation, error.messag…
+ ❯ readDocument packages/pandoc/src/engine.ts:339:12
+ ❯ packages/pandoc/src/latex.test.ts:138:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'E_PARSE', operation: 'read', format: 'latex', location: '/book/main.tex:1:1' }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/latex.test.ts > preserves macro parameter and comment control-word boundaries
+PandocError: Unsupported LaTeX syntax: \aex
+ ❯ Session.readOwned packages/pandoc/src/engine.ts:171:15
+    169|     } catch (error) {
+    170|       if (error instanceof PandocError && locations.length && error.co…
+    171|         throw new PandocError(error.code, this.operation, error.messag…
+       |               ^
+    172|       if (error instanceof PandocError && input.base && error.code ===…
+    173|         throw new PandocError(error.code, this.operation, error.messag…
+ ❯ readDocument packages/pandoc/src/engine.ts:339:12
+ ❯ packages/pandoc/src/latex.test.ts:133:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/pandoc/src/latex.test.ts > does not substitute parameter markers inside macro verbatim regions
+PandocError: Invalid macro parameter
+ ❯ Session.readOwned packages/pandoc/src/engine.ts:171:15
+    169|     } catch (error) {
+    170|       if (error instanceof PandocError && locations.length && error.co…
+    171|         throw new PandocError(error.code, this.operation, error.messag…
+       |               ^
+    172|       if (error instanceof PandocError && input.base && error.code ===…
+    173|         throw new PandocError(error.code, this.operation, error.messag…
+ ❯ readDocument packages/pandoc/src/engine.ts:339:12
+ ❯ packages/pandoc/src/latex.test.ts:138:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 48 skipped (50)
+   Start at  21:26:56
+   Duration  1.55s (transform 1.07s, setup 39ms, import 1.42s, tests 8ms, environment 0ms)
+

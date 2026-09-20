@@ -15,7 +15,7 @@ import type { CommandArguments } from "../contracts/command.js";
 import { ValueArena } from "./value-state.js";
 import type { HeldValue, ValueScope, ValueStore } from "./value-state.js";
 import type { AndOr, Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
-import { parseArraySubscript, compoundEntryWords, HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, parseCompoundArrayValue, parseShellInputUnit, parseShellUnit } from "./parser.js";
+import { parseArithmeticExpansion, parseArraySubscript, compoundEntryWords, HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, parseCompoundArrayValue, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
@@ -23,7 +23,7 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { scopeFileSystem } from "poe-code/safe-fs/core";
+import { scopeFileSystem } from "@poe-code/safe-fs/core";
 import { evaluateArithmetic, prepareArithmetic, type ArithmeticProgram } from "./arithmetic.js";
 import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
@@ -6400,17 +6400,22 @@ export class Runtime {
       return "";
     }
     if (part.kind === "arithmetic") {
+      const allocation = this.budget.values.scope();
       try {
-        return String(evaluatePositionalArithmetic(part.expression, {
-          parseBudget: this.budget.parsing,
-          positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
-          maximumBytes: this.budget.limits.maxExpansionBytes,
-          checkpoint: () => this.signal.throwIfAborted(),
-          requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),
-          limit: () => this.budget.fail("maxExpansionBytes"),
-        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line), this.budget.parsing)));
+        let program = part.expression;
+        if (program.error) {
+          const word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables),
+            state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? part.line, state.extensions?.syntax);
+          const operandIO = this.parameterOperandIO(word, state, { ...io, [valueScope]: allocation });
+          const fields = await this.valueWord(word, state, operandIO, false, false, true);
+          const source = shellValueText(concatShellValues(fields, allocation));
+          this.signal.throwIfAborted();
+          program = prepareArithmetic(source, this.budget.parsing);
+        }
+        return String(evaluateArithmetic(program, this.arithmeticVariables(state, io.diagnosticLine ?? part.line), this.budget.parsing));
       }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine ?? part.line); }
+      finally { allocation.close(); }
     }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
@@ -7203,7 +7208,7 @@ export class Runtime {
       let candidates = [make(empty, pattern.startsWith("/") ? "/" : "", pattern.startsWith("/") ? 1 : 0, true, 0)];
       const ignored = (error: unknown): boolean => {
         this.signal.throwIfAborted();
-        return ["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "");
+        return ["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "");
       };
       const read = async (candidate: Candidate) => {
         const maxEntries = 100_000 - this.budget.globstarEntries;
@@ -7345,7 +7350,11 @@ export class Runtime {
               const pending = this.fs.readdir(pathOf(state, candidate || "."), { signal: this.signal });
               entries = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
             }
-            catch (error) { if (["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) continue; throw error; }
+            catch (error) {
+              this.signal.throwIfAborted();
+              if (["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) continue;
+              throw error;
+            }
             for (const entry of entries) {
               if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
                 addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`);
@@ -7362,7 +7371,10 @@ export class Runtime {
         const pending = this.fs.stat(pathOf(state, candidate), { signal: this.signal });
         const stat = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
         if (!value.endsWith("/") || stat.type === "directory") found.push(candidate + (value.endsWith("/") ? "/" : ""));
-      } catch (error) { if (!["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) throw error; }
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;
+      }
     }
     return found.length ? found.sort() : [value];
   }

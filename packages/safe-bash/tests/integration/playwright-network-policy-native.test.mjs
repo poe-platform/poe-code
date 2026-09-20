@@ -1,0 +1,277 @@
+import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
+import { test } from 'node:test';
+const { installPlaywrightNetworkPolicy } = await import(
+  process.env.SAFE_BASH_NETWORK_POLICY_MODULE || new URL('../../src/playwright/network-policy.ts', import.meta.url).href
+);
+
+const modulePath = process.env.PLAYWRIGHT_TEST_MODULE;
+const encoder = new TextEncoder();
+const result = (body, status = 200, headers = []) => ({ status, headers: [{ name: 'content-type', value: 'text/html' }, ...headers], body: encoder.encode(body) });
+
+test('native CDP redirects, popup admission, request bodies, cookies and cancellation', {
+  skip: !modulePath && 'Set PLAYWRIGHT_TEST_MODULE and optionally PLAYWRIGHT_TEST_EXECUTABLE', timeout: 60000,
+}, async t => {
+  const { chromium } = await import(modulePath);
+  const received = [];
+  const websocketReceived = [];
+  const forbidden = createServer((request, response) => { received.push(request.url); response.end('forbidden'); });
+  forbidden.on('upgrade', (request, socket) => {
+    websocketReceived.push(request.url);
+    const accept = createHash('sha1').update(request.headers['sec-websocket-key'] + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
+    socket.end(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n\r\n`);
+  });
+  const denyProxy = createServer((_request, response) => response.writeHead(502).end());
+  denyProxy.on('connect', (_request, socket) => socket.end('HTTP/1.1 403 Forbidden\r\n\r\n'));
+  denyProxy.on('upgrade', (_request, socket) => socket.end('HTTP/1.1 403 Forbidden\r\n\r\n'));
+  const portReservation = createServer();
+  for (const server of [forbidden, denyProxy, portReservation]) await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const cdpPort = portReservation.address().port;
+  await new Promise(resolve => portReservation.close(resolve));
+  const forbiddenUrl = `http://127.0.0.1:${forbidden.address().port}`;
+  const websocketUrl = `ws://127.0.0.1:${forbidden.address().port}/upgrade`;
+  const probeWebSocket = page => page.evaluate(url => new Promise(resolve => {
+    const ws = new WebSocket(url);
+    const timer = setTimeout(() => { ws.close(); resolve('timeout'); }, 3000);
+    ws.onopen = () => { clearTimeout(timer); ws.close(); resolve('open'); };
+    ws.onerror = () => { clearTimeout(timer); resolve('error'); };
+  }), websocketUrl);
+  const launchOptions = { headless: true,
+    ...(process.env.PLAYWRIGHT_TEST_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_TEST_EXECUTABLE } : {}) };
+  const browser = await chromium.launch({
+    ...launchOptions,
+    args: [`--remote-debugging-port=${cdpPort}`, `--proxy-server=http://127.0.0.1:${denyProxy.address().port}`, '--proxy-bypass-list=<-loopback>'],
+  });
+  const metadata = await (await fetch(`http://127.0.0.1:${cdpPort}/json/version`)).json();
+  const socket = new WebSocket(metadata.webSocketDebuggerUrl);
+  await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }));
+  let holdReplies = false;
+  const heldFulfillments = new Set();
+  const heldReplies = [];
+  const listeners = new Map();
+  const policySocket = {
+    send(text) {
+      if (holdReplies) {
+        const command = JSON.parse(text);
+        if (command.method === 'Fetch.fulfillRequest') heldFulfillments.add(command.id);
+      }
+      socket.send(text);
+    },
+    addEventListener(name, listener) {
+      if (name !== 'message') { socket.addEventListener(name, listener); return; }
+      const forward = event => {
+        if (heldFulfillments.size) {
+          const message = JSON.parse(event.data);
+          if (heldFulfillments.delete(message.id)) { heldReplies.push(() => listener(event)); return; }
+        }
+        listener(event);
+      };
+      listeners.set(listener, forward);
+      socket.addEventListener(name, forward);
+    },
+    removeEventListener(name, listener) {
+      socket.removeEventListener(name, name === 'message' ? listeners.get(listener) : listener);
+      if (name === 'message') listeners.delete(listener);
+    },
+    close() { socket.close(); },
+  };
+  let largestMessage = 0;
+  socket.addEventListener('message', event => { largestMessage = Math.max(largestMessage, event.data.length); });
+  const requests = [];
+  const failures = [];
+  const canceled = [];
+  let holdRetirement;
+  let releasedResponses = 0;
+  let policy;
+  try {
+    policy = await installPlaywrightNetworkPolicy({
+      socket: policySocket, directNetwork: 'http-blocked-by-host', retire: async () => { await holdRetirement; await browser.close(); }, requestTimeoutMs: 3000,
+      maxRequestBytes: 8 * 1024 * 1024, maxProtocolMessageBytes: 32 * 1024 * 1024,
+      onRequestFailure: failure => failures.push(failure),
+      async fetch(request) {
+        if (new URL(request.url).pathname === '/held-response') return {
+          ...result('<title>Held response</title>'), release() { releasedResponses++; },
+        };
+        if (new URL(request.url).pathname === '/large-upload') {
+          assert.equal(request.body?.length, 8 * 1024 * 1024);
+          assert.ok(request.body.every(byte => byte === 97));
+          return result('accepted');
+        }
+        requests.push({ ...request, bytes: request.body && [...request.body], body: request.body && new TextDecoder().decode(request.body) });
+        const url = new URL(request.url);
+        if (!['allowed.example', 'other.example'].includes(url.hostname)) throw new Error('Forbidden destination');
+        if (url.pathname === '/pending') return new Promise((_resolve, reject) => {
+          request.signal.addEventListener('abort', () => { canceled.push(request.requestId); reject(request.signal.reason); }, { once: true });
+        });
+        if (url.pathname === '/worker.js') return result(`postMessage('worker-ran');fetch('${forbiddenUrl}/worker-escape')`, 200, [{ name: 'content-type', value: 'application/javascript' }]);
+        if (url.pathname === '/form') return result(`<form method="post" action="/redirect/${url.searchParams.get('status')}"><input name="field" value="value"></form>`);
+        if (url.pathname.startsWith('/redirect/')) return result('', Number(url.pathname.split('/')[2]), [
+          { name: 'location', value: '/final' }, { name: 'set-cookie', value: 'hop=present; Path=/; Secure; SameSite=Lax' },
+        ]);
+        if (url.pathname === '/forbidden') return result('', Number(url.searchParams.get('status') ?? 302), [{ name: 'location', value: `${forbiddenUrl}/hop` }]);
+        if (url.pathname === '/nested') return result('', 301, [{ name: 'location', value: '/redirect/307' }]);
+        if (url.pathname === '/page') return result(`<title>Root</title><iframe src="https://other.example/frame"></iframe><img src="/forbidden?status=302"><script>window.open('/popup')</script>`);
+        if (url.pathname === '/frame') return result(`<title>Frame</title><iframe src="https://allowed.example/forbidden"></iframe>`);
+        if (url.pathname === '/popup') return result(`<title>Popup</title><script>window.open('${forbiddenUrl}/nested-popup');window.open('/forbidden')</script>`);
+        if (url.pathname === '/auth') return result('', 302, [{ name: 'location', value: 'https://other.example/final' }, { name: 'access-control-allow-origin', value: 'https://allowed.example' }]);
+        if (request.method === 'OPTIONS') return result('', 204, [{ name: 'access-control-allow-origin', value: 'https://allowed.example' }, { name: 'access-control-allow-headers', value: 'authorization' }]);
+        return result('<title>Final</title><img src="relative.png">', 200, [{ name: 'access-control-allow-origin', value: 'https://allowed.example' }]);
+      },
+    });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await t.test('WebSocket destination receives the unguarded positive control', async () => {
+      const unguarded = await chromium.launch(launchOptions);
+      try {
+        assert.equal(await probeWebSocket(await unguarded.newPage()), 'open');
+        assert.deepEqual(websocketReceived, ['/upgrade']);
+      } finally { await unguarded.close(); }
+    });
+    await t.test('host response release waits for the native fulfillment reply', async () => {
+      holdReplies = true;
+      try {
+        await page.goto('http://allowed.example/held-response');
+        assert.equal(await page.title(), 'Held response');
+        assert.ok(heldReplies.length > 0);
+        assert.equal(releasedResponses, 0);
+      } finally {
+        holdReplies = false;
+        for (const reply of heldReplies.splice(0)) reply();
+      }
+      await new Promise(resolve => setImmediate(resolve));
+      assert.equal(releasedResponses, 1);
+    });
+    await t.test('configured 8 MiB printable upload fits its bounded CDP envelope', async () => {
+      await page.goto('https://allowed.example/final');
+      assert.equal(await page.evaluate(async () => (await fetch('/large-upload', {
+        method: 'POST', body: 'a'.repeat(8 * 1024 * 1024),
+      })).text()), 'accepted');
+      assert.ok(largestMessage > 8 * 1024 * 1024);
+      assert.ok(largestMessage <= 32 * 1024 * 1024);
+      t.diagnostic(`8 MiB printable upload largest CDP message: ${largestMessage} characters`);
+    });
+    for (const status of [301, 302, 303, 307, 308]) await t.test(`POST ${status}`, async () => {
+      await context.clearCookies();
+      await page.goto(`https://allowed.example/form?status=${status}`);
+      const start = requests.length;
+      await Promise.all([page.waitForURL('https://allowed.example/final'), page.evaluate(() => globalThis.document.querySelector('form').submit())]);
+      assert.equal(page.url(), 'https://allowed.example/final');
+      const chain = requests.slice(start).filter(request => ['/final', `/redirect/${status}`].includes(new URL(request.url).pathname));
+      assert.equal(chain.length, 2);
+      assert.equal(chain[0].method, 'POST');
+      assert.equal(chain[0].body, 'field=value');
+      assert.equal(chain[1].method, status === 307 || status === 308 ? 'POST' : 'GET');
+      assert.equal(chain[1].body, status === 307 || status === 308 ? 'field=value' : undefined);
+      assert.ok(chain[1].headers.some(h => h.name.toLowerCase() === 'cookie' && h.value.includes('hop=present')), 'redirect cookie reaches the next hop');
+    });
+    await t.test('all redirect codes reject forbidden targets before network work', async () => {
+      for (const status of [301, 302, 303, 307, 308]) {
+        const deniedPage = await context.newPage();
+        await assert.rejects(deniedPage.goto(`https://allowed.example/forbidden?status=${status}`, { timeout: 5000 }));
+        await deniedPage.close();
+      }
+      assert.deepEqual(received, []);
+      assert.ok(failures.some(f => f.message === 'Forbidden destination' && f.targetId && f.frameId && f.requestId));
+    });
+    await t.test('nested redirects and relative resources retain native origin', async () => {
+      await page.goto('https://allowed.example/nested');
+      assert.equal(page.url(), 'https://allowed.example/final');
+      assert.equal(await page.evaluate(() => globalThis.location.origin), 'https://allowed.example');
+      assert.ok(requests.some(request => request.url === 'https://allowed.example/relative.png'));
+    });
+    await t.test('cross-origin redirect strips Authorization and origin cookies', async () => {
+      await page.goto('https://allowed.example/final');
+      const start = requests.length;
+      await page.evaluate(async () => { await fetch('/auth', { headers: { Authorization: 'Bearer fixture' } }); });
+      const final = requests.slice(start).find(request => request.url === 'https://other.example/final');
+      assert.ok(final);
+      assert.equal(final.headers.some(h => ['authorization', 'cookie'].includes(h.name.toLowerCase())), false);
+    });
+    await t.test('307 and 308 preserve non-UTF-8 binary request bytes', async () => {
+      for (const status of [307, 308]) {
+        const start = requests.length;
+        await page.evaluate(async status => { await fetch(`/redirect/${status}`, { method: 'POST', body: new Uint8Array([0, 255, 128, 65]) }); }, status);
+        const chain = requests.slice(start).filter(request => request.method === 'POST');
+        assert.equal(chain.length, 2);
+        assert.deepEqual(chain.map(request => request.bytes), [[0, 255, 128, 65], [0, 255, 128, 65]]);
+      }
+    });
+    await t.test('frames, popup first requests and nested popups remain mediated', async () => {
+      await page.goto('https://allowed.example/page');
+      await page.waitForTimeout(250);
+      assert.ok(requests.some(request => request.url === 'https://other.example/frame'));
+      assert.ok(requests.some(request => request.url === `${forbiddenUrl}/nested-popup`));
+      assert.deepEqual(received, []);
+      for (const extra of context.pages()) if (extra !== page) await extra.close();
+    });
+    await t.test('canceling a browser request aborts its pending host work', async () => {
+      await page.goto('https://allowed.example/final');
+      await page.evaluate(() => {
+        const controller = new AbortController();
+        globalThis.cancelFixture = () => controller.abort();
+        fetch('/pending', { signal: controller.signal }).catch(() => {});
+      });
+      await page.waitForTimeout(50);
+      await page.evaluate(() => globalThis.cancelFixture());
+      await page.waitForTimeout(50);
+      assert.equal(canceled.length, 1);
+    });
+    await t.test('concurrent contexts retain their cookies and cancellation ownership', async () => {
+      const sibling = await browser.newContext();
+      const siblingPage = await sibling.newPage();
+      await sibling.addCookies([{ name: 'owner', value: 'sibling', url: 'https://allowed.example' }]);
+      await context.addCookies([{ name: 'owner', value: 'original', url: 'https://allowed.example' }]);
+      const start = requests.length;
+      await Promise.all([page.goto('https://allowed.example/final?owner=original'), siblingPage.goto('https://allowed.example/final?owner=sibling')]);
+      for (const owner of ['original', 'sibling']) {
+        const request = requests.slice(start).find(request => request.url.endsWith(`?owner=${owner}`));
+        assert.ok(request.headers.some(h => h.name.toLowerCase() === 'cookie' && h.value.includes(`owner=${owner}`)));
+      }
+      const pendingRequest = siblingPage.goto('https://allowed.example/pending').catch(() => {});
+      await siblingPage.waitForTimeout(50);
+      await sibling.close();
+      await pendingRequest;
+      await page.goto('https://allowed.example/final');
+      assert.equal(canceled.length, 2);
+    });
+    await t.test('unsupported worker stays paused until its owner terminates it', async () => {
+      const messages = await page.evaluate(async () => {
+        const messages = [];
+        const worker = new globalThis.Worker('/worker.js');
+        worker.onmessage = event => messages.push(event.data);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        worker.terminate();
+        return messages;
+      });
+      assert.deepEqual(messages, []);
+      assert.deepEqual(received, []);
+    });
+    await t.test('independent HTTP and WebSocket denial survives policy transport loss', async () => {
+      await page.goto('http://allowed.example/final');
+      assert.equal(await probeWebSocket(page), 'error');
+      assert.deepEqual(websocketReceived, ['/upgrade']);
+      let releaseRetirement;
+      holdRetirement = new Promise(resolve => { releaseRetirement = resolve; });
+      socket.close();
+      await new Promise(resolve => socket.addEventListener('close', resolve, { once: true }));
+      // Deliberately keep the live browser after policy death: a close callback
+      // cannot be the network boundary if the host isolate itself disappears.
+      try {
+        assert.equal(await probeWebSocket(page), 'error');
+        assert.deepEqual(websocketReceived, ['/upgrade']);
+        await page.evaluate(async url => { await fetch(url).catch(() => {}); }, `${forbiddenUrl}/after-policy-loss`);
+        await page.goto(`${forbiddenUrl}/navigation-after-policy-loss`, { timeout: 2000 }).catch(() => {});
+        assert.deepEqual(received, []);
+      } finally { releaseRetirement(); }
+      await policy.dispose();
+      assert.equal(browser.isConnected(), false);
+      assert.deepEqual(received, []);
+    });
+    t.diagnostic(JSON.stringify({ browser: metadata.Browser, requestCount: requests.length, failures, forbiddenReceived: received }));
+  } finally {
+    if (policy) await policy.dispose();
+    else { socket.close(); await browser.close(); }
+    for (const server of [forbidden, denyProxy]) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
+  }
+});

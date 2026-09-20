@@ -1,5 +1,5 @@
-import { FsError, readBytes, toByteSource } from "poe-code/safe-fs";
-import type { ByteSource, FsOptions } from "poe-code/safe-fs";
+import { FsError, readBytes, toByteSource } from "@poe-code/safe-fs";
+import type { ByteSource, FsOptions } from "@poe-code/safe-fs";
 import type { CommandContext } from "../../contracts/command.js";
 import { writeBytes } from "../../contracts/io.js";
 import { openFileOutput, writeFileOutputCounted } from "../../contracts/filesystem-output.js";

@@ -1,0 +1,12 @@
+Cloudflare Playwright 1.3.6
+https://github.com/cloudflare/playwright
+
+Playwright portions copyright Microsoft Corporation.
+Chromium automation portions copyright 2017 Google Inc.
+Cloudflare Browser Run integration copyright Cloudflare, Inc.
+Licensed under the Apache License, Version 2.0; see LICENSE.
+
+This package bundles and minifies the native Cloudflare Playwright client for
+Worker Loader execution and native action generators for supported languages.
+Generated action-generator assets include source qualification and license text.
+Upstream inline license notices are retained in both generated bundles.

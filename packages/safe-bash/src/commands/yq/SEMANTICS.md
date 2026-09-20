@@ -20,11 +20,21 @@ translate those output-format options; they do not assert identical CLI grammar.
 
 Official references consulted:
 
-- https://yaml.org/spec/1.2.2/ — comments, flow collections, plain scalars.
+- https://yaml.org/spec/1.2.2/ — comments, flow collections, plain scalars,
+  and quoted folding (sections 6.4–6.5, 7.3.1–7.3.2).
 - https://raw.githubusercontent.com/mikefarah/yq/v4.53.3/cmd/root.go — pinned CLI.
 
 ## Correctness and safety repairs
 
+- Single- and double-quoted multiline scalars fold one physical break to a
+  space and preserve each subsequent empty line as a line feed. CRLF and CR
+  normalize to LF. Only adjacent ASCII spaces/tabs are presentation whitespace;
+  additional indentation does not change content, and non-ASCII characters stay
+  intact. Escaped double-quoted continuations omit the escaped break, preserve
+  preceding content whitespace, and retain subsequent empty lines according to
+  productions [70] and [112]. Escaped whitespace and explicit `\n` remain content.
+  Bounded token projections count the decoded UTF-8 bytes before scalar creation;
+  these rules do not change scalar, value, output, or work limits.
 - Flow comments no longer become scalar data or change bracket/quote balancing.
   Token-boundary comments after commas, opening brackets, and quoted scalars are
   recognized. Quoted hashes and hashes within plain scalars remain data.

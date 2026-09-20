@@ -1,1 +1,0 @@
-function* g(a=(g.prototype=Object.create(g.prototype,{tag:{value:7}}))){yield 3;yield 4}const it=g();async function* h(a=(h.prototype=null)){}const old=h.prototype;const hi=h();await 0;return [(await it.next()).value,it.tag,(await it.next()).value,Object.getPrototypeOf(hi)===old,g.toString(),(await h.constructor('return typeof process+","+typeof require')().next()).value];

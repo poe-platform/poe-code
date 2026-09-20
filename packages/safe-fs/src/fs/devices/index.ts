@@ -5,15 +5,16 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
-import { deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
+import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
+import { openFileDescriptor } from "../descriptor.js";
 
 const views = new WeakMap<FileSystem, DeviceFileSystem>();
 const deviceCapabilities: FileSystemCapabilities = Object.freeze({
@@ -23,7 +24,7 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
   remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
   mkdir: false, recursiveMkdir: false, symlinks: false, hardlinks: false, readlink: false,
   permissions: false, timestamps: false, truncate: false, randomAccessWrite: false,
-  open: false, atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
+  open: true, atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicTreeRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
   atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true, atomicResize: false,
 });
 
@@ -31,7 +32,7 @@ function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
     open: ["open"],
-    atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
+    atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
     streamingRead: ["readStream"], streamingWrite: ["writeStream"], retainedRead: ["openReadFile"],
     streamingAppend: ["writeStream"], descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
     symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"],
@@ -67,7 +68,7 @@ export class DeviceFileSystem implements FileSystem {
     Object.defineProperty(this, pathNamespace, { get: () => Reflect.get(filesystem, pathNamespace) });
     this.capabilities = globalCapabilities(filesystem);
     const identityScope = Object.freeze({});
-    const stat = { mode: 0o020666, size: 0, allocatedBytes: 0,
+    const stat = { mode: 0o020666, size: 0, allocatedBytes: 0, uid: 0, gid: 0,
       mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: 1, dev: 0, nlink: 1 };
     this.#nullStat = Object.freeze({ ...stat, type: "character", preferredIoBlockSize: 4096 });
     this.#directoryStat = Object.freeze({ ...stat, type: "directory", mode: 0o040755, ino: 2 });
@@ -122,16 +123,34 @@ export class DeviceFileSystem implements FileSystem {
   }
 
   async capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
-    const resolved = await this.#resolve(path, options, true, options.create);
+    let resolved: string;
+    let selected: FileSystemCapabilities | undefined;
+    try { resolved = await this.#resolve(path, options, true, options.create); }
+    catch (error) {
+      options.signal?.throwIfAborted();
+      if (options.create !== true || !isFsError(error, "ENOENT")) throw error;
+      // Implicit prefixes need not exist before the authoritative backend opens
+      // a new file. Resolve device aliases without creating namespace entries.
+      resolved = await this.#resolve(path, options);
+      options.signal?.throwIfAborted();
+      if (reserved(resolved)) throw error;
+      const query = this.#filesystem.capabilitiesFor;
+      options.signal?.throwIfAborted();
+      selected = (query === undefined || query === null ? undefined : await Reflect.apply(query, this.#filesystem, [path, options])) ?? this.#filesystem.capabilities;
+      options.signal?.throwIfAborted();
+      if (selected.implicitDirectories !== true) throw error;
+    }
     options.signal?.throwIfAborted();
     if (options.create !== undefined && (resolved === deviceDirectory || resolved === "/")) throw new FsError("EISDIR", { syscall: "capabilitiesFor", path });
     if (resolved === nullPath) return deviceCapabilities;
-    if (resolved === deviceDirectory) return { ...deviceCapabilities, readdir: true, write: false, append: false,
+    if (resolved === deviceDirectory) return { ...deviceCapabilities, open: false, readdir: true, write: false, append: false,
       exclusiveCreate: false, streamingWrite: false, streamingAppend: false, independentWriteStreams: false, descriptorWriteStream: false,
       retainedRead: false, retainedResize: false, streamingRead: false, copy: false, exclusiveCopy: false };
-    const query = this.#filesystem.capabilitiesFor;
-    options.signal?.throwIfAborted();
-    const selected = query === undefined || query === null ? undefined : await Reflect.apply(query, this.#filesystem, [path, options]);
+    if (selected === undefined) {
+      const query = this.#filesystem.capabilitiesFor;
+      options.signal?.throwIfAborted();
+      selected = query === undefined || query === null ? undefined : await Reflect.apply(query, this.#filesystem, [path, options]);
+    }
     options.signal?.throwIfAborted();
     const observed = ownedMutationCapabilities(this.#filesystem, selected ?? this.#filesystem.capabilities);
     options.signal?.throwIfAborted();
@@ -228,7 +247,27 @@ export class DeviceFileSystem implements FileSystem {
     if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
     const resolved = await this.#resolve(path, options, options.creation !== "exclusive");
     options.signal?.throwIfAborted();
-    if (resolved === nullPath || resolved === deviceDirectory) throw new FsError("ENOTSUP", { syscall: "open", path });
+    if (resolved === nullPath) return openFileDescriptor<FileStat>(path, options, {
+      position: true, positionedRead: true, positionedWrite: true, positionedAppendWrite: true,
+      openTruncate: true, delegateZeroLengthWrite: true, truncate: false, synchronization: "none",
+    }, async admitted => {
+      if (admitted.creation === "exclusive") throw new FsError("EEXIST", { syscall: "open", path });
+      const yieldAfterWrite = createDeviceYield();
+      return {
+        resource: this.#nullStat,
+        getPosition: async () => 0,
+        stat: async stat => ({ ...stat }),
+        read: async () => 0,
+        write: async (_stat, buffer, _position, forwarded) => {
+          await yieldAfterWrite(buffer.byteLength, forwarded.signal);
+          return buffer.byteLength;
+        },
+        truncate: async () => { throw new FsError("ENOTSUP", { syscall: "ftruncate", path }); },
+        sync: async () => { throw new FsError("ENOTSUP", { syscall: "fsync", path }); },
+        close: async () => {},
+      };
+    });
+    if (resolved === deviceDirectory) throw new FsError("ENOTSUP", { syscall: "open", path });
     const query = this.#filesystem.capabilitiesFor;
     options.signal?.throwIfAborted();
     const capabilities = query && options.creation !== "exclusive" ? await Reflect.apply(query, this.#filesystem, [path, options]) : this.#filesystem.capabilities;
@@ -371,6 +410,13 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.rmdir(path, options);
   }
 
+  async publishFileConditional(path: string, source: ByteSource, options: ConditionalFilePublicationOptions): Promise<FileStat> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicFilePublication", options, options.expected === null);
+    if (!this.#filesystem.publishFileConditional) throw new FsError("ENOTSUP", { path });
+    return this.#filesystem.publishFileConditional(path, source, options);
+  }
+
   async writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
     await this.#mutable(path, options, false);
     await requireOwnedMutation(this.#filesystem, path, "atomicFileMutation", options, options.expected === null);
@@ -378,11 +424,25 @@ export class DeviceFileSystem implements FileSystem {
     return this.#filesystem.writeFileConditional(path, data, options);
   }
 
+  async removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicEntryRemoval", options);
+    if (!this.#filesystem.removeEntryConditional) throw new FsError("ENOTSUP", { path });
+    await this.#filesystem.removeEntryConditional(path, options);
+  }
+
   async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
     await this.#mutable(path, options, false);
     await requireOwnedMutation(this.#filesystem, path, "atomicFileMutation", options);
     if (!this.#filesystem.removeFileConditional) throw new FsError("ENOTSUP", { path });
     await this.#filesystem.removeFileConditional(path, options);
+  }
+
+  async removeTreeConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicTreeRemoval", options);
+    if (!this.#filesystem.removeTreeConditional) throw new FsError("ENOTSUP", { path });
+    await this.#filesystem.removeTreeConditional(path, options);
   }
 
   async createStagedFile(path: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {

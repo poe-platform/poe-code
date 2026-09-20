@@ -1,7 +1,7 @@
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { toByteSource, writeBytes, type CommandDefinition } from "../../contracts/index.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { makeSafeJsFsModule } from "../../integrations/safejs/index.js";
+import { makeSafeJsFsModule } from "../../integrations/safejs/filesystem.js";
 import { record, withSignal } from "../../integrations/safejs/values.js";
 import { pathOf, UsageError } from "../internal.js";
 import { GuestInput, GuestOutput } from "./io.js";

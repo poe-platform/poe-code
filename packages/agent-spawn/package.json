@@ -44,9 +44,10 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-hook-config": "*",
     "@poe-code/agent-skill-config": "*",
-    "toolcraft-design": "*",
     "@poe-code/poe-acp-client": "*",
     "@poe-code/poe-code-config": "*",
-    "@poe-code/process-runner": "*"
+    "@poe-code/process-runner": "*",
+    "shell-quote": "^1.10.0",
+    "toolcraft-design": "*"
   }
 }

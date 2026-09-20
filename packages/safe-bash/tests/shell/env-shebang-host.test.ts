@@ -182,25 +182,16 @@ if (process.argv[2]?.startsWith("guarded:")) {
     });
   }
 
-  test("env shebang moved built public-package consumer", { timeout: 10000 }, async () => {
+  test("moved root package cannot expose the private shell", { timeout: 10000 }, async () => {
     await mkdir(author, { recursive: true });
     const scratch = await mkdtemp(join(author, ".consumer-"));
     try {
-      const destination = join(scratch, "node_modules/virtual-bash");
+      const destination = join(scratch, "node_modules/poe-code");
       await mkdir(destination, { recursive: true });
-      await cp(join(root, "dist"), join(destination, "dist"), { recursive: true });
-      await cp(join(root, "package.json"), join(destination, "package.json"));
+      await cp(join(root, "../../package.json"), join(destination, "package.json"));
       const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
         import assert from 'node:assert/strict';
-        import { Shell, createMemoryFileSystem, agentCommands } from 'virtual-bash';
-        const fs = createMemoryFileSystem();
-        await fs.writeFile('/program', Buffer.from('#!/usr/bin/env -S -i V=ok bash\\nprintf "%s:%s" "$V" "$1"'), { mode: 0o755 });
-        const shell = new Shell({ fs }).use(agentCommands());
-        try {
-          const result = await shell.exec('/program "literal space"');
-          assert.equal(result.exitCode, 0); assert.equal(result.stderr, '');
-          assert.equal(result.stdout, 'ok:literal space');
-        } finally { await shell.dispose(); }
+        await assert.rejects(import('poe-code/safe-bash'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
       `], { cwd: scratch, timeout: 4000, killSignal: "SIGKILL", maxBuffer: 256 * 1024 });
       settled(child);
       assert.equal(child.status, 0, child.stderr.toString());

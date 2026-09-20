@@ -2,23 +2,27 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { MemoryFileSystem } from 'poe-code/safe-fs/core';
+import { createHash } from 'node:crypto';
+import { MemoryFileSystem, withFileSystemQuota } from 'poe-code/safe-fs/core';
 import { Shell, agentCommands } from 'poe-code/safe-bash';
 import { pythonCommands } from 'poe-code/safe-bash/commands/python';
 import { createWorker, createOfflineCache, delayedFileSystem } from './public-runtime-fixture.mjs';
 
 // Explicit real-runtime integration only. Provision assets before this suite;
 // no downloads and no host writes unless the operator requests artifact capture.
-for (const profile of ['memory', 'delayed']) {
+for (const profile of ['memory', 'delayed', 'quota', 'quota-delayed']) {
   test(`public Python document scripts through canonical ${profile} storage`, { timeout: 180000 }, async t => {
     const storage = new MemoryFileSystem();
     await storage.mkdir('/work');
     await storage.mkdir('/tmp');
-    const delayed = delayedFileSystem(storage);
-    const fs = profile === 'delayed' ? delayed.fs : storage;
+    const bounded = profile.startsWith('quota') ? withFileSystemQuota(storage, { maxBytes: 32 * 1024 * 1024 }) : storage;
+    const delayed = delayedFileSystem(bounded);
+    const fs = profile.endsWith('delayed') ? delayed.fs : bounded;
     for (const mode of ['create', 'edit', 'verify', 'streams']) {
       await storage.writeFile(`/work/documents-${mode}.py`, await readFile(new URL(`./fixtures/documents-${mode}.py`, import.meta.url)));
     }
+    await storage.writeFile('/work/qualified-documents.py',
+      await readFile(new URL('./browser-documents/documents.py', import.meta.url)));
     await storage.writeFile('/work/font.ttf', await readFile(new URL('../../../../../packages/terminal-png/assets/jetbrains-mono-400-normal.ttf', import.meta.url)));
     await storage.writeFile('/work/host-input.txt', Buffer.from('canonical host input\n'));
     const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands()).use(pythonCommands({
@@ -56,7 +60,39 @@ for (const profile of ['memory', 'delayed']) {
         assert.ok((await storage.readFile('/work/résultats with spaces/' + name)).byteLength > 0);
       }
       assert.equal((await storage.readdir('/tmp')).length, 0);
-      if (profile === 'delayed') {
+      // Run the browser-qualified workload through actual public shell dispatch.
+      // This adds dates, multi-sheet formatting, PDF merge/split and embedded
+      // font/image stream assertions to the existing cross-invocation coverage.
+      const qualifiedRun = await shell.exec('PROBE_ROOT=/work PROBE_FONT=/work/font.ttf PROBE_PROFILE=bridge python qualified-documents.py');
+      const qualification = JSON.parse(Buffer.from(await storage.readFile('/work/report.json')).toString());
+      assert.equal(qualifiedRun.exitCode, 0, qualifiedRun.stderr);
+      assert.equal(qualification.priority_passed, true);
+      await t.test('required TemporaryDirectory conditional cleanup', () => {
+        assert.equal(qualification.workflows.filesystem.status, 'passed',
+          qualification.workflows.filesystem.traceback);
+      });
+      for (const name of ['pillow_image', 'nofollow_exclusive',
+        'python_docx', 'openpyxl', 'xlsxwriter', 'fpdf2_pypdf', 'stream_modes',
+        'invalid_inputs', 'timestamps', 'runtime_resources']) {
+        assert.equal(qualification.workflows[name].status, 'passed', name);
+      }
+      assert.deepEqual(qualification.versions, {
+        'python-docx': '1.2.0', openpyxl: '3.1.5', XlsxWriter: '3.2.9',
+        pypdf: '6.18.1', fpdf2: '2.8.8', lxml: '6.0.2', Pillow: '12.2.0',
+        fonttools: '4.65.0', defusedxml: '0.7.1', 'et-xmlfile': '2.0.0',
+        'typing-extensions': '4.16.0',
+      });
+      // Rendering is qualified separately in the real browser worker; the
+      // production document profile deliberately does not install PyMuPDF.
+      assert.equal(qualification.pymupdf.status, 'unresolved');
+      assert.equal(qualification.reportlab.status, 'not_needed');
+      for (const [name, artifact] of Object.entries(qualification.artifacts)) {
+        const bytes = await storage.readFile('/work/' + name);
+        assert.equal(bytes.byteLength, artifact.bytes, name);
+        assert.equal(createHash('sha256').update(bytes).digest('hex'), artifact.sha256, name);
+      }
+      assert.equal((await storage.readdir('/tmp')).length, 0);
+      if (profile.endsWith('delayed')) {
         assert.ok(delayed.operations() > 0);
         assert.equal(delayed.handles.size, 0);
         t.diagnostic(`Delayed canonical operations: ${delayed.operations()}; open handles: ${delayed.handles.size}`);

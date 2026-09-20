@@ -4,7 +4,9 @@ import type { SandboxObject } from "./values.js";
 const NativeSegmenter = Intl.Segmenter;
 const nativeSegment = NativeSegmenter.prototype.segment;
 const nativeResolvedOptions = NativeSegmenter.prototype.resolvedOptions;
-const nativeContaining = Object.getPrototypeOf(new NativeSegmenter("en").segment("")).containing;
+const emptySegments = new NativeSegmenter("en").segment("");
+const nativeIterator = Object.getPrototypeOf(emptySegments)[Symbol.iterator];
+const nativeNext = Object.getPrototypeOf(Reflect.apply(nativeIterator, emptySegments, [])).next;
 export type SegmenterOptions = { locale: string; granularity: "grapheme" | "word" | "sentence" };
 const segmenters = new WeakMap<object, { native: Intl.Segmenter; options: SegmenterOptions }>();
 export type SegmentState = { segmenter: SandboxObject; input: string; index?: number };
@@ -47,7 +49,20 @@ export function containingSegment(value: unknown, index: number, iterator: boole
   const state = segmentState(value, iterator);
   // Native boundary search can inspect the input on either side of the offset.
   budget.visitNode(state.input.length + 1);
-  const result = Reflect.apply(nativeContaining, state.native, [index]) as Intl.SegmentData | undefined;
+  const result = findContainingSegment(state.native, state.input.length, index);
   if (iterator && result !== undefined) state.index = result.index + result.segment.length;
   return result === undefined ? undefined : { ...result };
+}
+
+export function findContainingSegment(native: Intl.Segments, length: number, index: number): Intl.SegmentData | undefined {
+  if (index < 0 || index >= length) return undefined;
+  // Some backends' containing() includes the previous segment at a leading
+  // surrogate. Use one boundary source for lookup, iteration and snapshot
+  // validation. The caller charges a full-input scan; no native cursor escapes.
+  const iterator = Reflect.apply(nativeIterator, native, []);
+  for (;;) {
+    const next = Reflect.apply(nativeNext, iterator, []) as IteratorResult<Intl.SegmentData>;
+    if (next.done) return undefined;
+    if (index < next.value.index + next.value.segment.length) return next.value;
+  }
 }

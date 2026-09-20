@@ -13,7 +13,7 @@ test("checksum browser graph has no Node crypto dependency", async () => {
     entryPoints: [fileURLToPath(new URL("../../../../src/commands/bytes/checksums/index.ts", import.meta.url))],
     bundle: true, write: false, metafile: true, platform: "browser", format: "cjs", target: "es2022",
     conditions: ["workerd", "worker", "browser"], external: ["poe-code/safe-fs/core"],
-    alias: { "node:path": platform, "node:stream/web": platform }, inject: [platform], logLevel: "silent",
+    alias: { "@poe-code/safe-fs": "poe-code/safe-fs", "node:path": platform, "node:stream/web": platform }, inject: [platform], logLevel: "silent",
   });
   const external = Object.values(result.metafile!.outputs).flatMap(output => output.imports).filter(imported => imported.external);
   assert.deepEqual([...new Set(external.map(imported => imported.path))], ["poe-code/safe-fs/core"]);

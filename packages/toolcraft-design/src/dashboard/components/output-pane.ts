@@ -1,7 +1,10 @@
 import { selectViewportTail } from "../../viewport.js";
 import { getTheme } from "../../internal/theme-detect.js";
+import { supportsColor } from "../../internal/color-support.js";
+import { parse, render, type MdNode } from "../../terminal-markdown/index.js";
 import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
+import { formatElapsed } from "../elapsed.js";
 import { displayWidth, expandTabs, graphemes, graphemeWidth } from "../terminal-width.js";
 import type { CellStyle, OutputItem, OutputItemKind, Rect } from "../types.js";
 
@@ -18,11 +21,22 @@ export type VisualLine = {
   segments?: StyledSegment[];
 };
 
+const agentLines = new WeakMap<OutputItem, {
+  text: string;
+  width: number;
+  theme: ReturnType<typeof getTheme>;
+  color: boolean;
+  budget: number;
+  complete: boolean;
+  lines: VisualLine[];
+}>();
+
 export function renderOutputPane(
   buffer: ScreenBuffer,
   rect: Rect,
   items: OutputItem[],
-  scrollOffset = 0
+  scrollOffset = 0,
+  options: { conversation?: boolean; details?: boolean; now?: number } = {}
 ): number {
   buffer.clearRect(rect);
 
@@ -31,7 +45,40 @@ export function renderOutputPane(
   }
 
   const { rows: visualLines, offset: actualOffset } = selectViewportTail(
-    items, rect.height, scrollOffset, item => computeVisualLines([item], rect.width)
+    options.conversation && !options.details ? foldCompletedActions(items) : items, rect.height, scrollOffset, item => {
+      if (options.conversation && item.role === "reasoning" && !options.details) return [];
+      let label = item.text;
+      const elapsed = options.now === undefined ? 0 : options.now - item.ts;
+      if (options.conversation && item.role === "action" && item.kind === "tool" && Number.isFinite(elapsed) && elapsed >= 1000) {
+        const duration = formatElapsed(elapsed);
+        label += ` · ${elapsed >= 3_600_000 ? duration : duration.slice(3)}`;
+      }
+      const text = options.details && item.detail ? item.role === "plan" ? item.detail : `${label}\n${item.detail}` : label;
+      const agentReply = options.conversation && item.role === "agent"
+        ? renderAgentLines(item, rect.width, rect.height + scrollOffset + 4) : undefined;
+      const lines = agentReply?.lines ?? computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
+      if (!options.conversation) return lines;
+      const prose = item.role === "agent" || item.role === "user";
+      if (prose) {
+        while (lines.length > 0 && lines.at(-1)!.text.trim().length === 0) lines.pop();
+        while (lines.length > 0 && lines[0]!.text.trim().length === 0) lines.shift();
+      }
+      const style = item.kind === "error" ? getTheme().styles.error
+        : prose ? {} : getTheme().styles.muted;
+      const prefix = item.role === "user" ? "›" : item.role === "agent" ? "•"
+        : item.kind === "tool" ? "›" : item.kind === "success" ? "✓"
+          : item.kind === "error" ? "!" : "·";
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index]!;
+        line.prefix = index === 0 && agentReply?.complete !== false ? prefix : "";
+        line.prefixStyle = style;
+        line.style = style;
+      }
+      if (prose && lines.length > 0) {
+        lines.push({ text: "", prefix: "", style: {}, prefixStyle: {} });
+      }
+      return lines;
+    }
   );
   const textRect: Rect = {
     x: rect.x + TEXT_OFFSET,
@@ -79,7 +126,67 @@ export function renderOutputPane(
   return actualOffset;
 }
 
-export function computeVisualLines(items: OutputItem[], width: number): VisualLine[] {
+function renderAgentLines(item: OutputItem, width: number, budget: number): { lines: VisualLine[]; complete: boolean } {
+  const theme = getTheme();
+  const color = supportsColor();
+  const cached = agentLines.get(item);
+  if (cached?.text === item.text && cached.width === width && cached.theme === theme && cached.color === color
+    && (cached.complete || cached.budget >= budget)) {
+    return { lines: cached.lines.map((line) => ({ ...line })), complete: cached.complete };
+  }
+  let lines: VisualLine[];
+  let complete = true;
+  try {
+    const ast = parse(item.text).ast;
+    const options = { width: Math.max(1, width - TEXT_OFFSET), showFrontmatter: true };
+    let text: string;
+    if (ast.type !== "root" || containsFootnotes(ast)) text = render(ast, options);
+    else {
+      const fragments: string[] = [];
+      let rows = 0;
+      let index = ast.children.length - 1;
+      for (; index >= 0 && rows < budget; index--) {
+        const fragment = render(ast.children[index]!, options);
+        fragments.push(fragment);
+        rows += fragment.split("\n").length - 1;
+      }
+      complete = index < 0;
+      text = fragments.reverse().join("");
+    }
+    lines = computeVisualLines([{ ...item, text }], width, true);
+  } catch {
+    // A partially streamed document can contain invalid frontmatter or syntax.
+    lines = computeVisualLines([item], width);
+  }
+  agentLines.set(item, { text: item.text, width, theme, color, budget, complete, lines });
+  return { lines: lines.map((line) => ({ ...line })), complete };
+}
+
+function containsFootnotes(node: MdNode): boolean {
+  return node.type === "footnoteDefinition" || node.type === "footnoteReference"
+    || ("children" in node && node.children.some(containsFootnotes));
+}
+
+function foldCompletedActions(items: OutputItem[]): OutputItem[] {
+  const result: OutputItem[] = [];
+  let completed: OutputItem[] = [];
+  const flush = (): void => {
+    if (completed.length >= 4) {
+      result.push({ role: "action", kind: "status", ts: completed[0]!.ts,
+        text: `${completed.length - 2} earlier actions · d Details` }, ...completed.slice(-2));
+    } else result.push(...completed);
+    completed = [];
+  };
+  for (const item of items) {
+    if (item.role === "reasoning") continue;
+    if (item.role === "action" && item.kind === "success") completed.push(item);
+    else { flush(); result.push(item); }
+  }
+  flush();
+  return result;
+}
+
+export function computeVisualLines(items: OutputItem[], width: number, preformatted = false): VisualLine[] {
   if (width <= 0) {
     return [];
   }
@@ -91,8 +198,8 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
   for (const item of items) {
     const itemStyle = getItemStyle(item.kind);
 
-    if (hasAnsi(item.text) || hasCursorControls(item.text)) {
-      const styledLines = parseAnsi(item.text, hasAnsi(item.text) ? {} : itemStyle);
+    if (preformatted || hasAnsi(item.text) || hasCursorControls(item.text)) {
+      const styledLines = parseAnsi(item.text, preformatted || hasAnsi(item.text) ? {} : itemStyle);
       let firstRow = true;
       for (const styledLine of styledLines) {
         const rows = hardWrapSegments(styledLine.segments, textWidth);
@@ -240,11 +347,13 @@ function wrapParagraph(value: string, width: number): string[] {
   const tokens = tokenize(value);
   const lines: string[] = [];
   let currentLine = "";
+  let currentWidth = 0;
   let pendingSpace = "";
 
   const flushLine = (): void => {
     lines.push(currentLine);
     currentLine = "";
+    currentWidth = 0;
     pendingSpace = "";
   };
 
@@ -261,16 +370,19 @@ function wrapParagraph(value: string, width: number): string[] {
     for (let index = 0; index < chunks.length; index += 1) {
       const chunk = chunks[index] ?? "";
       const gap = index === 0 ? pendingSpace : "";
+      const chunkWidth = displayWidth(chunk);
 
-      if (currentLine.length > 0 && displayWidth(`${currentLine}${gap}${chunk}`) > width) {
+      if (currentLine.length > 0 && currentWidth + gap.length + chunkWidth > width) {
         flushLine();
       }
 
       if (currentLine.length > 0 && gap.length > 0) {
         currentLine += gap;
+        currentWidth += gap.length;
       }
 
       currentLine += chunk;
+      currentWidth += chunkWidth;
       pendingSpace = "";
 
       if (index < chunks.length - 1) {

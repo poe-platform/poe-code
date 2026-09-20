@@ -1,0 +1,8 @@
+
+> @poe-code/pandoc@0.0.1 lint
+> eslint src conformance stress && npm run typecheck
+
+
+> @poe-code/pandoc@0.0.1 typecheck
+> tsc --noEmit && tsc -p tsconfig.test.json
+

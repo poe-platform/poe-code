@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { FsError, type FileStat } from "../../contracts/index.js";
 import { writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { MikeError, type NativeWork } from "./native-work.js";

@@ -1,0 +1,165 @@
+{
+  "oracle": "openssl LibreSSL 3.3.6 AES-ECB; Python hashlib PBKDF2/HMAC; bsdtar 3.5.3 libarchive 3.7.4 cross-read",
+  "password": "password",
+  "plaintext": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+  "fixtures": [
+    {
+      "strength": 128,
+      "version": 1,
+      "wire": "0001020304050607b51ce72f8aa0a8501e2e81ec37f5f19f6133b1df92187c4ada4bd44ff0830268d1257d7d5a638597ec1a7fecf6",
+      "archive": "UEsDBDMAAQBjAAAAIQAFg5DkNQAAACEAAAAEAAsAZmlsZQGZBwABAEFFAQAAAAECAwQFBge1HOcviqCoUB4ugew39fGfYTOx35IYfEraS9RP8IMCaNElfX1aY4WX7Bp/7PZQSwECHgMzAAEAYwAAACEABYOQ5DUAAAAhAAAABAALAAAAAAAAAAAApIEAAAAAZmlsZQGZBwABAEFFAQAAUEsFBgAAAAABAAEAPQAAAGIAAAAAAA=="
+    },
+    {
+      "strength": 128,
+      "version": 2,
+      "wire": "0001020304050607b51ce72f8aa0a8501e2e81ec37f5f19f6133b1df92187c4ada4bd44ff0830268d1257d7d5a638597ec1a7fecf6",
+      "archive": "UEsDBDMAAQBjAAAAIQAAAAAANQAAACEAAAAEAAsAZmlsZQGZBwACAEFFAQAAAAECAwQFBge1HOcviqCoUB4ugew39fGfYTOx35IYfEraS9RP8IMCaNElfX1aY4WX7Bp/7PZQSwECHgMzAAEAYwAAACEAAAAAADUAAAAhAAAABAALAAAAAAAAAAAApIEAAAAAZmlsZQGZBwACAEFFAQAAUEsFBgAAAAABAAEAPQAAAGIAAAAAAA=="
+    },
+    {
+      "strength": 192,
+      "version": 1,
+      "wire": "000102030405060708090a0bc58dfcf602aab56a6b31e3a9e9dc363aaadc80414adf9eba546850e06c1a96a60c728a23f229a4943784281090",
+      "archive": "UEsDBDMAAQBjAAAAIQAFg5DkOQAAACEAAAAEAAsAZmlsZQGZBwABAEFFAgAAAAECAwQFBgcICQoLxY389gKqtWprMeOp6dw2OqrcgEFK3566VGhQ4GwalqYMcooj8imklDeEKBCQUEsBAh4DMwABAGMAAAAhAAWDkOQ5AAAAIQAAAAQACwAAAAAAAAAAAKSBAAAAAGZpbGUBmQcAAQBBRQIAAFBLBQYAAAAAAQABAD0AAABmAAAAAAA="
+    },
+    {
+      "strength": 192,
+      "version": 2,
+      "wire": "000102030405060708090a0bc58dfcf602aab56a6b31e3a9e9dc363aaadc80414adf9eba546850e06c1a96a60c728a23f229a4943784281090",
+      "archive": "UEsDBDMAAQBjAAAAIQAAAAAAOQAAACEAAAAEAAsAZmlsZQGZBwACAEFFAgAAAAECAwQFBgcICQoLxY389gKqtWprMeOp6dw2OqrcgEFK3566VGhQ4GwalqYMcooj8imklDeEKBCQUEsBAh4DMwABAGMAAAAhAAAAAAA5AAAAIQAAAAQACwAAAAAAAAAAAKSBAAAAAGZpbGUBmQcAAgBBRQIAAFBLBQYAAAAAAQABAD0AAABmAAAAAAA="
+    },
+    {
+      "strength": 256,
+      "version": 1,
+      "wire": "000102030405060708090a0b0c0d0e0f256b8bd5c858dc3491a4454e9e8bb7a836493d76e3dad8cce5f60c83b9f630aed68d5683de245a47c6eae9beb5",
+      "archive": "UEsDBDMAAQBjAAAAIQAFg5DkPQAAACEAAAAEAAsAZmlsZQGZBwABAEFFAwAAAAECAwQFBgcICQoLDA0ODyVri9XIWNw0kaRFTp6Lt6g2ST1249rYzOX2DIO59jCu1o1Wg94kWkfG6um+tVBLAQIeAzMAAQBjAAAAIQAFg5DkPQAAACEAAAAEAAsAAAAAAAAAAACkgQAAAABmaWxlAZkHAAEAQUUDAABQSwUGAAAAAAEAAQA9AAAAagAAAAAA"
+    },
+    {
+      "strength": 256,
+      "version": 2,
+      "wire": "000102030405060708090a0b0c0d0e0f256b8bd5c858dc3491a4454e9e8bb7a836493d76e3dad8cce5f60c83b9f630aed68d5683de245a47c6eae9beb5",
+      "archive": "UEsDBDMAAQBjAAAAIQAAAAAAPQAAACEAAAAEAAsAZmlsZQGZBwACAEFFAwAAAAECAwQFBgcICQoLDA0ODyVri9XIWNw0kaRFTp6Lt6g2ST1249rYzOX2DIO59jCu1o1Wg94kWkfG6um+tVBLAQIeAzMAAQBjAAAAIQAAAAAAPQAAACEAAAAEAAsAAAAAAAAAAACkgQAAAABmaWxlAZkHAAIAQUUDAABQSwUGAAAAAAEAAQA9AAAAagAAAAAA"
+    }
+  ],
+  "boundaries": [
+    {
+      "strength": 128,
+      "size": 0,
+      "sha256": "77716cde905cd8fe5991fe27d2faf52826e11137b3664ddbe0abae1135e276e5"
+    },
+    {
+      "strength": 128,
+      "size": 1,
+      "sha256": "c8cbd8e165253bc5531d691c89386026f9831d6caf01dac1397dc5d24583968f"
+    },
+    {
+      "strength": 128,
+      "size": 15,
+      "sha256": "e554bac853b1e9aaf712b217f09b0e83802ce93db5860f83cc9a2c3faf4d8383"
+    },
+    {
+      "strength": 128,
+      "size": 16,
+      "sha256": "b3c5746a1364e82623aae2aa19f02c09a18c283f4d030a3f5ce53671abecad2d"
+    },
+    {
+      "strength": 128,
+      "size": 17,
+      "sha256": "e520a90f8404b82ae2f0e6330e4bb5997bb30ff84c91c1baa095daa12584a8cb"
+    },
+    {
+      "strength": 128,
+      "size": 65535,
+      "sha256": "472064027ac63983d337d24b92777fe4c7e1c5951595433d0c524dcf32965363"
+    },
+    {
+      "strength": 128,
+      "size": 65536,
+      "sha256": "5867f3b989cf1a7458add464f8b5204970bfb7f05e1a135d1eb936e7a2761d67"
+    },
+    {
+      "strength": 128,
+      "size": 65537,
+      "sha256": "c97403e5cc8551774a86cdbdf21942a5205faf1936612888c0112e6db6e9c678"
+    },
+    {
+      "strength": 192,
+      "size": 0,
+      "sha256": "10dcfc8b0007f8961ef2c2b6f3294878cf2070efc85efdf7ddc630ca93974dff"
+    },
+    {
+      "strength": 192,
+      "size": 1,
+      "sha256": "060152e4cf7ae95531d3677fbb637b2b839012ba9251b51a67957f0933d0deac"
+    },
+    {
+      "strength": 192,
+      "size": 15,
+      "sha256": "c2430e75adc6e8d5e006d8eae3316398ddb0076570222e084bc7195c0c4242de"
+    },
+    {
+      "strength": 192,
+      "size": 16,
+      "sha256": "8d3a0019c18da7684743d89b23af0bc1f9cb8bd4af947a410e9cf94338513bc0"
+    },
+    {
+      "strength": 192,
+      "size": 17,
+      "sha256": "565268ae8a989f9a9a8bdb79db8a9bdb6bc4b82dbc5ae87257817fe3af45014c"
+    },
+    {
+      "strength": 192,
+      "size": 65535,
+      "sha256": "8afcd04541ce2006ddab71c5f9851bdf57c1aad525016a49f3ac38792b14dbcf"
+    },
+    {
+      "strength": 192,
+      "size": 65536,
+      "sha256": "eea575cdbfeb14dda3a433228941f6b5e705681d6997fd0016731ab1eb0d2754"
+    },
+    {
+      "strength": 192,
+      "size": 65537,
+      "sha256": "078c7e5de09ab1cee160fca427a2670a7656bbcd7f1ef7319cc714f355e49b1f"
+    },
+    {
+      "strength": 256,
+      "size": 0,
+      "sha256": "14e55960206f1cd4c2c7726c7585914e1a60f65e68aad8355adaeb26f8f3f513"
+    },
+    {
+      "strength": 256,
+      "size": 1,
+      "sha256": "05e2e5df59633e0390ca7ebfefdc1ea4a60aa86c848d9a43084a72e4346d8dc3"
+    },
+    {
+      "strength": 256,
+      "size": 15,
+      "sha256": "3d9c319ca7dba4d7f192ce3b46ff97b014a05c043783244cc7e717c9268452fd"
+    },
+    {
+      "strength": 256,
+      "size": 16,
+      "sha256": "e9f0d714ab77ab7e77005ace3bcbcc67ead6fea50d69b36540bbe1713d89818b"
+    },
+    {
+      "strength": 256,
+      "size": 17,
+      "sha256": "5c0f6e510e812b5591d61f32edc4c257d0c09dc4724c1c0afb26020ebde6a4e8"
+    },
+    {
+      "strength": 256,
+      "size": 65535,
+      "sha256": "4e3deef585838064ec9a66874d1c679d04cd678e14721e77eb4760fd67195847"
+    },
+    {
+      "strength": 256,
+      "size": 65536,
+      "sha256": "5adea3047e76da463356fc7333b91e2e126ad0d7ff2484a00e8efcc6ea2aa783"
+    },
+    {
+      "strength": 256,
+      "size": 65537,
+      "sha256": "9d837f4272e5d70c26638884e6468ac6d96a6497a809cff9ec43083707f9ebbf"
+    }
+  ]
+}

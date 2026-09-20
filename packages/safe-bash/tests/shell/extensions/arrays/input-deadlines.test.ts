@@ -457,7 +457,7 @@ for (const timeoutMs of [0, -1, NaN, Infinity]) test(`invalid timeout is rejecte
 
 async function native(script: string, input: string | Uint8Array, eof: boolean, args: string[] = [], locale = "C"): Promise<Buffer> {
   const executable = authenticateOracle();
-  const child = spawn(executable, ["--noprofile", "--norc", "-c", `IFS= read -r gate; ${script}`, "probe", ...args], { env: { LC_ALL: locale, PATH: "/__no_native_path__" }, stdio: ["pipe", "pipe", "pipe"] });
+  const child = spawn(executable, ["--noprofile", "--norc", "-c", '"$BASH" --noprofile --norc -c "$1" probe "${@:2}" < <(/bin/cat 2>/dev/null); status=$?; producer=$!; kill "$producer" 2>/dev/null || :; wait "$producer" 2>/dev/null || :; exit "$status"', "oracle", `IFS= read -r gate; ${script}`, ...args], { env: { LC_ALL: locale, PATH: "/__no_native_path__" }, stdio: ["pipe", "pipe", "pipe"] });
   const stdout: Buffer[] = [];
   const stderr: Buffer[] = [];
   let size = 0;
@@ -500,16 +500,21 @@ test("authenticated Bash regular descriptor ignores positive timeout and polls r
   assert.equal(output.toString(), '0:old\n0:import assert from "node:assert/strict";\n0\n');
 });
 
-for (const [name, input, expected, raw] of [
-  ["completed escape", "61205c20622063", "313432006120012062206300", false],
-  ["trailing escape", "615c", "31343200610100", false],
-  ["standalone escape", "5c", "313432000100", false],
-  ["continuation", "615c0a62", "31343200616200", false],
-  ["incomplete UTF8 unit", "f09f", "31343200f000", true],
-] as const) test(`native timeout assignment projection: ${name}`, { ...nativeOptions(), timeout: 3000 }, async () => {
+// Bash read's non-volatile saw_escape flag crosses a timeout setjmp. The
+// authenticated Linux and Darwin builds exhibit these two byte projections;
+// the virtual contract below continues to retain its explicit control markers.
+for (const [name, input, expected, raw, nativeExpected] of [
+  ["completed escape", "61205c20622063", "313432006120012062206300", false, ["313432006120012062206300", "3134320061202062206300"]],
+  ["trailing escape", "615c", "31343200610100", false, ["31343200610100", "313432006100"]],
+  ["standalone escape", "5c", "313432000100", false, ["313432000100"]],
+  ["continuation", "615c0a62", "31343200616200", false, ["31343200616200"]],
+  ["incomplete UTF8 unit", "f09f", "31343200f000", true, ["31343200f000"]],
+] as const) test(`native timeout assignment projection: ${name}`, { ...nativeOptions(), timeout: 3000 }, async context => {
   const bytes = Buffer.from(input, "hex");
   const output = await native(`IFS= read ${raw ? "-r" : ""} -t .02 value; printf '%s\\0%s\\0' "$?" "$value"`, bytes, false, [], "en_US.UTF-8");
-  assert.equal(output.toString("hex"), expected);
+  const observed = output.toString("hex");
+  assert.ok(nativeExpected.some(value => value === observed), `unqualified native projection: ${observed}`);
+  context.diagnostic(`authenticated ${process.platform} timeout projection: ${observed}`);
   const clock = new Clock();
   const subject = fixture({ provenance: "stream", clock });
   try {

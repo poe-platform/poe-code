@@ -899,6 +899,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/realpath-missing-admission.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/arithmetic-expansion.test.ts"));
   assert.ok(files.includes("tests/shell/string-operations.test.ts"));
   assert.ok(files.includes("tests/shell/parameter-depth.test.ts"));
   assert.ok(files.includes("tests/shell/runtime-parameter-depth.test.ts"));
@@ -937,6 +938,13 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/commands/python/runtime.test.ts"));
+  assert.ok(files.includes("tests/commands/python/async-executor.test.ts"));
+  assert.ok(files.includes("tests/commands/python/async-executor-review.test.ts"));
+  assert.ok(files.includes("tests/commands/python/diagnostics.test.ts"));
+  assert.ok(files.includes("tests/commands/python/environment.test.ts"));
+  assert.ok(files.includes("tests/commands/python/environment-review.test.ts"));
+  assert.ok(files.includes("tests/commands/python/tree-cleanup-review.test.ts"));
+  assert.ok(files.includes("tests/commands/python/object-publication-review.test.ts"));
   assert.ok(files.includes("tests/commands/python/admission.test.ts"));
   assert.ok(files.includes("tests/commands/python/invocation.test.ts"));
   assert.ok(files.includes("tests/commands/python/installation.test.ts"));
@@ -947,6 +955,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/python/worker.test.ts"));
   assert.ok(files.includes("tests/commands/python/reply.test.ts"));
   for (const integration of [
+    "tests/integration/pyodide-runtime/public-package.test.mjs",
     "tests/integration/pyodide-runtime/public-command-parity.test.mjs",
     "tests/integration/pyodide-runtime/public-documents.test.mjs",
     "tests/integration/pyodide-runtime/public-lifecycle.test.mjs",
@@ -2349,6 +2358,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/docx/objects.test.ts"));
   assert.ok(files.includes("tests/commands/docx-registration.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/selectors.test.ts"));
+  assert.ok(files.includes("tests/commands/pandoc.test.ts"));
+  assert.ok(files.includes("tests/commands/pandoc-safety.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/transitions.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/animation-inventory.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/animation-editing.test.ts"));
@@ -2395,15 +2406,62 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/find-printf.test.ts"));
   assert.ok(files.includes("tests/shell/filesystem-cleanup.test.ts"));
   assert.ok(files.includes("tests/commands/zip-codec.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-lzma.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-remaining-operations.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-repair.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-fifo-names.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-test-command-review.test.ts"));
   assert.ok(files.includes("tests/commands/zip-atomic-ownership.test.ts"));
   assert.ok(files.includes("tests/commands/zip-format.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-qualification.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-crypto.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-volumes.test.ts"));
   assert.ok(files.includes("tests/commands/zip-review.test.ts"));
   assert.ok(files.includes("tests/commands/zip.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-help.test.ts"));
   assert.ok(files.includes("tests/commands/zip-standard-flags.test.ts"));
     assert.ok(files.includes("tests/commands/zip-standard-flags-native.test.ts"));
     assert.ok(files.includes("tests/commands/rpc-atomic-host.test.ts"));
   assert.ok(files.includes("tests/commands/unzip.test.ts"));
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-controller.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-standard-output.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-standard-session.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-modal-session.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-modal-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-route-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-route-policy-native.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-recording-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-native-snapshot.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-find.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-download-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-open-options.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-workspace.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-standard-capabilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-context-replacement.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-capability-events.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-session-restore.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-session-restore-review.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-profile-admission.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-profile-configuration.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-snapshot.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-snapshot-transport.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-frame-snapshot.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-screenshot.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-review.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-tab-limit.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-close-race.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-interrupt.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-network-policy.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-network-policy-message.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-network-policy-scope.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-network-policy-release.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-network-policy-upload.test.ts"));
+  assert.ok(files.includes("tests/plugins/timezone-injection.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-cli.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-abilities.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-ability-execution.test.ts"));
   assert.ok(files.includes("tests/plugins/zip-safety.test.ts"));
   assert.ok(files.includes("tests/plugins/csplit-commands.test.ts"));
   assert.ok(files.includes("tests/shell/owned-output-drain.test.ts"));
@@ -2533,13 +2591,123 @@ test("repository boundaries preserve unaccepted YQ as active source tests", () =
   assert.ok(selected.includes("tests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts"));
 });
 
-test("optional node workerd acceptance remains admitted current input", () => {
+test("optional interpreter workerd acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   for (const path of [
     "tests/integration/optional-node-workerd/worker.mjs",
     "tests/integration/optional-node-workerd/config.capnp",
+    "tests/integration/python-diagnostics-workerd/worker.mjs",
+    "tests/integration/python-diagnostics-workerd/config.capnp",
   ]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("shared Python environment public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const path = "tests/integration/pyodide-runtime/public-shared-environment.test.mjs";
+  assertAdmittedInputPath(path, boundaries);
+  assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Python tree cleanup public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const path = "tests/integration/pyodide-runtime/public-cleanup.test.mjs";
+  assertAdmittedInputPath(path, boundaries);
+  assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Python object publication public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const path = "tests/integration/pyodide-runtime/public-object-publication.test.mjs";
+  assertAdmittedInputPath(path, boundaries);
+  assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Playwright private target transport native acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const path = "tests/integration/playwright-private-target-transport.test.mjs";
+  assertAdmittedInputPath(path, boundaries);
+  assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+});
+
+test("Playwright session restoration public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/playwright-session-restore.test.mjs", "tests/integration/playwright-session-restore.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Playwright standard capability native acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/playwright-capabilities.test.mjs", "tests/integration/playwright-snapshot-native.test.mjs", "tests/integration/playwright-native-types.test.mjs", "tests/integration/playwright-snapshot-navigation.test.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python asynchronous executor public acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/integration/python-async-executor.test.mjs", "tests/integration/python-async-executor.worker.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python shared executor admission tests remain admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/executor-pool.test.ts", "tests/commands/python/executor-pool-review.test.ts"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python native JSPI qualification inputs remain admitted without claiming executor acceptance", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/jspi-assets.test.ts", "tests/commands/python/jspi-trampoline.test.ts",
+    "tests/commands/python/jspi-scheduler.test.ts",
+    "tests/commands/python/jspi.test.ts", "src/commands/python/jspi.ts",
+    "tests/integration/python-jspi.test.mjs", "tests/integration/python-jspi.worker.mjs",
+    "tests/integration/python-jspi-catalog.mjs", "tests/integration/python-jspi-catalog.test.mjs",
+    "tests/integration/python-jspi-errors.mjs",
+    "tests/integration/python-object-io-781.test.mjs", "tests/integration/python-object-io-781.worker.mjs",
+    "tests/integration/python-object-io-781.runtime.mjs", "tests/integration/python-object-io-781.tooling.mjs",
+    "tests/integration/python-object-io-781.tooling.test.mjs",
+    "tests/integration/python-managed.test.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Python Docker host acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/commands/python/docker.test.ts", "tests/commands/python/docker-review.test.ts",
+    "tests/commands/python/docker-runner-review.test.ts",
+    "tests/plugins/qualified-current-release/current-python-docker.ts",
+    "tests/integration/python-docker.test.mjs", "tests/integration/python-docker-runtime.mjs", "tests/integration/python-docker-runtime.Dockerfile"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("S3 namespace cleanup tests remain admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/fs/s3/namespace.test.ts", "tests/fs/s3/namespace-review.test.ts", "tests/integration/python-s3-namespace.test.mjs",
+    "tests/plugins/qualified-current-release/current-s3-namespace.ts"]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
   }
@@ -2558,21 +2726,15 @@ test("UTF-8 literal workerd acceptance remains admitted current input", () => {
   }
 });
 
-test("published root mirrors only declared subpaths and keeps the feature isolated", () => {
+test("published root excludes sandbox and office packages while preserving private workspace contracts", () => {
   const source = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
-  const mirror = target => typeof target === "string" ? `./packages/safe-bash${target.slice(1)}` : target === null ? null : Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, mirror(value)]));
-  const expected = Object.fromEntries(Object.entries(source.exports).map(([key, conditions]) => [
-    key === "." ? "./safe-bash" : `./safe-bash${key.slice(1)}`,
-    mirror(conditions),
-  ]));
-  assert.deepEqual(Object.fromEntries(Object.entries(root.exports).filter(([key]) => key === "./safe-bash" || key.startsWith("./safe-bash/"))), expected);
-  assert.equal(root.exports["./safe-bash/*"], undefined);
-  assert.equal(root.exports["./safe-bash/node"].browser, null);
+  assert.deepEqual(Object.keys(root.exports).filter(key => key.startsWith("./safe")), []);
+  assert.equal(source.exports["./node"].browser, null);
   assert.equal(root.engines.node, ">=18.18");
   assert.equal(source.engines.node, ">=22");
-  assert.equal(source.name, "virtual-bash");
+  assert.equal(source.name, "@poe-platform/safe-bash");
   assert.equal(source.private, true);
   assert.deepEqual(source.dependencies, {});
   assert.equal(source.devDependencies["@noble/hashes"], "2.4.0");
@@ -2581,22 +2743,21 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   const archive = JSON.parse(readFileSync(new URL("../../office-package/package.json", import.meta.url), "utf8"));
   assert.equal(archive.name, "@poe-code/office-package");
   assert.deepEqual(archive.dependencies, { pako: "3.0.1" });
-  assert.equal(root.devDependencies["@poe-code/office-package"], "*");
-  assert.equal(root.dependencies.pako, "3.0.1");
-  assert.ok(root.files.includes("packages/office-package/dist"));
-  assert.ok(root.files.includes("packages/office-package/LICENSE"));
+  assert.equal(root.dependencies.pako, undefined);
+  assert.equal(root.files.includes("packages/office-package/dist"), false);
+  assert.equal(root.files.includes("packages/office-package/LICENSE"), false);
   assert.deepEqual(source.exports["./commands/pptx"], { types: "./dist/commands/pptx/index.d.ts", import: "./dist/commands/pptx/index.js" });
-  assert.deepEqual(root.exports["./pptx"], { types: "./packages/pptx/dist/index.d.ts", import: "./packages/pptx/dist/index.js" });
+  assert.equal(root.exports["./pptx"], undefined);
   assert.equal(root.devDependencies.pptx, "*");
-  assert.equal(root.dependencies.saxes, "6.0.0");
-  assert.ok(root.files.includes("packages/pptx/dist"));
-  assert.ok(root.files.includes("packages/pptx/LICENSE"));
-  assert.equal(root.dependencies["virtual-bash"], undefined);
-  assert.equal(root.devDependencies["virtual-bash"], "*");
-  assert.ok(root.files.includes("packages/safe-bash/dist"));
+  assert.equal(root.dependencies.saxes, undefined);
+  assert.equal(root.files.includes("packages/pptx/dist"), false);
+  assert.equal(root.files.includes("packages/pptx/LICENSE"), false);
+  assert.equal(root.dependencies["@poe-platform/safe-bash"], undefined);
+  assert.equal(root.devDependencies["@poe-platform/safe-bash"], "*");
+  assert.equal(root.files.includes("packages/safe-bash/dist"), false);
   assert.deepEqual([...source.poeCode.packageLint.sourceExclude].sort(), build.exclude.filter(path => path.startsWith("src/")).sort());
   const entry = readFileSync(new URL("../../../src/index.ts", import.meta.url), "utf8");
-  assert.equal(entry.includes("virtual-bash"), false);
+  assert.equal(entry.includes("@poe-platform/safe-bash"), false);
   assert.equal(entry.includes("safe-bash"), false);
 });
 
@@ -2610,14 +2771,14 @@ test("Turbo admits maintained tests with a build dependency and prunes exact hel
     ...boundaries.heldEvidenceDirectories.map(path => `!${path}/**`),
     ...boundaries.fixtureDirectories.map(fixture => `!${fixture.path}/**`),
   ];
-  for (const task of ["virtual-bash#build", "virtual-bash#test:unit"]) {
+  for (const task of ["@poe-platform/safe-bash#build", "@poe-platform/safe-bash#test:unit"]) {
     for (const path of excluded) assert.ok(turbo.tasks[task].inputs.includes(path), `${task}: ${path}`);
   }
-  assert.deepEqual(turbo.tasks["virtual-bash#test:unit"].dependsOn, ["build"]);
-  assert.ok(turbo.tasks["virtual-bash#test:unit"].inputs.includes("tests/**"));
-  assert.equal(turbo.tasks["virtual-bash#test:unit"].cache, false);
-  assert.ok(turbo.tasks["virtual-bash#test:unit"].inputs.includes("integration-type-inputs.json"));
-  assert.ok(turbo.tasks["virtual-bash#build"].inputs.includes("scripts/typecheck-integration-inputs.mjs"));
+  assert.deepEqual(turbo.tasks["@poe-platform/safe-bash#test:unit"].dependsOn, ["build"]);
+  assert.ok(turbo.tasks["@poe-platform/safe-bash#test:unit"].inputs.includes("tests/**"));
+  assert.equal(turbo.tasks["@poe-platform/safe-bash#test:unit"].cache, false);
+  assert.ok(turbo.tasks["@poe-platform/safe-bash#test:unit"].inputs.includes("integration-type-inputs.json"));
+  assert.ok(turbo.tasks["@poe-platform/safe-bash#build"].inputs.includes("scripts/typecheck-integration-inputs.mjs"));
   assert.ok(turbo.globalDependencies.includes("scripts/guard-package-dist.mjs"));
   assert.ok(turbo.tasks["//#test:unit"].inputs.includes("!packages/safe-bash/**"));
   assert.equal(source.scripts.test, "node scripts/test.mjs");

@@ -218,7 +218,7 @@ describe("bundle-self-contained", () => {
   it("validates undeclared dynamic imports and permits declared optional dependency subpaths", async () => {
     const { model, metafile } = await canonicalFixture();
     metafile.outputs["dist/index.js"].imports.push({
-      path: "braintrust/logger",
+      path: "optional-sdk/logger",
       external: true,
       kind: "dynamic-import"
     });

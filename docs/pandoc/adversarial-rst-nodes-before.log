@@ -1,0 +1,329 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/adversarial.test.ts (34 tests | 1 failed | 32 skipped) 12ms
+   ↓ owns randomized reused buffers at seed 1
+   ↓ owns randomized reused buffers at seed 305419896
+   ↓ owns randomized reused buffers at seed 1831565813
+   ↓ bounds direct commonmark parser growth 0
+   ↓ bounds direct commonmark parser growth 1
+   ↓ bounds direct commonmark parser growth 2
+   ↓ bounds direct html parser growth 3
+   ↓ bounds direct html parser growth 4
+   ↓ bounds direct html parser growth 5
+   ↓ bounds direct html parser growth 6
+   ↓ bounds direct json parser growth 7
+   ↓ bounds direct latex parser growth 8
+   ↓ bounds direct rtf parser growth 9
+   ✓ bounds direct rst parser growth 10 4ms
+   × bounds direct rst parser growth 11 6ms
+   ↓ cancels in the direct commonmark parser at a cooperative checkpoint
+   ↓ cancels in the direct gfm parser at a cooperative checkpoint
+   ↓ cancels in the direct html parser at a cooperative checkpoint
+   ↓ cancels in the direct json parser at a cooperative checkpoint
+   ↓ cancels in the direct latex parser at a cooperative checkpoint
+   ↓ cancels in the direct rst parser at a cooperative checkpoint
+   ↓ cancels in the direct rtf parser at a cooperative checkpoint
+   ↓ rejects original latex cycles or malformed declarations 0 without publication
+   ↓ rejects original rst cycles or malformed declarations 1 without publication
+   ↓ rejects original latex cycles or malformed declarations 2 without publication
+   ↓ rejects original rtf cycles or malformed declarations 3 without publication
+   ↓ rejects original rtf cycles or malformed declarations 4 without publication
+   ↓ rejects aliased two-file latex include cycles in memfs
+   ↓ rejects aliased two-file rst include cycles in memfs
+   ↓ preserves RTF code-page transitions and rejects incomplete UTF-8 at a transition
+   ↓ admits sparse occupancy and refuses overlarge span multiplication before writing
+   ↓ refuses escaping expansion before publication
+   ↓ rejects malformed UTF-8 at randomized reused-buffer boundaries 1
+   ↓ rejects malformed UTF-8 at randomized reused-buffer boundaries 305419896
+FAIL packages/pandoc/src/adversarial.test.ts > bounds direct rst parser growth 11
+AssertionError: promise resolved "{ …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "blocks": [
++     {
++       "c": [
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++       ],
++       "t": "Para",
++     },
++   ],
++   "metadata": {},
++   "resources": [],
+  }
+
+ ❯ packages/pandoc/src/adversarial.test.ts:53:89
+     51|   const selection = createFormatRegistry().resolve(from, "read");
+     52|   const context = createExecutionContext("read", { limits, yield: imme…
+     53|   await expect(selection.reader!.read({ bytes: encode(text), text }, c…
+       |                                                                                         ^
+     54|     .rejects.toMatchObject({ code: "E_LIMIT", message: expect.stringCo…
+     55|   await context.close();
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/adversarial.test.ts > bounds direct rst parser growth 11
+AssertionError: promise resolved "{ …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "blocks": [
++     {
++       "c": [
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++         {
++           "c": "x",
++           "t": "Str",
++         },
++         {
++           "t": "Space",
++         },
++       ],
++       "t": "Para",
++     },
++   ],
++   "metadata": {},
++   "resources": [],
+  }
+
+ ❯ packages/pandoc/src/adversarial.test.ts:53:89
+     51|   const selection = createFormatRegistry().resolve(from, "read");
+     52|   const context = createExecutionContext("read", { limits, yield: imme…
+     53|   await expect(selection.reader!.read({ bytes: encode(text), text }, c…
+       |                                                                                         ^
+     54|     .rejects.toMatchObject({ code: "E_LIMIT", message: expect.stringCo…
+     55|   await context.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed | 32 skipped (34)
+   Start at  19:14:23
+   Duration  2.68s (transform 1.86s, setup 74ms, import 2.47s, tests 12ms, environment 0ms)
+

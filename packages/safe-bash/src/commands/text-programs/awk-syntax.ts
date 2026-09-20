@@ -174,10 +174,11 @@ export class AwkParser {
           pattern = this.expression();
           if (this.accept(",")) end = this.expression();
         }
-        const action: Statement = this.at("{") ? this.block() : { kind: "print", formatted: false, args: [] };
+        let action: Statement = { kind: "print", formatted: false, args: [] };
+        if (this.at("{")) action = this.block();
+        else if (!this.at("\n") && !this.at(";") && !this.ended()) throw new ProgramError(`expected rule separator at byte ${this.token.offset}`);
         program.rules.push({ ...(pattern ? { pattern } : {}), ...(end ? { end } : {}), action });
       }
-      if (!this.at("\n") && !this.at(";") && !this.ended() && !this.at("{") && !this.at("BEGIN") && !this.at("END") && !this.at("function")) throw new ProgramError(`expected rule separator at byte ${this.token.offset}`);
       this.separators();
     }
     for (const call of this.calls) {

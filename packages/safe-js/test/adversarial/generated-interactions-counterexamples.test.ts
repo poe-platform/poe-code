@@ -1,0 +1,40 @@
+import { describe, expect, it } from "vitest";
+import { run } from "../../src/run.js";
+import { dump } from "../../src/dump.js";
+import { restore } from "../../src/restore.js";
+
+// Capture must wait for transient cleanup and adoption state to become durable.
+describe("pending disposal qualification", () => {
+it.each([
+  "async function f(){await using r={async [Symbol.asyncDispose](){}}}await f();return 1",
+  "async function f(){await using r={[Symbol.asyncDispose](){}}}await f();return 1",
+  "async function f(){await 0}await f();return 1",
+  "await using r={async [Symbol.asyncDispose](){}};return 1"
+])("minimized disposal replay: %s", async source => {
+  const pending = run(source);
+  const completed = pending.catch(error => error);
+  const captured = dump(pending).then(value => ({ value }), error => ({ error }));
+  try {
+    expect(await completed).toMatchObject({ ok: true, returnValue: 1 });
+    const capture = await captured;
+    if ("error" in capture) throw capture.error;
+    const wire = JSON.parse(capture.value);
+    expect(await run(source, { snapshot: restore(wire, { source }) }))
+      .toMatchObject({ ok: true, returnValue: 1 });
+  } finally { await completed; }
+}, 2000);
+it("minimal source-module admission and legacy neighbor", async () => {
+  expect(await run("return 1")).toMatchObject({ ok: true, returnValue: 1 });
+  expect(await run("export {};", { sourceType: "module" }))
+    .toMatchObject({ ok: true, returnValue: {} });
+}, 2000);
+});
+
+it("minimized host cancellation contract", async () => {
+  const controller = new AbortController();
+  const reason = new Error("cancel");
+  const execution = run("import {stop} from 'cap';stop();await 0;return 1", {
+    signal: controller.signal, modules: { cap: { stop: () => { controller.abort(reason); } } }
+  });
+  await expect(execution).rejects.toMatchObject({ name: "Error", message: "cancel" });
+}, 2000);

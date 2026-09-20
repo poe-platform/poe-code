@@ -6,7 +6,8 @@ import { gzipSync } from "node:zlib";
 import ts from "typescript";
 import { createFsFromVolume, Volume } from "memfs";
 import { buildPackage } from "./build.mjs";
-import { buildOptionalPackage } from "../../safe-bash-optional/build.mjs";
+import { buildOptionalPackage } from "./build-optional.mjs";
+import { renderNativeStorageSources } from "./generate-native-storage-sources.mjs";
 import { bindPeerArtifact, resolvePeerProfile, stagePeerArtifact, assertPeerArtifact } from "../tests/plugins/qualified-current-release/peer.mjs";
 
 const root = "/owned/package";
@@ -15,7 +16,7 @@ const globals = "interface Array<T> { length: number; } interface Boolean {} int
 
 function fixture(extra = {}, compilerOptions = {}) {
   const volume = Volume.fromJSON({
-    [root + "/package.json"]: JSON.stringify({ name: "virtual-bash", type: "module" }),
+    [root + "/package.json"]: JSON.stringify({ name: "@poe-platform/safe-bash", type: "module" }),
     [root + "/integration-boundaries.json"]: JSON.stringify({ version: 1, heldSourceFiles: ["src/commands/held/index.ts"], heldEvidenceDirectories: ["src/commands/held/design-evidence"], fixtureDirectories: [] }),
     [root + "/tsconfig.json"]: JSON.stringify({ compilerOptions: { target: "ES2023", module: "NodeNext", moduleResolution: "NodeNext", strict: true, types: ["node"], lib: ["ES2023"], ...compilerOptions } }),
     [root + "/tsconfig.build.json"]: JSON.stringify({ extends: "./tsconfig.json", compilerOptions: { rootDir: "src", outDir: "dist", declaration: true, declarationMap: true, sourceMap: true }, include: ["src/**/*.ts"], exclude: ["src/excluded.ts"] }),
@@ -39,6 +40,84 @@ function fixture(extra = {}, compilerOptions = {}) {
   fileSystem.closeSync = descriptor => { memory.closeSync(descriptor); descriptors.delete(descriptor); };
   return { volume, memory, fileSystem, reads, metadata, listings, descriptors, writes, output: [], run(args = []) { return buildPackage({ root, tools, fileSystem, args, write: text => this.output.push(text) }); } };
 }
+
+for (const defect of ['none', 'stale', 'canonical-change', 'missing-literal', 'missing-canonical']) test(`native storage literals are synchronized before guarded emission: ${defect}`, async () => {
+  const canonical = 'export function collectStorageOrigin(): number { return 1; }\nexport function restoreStorageOrigin(): boolean { return true; }\n';
+  const sources = renderNativeStorageSources(canonical);
+  const extra = {};
+  if (defect !== 'missing-canonical') extra['src/playwright/native-storage-realm.ts'] = defect === 'canonical-change' ? canonical.replace('return 1', 'return 2') : canonical;
+  if (defect !== 'missing-literal') extra['src/playwright/native-storage-sources.generated.ts'] = defect === 'stale' ? sources + '// stale\n' : sources;
+  const owned = fixture(extra);
+  if (defect === 'none') assert.equal((await owned.run()).status, 0, owned.output.join(''));
+  else {
+    await assert.rejects(owned.run(), defect.startsWith('missing') ? /sources are incomplete/ : /literals are stale/);
+    assert.equal(owned.writes.length, 0);
+  }
+  noHeldReads(owned);
+});
+
+for (const defect of ["none", "public", "closure", "source", "link"]) test(`build qualified private command declarations: ${defect}`, async () => {
+  const name = "safe-bash-command-fixture";
+  const implementation = {
+    name, version: "0.0.1", private: defect !== "public", type: "module", dependencies: defect === "closure" ? { forbidden: "1" } : {},
+    exports: { ".": { types: defect === "source" ? "./src/index.d.ts" : "./dist/index.d.ts", import: "./dist/index.js" } },
+  };
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: { [name]: "*" }, poeCode: { integration: { privateWorkspaces: { [name]: { version: "0.0.1", dependencies: {}, devDependencies: {} } } } } }),
+    "src/index.ts": `export { answer } from "${name}";`,
+    [`../${name}/package.json`]: JSON.stringify(implementation),
+    [`../${name}/dist/index.d.ts`]: "export declare const answer: number;",
+    [`../${name}/src/index.d.ts`]: "export declare const answer: number;",
+  });
+  if (defect === "link") {
+    owned.memory.unlinkSync(root + `/../${name}/dist/index.d.ts`);
+    owned.memory.symlinkSync(root + `/../${name}/src/index.d.ts`, root + `/../${name}/dist/index.d.ts`);
+  }
+  if (defect === "none") assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  else await assert.rejects(owned.run());
+  assert.equal(owned.reads.some(path => path.endsWith(`/../${name}/src/index.d.ts`)), false);
+  assert.equal(owned.descriptors.size, 0);
+});
+
+for (const defect of ["none", "pin", "name", "version", "export", "closure", "link", "source-import", "runtime-import", "unapproved-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
+  const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
+  const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports, dependencies: {"@poe-code/office-package": "*", entities: "^6.0.1", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", "@poe-code/pdf": "0.0.1", pptx: "*"}};
+  const pdf = {name: "@poe-code/pdf", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
+  const owned = fixture({
+    "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"@poe-code/pandoc": defect === "pin" ? "unapproved" : "*"}}),
+    "src/index.ts": 'import type { Page } from "@poe-code/pandoc"; export const page: Page = { width: 12 };',
+    "../pandoc/package.json": JSON.stringify(pandoc),
+    "../pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf";',
+    "../pdf/package.json": JSON.stringify(pdf),
+    "../pdf/dist/index.d.ts": 'export type { Page } from "./model.js";',
+    "../pdf/dist/model.d.ts": 'export interface Page { width: number; }',
+    "../pandoc/src/private.d.ts": 'export declare const hidden: number;',
+    "../pandoc/dist/runtime.js": 'export const hidden = 12;',
+    "node_modules/unapproved/index.d.ts": 'export declare const hidden: number;',
+  });
+  if (defect === "name") pandoc.name = "other";
+  if (defect === "version") pdf.version = "0.0.2";
+  if (defect === "export") pandoc.exports = {".": {types: "./src/private.d.ts", import: "./dist/index.js"}};
+  if (defect === "closure") pandoc.dependencies.extra = "1.0.0";
+  if (["name", "version", "export", "closure"].includes(defect)) {
+    owned.memory.writeFileSync(root + "/../pandoc/package.json", JSON.stringify(pandoc));
+    owned.memory.writeFileSync(root + "/../pdf/package.json", JSON.stringify(pdf));
+  }
+  if (defect === "link") {
+    owned.memory.unlinkSync(root + "/../pdf/dist/model.d.ts");
+    owned.memory.symlinkSync(root + "/../pandoc/src/private.d.ts", root + "/../pdf/dist/model.d.ts");
+  }
+  if (["source-import", "runtime-import", "unapproved-import"].includes(defect)) {
+    const target = defect === "source-import" ? "../src/private.js" : defect === "runtime-import" ? "./runtime.js" : "unapproved";
+    owned.memory.writeFileSync(root + "/../pandoc/dist/index.d.ts", `export { hidden } from "${target}";`);
+    assert.notEqual((await owned.run()).status, 0);
+    assert.equal(owned.reads.some(path => path.endsWith("/src/private.d.ts") || path.endsWith("/dist/runtime.js") || path.includes("/unapproved/")), false);
+  } else if (defect === "none") {
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.ok(owned.reads.includes("/owned/pdf/dist/model.d.ts"));
+  } else await assert.rejects(owned.run(), defect === "link" ? /symlink/ : /Pandoc SDK/);
+  assert.equal(owned.descriptors.size, 0);
+});
 
 function noHeldReads(owned) {
   assert.equal(owned.reads.filter(path => path.toLowerCase().includes("/held/")).length, 0);
@@ -65,7 +144,7 @@ function afterInputRead(owned, path, action) {
 for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "name", "dependency", "link", "unapproved-import"]) test(`build pinned portable dependency declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
   const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", [profile]: dependencies }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", [profile]: dependencies }),
     "src/index.ts": 'import { value } from "@noble/hashes/sha2.js"; import { inflate } from "pako"; export const answer = inflate(value);',
     "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0", type: "module", exports: { "./sha2.js": "./sha2.js" } }),
     "node_modules/@noble/hashes/sha2.d.ts": "export declare const value: number;",
@@ -87,7 +166,7 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
     owned.memory.symlinkSync(root + "/node_modules/unapproved/index.d.ts", root + "/node_modules/pako/dist/pako.d.ts");
     await assert.rejects(owned.run(), /symlink/);
   } else if (defect === "dependency") {
-    owned.memory.writeFileSync(root + "/package.json", JSON.stringify({ name: "virtual-bash", type: "module", dependencies: { ...dependencies, unapproved: "1.0.0" } }));
+    owned.memory.writeFileSync(root + "/package.json", JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", dependencies: { ...dependencies, unapproved: "1.0.0" } }));
     await assert.rejects(owned.run(), /portable dependency contract/);
   } else {
     owned.memory.writeFileSync(root + "/node_modules/pako/package.json", JSON.stringify({ name: defect === "name" ? "other" : "pako", version: defect === "version" ? "3.0.0" : "3.0.1", types: "./dist/pako.d.ts" }));
@@ -98,7 +177,7 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
 
 for (const dependency of ["@noble/hashes", "pako", "@poe-code/office-package"]) test(`build refuses changed development declaration pin: ${dependency}`, async () => {
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", devDependencies: {
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: {
       "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*", [dependency]: "unapproved",
     } }),
   });
@@ -120,7 +199,7 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
     },
   };
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", [profile]: { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", [profile]: { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
     "src/index.ts": 'export { archive } from "@poe-code/office-package/zip";',
     "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0" }),
     "node_modules/pako/package.json": JSON.stringify({ name: "pako", version: "3.0.1" }),
@@ -151,9 +230,9 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
   assert.equal(owned.descriptors.size, 0);
 });
 
-for (const defect of ["none", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {
+for (const defect of ["none", "detached", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),
     "src/index.ts": 'import type { FileSystem } from "poe-code/safe-fs/core"; export const filesystem: FileSystem = { portable: true };',
     "../../package.json": JSON.stringify({ name: "poe-code", type: "module", exports: {
       "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" },
@@ -162,7 +241,8 @@ for (const defect of ["none", "declaration", "runtime"]) test(`build portable Sa
     "../../packages/safe-fs/dist/index.d.ts": "export interface FileSystem { portable: boolean; }",
     "../../packages/safe-fs/dist/core.d.ts": "export interface FileSystem { portable: boolean; }",
   });
-  if (defect === "none") {
+  if (defect === "detached") owned.memory.writeFileSync("/package.json", JSON.stringify({ name: "poe-code", type: "module", exports: {} }));
+  if (defect === "none" || defect === "detached") {
     assert.equal((await owned.run()).status, 0, owned.output.join(""));
     assert.ok(owned.reads.includes("/packages/safe-fs/dist/core.d.ts"));
   } else {
@@ -650,7 +730,7 @@ for (const reason of [0, Object.freeze({ cause: "listing denied" })]) test("buil
 
 test("guarded compiler resolves the public peer declaration without admitting peer source or runtime", async () => {
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "13.0.0" } }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "13.0.0" } }),
     "src/index.ts": 'export type { Canonical } from "poe-code/safe-fs";\n',
     "node_modules/poe-code/package.json": JSON.stringify({ name: "poe-code", version: "13.0.0", type: "module", exports: { "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" } } }),
     "node_modules/poe-code/packages/safe-fs/dist/index.d.ts": 'export interface Canonical { identity: "public"; }\n',
@@ -666,7 +746,7 @@ test("guarded compiler resolves the public peer declaration without admitting pe
 
 test("guarded compiler admits only declared private op types, not its source or runtime", async () => {
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
     "../op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
     "../op/dist/index.d.ts": 'export interface Backend { name: string; }',
     "../op/dist/index.js": 'RUNTIME MUST NOT BE READ',
@@ -682,7 +762,7 @@ test("guarded compiler admits only declared private op types, not its source or 
 
 for (const nested of [false, true]) test(`guarded compiler carries private op declaration closure inside portable dist (nested declarations: ${nested})`, async () => {
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
     "../op/package.json": JSON.stringify({ name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts" } } }),
     "../op/dist/index.d.ts": 'export type { Backend } from "./types.js";',
     "../op/dist/types.d.ts": 'export interface Backend { name: string; }',
@@ -724,7 +804,7 @@ for (const defect of ["name", "private", "types"]) test(`guarded compiler reject
   if (defect === "private") op.private = false;
   if (defect === "types") op.exports["."].types = "./src/index.ts";
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true, type: "module", devDependencies: { "@poe-platform/op": "*" } }),
     "../op/package.json": JSON.stringify(op),
     "../op/src/index.ts": "SOURCE MUST NOT BE READ"
   });
@@ -734,7 +814,7 @@ for (const defect of ["name", "private", "types"]) test(`guarded compiler reject
 
 function checkoutPeerFixture(optionalYaml = false) {
   const checkout = "/checkout", packageRoot = checkout + "/packages/safe-bash";
-  const manifest = { name: "virtual-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
+  const manifest = { name: "@poe-platform/safe-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
   if (optionalYaml) {
     manifest.peerDependencies.yaml = "2.9.0";
     manifest.peerDependenciesMeta = { yaml: { optional: true } };
@@ -1334,7 +1414,7 @@ test("real TypeScript reports TS6306 for an owned non-composite referenced proje
 
 function optionalFixture(extra = {}) {
   return fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", files: ["dist", "!dist/optional.js", "!dist/optional.d.ts", "!dist/optional.js.map", "!dist/optional.d.ts.map", "!dist/commands/yes"] }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", files: ["dist", "!dist/optional.js", "!dist/optional.d.ts", "!dist/optional.js.map", "!dist/optional.d.ts.map", "!dist/commands/yes"] }),
     "tsconfig.build.json": JSON.stringify({ extends: "./tsconfig.json", compilerOptions: { rootDir: "src", outDir: "dist", declaration: true, declarationMap: true, sourceMap: true }, include: ["src/**/*.ts"], exclude: ["src/excluded.ts", "src/optional.ts", "src/commands/yes"] }),
     "tsconfig.optional.json": JSON.stringify({ extends: "./tsconfig.build.json", files: ["src/optional.ts"], include: [] }),
     "src/optional.ts": 'export { answer } from "./index.js"; export { yes } from "./commands/yes/index.js";\n',
@@ -1469,11 +1549,12 @@ test("real guarded optional compilation feeds the frozen graph stage entirely in
     owned.memory.writeFileSync(destination, contents);
   }
   const manifest = JSON.parse(owned.memory.readFileSync(core + "/package.json", "utf8"));
+  manifest.version = "1.0.0";
+  manifest.devDependencies = { ...manifest.devDependencies, "@poe-code/safe-fs": "*" };
   manifest.exports = { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } };
   owned.memory.writeFileSync(core + "/package.json", JSON.stringify(manifest));
   for (const [directory, value] of [
     ["safe-fs", { name: "@poe-platform/safe-fs", exports: { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } } }],
-    ["safe-bash-optional", { name: "@poe-platform/safe-bash-optional", type: "module", exports: { ".": { import: "./dist/optional.js", types: "./dist/optional.d.ts" } }, peerDependencies: { "@poe-platform/safe-bash": "1.0.0", "@poe-platform/safe-fs": "1.0.0" } }],
   ]) {
     owned.memory.mkdirSync("/owned/packages/" + directory, { recursive: true });
     owned.memory.writeFileSync("/owned/packages/" + directory + "/package.json", JSON.stringify(value));
@@ -1487,11 +1568,13 @@ test("real guarded optional compilation feeds the frozen graph stage entirely in
   assert.equal(calls, 1);
   assert.equal(compilerResult.status, 0, owned.output.join(""));
   assert.equal(result.status, 0);
-  assert.equal(result.files.length, 6);
+  assert.equal(result.files.length, 8);
+  assert.ok(result.files.includes("entrypoints/yes.js"));
+  assert.ok(result.files.includes("entrypoints/yes.d.ts"));
   assert.deepEqual(result.peerImports, ["@poe-platform/safe-bash"]);
   assert.equal(result.files.includes("index.js"), false);
   assert.equal(result.files.some(filename => filename.endsWith(".map")), false);
-  assert.match(owned.memory.readFileSync("/owned/packages/safe-bash-optional/dist/optional.js", "utf8"), /from "@poe-platform\/safe-bash"/);
+  assert.match(owned.memory.readFileSync("/owned/packages/safe-bash/dist/opt-in/optional.js", "utf8"), /from "@poe-platform\/safe-bash"/);
   assert.equal(owned.descriptors.size, 0);
 });
 
@@ -1606,5 +1689,36 @@ test("optional hashes bind actual BOM and UTF-8 bytes, not decoded character cou
   assert.deepEqual([...emitted.subarray(0, 3)], [239, 187, 191]);
   assert.equal(result.emittedHashes[root + "/dist/commands/yes/helper.js"], createHash("sha256").update(emitted).digest("hex"));
   assert.equal(result.inputHashes[root + "/src/commands/yes/helper.ts"], createHash("sha256").update(owned.memory.readFileSync(root + "/src/commands/yes/helper.ts")).digest("hex"));
+  noHeldReads(owned);
+});
+
+for (const defect of ['none', 'declaration', 'runtime', 'source-import']) test(`build focused Playwright public declaration admission: ${defect}`, async () => {
+  const owned = fixture({
+    'package.json': JSON.stringify({ name: 'virtual-bash', type: 'module', peerDependencies: { 'poe-code': '>=13.0.0' }, devDependencies: { 'poe-code': 'file:../..', '@poe-code/safe-playwright': '*' }, poeCode: { integration: { peerProfile: 'checkout-root' } } }),
+    'src/index.ts': 'export { createPlaywrightController } from "poe-code/safe-playwright"; export type { PlaywrightAdapter } from "poe-code/safe-playwright/adapter";',
+    '../../package.json': JSON.stringify({ name: 'poe-code', type: 'module', exports: {
+      './safe-fs': { types: './packages/safe-fs/dist/index.d.ts', import: './packages/safe-js/dist/safe-fs.js' },
+      './safe-playwright': { types: './packages/safe-playwright/dist/index.d.ts', import: './packages/safe-playwright/dist/index.js' },
+      './safe-playwright/adapter': { types: './packages/safe-playwright/dist/adapter.d.ts', import: './packages/safe-playwright/dist/adapter.js' },
+    } }),
+    '../../packages/safe-fs/dist/index.d.ts': 'export interface FileSystem {}',
+    '../../packages/safe-playwright/dist/index.d.ts': 'export declare function createPlaywrightController(): void;',
+    '../../packages/safe-playwright/dist/adapter.d.ts': 'export interface PlaywrightAdapter {}',
+    '../../packages/safe-playwright/src/private.d.ts': 'export declare function hidden(): void;',
+  });
+  if (defect === 'declaration' || defect === 'runtime') {
+    const peer = JSON.parse(owned.memory.readFileSync('/package.json', 'utf8'));
+    if (defect === 'declaration') peer.exports['./safe-playwright'].types = './packages/safe-playwright/src/private.d.ts';
+    else peer.exports['./safe-playwright'].import = './packages/safe-playwright/src/private.js';
+    owned.memory.writeFileSync('/package.json', JSON.stringify(peer));
+    await assert.rejects(owned.run(), /canonical public Playwright/);
+  } else if (defect === 'source-import') {
+    owned.memory.writeFileSync('/packages/safe-playwright/dist/index.d.ts', 'export { hidden as createPlaywrightController } from "../src/private.js";');
+    assert.notEqual((await owned.run()).status, 0);
+    assert.equal(owned.reads.includes('/packages/safe-playwright/src/private.d.ts'), false);
+  } else {
+    assert.equal((await owned.run()).status, 0, owned.output.join(''));
+    assert.equal(owned.reads.includes('/packages/safe-playwright/dist/adapter.d.ts'), true);
+  }
   noHeldReads(owned);
 });

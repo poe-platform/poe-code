@@ -1,6 +1,6 @@
 import { FsError, basename, dirname, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type FileSystemCapabilities, type VirtualShellPlugin } from "../../contracts/index.js";
 import { commandRuntimeIdentity } from "../../contracts/command.js";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, openFileOutput, writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codeOf, output, pathOf } from "../internal.js";
@@ -262,7 +262,10 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
   const sourceBytes = (async function* () {
     if (closed) throw new FsError("EBADF");
     let chunks: ByteSource;
-    if (context.fs.open && context.fs.capabilities.open !== false) {
+    const capabilities = await context.fs.capabilitiesFor?.(source, fsOptions) ?? context.fs.capabilities;
+    context.signal.throwIfAborted();
+    if (closed) throw new FsError("EBADF");
+    if (context.fs.open && capabilities.open !== false) {
       opening = context.fs.open(source, { ...fsOptions, access: "read", creation: "never" });
       const descriptor = await opening;
       context.signal.throwIfAborted();
@@ -285,7 +288,7 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
           yield buffer.subarray(0, count);
         }
       })();
-    } else chunks = context.fs.readStream && context.fs.capabilities.streamingRead !== false ? context.fs.readStream(source, fsOptions)
+    } else chunks = context.fs.readStream && capabilities.streamingRead !== false ? context.fs.readStream(source, fsOptions)
       : (async function* () { yield await context.fs.readFile(source, { ...fsOptions, maxBytes: maxFileBytes }); })();
     iterator = chunks[Symbol.asyncIterator]();
     let size = 0, untilYield = 65536;

@@ -1,5 +1,9 @@
 # Optional file descriptors
 
+Immutable backends can opt into the explicit non-POSIX
+[object-publication descriptor profile](./object-publication.md). Its retained
+versions and conditional flush semantics differ from mutable inode descriptors.
+
 `FileSystem.open?(path, options)` returns a canonical `FileDescriptor` bound to
 the opened object, not a pathname that is reopened for each operation. Its types
 are defined in `contracts/descriptor.ts` and re-exported by this filesystem
@@ -268,10 +272,12 @@ and truncation fail EBADF. Readonly descriptor synchronization is deliberately
 unavailable (`synchronization: "none"`); it cannot flush a mutable backing store.
 Synthetic mount directories do not advertise descriptor support.
 
-Quota proxies intercept `open` before generic method forwarding and advertise
-`open: false`, globally and per path. Every open is refused with ENOTSUP because
-the pathname-based quota layer cannot account retained, unlinked descriptor
-identity. Overlay, S3 and WebDAV also explicitly advertise false and refuse open
+Quota proxies intercept `open` before generic method forwarding. Retained reads
+preserve backend authority; writable regular-file handles require complete
+identity and apply the [logical namespace quota](filesystem-quota.md) before
+each growth or resize. This does not impose a physical retained-storage limit.
+Missing or explicitly unsupported backing `open` still refuses with ENOTSUP.
+Overlay, S3 and WebDAV explicitly advertise false and refuse open
 without acquiring lower/upper handles, copying up, contacting remote storage,
 or imitating a descriptor through read-modify-replace. These are deliberate
 phase-1 refusals, not claims of descriptor parity for those providers.
@@ -500,6 +506,12 @@ establish support. `readOnly: true` takes precedence over all mutation flags.
 Adapters may expose both implicit prefixes and explicit directory markers. Flags
 do not promise transactions, arbitrary file sizes, preserved inode identity,
 successful cross-device operations, or deployed server feature availability.
+
+For creation capability queries, the default device view lets a selected backend
+with `implicitDirectories: true` decide whether missing parents are permitted.
+It preserves device-path protection and forwards the original path and creation
+intent without creating directories. The backend still enforces ancestor types,
+permissions and exclusive creation; implicit prefixes alone do not authorize a write.
 
 `independentWriteStreams: true` explicitly admits multiple simultaneous sequential
 writers to the same path without one writer replacing, truncating or invalidating
@@ -1216,6 +1228,48 @@ require `atomicDirectoryMetadata`. Listing an archive does not require mutation 
 corresponding mutation; they must not fall back to check-then-rename or
 check-then-delete operations.
 
+
+## Atomic conditional entry removal
+
+`atomicEntryRemoval: true` requires `removeEntryConditional(path, options)`.
+It atomically checks the parent directory's scoped identity and the final entry's
+scoped identity, type and revision before removal. It supports regular files,
+symlinks and empty directories and never follows the final symlink or recursively
+removes children. Nonempty directories reject `ENOTEMPTY`. Replaced entries or
+parents and stale revisions reject `EAGAIN`; missing identity/revision guarantees
+reject `ENOTSUP`. Current permissions and provider mutation restrictions apply.
+Pre-commit cancellation prevents removal. Root and terminal-dot entries cannot be
+removed. The operation is independent of `atomicFileMutation`, whose existing
+regular-file-only interface is unchanged. Memory implements the operation; scoped,
+mount and device views enforce the advertised capability and mutation boundaries.
+Read-only and quota views neither expose nor advertise the operation. Retained
+cleanup does not gain this general source-removal operation.
+
+## Atomic conditional tree removal
+
+`atomicTreeRemoval: true` requires `removeTreeConditional(path, { parent,
+expected, signal })`. The supplied observations identify the parent directory
+and the directory being removed by their scoped identities. A replacement of
+either object must reject with `EAGAIN`; unknown identity must reject with
+`ENOTSUP`. Directory revision equality is not required: this removes the current
+contents of the same directory, not an earlier listing snapshot.
+
+The implementation must protect identity checks, permission preflight and the
+entire subtree removal from concurrent namespace substitution. It never follows
+contained symlinks or deletes their targets. Permission or pre-commit cancellation
+failure leaves the tree unchanged. Root, terminal-dot and protected mount entries
+are refused. Open files retain their identities and storage until their handles
+close. Neither ordinary recursive `rm` nor a caller-side check followed by `rm`
+establishes this capability.
+
+Memory implements this as one synchronous, identity-checked namespace operation.
+Mount and device wrappers enforce their protected boundaries; scoped wrappers
+charge operation admission. Quota wrappers can delegate this deletion-only
+operation without granting unchecked writes; readonly views do not advertise it.
+S3, WebDAV and rooted-real adapters do not currently implement this stronger
+operation. An asynchronous host may expose it only when its authoritative
+backend supplies the specified guarantees, not by asserting a capability flag.
+
 # Optional atomic unlink
 
 `FileSystem.unlink?(path, options)` removes one final nondirectory entry, including
@@ -1231,7 +1285,8 @@ Memory uses its synchronous nonrecursive removal, which already rejects all
 directories. Rooted real uses native unlink after its existing rooted admission;
 this retains the documented stable-root/path-race limitations. Mount forwarding
 selects the final entry without following its symlink and requires backend unlink.
-Read-only refuses mutation; quota currently withholds unlink rather than acquiring
-an unqualified removal path. Overlay and remote adapters have no new unlink
+Read-only refuses mutation; quota delegates only the backing strong unlink,
+preserving its cancellation, readonly policy and retained-object behavior.
+It does not synthesize unlink from rm. Overlay and remote adapters have no new unlink
 support. The Python filesystem service requires this operation for guest unlink;
 it never falls back to lstat followed by rm.

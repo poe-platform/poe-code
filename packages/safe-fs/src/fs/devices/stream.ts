@@ -63,25 +63,32 @@ function nextChunk(iterator: AsyncIterator<Uint8Array>, signal?: AbortSignal): P
   });
 }
 
+export function createDeviceYield(): (length: number, signal?: AbortSignal) => Promise<void> {
+  let bytes = 0;
+  let pulls = 0;
+  return async (length, signal) => {
+    bytes += length;
+    if (++pulls >= 64 || bytes >= 65536) {
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+      signal?.throwIfAborted();
+      bytes = 0;
+      pulls = 0;
+    }
+  };
+}
+
 export async function drainDeviceInput(source: ByteSource, signal?: AbortSignal): Promise<void> {
   signal?.throwIfAborted();
   const iterator = source[Symbol.asyncIterator]();
   let failed = false;
-  let bytes = 0;
-  let pulls = 0;
+  const yieldAfterWrite = createDeviceYield();
   try {
     for (;;) {
       const result = await nextChunk(iterator, signal);
       signal?.throwIfAborted();
       if (result.done) break;
       if (!(result.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
-      bytes += result.value.byteLength;
-      if (++pulls >= 64 || bytes >= 65536) {
-        await new Promise<void>(resolve => setTimeout(resolve, 0));
-        signal?.throwIfAborted();
-        bytes = 0;
-        pulls = 0;
-      }
+      await yieldAfterWrite(result.value.byteLength, signal);
     }
   } catch (error) {
     failed = true;

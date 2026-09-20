@@ -1,7 +1,8 @@
 # pptx
 
 Private ESM workspace for bounded PowerPoint package inspection, editing and
-publication. It has no standalone binary and does not render presentations.
+publication. It is not included in the published `poe-code` package. It has no
+standalone binary and does not render presentations.
 
 [Usage](../../docs/pptx/usage.md) covers creation, inspection, text, images,
 tables, SDK examples and explicit safe-bash registration. Generated `help`,

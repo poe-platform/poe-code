@@ -1,0 +1,153 @@
+[
+  {
+    "to": "html5",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "pdf",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF image requires a supplied resolved resource"
+  },
+  {
+    "to": "epub",
+    "status": "rejected",
+    "code": "E_RESOURCE",
+    "message": "Image must name an explicit declared resource"
+  },
+  {
+    "to": "rtf",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Unsupported RTF identifiers or classes"
+  },
+  {
+    "to": "latex",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "rst",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Incomplete or spanning table row"
+  },
+  {
+    "to": "pptx",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "Internal document links require slide target resolution"
+  },
+  {
+    "to": "pdf-supported-font",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF image requires a supplied resolved resource"
+  }
+]
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/poe-code-5/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/packages/pandoc/dist/public/chunks/chunk-NFVKLCUF.js
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:182:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/poe-code-5/node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js'
+}
+
+Node.js v22.22.2
+[
+  {
+    "to": "pdf",
+    "profile": "declared-resources",
+    "status": "rejected",
+    "code": "E_CAPABILITY",
+    "message": "PDF images require numeric width and height in points"
+  },
+  {
+    "to": "epub",
+    "profile": "declared-resources",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "rst",
+    "profile": "declared-resources",
+    "status": "rejected",
+    "code": "E_UNSUPPORTED_FEATURE",
+    "message": "Incomplete or spanning table row"
+  },
+  {
+    "to": "pptx",
+    "profile": "declared-resources",
+    "status": "rejected",
+    "code": "E_UNSUPPORTED_FEATURE",
+    "message": "Unsupported PPTX block: CodeBlock"
+  },
+  {
+    "to": "rtf",
+    "profile": "simple-no-identifiers-or-media",
+    "status": "converted",
+    "diagnostics": []
+  },
+  {
+    "to": "rst",
+    "profile": "simple-no-identifiers-or-media",
+    "status": "converted",
+    "diagnostics": []
+  }
+]
+[
+  {
+    to: 'pdf',
+    name: 'generated.pdf',
+    status: 'rejected',
+    code: 'E_CAPABILITY',
+    message: 'PDF profile requires unspanned left-aligned cells'
+  },
+  {
+    to: 'pdf',
+    name: 'generated-supported.pdf',
+    status: 'rejected',
+    code: 'E_CAPABILITY',
+    message: 'PDF profile requires unspanned left-aligned cells'
+  },
+  {
+    to: 'pptx',
+    name: 'generated.pptx',
+    status: 'rejected',
+    code: 'E_CAPABILITY',
+    message: 'PPTX tables require rectangular unmerged rows'
+  }
+]
+[
+  {
+    name: 'generated.pdf',
+    profile: 'unmerged',
+    status: 'rejected',
+    code: 'E_CAPABILITY',
+    message: 'Unsupported script or combining sequence'
+  },
+  {
+    name: 'generated-supported.pdf',
+    profile: 'unmerged',
+    status: 'rejected',
+    code: 'E_CAPABILITY',
+    message: 'Invalid link'
+  },
+  {
+    name: 'generated.pptx',
+    profile: 'unmerged',
+    status: 'converted',
+    diagnostics: [ [Object] ]
+  }
+]
+pdf final profile []

@@ -1,8 +1,12 @@
 import {
   runRalph as runWorkspaceRalph,
+  runRalphSequence as runWorkspaceSequence,
   type RalphRunOptions as WorkspaceRalphRunOptions,
-  type RalphRunResult
+  type RalphRunResult,
+  type RalphSequenceOptions as WorkspaceRalphSequenceOptions,
+  type RalphSequenceResult
 } from "@poe-code/ralph";
+import { mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
 import { spawn as sdkSpawn } from "./spawn.js";
 import { runWithOptionalWorktree } from "./worktree.js";
 import type { WorktreeExecutionOptions } from "./types.js";
@@ -11,12 +15,43 @@ export type {
   AgentRunInput,
   AgentRunResult,
   RalphRunResult,
+  RalphSequenceResult,
   RalphStopReason
 } from "@poe-code/ralph";
 
 export type RalphRunOptions = WorkspaceRalphRunOptions & {
   worktree?: WorktreeExecutionOptions;
 };
+
+export type RalphSequenceOptions = WorkspaceRalphSequenceOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
+
+export async function runRalphSequence(options: RalphSequenceOptions): Promise<RalphSequenceResult> {
+  const { worktree, ...sequenceOptions } = options;
+  const execute = async (cwd: string): Promise<RalphSequenceResult> => {
+    const runPlan = options.runPlan ?? runRalphDirect;
+    return runWorkspaceSequence({
+      ...sequenceOptions,
+      cwd,
+      runAgent: options.runAgent ?? createDefaultRalphRunAgent(sequenceOptions),
+      runPlan: (planOptions) => runPlan({
+        ...planOptions,
+        docPath: mapSourcePathIntoWorktree(options.cwd, planOptions.docPath, cwd)
+      })
+    });
+  };
+  if (!isWorktreeEnabled(worktree)) return execute(options.cwd);
+  const wrapped = await runWithOptionalWorktree({
+    cwd: options.cwd,
+    selectedAgent: resolveWorktreeAgent(options.agent),
+    worktree,
+    signal: options.signal,
+    isSuccessful: (result: RalphSequenceResult) => result.status === "completed",
+    run: ({ worktreeCwd }) => execute(worktreeCwd)
+  });
+  return wrapped.value;
+}
 
 export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult> {
   if (isWorktreeEnabled(options.worktree)) {
@@ -57,7 +92,7 @@ async function runRalphDirect(options: RalphRunOptions): Promise<RalphRunResult>
 }
 
 function createDefaultRalphRunAgent(
-  options: RalphRunOptions
+  options: Pick<RalphRunOptions, "runtime" | "runtimeImage" | "runtimeConfigCwd" | "detach" | "mountPoeCode" | "runnerSync">
 ): NonNullable<WorkspaceRalphRunOptions["runAgent"]> {
   return async (input) =>
     await sdkSpawn.autonomous(input.agent, {

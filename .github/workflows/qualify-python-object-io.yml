@@ -1,0 +1,82 @@
+name: Qualify hosted Python object I/O
+on:
+  workflow_call:
+    inputs:
+      source_revision:
+        description: Exact poe-code main revision containing the qualification tooling
+        required: true
+        type: string
+    secrets:
+      CLOUDFLARE_ACCOUNT_ID:
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        required: true
+permissions:
+  contents: read
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    defaults:
+      run:
+        working-directory: poe-code
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: poe-platform/poe-code
+          ref: ${{ inputs.source_revision }}
+          path: poe-code
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Verify exact source identity
+        env:
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+        run: |
+          test "${#SOURCE_REVISION}" -eq 40
+          case "$SOURCE_REVISION" in *[!0-9a-f]*) exit 1 ;; esac
+          test "$(git rev-parse HEAD)" = "$SOURCE_REVISION"
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+      - name: Verify absent-resource API access without writes or benchmark replay
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node packages/safe-fs/tests/integration/object-io-cloudflare-api.mjs
+      - run: npm clean-install
+      - name: Install isolated pinned native and public runtime tooling
+        run: |
+          mkdir -p out/issue-781/tooling out/issue-781/public-consumer out/issue-781/runtime
+          printf '{"private":true,"type":"module"}\n' > out/issue-781/tooling/package.json
+          printf '{"private":true,"type":"module"}\n' > out/issue-781/public-consumer/package.json
+          npm install --prefix out/issue-781/tooling --no-save --package-lock=false miniflare@5.20260917.0-alpha workerd@1.20260917.1 pyodide@314.0.6
+          npm install --prefix out/issue-781/public-consumer --no-save --package-lock=false --ignore-scripts @poe-platform/safe-bash@0.1.695 @poe-platform/safe-fs@0.1.695 @poe-platform/safe-js@0.1.695
+      - name: Validate hosted lifecycle and response gates
+        run: |
+          node --test packages/safe-fs/tests/integration/object-io-hosted.test.mjs packages/safe-fs/tests/integration/object-io-hosted-protocol.test.mjs packages/safe-fs/tests/integration/object-io-cloudflare-api.test.mjs packages/safe-fs/tests/integration/object-io-hosted-matrix.test.mjs packages/safe-fs/tests/integration/object-io-hosted-cli.test.mjs
+      - name: Qualify actual Python locally and export authenticated modules
+        env:
+          TMPDIR: ${{ github.workspace }}/poe-code/out/issue-781/runtime
+          SAFE_BASH_CF_RUNTIME_ROOT: ${{ github.workspace }}/poe-code/out/issue-781/tooling
+          SAFE_BASH_PYTHON_RUNTIME_ROOT: ${{ github.workspace }}/poe-code/out/issue-781/tooling/node_modules/pyodide
+          SAFE_BASH_PYTHON_CONSUMER_ROOT: ${{ github.workspace }}/poe-code/out/issue-781/public-consumer
+          SAFE_FS_EXPORT_WORKER_DIR: ${{ github.workspace }}/poe-code/out/issue-781/exported
+        run: node --experimental-strip-types --test packages/safe-bash/tests/integration/python-object-io-781.test.mjs
+      - name: Qualify fresh hosted Worker and scratch bucket then remove owned resources
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+        run: |
+          node packages/safe-fs/tests/integration/object-io-hosted-cli.mjs --artifacts out/issue-781/exported --receipt out/issue-781/hosted-receipt.json --source-revision "$SOURCE_REVISION" --run-id "$GITHUB_RUN_ID"
+      - name: Retain credential-free qualification receipts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: python-object-io-${{ inputs.source_revision }}-${{ github.run_id }}
+          path: |
+            poe-code/out/issue-781/hosted-receipt.json
+            poe-code/out/issue-781/runtime/results.json
+            poe-code/out/issue-781/exported/qualification.json
+          if-no-files-found: warn
+          retention-days: 7

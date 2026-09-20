@@ -1,4 +1,11 @@
 import { Shell, CommandRegistry, agentCommands } from "@poe-platform/safe-bash";
+import { parsePlaywrightOperationOutcome, validatePlaywrightSessionName, type PlaywrightOperationOutcome } from "@poe-platform/safe-bash/playwright";
+
+declare const storedSessionName: unknown;
+validatePlaywrightSessionName(storedSessionName);
+const validatedSessionName: string = storedSessionName;
+const receipt: PlaywrightOperationOutcome = parsePlaywrightOperationOutcome({ operationId: validatedSessionName, status: "unknown" });
+void receipt;
 import type { CommandDefinition, VirtualShellPlugin, ShellOptions } from "@poe-platform/safe-bash";
 import { createMemoryFileSystem, createMountFileSystem } from "@poe-platform/safe-fs";
 import type { FileDescriptor, FileSystem, FsOptions, OpenFileOptions } from "@poe-platform/safe-fs";
@@ -13,7 +20,7 @@ import {
   createInstallCommand, createInstallCommands, installCommands,
   createYqCommand, createYqCommands, yqCommands,
   createDeviceFileSystem, arraysExtension, jobsExtension, mapfileExtension, readExtension, trapExtension,
-} from "@poe-platform/safe-bash-optional";
+} from "./safe-packages-opt-in.mjs";
 import type {
   YesCommandOptions, YesCommandsOptions, CmpCommandsOptions, CmpLimits,
   DdCommandsOptions, DdFileHandle, DdFileOpener, DdFileRequest,
@@ -23,7 +30,7 @@ import type {
   TrapExtensionOptions, TrapSignalHost, ShellExtension,
   ShellBindingReference, ShellBindingResult, ShellExtensionContext, ShellExecutionCheckpoint,
   PreparedShellChild, ShellChildPreparation, ShellListTerminatorContext,
-} from "@poe-platform/safe-bash-optional";
+} from "./safe-packages-opt-in.mjs";
 import type {
   ShellExtension as HostExtension, ShellExtensionContext as HostContext,
   ShellBindingReference as HostReference, ShellIndexedWriter, ShellInputBorrow, ShellInputObserver,

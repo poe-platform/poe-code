@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
@@ -124,7 +124,7 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
-      atomicFileStaging: true, atomicFileMutation: true,
+      atomicFileStaging: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
       retainedRead: true,
@@ -667,6 +667,26 @@ export class MemoryFileSystem implements FileSystem {
     return Object.freeze(this.snapshot(location.parent.entries.get(location.name)!));
   }
 
+  async removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "removeEntryConditional", true);
+    this.expectEntry(location.parent, options.parent, path, false);
+    this.expectEntry(location.node, options.expected, path);
+    const node = location.node!;
+    if (this.terminalDot(path)) this.fail("EINVAL", "removeEntryConditional", path);
+    if (node === this.root) this.fail("EBUSY", "removeEntryConditional", path);
+    if (node.type !== "file" && node.type !== "symlink" && node.type !== "directory") this.fail("EINVAL", "removeEntryConditional", path);
+    this.permission(location.parent, 3, "removeEntryConditional", path);
+    if (node.type === "directory" && node.entries.size > 0) this.fail("ENOTEMPTY", "removeEntryConditional", path);
+    location.parent.entries.delete(location.name);
+    this.ledger.release(location.name.length * 2, 1);
+    node.nlink--;
+    node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
+    this.releaseNode(node);
+    this.changed(location.parent);
+  }
+
   async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
     options.signal?.throwIfAborted();
     const location = this.entry(path, "removeFileConditional", true);
@@ -682,6 +702,15 @@ export class MemoryFileSystem implements FileSystem {
     node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     this.releaseNode(node);
     this.changed(location.parent);
+  }
+
+  async removeTreeConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "removeTreeConditional", true);
+    this.expectEntry(location.parent, options.parent, path, false);
+    this.expectEntry(location.node, options.expected, path, false);
+    if (location.node?.type !== "directory") this.fail("ENOTDIR", "removeTreeConditional", path);
+    this.removeLocation(location, path, "removeTreeConditional", true);
   }
 
   async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
@@ -759,16 +788,20 @@ export class MemoryFileSystem implements FileSystem {
       if (options.force && error instanceof FsError && error.code === "ENOENT") return;
       throw error;
     }
+    this.removeLocation(location, path, "rm", options.recursive === true);
+  }
+
+  private removeLocation(location: Location, path: string, syscall: string, recursive: boolean): void {
     const node = location.node!;
-    if (this.terminalDot(path)) this.fail("EINVAL", "rm", path);
-    if (node === this.root) this.fail("EBUSY", "rm", path);
-    this.permission(location.parent, 3, "rm", path);
-    if (node.type === "directory" && !options.recursive) this.fail("EISDIR", "rm", path);
+    if (this.terminalDot(path)) this.fail("EINVAL", syscall, path);
+    if (node === this.root) this.fail("EBUSY", syscall, path);
+    this.permission(location.parent, 3, syscall, path);
+    if (node.type === "directory" && !recursive) this.fail("EISDIR", syscall, path);
     const removed: MemoryNode[] = [node];
     for (let index = 0; index < removed.length; index++) {
       const entry = removed[index]!;
       if (entry.type === "directory" && entry.entries.size > 0) {
-        this.permission(entry, 7, "rm", path);
+        this.permission(entry, 7, syscall, path);
         for (const child of entry.entries.values()) removed.push(child);
       }
     }

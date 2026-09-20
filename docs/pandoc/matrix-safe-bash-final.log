@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: pandoc refuses unknown existing output identity before reading or writing
+ok 1 - pandoc refuses unknown existing output identity before reading or writing
+  ---
+  duration_ms: 21.646125
+  type: 'test'
+  ...
+# Subtest: pandoc refuses -o on providers lacking atomic publication without acquiring input
+ok 2 - pandoc refuses -o on providers lacking atomic publication without acquiring input
+  ---
+  duration_ms: 3.917834
+  type: 'test'
+  ...
+# Subtest: pandoc rejects command output aliasing redirected stdin
+ok 3 - pandoc rejects command output aliasing redirected stdin
+  ---
+  duration_ms: 11.81875
+  type: 'test'
+  ...
+# Subtest: pandoc distinguishes filename stdin from stdin provenance
+ok 4 - pandoc distinguishes filename stdin from stdin provenance
+  ---
+  duration_ms: 12.1615
+  type: 'test'
+  ...
+# Subtest: pandoc preserves shell redirection truncation separately from -o validation
+ok 5 - pandoc preserves shell redirection truncation separately from -o validation
+  ---
+  duration_ms: 6.82625
+  type: 'test'
+  ...
+# Subtest: pandoc reports filesystem errors without changing destination
+ok 6 - pandoc reports filesystem errors without changing destination
+  ---
+  duration_ms: 27.278667
+  type: 'test'
+  ...
+# Subtest: pandoc rejects malformed retained byte argv instead of decoding replacement paths
+ok 7 - pandoc rejects malformed retained byte argv instead of decoding replacement paths
+  ---
+  duration_ms: 7.110291
+  type: 'test'
+  ...
+# Subtest: pandoc abort drains admitted deferred readFile before shell settlement
+ok 8 - pandoc abort drains admitted deferred readFile before shell settlement
+  ---
+  duration_ms: 3.430833
+  type: 'test'
+  ...
+# Subtest: pandoc abort drains admitted deferred writeFileConditional before shell settlement
+ok 9 - pandoc abort drains admitted deferred writeFileConditional before shell settlement
+  ---
+  duration_ms: 3.570708
+  type: 'test'
+  ...
+# Subtest: pandoc obeys aggregate shell input budget and early downstream closure
+ok 10 - pandoc obeys aggregate shell input budget and early downstream closure
+  ---
+  duration_ms: 10.391
+  type: 'test'
+  ...
+# Subtest: pandoc information and usage paths never acquire files or publish output
+ok 11 - pandoc information and usage paths never acquire files or publish output
+  ---
+  duration_ms: 6.018167
+  type: 'test'
+  ...
+# Subtest: pandoc warning failure preserves destination while accepted warnings stay on stderr
+ok 12 - pandoc warning failure preserves destination while accepted warnings stay on stderr
+  ---
+  duration_ms: 13.236667
+  type: 'test'
+  ...
+# Subtest: pandoc denied media and invalid font or style requests never publish output
+ok 13 - pandoc denied media and invalid font or style requests never publish output
+  ---
+  duration_ms: 10.863083
+  type: 'test'
+  ...
+# Subtest: pandoc opt-in registration preflights collisions and supports replacement
+ok 14 - pandoc opt-in registration preflights collisions and supports replacement
+  ---
+  duration_ms: 22.770042
+  type: 'test'
+  ...
+# Subtest: pandoc uses literal quoted operands, ordered stdin, -- names, pipes and redirection
+ok 15 - pandoc uses literal quoted operands, ordered stdin, -- names, pipes and redirection
+  ---
+  duration_ms: 49.998584
+  type: 'test'
+  ...
+# Subtest: pandoc help/version/invalid arguments never acquire input or publish -o
+ok 16 - pandoc help/version/invalid arguments never acquire input or publish -o
+  ---
+  duration_ms: 10.648083
+  type: 'test'
+  ...
+# Subtest: pandoc refuses lexical, hardlink and symlink output aliases
+ok 17 - pandoc refuses lexical, hardlink and symlink output aliases
+  ---
+  duration_ms: 5.109583
+  type: 'test'
+  ...
+# Subtest: pandoc refuses redirected output aliases after shell redirection has occurred
+ok 18 - pandoc refuses redirected output aliases after shell redirection has occurred
+  ---
+  duration_ms: 2.38775
+  type: 'test'
+  ...
+# Subtest: pandoc binary EPUB/PDF stdout equals command -o bytes
+ok 19 - pandoc binary EPUB/PDF stdout equals command -o bytes
+  ---
+  duration_ms: 149.354417
+  type: 'test'
+  ...
+# Subtest: pandoc retains RTF bytes for its codepage decoder
+ok 20 - pandoc retains RTF bytes for its codepage decoder
+  ---
+  duration_ms: 3.439208
+  type: 'test'
+  ...
+# Subtest: pandoc media search and extraction use the same memfs VFS
+ok 21 - pandoc media search and extraction use the same memfs VFS
+  ---
+  duration_ms: 8.094208
+  type: 'test'
+  ...
+# Subtest: pandoc resource reads cannot bypass the shared input byte budget
+ok 22 - pandoc resource reads cannot bypass the shared input byte budget
+  ---
+  duration_ms: 5.759541
+  type: 'test'
+  ...
+# Subtest: pandoc preserves broken-pipe status when its stdout consumer closes
+ok 23 - pandoc preserves broken-pipe status when its stdout consumer closes
+  ---
+  duration_ms: 2.85475
+  type: 'test'
+  ...
+# Subtest: pandoc preserves consumer closure while the SDK acquires input
+ok 24 - pandoc preserves consumer closure while the SDK acquires input
+  ---
+  duration_ms: 1.811334
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1377.120541

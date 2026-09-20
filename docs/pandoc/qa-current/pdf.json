@@ -1,0 +1,85 @@
+{
+  "renderer": "PyMuPDF 1.26.4: Python bindings for the MuPDF 1.26.7 library (rebased implementation).\nPython 3.9 running on darwin (64-bit).\n",
+  "source": "fresh generated.pdf",
+  "sha256": "276b4e7e92f3a49139588b0f783f80af2bdf4e720d04d5f9ab2e9a84b9069cf5",
+  "pages": [
+    {
+      "page": 1,
+      "bounds": [
+        0.0,
+        0.0,
+        595.280029296875,
+        841.8900146484375
+      ],
+      "links": [
+        {
+          "kind": 2,
+          "xref": 7,
+          "from": "Rect(48.0, 108.8800048828125, 148.8000030517578, 124.72003173828125)",
+          "uri": "https://example.invalid/second",
+          "id": ""
+        },
+        {
+          "kind": 2,
+          "xref": 8,
+          "from": "Rect(184.8000030517578, 108.8800048828125, 292.79998779296875, 124.72003173828125)",
+          "uri": "https://example.invalid/qa",
+          "id": ""
+        }
+      ],
+      "text": "Original QA document\ncaf\u00e9 \u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac \u041f\u0440\u0438\u0432\u0435\u0442 \u00e9.\nSecond chapter and external target.\nconst answer = 42;\nconsole.log(answer);\n- First\n- Nested\n- Second\nColumn one\nColumn two\nRow 1\nContinuation text 1: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 2\nContinuation text 2: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 3\nContinuation text 3: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 4\nContinuation text 4: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 5\nContinuation text 5: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 6\nContinuation text 6: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 7\nContinuation text 7: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 8\nContinuation text 8: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 9\nContinuation text 9: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 10\nContinuation text 10: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 11\nContinuation text 11: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 12\nContinuation text 12: caf\u00e9, \n"
+    },
+    {
+      "page": 2,
+      "bounds": [
+        0.0,
+        0.0,
+        595.280029296875,
+        841.8900146484375
+      ],
+      "links": [],
+      "text": "Column one\nColumn two\n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 13\nContinuation text 13: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 14\nContinuation text 14: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 15\nContinuation text 15: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 16\nContinuation text 16: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 17\nContinuation text 17: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 18\nContinuation text 18: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 19\nContinuation text 19: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 20\nContinuation text 20: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 21\nContinuation text 21: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 22\nContinuation text 22: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 23\nContinuation text 23: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 24\nContinuation text 24: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 25\nContinuation text 25: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 26\nContinuation text 26: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 27\nContinuation text 27: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 28\nContinuation text 28: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 29\nContinuation text 29: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\n"
+    },
+    {
+      "page": 3,
+      "bounds": [
+        0.0,
+        0.0,
+        595.280029296875,
+        841.8900146484375
+      ],
+      "links": [],
+      "text": "Column one\nColumn two\nRow 30\nContinuation text 30: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 31\nContinuation text 31: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 32\nContinuation text 32: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 33\nContinuation text 33: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 34\nContinuation text 34: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 35\nContinuation text 35: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 36\nContinuation text 36: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 37\nContinuation text 37: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 38\nContinuation text 38: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 39\nContinuation text 39: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 40\nContinuation text 40: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 41\nContinuation text 41: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 42\nContinuation text 42: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 43\nContinuation text 43: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 44\nContinuation text 44: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 45\nContinuation text 45: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 46\nContinuation text 46: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 47\nContinuation text 47: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\n"
+    },
+    {
+      "page": 4,
+      "bounds": [
+        0.0,
+        0.0,
+        595.280029296875,
+        841.8900146484375
+      ],
+      "links": [],
+      "text": "Column one\nColumn two\nRow 48\nContinuation text 48: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 49\nContinuation text 49: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 50\nContinuation text 50: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 51\nContinuation text 51: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 52\nContinuation text 52: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 53\nContinuation text 53: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 54\nContinuation text 54: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 55\nContinuation text 55: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 56\nContinuation text 56: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 57\nContinuation text 57: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 58\nContinuation text 58: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 59\nContinuation text 59: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 60\nContinuation text 60: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 61\nContinuation text 61: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 62\nContinuation text 62: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 63\nContinuation text 63: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 64\nContinuation text 64: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\nRow 65\nContinuation text 65: caf\u00e9, \n\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac, \u041f\u0440\u0438\u0432\u0435\u0442\n"
+    },
+    {
+      "page": 5,
+      "bounds": [
+        0.0,
+        0.0,
+        595.280029296875,
+        841.8900146484375
+      ],
+      "links": [
+        {
+          "kind": 2,
+          "xref": 18,
+          "from": "Rect(48.0, 85.0400390625, 156.0, 100.8800048828125)",
+          "uri": "https://example.invalid/start",
+          "id": ""
+        }
+      ],
+      "text": "Second chapter\nReturn to start\n"
+    }
+  ]
+}

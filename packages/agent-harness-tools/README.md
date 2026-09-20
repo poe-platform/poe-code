@@ -2,14 +2,15 @@
 
 Reusable runtime components for autonomous single-document workflows.
 
-This package holds the shared runtime pieces used by `pipeline`, `experiment`,
-`ralph`, and `superintendent`: document discovery, plan archiving, agent
+This package holds the shared runtime pieces used by `pipeline`, `gaslight`,
+`experiment`, `ralph`, and `superintendent`: document discovery, plan archiving, agent
 selection, workflow stages, hooks, run logs, runtime backends, and Poe command
 execution.
 
 ## Public API
 
 - Document workflow helpers: `runDocumentWorkflow`, `runDocumentWorkflowSequence`, `runWorkflowStage`, `runWorkflowHook`.
+- Live queue helpers: `createRunQueue`, `createHarnessDashboard`, `formatRunQueueSummary`.
 - Plan helpers: `discoverPlans`, `archivePlan`, `openPlanList`, `discoverWorkflowDocs`, `resolveWorkflowPath`.
 - Agent helpers: `resolveLoopAgent`, `normalizeParticipantConfig`, `selectParticipantAgent`.
 - Runtime helpers: `runPoeCommand`, `createPoeCommandSession`, `applyRuntimeOverrides`, `resolvePoeCommandExecution`.
@@ -84,7 +85,7 @@ Notes:
 `openPlanList`, `discoverPlans`, and `archivePlan` expose numbered Markdown plan folders through `@poe-code/task-list`. They resolve the configured plan directory with the same cwd/home rules as workflow docs, open it as a `markdown-dir` single-list named `plans`, and use `frontmatterMode: "passthrough"` so plan-specific metadata survives task updates.
 
 - `discoverPlans({ cwd, homeDir, planDirectory, kinds? })` returns plan ids, names, kinds, readiness, absolute paths, and display paths. Plans with `readiness: ready` sort before drafts; missing readiness means draft. Numeric filename prefixes such as `04-api-shape-providers.md` are stripped from ids.
-- `archivePlan({ cwd, homeDir, planDirectory, id })` fires the task-list `archive` event, moves the document under `archive/`, and repacks active plan prefixes.
+- `archivePlan({ cwd, homeDir, planDirectory, id })` fires the task-list `archive` event, moves the document under `archive/`, and returns its absolute archived path. Other plan prefixes stay unchanged.
 - `openPlanList(...)` returns the underlying `TaskList` for commands that need direct task operations.
 
 ## Safety and determinism
@@ -108,3 +109,38 @@ commonly source `configuredDefaultAgent` from:
 
 - `POE_DEFAULT_AGENT`: overrides file-backed `core.defaultAgent` values before
   callers pass `configuredDefaultAgent`.
+
+## Queue work during a run
+
+Append plans and follow-up messages while your harness runs.
+
+```ts
+import { createRunQueue } from "@poe-code/agent-harness-tools";
+
+const queue = createRunQueue({
+  plans: ["docs/plans/release.md"],
+  afterEachPlan: ["Review the result and run the focused checks."]
+});
+
+queue.onChange((snapshot) => renderQueue(snapshot));
+
+// These can also be called while execute() is awaiting an agent.
+queue.enqueueMessage("Summarize the remaining risks.");
+queue.enqueuePlan("docs/plans/accessibility.md");
+
+await queue.run({
+  signal: abortController.signal,
+  execute: async (item) => {
+    if (item.kind === "plan") return runPlan(item.path);
+    return runAgentMessage(item.text);
+  }
+});
+```
+
+`execute` returns `completed`, `failed`, `cancelled`, or `paused`. Only completed work advances the queue. Failures, cancellation, and partial plans retain the pending entries in the final snapshot. Exceptions retain their original identity and mark the active entry failed (or cancelled when the signal is aborted).
+
+Pass `shouldPause` to request a graceful stop between items. The current item finishes, completed entries keep their status, and later entries remain pending in a paused snapshot.
+
+Messages run in insertion order immediately after their target plan, before the next plan. `enqueueMessage(text, planId?)` defaults to the active plan, including while its messages run. Before execution it defaults to the first plan. A plan that the queue has already passed cannot receive new messages. `afterEachPlan` applies to initial and subsequently appended plans.
+
+Snapshots and their entries are immutable. `onChange` returns an unsubscribe function. A queue can run once; create another queue for a later run. Duplicate paths are compared relative to `cwd`, which defaults to the current directory. For asynchronous validation, call `await queue.enqueueValidatedPlan(path, validate)`, where `validate` returns the resolved plan path. A submission started while running keeps the sequence open until validation settles; cancellation still stops promptly and rejects late additions. Concurrent validated submissions retain their submission order, even when later validation finishes first. The caller supplies the same agent configuration to its plan and message executors.

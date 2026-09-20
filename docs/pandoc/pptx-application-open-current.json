@@ -1,0 +1,21 @@
+[
+  {
+    "args": [
+      "/usr/bin/open",
+      "-a",
+      "/Applications/LibreOffice.app",
+      "docs/pandoc/pptx-qa-original.pptx"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "/usr/bin/osascript",
+      "-e",
+      "tell application \"System Events\" to get {name, visible} of every application process whose name contains \"LibreOffice\""
+    ],
+    "result": "timeout after 15 seconds"
+  }
+]

@@ -1,12 +1,43 @@
 # Python through Pyodide
 
+Standalone publication status, September 17, 2026: `@poe-platform/safe-bash`
+exports the Python plugin, worker runner and Node endpoint. Version `0.1.653`
+publishes the standalone runner fix (#745), quota descriptors (#748) and typed
+host diagnostics (#752). The [delivery record](../../../docs/plans/python-standalone-runtime-issues.md)
+records successful scoped publication and npm verification. These are
+trusted-Node runtime passes, not Cloudflare execution or untrusted-code
+qualification; the separate CLI release remains independently tracked.
+
+The #748 implementation adds guarded retained descriptors to the canonical quota
+wrapper. Fresh Node checks cover bounded reads/writes, ENOSPC recovery and document
+creation/reopening through quota and delayed-quota views. `NamedTemporaryFile`
+cleanup uses the backend's strong unlink. `TemporaryDirectory` still requires
+the separate retained-directory work in #749. Quota means logical namespace
+accounting, not an interpreter-memory or physical retained-storage ceiling; see
+the [quota contract](../../safe-fs/src/contracts/filesystem-quota.md).
+
 Status: **optional implementation available; complete qualification remains open**.
+Fresh [main-module and stream user QA](../../../docs/plans/pyodide-main-loader-qa.md)
+records 141 passing built-public integration entries and three required failing
+TODOs on September 16. Matched CPython 3.14.2 differential checks reproduce and
+fix the main-module loader for inline/stdin execution (`BuiltinImporter`);
+file mode retains `SourceFileLoader`. Additional encoding/error-policy,
+universal-newline and binary-input checks pass for both aliases. Independent
+host readers reopen memory/delayed documents. These results do not close the
+TemporaryDirectory cleanup, quota, complete filesystem or deployment gates.
+
 The [Python command contract](../src/contracts/python.md) describes the current
 explicit `pythonCommands({ createWorker })` plugin and worker integration.
 It registers `python`/`python3`; `agentCommands()` does not enable them by default.
 The historical experiments below precede that implementation. Their statements
 that command registration is absent describe those experiments, not the current
 plugin. Scoped passes do not establish complete filesystem or deployment coverage.
+
+Fresh [user edge QA](../../../docs/plans/pyodide-user-edge-qa.md) records the
+September 16 built-public command, document, delayed-storage and lifecycle
+checks. It also reproduces and fixes installer diagnostics that hid a corrupted
+cache's integrity failure behind micropip's generic metadata error. Required
+quota workflows and broader deployment qualification remain open.
 
 Package provisioning now has an explicit implementation under the optional
 Python plugin. See [package environments](python-packages.md) for SDK/CLI
@@ -24,33 +55,36 @@ Pyodide's own interpreter/standard-library assets are distinct from user files.
 
 The supported deployment is **Node.js 22 or newer**, with the explicitly supplied
 **Pyodide 314.0.6 / CPython 3.14.2 / wasm32 ABI 2026_0** runtime. The recorded
-runtime checks use Node **22.23.2**. Other Node versions are prerequisites allowed
-by the package, not independently tested profiles. This workspace's safe-bash
-package is private; the examples use built `poe-code` public exports, not a
-separately installable `safe-bash` package. They do not assert npm publication.
+runtime checks use Node **22.23.2**; the September 17 fresh packed-consumer checks
+also qualify Node **22.22.0**. Other Node versions are prerequisites allowed by
+the package, not independently tested profiles. The workspace manifest remains
+private, but the release packager publishes **`@poe-platform/safe-bash`** and
+**`@poe-platform/safe-fs`** as standalone packages. Consumers do not need the
+`poe-code` CLI package. The CLI's retained re-exports are tested separately.
 
-For a checkout, build the public exports and install the isolated pinned runtime:
+Install version `0.1.653` or a newer release in a fresh directory:
 
 ```sh
-npm run build
-npm ci --prefix packages/safe-bash/tests/integration/pyodide-runtime --ignore-scripts
+npm install --ignore-scripts @poe-platform/safe-bash @poe-platform/safe-fs pyodide@314.0.6
 ```
 
 Supply an absolute file URL for `pyodide.mjs` and retain its adjacent `.wasm`,
 standard-library ZIP, lock/index and package assets. The isolated install places
-the module at `packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs`.
+the module at `node_modules/pyodide/pyodide.mjs` in that fresh consumer directory.
 Setting `indexURL` explicitly selects the runtime asset directory; otherwise it
 defaults to the module's directory. Runtime loading is trusted host work and is
 separate from installer download authorization. Neither command registration nor
 a non-Python shell command initializes Python. Arbitrary guest code is not an
 admitted security profile: the Node endpoint requires `trustedPython: true`.
 
-Save this as `python-example.mjs` at the checkout root. Application paths here
+Save this as `python-example.mjs` in the installation directory. Application paths here
 are canonical memory paths, and the Python script uses ordinary `pathlib`:
 
 ```js
-import { runBash } from 'poe-code';
-import { MemoryFileSystem } from 'poe-code/safe-bash';
+import { Shell, agentCommands } from '@poe-platform/safe-bash';
+import { pythonCommands } from '@poe-platform/safe-bash/commands/python';
+import { createNodePythonWorker } from '@poe-platform/safe-bash/commands/python/node';
+import { MemoryFileSystem } from '@poe-platform/safe-fs/core';
 
 const fs = new MemoryFileSystem();
 await fs.mkdir('/work', { recursive: true });
@@ -59,39 +93,7 @@ await fs.writeFile('/work/report.py', new TextEncoder().encode(
   + 'Path("report.txt").write_text("hello from Python\\n", encoding="utf-8")\n'
   + 'print(Path("report.txt").read_text(encoding="utf-8"), end="")\n'
 ));
-const result = await runBash({
-  fs, cwd: '/work', source: 'python report.py',
-  python: {
-    trustedPython: true,
-    runtimeModuleURL: new URL(
-      './packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs',
-      import.meta.url,
-    ).href,
-  },
-});
-process.stdout.write(result.stdout);
-process.stderr.write(result.stderr);
-process.exitCode = result.exitCode;
-```
-
-Run it with `node python-example.mjs`. Expected output is `hello from Python`.
-The async host API services filesystem requests on its event loop; Python does
-not call an async shell wrapper. To use host files, replace `fs` with
-`root: '/absolute/project'`; that directory becomes canonical `/`. Do not pass
-host absolute paths as Python filenames expecting implicit host access.
-
-For repeated commands with one package environment, construct `Shell` explicitly:
-
-```js
-import { Shell, agentCommands } from 'poe-code/safe-bash';
-import { pythonCommands } from 'poe-code/safe-bash/commands/python';
-import { createNodePythonWorker } from 'poe-code/safe-bash/commands/python/node';
-
-// Reuse the fs seeded above; resolve the explicitly selected runtime module.
-const runtimeModuleURL = new URL(
-  './packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs',
-  import.meta.url,
-).href;
+const runtimeModuleURL = import.meta.resolve('pyodide/pyodide.mjs');
 const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands()).use(
   pythonCommands({
     createWorker: () => createNodePythonWorker({ trustedPython: true, runtimeModuleURL }),
@@ -99,13 +101,32 @@ const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands()).use(
 );
 try {
   const result = await shell.exec('python report.py');
-  console.log(result.stdout);
+  process.stdout.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exitCode = result.exitCode;
 } finally {
   await shell.dispose();
 }
 ```
 
-Inside either configured shell, these are the ordinary command forms:
+Run it with `node python-example.mjs`. Expected output is `hello from Python`.
+The async host API services filesystem requests on its event loop; Python does
+not call an async shell wrapper. This example exposes only the memory filesystem;
+host files require an explicitly rooted filesystem adapter. Do not pass host
+absolute paths as Python filenames expecting implicit host access.
+
+For repeated commands, reuse that shell before disposal. Its plugin-owned package
+environment can cache package assets, but every Python invocation still starts a
+fresh interpreter. Independent plugins do not share admission or cache-writer
+coordination automatically; see #751 and [package environments](python-packages.md).
+
+The maintained [packed-package test](../tests/integration/pyodide-runtime/public-package.test.mjs)
+resolves APIs from a fresh installation, asserts that standalone consumers cannot
+resolve `poe-code`, and checks real inline Python, binary files, pipelines and
+awaited worker termination. Its setup and environment options are recorded in
+the [delivery plan](../../../docs/plans/python-standalone-runtime-issues.md).
+
+Inside the configured shell, these are the ordinary command forms:
 
 ```sh
 python report.py
@@ -124,7 +145,9 @@ local module, save `report.py` in the canonical cwd and run `python -m report`.
 File, `-c` and `-m` forms leave stdin for the program; `python -` and no-argument
 Python consume it as source. A heredoc supplying source therefore cannot also
 supply independent program input on that same stream. Quoted heredoc delimiters
-prevent shell expansion of the Python body. CLI source is passed with `-c`:
+prevent shell expansion of the Python body. The optional CLI example below
+requires a separately installed `poe-code` package or a built CLI checkout;
+the standalone libraries do not install that launcher. CLI source uses `-c`:
 
 ```sh
 node dist/bin.cjs bash --root /absolute/project --cwd / \
@@ -289,6 +312,12 @@ normally COOP `same-origin` and COEP `require-corp`, plus compatible CSP,
 CORS/COEP and worker/runtime assets. Historical browser fixtures qualify their
 specific setup; they are not a ready-made public browser adapter. Browser main
 threads and workerd are not qualified deployments for this shared-memory route.
+The September 17 #746 workerd probe reports available SAB/Atomics/JSPI primitives,
+but unavailable `node:worker_threads` and rejected `Atomics.wait`. Passing a small
+JSPI Wasm probe does not qualify Pyodide's native I/O/import/C-extension boundaries.
+A same-isolate JSPI executor remains unimplemented; a separate Cloudflare service
+is not the same thing as a dedicated interpreter thread. See the
+[current Cloudflare boundary](../../../docs/integrations/cloudflare-safe-bash-python.md).
 For an injected host, implement the `PythonWorkerEndpoint` message/error/
 termination protocol and call `runPythonWorker` with the supplied startup
 configuration on the worker side; the [worker protocol](../src/contracts/python.md)
@@ -315,6 +344,15 @@ shell in `finally`; explicit `Shell` users must do the same. See the
 [lifecycle contract](../src/contracts/python.md#streaming-cancellation-and-lifetime)
 for custom worker ownership. No hard CPU/heap/RSS/package-expansion bound or
 hostile-Python sandbox follows from worker termination and buffer limits.
+
+CPython finalization runs while canonical filesystem and stream RPC are still
+available, so ordinary `atexit` callbacks can write files and buffered output.
+The [shutdown edge qualification](../../../docs/plans/pyodide-shutdown-edge-qa.md)
+checks reverse callback order, binary file bytes and nonzero `SystemExit` on the
+built Node adapter. It also interrupts an `atexit` CPU loop and blocked stdin by
+terminating the worker, retires retained handles and admits a successful next
+command. Cancellation forcibly stops the interpreter; it does not guarantee
+that remaining Python shutdown callbacks run or roll back pre-abort writes.
 
 ## Copyable synchronous document scripts
 
@@ -501,12 +539,13 @@ supply R evidence. Their skips/TODOs remain gaps, not passes.
 | Memory and delayed memory | R: ordinary scripts and document fixtures; delay demonstrates asynchronous canonical service, not a deployed remote provider. |
 | Rooted real storage | R: public filesystem/launcher checks; only the explicit root is exposed through the bridge. Host confinement against hostile JS recovery remains unproven. |
 | Readonly and mounts | R/U: selected-path authority/refusals remain; mounts do not turn unsupported backends into descriptor stores. |
-| Quota, overlay, S3, WebDAV | S/U: general retained `open` may refuse ENOTSUP. No bypass to underlying storage. Quota-backed document success remains an open priority requirement; remote deployment/document behavior is unqualified. |
+| Quota | R/U: guarded retained reads, writes, sparse growth, append and resize; Node quota/delayed-quota document creation/reopening and ENOSPC recovery. Backing identity, cursor and policy requirements still apply; this is logical namespace accounting, not retained-memory isolation. |
+| Overlay, S3, WebDAV | S/U: general retained `open` may refuse ENOTSUP. No bypass to underlying storage; remote deployment/document behavior remains unqualified. |
 | Atomic staging/conditional mutations | S: no ordinary Python syscall equivalent or general transaction guarantee. Python ZIP saves do not inherit the shell archive command's staged publication contract. |
 
 The detailed mapping and capability inventory below retain design requirements
 and earlier findings. They do not override this current evidence matrix.
-Full compliance remains **open**: quota-backed priority document workflows,
+Full compliance remains **open**: retained-directory cleanup,
 backend-specific descriptor/metadata fidelity, interactive TTY behavior, process/
 thread compatibility, complete guest host/network confinement and hard resource
 limits are not established. Honest ENOTSUP preserves optional canonical contracts
@@ -662,6 +701,69 @@ published package or release.
 
 ## Synchronous I/O boundary and deployment alternatives
 
+### Fresh scoped qualification — 2026-09-16
+
+Tested the working tree based on HEAD
+`06fac91e776c2c56c8a1ad9036ebaca60f55d67a`, with the existing optional adapter,
+Pyodide **314.0.6**, CPython **3.14.2**, and Node **22.22.2**. This is local
+qualification, not a release or full acceptance. The normal `npm run build`
+succeeds. No production Python or filesystem code changed.
+
+| Executed scope | Result |
+| --- | --- |
+| Ordinary synchronous script on canonical memory and 1ms-delayed storage | Both pass, 166 backend operations each: open/pathlib/os/zipfile, random access, seek/tell, temporary files, local imports, read-after-write and retained rename identity. |
+| Bounded shell pipes, incremental binary streams, blocked-stream cancellation | 13/13 pass in `stdio-proof.test.mjs`; high-water mark is one byte. |
+| Delayed blocked filesystem read cancellation | Pass; parent event loop remains live and one retained handle closes. |
+| Built public command parity against native CPython 3.14.2 in Bash | 56/56 pass, including both aliases, files/modules/stdin, arguments, status/tracebacks, binary redirects/pipes, shebangs and invocation isolation. Native oracle: Darwin, Bash 3.2.57. |
+| Selected built public lifecycle/authority checks | 11 passes, one failing quota TODO, zero unexpected failures/skips. Memory/delayed mounts and readonly effects, descriptor metadata refusal, setup recovery, cancellation and output exhaustion are covered. |
+| Canonical Python translation and retained quota unit checks | 118/118 pass using in-memory fixtures. This does not qualify writable quota descriptors. |
+| Promise-returning native read callback | Invalid on Node 22.22.2 and Node 24.21.0 with stack switching: both Python entry modes read empty bytes rather than the supplied bytes. |
+| Supported `run_sync` suspension experiment | Node 24.21.0's promising Python-entry control passes; native read callback re-entry fails with `NoGilError: Attempted to use PyProxy when Python GIL not held`. Explicit experiment exits 1; not an acceptance pass. |
+
+The new retained-metadata public regression passes on both backends without a
+production fix: `os.fchmod`/`os.fchown` return ENOTSUP after rename/replacement,
+both objects retain their modes, retained truncate succeeds, and handles close.
+The quota acceptance TODO still fails at `Path('/quota/input').read_text()` with
+ENOTSUP. Its wrapper intentionally refuses canonical `open`; retained resize
+support alone does not provide byte writes. Implementing writable quota handles
+requires alias-aware retained growth admission, append/cursor observation,
+cancellation and retirement coordinated with the wrapper's mutation queue.
+Bypassing it or reopening paths would weaken its existing contract.
+
+To repeat these scopes from the repository root:
+
+```sh
+npm ci --prefix packages/safe-bash/tests/integration/pyodide-runtime --ignore-scripts
+npm run build
+node --import tsx packages/safe-bash/tests/integration/pyodide-runtime/verify.mjs 0
+node --import tsx packages/safe-bash/tests/integration/pyodide-runtime/verify.mjs 1
+node --import tsx packages/safe-bash/tests/integration/pyodide-runtime/cancel-fs.mjs
+node --import tsx --test packages/safe-bash/tests/integration/pyodide-runtime/stdio-proof.test.mjs
+# Provision the native oracle outside tests, then select its exact executable.
+uv python install 3.14.2
+SAFE_BASH_NATIVE_PYTHON="$(uv python find 3.14.2)" node --test packages/safe-bash/tests/integration/pyodide-runtime/public-command-parity.test.mjs
+node --test --test-name-pattern='retained metadata|required Python quota|composed authority|quota refusal|setup failure|cancellation and output' packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs
+node packages/safe-bash/tests/integration/pyodide-runtime/promise-callback.mjs
+npx --yes --package=node@24.21.0 node --experimental-wasm-stack-switching packages/safe-bash/tests/integration/pyodide-runtime/promise-callback.mjs
+# Negative experimental route: fresh process only; expected exit 1.
+npx --yes --package=node@24.21.0 node --experimental-wasm-stack-switching packages/safe-bash/tests/integration/pyodide-runtime/promise-callback.mjs --suspension
+```
+
+The suspension probe reports a passing control before the callback blocker.
+Native Python releases the GIL during file I/O; calling a Python PyProxy from
+that Emscripten callback is invalid even when `can_run_sync()` is true. An errno
+recovery attempt also produced fatal Wasm memory access failure; restoring FS
+callbacks does not establish interpreter recovery. This adaptation is not a
+deployment design. Direct suspension of Wasm syscall imports or a custom runtime
+build remains unqualified; this result does not prove every suspension design
+impossible. Cloudflare/workerd remains unsupported by the Node bridge.
+
+Document package workflows, general no-follow acquisition, retained directories,
+all-provider metadata fidelity, hard resource limits and guest confinement were
+not freshly qualified by this scoped run. Browser deployment still requires the
+isolation/asset policies below; no fresh browser or Cloudflare execution was
+performed. Full contract/deployment acceptance stays open in the plan.
+
 Emscripten's filesystem callbacks are synchronous. A Promise returned from
 `lookup`, `getattr`, `read`, or `write` is not an awaited filesystem operation.
 The same applies to Pyodide's byte-oriented standard-stream callbacks.
@@ -671,9 +773,9 @@ these interfaces.
 
 | Deployment | Assessment |
 | --- | --- |
-| Pyodide worker, custom Emscripten mount, shared-memory request/reply | A candidate that leaves Python synchronous. Only the interpreter worker may block in `Atomics.wait`; the async filesystem and shell pipe service must run on another event loop. Real-runtime verification is required before selecting it. |
+| Pyodide worker, custom Emscripten mount, shared-memory request/reply | Implemented and runtime-tested in the optional Node adapter. Only the interpreter worker blocks in `Atomics.wait`; the async filesystem and shell pipe service runs on another event loop. This does not qualify every backend or browser deployment. |
 | Pyodide and Promise backend on one thread, ordinary callbacks | Invalid: blocking prevents backend promises from progressing; returning a Promise supplies the wrong return value. |
-| JSPI stack suspension | Upstream supports `pyodide.ffi.run_sync` under a promising entry point (`runPythonAsync` or `callPromising`) and a JSPI-enabled engine. This does not establish that every Emscripten filesystem callback can suspend across its intervening JavaScript frames. The pinned runtime needs a real custom-mount test. |
+| JSPI stack suspension | `run_sync` works in a promising Python entry on the pinned runtime/Node 24 control. Calling that Python API from a native Emscripten read callback fails with `NoGilError`; see the fresh qualification below. Direct suspension of Wasm syscall imports or another build remains unqualified. |
 | Asyncify/custom Pyodide build | Requires a separately built and qualified runtime and suspension coverage of the relevant imports; this is not a capability implied by stock Pyodide. |
 | Pinned runtime with syscall/path adaptation | Can potentially preserve raw path operands before Emscripten traversal and replace metadata ABI conversion. This requires qualification of every affected syscall, retained descriptor, import and extension-library route; a Python-only `open` patch is insufficient for C library filesystem calls. No such build or complete interception is yet qualified. |
 | NODEFS/NATIVEFS/IDBFS/WORKERFS | These select different storage or synchronization interfaces; none forwards arbitrary canonical Promise-based safe-fs wrappers and retained descriptors. They cannot replace the caller's filesystem. |
@@ -712,7 +814,7 @@ The table specifies the necessary mapping, not proof of implementation.
 | `lstat` | Non-following metadata for `os.lstat`/`Path.lstat`; must not collapse final symlinks. |
 | `readdir` | `os.listdir`, `scandir`, import directory discovery; forward a per-listing `maxEntries`, reject overflow rather than truncate. |
 | `mkdir` | `os.mkdir`; `os.makedirs` may use repeated admitted operations. Preserve mode, explicit parent creation and intermediate effects. |
-| `rm` | `os.unlink`/`remove` for file entries using nonrecursive removal; never use recursive removal to implement `rmdir`. |
+| `rm` | Not used as a substitute for Python unlink: even nonrecursive rm lacks the required atomic refusal of a raced directory. Python requires optional canonical `unlink`. |
 | `rename` | `os.rename`/`replace`, subject to backend semantics and cross-mount refusal; do not claim atomicity unless supplied. |
 | `copyFile` | Backend copy primitive where explicitly selected; normal `shutil` reads/writes need not call it. No unsafe alias inference before destructive opens. |
 | `realpath` | Canonical path resolution through actual mount/symlink policy; lexical normalization is not authority. |
@@ -728,6 +830,7 @@ The table specifies the necessary mapping, not proof of implementation.
 | `resizeFile` | Atomic path resize with the exact bigint operation; no `stat` plus write approximation and no retained-handle substitution. |
 | `compareEntry` | Keep the original filesystem peers in the service realm; same/distinct/unknown remains point-in-time, not a lease. |
 | `rmdir` | `os.rmdir` only with strong empty-only semantics. Refuse missing support or the weaker snapshot-marker profile. |
+| `unlink` | `os.unlink`/`remove` requires atomic final-entry removal refusing every directory; absent support returns ENOTSUP. |
 | `readlink` | `os.readlink` preserves raw target text. |
 | `symlink` | `os.symlink`, subject to actual link support. |
 | `link` | `os.link`, preserving backing identity and mount restrictions; do not copy bytes. |
@@ -738,6 +841,7 @@ The table specifies the necessary mapping, not proof of implementation.
 | `writeStream` | Optional incremental sink; preserve explicit stream semantics. Do not infer retained identity from ordinary streaming. |
 | `writeFileConditional` | No ordinary Python syscall equivalent; withhold any atomic conditional guarantee unless forwarded intact. |
 | `removeFileConditional` | No ordinary syscall equivalent; never degrade to check-then-delete. |
+| `removeEntryConditional` | No ordinary syscall equivalent; keep expected parent/entry authority service-local and do not emulate atomic removal with a pathname check. |
 | `prepareDirectory` | No ordinary syscall equivalent; atomic directory metadata guarantee stays unavailable unless explicitly integrated. |
 | `createStagedFile` | No ordinary syscall equivalent; staging receipts and committed ownership must remain service-local. |
 | `publishStagedFile` | No ordinary syscall equivalent; never claim Python ZIP publication is the shell ZIP command's atomic staging route. |
@@ -762,7 +866,7 @@ from the string index signature remain unknown and cannot enable bridge behavior
 | `streamingRead`, `retainedRead` | Streaming and retained reads are independent; seekability is not implied by streaming. |
 | `streamingWrite`, `streamingAppend`, `descriptorWriteStream` | Preserve separate overwrite, append and pinned-resource assertions. |
 | `randomAccessWrite`, `independentWriteStreams` | Neither guarantees descriptor positioning or shared cursors. No whole-file offset replacement for Python handles. |
-| `atomicFileStaging`, `atomicFileMutation`, `atomicDirectoryMetadata` | No ordinary Python syscall equivalent. Do not advertise corresponding transactional behavior without integrating the full canonical receipt/conditional operation. |
+| `atomicFileStaging`, `atomicFileMutation`, `atomicEntryRemoval`, `atomicDirectoryMetadata` | No ordinary Python syscall equivalent. Do not advertise corresponding transactional behavior without integrating the full canonical receipt/conditional operation. |
 
 ## Descriptors, identity and budgets
 
@@ -1134,10 +1238,11 @@ backend operations. The bridge's `/work` scope remains a limitation. Successful
 document round trips there do not resolve absolute canonical symlinks, runtime
 namespace collisions, metadata fidelity, or the full shell lifecycle.
 
-The current source shell was checked again with a canonical in-memory
+Historically, before the opt-in Python plugin landed, the source shell was checked with a canonical in-memory
 `/work/document.py`: both `python document.py` and `python3 document.py` return
 **127**, with `command not found`. Package qualification is a prerequisite for
-implementation, not evidence that these public command workflows are available.
+implementation. This historical result does not describe current main: register
+`pythonCommands({ createWorker })` to enable the implemented public commands.
 XLSX formula preservation is separate from recalculation, and DOCX editing is
 separate from Word layout or conversion to PDF.
 
@@ -1187,7 +1292,7 @@ await micropip.install([
 The asynchronous installer is setup code. The document script itself uses
 ordinary synchronous library and filesystem APIs and executes with
 `runpy.run_path('/work/documents.py', run_name='__main__')`. It does not replace
-the still-missing public `python FILE` command. Each profile uses a fresh worker;
+public `python FILE` dispatch. Each profile uses a fresh worker;
 package-cache reuse across shell invocations is not qualified here.
 
 ### Package licenses and native requirements
@@ -1341,7 +1446,7 @@ root-mount experiment are not evidence of a missing PDF generation feature.
 
 ### Reproduce and remaining gates
 
-Follow the [manual qualification steps](../../../docs/plans/pyodide-document-qualification.md).
+For current reruns, follow the [manual qualification steps](../../../docs/plans/pyodide-document-current-qa.md).
 From the repository root:
 
 ```sh
@@ -1371,16 +1476,18 @@ cannot import `importlib.resources` from the cached `/lib/python314.zip` path.
 DOCX and PyMuPDF then lack their image/PDF inputs. The later edge review below
 diagnoses and fixes these failures in the browser fixture.
 
-Required production work still includes `python FILE`/`python3 FILE`, canonical
+At the time of this historical qualification, required production work included `python FILE`/`python3 FILE`, canonical
 root and default-temp namespace routing, complete filesystem semantics, shell
 stream/lifecycle integration, package provisioning/reuse, and the browser guest
 capability boundary. The scoped document workflows are runtime-qualified inputs
-to that work; they do not close these required user workflows.
+to that work. The optional Node implementation now supplies commands, root/temp
+routing, provisioning and lifecycle controls; the current matrices and fresh
+qualification below retain the remaining acceptance gaps.
 
 ## Document edge review: 2026-09-13, final capture user-edge-05
 
-The [manual review](../../../docs/plans/pyodide-document-edge-review.md) extended
-the real browser-worker qualification. Production Python support remains open.
+The historical manual review extended the real browser-worker qualification.
+Full production acceptance remains open; optional Node Python support exists.
 All packages, dependency-resolution calls and exact versions above are unchanged.
 Chrome reports **153.0.8010.36**, Pyodide **314.0.6**, CPython **3.14.2**; page
 and worker are cross-origin isolated. The index hash remains
@@ -1480,11 +1587,164 @@ It opens the canonical target but then resolves it through runtime MEMFS. That
 failing assertion is preserved; the separately qualified browser-root path does
 not certify or silently fix the Node fixture.
 
-Actual `Shell({ fs, cwd: '/work' }).use(agentCommands())` checks of
+Historical `Shell({ fs, cwd: '/work' }).use(agentCommands())` checks of
 `python "document café.py"`, its `python3` alias, `python -c`, `python -m json.tool`,
 and piped source to `python -` all still return **127**, `command not found`.
-Public command dispatch, argument/environment/exit semantics, complete canonical
-filesystem fidelity, unsupported flags and metadata ABI, guest capabilities,
-package provisioning/reuse and integrated shell budgets/lifecycle remain open.
+That configuration still intentionally omits Python. Current callers must also
+register `pythonCommands({ createWorker })`; the public Node integration suites
+exercise that implemented opt-in. Complete canonical filesystem fidelity,
+unsupported flags and metadata ABI, guest capabilities and full lifecycle
+acceptance remain open.
 This review does not claim every edge case, a production build, commit, push,
 or release.
+
+## Fresh document qualification — 2026-09-16
+
+Executed against the working tree based on `06fac91e776c2c56c8a1ad9036ebaca60f55d67a`,
+with existing edits preserved. [Manual QA](../../../docs/plans/pyodide-document-current-qa.md)
+uses the existing browser fixture, not a desktop Python oracle. The actual
+browser is **Chrome 152.0.7977.84**; Pyodide **314.0.6** reports CPython
+**3.14.2**. Page and workers report cross-origin isolation. The selected index
+SHA-256 is `3fdaef09e9e365c85e002737720f8d0ab8f278c1c244a2dde6a37663cf488ad4`.
+The exact installation calls, dependency resolution, licenses and native
+requirements in the pinned-input sections above remain unchanged; all resolved
+versions match those tables, including PyMuPDF **1.27.2.2**. Legacy `fpdf` is
+absent and `fpdf.__version__` matches the `fpdf2` distribution.
+
+| Real browser worker profile | Assertion groups | Canonical byte comparisons | Backend operations | Remaining handles |
+| --- | --- | --- | --- | --- |
+| MEMFS control | 11 passed | Not applicable | 0 | 0 |
+| Scoped canonical bridge | 11 passed | 18 passed | 4787 | 0 |
+| Canonical bridge with 1ms delay | 11 passed | 18 passed | 4787 | 0 |
+| Root canonical bridge | 12 passed | 20 passed | 5857 | 0 |
+
+All profiles pass DOCX heading/paragraph/table/image create, save, reopen and
+edit; openpyxl value/date/formula/style edits with retained image/chart parts;
+XlsxWriter formatted multi-sheet creation read by openpyxl; and fpdf2 three-page
+generation with embedded TTF/image streams, followed by pypdf text/metadata,
+split/merge and BytesIO round trips. Unicode/space paths, seek/truncate, spooled
+temporary rollover, streaming workbook modes and corrupt-input recovery also
+pass. PyMuPDF renders a **298×421** PNG and extracts structured text/image
+blocks on every profile. The rendered page was visually inspected: accented
+text and the embedded blue image are visible. The browser summary screenshot
+was inspected. ReportLab evaluation is unnecessary because the required PDF
+generation features pass. Formulas are stored or explicitly cached, never
+recalculated by these tests.
+
+Source bindings: `documents.py` SHA-256
+`7b100a2b9a16cd475478e0184fab1f79d93475cf9c004fa0190f5a9565f87b22`;
+served browser bundle
+`11e3758750d94029b303d13a1e31d68b52c64b1a1d669835cd29ec16d28ebc20`;
+served worker
+`b53297d10fa9fd2338527b38949b26ff905c5dc9d0cda55c887d05f06984b0dc`.
+No script, artifact collection or report collection errors occurred. These
+bindings qualify the experimental browser fixture, not a public browser command
+adapter, restrictive CSP, Cloudflare deployment or complete guest confinement.
+
+### Public ordinary-script acceptance and reproduced gap
+
+Separately provisioned the optional Node profile, then ran the maintained
+public suite offline using built `poe-code` exports on Node **22.22.2**:
+
+```sh
+SAFE_BASH_PYTHON_CACHE="$PWD/out/pyodide-document-qualification/cache" \
+  node packages/safe-bash/tests/integration/pyodide-runtime/provision-public-runtime.mjs
+SAFE_BASH_PYTHON_CACHE="$PWD/out/pyodide-document-qualification/cache" \
+  node --test packages/safe-bash/tests/integration/pyodide-runtime/public-documents.test.mjs
+```
+
+The unchanged baseline passed **2/2** memory/delayed public document tests.
+Extended that suite to stage the browser-qualified script on canonical storage
+and invoke it through actual `python qualified-documents.py` dispatch, with
+`PROBE_ROOT=/work PROBE_FONT=/work/font.ttf PROBE_PROFILE=bridge`. This adds
+dates, multi-sheet formatting, merge/split and embedded stream checks to public
+acceptance, without runtime downloads or host writes during the test.
+
+The extension reproduces an unresolved required workflow:
+`tempfile.TemporaryDirectory` cleanup calls `shutil._rmtree_safe_fd`, whose
+`os.open(..., O_RDONLY|O_NONBLOCK, dir_fd=...)` fails with **ENOTSUP (138)**.
+The script records its filesystem group as failed and exits **1**; the other
+ten assertion groups pass. Browser success does not qualify this production
+descriptor path. The public suite retains the failing cleanup assertion as an
+explicit TODO for each backend, rather than substituting weaker recursive path
+deletion or counting the workflow as a pass. Named/spooled temporary-file
+success does not close this directory-cleanup requirement. PyMuPDF remains
+separately browser-qualified and is intentionally absent from the production
+document profile.
+
+The expanded public gate reports **2 passing backend tests, 2 failing TODO
+assertions, 0 unexpected failures and 0 skips**. The delayed profile performs
+9787 canonical operations before the added parent artifact reads and closes all
+handles. The parent independently compares the size and SHA-256 of every
+reported artifact with canonical storage. The focused real-runtime inventory
+test passes **1/1**; public/browser JavaScript syntax and diff whitespace checks
+pass. `npm run lint:eslint` completes with **0 errors and 2 warnings** in
+unrelated existing tests. The TODOs are required
+failures, not successful workflows.
+
+Runtime setup and browser capture remain explicit integration operations,
+outside fast unit discovery. Temporary captures used checkout-local `out`
+because this host's `/out` is read-only; they are purged after recording these
+results. No README or production implementation changes, commit, push or release
+are part of this qualification. Required quota workflows, retained-directory
+support, broader canonical fidelity and Cloudflare acceptance remain open.
+
+### Independent user rerun — 2026-09-16
+
+Executed the [independent manual QA](../../../docs/plans/pyodide-independent-user-qa.md)
+against the existing working tree and rebuilt public exports. No production
+code changed. Real Chrome **152.0.7977.84**, Pyodide **314.0.6**, CPython
+**3.14.2** and Node **22.22.2** reproduce the qualification above: all four
+browser profiles pass, including PyMuPDF **1.27.2.2** rendering/extraction.
+Resolved versions, index digest and document/bundle/worker source hashes match
+the preceding qualification. The exact native loading and dependency-resolving
+micropip installation calls, licenses and native requirements remain those in
+the pinned-input sections. Legacy `fpdf` remains absent.
+
+Fresh commands, after successful `npm run build`:
+
+```sh
+node packages/safe-bash/tests/integration/pyodide-runtime/browser-documents/server.mjs ../../../../../../../out/pyodide-edge-rerun/browser
+SAFE_BASH_PYTHON_CACHE="$PWD/out/pyodide-edge-rerun/cache" \
+  node packages/safe-bash/tests/integration/pyodide-runtime/provision-public-runtime.mjs
+SAFE_BASH_PYTHON_CACHE="$PWD/out/pyodide-edge-rerun/cache" \
+  node --test --test-concurrency=1 \
+  packages/safe-bash/tests/integration/pyodide-runtime/public-documents.test.mjs \
+  packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs
+SAFE_BASH_NATIVE_PYTHON=/Users/kjopek/.local/share/uv/python/cpython-3.14.2-macos-aarch64-none/bin/python3.14 \
+  node --test --test-concurrency=1 \
+  packages/safe-bash/tests/integration/pyodide-runtime/public-command-parity.test.mjs
+```
+
+| Fresh verification | Measured result |
+| --- | --- |
+| Browser MEMFS/scoped/delayed/root | 11/11/11/12 workflow groups pass; canonical byte comparisons 18/18/20; zero retained handles. |
+| Browser DOCX/XLSX/PDF | Create/edit/reopen and artifact assertions pass, including dates, stored formulas, styles, chart/image parts, embedded TTF/image streams and PDF merge/split/text/metadata. |
+| Browser edge workflows | Unicode/space paths, BytesIO, seek/truncate, boundary I/O, temporary cleanup, streaming workbook modes, invalid inputs and recovery pass. |
+| Public documents and lifecycle | 18 passes, **3 failing required TODOs**, zero unexpected failures/skips/cancellations across 21 entries. Delayed document storage performs 9787 operations and retains zero handles. |
+| Matched native public command parity | 56/56 pass. |
+| Real product-worker and bounded stdio | 45/45 pass, including cancellation, partial I/O, broken pipes, binary bytes and worker retirement. |
+| Python command units | 144/144 pass. |
+| Canonical Python and retained-resize units | 121/121 pass across six files. |
+| Maintained integration inventory | 109/109 pass. |
+| Ordinary-script memory/delayed controls | Both pass, 166 canonical operations each. |
+| Blocked backend cancellation | Retained handle closes; parent service event loop remains live. |
+| Promise callback negative control | Promise is not awaited, Python receives no supplied bytes; Node 22 reports suspension unavailable. This is blocker evidence. |
+| Visual checks | Browser summary, PyMuPDF-rendered page with accented text/image and built CLI initialization/42 screenshot inspected. |
+
+The three TODOs reproduce the same two required gaps: `TemporaryDirectory`
+descriptor cleanup fails on memory and delayed public storage; quota-backed
+reads fail with **ENOTSUP (138)** at `/quota/input`. Neither is counted as a
+pass. The canonical descriptor contract lacks retained directory operations;
+the quota wrapper explicitly refuses general descriptor acquisition. Supporting
+these needs retained directory/relative-operation semantics and quota-aware
+retained byte writes, respectively. Path-based cleanup or bypassing quota does
+not qualify either requirement. Offline misses, corrupt wheels/cache integrity
+diagnostics, setup/install cancellation, output exhaustion, invocation isolation
+and subsequent reuse pass without additional production changes.
+
+Scratch screenshots, reports and provisioned cache are purged after inspection;
+owned Chrome/server processes are stopped. No unit test downloads runtimes or
+writes host fixtures. This is scoped QA, not all-edge-case certification, full
+backend/deployment fidelity, Cloudflare support, formula recalculation or office
+conversion. Required gates remain open; no commit, push or release is performed.

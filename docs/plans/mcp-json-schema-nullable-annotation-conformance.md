@@ -1,9 +1,0 @@
-# JSON Schema nullable annotation conformance
-
-Two red compiler checks reproduced null accepted by type:string with nullable:true in draft 2020-12 and draft seven. JSON Schema does not define nullable as a validation keyword. Remove the implicit scalar assertion bypass from the shared compiler.
-
-Preserve explicit legacy MCP/converter configuration compatibility by normalizing schemas before validation/advertisement. The normalizer and its six reference/tuple/dynamic-anchor tests now live in toolcraft-schema, their owning package. The complete schema suite passes 2,593 tests. The existing raw nullable MCP input test reproduced the compatibility break before server registration was updated.
-
-Both .tool and .registerTool now have modern input/output advertisement and null acceptance/rejection checks. Restore schema compilation before the object-root assertion to retain malformed-schema diagnostics; the maintained protocol-feature suite passes 39 cases. A new red legacy resource check demonstrated references to nullable resources rejecting null because id moved into the validation branch. Preserve id on the complete wrapper and track inherited dialect when resolving identifiers. A separate red modern-schema check demonstrated annotation id being incorrectly parsed as a URL; modern id now remains an annotation. Nine resource/reference checks plus the strict modern annotation check pass.
-
-Complete schema/core verification passes 3,618 tests across 42 files. Schema-owner TypeScript and focused ESLint pass. The maintained root lint route rejects positional scope arguments; that attempted invocation was not a pass, and focused ESLint was run explicitly. Consumer build and full current MCP suites are next. Recursive-anchor checks passed without a validated defect, so their implementation was left unchanged. No README additions have been made.

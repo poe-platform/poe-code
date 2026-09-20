@@ -1,4 +1,4 @@
-import { PublicDiagnostic } from "../../diagnostics.js";
+import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { EreLedger } from "./ere/limits.js";
 
 function invalidUtf8(): never {

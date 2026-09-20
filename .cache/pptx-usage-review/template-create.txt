@@ -1,4 +1,0 @@
-$ pptx create --template draft.pptx --output working.pptx
-pptx: unsupported-profile: Template-based creation is unavailable.
-
-exit 1

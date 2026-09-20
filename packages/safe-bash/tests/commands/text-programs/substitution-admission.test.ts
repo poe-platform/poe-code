@@ -98,17 +98,30 @@ test("sed and awk preserve expanded bytes and discarded intermediates", async ()
   }
 });
 
-test("awk continues to reject replacement backreference escapes", async () => {
-  const result = await runVirtual("awk", { args: ['{gsub(/a/,"\\\\1"); print}'], stdin: "a\n" });
-  assert.equal(result.exitCode, 2);
-  assert.match(result.stderr.toString(), /replacement backreference escapes are not supported/u);
-  assert.equal(result.stdout.length, 0);
+test("awk replacement digits remain literal rather than expanding captures", async () => {
+  const result = await runVirtual("awk", { args: ['{gsub(/(a)/,"\\\\1"); print}'], stdin: "a\n" });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stderr.length, 0);
+  assert.equal(result.stdout.toString(), "\\1\n");
 });
 
 test("replacement exact logical capacity remains available", async () => {
   const result = await substitute("aa", new Pattern("a"), "&".repeat(32), createBudget(10000, 64), true);
   assert.deepEqual(result, { text: "a".repeat(64), count: 2 });
   await assert.rejects(async () => await substitute("aa", new Pattern("a"), "&".repeat(33), createBudget(10000, 64), true), error => error instanceof ProgramError && error.message === "text buffer limit exceeded");
+});
+
+test("awk literal replacement backslashes retain exact logical capacity", async () => {
+  const replacement = String.raw`\n`.repeat(32);
+  const result = await substitute("x", new Pattern("x"), replacement, createBudget(10000, 64), false, 1, "awk");
+  assert.deepEqual(result, { text: replacement, count: 1 });
+});
+
+test("awk admits preserved backslashes before allocating replacement bytes", async context => {
+  const pattern = new Pattern("x");
+  const allocate = context.mock.method(Buffer, "allocUnsafeSlow");
+  await assert.rejects(substitute("x", pattern, String.raw`\n`.repeat(33), createBudget(10000, 64), false, 1, "awk"), { message: "text buffer limit exceeded" });
+  assert.equal(allocate.mock.calls.length, 0);
 });
 
 test("replacement segment and finalization capacities are independently bounded", async context => {

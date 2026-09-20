@@ -1,0 +1,6361 @@
+{
+  "pandocVersion": "pandoc 3.8.3\nFeatures: +server +lua\nScripting engine: Lua 5.4\nUser data directory: /Users/kjopek/.local/share/pandoc\nCopyright (C) 2006-2025 John MacFarlane. Web:  https://pandoc.org\nThis is free software; see the source for copying conditions. There is no\nwarranty, not even for merchantability or fitness for a particular purpose.\n",
+  "cases": [
+    {
+      "id": "aligned-table",
+      "input": "| a | b | c |\n| :-- | :-: | --: |\n| x |\n| y | z | w | extra |",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignLeft"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignCenter"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignRight"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "c"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          []
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          []
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "z"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "w"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignLeft"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignCenter"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignRight"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "c"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          []
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          []
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "z"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "w"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "pipe-escapes",
+      "input": "a | b\n--- | ---\nx\\|y | `z\\|w`\n`a|b` | c",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x|y"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Code",
+                                  "c": [
+                                    [
+                                      "",
+                                      [],
+                                      []
+                                    ],
+                                    "z|w"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "`a"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "b`"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x|y"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Code",
+                                  "c": [
+                                    [
+                                      "",
+                                      [],
+                                      []
+                                    ],
+                                    "z|w"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "`a"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "b`"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "empty-table",
+      "input": "| | |\n|-|-|",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        []
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        []
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        []
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        []
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "header-only",
+      "input": "a | b\n--- | ---",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "short-delimiter",
+      "input": "a | b\n- | -",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          },
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "|"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "-"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "spec-table-precedence",
+      "explanation": "GFM delimiter recognition precedes a competing list marker; Pandoc treats the unprefixed single hyphen row as a list."
+    },
+    {
+      "id": "mismatched-delimiter",
+      "input": "a | b\n---",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Header",
+            "c": [
+              2,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "|"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Header",
+            "c": [
+              2,
+              [
+                "a--b",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "|"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "unsupported-heading-identifiers",
+      "explanation": "Both reject the table and parse a setext heading; Pandoc default gfm_auto_identifiers is outside this profile."
+    },
+    {
+      "id": "missing-delimiter",
+      "input": "a | b\nx | y",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "y"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "y"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "multiline-separate",
+      "input": "|a|b|\n|---|---|\nx | y\ncontinued\n\nnext",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "continued"
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "next"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "continued"
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "next"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "nested-table",
+      "input": "> a | b\n> --- | ---\n> x | y",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "Table",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    null,
+                    []
+                  ],
+                  [
+                    [
+                      {
+                        "t": "AlignDefault"
+                      },
+                      {
+                        "t": "ColWidthDefault"
+                      }
+                    ],
+                    [
+                      {
+                        "t": "AlignDefault"
+                      },
+                      {
+                        "t": "ColWidthDefault"
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          [
+                            [
+                              "",
+                              [],
+                              []
+                            ],
+                            {
+                              "t": "AlignDefault"
+                            },
+                            1,
+                            1,
+                            [
+                              {
+                                "t": "Plain",
+                                "c": [
+                                  {
+                                    "t": "Str",
+                                    "c": "a"
+                                  }
+                                ]
+                              }
+                            ]
+                          ],
+                          [
+                            [
+                              "",
+                              [],
+                              []
+                            ],
+                            {
+                              "t": "AlignDefault"
+                            },
+                            1,
+                            1,
+                            [
+                              {
+                                "t": "Plain",
+                                "c": [
+                                  {
+                                    "t": "Str",
+                                    "c": "b"
+                                  }
+                                ]
+                              }
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      0,
+                      [],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            [
+                              [
+                                "",
+                                [],
+                                []
+                              ],
+                              {
+                                "t": "AlignDefault"
+                              },
+                              1,
+                              1,
+                              [
+                                {
+                                  "t": "Plain",
+                                  "c": [
+                                    {
+                                      "t": "Str",
+                                      "c": "x"
+                                    }
+                                  ]
+                                }
+                              ]
+                            ],
+                            [
+                              [
+                                "",
+                                [],
+                                []
+                              ],
+                              {
+                                "t": "AlignDefault"
+                              },
+                              1,
+                              1,
+                              [
+                                {
+                                  "t": "Plain",
+                                  "c": [
+                                    {
+                                      "t": "Str",
+                                      "c": "y"
+                                    }
+                                  ]
+                                }
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    []
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "Table",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    null,
+                    []
+                  ],
+                  [
+                    [
+                      {
+                        "t": "AlignDefault"
+                      },
+                      {
+                        "t": "ColWidthDefault"
+                      }
+                    ],
+                    [
+                      {
+                        "t": "AlignDefault"
+                      },
+                      {
+                        "t": "ColWidthDefault"
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          [
+                            [
+                              "",
+                              [],
+                              []
+                            ],
+                            {
+                              "t": "AlignDefault"
+                            },
+                            1,
+                            1,
+                            [
+                              {
+                                "t": "Plain",
+                                "c": [
+                                  {
+                                    "t": "Str",
+                                    "c": "a"
+                                  }
+                                ]
+                              }
+                            ]
+                          ],
+                          [
+                            [
+                              "",
+                              [],
+                              []
+                            ],
+                            {
+                              "t": "AlignDefault"
+                            },
+                            1,
+                            1,
+                            [
+                              {
+                                "t": "Plain",
+                                "c": [
+                                  {
+                                    "t": "Str",
+                                    "c": "b"
+                                  }
+                                ]
+                              }
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      0,
+                      [],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            [
+                              [
+                                "",
+                                [],
+                                []
+                              ],
+                              {
+                                "t": "AlignDefault"
+                              },
+                              1,
+                              1,
+                              [
+                                {
+                                  "t": "Plain",
+                                  "c": [
+                                    {
+                                      "t": "Str",
+                                      "c": "x"
+                                    }
+                                  ]
+                                }
+                              ]
+                            ],
+                            [
+                              [
+                                "",
+                                [],
+                                []
+                              ],
+                              {
+                                "t": "AlignDefault"
+                              },
+                              1,
+                              1,
+                              [
+                                {
+                                  "t": "Plain",
+                                  "c": [
+                                    {
+                                      "t": "Str",
+                                      "c": "y"
+                                    }
+                                  ]
+                                }
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    []
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "strike",
+      "input": "~~*x*~~",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "x"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "x"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "single-tilde",
+      "input": "~x~",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~x~"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~x~"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "triple-tilde",
+      "input": "a~~~x~~~b",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a~~~x~~~b"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a~"
+              },
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "x"
+                  }
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "~b"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "strict-delimiter-runs",
+      "explanation": "Only exact two-tilde runs are delimiters; Pandoc consumes two markers from longer runs."
+    },
+    {
+      "id": "mixed-tilde",
+      "input": "a~~b~~~c~~",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "b~~~c"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "b"
+                  }
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "~c~~"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "strict-delimiter-runs",
+      "explanation": "The middle triple run stays text inside the enclosing exact-two strikeout; Pandoc closes on the triple run."
+    },
+    {
+      "id": "whitespace-strike",
+      "input": "~~ x~~",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~~"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "x~~"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~~"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "x~~"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "multiline-strike",
+      "input": "~~a\nb~~",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  },
+                  {
+                    "t": "SoftBreak"
+                  },
+                  {
+                    "t": "Str",
+                    "c": "b"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  },
+                  {
+                    "t": "SoftBreak"
+                  },
+                  {
+                    "t": "Str",
+                    "c": "b"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "new-paragraph-strike",
+      "input": "~~a\n\nb~~",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~~a"
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b~~"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~~a"
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b~~"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "nested-tasks",
+      "input": "- [x] done\n  - [ ] child\n- [X] upper",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Span",
+                      "c": [
+                        [
+                          "",
+                          [
+                            "task-list-marker"
+                          ],
+                          [
+                            [
+                              "checked",
+                              "true"
+                            ]
+                          ]
+                        ],
+                        []
+                      ]
+                    },
+                    {
+                      "t": "Str",
+                      "c": "done"
+                    }
+                  ]
+                },
+                {
+                  "t": "BulletList",
+                  "c": [
+                    [
+                      {
+                        "t": "Plain",
+                        "c": [
+                          {
+                            "t": "Span",
+                            "c": [
+                              [
+                                "",
+                                [
+                                  "task-list-marker"
+                                ],
+                                [
+                                  [
+                                    "checked",
+                                    "false"
+                                  ]
+                                ]
+                              ],
+                              []
+                            ]
+                          },
+                          {
+                            "t": "Str",
+                            "c": "child"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Span",
+                      "c": [
+                        [
+                          "",
+                          [
+                            "task-list-marker"
+                          ],
+                          [
+                            [
+                              "checked",
+                              "true"
+                            ]
+                          ]
+                        ],
+                        []
+                      ]
+                    },
+                    {
+                      "t": "Str",
+                      "c": "upper"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "☒"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "done"
+                    }
+                  ]
+                },
+                {
+                  "t": "BulletList",
+                  "c": [
+                    [
+                      {
+                        "t": "Plain",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "☐"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "child"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "☒"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "upper"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "structured-task-state",
+      "explanation": "Leading task-list-marker Span with checked attribute preserves state; Pandoc substitutes Unicode checkbox glyphs and Space."
+    },
+    {
+      "id": "empty-tasks",
+      "input": "- [ ]\n- [x]",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Span",
+                      "c": [
+                        [
+                          "",
+                          [
+                            "task-list-marker"
+                          ],
+                          [
+                            [
+                              "checked",
+                              "false"
+                            ]
+                          ]
+                        ],
+                        []
+                      ]
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Span",
+                      "c": [
+                        [
+                          "",
+                          [
+                            "task-list-marker"
+                          ],
+                          [
+                            [
+                              "checked",
+                              "true"
+                            ]
+                          ]
+                        ],
+                        []
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "☐"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "☒"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "structured-task-state",
+      "explanation": "Empty items preserve checked state in a Span; Pandoc substitutes checkbox glyphs."
+    },
+    {
+      "id": "malformed-task",
+      "input": "- [y] text",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "[y]"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "text"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "[y]"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "text"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "bare-parens",
+      "input": "https://example.org/a(b)).",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org/a(b)"
+                    }
+                  ],
+                  [
+                    "https://example.org/a(b)",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": ")."
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org/a(b)"
+                    }
+                  ],
+                  [
+                    "https://example.org/a(b)",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": ")."
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "bare-email",
+      "input": "(me@example.org)",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "("
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "me@example.org"
+                    }
+                  ],
+                  [
+                    "mailto:me@example.org",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": ")"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "("
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "me@example.org"
+                    }
+                  ],
+                  [
+                    "mailto:me@example.org",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": ")"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "bare-www",
+      "input": "www.example.org.",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "www.example.org"
+                    }
+                  ],
+                  [
+                    "http://www.example.org",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "."
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "www.example.org"
+                    }
+                  ],
+                  [
+                    "http://www.example.org",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "."
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "bare-ftp",
+      "input": "ftp://example.org/a",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "ftp://example.org/a"
+                    }
+                  ],
+                  [
+                    "ftp://example.org/a",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "ftp://example.org/a"
+                    }
+                  ],
+                  [
+                    "ftp://example.org/a",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "unicode-domain",
+      "input": "https://例え.テスト/道。",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://例え.テスト/道。"
+                    }
+                  ],
+                  [
+                    "https://%E4%BE%8B%E3%81%88.%E3%83%86%E3%82%B9%E3%83%88/%E9%81%93%E3%80%82",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://例え.テスト/道。"
+                    }
+                  ],
+                  [
+                    "https://例え.テスト/道。",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "uri-normalization",
+      "explanation": "Original CommonMark URI normalization percent-encodes non-ASCII scalars; Pandoc retains Unicode in targets."
+    },
+    {
+      "id": "unicode-opening",
+      "input": "（https://example.org/a）",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "（https://example.org/a）"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "（"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org/a）"
+                    }
+                  ],
+                  [
+                    "https://example.org/a）",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "spec-autolink-boundary",
+      "explanation": "GFM 0.29 permits only start, whitespace, *, _, ~, or ASCII ( before extended URLs; Pandoc accepts fullwidth opening parentheses."
+    },
+    {
+      "id": "square-brackets",
+      "input": "(https://example.org/a[b])",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "("
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org/a[b]"
+                    }
+                  ],
+                  [
+                    "https://example.org/a%5Bb%5D",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": ")"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "("
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org/a[b"
+                    }
+                  ],
+                  [
+                    "https://example.org/a[b",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "])"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "spec-autolink-punctuation",
+      "explanation": "GFM trims only unmatched trailing parentheses, preserving square brackets; original URI normalization encodes brackets. Pandoc trims the closing square bracket."
+    },
+    {
+      "id": "entity-suffix",
+      "input": "www.example.org/a&copy;",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "www.example.org/a"
+                    }
+                  ],
+                  [
+                    "http://www.example.org/a",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "©"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "www.example.org/a"
+                    }
+                  ],
+                  [
+                    "http://www.example.org/a",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "©"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "protected-links",
+      "input": "`https://example.org` [https://example.org](u)",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Code",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "https://example.org"
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org"
+                    }
+                  ],
+                  [
+                    "u",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Code",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "https://example.org"
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Link",
+                      "c": [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          {
+                            "t": "Str",
+                            "c": "https://example.org"
+                          }
+                        ],
+                        [
+                          "https://example.org",
+                          ""
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "u",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "no-nested-links",
+      "explanation": "Original CommonMark bracket handling prevents a bare Link inside an explicit Link label; Pandoc produces nested links here."
+    },
+    {
+      "id": "disallowed-inline",
+      "input": "a <script>x</script>",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "<script>x</script>"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<script>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</script>"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "gfm-tagfilter",
+      "explanation": "Disallowed inline tags become literal Str text for safe rendering; Pandoc JSON retains unfiltered raw tags."
+    },
+    {
+      "id": "disallowed-block",
+      "input": "<title>\nx\n</title>",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "&lt;title>\nx\n&lt;/title>\n"
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "<title>\nx\n</title>\n"
+            ]
+          }
+        ]
+      },
+      "classification": "gfm-tagfilter",
+      "explanation": "Disallowed raw block tag openings are replaced with &lt; per GFM output filtering; Pandoc JSON retains unfiltered raw tags."
+    },
+    {
+      "id": "allowed-html",
+      "input": "a <em>x</em>",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<em>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</em>"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<em>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</em>"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "footnotes",
+      "input": "[^note]\n\n[^note]: note",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "^note"
+                    }
+                  ],
+                  [
+                    "note",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Note",
+                "c": [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "note"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "unsupported-pandoc-extra",
+      "explanation": "GFM original profile has no Note extension; CommonMark reference syntax remains available. Pandoc enables footnotes by default."
+    },
+    {
+      "id": "math",
+      "input": "$x$",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "$x$"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Math",
+                "c": [
+                  {
+                    "t": "InlineMath"
+                  },
+                  "x"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "unsupported-pandoc-extra",
+      "explanation": "Dollars remain text; Pandoc enables math by default."
+    },
+    {
+      "id": "yaml",
+      "input": "---\ntitle: test\n---",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "HorizontalRule"
+          },
+          {
+            "t": "Header",
+            "c": [
+              2,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "title:"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "test"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {
+          "title": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "test"
+              }
+            ]
+          }
+        },
+        "blocks": []
+      },
+      "classification": "unsupported-pandoc-extra",
+      "explanation": "No metadata is inferred; CommonMark rules apply. Pandoc enables YAML metadata by default."
+    },
+    {
+      "id": "smart",
+      "input": "\"quote\" -- ...",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"quote\""
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "--"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "..."
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"quote\""
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "--"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "..."
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "definition",
+      "input": "term\n: definition",
+      "from": "gfm",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "term"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": ":"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "definition"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "term"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": ":"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "definition"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "pipe_tables-pipe_tables",
+      "input": "|a|b|\n|---|---|\nx|y",
+      "from": "gfm-pipe_tables",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "|a|b|"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "|---|---|"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "x|y"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "|a|b|"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "|---|---|"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "x|y"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "pipe_tables-pipe_tables+pipe_tables",
+      "input": "|a|b|\n|---|---|\nx|y",
+      "from": "gfm-pipe_tables+pipe_tables",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "pipe_tables+pipe_tables-pipe_tables",
+      "input": "|a|b|\n|---|---|\nx|y",
+      "from": "gfm+pipe_tables-pipe_tables",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "|a|b|"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "|---|---|"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "x|y"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "deterministic-last-flag-wins",
+      "explanation": "Original selection applies signs left to right so the final disable wins; actual Pandoc enables when both signs are supplied."
+    },
+    {
+      "id": "strikeout-strikeout",
+      "input": "~~x~~",
+      "from": "gfm-strikeout",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~~x~~"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~~x~~"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "strikeout-strikeout+strikeout",
+      "input": "~~x~~",
+      "from": "gfm-strikeout+strikeout",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "x"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "x"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "strikeout+strikeout-strikeout",
+      "input": "~~x~~",
+      "from": "gfm+strikeout-strikeout",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "~~x~~"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Strikeout",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "x"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "deterministic-last-flag-wins",
+      "explanation": "Original selection applies signs left to right so the final disable wins; actual Pandoc enables when both signs are supplied."
+    },
+    {
+      "id": "task_lists-task_lists",
+      "input": "- [x] task",
+      "from": "gfm-task_lists",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "[x]"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "task"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "[x]"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "task"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "task_lists-task_lists+task_lists",
+      "input": "- [x] task",
+      "from": "gfm-task_lists+task_lists",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Span",
+                      "c": [
+                        [
+                          "",
+                          [
+                            "task-list-marker"
+                          ],
+                          [
+                            [
+                              "checked",
+                              "true"
+                            ]
+                          ]
+                        ],
+                        []
+                      ]
+                    },
+                    {
+                      "t": "Str",
+                      "c": "task"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "☒"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "task"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "structured-task-state",
+      "explanation": "Last flag enables tasks; original preserves state in Span, Pandoc uses checkbox glyphs."
+    },
+    {
+      "id": "task_lists+task_lists-task_lists",
+      "input": "- [x] task",
+      "from": "gfm+task_lists-task_lists",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "[x]"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "task"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "☒"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "task"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "classification": "deterministic-last-flag-wins",
+      "explanation": "Original selection applies signs left to right so the final disable wins; actual Pandoc enables when both signs are supplied."
+    },
+    {
+      "id": "autolink_bare_uris-autolink_bare_uris",
+      "input": "https://example.org",
+      "from": "gfm-autolink_bare_uris",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "https://example.org"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "https://example.org"
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "autolink_bare_uris-autolink_bare_uris+autolink_bare_uris",
+      "input": "https://example.org",
+      "from": "gfm-autolink_bare_uris+autolink_bare_uris",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org"
+                    }
+                  ],
+                  [
+                    "https://example.org",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org"
+                    }
+                  ],
+                  [
+                    "https://example.org",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "autolink_bare_uris+autolink_bare_uris-autolink_bare_uris",
+      "input": "https://example.org",
+      "from": "gfm+autolink_bare_uris-autolink_bare_uris",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "https://example.org"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "https://example.org"
+                    }
+                  ],
+                  [
+                    "https://example.org",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "deterministic-last-flag-wins",
+      "explanation": "Original selection applies signs left to right so the final disable wins; actual Pandoc enables when both signs are supplied."
+    },
+    {
+      "id": "raw_html-raw_html",
+      "input": "<em>x</em>",
+      "from": "gfm-raw_html",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "<em>x</em>"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<em>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</em>"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "literal-disabled-html",
+      "explanation": "Original raw_html=false preserves HTML syntax as text; Pandoc commonmark-backed GFM keeps raw tags in this case."
+    },
+    {
+      "id": "raw_html-raw_html+raw_html",
+      "input": "<em>x</em>",
+      "from": "gfm-raw_html+raw_html",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<em>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</em>"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<em>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</em>"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "exact-content-match",
+      "explanation": "Metadata and blocks match without tree normalization."
+    },
+    {
+      "id": "raw_html+raw_html-raw_html",
+      "input": "<em>x</em>",
+      "from": "gfm+raw_html-raw_html",
+      "original": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "<em>x</em>"
+              }
+            ]
+          }
+        ]
+      },
+      "pandoc": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<em>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</em>"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "classification": "deterministic-last-flag-wins",
+      "explanation": "Original selection applies signs left to right so the final disable wins; actual Pandoc enables when both signs are supplied."
+    }
+  ],
+  "comparison": "Compare blocks and meta exactly; ignore only the separately recorded pandoc-api-version (original 1.23.1.2, reference 1.23.1).",
+  "specification": {
+    "name": "GFM",
+    "version": "0.29",
+    "date": "2019-04-06",
+    "url": "https://github.github.com/gfm/",
+    "source": "https://raw.githubusercontent.com/github/cmark-gfm/0.29.0.gfm.13/test/spec.txt",
+    "sha256": "7d8e5814befec287ac116786d81ff14e0adc9b13295b4494649e995408fd871c"
+  },
+  "referenceArtifact": {
+    "url": "https://github.com/jgm/pandoc/releases/download/3.8.3/pandoc-3.8.3-arm64-macOS.zip",
+    "sha256": "3eaeb3bd10982aecba5dd76158745a4f805afb39ab72a519bba2533c98ce002d"
+  },
+  "counts": {
+    "exact-content-match": 29,
+    "spec-table-precedence": 1,
+    "unsupported-heading-identifiers": 1,
+    "strict-delimiter-runs": 2,
+    "structured-task-state": 3,
+    "uri-normalization": 1,
+    "spec-autolink-boundary": 1,
+    "spec-autolink-punctuation": 1,
+    "no-nested-links": 1,
+    "gfm-tagfilter": 2,
+    "unsupported-pandoc-extra": 3,
+    "deterministic-last-flag-wins": 5,
+    "literal-disabled-html": 1
+  }
+}

@@ -215,7 +215,6 @@ for (const { flags, method } of [
 for (const { flags, status } of [
   { flags: ["-Z", "unknown"], status: 16 },
   { flags: ["-Z"], status: 16 },
-  { flags: ["-Z", "bzip2"], status: 19 },
   { flags: ["-0", "-Z", "deflate"], status: 5 },
 ]) {
   test(`zip compression method rejects ${flags.join(" ")} without replacing the archive`, async () => {
@@ -364,9 +363,9 @@ test("zip update skips unchanged payload reads and freshen does not create missi
   await assert.rejects(fs.stat("/work/missing.zip"), { code: "ENOENT" });
 });
 
-for (const flags of ["-uf", "-du", "-df"]) {
+for (const flags of [["-uf"], ["-d", "-u"], ["-df"]]) {
   test(`zip ${flags} rejects conflicting actions`, async () => {
-    const result = await execute("zip", await fixture(), [flags, "sample.zip", "binary"]);
+    const result = await execute("zip", await fixture(), [...flags, "sample.zip", "binary"]);
     assert.equal(result.exitCode, 16);
     assert.match(result.stdout.toString(), /specify just one action/u);
   });
@@ -1017,7 +1016,10 @@ test("zip stdin uses ZIP64 by default and disabling restores classic records", a
     const result = await execute("zip", fs, ["-q", ...options, "stdin.zip", "-"], {}, { stdin: toByteSource(binary) });
     assert.equal(result.exitCode, 0, result.stderr);
     const bytes = Buffer.from(await fs.readFile("/work/stdin.zip"));
-    assert.equal(bytes.readUInt16LE(4), options.at(-1) === "-fz-" ? 10 : 45);
+    // Live stdin has unknown sizes/CRC: classic records now need a descriptor
+    // and extraction version 20; disabling ZIP64 still selects classic widths.
+    assert.equal(bytes.readUInt16LE(4), options.at(-1) === "-fz-" ? 20 : 45);
+    assert.equal(bytes.readUInt16LE(6) & 8, 8);
     assert.deepEqual((await execute("unzip", fs, ["-p", "stdin.zip"])).stdout, binary);
   }
 });

@@ -16,6 +16,8 @@
  * TODO: Consider full ACP alignment (JSON-RPC, official discriminators, `execute` tool kind) if we need
  * interop with Zed/JetBrains/other ACP clients.
  */
+import type { Plan } from "@poe-code/poe-acp-client";
+
 export type ToolKind =
   | "read"
   | "edit"
@@ -138,6 +140,7 @@ export interface ToolStartEvent {
   kind: string;
   title: string;
   id?: string;
+  input?: unknown;
   _meta?: Record<string, unknown>;
 }
 
@@ -152,12 +155,21 @@ export interface ToolCompleteEvent {
   kind: string;
   path: string;
   id?: string;
+  status?: "completed" | "failed" | "cancelled";
   _meta?: Record<string, unknown>;
 }
 
 export interface ReasoningEvent {
   event: "reasoning";
   text: string;
+  _meta?: Record<string, unknown>;
+}
+
+/** An agent's own checklist, separate from harness tasks and queued plan files. */
+export interface PlanEvent {
+  event: "plan";
+  id?: string;
+  entries: Plan["entries"];
   _meta?: Record<string, unknown>;
 }
 
@@ -206,6 +218,7 @@ export type KnownAcpEvent =
   | ToolStartEvent
   | ToolCompleteEvent
   | ReasoningEvent
+  | PlanEvent
   | UsageEvent
   | ErrorEvent
   | PermissionRejectedEvent

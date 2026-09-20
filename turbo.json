@@ -4,9 +4,7 @@
     "scripts/guard-package-dist.mjs",
     "package.json",
     "tsconfig.json",
-    "tsconfig.build.json",
-    "packages/*/package.json",
-    "packages/*/tsconfig.json"
+    "tsconfig.build.json"
   ],
   "tasks": {
     "build": {
@@ -42,7 +40,7 @@
         "docs/**"
       ]
     },
-    "virtual-bash#build": {
+    "@poe-platform/safe-bash#build": {
       "dependsOn": [
         "^build"
       ],
@@ -88,7 +86,7 @@
         "dist/**"
       ]
     },
-    "virtual-bash#test:unit": {
+    "@poe-platform/safe-bash#test:unit": {
       "dependsOn": [
         "build"
       ],

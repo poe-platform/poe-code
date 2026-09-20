@@ -19,8 +19,11 @@ test('an already failed endpoint is retired without sending interpreter startup'
     postMessage() { started++; },
     terminate() { terminated++; },
   };
-  const [command] = createPythonCommands({ createWorker: () => endpoint });
-  await assert.rejects(Promise.resolve(command!.execute(context())), error => error === failure);
+  const diagnostics: unknown[] = [];
+  const [command] = createPythonCommands({ createWorker: () => endpoint, onDiagnostic(event) { diagnostics.push(event); } });
+  assert.equal((await command!.execute(context())).exitCode, 1);
+  assert.equal((diagnostics[0] as { cause: unknown }).cause, failure);
+  assert.equal((diagnostics[0] as { failure: { category: string } }).failure.category, 'transport-unavailable');
   assert.equal(started, 0);
   assert.equal(terminated, 1);
 });

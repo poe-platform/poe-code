@@ -1,5 +1,5 @@
-import { FsError } from "poe-code/safe-fs/core";
-import type { FileDescriptor, FsOptions, OpenFileOptions } from "poe-code/safe-fs/core";
+import { FsError } from "@poe-code/safe-fs/core";
+import type { FileDescriptor, FsOptions, OpenFileOptions } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output-budget.js";
 
 export interface CommandFileDescriptor extends FileDescriptor {

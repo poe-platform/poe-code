@@ -1,4 +1,0 @@
-
-> virtual-bash-comparison@0.0.0 typecheck
-> tsc --noEmit -p tsconfig.json
-

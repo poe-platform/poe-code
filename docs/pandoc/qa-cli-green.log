@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ src/sdk/bash.test.ts (6 tests) 6ms
+ ✓ src/cli/commands/bash.test.ts (18 tests) 24ms
+
+ Test Files  2 passed (2)
+      Tests  24 passed (24)
+   Start at  19:29:15
+   Duration  585ms (transform 445ms, setup 89ms, import 466ms, tests 30ms, environment 0ms)
+

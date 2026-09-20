@@ -501,7 +501,7 @@ export function textCommands(): CommandDefinition[] {
       if (delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");
       const outputDelimiter = value(parsed, "o");
       const recordDelimiter = parsed.flags.has("z") ? 0 : 10;
-      const separator = Buffer.from(delimiter);
+      const separator = Buffer.from(encoder.encode(delimiter));
       const writer = new CutOutput(context, work);
       let exitCode = 0;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {

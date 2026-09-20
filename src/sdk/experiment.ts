@@ -1,12 +1,15 @@
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
-import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
+import { mapSourcePathIntoWorktree, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import {
   ExperimentJournal,
   runExperimentLoop as runWorkspaceExperimentLoop,
+  runExperimentSequence as runWorkspaceSequence,
   type ExperimentFileSystem,
   type ExperimentRunOptions as WorkspaceExperimentRunOptions,
   type ExperimentRunResult,
+  type ExperimentSequenceOptions as WorkspaceExperimentSequenceOptions,
+  type ExperimentSequenceResult,
   type JournalEntry
 } from "@poe-code/experiment-loop";
 import { spawn as sdkSpawn } from "./spawn.js";
@@ -20,6 +23,8 @@ export type {
   ExperimentFileSystem,
   ExperimentFrontmatter,
   ExperimentRunResult,
+  ExperimentSequenceResult,
+  ExperimentPlanSummary,
   ExperimentStopReason,
   JournalEntry,
   MetricDef,
@@ -29,6 +34,34 @@ export type {
 export type ExperimentRunOptions = WorkspaceExperimentRunOptions & {
   worktree?: WorktreeExecutionOptions;
 };
+
+export type ExperimentSequenceOptions = WorkspaceExperimentSequenceOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
+
+export async function runExperimentSequence(options: ExperimentSequenceOptions): Promise<ExperimentSequenceResult> {
+  const { worktree, ...sequenceOptions } = options;
+  const execute = async (cwd: string): Promise<ExperimentSequenceResult> => {
+    const runPlan = options.runPlan ?? runExperimentDirect;
+    return runWorkspaceSequence({
+      ...sequenceOptions, cwd,
+      runAgent: options.runAgent ?? createDefaultExperimentRunAgent(options),
+      runPlan: (planOptions) => runPlan({
+        ...planOptions,
+        docPath: mapSourcePathIntoWorktree(options.cwd, planOptions.docPath, cwd),
+        additionalManagedPaths: planOptions.additionalManagedPaths?.map((filePath) => mapSourcePathIntoWorktree(options.cwd, filePath, cwd))
+      })
+    });
+  };
+  if (!isWorktreeEnabled(worktree)) return execute(options.cwd);
+  const wrapped = await runWithOptionalWorktree({
+    cwd: options.cwd, selectedAgent: resolveWorktreeAgent(options.agent), worktree,
+    signal: options.signal,
+    isSuccessful: (result: ExperimentSequenceResult) => result.status === "completed",
+    run: ({ worktreeCwd }) => execute(worktreeCwd)
+  });
+  return wrapped.value;
+}
 
 export interface ExperimentJournalOptions {
   cwd: string;
@@ -105,7 +138,14 @@ async function runExperimentDirect(options: ExperimentRunOptions): Promise<Exper
   const { worktree: ignoredWorktree, ...workspaceOptions } = options;
   return await runWorkspaceExperimentLoop({
     ...workspaceOptions,
-    runAgent: options.runAgent ?? (async (input: Parameters<NonNullable<ExperimentRunOptions["runAgent"]>>[0]) => {
+    runAgent: options.runAgent ?? createDefaultExperimentRunAgent(options)
+  });
+}
+
+function createDefaultExperimentRunAgent(
+  options: Pick<ExperimentRunOptions, "runtime" | "runtimeImage" | "detach" | "mountPoeCode" | "runnerSync">
+): NonNullable<ExperimentRunOptions["runAgent"]> {
+  return async (input) => {
       return await sdkSpawn.autonomous(input.agent, {
         prompt: input.prompt,
         cwd: input.cwd,
@@ -120,8 +160,7 @@ async function runExperimentDirect(options: ExperimentRunOptions): Promise<Exper
         ...(input.signal ? { signal: input.signal } : {}),
         worktree: false
       });
-    })
-  });
+  };
 }
 
 function isWorktreeEnabled(options: WorktreeExecutionOptions | undefined): boolean {

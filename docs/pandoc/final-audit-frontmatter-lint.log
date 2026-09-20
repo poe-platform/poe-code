@@ -1,0 +1,4 @@
+
+> toolcraft-design@0.0.2 lint
+> cd ../.. && eslint packages/toolcraft-design --ext ts && tsc -p packages/toolcraft-design/tsconfig.json --noEmit
+

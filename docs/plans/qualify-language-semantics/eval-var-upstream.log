@@ -1,4 +1,0 @@
-
-> @poe-code/safe-js@0.0.1 test:conformance
-> tsx test/conformance/command.ts --corpus /tmp/safejs-baseline-test262-419d3e0 --report /Users/kjopek/Workspace/poe-code/docs/plans/qualify-language-semantics/eval-var-upstream.jsonl --include language/eval-code/direct/var-env-var-init-local-new-delete.js --include language/eval-code/direct/var-env-var-init-local-exstng.js
-

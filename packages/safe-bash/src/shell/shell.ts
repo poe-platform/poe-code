@@ -1,5 +1,5 @@
 import { writeDiagnostic } from "../escaping.js";
-import { createDeviceFileSystem } from "poe-code/safe-fs/core";
+import { createDeviceFileSystem } from "@poe-code/safe-fs/core";
 import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
 import type {
   ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,

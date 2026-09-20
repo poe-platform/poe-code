@@ -14,6 +14,32 @@ import { collectBytes, FsError, toByteSource } from "../../src/contracts/index.j
 import { safeJsCommands } from "../../src/commands/safejs/index.js";
 import { contractRuntime } from "../commands/safejs/helpers.js";
 import { networkCommands } from "../../src/commands/network/index.js";
+import { dirname } from "../../src/contracts/path.js";
+
+for (const operator of [">", ">>"]) test(`default device view preserves backend implicit-parent output: ${operator}`, async context => {
+  const backing = new MemoryFileSystem();
+  const opens: string[] = [];
+  const fs: FileSystem = new Proxy(backing, { get(target, key) {
+    if (key === "capabilities") return { ...target.capabilities, implicitDirectories: true };
+    if (key === "open") return async (path: string, options: Parameters<MemoryFileSystem["open"]>[1]) => {
+      opens.push(path);
+      await target.mkdir(dirname(path), { recursive: true, ...(options.signal ? { signal: options.signal } : {}) });
+      return target.open(path, options);
+    };
+    if (key === "mkdir" || key === "copyFile") return () => { assert.fail("Shell must delegate creation to the backend"); };
+    const value: unknown = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const text of ["first", "ok"]) {
+    const result = await shell.exec(`printf ${text} ${operator} /missing/deep/file`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+  }
+  assert.deepEqual(opens, ["/missing/deep/file", "/missing/deep/file"]);
+  assert.equal(new TextDecoder().decode(await backing.readFile("/missing/deep/file")), operator === ">" ? "ok" : "firstok");
+});
 
 for (const deviceView of ["invalid", null, false, 0]) test(`invalid device view rejects before filesystem access: ${String(deviceView)}`, () => {
   const fs = new Proxy({} as FileSystem, { get() { assert.fail("filesystem accessed before option validation"); } });

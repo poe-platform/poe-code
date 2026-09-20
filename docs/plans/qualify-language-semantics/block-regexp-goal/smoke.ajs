@@ -1,1 +1,0 @@
-if(true){} /x/.test("x");const f=()=>/x/;await 0;for await(const x of []){} /x/;return [f().test("x"),Function("{} /x/;return 7")(),f.toString(),f.constructor("return typeof process+','+typeof require")()];

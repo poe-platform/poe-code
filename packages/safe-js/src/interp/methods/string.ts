@@ -793,10 +793,20 @@ async function callStringPattern(
   const operation = budget.acquireCompileOwner(false, parent?.owner);
   const compilation = new CompileScope(operation.owner);
   const retainedPattern = {};
-  budget.setRetainedValues(retainedPattern, () => [value, pattern]);
+  let regex: SandboxRegex | undefined;
+  let hook: SandboxValue;
+  budget.setRetainedValues(retainedPattern, () => [value, pattern, regex, hook]);
   try {
     const source = pattern === undefined ? "" : await sandboxString(pattern, budget, context);
-    const regex = createSandboxRegex(source, methodName === "matchAll" ? "g" : "", 0, compilation);
+    regex = createSandboxRegex(source, methodName === "matchAll" ? "g" : "", 0, compilation);
+    const symbol = methodName === "match" ? Symbol.match : methodName === "matchAll" ? Symbol.matchAll : Symbol.search;
+    const descriptor = context?.getProperty === undefined ? getSandboxPropertyDescriptor(regex, symbol, budget) : undefined;
+    if (context?.getProperty !== undefined || descriptor !== undefined) {
+      hook = await (context?.getProperty !== undefined
+        ? context.getProperty(regex, symbol) : readPropertyDescriptor(descriptor!, regex, context));
+      if (!isSandboxClosure(hook)) throw new TypeError(`RegExp Symbol.${methodName} must be callable.`);
+      return await invokeBuiltinClosure(hook, [value], budget, context, regex);
+    }
     return callMatchLikeMethod(value, methodName, [regex], compilation);
   } finally {
     budget.setRetainedValues(retainedPattern, undefined);

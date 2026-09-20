@@ -711,8 +711,7 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
   if (
     metafile.canonicalBundle ||
     metafile.browserCanonicalBundle ||
-    metafile.canonicalNativeAssets ||
-    (fs.lstat && fs.realpath)
+    metafile.canonicalNativeAssets
   ) {
     Object.assign(metafile, await collectCanonicalNativeAssets(rootDir, fs));
   }

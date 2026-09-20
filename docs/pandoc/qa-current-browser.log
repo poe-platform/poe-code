@@ -1,0 +1,67 @@
+[25820:93181489:0916/231025.488770:ERROR:components/os_crypt/common/keychain_password_mac.mm:102] Keychain lookup failed: Error Domain=NSOSStatusErrorDomain Code=-25308 "errKCInteractionNotAllowed / errSecInteractionNotAllowed: / Interaction is not allowed with the Security Server." (-25308)
+[25865:93181556:0916/231025.831368:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[25865:93181556:0916/231025.832616:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[25865:93181556:0916/231025.832694:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[25865:93181556:0916/231025.832846:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[25865:93181556:0916/231025.832922:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[25865:93181556:0916/231025.833005:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[25820:93181486:0916/231026.368468:ERROR:components/password_manager/core/browser/password_store/login_database_async_helper.cc:99] Encryption is not available.
+[25820:93181489:0916/231026.368516:ERROR:components/password_manager/core/browser/password_store/login_database_async_helper.cc:99] Encryption is not available.
+[25865:93181556:0916/231026.368926:ERROR:ui/display/mac/cv_display_link_mac.mm:195] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Trying to load the allocator multiple times. This is *not* supported.
+[25820:93181179:0916/231027.500659:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.076 s for first_image_paint 0.074 s
+[25820:93181179:0916/231027.501054:ERROR:components/page_load_metrics/browser/page_load_metrics_update_dispatcher.cc:179] Invalid first_paint 0.076 s for first_image_paint 0.074 s
+295295 bytes written to file /Users/kjopek/Workspace/poe-code-5/docs/pandoc/qa-current/html.png
+[25820:93181504:0916/231027.593917:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[25820:93181504:0916/231027.593938:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)
+[25820:93181504:0916/231027.594187:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[25820:93181504:0916/231027.594207:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)
+[28291:93192726:0916/231326.115978:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake-all --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[28291:93192726:0916/231326.116908:VERBOSE1:chrome/updater/updater.cc:377] OS version: 15.7.7, arch: arm64, System uptime (seconds): 6578991, parent pid: 25820
+[28291:93192726:0916/231326.118990:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/kjopek/Library/Application Support/Google/GoogleUpdater): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28291:93192726:0916/231326.119006:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28291:93192726:0916/231326.119074:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log
+[28293:93192733:0916/231326.130136:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[28293:93192733:0916/231326.131250:VERBOSE1:chrome/updater/updater.cc:377] OS version: 15.7.7, arch: arm64, System uptime (seconds): 6578991, parent pid: 1
+[28293:93192733:0916/231326.134460:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/kjopek/Library/Application Support/Google/GoogleUpdater): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28293:93192733:0916/231326.134475:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28293:93192733:0916/231326.134547:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log
+[28291:93192726:0916/231326.135532:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.
+[28291:93192726:0916/231326.136553:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports
+[28291:93192726:0916/231326.136656:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[28291:93192726:0916/231326.136912:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/Chrome Dev/Crashpad/settings.dat: No such file or directory (2)
+[28291:93192726:0916/231326.136970:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[28291:93192726:0916/231326.137000:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/Chrome Beta/Crashpad/settings.dat: No such file or directory (2)
+[28291:93192726:0916/231326.137106:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/Chrome Canary/Crashpad/settings.dat: No such file or directory (2)
+[28291:93192726:0916/231326.137136:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.
+[28291:93192741:0916/231326.137530:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`
+[28294:93192745:0916/231326.149563:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[28294:93192745:0916/231326.151527:VERBOSE1:chrome/updater/updater.cc:377] OS version: 15.7.7, arch: arm64, System uptime (seconds): 6578991, parent pid: 28291
+[28294:93192745:0916/231326.155085:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/kjopek/Library/Application Support/Google/GoogleUpdater): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28294:93192745:0916/231326.155099:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28294:93192745:0916/231326.155172:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log
+[28296:93192749:0916/231326.164221:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[28296:93192749:0916/231326.165440:VERBOSE1:chrome/updater/updater.cc:377] OS version: 15.7.7, arch: arm64, System uptime (seconds): 6578991, parent pid: 1
+[28296:93192749:0916/231326.167815:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/kjopek/Library/Application Support/Google/GoogleUpdater): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28296:93192749:0916/231326.167829:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/): 202844807168B (188.914GiB) / 494384795648B (460.432GiB)
+[28296:93192749:0916/231326.167905:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log
+[28294:93192745:0916/231326.168597:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.
+[28294:93192745:0916/231326.169395:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports
+[28294:93192745:0916/231326.169550:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[28294:93192745:0916/231326.169663:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/Chrome Dev/Crashpad/settings.dat: No such file or directory (2)
+[28294:93192745:0916/231326.169682:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[28294:93192745:0916/231326.169698:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/Chrome Beta/Crashpad/settings.dat: No such file or directory (2)
+[28294:93192745:0916/231326.169759:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/kjopek/Library/Application Support/Google/Chrome Canary/Crashpad/settings.dat: No such file or directory (2)
+[28294:93192745:0916/231326.169778:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.
+[28294:93192745:0916/231326.169960:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run
+[28294:93192745:0916/231342.168935:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[28294:93192745:0916/231342.169554:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log
+[28294:93192745:0916/231342.169581:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake) returned 0.
+[28291:93192741:0916/231342.402318:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/kjopek/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0
+[28291:93192726:0916/231342.402433:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[28291:93192726:0916/231342.402833:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log
+[28291:93192726:0916/231342.402868:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake-all) returned 0.
+[28296:93192749:0916/231352.180456:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log
+[28296:93192749:0916/231352.180511:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.
+[28293:93192733:0916/231352.181869:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log
+[28293:93192733:0916/231352.181938:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.

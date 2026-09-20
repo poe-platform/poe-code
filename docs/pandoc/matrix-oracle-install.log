@@ -1,0 +1,10 @@
+Collecting pypdf==6.0.0
+  Downloading pypdf-6.0.0-py3-none-any.whl (310 kB)
+Collecting PyMuPDF==1.26.4
+  Downloading pymupdf-1.26.4-cp39-abi3-macosx_11_0_arm64.whl (22.4 MB)
+Collecting docutils==0.21.2
+  Using cached docutils-0.21.2-py3-none-any.whl (587 kB)
+Collecting typing_extensions>=4.0
+  Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Installing collected packages: typing-extensions, pypdf, PyMuPDF, docutils
+Successfully installed PyMuPDF-1.26.4 docutils-0.21.2 pypdf-6.0.0 typing-extensions-4.16.0

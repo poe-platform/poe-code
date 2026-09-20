@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 import { createStore } from "./store.js";
 
 describe("bounded dashboard output", () => {
+  it("bounds expanded action details as well as the visible label", () => {
+    const store = createStore();
+    const detail = "script source\n".repeat(100_000) + "last command";
+    store.appendOutput({ id: "tool", kind: "tool", role: "action", text: "Run script", detail, ts: 0 });
+    const retained = store.getState().output[0]!;
+    expect(retained.text).toBe("Run script");
+    expect(retained.detail!.length).toBeLessThanOrEqual(16_384);
+    expect(retained.detail).toContain("Output truncated");
+    expect(retained.detail).toContain("last command");
+  });
+
   it("bounds oversized messages while preserving the latest output and caller data", () => {
     const store = createStore();
     const item = {

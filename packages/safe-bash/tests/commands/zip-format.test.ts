@@ -6,14 +6,215 @@ import zip64Oracle from "./fixtures/zip64-infozip.json" with { type: "json" };
 import { collectBytes, isPathWithin, resolvePath } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { DEFAULT_ARCHIVE_LIMITS as limits } from "../../src/commands/archive/internal.js";
-import { zip64Fields, stripZip64 } from "../../src/commands/archive/zip/zip64.js";
-import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras } from "../../src/commands/archive/zip-format.js";
+import { zip64Fields, stripZip64, zip64Extra, writeZip64End, zip64Member, zipEnd, zipDescriptor } from "../../src/commands/archive/zip/zip64.js";
+import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment } from "../../src/commands/archive/zip-format.js";
+import { execute, fixture as commandFixture } from "./zip-standard-flags.helpers.js";
 
 const signal = new AbortController().signal;
 const text = new TextEncoder();
 const modified = new Date("2026-09-10T01:02:04Z");
 const attributes = { modified, mode: 0o100640, directory: false, symlink: false };
 const collectOptions = { maxBytes: limits.maxEntryBytes };
+
+test("ZIP empty archive admits end records before emission at exact archive boundaries", async () => {
+  for (const wide of [false, true]) for (const comment of [new Uint8Array(), text.encode("comment")]) {
+    const archive = { entries: [], comment };
+    const size = 22 + comment.length + (wide ? 76 : 0);
+    const exact = await collectBytes(streamZipArchive(archive, { ...limits, maxArchiveBytes: size }, signal, false, wide), { maxBytes: size });
+    assert.equal(exact.length, size);
+    const iterator = streamZipArchive(archive, { ...limits, maxArchiveBytes: size - 1 }, signal, false, wide)[Symbol.asyncIterator]();
+    await assert.rejects(iterator.next(), /archive byte limit/);
+    const controller = new AbortController();
+    const reason = new Error("empty archive cancelled");
+    const cancelled = streamZipArchive(archive, { ...limits, maxArchiveBytes: size }, controller.signal, false, wide)[Symbol.asyncIterator]();
+    assert.equal((await cancelled.next()).done, false);
+    controller.abort(reason);
+    await assert.rejects(cancelled.next(), error => error === reason);
+    await assert.rejects(streamZipArchive(archive, limits, controller.signal, false, wide)[Symbol.asyncIterator]().next(), error => error === reason);
+  }
+});
+
+test("ZIP consumes a live source incrementally after emitting its header", async () => {
+  let pulls = 0;
+  let eof = false;
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const source = (async function* () {
+    pulls++;
+    yield text.encode("first");
+    await gate;
+    pulls++;
+    yield text.encode("last");
+    eof = true;
+  })();
+  const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source, level: 0 };
+  const stream = streamZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal);
+  const iterator = stream[Symbol.asyncIterator]();
+  const chunks: Uint8Array[] = [];
+  try {
+    const header = await iterator.next();
+    assert.equal(header.done, false);
+    chunks.push(header.value!);
+    assert.equal(pulls, 0, "header must precede source acquisition");
+    const payload = await iterator.next();
+    assert.equal(payload.done, false);
+    assert.equal(pulls, 1, "must consume source rather than buffered data");
+    assert.equal(eof, false);
+    chunks.push(payload.value!);
+  } finally { release(); }
+  for await (const chunk of stream) chunks.push(chunk);
+  const archive = await readZipArchive(Buffer.concat(chunks), limits, signal);
+  assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), text.encode("firstlast"));
+});
+
+for (const method of [0, 8, 12]) for (const length of [0, 1, 511, 512, 513, 65535, 65536, 65537]) {
+  test(`ZIP live method ${method} owns reused producer bytes at ${length}`, async () => {
+    const body = Uint8Array.from({ length }, (_, index) => (index * 37 + (index >>> 8)) % 251);
+    const slab = Buffer.alloc(777);
+    let closed = false;
+    const source = (async function* () {
+      try {
+        for (let offset = 0; offset < body.length; offset += slab.length) {
+          const size = Math.min(slab.length, body.length - offset);
+          slab.set(body.subarray(offset, offset + size));
+          yield slab.subarray(0, size);
+          slab.fill(255);
+        }
+      } finally { closed = true; slab.fill(255); }
+    })();
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source, method, level: 6 };
+    let peakPayload = 0;
+    let peakMetadata = 0;
+    const bytes = await collectBytes(streamZipArchive({ entries: [entry], comment: new Uint8Array(), onRetention(counters) {
+      peakPayload = Math.max(peakPayload, counters.payloadBytes);
+      peakMetadata = Math.max(peakMetadata, counters.metadataBytes);
+    } }, { ...limits, chunkSize: 512 }, signal), { maxBytes: limits.maxArchiveBytes });
+    assert.equal(closed, true);
+    assert.ok(peakPayload <= 1024);
+    assert.equal(peakMetadata, 102);
+    const archive = await readZipArchive(bytes, limits, signal);
+    assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), body);
+    assert.equal(archive.entries[0]!.flags! & 8, 8);
+  });
+}
+
+test("ZIP live sources preserve buffered neighbors and ZIP64 offsets", async () => {
+  for (const wide of [false, true]) {
+    const entries = await Promise.all(["before", "live", "after"].map(name => makeZipEntry(name, text.encode(name), attributes, limits, signal, 0)));
+    entries[1] = { ...entries[1]!, data: new Uint8Array(), size: 0, source: (async function* () { yield text.encode("live"); })(), method: 8 };
+    const bytes = await writeZipArchive({ entries, comment: text.encode("comment") }, limits, signal, false, wide);
+    const archive = await readZipArchive(bytes, limits, signal);
+    for (const entry of archive.entries) assert.deepEqual(await collectBytes(decodeZipEntry(entry, limits, signal), collectOptions), text.encode(entry.name));
+    assert.deepEqual(archive.comment, text.encode("comment"));
+  }
+});
+
+for (const bound of ["maxEntryBytes", "maxTotalBytes", "maxArchiveBytes", "maxPatternSteps"] as const) {
+  test(`ZIP live ${bound} failure closes its producer`, async () => {
+    let closed = false;
+    const source = (async function* () { try { for (let index = 0; index < 8; index++) yield new Uint8Array(512); } finally { closed = true; } })();
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source };
+    const maximum = bound === "maxArchiveBytes" ? 1200 : bound === "maxPatternSteps" ? 4 : 600;
+    await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, chunkSize: 512, [bound]: maximum }, signal), /limit/);
+    assert.equal(closed, true);
+  });
+}
+
+test("ZIP live empty chunks consume work budget and close their producer", async () => {
+  for (const method of [0, 8, 12]) {
+    let pulls = 0;
+    let closed = false;
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), method,
+      source: (async function* () { try { for (let index = 0; index < 8; index++) { pulls++; yield new Uint8Array(); } } finally { closed = true; } })() };
+    await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, maxPatternSteps: 4 }, signal), /work limit/);
+    assert.equal(pulls, 4, "empty input must stop at work admission rather than drain the source");
+    assert.equal(closed, true);
+  }
+  const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0),
+    source: (async function* () { for (let index = 0; index < 3; index++) yield new Uint8Array(); })() };
+  const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, maxPatternSteps: 4 }, signal);
+  const archive = await readZipArchive(bytes, limits, signal);
+  assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), new Uint8Array());
+  for (const method of [0, 8, 12]) {
+    const controller = new AbortController();
+    const reason = new Error("empty input cancelled");
+    let closed = false;
+    let pulls = 0;
+    const cancelled = { ...entry, method, source: (async function* () {
+      try {
+        pulls++;
+        yield new Uint8Array();
+        controller.abort(reason);
+        pulls++;
+        yield new Uint8Array();
+        pulls++;
+      } finally { closed = true; }
+    })() };
+    await assert.rejects(writeZipArchive({ entries: [cancelled], comment: new Uint8Array() }, limits, controller.signal), error => error === reason);
+    assert.equal(pulls, 2);
+    assert.equal(closed, true);
+  }
+});
+
+test("ZIP live STORE admits archive bytes before retaining an input slab", async () => {
+  for (const wide of [false, true]) {
+    let closed = false;
+    let peakPayload = 0;
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0),
+      source: (async function* () { try { yield new Uint8Array(512); } finally { closed = true; } })() };
+    const overhead = 140 + (wide ? 132 : 0);
+    await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array(), onRetention(counters) {
+      peakPayload = Math.max(peakPayload, counters.payloadBytes);
+    } }, { ...limits, maxArchiveBytes: overhead + 511 }, signal, false, wide), /archive byte limit/);
+    assert.equal(peakPayload, 0, "over-budget STORE bytes must fail before owned slab admission");
+    assert.equal(closed, true);
+    const exactEntry = { ...entry, source: (async function* () { yield new Uint8Array(512); })() };
+    const bytes = await writeZipArchive({ entries: [exactEntry], comment: new Uint8Array() },
+      { ...limits, maxArchiveBytes: overhead + 512 }, signal, false, wide);
+    assert.equal(bytes.length, overhead + 512);
+    const archive = await readZipArchive(bytes, limits, signal);
+    assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), new Uint8Array(512));
+  }
+});
+
+test("ZIP live input and archive budgets admit exact boundaries", async () => {
+  const create = async () => ({ ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0),
+    source: (async function* () { yield new Uint8Array(512); })(), expectedSize: 512 });
+  const bytes = await writeZipArchive({ entries: [await create()], comment: new Uint8Array() }, { ...limits, maxEntryBytes: 512, maxTotalBytes: 512 }, signal);
+  assert.deepEqual(await writeZipArchive({ entries: [await create()], comment: new Uint8Array() }, { ...limits, maxArchiveBytes: bytes.length }, signal), bytes);
+  await assert.rejects(writeZipArchive({ entries: [await create()], comment: new Uint8Array() }, { ...limits, maxArchiveBytes: bytes.length - 1 }, signal), /limit/);
+  const entry = await create();
+  entry.expectedSize = 513;
+  await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal), /changed/);
+});
+
+test("ZIP live profiles reject invalid expected sizes and work budgets before pulling", async () => {
+  for (const value of [NaN, -1, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    let pulls = 0;
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0),
+      source: (async function* () { pulls++; yield new Uint8Array(512); })(), expectedSize: value };
+    await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal), /invalid value/);
+    assert.equal(pulls, 0);
+    await assert.rejects(writeZipArchive({ entries: [], comment: new Uint8Array() }, { ...limits, maxPatternSteps: value }, signal), /invalid value/);
+  }
+});
+
+for (const phase of ["header", "payload", "descriptor", "central", "end"] as const) {
+  test(`ZIP live abort at ${phase} retires its source`, async () => {
+    const controller = new AbortController();
+    const reason = new Error(`abort ${phase}`);
+    let closed = false;
+    const source = (async function* () { try { yield new Uint8Array(512); yield new Uint8Array(512); } finally { closed = true; } })();
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source };
+    const iterator = streamZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, chunkSize: 512 }, controller.signal)[Symbol.asyncIterator]();
+    const index = { header: 0, payload: 1, descriptor: 3, central: 4, end: 5 }[phase];
+    for (let step = 0; step <= index; step++) assert.equal((await iterator.next()).done, false);
+    controller.abort(reason);
+    await assert.rejects(iterator.next(), error => error === reason);
+    if (phase === "header") await source.return();
+    else assert.equal(closed, true);
+  });
+}
 
 for (const oracle of zip64Oracle.cases) {
   test(`ZIP64 reads native ${oracle.args.join(" ")} and preserves payload`, async () => {
@@ -42,7 +243,7 @@ function extra(identifier: number, data: Uint8Array): Uint8Array {
 function fixture(options: {
   name?: Uint8Array; data?: Uint8Array; compressed?: Uint8Array; method?: number;
   flags?: number; localExtra?: Uint8Array; centralExtra?: Uint8Array;
-  descriptor?: "signed" | "unsigned" | undefined; mode?: number; comment?: Uint8Array;
+  descriptor?: "signed" | "unsigned" | undefined; mode?: number; comment?: Uint8Array; entryComment?: Uint8Array;
 } = {}): Uint8Array {
   const name = options.name ?? text.encode("file.txt");
   const data = options.data ?? text.encode("123456789");
@@ -51,9 +252,10 @@ function fixture(options: {
   const localExtra = options.localExtra ?? new Uint8Array();
   const centralExtra = options.centralExtra ?? localExtra;
   const comment = options.comment ?? new Uint8Array();
+  const entryComment = options.entryComment ?? new Uint8Array();
   const descriptorSize = options.descriptor === "signed" ? 16 : options.descriptor ? 12 : 0;
   const central = 30 + name.length + localExtra.length + compressed.length + descriptorSize;
-  const end = central + 46 + name.length + centralExtra.length;
+  const end = central + 46 + name.length + centralExtra.length + entryComment.length;
   const bytes = new Uint8Array(end + 22 + comment.length);
   const view = new DataView(bytes.buffer);
   const flags = (options.flags ?? 0x800) | (options.descriptor ? 8 : 0);
@@ -63,7 +265,7 @@ function fixture(options: {
   view.setUint16(8, method, true);
   view.setUint16(12, 0x5d2a, true);
   if (!options.descriptor) {
-    view.setUint32(14, 0xcbf43926, true);
+    view.setUint32(14, crc32(data), true);
     view.setUint32(18, compressed.length, true);
     view.setUint32(22, data.length, true);
   }
@@ -85,14 +287,16 @@ function fixture(options: {
   view.setUint16(central + 8, flags, true);
   view.setUint16(central + 10, method, true);
   view.setUint16(central + 14, 0x5d2a, true);
-  view.setUint32(central + 16, 0xcbf43926, true);
+  view.setUint32(central + 16, crc32(data), true);
   view.setUint32(central + 20, compressed.length, true);
   view.setUint32(central + 24, data.length, true);
   view.setUint16(central + 28, name.length, true);
   view.setUint16(central + 30, centralExtra.length, true);
+  view.setUint16(central + 32, entryComment.length, true);
   view.setUint32(central + 38, (options.mode ?? 0o100640) * 65536, true);
   bytes.set(name, central + 46);
   bytes.set(centralExtra, central + 46 + name.length);
+  bytes.set(entryComment, end - entryComment.length);
   view.setUint32(end, 0x06054b50, true);
   view.setUint16(end + 8, 1, true);
   view.setUint16(end + 10, 1, true);
@@ -108,6 +312,373 @@ function positions(bytes: Uint8Array): { view: DataView; central: number; end: n
   const end = bytes.length - 22;
   return { view, central: view.getUint32(end + 16, true), end };
 }
+
+for (const directory of [false, true]) for (const readonly of [false, true]) {
+  test(`ZIP DOS attributes restore directory=${directory} readonly=${readonly} without trusting Unix upper bits`, async () => {
+    const bytes = fixture({ name: text.encode(directory ? "dir/" : "file"), ...(directory ? { data: new Uint8Array() } : {}) });
+    const { view, central } = positions(bytes);
+    view.setUint16(central + 4, 20, true); // FAT creator, not Unix.
+    view.setUint32(central + 38, (0o120777 * 65536 + (directory ? 16 : 0) + (readonly ? 1 : 0)) >>> 0, true);
+    const expected = directory ? readonly ? 0o040555 : 0o040755 : readonly ? 0o100444 : 0o100644;
+    const archive = await readZipArchive(bytes, limits, signal);
+    assert.equal(archive.entries[0]!.mode, expected);
+    assert.equal(archive.entries[0]!.symlink, false);
+    const rewritten = await readZipArchive(await writeZipArchive(archive, limits, signal), limits, signal);
+    assert.equal(rewritten.entries[0]!.externalAttributes, view.getUint32(central + 38, true));
+    assert.equal(rewritten.entries[0]!.mode, expected);
+    const fs = await commandFixture(bytes);
+    const result = await execute("unzip", fs, ["-o", "sample.zip"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await fs.lstat(directory ? "/work/dir" : "/work/file")).mode & 0o777, expected & 0o777);
+  });
+}
+
+test("ZIP DOS read-only retained metadata must agree with the supplied mode before output", async () => {
+  const entry = await makeZipEntry("readonly", text.encode("data"), { ...attributes, mode: 0o100444 }, limits, signal, 0);
+  entry.versionMadeBy = 20;
+  entry.externalAttributes = 1;
+  const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal);
+  assert.equal((await readZipArchive(bytes, limits, signal)).entries[0]!.mode, 0o100444);
+  const iterator = streamZipArchive({ entries: [{ ...entry, mode: 0o100644 }], comment: new Uint8Array() }, limits, signal)[Symbol.asyncIterator]();
+  await assert.rejects(iterator.next(), /file attributes mismatch/);
+});
+
+test("ZIP explicit Unix modes take precedence over DOS read-only hints", async () => {
+  for (const host of [3, 19]) for (const mode of [0o100000, 0o100640, 0o120777]) {
+    const bytes = fixture();
+    const { view, central } = positions(bytes);
+    view.setUint16(central + 4, host * 256 + 30, true);
+    view.setUint32(central + 38, (mode * 65536 + 1) >>> 0, true);
+    const archive = await readZipArchive(bytes, limits, signal);
+    assert.equal(archive.entries[0]!.mode, mode);
+    assert.equal(archive.entries[0]!.symlink, mode === 0o120777);
+    assert.equal((await readZipArchive(await writeZipArchive(archive, limits, signal), limits, signal)).entries[0]!.mode, mode);
+  }
+});
+
+// Independent memory adaptations of the pinned Go TestWriterComment/Time/Copy
+// and CPython Unicode-extra/NUL cases; source revisions are in the evidence doc.
+for (const length of [0, 1, 65534, 65535, 65536]) {
+  test(`ZIP archive and entry comment field boundary ${length}`, async () => {
+    const comment = new Uint8Array(length).fill(65);
+    const entry = await makeZipEntry("file", text.encode("data"), attributes, limits, signal, 0);
+    for (const member of [false, true]) {
+      const archive = { entries: [{ ...entry, ...(member ? { comment } : {}) }], comment: member ? new Uint8Array() : comment };
+      if (length > 65535) {
+        await assert.rejects(streamZipArchive(archive, limits, signal)[Symbol.asyncIterator]().next(), /comment.*limit/);
+      } else {
+        const bytes = await writeZipArchive(archive, limits, signal);
+        const restored = await readZipArchive(bytes, limits, signal);
+        assert.deepEqual(member ? restored.entries[0]!.comment : restored.comment, comment);
+        if (length) await assert.rejects(readZipArchive(bytes, { ...limits, maxTextBytes: length - 1 }, signal), /comment.*limit/);
+      }
+    }
+  });
+}
+
+function unicodeField(identifier: number, original: Uint8Array, unicode: Uint8Array): Uint8Array {
+  const payload = new Uint8Array(5 + unicode.length);
+  payload[0] = 1;
+  new DataView(payload.buffer).setUint32(1, crc32(original), true);
+  payload.set(unicode, 5);
+  return extra(identifier, payload);
+}
+
+test("ZIP Unicode comments retain raw legacy bytes and opaque extras across copy and replacement", async () => {
+  const raw = Uint8Array.of(0x82);
+  const fields = Buffer.concat([unicodeField(0x6375, raw, text.encode("é")), extra(0xbeef, Uint8Array.of(0, 255))]);
+  const bytes = fixture({ flags: 0, entryComment: raw, centralExtra: fields });
+  const archive = await readZipArchive(bytes, limits, signal);
+  const copied = await readZipArchive(await writeZipArchive(archive, limits, signal), limits, signal);
+  assert.deepEqual(copied.entries[0]!.comment, raw);
+  assert.deepEqual(Buffer.from(copied.entries[0]!.centralExtra!), fields);
+  assert.deepEqual(copied.entries[0]!.data, archive.entries[0]!.data);
+  const replaced = setZipEntryComment(copied.entries[0]!, text.encode("new"), limits);
+  assert.deepEqual(Buffer.from(replaced.centralExtra!), Buffer.from(extra(0xbeef, Uint8Array.of(0, 255))));
+  assert.deepEqual((await readZipArchive(await writeZipArchive({ entries: [replaced], comment: new Uint8Array() }, limits, signal), limits, signal)).entries[0]!.comment, text.encode("new"));
+  for (const unicode of [Uint8Array.of(255), Uint8Array.of(0xc0, 0x80), Uint8Array.of(0xed, 0xa0, 0x80)]) {
+    await assert.rejects(readZipArchive(fixture({ flags: 0, entryComment: raw, centralExtra: unicodeField(0x6375, raw, unicode) }), limits, signal), /UTF-8/);
+  }
+  const invalid = new Uint8Array(fields);
+  invalid[5] = invalid[5]! ^ 1;
+  await assert.rejects(readZipArchive(fixture({ flags: 0, entryComment: raw, centralExtra: invalid }), limits, signal), /CRC mismatch/);
+  await assert.rejects(readZipArchive(fixture({ entryComment: raw }), limits, signal), /UTF-8/);
+});
+
+test("ZIP Unicode extra field length admits its exact TLV limit and refuses the next byte", async () => {
+  for (const length of [65525, 65526, 65527]) {
+    const field = unicodeField(0x6375, new Uint8Array(), new Uint8Array(length).fill(65));
+    const bytes = fixture({ centralExtra: field });
+    if (field.length > 65535) {
+      const entry = await makeZipEntry("file", text.encode("data"), attributes, limits, signal, 0);
+      entry.centralExtra = field;
+      await assert.rejects(streamZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal)[Symbol.asyncIterator]().next(), /extra field.*limit/);
+    }
+    else {
+      const archive = await readZipArchive(bytes, limits, signal);
+      assert.deepEqual(archive.entries[0]!.centralExtra, field);
+      await assert.rejects(readZipArchive(bytes, { ...limits, maxPaxBytes: field.length - 1 }, signal), /extra field.*limit/);
+    }
+  }
+});
+
+test("ZIP UTF-8 path flag and Unicode extras agree without stripping a leading BOM", async () => {
+  for (const name of ["이름.txt", "\ufefffile", "é", "🐯"]) {
+    const raw = text.encode(name);
+    const field = unicodeField(0x7075, raw, raw);
+    const archive = await readZipArchive(fixture({ name: raw, centralExtra: field }), limits, signal);
+    assert.equal(archive.entries[0]!.name, name);
+    assert.deepEqual(archive.entries[0]!.rawName, raw);
+    await assert.rejects(readZipArchive(fixture({ name: raw, centralExtra: unicodeField(0x7075, raw, text.encode("other")) }), limits, signal), /conflicting/);
+  }
+  for (const name of ["file\0suffix", "\0file", "file\0"]) {
+    await assert.rejects(readZipArchive(fixture({ name: text.encode(name), flags: 0 }), limits, signal), /unsafe path/);
+  }
+});
+
+test("ZIP DOS calendar field endpoints and invalid clocks remain strict", async () => {
+  for (const [date, time, valid] of [[33, 0, true], [65535, 0, false], [65439, 49021, true], [33, 31, false], [33, 24 << 11, false], [33, 60 << 5, false], [0, 0, true]] as const) {
+    const bytes = fixture();
+    const { view, central } = positions(bytes);
+    view.setUint16(12, date, true); view.setUint16(central + 14, date, true);
+    view.setUint16(10, time, true); view.setUint16(central + 12, time, true);
+    if (valid) assert.equal((await readZipArchive(bytes, limits, signal)).entries.length, 1);
+    else await assert.rejects(readZipArchive(bytes, limits, signal), /DOS timestamp/);
+  }
+});
+
+test("ZIP extended timestamps preserve odd seconds at signed field endpoints and DST transitions", async () => {
+  for (const milliseconds of [-0x80000000 * 1000, 0x7fffffff * 1000, Date.parse("2024-03-10T07:59:59Z"), Date.parse("2024-03-10T08:00:01Z"), Date.parse("2024-11-03T06:59:59Z"), Date.parse("2024-11-03T07:00:01Z")]) {
+    const entry = await makeZipEntry("file", text.encode("data"), { ...attributes, modified: new Date(milliseconds) }, limits, signal, 0);
+    const archive = await readZipArchive(await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal), limits, signal);
+    assert.equal(archive.entries[0]!.modified.getTime(), milliseconds);
+    assert.equal(new DataView(archive.entries[0]!.centralExtra!.buffer).getInt32(5, true), milliseconds / 1000);
+  }
+});
+
+test("ZIP DOS leap centuries remain strict even when UT supplies the instant", async () => {
+  for (const [year, day, valid] of [[2000, 29, true], [2100, 28, true], [2100, 29, false], [2001, 29, false]] as const) {
+    const timestamp = new Uint8Array(5);
+    timestamp[0] = 1;
+    new DataView(timestamp.buffer).setInt32(1, 1700000001, true);
+    const bytes = fixture({ localExtra: extra(0x5455, timestamp) });
+    const { view, central } = positions(bytes);
+    const date = ((year - 1980) << 9) | (2 << 5) | day;
+    view.setUint16(12, date, true);
+    view.setUint16(central + 14, date, true);
+    if (!valid) {
+      await assert.rejects(readZipArchive(bytes, limits, signal), /DOS timestamp/);
+      continue;
+    }
+    const archive = await readZipArchive(bytes, limits, signal);
+    assert.equal(archive.entries[0]!.modified.getTime(), 1700000001000);
+    const rewritten = await readZipArchive(await writeZipArchive(archive, limits, signal), limits, signal);
+    assert.equal(rewritten.entries[0]!.dosDate, date);
+    assert.equal(rewritten.entries[0]!.modified.getTime(), 1700000001000);
+    assert.deepEqual(rewritten.entries[0]!.localExtra, archive.entries[0]!.localExtra);
+    assert.deepEqual(rewritten.entries[0]!.centralExtra, archive.entries[0]!.centralExtra);
+    assert.deepEqual(await collectBytes(decodeZipEntry(rewritten.entries[0]!, limits, signal), collectOptions), text.encode("123456789"));
+    const controller = new AbortController();
+    const reason = new Error("abort leap-century metadata");
+    controller.abort(reason);
+    await assert.rejects(readZipArchive(bytes, limits, controller.signal), error => error === reason);
+    await assert.rejects(writeZipArchive(archive, limits, controller.signal), error => error === reason);
+  }
+});
+
+test("ZIP stripped DOS timestamps accept both occurrences of a repeated local hour", async () => {
+  const previous = process.env.TZ;
+  try {
+    process.env.TZ = "America/Chicago";
+    for (const instant of ["2024-11-03T06:30:01Z", "2024-11-03T07:30:01Z"]) {
+      const entry = await makeZipEntry("fold", text.encode("fold"), { ...attributes, modified: new Date(instant) }, limits, signal, 0);
+      const stripped = updateZipExtras(entry, undefined, "strip", limits);
+      const bytes = await writeZipArchive({ entries: [stripped], comment: new Uint8Array() }, limits, signal);
+      const { view, central } = positions(bytes);
+      assert.equal(view.getUint16(10, true), (1 << 11) | (30 << 5) | 1);
+      assert.equal(view.getUint16(central + 12, true), view.getUint16(10, true));
+      const restored = await readZipArchive(bytes, limits, signal);
+      assert.equal(restored.entries[0]!.modified.getHours(), 1);
+      assert.equal(restored.entries[0]!.modified.getMinutes(), 30);
+      assert.equal(restored.entries[0]!.modified.getSeconds(), 2);
+      assert.equal(restored.entries[0]!.centralExtra!.length, 0);
+      assert.deepEqual(await writeZipArchive(restored, limits, signal), bytes);
+      assert.deepEqual(await collectBytes(decodeZipEntry(restored.entries[0]!, limits, signal), collectOptions), text.encode("fold"));
+    }
+  } finally {
+    if (previous === undefined) delete process.env.TZ;
+    else process.env.TZ = previous;
+  }
+});
+
+test("ZIP repeated-hour timestamp boundaries retain strict metadata and cancellation checks", async () => {
+  const previous = process.env.TZ;
+  try {
+    process.env.TZ = "America/Chicago";
+    for (const instant of ["2024-11-03T06:59:59Z", "2024-11-03T07:00:00Z", "2024-11-03T07:59:59Z", "2024-11-03T08:00:00Z"]) {
+      const entry = await makeZipEntry("fold", text.encode("fold"), { ...attributes, modified: new Date(instant) }, limits, signal, 0);
+      const stripped = updateZipExtras(entry, undefined, "strip", limits);
+      const archive = { entries: [stripped], comment: new Uint8Array() };
+      const bytes = await writeZipArchive(archive, limits, signal);
+      const rounded = new Date(Math.ceil(entry.modified.getTime() / 2000) * 2000);
+      const restored = (await readZipArchive(bytes, limits, signal)).entries[0]!;
+      assert.equal(restored.modified.getHours(), rounded.getHours());
+      assert.equal(restored.modified.getMinutes(), rounded.getMinutes());
+      assert.equal(restored.modified.getSeconds(), rounded.getSeconds());
+      for (const invalid of [{ ...stripped, dosTime: 0 }, { ...stripped, dosDate: 33 }, { ...entry, modified: new Date(entry.modified.getTime() + 2000), localExtra: restored.localExtra!, centralExtra: restored.centralExtra!, dosTime: restored.dosTime!, dosDate: restored.dosDate! }]) {
+        await assert.rejects(streamZipArchive({ ...archive, entries: [invalid] }, limits, signal)[Symbol.asyncIterator]().next(), /timestamp metadata mismatch/);
+      }
+      const controller = new AbortController();
+      const reason = new Error("cancel repeated-hour archive");
+      const iterator = streamZipArchive(archive, limits, controller.signal)[Symbol.asyncIterator]();
+      assert.equal((await iterator.next()).done, false);
+      controller.abort(reason);
+      await assert.rejects(iterator.next(), error => error === reason);
+      await assert.rejects(readZipArchive(bytes, limits, controller.signal), error => error === reason);
+    }
+  } finally {
+    if (previous === undefined) delete process.env.TZ;
+    else process.env.TZ = previous;
+  }
+});
+
+test("ZIP -X and -X- repeated-hour updates preserve untouched members and absolute UT time", async () => {
+  const previous = process.env.TZ;
+  try {
+    process.env.TZ = "America/Chicago";
+    for (const option of ["-X", "-X-"]) {
+      const original = fixture({ centralExtra: extra(0xbeef, Uint8Array.of(42)) });
+      const fs = await commandFixture(original);
+      const instant = Date.parse("2024-11-03T07:30:01Z");
+      await fs.writeFile("/work/fold", text.encode("fold"));
+      await fs.utimes!("/work/fold", instant, instant);
+      const result = await execute("zip", fs, ["-q", option, "sample.zip", "fold"]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const restored = await readZipArchive(await fs.readFile("/work/sample.zip"), limits, signal);
+      const untouched = (await readZipArchive(original, limits, signal)).entries[0]!;
+      assert.deepEqual(restored.entries[0], untouched);
+      const updated = restored.entries[1]!;
+      assert.equal(updated.centralExtra!.length, option === "-X" ? 0 : 9);
+      assert.equal(updated.modified.getTime(), option === "-X" ? Date.parse("2024-11-03T06:30:02Z") : instant);
+      assert.deepEqual(await collectBytes(decodeZipEntry(updated, limits, signal), collectOptions), text.encode("fold"));
+    }
+  } finally {
+    if (previous === undefined) delete process.env.TZ;
+    else process.env.TZ = previous;
+  }
+});
+
+test("ZIP DOS permission cancellation preserves an existing member and archive", async () => {
+  const bytes = fixture();
+  const { view, central } = positions(bytes);
+  view.setUint16(central + 4, 20, true); view.setUint32(central + 38, 1, true);
+  const fs = await commandFixture(bytes);
+  await fs.writeFile("/work/file.txt", text.encode("keep"));
+  const controller = new AbortController();
+  const reason = new Error("cancel DOS metadata staging");
+  const create = fs.createStagedFile!.bind(fs);
+  let attempts = 0;
+  fs.createStagedFile = async (...args) => { attempts++; controller.abort(reason); return create(...args); };
+  await assert.rejects(execute("unzip", fs, ["-o", "sample.zip"], {}, { signal: controller.signal }), error => error === reason);
+  assert.equal(attempts, 1);
+  assert.deepEqual(await fs.readFile("/work/file.txt"), text.encode("keep"));
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), bytes);
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["binary", "file.txt", "folder", "sample.zip"]);
+  await assert.rejects(readZipArchive(bytes, limits, controller.signal), error => error === reason);
+  await assert.rejects(writeZipArchive({ entries: [], comment: new Uint8Array() }, limits, controller.signal), error => error === reason);
+});
+
+test("ZIP duplicate names retain member order and independent payloads", async () => {
+  const entries = await Promise.all(["first", "last"].map(body => makeZipEntry("same", text.encode(body), attributes, limits, signal, 0)));
+  const bytes = await writeZipArchive({ entries, comment: new Uint8Array() }, limits, signal);
+  const archive = await readZipArchive(bytes, limits, signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), ["same", "same"]);
+  assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), text.encode("first"));
+  assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[1]!, limits, signal), collectOptions), text.encode("last"));
+  const fs = await commandFixture(bytes);
+  assert.equal((await execute("unzip", fs, ["-p", "sample.zip", "same"])).stdout.toString(), "firstlast");
+  const result = await execute("unzip", fs, ["-o", "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(await fs.readFile("/work/same"), text.encode("last"));
+});
+
+test("ZIP duplicate directory names restore the first member metadata after extracting children", async () => {
+  const first = await makeZipEntry("same/", new Uint8Array(), { ...attributes, directory: true, mode: 0o040700 }, limits, signal, 0);
+  const lastTime = new Date(modified.getTime() + 4000);
+  const last = await makeZipEntry("same/", new Uint8Array(), { ...attributes, modified: lastTime, directory: true, mode: 0o040750 }, limits, signal, 0);
+  const child = await makeZipEntry("same/child", text.encode("child"), attributes, limits, signal, 0);
+  const bytes = await writeZipArchive({ entries: [first, last, child], comment: new Uint8Array() }, limits, signal);
+  const fs = await commandFixture(bytes);
+  const result = await execute("unzip", fs, ["-o", "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const stat = await fs.stat("/work/same");
+  assert.equal(stat.mode & 0o777, 0o700);
+  assert.equal(stat.mtimeMs, modified.getTime());
+  assert.deepEqual(await fs.readFile("/work/same/child"), text.encode("child"));
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), bytes);
+});
+
+for (const action of ["cancel", "replace", "unsupported"] as const) {
+  test(`ZIP duplicate directory metadata ${action} retains archive and refuses unsafe restoration`, async () => {
+    const directory = await makeZipEntry("same/", new Uint8Array(), { ...attributes, directory: true, mode: 0o040700 }, limits, signal, 0);
+    const bytes = await writeZipArchive({ entries: [directory, directory], comment: new Uint8Array() }, limits, signal);
+    const fs = await commandFixture(bytes);
+    await fs.mkdir("/work/same");
+    const controller = new AbortController();
+    const reason = new Error("cancel duplicate directory metadata");
+    const prepare = fs.prepareDirectory!.bind(fs);
+    let attempts = 0;
+    fs.prepareDirectory = async (...args) => {
+      attempts++;
+      if (action === "cancel") controller.abort(reason);
+      if (action === "replace") {
+        await fs.rmdir!("/work/same");
+        await fs.mkdir("/work/same");
+        await fs.writeFile("/work/same/foreign", text.encode("keep"));
+      }
+      return prepare(...args);
+    };
+    const view = action === "unsupported" ? new Proxy(fs, { get(target, key) {
+      if (key === "prepareDirectory") return undefined;
+      const value = Reflect.get(target, key);
+      return typeof value === "function" ? value.bind(target) : value;
+    } }) : fs;
+    const execution = execute("unzip", view, ["-o", "sample.zip"], {}, { signal: controller.signal });
+    if (action === "cancel") await assert.rejects(execution, error => error === reason);
+    else {
+      const result = await execution;
+      assert.equal(result.exitCode, 2);
+      assert.match(result.stderr, action === "replace" ? /EAGAIN: resource temporarily unavailable/ : /atomic entry conditions/);
+    }
+    assert.equal(attempts, action === "unsupported" ? 0 : 1);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), bytes);
+    if (action === "replace") assert.deepEqual(await fs.readFile("/work/same/foreign"), text.encode("keep"));
+    assert.equal((await fs.readdir("/work")).some(entry => entry.name.startsWith(".unzip-")), false);
+  });
+}
+
+test("ZIP unknown archive/destination identity refuses overwrite while byte inspection remains available", async () => {
+  const bytes = fixture();
+  const fs = await commandFixture(bytes);
+  await fs.writeFile("/work/file.txt", text.encode("keep"));
+  const unknown = new Proxy(fs, { get(target, key) {
+    const value = Reflect.get(target, key);
+    if (key === "stat" || key === "lstat") return async (...args: Parameters<typeof fs.stat>) => {
+      const stat = await target[key](...args);
+      const { identityScope: ignoredScope, dev: ignoredDevice, ino: ignoredInode, ...rest } = stat;
+      return rest;
+    };
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await execute("unzip", unknown, ["-o", "sample.zip"]);
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /unknown input-archive backing identity/);
+  assert.deepEqual(await fs.readFile("/work/file.txt"), text.encode("keep"));
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), bytes);
+  const pipe = await execute("unzip", unknown, ["-p", "sample.zip"]);
+  assert.equal(pipe.exitCode, 0, pipe.stderr);
+  assert.equal(pipe.stdout.toString(), "123456789");
+});
 
 test("ZIP CRC32 uses the standard polynomial and supports incremental chunks", () => {
   assert.equal(crc32(text.encode("123456789")), 0xcbf43926);
@@ -446,7 +1017,7 @@ for (const oracle of zip64Oracle.cases.filter(item => item.unzipStatus === 0)) {
     ["short end record", bytes => bytes.writeBigUInt64LE(43n, record + 4)],
     ["long end record", bytes => bytes.writeBigUInt64LE(45n, record + 4)],
     ["unsafe end length", bytes => bytes.writeBigUInt64LE(2n ** 63n, record + 4)],
-    ["end version", bytes => bytes.writeUInt16LE(46, record + 14)],
+    ["end version", bytes => bytes.writeUInt16LE(47, record + 14)],
     ["end disk", bytes => bytes.writeUInt32LE(1, record + 16)],
     ["end central disk", bytes => bytes.writeUInt32LE(1, record + 20)],
     ["disk member count", bytes => bytes.writeBigUInt64LE(2n, record + 24)],
@@ -523,6 +1094,25 @@ for (const position of [0, 1, 2]) {
     assert.deepEqual(Buffer.from(stripZip64(Buffer.concat(fields))), expected);
   });
 }
+test("ZIP64 end extraction versions admit supported features and reject unsupported neighbors", async () => {
+  const original = Buffer.from(zip64Oracle.cases[0]!.archive, "base64");
+  const record = Number(original.readBigUInt64LE(original.length - 34));
+  for (const version of [44, 45, 46, 47, 65535]) {
+    const bytes = Buffer.from(original);
+    bytes.writeUInt16LE(version, record + 14);
+    if (version === 45 || version === 46) {
+      const archive = await readZipArchive(bytes, limits, signal);
+      const body = await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions);
+      assert.deepEqual(Buffer.from(body), Buffer.from(zip64Oracle.cases[0]!.unzipStdout, "base64"));
+      await assert.rejects(readZipArchive(bytes, { ...limits, maxArchiveBytes: bytes.length - 1 }, signal), /limit/);
+    } else await assert.rejects(readZipArchive(bytes, limits, signal), /extraction version/);
+    const controller = new AbortController();
+    const reason = new Error("cancel ZIP64 end version admission");
+    controller.abort(reason);
+    await assert.rejects(readZipArchive(bytes, limits, controller.signal), error => error === reason);
+  }
+});
+
 test("ZIP64 accepts bounded extensible end data and enforces its metadata limit", async () => {
   const original = Buffer.from(zip64Oracle.cases[0]!.archive, "base64");
   const end = original.length - 22;
@@ -565,7 +1155,7 @@ for (const signed of [false, true]) {
     assert.deepEqual(Buffer.from(body), Buffer.from(zip64Oracle.cases[0]!.unzipStdout, "base64"));
     for (const position of [base, base + 4, base + 12]) {
       const invalid = Buffer.from(bytes);
-      invalid[central + position] ^= 1;
+      invalid[central + position] = invalid[central + position]! ^ 1;
       await assert.rejects(readZipArchive(invalid, limits, signal));
     }
   });
@@ -682,4 +1272,164 @@ test("ZIP stripped-extra update rounds DOS time without retaining a stale UT tim
   const restored = await readZipArchive(bytes, limits, signal);
   assert.equal(restored.entries[0]!.modified.getTime(), new Date("2024-01-02T03:04:06Z").getTime());
   assert.equal(restored.entries[0]!.localExtra!.length, 0);
+});
+
+
+test("ZIP64 numeric encoders reject unsafe counters before mutating records", () => {
+  for (const value of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1, Infinity, NaN]) {
+    assert.throws(() => zip64Extra([value], new Uint8Array()), /invalid|unsafe/);
+    for (let index = 0; index < 4; index++) {
+      const bytes = new Uint8Array(76).fill(0xa5);
+      const counters = [1, 2, 3, 4];
+      counters[index] = value;
+      assert.throws(() => writeZip64End(new DataView(bytes.buffer), 0, counters[0]!, counters[1]!, counters[2]!, counters[3]!), /invalid|unsafe/);
+      assert.ok(bytes.every(byte => byte === 0xa5));
+    }
+  }
+});
+
+test("ZIP64 live expected size accepts the exact classic sentinel without payload allocation", async () => {
+  const wideLimits = { ...limits, maxEntryBytes: 0x100000000, maxTotalBytes: 0x100000000, maxArchiveBytes: 0x100010000 };
+  for (const size of [0xfffffffe, 0xffffffff, 0x100000000]) {
+    const entry = { ...await makeZipEntry("virtual", new Uint8Array(), attributes, limits, signal, 0), expectedSize: size, source: (async function* () { yield new Uint8Array(); })() };
+    const iterator = streamZipArchive({ entries: [entry], comment: new Uint8Array() }, wideLimits, signal)[Symbol.asyncIterator]();
+    try {
+      const header = (await iterator.next()).value!;
+      const view = new DataView(header.buffer, header.byteOffset, header.byteLength);
+      assert.equal(view.getUint32(22, true), size >= 0xffffffff ? 0xffffffff : 0);
+    } finally { await iterator.return?.(); }
+  }
+});
+
+
+test("ZIP64 member promotion is independent at sentinel neighbors and safe maximum", () => {
+  for (const value of [0xfffffffe, 0xffffffff, 0x100000000, Number.MAX_SAFE_INTEGER]) for (let index = 0; index < 3; index++) {
+    const counters = [7, 11, 13];
+    counters[index] = value;
+    const member = zip64Member(counters[0]!, counters[1]!, counters[2]!);
+    const expected = counters.map(item => item >= 0xffffffff ? 0xffffffff : item);
+    assert.deepEqual([member.size, member.compressed, member.offset], expected);
+    assert.deepEqual(member.values, value >= 0xffffffff ? [value] : []);
+    const extra = member.values.length ? zip64Extra(member.values, new Uint8Array()) : undefined;
+    assert.deepEqual(zip64Fields(extra?.subarray(4), expected), counters);
+    if (value >= 0xffffffff) assert.throws(() => zip64Member(counters[0]!, counters[1]!, counters[2]!, false, false), /disabled/);
+  }
+  assert.deepEqual(zip64Member(7, 11, 13, true).values, [7, 11, 13]);
+  assert.deepEqual(zip64Member(7, 11, 13, false, true, true).values, [7, 11]);
+});
+
+test("ZIP64 end records promote counts and directory fields independently with correct locator", () => {
+  for (const count of [65534, 65535, 65536]) for (const size of [0xfffffffe, 0xffffffff, 0x100000000]) for (const start of [0xfffffffe, 0xffffffff, 0x100000000]) {
+    const bytes = zipEnd(count, size, start, text.encode("end"));
+    const view = new DataView(bytes.buffer);
+    const wide = count >= 65535 || size >= 0xffffffff || start >= 0xffffffff;
+    const end = wide ? 76 : 0;
+    assert.equal(bytes.length, end + 25);
+    assert.equal(view.getUint16(end + 10, true), Math.min(count, 65535));
+    assert.equal(view.getUint32(end + 12, true), Math.min(size, 0xffffffff));
+    assert.equal(view.getUint32(end + 16, true), Math.min(start, 0xffffffff));
+    if (wide) {
+      assert.equal(view.getBigUint64(32, true), BigInt(count));
+      assert.equal(view.getBigUint64(40, true), BigInt(size));
+      assert.equal(view.getBigUint64(48, true), BigInt(start));
+      assert.equal(view.getBigUint64(64, true), BigInt(start + size));
+      assert.throws(() => zipEnd(count, size, start, new Uint8Array(), false, false), /disabled/);
+    }
+  }
+  assert.throws(() => zipEnd(1, Number.MAX_SAFE_INTEGER, 1, new Uint8Array()), /unsafe/);
+  assert.throws(() => zipEnd(1, 0, Number.MAX_SAFE_INTEGER, new Uint8Array()), /unsafe/);
+});
+
+for (const wide of [false, true]) for (const signed of [false, true]) {
+  test(`ZIP descriptor encoder virtual boundary counters wide=${wide} signed=${signed}`, () => {
+    for (const value of wide ? [0xfffffffe, 0xffffffff, 0x100000000, Number.MAX_SAFE_INTEGER] : [0, 1, 0xfffffffe]) {
+      const bytes = zipDescriptor(0xffffffff, value, value, wide, signed);
+      const view = new DataView(bytes.buffer);
+      const base = signed ? 4 : 0;
+      assert.equal(bytes.length, base + (wide ? 20 : 12));
+      if (signed) assert.equal(view.getUint32(0, true), 0x08074b50);
+      assert.equal(view.getUint32(base, true), 0xffffffff);
+      assert.equal(wide ? view.getBigUint64(base + 4, true) : BigInt(view.getUint32(base + 4, true)), BigInt(value));
+      assert.equal(wide ? view.getBigUint64(base + 12, true) : BigInt(view.getUint32(base + 8, true)), BigInt(value));
+    }
+    for (const invalid of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => zipDescriptor(1, invalid, 1, wide, signed), /invalid|unsafe/);
+    if (!wide) assert.throws(() => zipDescriptor(1, 0xffffffff, 1, false, signed), /required/);
+  });
+}
+
+test("ZIP64 automatic live widths and disabled policy preserve admission, cleanup and cancellation", async () => {
+  const highLimits = { ...limits, maxEntryBytes: 0x100000000, maxTotalBytes: 0x100000000, maxArchiveBytes: 0x100010000 };
+  let pulls = 0;
+  let closes = 0;
+  const body = text.encode("stream");
+  const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source: (async function* () { try { pulls++; yield body; } finally { closes++; } })() };
+  const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, highLimits, signal);
+  assert.equal(new DataView(bytes.buffer).getUint16(4, true), 45);
+  assert.equal(pulls, 1);
+  assert.equal(closes, 1);
+  const decoded = await readZipArchive(bytes, highLimits, signal);
+  assert.deepEqual(await collectBytes(decodeZipEntry(decoded.entries[0]!, highLimits, signal), collectOptions), body);
+  const central = bytes.findIndex((_, index) => index + 4 <= bytes.length && new DataView(bytes.buffer).getUint32(index, true) === 0x02014b50);
+  assert.equal(new DataView(bytes.buffer).getUint32(central + 42, true), 0, "automatic size widths retain classic offset");
+  const forbidden = { ...entry, size: 0, expectedSize: 0xffffffff, source: (async function* () { pulls++; yield body; })() };
+  await assert.rejects(streamZipArchive({ entries: [forbidden], comment: new Uint8Array() }, highLimits, signal, false, false, false)[Symbol.asyncIterator]().next(), /disabled/);
+  assert.equal(pulls, 1);
+  const controller = new AbortController();
+  const reason = new Error("ZIP64 boundary cancelled");
+  const cancelled = streamZipArchive({ entries: [{ ...forbidden, source: (async function* () { pulls++; yield body; })() }], comment: new Uint8Array() }, highLimits, controller.signal)[Symbol.asyncIterator]();
+  await cancelled.next();
+  controller.abort(reason);
+  await assert.rejects(cancelled.next(), error => error === reason);
+  assert.equal(pulls, 1);
+});
+
+
+test("ZIP64 end encoder overwrites disk fields in a reused destination", () => {
+  const bytes = new Uint8Array(76).fill(0xa5);
+  const view = new DataView(bytes.buffer);
+  writeZip64End(view, 0, 1, 2, 3, 5);
+  for (const offset of [16, 20, 60]) assert.equal(view.getUint32(offset, true), 0);
+});
+
+test("ZIP64 member admission requires extraction version 45 for sentinel fields", async () => {
+  const entry = await makeZipEntry("version", text.encode("a"), attributes, limits, signal, 0);
+  const original = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal, false, true);
+  const originalView = new DataView(original.buffer);
+  const central = 30 + originalView.getUint16(26, true) + originalView.getUint16(28, true) + entry.data.length;
+  for (const field of [20, 24, 42, 18, 22]) for (const version of [10, 20, 45]) {
+    const bytes = new Uint8Array(original);
+    const view = new DataView(bytes.buffer);
+    view.setUint16(4, version, true);
+    view.setUint16(central + 6, version, true);
+    for (const offset of [18, 22, central + 20, central + 24]) view.setUint32(offset, 1, true);
+    view.setUint32(central + 42, 0, true);
+    view.setUint32(field === 18 || field === 22 ? field : central + field, 0xffffffff, true);
+    const centralExtra = central + 46 + view.getUint16(central + 28, true);
+    view.setBigUint64(centralExtra + 4, field === 42 ? 0n : 1n, true);
+    if (version < 45) await assert.rejects(readZipArchive(bytes, limits, signal), /ZIP64.*version/);
+    else assert.equal((await readZipArchive(bytes, limits, signal)).entries.length, 1);
+  }
+  const controller = new AbortController();
+  const reason = new Error("cancel ZIP64 version admission");
+  controller.abort(reason);
+  await assert.rejects(readZipArchive(original, limits, controller.signal), error => error === reason);
+});
+
+test("ZIP64 buffered record encoding promotes only expanded size at the sentinel", async () => {
+  for (const size of [0xfffffffe, 0xffffffff, 0x100000000]) {
+    const entry = { ...await makeZipEntry("virtual", text.encode("a"), attributes, limits, signal, 6, true), size };
+    const highLimits = { ...limits, maxEntryBytes: 0x100000000, maxTotalBytes: 0x100000000 };
+    const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, highLimits, signal);
+    const view = new DataView(bytes.buffer);
+    const localExtraLength = view.getUint16(28, true);
+    const central = 30 + view.getUint16(26, true) + localExtraLength + entry.data.length;
+    assert.equal(view.getUint32(18, true), entry.data.length);
+    assert.equal(view.getUint32(22, true), Math.min(size, 0xffffffff));
+    assert.equal(view.getUint32(central + 20, true), entry.data.length);
+    assert.equal(view.getUint32(central + 24, true), Math.min(size, 0xffffffff));
+    assert.equal(view.getUint32(central + 42, true), 0);
+    const decoded = await readZipArchive(bytes, highLimits, signal);
+    assert.equal(decoded.entries[0]!.size, size);
+    if (size >= 0xffffffff) await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, highLimits, signal, false, false, false), /disabled/);
+  }
 });

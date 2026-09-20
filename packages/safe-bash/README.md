@@ -49,7 +49,8 @@ filesystem changes persist in the supplied `fs`.
 - Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
   `>>`), descriptor redirection such as `2>&1`, here-documents, and here-strings.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
-  groups `{ …; }`, subshells `( … )`, `[[ … ]]`, `(( … ))`, and indexed arrays.
+  groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
+  `[[ … ]]`, arithmetic commands `(( … ))`, and indexed arrays.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `set -e`, `set -u`, and `set -o pipefail`
   control failures; `shopt -s dotglob` includes dotfiles in globs.
@@ -84,7 +85,20 @@ These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`
 | --- | --- |
 | `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Node uses the native HTTP transport; Workers can inject `createFetchTransport()`. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
 | `node` | `nodeCommands({ runtime, limits?, replace? })`: runs JavaScript with an injected SafeJS runtime, virtual files, and shell streams. [Usage and supported subset](src/commands/node/README.md). |
+| `python`, `python3` | `pythonCommands({ createExecutor })` from `@poe-platform/safe-bash/commands/python`: supply an explicit executor for invocation-local Python, filesystem I/O and shell streams. [Executor and ownership contract](src/contracts/python-executor.md). |
 | `llm` | `llmCommands({ providers, defaultModel?, replace? })`: opt-in model routing, sandbox attachments and streamed text/binary output. Includes injected-transport OpenAI and ElevenLabs reference providers. [Configuration and provider contract](src/commands/llm/README.md). |
+| `wkhtmltopdf` | `/commands/wkhtmltopdf`: opt-in CLI/SDK adapter with VFS byte I/O and explicit limits. Requires a supplied first-party static renderer; none is included. `wkhtmltopdfCommands({ limits, renderer? })` and `runWkhtmltopdf(context, options)` share behavior. Exported `switches` lists all 122 flags and rejections; `wkhtmltopdfLimits` defaults to 16 MiB PDF output, 64 objects and 128 batch jobs. `--help`, `--extended-help` and `--version` work without a renderer; TOC and dynamic execution are unavailable. |
+| `exiftool` | `/commands/exiftool`: opt-in `exiftoolCommands({ limits? })` for uncompressed PNG text and `tIME` inspection/selected writes. Use `exiftool -j -Title /image.png`, `-csv` for union headers, or `-Title=Example` to edit with an `_original` backup. Typed SDK argv uses `createExiftoolArguments`. Defaults: 64 files, 16 MiB cumulative input/output, 8 MiB decoded and 32 MiB retained bytes. Private implementation/types ship inside safe-bash. PDF, Office, EXIF/XMP, broader timestamps, import and execute protocols remain unsupported; see the [supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-exiftool/README.md). |
+| `playwright-cli` | Standard browser commands, storage state, native snapshots, recordings, and traces through a host-owned adapter. Completed actions retain their live session when a failed checkpoint confirms safe cleanup. [Sessions and host capabilities](src/contracts/playwright-sessions.md). [Optional Cloudflare adapter and portable profiles](https://github.com/poe-platform/poe-code/blob/main/packages/safe-playwright-cloudflare/README.md). `installPlaywrightNetworkPolicy` from `/playwright` supports browser-native redirects with per-hop bounded host HTTP fetch and independent direct HTTP/WebSocket denial. `bindPlaywrightRoutePolicy(context, { ownsRequest, admit, fetch }, limits)` lets standard route mocks and header rewrites use that host policy, with admission before matching and bounded response leases. Cloudflare guardrails do not establish WebRTC/UDP denial or all-protocol accounting; hosts requiring those guarantees must refuse this integration. [Network policy and lifecycle](src/contracts/playwright-network-policy.md). |
+
+For a custom same-isolate Python JSPI host, use `createPythonJspiExecutor` from
+the same Python entry with an explicit loader, precompiled Wasm modules and
+pinned, authenticated runtime assets; follow the [static host recipe](src/contracts/python-jspi.md).
+Native I/O uses the caller's asynchronous filesystem without workspace copying,
+Node worker threads or a SAB request/reply bridge. This path is qualified with
+installed public-package artifacts in local workerd, not a verified Cloudflare
+deployment or a managed Python native-filesystem integration. JSPI cancellation
+is cooperative; it neither preempts CPU-only loops nor establishes confinement.
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
 with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;
@@ -257,6 +271,11 @@ provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/
 
 Always call `dispose()` when finished. Shell failures normally produce an exit
 code and stderr; limit violations, cancellation, and host failures can reject `exec()`.
+The command budget counts compound commands and loop conditions as well as body
+commands. With both work budgets set to 10,000, `while true; do :; done` reaches
+`maxCommands` first. Work budgets bound execution counts, not elapsed latency.
+Await execution settlement and shell disposal before closing backing storage,
+including after a caller timeout; cancellation is cooperative.
 For Cloudflare Workers, start with the exported `cloudflareWorkerLimits` profile
 and configure command-family buffers at no more than 8 MiB. Create a separate
 `Shell`, environment object, and quota-wrapped filesystem view for each tenant or

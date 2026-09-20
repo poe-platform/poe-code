@@ -1,6 +1,8 @@
+import { withoutErrorStacks } from "../../tests/helpers/without-error-stacks.js";
 import {createHash} from "node:crypto";
 import {expect,it} from "vitest";
 import evidence from "./__snapshots__/hz-kernel-oracle.json";
+import decodePartitions from "./__snapshots__/hz-decode-partitions-3.14.7.json";
 import {CodePointString} from "./code-point-string.js";
 import {ExecutionBudget} from "./execution-budget.js";
 import {PythonDecodeError} from "./decode-error.js";
@@ -18,9 +20,25 @@ function attempt(operation:()=>Uint8Array|CodePointString):unknown {
   }
 }
 
-it.each((["strict","ignore","replace"] as const).flatMap(policy=>[0,1,2].map(mode=>({policy,mode}))))("matches every HZ byte pair and split transition with $policy in mode $mode",({policy,mode})=>{
+it("retains the complete HZ decode oracle across leading-byte partitions",()=>{
+  expect(decodePartitions.reference.version.split(" ")[0]).toBe(evidence.reference.version.split(" ")[0]);
+  expect(decodePartitions.reference).toMatchObject({unicode:evidence.reference.unicode,byteorder:evidence.reference.byteorder});
+  expect(decodePartitions.results).toHaveLength(9);
+  for(const reference of decodePartitions.results){
+    const original=evidence.results.find(row=>row.kind==="decode"&&row.policy===reference.policy&&row.mode===reference.mode)!;
+    expect(reference.digest).toBe(original.digest);
+    expect(reference.count).toBe(original.count);
+    expect(reference.partitions.map(part=>part.block)).toEqual(Array.from({length:16},(_,block)=>block));
+    expect(reference.partitions.map(part=>part.count)).toEqual(new Array<number>(16).fill(4096));
+  }
+});
+
+it.each((["strict","ignore","replace"] as const).flatMap(policy=>
+  decodePartitions.results.filter(row=>row.policy===policy).flatMap(row=>row.partitions.map(part=>({policy,mode:row.mode,...part})))
+))("matches every HZ byte pair and split transition with $policy in mode $mode block $block",({policy,mode,block,count:expectedCount,digest})=>{
+    withoutErrorStacks(() => {
     const hash=createHash("sha256");let count=0;
-    for(let first=0;first<256;first++)for(let second=0;second<256;second++){
+    for(let first=block*16;first<(block+1)*16;first++)for(let second=0;second<256;second++){
       const budget=meter(),decoder=new DoubleByteIncrementalDecoder(hzCodec,policy),row:unknown[]=[];
       decoder.setstate([new Uint8Array(),0x123400n+BigInt(mode)],budget);
       for(const [chunk,final] of [[Uint8Array.of(first),false],[Uint8Array.of(second),false],[new Uint8Array(),true],[Uint8Array.of(126,125,65),true]] as const){
@@ -29,9 +47,9 @@ it.each((["strict","ignore","replace"] as const).flatMap(policy=>[0,1,2].map(mod
       }
       hash.update(JSON.stringify(row)+"\n");count++;
     }
-    const expected=evidence.results.find(row=>row.kind==="decode"&&row.policy===policy&&row.mode===mode)!;
-    expect(count).toBe(expected.count);
-    expect(hash.digest("hex")).toBe(expected.digest);
+    expect(count).toBe(expectedCount);
+    expect(hash.digest("hex")).toBe(digest);
+    });
 });
 
 it.each(["strict","ignore","replace"] as const)("matches HZ encode shifts, failures, finalization and state with %s",policy=>{

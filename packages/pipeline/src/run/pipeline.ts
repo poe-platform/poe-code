@@ -29,6 +29,7 @@ import type {
 } from "../types.js";
 import { assertNotAborted } from "../utils.js";
 import { getAbortUsage } from "./abort-usage.js";
+import { setTerminalTabName } from "@poe-code/terminal-name";
 
 type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
 type ResolvedPipelineRunOptions = PipelineRunOptions & Required<Pick<PipelineRunOptions, "fs" | "plan" | "runAgent">>;
@@ -211,6 +212,17 @@ async function runResolvedPipeline(
   let lastGoodStepsConfig: ResolvedStepsConfig | undefined;
   const pipelineStartTime = Date.now();
 
+  function publishPlanProgress(plan: PipelinePlan): void {
+    options.onPlanProgress?.({
+      planPath,
+      tasks: plan.tasks.map(({ id, title, status }) => ({
+        id,
+        title,
+        status: typeof status === "string" ? status : { ...status }
+      }))
+    }, { logDir: runLogDir, ...(plan.mcp ? { mcpServers: structuredClone(plan.mcp) } : {}) });
+  }
+
   async function readResolvedPlanFromContent(
     content: string
   ): Promise<{ plan: PipelinePlan; stepsConfig: ResolvedStepsConfig }> {
@@ -313,6 +325,7 @@ async function runResolvedPipeline(
   const initialContent = await fs.readFile(absolutePlanPath, "utf8");
   const { plan: initialPlan, stepsConfig: initialStepsConfig } =
     await readResolvedPlanFromContent(initialContent);
+  await setTerminalTabName(initialPlan.name?.trim() || path.basename(absolutePlanPath, path.extname(absolutePlanPath)));
   const resolvedSetup =
     initialPlan.setup === null ? undefined : (initialPlan.setup ?? initialStepsConfig.setup);
   const initialResolvedTeardown =
@@ -334,6 +347,7 @@ async function runResolvedPipeline(
     ...(resolvedSetup ? { setup: resolvedSetup } : {}),
     ...(initialResolvedTeardown ? { teardown: initialResolvedTeardown } : {})
   });
+  publishPlanProgress(initialPlan);
 
   const initialSelectionComplete = selectNextExecution(initialPlan, options.task).kind === "completed";
   const initialFinalizationPending = initialPlan.tasks.every((task) => isTaskDone(task.status)) &&
@@ -392,6 +406,7 @@ async function runResolvedPipeline(
       }
 
       const totalTasks = plan.tasks.length;
+      publishPlanProgress(plan);
       const planVars = await resolvePipelineVars(
         plan.vars ?? {},
         options.cwd,
@@ -410,6 +425,7 @@ async function runResolvedPipeline(
       const selection = selectNextExecution(plan, options.task);
 
       if (selection.kind === "completed") {
+        let archivedPath: string | undefined;
         const fullPlanComplete = plan.tasks.every((task) => isTaskDone(task.status));
         const shouldFinalize = fullPlanComplete && (
           runsCompleted > 0 || plan.finalization === "pending" || plan.finalization === "teardown_completed"
@@ -447,7 +463,7 @@ async function runResolvedPipeline(
           }
           if (options.archive !== false) {
             const id = planIdFromArchivePath(absolutePlanPath);
-            await archivePlanShared({
+            archivedPath = await archivePlanShared({
               cwd,
               homeDir,
               planDirectory: path.dirname(absolutePlanPath),
@@ -472,6 +488,7 @@ async function runResolvedPipeline(
         return {
           stopReason: runsCompleted === 0 && !shouldFinalize ? "nothing_to_run" : "completed",
           planPath,
+          ...(archivedPath ? { archivedPath } : {}),
           runsCompleted,
           totalDurationMs: Date.now() - pipelineStartTime,
           metrics
@@ -627,6 +644,7 @@ async function runResolvedPipeline(
             cachedTask.status = newStatus;
           }
         }
+        publishPlanProgress(lastGoodPlan);
       }
 
       runsCompleted += 1;

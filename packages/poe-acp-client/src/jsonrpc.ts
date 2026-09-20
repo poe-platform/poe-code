@@ -419,7 +419,7 @@ function isPlanEntry(value: unknown): value is PlanEntry {
   );
 }
 
-function isPlan(value: unknown): value is Plan {
+export function isPlan(value: unknown): value is Plan {
   return (
     isObjectRecord(value) &&
     hasValidMeta(value) &&

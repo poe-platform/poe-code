@@ -39,7 +39,7 @@ export async function buildBrowserEngine(options = {}) {
   const manifest = JSON.parse(await readFile(resolve(engineRoot, "package.json"), "utf8"));
   const bashManifest = JSON.parse(await readFile(resolve(engineRoot, "packages/safe-bash/package.json"), "utf8"));
   const filesystemManifest = JSON.parse(await readFile(resolve(engineRoot, "packages/safe-fs/package.json"), "utf8"));
-  if (manifest.name !== "poe-code" || bashManifest.name !== "virtual-bash" || bashManifest.private !== true ||
+  if (manifest.name !== "poe-code" || bashManifest.name !== "@poe-platform/safe-bash" || bashManifest.private !== true ||
       filesystemManifest.name !== "@poe-code/safe-fs" || filesystemManifest.private !== true) {
     throw new Error("Browser adapters require the current SafeBash and SafeFS workspaces");
   }
@@ -84,7 +84,7 @@ export async function buildBrowserEngine(options = {}) {
         contents: kernelExports(bash, filesystem),
         resolveDir: directory
       }));
-      builder.onResolve({ filter: /^poe-code\/safe-fs(?:\/core)?$/ }, () => ({
+      builder.onResolve({ filter: /^(?:poe-code|@poe-code)\/safe-fs(?:\/core)?$/ }, () => ({
         path: "filesystem",
         namespace: "safe-bash-browser"
       }));
@@ -164,7 +164,7 @@ export function safeBashBrowserPlugin() {
     resolveId(id, importer) {
       if (id === "virtual:safe-bash-kernel") return "\0safe-bash-browser-kernel";
       if (id === "virtual:safe-bash-worker-sources") return "\0safe-bash-browser-workers";
-      if (id === "poe-code/safe-fs" || id === "poe-code/safe-fs/core") return "\0safe-bash-browser-filesystem";
+      if (["poe-code/safe-fs", "poe-code/safe-fs/core", "@poe-code/safe-fs", "@poe-code/safe-fs/core"].includes(id)) return "\0safe-bash-browser-filesystem";
       if (id.startsWith("node:")) return prepare().then(result => resolveBrowserBuiltin(id, false, result.polyfillsRoot, importer));
     },
     async load(id) {

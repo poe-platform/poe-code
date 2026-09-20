@@ -67,7 +67,7 @@ export function createSymbolGlobal(budget: Budget) {
     name: "Symbol",
     length: 0,
     retainedValues: () => [registry],
-    construct: () => { throw new TypeError("Symbol is not intended to be constructed."); },
+    construct: () => { throw new TypeError("Symbol cannot be constructed."); },
     call: async ([description], context) =>
       Symbol(
         description === undefined ? undefined : await sandboxString(description, budget, context)

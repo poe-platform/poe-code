@@ -1,0 +1,24 @@
+{
+  "complete": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 14,
+  "scope": {
+    "configured": 15651,
+    "linted": 15651,
+    "ignored": 2041,
+    "unconfigured": 37819,
+    "ignoredDirectories": 155,
+    "heldExcluded": 5
+  },
+  "counters": {
+    "metadataOperations": 3615678,
+    "subjects": 15651,
+    "opens": 17711,
+    "closes": 17711,
+    "readBytes": 138539537,
+    "failed": false
+  },
+  "rawLogSha256": "e02cf6c4f2798942f05a8e4a68f4e6a388dc72c4362e29a093ea504d3dbfbe13",
+  "note": "Guarded root lint completed with zero errors and 14 warnings. The bulky raw inventory receipt was summarized and purged after inspection."
+}

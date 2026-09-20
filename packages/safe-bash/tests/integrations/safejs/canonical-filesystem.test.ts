@@ -1,14 +1,8 @@
 import assert from "node:assert/strict";
-import { join } from "node:path";
 import test from "node:test";
-import { fileURLToPath, pathToFileURL } from "node:url";
 import * as canonical from "poe-code/safe-fs";
 import * as portable from "poe-code/safe-fs/core";
 import * as node from "poe-code/safe-fs/node";
-import * as sdk from "poe-code/safe-js";
-import * as legacy from "poe-code/safejs";
-import * as sdkCore from "poe-code/safe-js/core";
-import * as legacyCore from "poe-code/safejs/core";
 import { Budget, declareHostOperation, makeFsModule, run } from "poe-code/safe-js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { safeJsCommands, type SafeJsRuntime } from "../../../src/commands/safejs/index.js";
@@ -32,26 +26,6 @@ test("compatibility paths expose the installed canonical constructors and neutra
   }
   for (const name of ["collectBytes", "readBytes", "toByteSource"] as const) assert.equal(io[name], canonical[name], name);
   assert.equal(createNodeFsBridge, canonical.createNodeFsBridge);
-});
-
-test("the filesystem public route resolves to the authenticated checkout or published peer", async context => {
-  const { resolvePeerProfile } = await import(new URL("../../plugins/qualified-current-release/peer.mjs", import.meta.url).href);
-  const profile = resolvePeerProfile(fileURLToPath(new URL("../../../", import.meta.url)));
-  assert.ok(profile.profile === "checkout-root" || profile.profile === "registry-release");
-  for (const route of ["safe-fs", "safe-js", "safejs"]) {
-    assert.equal(import.meta.resolve(`poe-code/${route}`), pathToFileURL(join(profile.directory, profile.peer.exports[`./${route}`].import)).href);
-  }
-  context.diagnostic(JSON.stringify({ profile: profile.profile, version: profile.peer.version, qualification: profile.qualification }));
-  assert.equal(import.meta.resolve("poe-code/safe-js"), import.meta.resolve("poe-code/safejs"));
-  assert.equal(import.meta.resolve("poe-code/safe-js/core"), import.meta.resolve("poe-code/safejs/core"));
-  assert.equal(sdk, legacy);
-  assert.equal(sdkCore, legacyCore);
-  for (const surface of [portable, node]) {
-    for (const name of ["FsError", "isFsError", "MemoryFileSystem", "MountFileSystem", "OverlayFileSystem", "WebDavFileSystem"] as const) {
-      assert.equal(surface[name], canonical[name], name);
-    }
-  }
-  assert.equal(node.createNodeFsBridge, createNodeFsBridge);
 });
 
 test("the runtime factory receives the original adapter with cwd and borrowed cancellation", () => {
@@ -84,16 +58,6 @@ test("core and Node routes preserve canonical authority through shell wrappers",
   await unrelated.writeFile("/file", new Uint8Array([1]));
   assert.equal(await portable.compareEntries(backend, "/file", unrelated, "/file"), "distinct");
   assert.deepEqual(await backend.readFile("/file"), new Uint8Array([0, 255]));
-});
-
-test("published guest runtime writes and reads the original shell adapter with virtual cwd", async () => {
-  const adapter = memory.createMemoryFileSystem();
-  await adapter.mkdir("/work");
-  const module = makeSafeJsFsModule(makeFsModule, adapter, { cwd: "/work" });
-  const result = await run('import * as fs from "fs"; await fs.writeFile("file", "6869", "hex"); return await fs.readFile("file", "utf8");', { modules: { fs: module } });
-  assert.equal(result.ok, true);
-  if (result.ok) assert.equal(result.returnValue, "hi");
-  assert.deepEqual(await adapter.readFile("/work/file"), new Uint8Array([104, 105]));
 });
 
 test("published adapter factory confines aliases and preserves cancellation without native fallback", async () => {

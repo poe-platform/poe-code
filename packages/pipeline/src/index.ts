@@ -23,6 +23,7 @@ export type {
   StepMode,
   TaskCompletion,
   TaskProgress,
+  PlanProgress,
   PlanSummary
 } from "./types.js";
 export { PIPELINE_STEP_MODES } from "./types.js";
@@ -37,6 +38,8 @@ export { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./p
 export { readPlanFile, writeTaskStatus } from "./plan/writer.js";
 export { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./run/runner.js";
 export { runPipeline } from "./run/pipeline.js";
+export { createPipelineDashboardCallbacks } from "./run/dashboard.js";
+export { runPipelineSequence, type PipelineSequenceOptions, type PipelineSequenceResult } from "./run/sequence.js";
 export { includePipelineInitialization, cancelPipelineInitialization } from "./run/initialization-result.js";
 export { interpolatePipelineVars } from "./vars/interpolate.js";
 export { resolvePipelineVars } from "./vars/resolve.js";

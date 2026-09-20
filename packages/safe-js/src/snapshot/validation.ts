@@ -1154,8 +1154,8 @@ function ownSnapshotDataEntries(value: object, path: string, runtime = false, gu
       const closures = retainedAccessorClosures(descriptor);
       const adapters = [descriptor.get, descriptor.set].filter(adapter => adapter !== undefined);
       if (closures.length > 0 && closures.length === adapters.length) {
-        // Only private engine-registered identities have this authority.
-        // Inspect retained closures without executing the accessor adapters.
+        // Inspect engine-owned guest accessor state without executing either
+        // adapter. Caller getters have no entry in the private identity table.
         closures.forEach((closure, index) => entries.push([`${key}.accessor${index}`, closure]));
         continue;
       }

@@ -2,6 +2,23 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { installPythonPackages } from '../../../src/commands/python/provisioning-runtime.js';
 
+test('installer preserves host transport failure when micropip masks it as missing metadata',async()=>{
+ const globals=new Map<string,unknown>();let committed=false;
+ const integrity=new Error('Package cache integrity mismatch: https://packages.example/metadata');
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
+  async runPythonAsync(){
+   try {(globals.get('_safe_package_metadata') as (url:string)=>unknown)('https://packages.example/metadata');}
+   catch {throw new Error("Can't fetch metadata for 'fixture'");}
+  },runPython(){return '[]';}};
+ await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:true},op=>{
+  if(op==='package-open')throw integrity;
+  if(op==='package-commit')committed=true;
+ },64),error=>error===integrity);
+ assert.equal(committed,false);assert.equal(globals.size,0);
+ await assert.rejects(runtime._api.packageManager.downloadPackage(),/only available during installation/);
+});
+
 test('empty package environment never loads installer or runtime extensions',async()=>{
  await installPythonPackages({} as never,{session:'1',requirements:[],offline:false},()=>{throw Error('unexpected request');},65536);
 });

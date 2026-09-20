@@ -16,7 +16,11 @@ the backing filesystem's capabilities as its own supported RPC surface.
 
 The defaults are 65,536 bytes per transfer, 256 simultaneous descriptors and
 65,536 entries per directory listing. `maxTransferBytes`, `maxOpenFiles`, and
-`maxDirectoryEntries` configure these admission bounds. Transfers return the
+`maxDirectoryEntries` configure these admission bounds. Directory listing limits
+are forwarded to the backend; cancellation is checked when the listing returns,
+then an oversized reply is rejected with `EFBIG` before reaching the interpreter.
+This does not bound allocations
+already made by a backend that ignores the requested limit. Transfers return the
 actual partial count; no write retry is hidden. The transport additionally must
 bound admitted concurrent messages and its serialized reply capacity. Errors,
 including exact cancellation reasons, are propagated by the asynchronous service;
@@ -27,6 +31,12 @@ closes every owned descriptor. A late acquisition is closed before cancellation
 settles. Noncooperative provider work cannot be forcibly interrupted, and close
 waits for it. A failed close is observable and does not prove the provider released
 its external resource. An owner must register cleanup before the first dispatch.
+
+Before service retirement begins, a canceled caller may still dispatch a
+validated descriptor `close` request. Content operations retain cancellation
+precedence. This release path cannot open, read or mutate files and does not
+reopen service admission after `close()` has begun. The transport must drain a
+descriptor's admitted work before releasing it.
 
 `translatePythonOpenFlags` translates the pinned Emscripten flag ABI. Exclusive
 creation delegates directly to canonical acquisition; O_NOFOLLOW is supported

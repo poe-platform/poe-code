@@ -5,15 +5,15 @@ import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as core from "@poe-platform/safe-bash";
 import { createMemoryFileSystem, FsError } from "@poe-platform/safe-fs";
-import * as optional from "@poe-platform/safe-bash-optional";
+import * as optional from "./safe-packages-opt-in.mjs";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 assert.equal(await realpath(root), root);
-const entry = fileURLToPath(import.meta.resolve("@poe-platform/safe-bash-optional"));
-assert.ok(entry.startsWith(join(root, "node_modules", "@poe-platform/safe-bash-optional") + sep));
+const entry = fileURLToPath(import.meta.resolve("@poe-platform/safe-bash/yes"));
+assert.ok(entry.startsWith(join(root, "node_modules", "@poe-platform/safe-bash") + sep));
 const optionalRequire = createRequire(entry);
-for (const name of ["@poe-platform/safe-bash-optional", "@poe-platform/safe-bash", "@poe-platform/safe-fs"]) {
+for (const name of ["@poe-platform/safe-bash", "@poe-platform/safe-fs"]) {
   const resolved = fileURLToPath(import.meta.resolve(name));
   assert.ok(resolved.startsWith(join(root, "node_modules", name) + sep));
   let current = root;
@@ -26,13 +26,17 @@ for (const name of ["@poe-platform/safe-bash-optional", "@poe-platform/safe-bash
 }
 assert.throws(() => optionalRequire.resolve("yaml"), { code: "MODULE_NOT_FOUND" });
 assert.throws(() => require.resolve("yaml"), { code: "MODULE_NOT_FOUND" });
-const manifestPath = join(root, "node_modules/@poe-platform/safe-bash-optional/package.json");
+const manifestPath = join(root, "node_modules/@poe-platform/safe-bash/package.json");
 const manifestStat = await lstat(manifestPath);
 assert.equal(manifestStat.isSymbolicLink(), false);
 assert.equal(manifestStat.isFile(), true);
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-assert.deepEqual(Object.keys(manifest.peerDependencies).sort(), ["@poe-platform/safe-bash", "@poe-platform/safe-fs", "yaml"]);
-assert.deepEqual(Object.keys(manifest.dependencies ?? {}), []);
+for (const name of Object.keys(manifest.peerDependencies)) {
+  assert.equal(manifest.peerDependenciesMeta[name]?.optional, true, name);
+  assert.throws(() => optionalRequire.resolve(name), { code: "MODULE_NOT_FOUND" });
+  assert.throws(() => require.resolve(name), { code: "MODULE_NOT_FOUND" });
+}
+assert.equal(manifest.peerDependencies["@poe-platform/safe-bash"], undefined);
 assert.equal(manifest.peerDependencies.yaml, "2.9.0");
 assert.equal(manifest.peerDependenciesMeta.yaml.optional, true);
 assert.equal(optional.Shell, core.Shell);

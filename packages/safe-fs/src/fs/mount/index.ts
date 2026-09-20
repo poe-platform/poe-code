@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
@@ -68,7 +68,7 @@ function fail(code: ErrnoCode): never {
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, opaqueIdentity, opaqueVersion, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(revision === undefined ? {} : { revision }),
@@ -77,6 +77,8 @@ function snapshotStat(stat: FileStat): FileStat {
     ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     ...(identityScope === undefined ? {} : { identityScope }),
+    ...(opaqueIdentity === undefined ? {} : { opaqueIdentity }),
+    ...(opaqueVersion === undefined ? {} : { opaqueVersion }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
     ...(rdevMajor === undefined ? {} : { rdevMajor }),
@@ -143,13 +145,13 @@ export class MountFileSystem implements FileSystem {
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
         open: ["open"],
-        atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
+        atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
         descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
       };
       const values = mounts.map(({ backend }) => {
         if (backend.capabilities.readOnly === true
-          && !["open", "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
+          && !["open", "versionedDescriptors", "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
         const declared = backend.capabilities[capability];
         if (capability === "descriptorWriteStream" && backend.capabilities.streamingWrite === false) return false;
         return declared === true && optional[capability]?.some(method => typeof backend[method] !== "function") ? false : declared;
@@ -158,7 +160,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open",
+      "atomicFilePublication", "atomicEntryRemoval", "atomicTreeRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open", "versionedDescriptors",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
       "streamingAppend", "randomAccessWrite", "descriptorWriteStream", "retainedResize", "atomicResize", "symlinks", "hardlinks", "permissions", "timestamps",
@@ -597,6 +599,18 @@ export class MountFileSystem implements FileSystem {
     } };
   }
 
+  publishFileConditional(path: string, source: ByteSource, options: ConditionalFilePublicationOptions): Promise<FileStat> {
+    return this.operation("publishFileConditional", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      const backend = location.mount.backend;
+      await requireOwnedMutation(backend, location.local, "atomicFilePublication", options, options.expected === null);
+      if (!backend.publishFileConditional) fail("ENOTSUP");
+      return snapshotStat(await backend.publishFileConditional(location.local, source, options));
+    }, undefined, true);
+  }
+
   writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
     return this.operation("writeFileConditional", path, options, async () => {
       const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
@@ -609,6 +623,18 @@ export class MountFileSystem implements FileSystem {
     }, undefined, true);
   }
 
+  removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    return this.operation("removeEntryConditional", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      const backend = location.mount.backend;
+      await requireOwnedMutation(backend, location.local, "atomicEntryRemoval", options);
+      if (!backend.removeEntryConditional) fail("ENOTSUP");
+      await backend.removeEntryConditional(location.local, options);
+    });
+  }
+
   removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
     return this.operation("removeFileConditional", path, options, async () => {
       const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
@@ -618,6 +644,18 @@ export class MountFileSystem implements FileSystem {
       await requireOwnedMutation(backend, location.local, "atomicFileMutation", options);
       if (!backend.removeFileConditional) fail("ENOTSUP");
       await backend.removeFileConditional(location.local, options);
+    });
+  }
+
+  removeTreeConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    return this.operation("removeTreeConditional", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      const backend = location.mount.backend;
+      await requireOwnedMutation(backend, location.local, "atomicTreeRemoval", options);
+      if (!backend.removeTreeConditional) fail("ENOTSUP");
+      await backend.removeTreeConditional(location.local, options);
     });
   }
 

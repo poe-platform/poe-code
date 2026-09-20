@@ -289,3 +289,16 @@ describe("resolveBundleGraph", () => {
     expect(external).not.toContain("@poe-code/agent-spawn");
   });
 });
+
+
+it("leaves explicitly external workspaces to their published runtime dependency", async () => {
+  const graph = await resolveBundleGraph("/repo", [{dir: "tokenfill", pkg: {name: "tokenfill", exports: {"./tokenizer": "./dist/tokenizer.js"}}}], createFileSystem({dependencies: {tokenfill: "^0.0.14"}, poeCode: {bundle: {external: ["tokenfill"]}}}));
+  expect(graph.alias).not.toHaveProperty("tokenfill");
+  expect(graph.alias).not.toHaveProperty("tokenfill/tokenizer");
+  expect(graph.external).toContain("tokenfill");
+});
+
+
+it("rejects external workspaces without a declared runtime dependency", async () => {
+  await expect(resolveBundleGraph("/repo", [], createFileSystem({devDependencies: {tokenfill: "*"}, poeCode: {bundle: {external: ["tokenfill"]}}}))).rejects.toThrow("must be declared as a runtime dependency");
+});

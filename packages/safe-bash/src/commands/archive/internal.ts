@@ -22,6 +22,23 @@ export interface ArchiveLimits {
 export interface ArchiveCommandsOptions {
   readonly replace?: boolean;
   readonly limits?: Partial<ArchiveLimits>;
+  /** Explicit trusted host capabilities; neither capability reads shell stdin. */
+  readonly zipHost?: ZipHost;
+  /** Defaults for creation; CLI -Z and --encryption override these. */
+  readonly zip?: Readonly<{ compression?: "store" | "deflate" | "bzip2" | "lzma"; encryption?: ZipEncryptionProfile }>;
+}
+
+export type ZipEncryptionProfile = "zipcrypto" | "aes-128-ae1" | "aes-128-ae2" | "aes-192-ae1" | "aes-192-ae2" | "aes-256-ae1" | "aes-256-ae2";
+
+export interface ZipHost {
+  /** Resolve a zero-based input disk to an explicit VFS path. No directory discovery. */
+  readonly volume?: (request: Readonly<{ archive: string; disk: number; disks: number; signal: AbortSignal }>) => string | undefined | Promise<string | undefined>;
+  /** Approve a staged volume transition; false/EOF cancels before publication. */
+  readonly volumePrompt?: (request: Readonly<{ path: string; disk: number; disks: number; signal: AbortSignal }>) => boolean | Promise<boolean>;
+  /** Supply cryptographically secure, fresh bytes. Product code never substitutes entropy. */
+  readonly entropy?: (length: number, signal: AbortSignal) => Uint8Array | Promise<Uint8Array>;
+  /** Host must suppress terminal echo and return owned password bytes, or undefined on EOF. */
+  readonly password?: (request: Readonly<{ prompt: string; maxBytes: number; signal: AbortSignal }>) => Promise<Uint8Array | undefined>;
 }
 
 export const DEFAULT_ARCHIVE_LIMITS: Readonly<ArchiveLimits> = Object.freeze({

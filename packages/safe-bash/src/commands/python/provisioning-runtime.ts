@@ -23,7 +23,9 @@ export async function installPythonPackages(
  if(start.requirements.length===0)return;
  const runtime=supplied as InstallerRuntime;
  if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new Error('Python package installer ABI requires Pyodide 314.0.6');
+ let transportFailure:{error:unknown}|undefined;
  const fetch=(url:string,expected?:string):{bytes:Uint8Array;headers:readonly(readonly[string,string])[]}=>{
+  try {
   const opened=request('package-open',start.session,url,expected) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
   try {
   const bytes=new Uint8Array(opened.size);
@@ -34,6 +36,11 @@ export async function installPythonPackages(
   }
   return {bytes,headers:opened.headers};
   } finally {request('package-close',start.session,opened.key);}
+  } catch(error) {
+   // Micropip may replace callback errors with a generic package-index failure.
+   transportFailure??={error};
+   throw error;
+  }
  };
  // The pinned loader still owns dependency ordering, wheel extraction and dynamic linking.
  // Replacing only its download operation prevents implicit Node/CDN network fallbacks.
@@ -178,6 +185,8 @@ _safe_installed_json = _safe_json.dumps([name + '==' + version for name, version
 `);
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
   request('package-commit',start.session,pinned);
+ }catch(error){
+  throw transportFailure ? transportFailure.error : error;
  }finally{
   runtime._api.packageManager.downloadPackage=async()=>{throw new Error('Python package transport is only available during installation');};
   // These bridge callbacks are not an application Python networking capability.

@@ -1,6 +1,0 @@
-{
-  "packages/safe-js/dist/index.js": "20a4d2fbf529a315d2012433609d46a5dc06d51f3a327b8cb7ce26c827162a38",
-  "packages/safe-js/dist/interp/values.js": "3d8678b1a0fa0ff63ebe063e6f152162b6497488abd199203a21b3a74d17fefa",
-  "packages/safe-js/dist/interp/budget.js": "c9a0be2fa0330ca068a9362bafa6ca6fea288c0bb49f72b6b38bda7e56232c43",
-  "packages/safe-js/dist/run.js": "33eb5f1bc3339090283b0a276f768fe8ea9ce41d1d6b5cf7556d5001113f4399"
-}

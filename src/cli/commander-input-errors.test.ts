@@ -89,20 +89,6 @@ describe("commander input errors", () => {
     expect(error.message).toContain("choices: claude-code");
   });
 
-  it("lists the built-in harness kinds when the kind argument is missing", async () => {
-    const error = await captureParseError(["harness", "new"]);
-
-    expect(error.message).toContain("<kind>");
-    expect(error.message).toContain("choices: ralph-demo");
-  });
-
-  it("rejects an unknown harness kind with the valid kinds", async () => {
-    const error = await captureParseError(["harness", "new", "bogus", "demo"]);
-
-    expect(error).toBeInstanceOf(ValidationError);
-    expect(error.message).toContain("Allowed choices are ralph-demo");
-  });
-
   it("reports an invalid option choice as a validation error", async () => {
     const error = await captureParseError([
       "spawn",

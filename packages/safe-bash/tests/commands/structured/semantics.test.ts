@@ -268,6 +268,7 @@ for (const fixture of [
   { start: -1, end: null, size: 1025, reason: null },
   { start: -1, end: null, size: 600, reason: false },
 ]) test(`slice cooperatively aborts within boundary/count passes: ${JSON.stringify(fixture)}`, async context => {
+  context.mock.method(performance, "now", () => 0);
   const controller = new AbortController();
   const budget = new Budget(defaultJqLimits, controller.signal);
   let checkpoints = 0;

@@ -91,13 +91,13 @@ it("bridges either block-size contract with explicit legacy precedence", async (
   expect(bridgeStats(stat).blksize).toBe(4096);
 });
 
-it("preserves backing canonical descriptors while keeping synthetic devices retained-only", async () => {
+it("preserves backing canonical descriptors alongside synthetic null descriptors", async () => {
   const memory = new MemoryFileSystem();
   await memory.writeFile("/file", new Uint8Array([1, 2, 3]));
   const devices = new DeviceFileSystem(memory);
-  expect(devices.capabilities.open).toBeUndefined();
+  expect(devices.capabilities.open).toBe(true);
   expect((await devices.capabilitiesFor("/file")).open).toBe(true);
-  expect((await devices.capabilitiesFor("/dev/null")).open).toBe(false);
+  expect((await devices.capabilitiesFor("/dev/null")).open).toBe(true);
   const descriptor = await devices.open("/file", { access: "readwrite" });
   const original = await descriptor.stat();
   await memory.rm("/file");
@@ -110,9 +110,12 @@ it("preserves backing canonical descriptors while keeping synthetic devices reta
   await descriptor.close();
   expect(await memory.readFile("/file")).toEqual(new Uint8Array([4]));
   await memory.symlink("/dev/null", "/null-alias");
-  for (const path of ["/dev/null", "/dev", "/null-alias"]) {
-    await expect(devices.open(path, { access: "read" })).rejects.toMatchObject({ code: "ENOTSUP" });
+  for (const path of ["/dev/null", "/null-alias"]) {
+    const nullDescriptor = await devices.open(path, { access: "read" });
+    expect(await nullDescriptor.read(new Uint8Array(1), null)).toBe(0);
+    await nullDescriptor.close();
   }
+  await expect(devices.open("/dev", { access: "read" })).rejects.toMatchObject({ code: "ENOTSUP" });
 });
 
 it("closes a canonical descriptor acquired after device-view cancellation", async () => {

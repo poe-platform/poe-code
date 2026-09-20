@@ -3,10 +3,35 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
-    "noEmit": true
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "vite/client"
+    ],
+    "noEmit": true,
+    "paths": {
+      "poe-code/safe-fs": [
+        "packages/safe-fs/dist/index.d.ts"
+      ],
+      "poe-code/safe-fs/core": [
+        "packages/safe-fs/dist/core.d.ts"
+      ],
+      "poe-code/safe-playwright": [
+        "packages/safe-playwright/dist/index.d.ts"
+      ],
+      "poe-code/safe-playwright/adapter": [
+        "packages/safe-playwright/dist/adapter.d.ts"
+      ]
+    }
   },
-  "include": ["src"],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }

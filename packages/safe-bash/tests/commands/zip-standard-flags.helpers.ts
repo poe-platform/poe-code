@@ -1,5 +1,5 @@
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
-import { toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
+import { CommandRegistry, toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
 import { settings, type ArchiveCommandsOptions } from "../../src/commands/archive/internal.js";
 import { makeZipEntry, writeZipArchive, type ZipEntry } from "../../src/commands/archive/zip-format.js";
 import { createZipCommand } from "../../src/commands/archive/zip.js";
@@ -44,8 +44,15 @@ export async function execute(command: "zip" | "unzip", fs: FileSystem, args: re
     stdout: { async write(chunk) { stdout.push(Uint8Array.from(chunk)); } },
     stderr: { async write(chunk) { stderr.push(Uint8Array.from(chunk)); } }, ...overrides,
   };
+  const registry = new CommandRegistry([createUnzipCommand(options)]);
+  const registeredContext: CommandContext = { ...context, invoke: context.invoke ?? (async (name, args, invocation = {}) => {
+    const definition = registry.get(name);
+    if (!definition) return { exitCode: 127 };
+    const { argumentValues: ignoredValues, ...base } = context;
+    return definition.execute({ ...base, ...invocation, signal: invocation.signal ?? context.signal, command: name, args });
+  }) };
   const definition = command === "zip" ? createZipCommand(options) : createUnzipCommand(options);
-  const result = await definition.execute(context);
+  const result = await definition.execute(registeredContext);
   return { exitCode: result.exitCode, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr).toString() };
 }
 

@@ -37,7 +37,7 @@ node packages/superintendent/dist/cli.js --help
 Main commands:
 
 ```sh
-poe-code superintendent run [doc] [--agent <builder-agent>]
+poe-code superintendent run [docs...] [--agent <builder-agent>] [--tui]
 poe-code superintendent validate <doc>
 poe-code superintendent complete <doc> [--reason <text>]
 poe-code superintendent install [agent] [--scope local|global] [--force]
@@ -50,6 +50,8 @@ poe-code superintendent inspector run <doc> [name]
 Behavior notes:
 
 - `run` starts the full loop and uses the live dashboard in terminal output. It also accepts shared runtime flags: `--runtime host|docker`, `--runtime-image`, `--detach`, `--runner-sync`, `--tui`, and `--worktree`. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
+- Queue follow-ups in the dashboard with Enter; Ctrl+P switches to adding a plan, and Alt+Up/Down chooses the message's target plan. Messages run through that plan's builder after completion and before the next plan. `--after-plan "Review the API" --after-plan "Verify the tests"` applies both messages to every initial or subsequently added plan.
+- Esc opens browsing controls: `v` shows the task and plan list, Space pauses or resumes the loop, `e` opens the current plan, `l` opens the latest log, and `q` requests a graceful stop. Ctrl+C cancels immediately. Failed, stopped, or limited plans retain later queued work.
 - `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
 - `complete` force-transitions the document status to `completed`.
 - `install` installs the Superintendent skill and scaffolds the shared plan directory. `--force` overwrites an existing skill instead of failing.
@@ -92,6 +94,19 @@ Runtime-injected workflow tool:
 `superintendent.run` uses the same runtime loop as the CLI command, but the MCP surface runs without the interactive dashboard.
 
 ## SDK API summary
+
+`runSuperintendentSequence({ docs, runAgent, ...options })` runs multiple plans in order. Supply a shared `createRunQueue()` instance instead of `docs` to append plans and targeted messages during execution. `afterEachPlan` mirrors the CLI flag; `onQueueChange` reports immutable snapshots. The result includes all plan results, follow-up results, and the final queue. Follow-ups preserve the builder's agent, mode, MCP servers, and working directory.
+
+The installed `poe-code` SDK exposes the sequence and shared queue:
+
+```ts
+import {
+  createRunQueue,
+  runSuperintendentSequence,
+  type SuperintendentSequenceOptions,
+  type SuperintendentSequenceResult
+} from "poe-code";
+```
 
 Import from the package root:
 

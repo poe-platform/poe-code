@@ -1,0 +1,78 @@
+
+> @poe-code/pdf@0.0.1 test
+> cd ../.. && vitest run packages/pdf
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pdf/src/objects.test.ts (13 tests) 483ms
+ ✓ packages/pdf/src/layout.test.ts (16 tests) 719ms
+ ✓ packages/pdf/src/images.test.ts (5 tests) 298ms
+ ✓ packages/pdf/src/index.test.ts (8 tests) 260ms
+ ✓ packages/pdf/src/line-height.test.ts (2 tests) 91ms
+ ❯ packages/pdf/src/serialization.test.ts (5 tests | 1 failed) 9ms
+   ✓ writes original minimal expected objects and checked xref offsets 2ms
+   ✓ rejects exhausted budgets before copying into an output allocation 1ms
+   × rejects malformed identity counts before enumerating resources 4ms
+   ✓ rejects dangling references, sparse identities and unsafe object sizes 1ms
+   ✓ rejects nonfinite PDF numbers and direct cycles before copying 0ms
+FAIL packages/pdf/src/serialization.test.ts > rejects malformed identity counts before enumerating resources
+AssertionError: expected PdfError: Sparse PDF object identities { code: '…' } to match object { code: 'E_LIMIT' }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_LIMIT",
++ PdfError {
++   "code": "E_CAPABILITY",
+  }
+
+ ❯ packages/pdf/src/serialization.test.ts:41:73
+     39|     context.largestObjectNumber = count;
+     40|     const enumerate = vi.spyOn(context, "enumerateIndirectObjects");
+     41|     await expect(serializePdf(context, {outputBytes: 1000, objects: 10…
+       |                                                                         ^
+     42|     expect(enumerate).not.toHaveBeenCalled();
+     43|   }
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pdf/src/serialization.test.ts > rejects malformed identity counts before enumerating resources
+AssertionError: expected PdfError: Sparse PDF object identities { code: '…' } to match object { code: 'E_LIMIT' }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_LIMIT",
++ PdfError {
++   "code": "E_CAPABILITY",
+  }
+
+ ❯ packages/pdf/src/serialization.test.ts:41:73
+     39|     context.largestObjectNumber = count;
+     40|     const enumerate = vi.spyOn(context, "enumerateIndirectObjects");
+     41|     await expect(serializePdf(context, {outputBytes: 1000, objects: 10…
+       |                                                                         ^
+     42|     expect(enumerate).not.toHaveBeenCalled();
+     43|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 48 passed (49)
+   Start at  21:50:10
+   Duration  2.03s (transform 275ms, setup 145ms, import 1.51s, tests 1.86s, environment 0ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code-5/packages/pdf
+npm error workspace @poe-code/pdf@0.0.1
+npm error location /Users/kjopek/Workspace/poe-code-5/packages/pdf
+npm error command failed
+npm error command sh -c cd ../.. && vitest run packages/pdf

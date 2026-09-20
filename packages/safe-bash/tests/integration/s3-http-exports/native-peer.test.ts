@@ -42,7 +42,7 @@ function fixture(native = true, empty = false) {
     ] as [string, string | Buffer][] : []),
   ]);
   const io = createFsFromVolume(Volume.fromJSON({
-    "/checkout/packages/safe-bash/package.json": JSON.stringify({ name: "virtual-bash", private: true,
+    "/checkout/packages/safe-bash/package.json": JSON.stringify({ name: "@poe-platform/safe-bash", private: true,
       peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." },
       poeCode: { integration: { peerProfile: "checkout-root" } },
     }),
@@ -50,9 +50,9 @@ function fixture(native = true, empty = false) {
       "packages/safe-bash": { peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." } },
       "node_modules/poe-code": { resolved: "", link: true },
     } }),
-    "/consumer/node_modules/virtual-bash/package.json": '{"type":"module"}',
-    "/consumer/node_modules/virtual-bash/dist/index.js": 'export * from "poe-code/safe-fs";',
-    "/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js": "export {};",
+    "/consumer/node_modules/@poe-platform/safe-bash/package.json": '{"type":"module"}',
+    "/consumer/node_modules/@poe-platform/safe-bash/dist/index.js": 'export * from "poe-code/safe-fs";',
+    "/consumer/node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js": "export {};",
   }));
   for (const [path, bytes] of files) {
     io.mkdirSync(dirname(`/checkout/${path}`), { recursive: true });
@@ -94,20 +94,20 @@ test("S3 packed consumer rejects a serialized peer instead of trusting native me
 
 test("S3 packed consumer rejects a private specifier disguised as a legacy public entry", () => {
   const setup = fixture(false);
-  setup.io.writeFileSync("/consumer/node_modules/virtual-bash/dist/index.js", `import "${specifier}";`);
+  setup.io.writeFileSync("/consumer/node_modules/@poe-platform/safe-bash/dist/index.js", `import "${specifier}";`);
   const legacy = { entries: { ...setup.peer.entries, [specifier]: runtime }, files: setup.peer.files };
   assert.throws(() => bindPackedConsumer("/consumer", setup.packed, legacy, setup.declarations, ts, setup.io), /Unbound runtime dependency/);
 });
 
 test("S3 packed consumer denies a direct relative route into the native loader", () => {
   const setup = fixture();
-  setup.io.writeFileSync("/consumer/node_modules/virtual-bash/dist/index.js", `import "../../poe-code/${directory}/loader.mjs";`);
+  setup.io.writeFileSync("/consumer/node_modules/@poe-platform/safe-bash/dist/index.js", `import "../../../poe-code/${directory}/loader.mjs";`);
   assert.throws(() => bindPackedConsumer("/consumer", setup.packed, setup.peer, setup.declarations, ts, setup.io), /Native peer assets require/);
 });
 
-for (const route of [specifier, "#foreign-native", `../../poe-code/${directory}/linux-x64-glibc.node`]) test(`S3 native proof does not authorize a foreign importer: ${route}`, () => {
+for (const route of [specifier, "#foreign-native", `../../../poe-code/${directory}/linux-x64-glibc.node`]) test(`S3 native proof does not authorize a foreign importer: ${route}`, () => {
   const setup = fixture();
-  setup.io.writeFileSync("/consumer/node_modules/virtual-bash/dist/index.js", `import "${route}";`);
+  setup.io.writeFileSync("/consumer/node_modules/@poe-platform/safe-bash/dist/index.js", `import "${route}";`);
   assert.throws(() => bindPackedConsumer("/consumer", setup.packed, setup.peer, setup.declarations, ts, setup.io), /Unbound runtime dependency|Native peer assets require/);
 });
 
@@ -162,7 +162,7 @@ test("S3 native proof rechecks staged membership after candidate reads", () => {
   const fileSystem = { ...setup.io, readAdmittedInput(filename: string, maximum: number) {
     const bytes = setup.io.readFileSync(filename) as Buffer;
     assert.ok(bytes.length <= maximum);
-    if (filename === "/consumer/node_modules/virtual-bash/dist/index.js") setup.io.writeFileSync(`/consumer/${prefix}${directory}/late.node`, "late");
+    if (filename === "/consumer/node_modules/@poe-platform/safe-bash/dist/index.js") setup.io.writeFileSync(`/consumer/${prefix}${directory}/late.node`, "late");
     return bytes;
   } };
   assert.throws(() => bindPackedConsumer("/consumer", setup.packed, setup.peer, setup.declarations, ts, fileSystem), /membership changed/);
@@ -173,7 +173,7 @@ test("S3 native proof rechecks source bytes after candidate reads", () => {
   const fileSystem = { ...setup.io, readAdmittedInput(filename: string, maximum: number) {
     const bytes = setup.io.readFileSync(filename) as Buffer;
     assert.ok(bytes.length <= maximum);
-    if (filename === "/consumer/node_modules/virtual-bash/dist/index.js") setup.io.appendFileSync(`/checkout/${directory}/linux-x64-glibc.node`, Buffer.from([0]));
+    if (filename === "/consumer/node_modules/@poe-platform/safe-bash/dist/index.js") setup.io.appendFileSync(`/checkout/${directory}/linux-x64-glibc.node`, Buffer.from([0]));
     return bytes;
   } };
   assert.throws(() => bindPackedConsumer("/consumer", setup.packed, setup.peer, setup.declarations, ts, fileSystem), /changed/);
@@ -198,5 +198,5 @@ test("S3 native proof never parses opaque assets or repeats the native loader pa
     return ts.createSourceFile(...args);
   } };
   bindPackedConsumer("/consumer", setup.packed, setup.peer, setup.declarations, compiler, setup.io);
-  assert.deepEqual(parsed.sort(), ["node_modules/virtual-bash/dist/fs/s3/http/index.js", "node_modules/virtual-bash/dist/index.js"]);
+  assert.deepEqual(parsed.sort(), ["node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js", "node_modules/@poe-platform/safe-bash/dist/index.js"]);
 });

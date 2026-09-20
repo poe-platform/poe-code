@@ -23,17 +23,19 @@ describe("descriptor wrapper admission", () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["read", "write", "readwrite"] as const)("quota refuses %s without leaking Proxy open", async access => {
+  it.each(["read", "write", "readwrite"] as const)("quota wraps %s without leaking Proxy open", async access => {
     const source = new MemoryFileSystem();
     const open = vi.spyOn(source, "open");
     const quota = withFileSystemQuota(source, { maxBytes: 4 });
-    expect(quota.capabilities.open).toBe(false);
-    expect((await quota.capabilitiesFor!("/file")).open).toBe(false);
-    await expect(quota.open!("/file", { access, creation: "ifMissing" })).rejects.toMatchObject({ code: "ENOTSUP" });
+    expect(quota.capabilities.open).toBe(true);
+    expect((await quota.capabilitiesFor!("/file")).open).toBe(true);
+    const descriptor = await quota.open!("/file", { access, creation: "ifMissing" });
+    expect(descriptor).not.toBe(await open.mock.results[0]!.value);
+    await descriptor.close();
     const controller = new AbortController();
     controller.abort(false);
     await expect(quota.open!("/file", { access, signal: controller.signal })).rejects.toBe(false);
-    expect(open).not.toHaveBeenCalled();
+    expect(open).toHaveBeenCalledTimes(1);
   });
 
   it("readonly forwards read-only retained identity and masks an over-capable provider", async () => {
@@ -113,11 +115,16 @@ describe("descriptor wrapper admission", () => {
     await expect(mount.open("/link", { access: "write", creation: "exclusive" })).rejects.toMatchObject({ code: "EEXIST" });
     await expect(mount.open("/tree", { access: "read" })).rejects.toMatchObject({ code: "EISDIR" });
     expect((await mount.capabilitiesFor("/tree")).open).toBe(false);
-    expect((await mount.capabilitiesFor("/tree/leaf/file")).open).toBe(false);
-    await expect(mount.open("/tree/leaf/file", { access: "write", creation: "ifMissing" })).rejects.toMatchObject({ code: "ENOTSUP" });
+    expect((await mount.capabilitiesFor("/tree/leaf/file")).open).toBe(true);
+    const writer = await mount.open("/tree/leaf/file", { access: "write", creation: "ifMissing" });
+    await writer.write(new Uint8Array(5), null);
+    await expect(writer.write(new Uint8Array(1), null)).rejects.toMatchObject({ code: "ENOSPC" });
+    await writer.close();
     const readonly = new ReadOnlyFileSystem(quota);
-    expect(readonly.capabilities.open).toBe(false);
-    await expect(readonly.open("/file", { access: "read" })).rejects.toMatchObject({ code: "ENOTSUP" });
+    expect(readonly.capabilities.open).toBe(true);
+    const reader = await readonly.open("/file", { access: "read" });
+    expect(await reader.read(new Uint8Array(5), null)).toBe(5);
+    await reader.close();
   });
 
   it("overlay and object providers explicitly refuse without touching underlying storage", async () => {

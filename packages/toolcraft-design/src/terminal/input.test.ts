@@ -18,6 +18,31 @@ function parseAtSplits(input: Buffer): TerminalInputEvent[][] {
 describe("createInputParser", () => {
   afterEach(() => vi.useRealTimers());
 
+  it("recognizes terminal-pilot Alt+Arrow sequences at every chunk boundary", () => {
+    for (const events of parseAtSplits(Buffer.from("\u001b\u001b[B"))) {
+      expect(events).toEqual([{ type: "key", name: "down", ctrl: false, alt: true, shift: false }]);
+    }
+  });
+
+  it("recognizes Alt+Enter and Delete for multiline composer editing", () => {
+    const parser = createInputParser();
+    expect(parser.feed(Buffer.from("\u001b\r\u001b[3~"))).toEqual([
+      { type: "key", name: "enter", ctrl: false, alt: true, shift: false },
+      { type: "key", name: "delete", ctrl: false, alt: false, shift: false }
+    ]);
+    parser.destroy();
+  });
+
+  it("resolves repeated bare Escape keys after the ambiguity timeout", () => {
+    vi.useFakeTimers();
+    const onEvent = vi.fn();
+    const parser = createInputParser({ onEvent });
+    expect(parser.feed(Buffer.from("\u001b\u001b"))).toEqual([]);
+    vi.advanceTimersByTime(50);
+    expect(onEvent.mock.calls.map(([event]) => event.name)).toEqual(["escape", "escape"]);
+    parser.destroy();
+  });
+
   it.each([
     ["CSI arrow", Buffer.from("\u001b[A")],
     ["SS3 arrow", Buffer.from("\u001bOA")],

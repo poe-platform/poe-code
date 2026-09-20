@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 import type { Command } from "commander";
 import {
   cancel,
-  createDashboard,
   isCancel,
   multiselect,
   promptText,
@@ -18,21 +17,17 @@ import {
   allAgents
 } from "@poe-code/agent-defs";
 import {
-  getSpawnConfig,
-  streamAcpEventsToDashboard,
-  type AcpMiddleware
+  createDashboardAgentRunner
 } from "@poe-code/agent-spawn";
-import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
+import { createHarnessDashboard, createRunQueue, formatRunQueueSummary, skillPlanConfigSection, type RunQueue } from "@poe-code/agent-harness-tools";
 import { resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
 import { installSkillFile, type SkillInstallOutcome } from "./install-skill-file.js";
 import {
-  mergePipelineCallbacks,
   readMergedDocument,
   readMergedDocumentReadonly,
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config/core";
-import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
@@ -50,8 +45,10 @@ import { resolvePipelineLoopAgent } from "./pipeline-loop-agent.js";
 import {
   runPipelineInit as sdkRunPipelineInit,
   runPipeline as sdkRunPipeline,
+  runPipelineSequence as sdkRunPipelineSequence,
+  type PipelineSequenceOptions,
+  type PipelineSequenceResult,
   type PipelineInitSource,
-  type PipelineRunOptions,
   type PipelineRunResult,
   type PlanSummary,
   type TaskCompletion,
@@ -65,6 +62,7 @@ import {
   pickWorktreeOptions
 } from "./worktree-options.js";
 import {
+  createPipelineDashboardCallbacks,
   buildExecutionPrompt,
   interpolatePipelineVars,
   loadPipelineConfig,
@@ -78,9 +76,7 @@ import {
   validateResolvedPromptVars
 } from "@poe-code/pipeline";
 import {
-  createStreamingDashboardLineBuffer,
   formatDashboardDuration,
-  formatDashboardTimestamp,
   registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
@@ -141,14 +137,9 @@ type PipelineInstallCommandOptions = {
 };
 
 type PipelineDashboardRunOptions = {
-  agent: string;
-  model?: string;
-  planPath: string;
-  planIndex: number;
-  totalPlans: number;
-  queuedPlans: string[];
-  runOptions: PipelineRunOptions;
-  integrations?: Integrations;
+  queue: RunQueue;
+  runOptions: PipelineSequenceOptions;
+  validatePlan(path: string): Promise<string>;
 };
 
 function createPipelinePlanPromptHandlers(cancelMessage: string): {
@@ -237,22 +228,18 @@ function resolvePipelineInitSourcePath(
   };
 }
 
-const PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT = 3;
-
-function isActivityTimeoutError(error: unknown): boolean {
-  return error instanceof Error && error.name === "ActivityTimeoutError";
-}
-
 function formatRunSummary(result: PipelineRunResult): string {
+  if (result.stopReason === "nothing_to_run") return `${path.basename(result.planPath)} · Already complete`;
   const metrics = result.metrics;
-
+  const tokens = metrics.totalInputTokens + metrics.totalOutputTokens;
   return [
-    `Runs: ${result.runsCompleted}`,
-    `Tasks: ${metrics.tasksCompleted} completed, ${metrics.tasksFailed} failed`,
-    `Steps: ${metrics.stepsCompleted} completed`,
-    `Total tokens: ${metrics.totalInputTokens} input, ${metrics.totalOutputTokens} output, ${metrics.totalCachedTokens} cached`,
-    `Duration: ${formatDashboardDuration(result.totalDurationMs)}`
-  ].join("\n   ");
+    path.basename(result.planPath),
+    `${metrics.tasksCompleted} task${metrics.tasksCompleted === 1 ? "" : "s"}`,
+    `${metrics.stepsCompleted} step${metrics.stepsCompleted === 1 ? "" : "s"}`,
+    ...(metrics.tasksFailed ? [`${metrics.tasksFailed} failed`] : []),
+    tokens > 0 ? `${tokens.toLocaleString("en-US")} tokens` : "Usage unavailable",
+    formatDashboardDuration(result.totalDurationMs)
+  ].filter(Boolean).join(" · ");
 }
 
 function formatPipelineConfigSummary(options: {
@@ -316,11 +303,18 @@ async function dryRunPipelinePlans(options: {
   container: CliContainer;
   resources: ReturnType<typeof createExecutionResources>;
   planPaths: string[];
+  afterEachPlan?: readonly string[];
   task?: string;
   maxRuns?: number;
   archive: boolean;
 }): Promise<void> {
-  for (const planPath of options.planPaths) {
+  const queue = createRunQueue({ plans: options.planPaths, afterEachPlan: options.afterEachPlan, cwd: options.container.env.cwd });
+  for (const item of queue.getSnapshot().items) {
+    if (item.kind === "message") {
+      options.resources.logger.dryRun(`Then message: ${item.text}`);
+      continue;
+    }
+    const planPath = item.path;
     const absolutePath = resolveAbsolutePlanPath(
       planPath,
       options.container.env.cwd,
@@ -383,314 +377,61 @@ function formatTaskCompleteMessage(progress: TaskCompletion): string {
   return `Task ${progress.taskId} ${status} in ${duration}${usage}`;
 }
 
-function formatDashboardCurrentAction(progress: TaskProgress): string {
-  if (progress.phase) {
-    return progress.taskTitle;
-  }
-
-  const parts = [`Task ${progress.taskIndex}/${progress.totalTasks}`, progress.taskTitle || progress.taskId];
-  if (progress.stepName) {
-    parts.push(progress.stepName);
-  }
-  if (progress.stepIndex !== undefined && progress.totalSteps !== undefined) {
-    parts.push(`step ${progress.stepIndex}/${progress.totalSteps}`);
-  }
-
-  return parts.join(" · ");
-}
-
-function formatPipelineStageLabel(progress: TaskProgress): string {
-  if (progress.phase) {
-    return progress.phase;
-  }
-
-  return progress.stepName ? `${progress.taskId}:${progress.stepName}` : progress.taskId;
-}
-
-function createPipelineDashboardRunAgent(options: {
-  appendOutput: (kind: "tool" | "error", message: string, id?: string) => void;
-  activeStage: () => string;
-  middlewares?: AcpMiddleware[];
-}): NonNullable<PipelineRunOptions["runAgent"]> {
-  return async (input) => {
-    const spawnConfig = getSpawnConfig(input.agent);
-    const protocolStdout = spawnConfig?.kind === "cli" && Boolean(spawnConfig.adapter);
-    let lastError: unknown;
-    for (let attempt = 0; attempt < PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt++) {
-      const toolBuffer = createStreamingDashboardLineBuffer((line, id) => {
-        options.appendOutput("tool", `[${options.activeStage()}] ${line}`, id);
-      });
-      const errorBuffer = createStreamingDashboardLineBuffer((line, id) => {
-        options.appendOutput("error", `[${options.activeStage()}] ${line}`, id);
-      });
-      let sawStdout = false;
-      let sawStderr = false;
-
-      try {
-        const { events, result } = sdkSpawn(input.agent, {
-          captureSession: false,
-          prompt: input.prompt,
-          cwd: input.cwd,
-          logDir: input.logDir,
-          model: input.model,
-          mode: input.mode,
-          ...(input.hooks ? { hooks: input.hooks } : {}),
-          ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-          ...(input.signal ? { signal: input.signal } : {}),
-          ...(options.middlewares ? { middlewares: options.middlewares } : {}),
-          tee: {
-            stdout: {
-              write(chunk: string) {
-                if (protocolStdout) return;
-                sawStdout = true;
-                toolBuffer.push(chunk);
-              }
-            },
-            stderr: {
-              write(chunk: string) {
-                sawStderr = true;
-                errorBuffer.push(chunk);
-              }
-            }
-          },
-          activityTimeoutMs: 10 * 60 * 1000
-        });
-
-        const eventStream = streamAcpEventsToDashboard({
-          events,
-          ...(input.signal ? { signal: input.signal } : {}),
-          onToolOutput(chunk, id) {
-            if (id !== undefined) {
-              options.appendOutput("tool", `[${options.activeStage()}] ${chunk.trimEnd()}`, id);
-            } else {
-              toolBuffer.push(chunk);
-            }
-          },
-          onErrorOutput(chunk) {
-            errorBuffer.push(chunk);
-          }
-        });
-
-        const [spawnResult, sawEvents] = await Promise.all([result, eventStream]);
-
-        if (!sawEvents && !sawStdout && spawnResult.stdout.length > 0) {
-          toolBuffer.push(spawnResult.stdout);
-        }
-
-        if (!sawStderr && spawnResult.stderr.length > 0) {
-          errorBuffer.push(spawnResult.stderr);
-        }
-
-        toolBuffer.flush();
-        errorBuffer.flush();
-        return spawnResult;
-      } catch (error) {
-        toolBuffer.flush();
-        errorBuffer.flush();
-        if (!isActivityTimeoutError(error)) {
-          throw error;
-        }
-        lastError = error;
-      }
-    }
-
-    throw lastError;
-  };
-}
-
-function createPipelineCliRunAgent(
-  middlewares: AcpMiddleware[]
-): NonNullable<PipelineRunOptions["runAgent"]> {
-  return async (input) =>
-    sdkSpawn.autonomous(input.agent, {
-      prompt: input.prompt,
-      cwd: input.cwd,
-      logDir: input.logDir,
-      model: input.model,
-      mode: input.mode,
-      ...(input.hooks ? { hooks: input.hooks } : {}),
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.signal ? { signal: input.signal } : {}),
-      middlewares
-    });
-}
-
-function dashboardStatusForResult(result: PipelineRunResult): "done" | "error" {
-  return result.stopReason === "failed" ? "error" : "done";
-}
-
-async function runPipelineWithDashboard(
-  options: PipelineDashboardRunOptions
-): Promise<PipelineRunResult> {
-  const dashboard = createDashboard({
+async function runPipelineWithDashboard(options: PipelineDashboardRunOptions): Promise<PipelineSequenceResult> {
+  const view = createHarnessDashboard({
     title: "Pipeline",
-    statsTitle: "Run",
-    rightPaneWidth: 44,
-    hints: [
-      { key: "q", label: "Quit" },
-      { key: "↑↓", label: "Scroll" },
-      { key: "F", label: "Follow" }
-    ]
+    agent: options.runOptions.agent,
+    model: options.runOptions.model,
+    cwd: options.runOptions.cwd,
+    queue: options.queue,
+    validatePlan: options.validatePlan
+  });
+  const { dashboard } = view;
+  const runAgent = createDashboardAgentRunner({
+    spawn: sdkSpawn,
+    onOutput: dashboard.appendOutput,
+    onActivity: (activity) => view.updateRun({ activity }),
+    onUsage: view.addUsage
   });
   const abortController = new AbortController();
   let finishCleanup!: () => void;
   const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
-  const startedAt = Date.now();
-  let iterations = 0;
-  let iterationsTotal: number | undefined;
-  let tokensIn = 0;
-  let tokensOut = 0;
-  let currentAction: string | undefined = "Preparing pipeline";
-  let currentStage = "pipeline";
-  let status: "running" | "done" | "error" = "running";
-
-  const syncStats = (): void => {
-    const stats = {
-      status,
-      iterations,
-      iterationsLabel: "Tasks",
-      iterationsTotal,
-      context: [`Plan ${options.planIndex + 1}/${options.totalPlans}: ${options.planPath}`, ...options.queuedPlans.map((plan, index) => `Next ${options.planIndex + index + 2}/${options.totalPlans}: ${plan}`)],
-      tokensIn,
-      tokensOut,
-      elapsedMs: Math.max(0, Date.now() - startedAt),
-      currentAction
-    };
-    dashboard.updateStats(stats);
-  };
-
-  const appendOutput = (
-    kind: "info" | "success" | "error" | "tool" | "status",
-    message: string,
-    id?: string
-  ): void => {
-    dashboard.appendOutput({
-      ...(id === undefined ? {} : { id }),
-      kind,
-      text: `${formatDashboardTimestamp(Date.now())} ${message}`,
-      ts: Date.now()
-    });
-  };
-
   const requestCancellation = (): void => {
-    if (abortController.signal.aborted) {
-      return;
-    }
-
+    if (abortController.signal.aborted) return;
     abortController.abort();
-    currentAction = "Cancelling";
-    appendOutput("status", "Cancellation requested");
-    syncStats();
+    view.updateRun({ phase: "Cancelling", activity: undefined });
+    dashboard.appendOutput({ kind: "status", role: "action", text: "Cancellation requested", ts: Date.now() });
   };
-
-  registerDashboardQuitCommands({
-    abortController,
-    dashboard,
-    requestCancellation,
-    cleanupComplete
-  });
-  dashboard.start();
-  appendOutput(
-    "info",
-    `Config · ${formatPipelineConfigSummary({
-      agent: options.agent,
-      model: options.model,
-      planPath: options.planPath,
-      planIndex: options.planIndex,
-      totalPlans: options.totalPlans
-    })}`
-  );
-  syncStats();
-
-  const intervalId = global.setInterval(() => {
-    syncStats();
-  }, 1_000);
+  registerDashboardQuitCommands({ abortController, dashboard, requestCancellation, cleanupComplete });
+  view.start();
   process.on("SIGINT", requestCancellation);
   process.on("SIGTERM", requestCancellation);
-
   try {
-    const runOptions: PipelineRunOptions = {
+    return await sdkRunPipelineSequence({
       ...options.runOptions,
-      runAgent: createPipelineDashboardRunAgent({
-        appendOutput,
-        activeStage: () => currentStage,
-        ...(options.integrations?.spawnMiddleware
-          ? { middlewares: [options.integrations.spawnMiddleware] }
-          : {})
-      }),
+      queue: options.queue,
       signal: abortController.signal,
-      onPlanReloadError(error: Error) {
-        appendOutput("error", `Plan reload failed, using last good state: ${error.message}`);
+      ...createPipelineDashboardCallbacks(view),
+      runAgent(input) {
+        const specifier = parseAgentSpecifier(input.agent);
+        view.updateRun({
+          cwd: input.cwd,
+          agent: specifier.agent,
+          model: input.model ?? specifier.model
+        });
+        return runAgent(input);
       },
-      onLockWait(planPath: string) {
-        currentAction = "Waiting for another run";
-        appendOutput("status", `Waiting for another pipeline operation · ${planPath}`);
-        syncStats();
-      },
-      onPlanResolved(summary: PlanSummary) {
-        iterations = summary.done;
-        iterationsTotal = summary.total;
-        currentAction = undefined;
-        if (summary.initializationUsage) {
-          tokensIn += summary.initializationUsage.inputTokens;
-          tokensOut += summary.initializationUsage.outputTokens;
-        }
-        appendOutput("info", `Tasks · ${formatPipelineTasksSummary(summary)}`);
-        syncStats();
-      },
-      onTaskStart(progress: TaskProgress) {
-        iterations = progress.completedTasks ?? iterations;
-        iterationsTotal = progress.totalTasks;
-        currentStage = formatPipelineStageLabel(progress);
-        currentAction = formatDashboardCurrentAction(progress);
-        appendOutput("status", formatTaskStartMessage(progress));
-        syncStats();
-      },
-      onTaskComplete(progress: TaskCompletion) {
-        if (progress.taskCompleted) {
-          iterations += 1;
-        }
-        if (progress.usage) {
-          tokensIn += progress.usage.inputTokens;
-          tokensOut += progress.usage.outputTokens;
-        }
-        appendOutput(progress.cancelled ? "status" : progress.success ? "success" : "error", formatTaskCompleteMessage(progress));
-        syncStats();
-      }
-    };
-    const result = await runPipelineWithIntegrations(options.integrations, options.planPath, {
-      ...runOptions,
-      ...mergePipelineCallbacks(runOptions, options.integrations?.pipelineCallbacks)
+      runPlan: sdkRunPipeline
     });
-
-    status = dashboardStatusForResult(result);
-    syncStats();
-    return result;
   } catch (error) {
-    status = "error";
-    currentAction = undefined;
-    appendOutput("error", error instanceof Error ? error.message : String(error));
-    syncStats();
+    dashboard.appendOutput({ kind: "error", role: "action", text: error instanceof Error ? error.message : String(error), ts: Date.now() });
     throw error;
   } finally {
-    global.clearInterval(intervalId);
     process.off("SIGINT", requestCancellation);
     process.off("SIGTERM", requestCancellation);
-    dashboard.stop();
-    dashboard.destroy();
+    view.dispose();
     finishCleanup();
   }
-}
-
-async function runPipelineWithIntegrations(
-  integrations: Integrations | null | undefined,
-  name: string,
-  options: PipelineRunOptions
-): Promise<PipelineRunResult> {
-  return (
-    integrations?.traceRun("pipeline", name, () => sdkRunPipeline(options)) ??
-    sdkRunPipeline(options)
-  );
 }
 
 function resolvePipelinePaths(
@@ -857,6 +598,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       .option("--task <id>", "Run only the specified task")
       .option("--plan <path>", "Path to the pipeline plan file")
       .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")
+      .option("--after-plan <message>", "Queue a message after each completed plan (repeatable)", (value: string, previous: string[]) => [...previous, value], [])
       .option("--max-runs <n>", "Maximum number of agent executions to perform")
   ).action(async function (this: Command, positionalPlans: string[]) {
     const flags = resolveCommandFlags(program);
@@ -869,12 +611,12 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       task?: string;
       plan?: string;
       plans?: string[];
+      afterPlan?: string[];
       maxRuns?: string;
     }>();
 
     resources.logger.intro("pipeline run");
 
-    let integrations: Integrations | null = null;
     try {
       const planSources = [
         positionalPlans.length > 0 ? "positional plans" : undefined,
@@ -908,6 +650,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           container,
           resources,
           planPaths,
+          afterEachPlan: options.afterPlan,
           archive: options.archive ?? commandConfig.archive,
           ...(maxRuns !== undefined ? { maxRuns } : {}),
           ...(options.task ? { task: options.task } : {})
@@ -937,7 +680,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       const agent = resolvePipelineAgent(selectedAgent.agent);
 
       const commandConfig = await resolvePipelineCommandConfig(container);
-      integrations = await loadIntegrations(commandConfig.configDoc);
       const planPaths = await resolvePlanPaths({
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
@@ -960,119 +702,81 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         worktree: pickWorktreeOptions(options as Record<string, unknown>),
         isSuccessful: (outcome) => outcome !== "failed" && outcome !== "cancelled",
         run: async ({ worktreeCwd }) => {
-          let ranWork = false;
-          for (const [index, planPath] of planPaths.entries()) {
-            const totalPlans = planPaths.length;
-            if (totalPlans > 1) {
-              resources.logger.info(`Plan ${index + 1}/${totalPlans}: ${planPath}`);
-            }
-
-            const runPlanPath = mapSourcePathIntoWorktree(container.env.cwd, planPath, worktreeCwd);
-            const runPlanDirectory = mapSourcePathIntoWorktree(
-              container.env.cwd,
-              commandConfig.planDirectory,
-              worktreeCwd
-            );
-            const runOptions: PipelineRunOptions = {
-              agent,
-              cwd: worktreeCwd,
-              homeDir: container.env.homeDir,
-              planDirectory: runPlanDirectory,
-              ...(options.model ? { model: options.model } : {}),
-              ...(options.task ? { task: options.task } : {}),
-              plan: runPlanPath,
-              archive: options.archive ?? commandConfig.archive,
-              ...(maxRuns != null ? { maxRuns } : {}),
-              assumeYes: flags.assumeYes
-            };
-            if (integrations?.spawnMiddleware) {
-              runOptions.runAgent = createPipelineCliRunAgent([integrations.spawnMiddleware]);
-            }
-
-            const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
-            const result = useDashboard
-              ? await runPipelineWithDashboard({
-                  agent,
-                  ...(options.model ? { model: options.model } : {}),
-                  planPath: runPlanPath,
-                  planIndex: index,
-                  totalPlans,
-                  queuedPlans: planPaths.slice(index + 1),
-                  runOptions,
-                  ...(integrations ? { integrations } : {})
-                })
-              : await runPipelineWithIntegrations(integrations, runPlanPath, {
-                  ...runOptions,
-                  onPlanReloadError(error: Error) {
-                    resources.logger.warn(
-                      `Plan reload failed, using last good state: ${error.message}`
-                    );
-                  },
-                  ...mergePipelineCallbacks(
-                    {
+          const queue = createRunQueue({
+            plans: planPaths.map((plan) => mapSourcePathIntoWorktree(container.env.cwd, plan, worktreeCwd)),
+            afterEachPlan: options.afterPlan,
+            cwd: worktreeCwd
+          });
+          const runOptions: PipelineSequenceOptions = {
+            agent, cwd: worktreeCwd, homeDir: container.env.homeDir,
+            planDirectory: mapSourcePathIntoWorktree(container.env.cwd, commandConfig.planDirectory, worktreeCwd),
+            ...(options.model ? { model: options.model } : {}),
+            ...(options.task ? { task: options.task } : {}),
+            archive: options.archive ?? commandConfig.archive,
+            ...(maxRuns != null ? { maxRuns } : {}),
+            assumeYes: flags.assumeYes
+          };
+          const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+          const result = useDashboard
+            ? await runPipelineWithDashboard({
+                queue, runOptions,
+                async validatePlan(input) {
+                  const plan = mapSourcePathIntoWorktree(container.env.cwd, input, worktreeCwd);
+                  const absolute = resolveAbsolutePlanPath(plan, worktreeCwd, container.env.homeDir);
+                  try {
+                    if (!(await container.fs.stat(absolute)).isFile()) throw new ValidationError(`Not a plan file: ${input}`);
+                    await container.fs.readFile(absolute, "utf8");
+                  } catch (error) {
+                    if (hasOwnErrorCode(error, "ENOENT")) throw new ValidationError(`Plan file not found: ${input}`);
+                    throw error;
+                  }
+                  return plan;
+                }
+              })
+            : await sdkRunPipelineSequence({
+                ...runOptions, queue,
+                runPlan: async (planOptions) => {
+                  const queuedPlans = queue.getSnapshot().items.filter((item) => item.kind === "plan");
+                  const index = queuedPlans.findIndex((item) => item.path === planOptions.plan);
+                  if (queuedPlans.length > 1) resources.logger.info(`Plan ${index + 1}/${queuedPlans.length}: ${planOptions.plan}`);
+                  return sdkRunPipeline({
+                    ...planOptions,
+                    onPlanReloadError(error) { resources.logger.warn(`Plan reload failed, using last good state: ${error.message}`); },
                       onPlanResolved(summary: PlanSummary) {
-                        resources.logger.resolved(
-                          "Config",
-                          formatPipelineConfigSummary({
-                            agent,
-                            model: options.model,
-                            planPath: summary.planPath,
-                            planIndex: index,
-                            totalPlans
-                          }).replaceAll(" · ", "\n   ")
-                        );
+                        resources.logger.resolved("Config", formatPipelineConfigSummary({ agent, model: options.model, planPath: summary.planPath, planIndex: index, totalPlans: queuedPlans.length }).replaceAll(" · ", "\n   "));
                         resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
                       },
-                      onTaskStart(progress: TaskProgress) {
-                        resources.logger.info(formatTaskStartMessage(progress));
-                      },
-                      onTaskComplete(progress: TaskCompletion) {
-                        resources.logger.info(formatTaskCompleteMessage(progress));
-                      }
-                    },
-                    integrations?.pipelineCallbacks
-                  )
-                });
-
-            const summary = formatRunSummary(result);
-
-            if (result.stopReason === "failed") {
+                      onTaskStart(progress: TaskProgress) { resources.logger.info(formatTaskStartMessage(progress)); },
+                      onTaskComplete(progress: TaskCompletion) { resources.logger.info(formatTaskCompleteMessage(progress)); }
+                  });
+                }
+              });
+          let ranWork = result.messages.length > 0;
+          if (result.queue.items.length > 1) resources.logger.resolved("Queue", formatRunQueueSummary(result.queue));
+          for (const planResult of result.plans) {
+            const summary = formatRunSummary(planResult);
+            resources.logger.info(summary);
+            if (planResult.stopReason === "failed") {
               process.exitCode = 1;
-              resources.logger.error(
-                `Pipeline failed at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
-              );
-              resources.logger.resolved("Run summary", summary);
+              resources.logger.error(`Pipeline failed at ${planResult.lastTaskId}${planResult.lastStepName ? ` (${planResult.lastStepName})` : ""}.`);
               return "failed";
             }
-
-            if (result.stopReason === "cancelled") {
+            if (planResult.stopReason === "cancelled") {
               process.exitCode = 130;
               resources.logger.warn("Pipeline run cancelled.");
-              resources.logger.resolved("Run summary", summary);
               return "cancelled";
             }
-
-            if (result.stopReason === "nothing_to_run") {
-              // With one plan the terminal outcome says this already; only a sequence
-              // needs to attribute the no-op to a specific plan.
-              if (totalPlans > 1) {
-                resources.logger.info("Nothing to run.");
-              }
-              resources.logger.resolved("Run summary", summary);
-              continue;
-            }
-
-            ranWork = true;
-
-            if (result.stopReason === "max_runs") {
-              resources.logger.info(`Reached max runs (${result.runsCompleted}).`);
-              resources.logger.resolved("Run summary", summary);
+            if (planResult.stopReason === "max_runs") {
+              resources.logger.info(`Reached max runs (${planResult.runsCompleted}).`);
               return "stopped";
             }
-
-            resources.logger.resolved("Run summary", summary);
+            if (planResult.stopReason !== "nothing_to_run") ranWork = true;
           }
-
+          if (result.status === "failed" || result.status === "cancelled") {
+            process.exitCode = result.status === "cancelled" ? 130 : 1;
+            resources.logger.warn(result.status === "cancelled" ? "Pipeline run cancelled." : "Queued follow-up failed.");
+            return result.status;
+          }
           return ranWork ? "finished" : "nothing_to_run";
         }
       });
@@ -1097,7 +801,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         ]);
       }
     } finally {
-      await integrations?.shutdown();
       resources.context.finalize();
     }
   });

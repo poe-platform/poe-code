@@ -1,4 +1,46 @@
 import path from "node:path";
+import * as fileSystem from "node:fs/promises";
+import { rewriteModuleSpecifiers } from "./package-safe.mjs";
+
+export async function publishRootOptionalPackage(rootDir, files = fileSystem) {
+  const source = path.join(rootDir, "packages/safe-bash/dist/opt-in");
+  const output = path.join(rootDir, "dist/safe-bash-opt-in");
+  const copy = async (directory, destination) => {
+    await files.mkdir(destination, { recursive: true });
+    for (const entry of await files.readdir(directory, { withFileTypes: true })) {
+      const filename = path.join(directory, entry.name);
+      const target = path.join(destination, entry.name);
+      if (entry.isDirectory()) await copy(filename, target);
+      else {
+        let contents = await files.readFile(filename);
+        if (entry.name.endsWith(".js") || entry.name.endsWith(".d.ts")) {
+          contents = rewriteModuleSpecifiers(filename, contents.toString(), specifier => {
+            for (const name of ["safe-bash", "safe-fs"]) {
+              const prefix = "@poe-platform/" + name;
+              if (specifier === prefix || specifier.startsWith(prefix + "/")) return "poe-code/" + name + specifier.slice(prefix.length);
+            }
+            return specifier;
+          });
+        }
+        await files.writeFile(target, contents);
+      }
+    }
+  };
+  await copy(source, output);
+}
+
+export function resolvePandocBuild(rootDir) {
+  const portable = resolveBrowserShellBuild(rootDir);
+  return {
+    ...portable,
+    entryPoints: {
+      sdk: path.join(rootDir, "packages/pandoc/src/index.ts"),
+      command: path.join(rootDir, "packages/safe-bash/src/commands/pandoc/index.ts")
+    },
+    outdir: path.join(rootDir, "packages/pandoc/dist/public"),
+    external: ["poe-code/safe-fs/core"]
+  };
+}
 
 export function resolveBrowserOpBuild(rootDir) {
   const options = resolveBrowserShellBuild(rootDir);
@@ -47,7 +89,7 @@ export function resolveBrowserShellBuild(rootDir) {
     metafile: true,
     write: false,
     external: ["poe-code/safe-fs/core"],
-    alias: { "node:stream/web": platform, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts") },
+    alias: { "node:stream/web": platform, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts"), "@poe-code/safe-fs": "poe-code/safe-fs" },
     inject: [platform],
     plugins: [{
       name: "portable-shell-capabilities",

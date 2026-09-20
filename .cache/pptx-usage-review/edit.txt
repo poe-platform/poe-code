@@ -1,4 +1,0 @@
-$ pptx text replace draft.pptx --find Draft --with Final --all --output final.pptx
-Replaced 1 text match(es)
-
-exit 0

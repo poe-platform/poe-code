@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { MemoryFileSystem } from 'poe-code/safe-fs/core';
 import { Shell, agentCommands } from '../../../src/core.ts';
-import { pythonCommands } from '../../../src/commands/python/index.ts';
+import { pythonCommands, createPythonPackageManifestStore } from '../../../src/commands/python/index.ts';
 import { createFetchTransport } from '../../../src/commands/network/fetch-transport.ts';
 
 // Explicit real-runtime acceptance: excluded from ordinary .test.ts unit discovery.
@@ -112,15 +112,20 @@ test('real Pyodide package provisioning: documents, dependencies, canonical whee
   await put('documents.py', documentScript);
   await put('local_helper.py', 'answer = 42\n');
   await put('wheels.py', wheelScript);
-  await put('requirements.txt', '# existing exact pin\npypdf==6.18.1\n');
-  const requests = [], progress = [], cache = memoryCache();
+  await put('requirements.txt', '# existing exact pin\npypdf==6.18.1\t# pinned dependency\ntyping-extensions==4.16.0 # comment ending in ' + String.fromCharCode(92) + '\n');
+  const requests = [], progress = [], diagnostics = [], cache = memoryCache();
+  const manifestStore = createPythonPackageManifestStore();
+  t.after(() => manifestStore.dispose());
   const transport = createFetchTransport();
   let workers = 0;
   const options = {
     createWorker() { workers++; return createWorker(); },
     packageProfile: 'documents',
+    onDiagnostic: event => diagnostics.push(event),
     provisioning: {
       cache,
+      manifestStore,
+      scope: 'provisioning-acceptance',
       authorize: request => ['cdn.jsdelivr.net', 'pypi.org', 'files.pythonhosted.org'].includes(new URL(request.url).hostname),
       transport: request => { requests.push(request.url); return transport(request); },
       onProgress: event => progress.push(event),
@@ -240,9 +245,11 @@ test('real Pyodide package provisioning: documents, dependencies, canonical whee
       ['python -m pip install --no-index pypdf', /unsupported|option/i],
     ]) {
       await negative.test(command, async () => {
+        const before = diagnostics.length;
         const result = await shell.exec(command);
         assert.notEqual(result.exitCode, 0, command + ' falsely succeeded');
-        assert.match(result.stderr, diagnostic, command);
+        const hostDetails = diagnostics.slice(before).map(event => String(event.cause)).join('\n');
+        assert.match(result.stderr + '\n' + hostDetails, diagnostic, command);
       });
     }
     await run(shell, `python -c 'import pypdf, importlib.metadata as m; assert pypdf.__version__ == "6.18.1"; assert m.version("provision-fixture") == "1.0"'`);
@@ -277,6 +284,7 @@ test('real Pyodide package provisioning: documents, dependencies, canonical whee
     await run(preprovisioned, `python3 -c 'import six; assert six.__version__ == "1.17.0"'`);
   });
   await t.test('tampered preprovisioned cache bytes fail integrity before user code', async () => {
+    const before = diagnostics.length;
     const corrupted = memoryCache();
     for (const [key, value] of cache.entries) await corrupted.set(key, value);
     const artifact = [...corrupted.entries].find(([key]) => key.includes('-sha256-'));
@@ -288,7 +296,8 @@ test('real Pyodide package provisioning: documents, dependencies, canonical whee
     }));
     const result = await tampered.exec(`python -c 'print("must not execute")'`);
     assert.notEqual(result.exitCode, 0);
-    assert.match(result.stderr, /integrity/i);
+    assert.match(result.stderr, /Python runtime or package assets/);
+    assert.match(diagnostics.slice(before).map(event => String(event.cause)).join('\n'), /integrity/i);
     assert.ok(!result.stdout.includes('must not execute'));
   });
 });

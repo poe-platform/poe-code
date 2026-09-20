@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: pandoc actual command matches SDK bytes with seeded chunks and a reused buffer
+ok 1 - pandoc actual command matches SDK bytes with seeded chunks and a reused buffer
+  ---
+  duration_ms: 172.836625
+  type: 'test'
+  ...
+# Subtest: pandoc closes stdout before its first write without acquiring input
+ok 2 - pandoc closes stdout before its first write without acquiring input
+  ---
+  duration_ms: 3.929167
+  type: 'test'
+  ...
+# Subtest: pandoc actual command waits for a gated sink and never succeeds after rejection
+ok 3 - pandoc actual command waits for a gated sink and never succeeds after rejection
+  ---
+  duration_ms: 11.374208
+  type: 'test'
+  ...
+# Subtest: pandoc rejects capped adversarial declarations before output publication
+ok 4 - pandoc rejects capped adversarial declarations before output publication
+  ---
+  duration_ms: 20.977666
+  type: 'test'
+  ...
+# Subtest: pandoc refuses unknown existing output identity before reading or writing
+ok 5 - pandoc refuses unknown existing output identity before reading or writing
+  ---
+  duration_ms: 4.226416
+  type: 'test'
+  ...
+# Subtest: pandoc refuses -o on providers lacking atomic publication without acquiring input
+ok 6 - pandoc refuses -o on providers lacking atomic publication without acquiring input
+  ---
+  duration_ms: 2.06325
+  type: 'test'
+  ...
+# Subtest: pandoc rejects command output aliasing redirected stdin
+ok 7 - pandoc rejects command output aliasing redirected stdin
+  ---
+  duration_ms: 3.366417
+  type: 'test'
+  ...
+# Subtest: pandoc distinguishes filename stdin from stdin provenance
+ok 8 - pandoc distinguishes filename stdin from stdin provenance
+  ---
+  duration_ms: 2.819333
+  type: 'test'
+  ...
+# Subtest: pandoc preserves shell redirection truncation separately from -o validation
+ok 9 - pandoc preserves shell redirection truncation separately from -o validation
+  ---
+  duration_ms: 3.634167
+  type: 'test'
+  ...
+# Subtest: pandoc reports filesystem errors without changing destination
+ok 10 - pandoc reports filesystem errors without changing destination
+  ---
+  duration_ms: 5.78175
+  type: 'test'
+  ...
+# Subtest: pandoc rejects malformed retained byte argv instead of decoding replacement paths
+ok 11 - pandoc rejects malformed retained byte argv instead of decoding replacement paths
+  ---
+  duration_ms: 5.539666
+  type: 'test'
+  ...
+# Subtest: pandoc abort drains admitted deferred readFile before shell settlement
+ok 12 - pandoc abort drains admitted deferred readFile before shell settlement
+  ---
+  duration_ms: 2.333541
+  type: 'test'
+  ...
+# Subtest: pandoc abort drains admitted deferred writeFileConditional before shell settlement
+ok 13 - pandoc abort drains admitted deferred writeFileConditional before shell settlement
+  ---
+  duration_ms: 2.931125
+  type: 'test'
+  ...
+# Subtest: pandoc obeys aggregate shell input budget and early downstream closure
+ok 14 - pandoc obeys aggregate shell input budget and early downstream closure
+  ---
+  duration_ms: 11.406708
+  type: 'test'
+  ...
+# Subtest: pandoc information and usage paths never acquire files or publish output
+ok 15 - pandoc information and usage paths never acquire files or publish output
+  ---
+  duration_ms: 8.693792
+  type: 'test'
+  ...
+# Subtest: pandoc warning failure preserves destination while accepted warnings stay on stderr
+ok 16 - pandoc warning failure preserves destination while accepted warnings stay on stderr
+  ---
+  duration_ms: 12.916083
+  type: 'test'
+  ...
+# Subtest: pandoc denied media and invalid font or style requests never publish output
+ok 17 - pandoc denied media and invalid font or style requests never publish output
+  ---
+  duration_ms: 6.758834
+  type: 'test'
+  ...
+# Subtest: pandoc opt-in registration preflights collisions and supports replacement
+ok 18 - pandoc opt-in registration preflights collisions and supports replacement
+  ---
+  duration_ms: 21.280708
+  type: 'test'
+  ...
+# Subtest: pandoc uses literal quoted operands, ordered stdin, -- names, pipes and redirection
+ok 19 - pandoc uses literal quoted operands, ordered stdin, -- names, pipes and redirection
+  ---
+  duration_ms: 44.275208
+  type: 'test'
+  ...
+# Subtest: pandoc help/version/invalid arguments never acquire input or publish -o
+ok 20 - pandoc help/version/invalid arguments never acquire input or publish -o
+  ---
+  duration_ms: 14.857959
+  type: 'test'
+  ...
+# Subtest: pandoc refuses lexical, hardlink and symlink output aliases
+ok 21 - pandoc refuses lexical, hardlink and symlink output aliases
+  ---
+  duration_ms: 4.987083
+  type: 'test'
+  ...
+# Subtest: pandoc refuses redirected output aliases after shell redirection has occurred
+ok 22 - pandoc refuses redirected output aliases after shell redirection has occurred
+  ---
+  duration_ms: 2.580875
+  type: 'test'
+  ...
+# Subtest: pandoc binary EPUB/PDF stdout equals command -o bytes
+ok 23 - pandoc binary EPUB/PDF stdout equals command -o bytes
+  ---
+  duration_ms: 152.462083
+  type: 'test'
+  ...
+# Subtest: pandoc retains RTF bytes for its codepage decoder
+ok 24 - pandoc retains RTF bytes for its codepage decoder
+  ---
+  duration_ms: 3.535708
+  type: 'test'
+  ...
+# Subtest: pandoc media search and extraction use the same memfs VFS
+ok 25 - pandoc media search and extraction use the same memfs VFS
+  ---
+  duration_ms: 9.928334
+  type: 'test'
+  ...
+# Subtest: pandoc resource reads cannot bypass the shared input byte budget
+ok 26 - pandoc resource reads cannot bypass the shared input byte budget
+  ---
+  duration_ms: 5.772292
+  type: 'test'
+  ...
+# Subtest: pandoc preserves broken-pipe status when its stdout consumer closes
+ok 27 - pandoc preserves broken-pipe status when its stdout consumer closes
+  ---
+  duration_ms: 3.353542
+  type: 'test'
+  ...
+# Subtest: pandoc preserves consumer closure while the SDK acquires input
+ok 28 - pandoc preserves consumer closure while the SDK acquires input
+  ---
+  duration_ms: 1.924667
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3397.923209

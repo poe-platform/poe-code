@@ -21,6 +21,8 @@ export type {
 
 // Runtime
 export { runLoop } from "./runtime/loop.js";
+export { runSuperintendentSequence } from "./runtime/sequence.js";
+export type { SuperintendentSequenceOptions, SuperintendentSequenceResult } from "./runtime/sequence.js";
 export { runBuilder } from "./runtime/run-builder.js";
 export { runInspector, runAllInspectors } from "./runtime/run-inspector.js";
 export { resolveTemplate } from "./runtime/templates.js";

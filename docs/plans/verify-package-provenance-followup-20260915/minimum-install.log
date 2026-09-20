@@ -1,7 +1,0 @@
-npm error code EBADENGINE
-npm error engine Unsupported engine
-npm error engine Not compatible with your version of node/npm: @noble/hashes@2.4.0
-npm error notsup Not compatible with your version of node/npm: @noble/hashes@2.4.0
-npm error notsup Required: {"node":">= 20.19.0"}
-npm error notsup Actual:   {"npm":"10.9.8","node":"v18.18.0"}
-npm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-15T13_05_08_776Z-debug-0.log

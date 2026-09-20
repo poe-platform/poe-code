@@ -1,0 +1,65 @@
+
+> poe-code@0.0.0-dev lint
+> npm run lint:eslint && npm run lint:types && npm run lint:workflows
+
+
+> poe-code@0.0.0-dev lint:eslint
+> node --max-old-space-size=1024 scripts/lint-eslint.mjs
+
+
+/Users/kjopek/Workspace/poe-code-5/.cache/pptx-usage-review/example.mts
+   3:28  warning  'addImage' is defined but never used. Allowed unused vars must match /^ignored/u                  @typescript-eslint/no-unused-vars
+   4:3   warning  'applyTemplateBindings' is defined but never used. Allowed unused vars must match /^ignored/u     @typescript-eslint/no-unused-vars
+   4:26  warning  'applyTemplateRepeat' is defined but never used. Allowed unused vars must match /^ignored/u       @typescript-eslint/no-unused-vars
+   4:47  warning  'createPptxCommandEngine' is defined but never used. Allowed unused vars must match /^ignored/u   @typescript-eslint/no-unused-vars
+   5:3   warning  'Inches' is defined but never used. Allowed unused vars must match /^ignored/u                    @typescript-eslint/no-unused-vars
+   5:11  warning  'OfficeError' is defined but never used. Allowed unused vars must match /^ignored/u               @typescript-eslint/no-unused-vars
+   6:46  warning  'PresentationContext' is defined but never used. Allowed unused vars must match /^ignored/u       @typescript-eslint/no-unused-vars
+   7:8   warning  'PptxCommandEngineOptions' is defined but never used. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars
+   7:39  warning  'TemplateBinding' is defined but never used. Allowed unused vars must match /^ignored/u           @typescript-eslint/no-unused-vars
+   9:10  warning  'readBinary' is defined but never used. Allowed unused vars must match /^ignored/u                @typescript-eslint/no-unused-vars
+   9:22  warning  'writeBinary' is defined but never used. Allowed unused vars must match /^ignored/u               @typescript-eslint/no-unused-vars
+  17:7   warning  'text' is assigned a value but never used. Allowed unused vars must match /^ignored/u             @typescript-eslint/no-unused-vars
+
+/Users/kjopek/Workspace/poe-code-5/packages/docx/src/operation-types.test.ts
+  20:14  warning  'operation' is assigned a value but only used as a type. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars
+
+/Users/kjopek/Workspace/poe-code-5/packages/safe-bash/tests/commands/docx/table-model.test.ts
+  22:7  warning  'w' is assigned a value but never used. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars
+
+✖ 14 problems (0 errors, 14 warnings)
+
+{"complete": true, "exitCode": 0, "errorCount": 0, "warningCount": 14, "scope": {"configured": 15651, "linted": 15651, "ignored": 2041, "unconfigured": 37962, "ignoredDirectories": 156, "heldExcluded": 5}}
+
+> poe-code@0.0.0-dev lint:types
+> tsc -p tsconfig.build.json --noEmit && npm run typecheck:contracts --workspace=@poe-code/safe-js && npm run typecheck:contracts --workspace=tiny-mcp-client
+
+
+> @poe-code/safe-js@0.0.1 typecheck:contracts
+> node scripts/check-fs-type-contract.mjs
+
+Checking NodeNext Node-only: 25 cases
+NodeNext Node-only: 25 cases passed in 845.1ms
+Checking NodeNext DOM: 25 cases
+NodeNext DOM: 25 cases passed in 1012.0ms
+Checking Bundler Node-only: 25 cases
+Bundler Node-only: 25 cases passed in 458.8ms
+Checking Bundler DOM: 25 cases
+Bundler DOM: 25 cases passed in 780.6ms
+
+> tiny-mcp-client@0.1.0 typecheck:contracts
+> node scripts/check-http-headers-type-contract.mjs
+
+Checking NodeNext Node-only: 9 cases
+NodeNext Node-only: 9 cases passed in 707.8ms
+Checking NodeNext DOM: 9 cases
+NodeNext DOM: 9 cases passed in 796.6ms
+Checking Bundler Node-only: 9 cases
+Bundler Node-only: 9 cases passed in 435.9ms
+Checking Bundler DOM: 9 cases
+Bundler DOM: 9 cases passed in 595.7ms
+
+> poe-code@0.0.0-dev lint:workflows
+> (command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)
+
+✓ Using local actionlint binary

@@ -1,6 +1,6 @@
 import { FsError, dirname, resolvePath, type ByteSource, type FileStat } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
+import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { Budget, CsplitError, fsDetail, missing, pathText } from "./internal.js";
 import type { Options } from "./options.js";
 

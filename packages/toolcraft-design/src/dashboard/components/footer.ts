@@ -2,17 +2,37 @@ import { getTheme } from "../../internal/theme-detect.js";
 import { displayWidth, graphemes, graphemeWidth, truncateToWidth } from "../terminal-width.js";
 import { ScreenBuffer } from "../buffer.js";
 import { plainTerminalText } from "../ansi.js";
-import type { CellStyle, Rect } from "../types.js";
+import type { CellStyle, DashboardStats, Rect } from "../types.js";
 
 export type FooterHint = {
   key: string;
   label: string;
 };
 
-export function renderFooter(buffer: ScreenBuffer, rect: Rect, hints: FooterHint[]): void {
+export function renderFooter(
+  buffer: ScreenBuffer, rect: Rect, hints: FooterHint[], session?: DashboardStats["session"]
+): void {
   buffer.clearRect(rect);
 
-  if (rect.width <= 0 || rect.height <= 0 || hints.length === 0) {
+  if (rect.width <= 0 || rect.height <= 0) return;
+
+  if (session) {
+    const directory = plainTerminalText(session.cwd);
+    const agentModel = plainTerminalText(`${session.agent} · ${session.model ?? "default model"}`);
+    const gap = Math.min(2, rect.width);
+    const available = Math.max(0, rect.width - gap);
+    const agentWidth = Math.min(displayWidth(agentModel), Math.ceil(available / 2));
+    const directoryWidth = Math.max(0, available - agentWidth);
+    const style = getTheme().styles.muted;
+    const y = rect.y + rect.height - 1;
+    buffer.put(rect.x, y, truncateToWidth(directory, directoryWidth || rect.width), style);
+    if (agentWidth > 0) {
+      const text = truncateToWidth(agentModel, agentWidth);
+      buffer.put(rect.x + rect.width - displayWidth(text), y, text, style);
+    }
+  }
+
+  if (hints.length === 0 || (session && rect.height === 1)) {
     return;
   }
 
@@ -32,7 +52,7 @@ export function renderFooter(buffer: ScreenBuffer, rect: Rect, hints: FooterHint
   }
   const cells = hintsToCells(fitted);
   let x = rect.x + Math.floor((rect.width - width) / 2);
-  const y = rect.y + Math.floor(rect.height / 2);
+  const y = session ? rect.y : rect.y + Math.floor(rect.height / 2);
 
   cells.forEach((cell) => {
     buffer.put(x, y, cell.ch, cell.style);

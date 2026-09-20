@@ -28,12 +28,12 @@ Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Infinity);`;
     .toMatchObject({ results: [{ mode: "strict", status: "passed" }] });
 });
 
-it("retains the explicit unsupported disposition for a blocking agent requirement", async () => {
+it("executes a blocking agent requirement with an immediate comparison failure", async () => {
   const source = `/*---
 flags: [onlyStrict, CanBlockIsTrue]
 features: [SharedArrayBuffer, Atomics]
 ---*/
-Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Infinity);`;
+if (Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 1, Infinity) !== "not-equal") throw new Error("wait comparison");`;
   expect(await executeTest262("can-block.js", source, { harness, timeoutMs: 1000 }))
-    .toMatchObject({ results: [{ status: "unsupported", reason: "blocking-mode" }] });
+    .toMatchObject({ results: [{ status: "passed" }] });
 });

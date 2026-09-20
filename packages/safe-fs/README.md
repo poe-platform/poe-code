@@ -64,9 +64,32 @@ cause. Preserve cancellation/control exceptions separately. Cross-family
 | Remove an empty directory | Optional `rmdir`; never a recursive-delete fallback |
 | Links and metadata | Optional `readlink`, `symlink`, `link`, `chmod`, `utimes`, `truncate` |
 | Stream bytes | Optional `readStream`, `writeStream`, using async iterables of byte chunks |
+| Publish immutable objects atomically | Optional `publishFileConditional` with opaque identity/version stats and authoritative compare-and-publish |
 | Compare backing entries | Optional `compareEntry`, returning `same`, `distinct`, or `unknown` |
 
 All required methods must exist, but a backend may reject an operation with `FsError`, such as `EROFS` for a write or `ENOTSUP` for unsupported semantics. Check optional methods and `capabilities` rather than assuming every backend behaves like a local disk. Errors expose `code` and may include `syscall`, `path`, `dest`, and `cause`.
+
+`createDeviceFileSystem(fs)` adds portable `/dev/null` whole-file, stream, and descriptor I/O. Descriptor reads return EOF and writes discard bytes; stat remains a zero-size character device and descriptor position remains zero. Truncating opens are accepted, exclusive creation fails with `EEXIST`, and descriptor resizing and synchronization are unsupported. Access modes, cancellation, and closed handles use the normal descriptor checks. With an authoritative object store, use `createDeviceFileSystem(withObjectFileDescriptors(fs, store))` so null-device I/O never acquires or publishes an object version; ordinary files retain conditional publication. The device wrapper must be outermost for this composition.
+
+`withObjectFileDescriptors(fs, store)` supports large shell and Python descriptor
+writes when the host supplies `store.createStaging`: private externally backed
+pages keep working memory bounded without publishing the growing file after
+every write. Conditional publication still occurs at sync/close, and retained
+readers keep their old versions. Without that optional backend primitive, the
+default 8 MiB dirty-page budget still limits unflushed output. See the
+[object descriptor and spill contract](src/contracts/object-publication.md) for
+backend methods, failure semantics and qualification; no provider storage is
+configured automatically.
+
+Immutable flat stores can supply `identityScope`, `opaqueIdentity` and an ABA-safe
+`opaqueVersion` on file stats, then expose `atomicFilePublication: true` with
+`publishFileConditional(path, source, { expected, parent, maxBytes, signal })`.
+The host consumes bytes privately and atomically creates an absent binding
+(`expected: null`) or replaces the observed generation. Failed producers,
+uploads and stale writers leave the old file intact. This supports Safe Bash ZIP
+creation and updates without inode numbers, staging directories or permission
+APIs. Read the [conditional publication contract](src/contracts/conditional-publication.md)
+before implementing the host operation; ordinary writes do not provide it.
 
 | Backend or wrapper | Use it for |
 | --- | --- |

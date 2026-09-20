@@ -56,16 +56,17 @@ describe("workspace dependency completeness", () => {
     });
   });
 
-  it("all packages with tests are listed in root devDependencies", () => {
+  it("all packages with tests are listed in root dependencies", () => {
     const rootPkg = readJson(path.join(ROOT, "package.json")) as {
+      dependencies: Record<string, string>;
       devDependencies: Record<string, string>;
     };
-    const rootDevDeps = new Set(Object.keys(rootPkg.devDependencies));
+    const rootDeps = new Set([...Object.keys(rootPkg.dependencies), ...Object.keys(rootPkg.devDependencies)]);
     const packagesWithTests = getWorkspacePackagesWithTests();
-    const missing = packagesWithTests.filter((name) => !rootDevDeps.has(name));
+    const missing = packagesWithTests.filter((name) => !rootDeps.has(name));
 
     expect(missing, [
-      "These workspace packages have test files but are not in root devDependencies.",
+      "These workspace packages have test files but are not in root dependencies.",
       "Turbo's ^build for //#test:unit only builds packages listed as root dependencies.",
       "Add them to devDependencies in the root package.json:",
       ...missing.map((name) => `  "${name}": "*"`)

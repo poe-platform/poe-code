@@ -83,8 +83,8 @@ const hooks = registerHooks({
 });
 
 try {
-  const rootApi = await import("virtual-bash");
-  const httpApi = await import("virtual-bash/fs/s3/http");
+  const rootApi = await import("@poe-platform/safe-bash");
+  const httpApi = await import("@poe-platform/safe-bash/fs/s3/http");
   if (binding) {
     const canonical = await import("poe-code/safe-fs");
     assert.equal(rootApi.createS3HttpTransport, canonical.createS3HttpTransport);
@@ -96,12 +96,12 @@ try {
   assert.equal(typeof rootApi.createS3HttpTransport, "function");
   assert.equal(rootApi.createS3HttpTransport, httpApi.createS3HttpTransport);
   for (const [specifier, entrypoint] of [
-    ["virtual-bash", "index.js"],
-    ["virtual-bash/fs/s3/http", "fs/s3/http/index.js"],
+    ["@poe-platform/safe-bash", "index.js"],
+    ["@poe-platform/safe-bash/fs/s3/http", "fs/s3/http/index.js"],
   ]) {
     assert.equal(
       realpathSync(fileURLToPath(import.meta.resolve(specifier))),
-      realpathSync(resolve("node_modules/virtual-bash/dist", entrypoint)),
+      realpathSync(resolve("node_modules/@poe-platform/safe-bash/dist", entrypoint)),
     );
   }
   let requests = 0;
@@ -129,12 +129,12 @@ try {
   assert.equal(requests, 0);
   assert.equal(credentialCalls, 0);
   await assert.rejects(import(pathToFileURL(process.argv[2]).href), { code: "OUTSIDE_PACKED_CONSUMER" });
-  await assert.rejects(import("virtual-bash/src/fs/s3/http/index.js"), { code: "ERR_PACKAGE_PATH_NOT_EXPORTED" });
-  assert.ok(resolvedFiles.has("node_modules/virtual-bash/dist/index.js"));
-  assert.ok(resolvedFiles.has("node_modules/virtual-bash/dist/fs/s3/http/index.js"));
-  assert.ok([...resolvedFiles].every((filename) => filename.startsWith("node_modules/virtual-bash/dist/") || (binding && Object.hasOwn(binding.files, filename))));
+  await assert.rejects(import("@poe-platform/safe-bash/src/fs/s3/http/index.js"), { code: "ERR_PACKAGE_PATH_NOT_EXPORTED" });
+  assert.ok(resolvedFiles.has("node_modules/@poe-platform/safe-bash/dist/index.js"));
+  assert.ok(resolvedFiles.has("node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js"));
+  assert.ok([...resolvedFiles].every((filename) => filename.startsWith("node_modules/@poe-platform/safe-bash/dist/") || (binding && Object.hasOwn(binding.files, filename))));
   process.stdout.write(JSON.stringify({
-    publicImports: ["virtual-bash", "virtual-bash/fs/s3/http"],
+    publicImports: ["@poe-platform/safe-bash", "@poe-platform/safe-bash/fs/s3/http"],
     factoryIdentity: true, constructionCount: transports.length, requests, credentialCalls,
     outsideSourceRejected: true, privateSourceSubpathRejected: true,
     resolvedFiles: [...resolvedFiles].sort(),

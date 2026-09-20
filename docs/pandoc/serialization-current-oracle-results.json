@@ -1,0 +1,183 @@
+{
+  "oracles": {
+    "pypdf": "6.0.0",
+    "PyMuPDF": "1.26.4",
+    "MuPDF": "1.26.7"
+  },
+  "sha256": "9501ae90a90f7bc10df4b946c9b312cdd07a592dc5d4adfab833eb2366320c37",
+  "objects": 25,
+  "pages": [
+    {
+      "page": 1,
+      "pypdfText": "Original PDF café \nΩ Ж\nOriginal body café Ω Ж (escaped) \n\\\nExternal link\nOwned table Value 42\nserialization-input.png\nserialization-gray.jpg\nserialization-rgb.jpg",
+      "mupdfText": "Original PDF café \nΩ Ж\nOriginal body café Ω Ж (escaped) \n\\\nExternal link\nOwned table\nValue 42\nserialization-input.png\nserialization-gray.jpg\nserialization-rgb.jpg\n",
+      "links": [
+        {
+          "kind": 2,
+          "xref": 7,
+          "from": "Rect(30.0, 135.760009765625, 123.5999984741211, 151.60000610351562)",
+          "uri": "https://example.com/a(b)?x=\\value",
+          "id": ""
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "pypdfText": "serialization-cmyk.jpg\nPagination example\nOriginal paragraph 1. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 2. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 3. Bounded \nlayout wraps readable text \ninside the page margins.",
+      "mupdfText": "serialization-cmyk.jpg\nPagination example\nOriginal paragraph 1. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 2. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 3. Bounded \nlayout wraps readable text \ninside the page margins.\n",
+      "links": []
+    },
+    {
+      "page": 3,
+      "pypdfText": "Original paragraph 4. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 5. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 6. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 7. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 8. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 9. Bounded \nlayout wraps readable text \ninside the page margins.",
+      "mupdfText": "Original paragraph 4. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 5. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 6. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 7. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 8. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 9. Bounded \nlayout wraps readable text \ninside the page margins.\n",
+      "links": []
+    },
+    {
+      "page": 4,
+      "pypdfText": "Original paragraph 10. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 11. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 12. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 13. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 14. Bounded \nlayout wraps readable text \ninside the page margins.",
+      "mupdfText": "Original paragraph 10. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 11. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 12. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 13. Bounded \nlayout wraps readable text \ninside the page margins.\nOriginal paragraph 14. Bounded \nlayout wraps readable text \ninside the page margins.\n",
+      "links": []
+    }
+  ],
+  "fonts": [
+    {
+      "page": 1,
+      "embeddedBytes": 273900,
+      "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f"
+    },
+    {
+      "page": 2,
+      "embeddedBytes": 273900,
+      "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f"
+    },
+    {
+      "page": 3,
+      "embeddedBytes": 273900,
+      "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f"
+    },
+    {
+      "page": 4,
+      "embeddedBytes": 273900,
+      "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f"
+    }
+  ],
+  "images": [
+    {
+      "page": 1,
+      "colorSpace": "/DeviceRGB",
+      "mask": true
+    },
+    {
+      "page": 1,
+      "colorSpace": "/DeviceGray",
+      "mask": false
+    },
+    {
+      "page": 2,
+      "colorSpace": "/DeviceRGB",
+      "mask": false
+    },
+    {
+      "page": 2,
+      "colorSpace": "/DeviceCMYK",
+      "mask": false
+    }
+  ],
+  "links": [
+    "https://example.com/a(b)?x=\\value"
+  ],
+  "outlines": [
+    [
+      1,
+      "Original PDF café Ω Ж",
+      1
+    ],
+    [
+      1,
+      "Pagination example",
+      2
+    ]
+  ],
+  "readerPairs": [
+    {
+      "from": "commonmark",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "csv",
+      "pages": 1,
+      "pypdfText": "Owned PDF\ntext value",
+      "mupdfText": "Owned\nPDF\ntext\nvalue\n",
+      "sha256": "5393f2a50239da252213bea814c8e95b2e7d860f799a33608df64ac782990bb0"
+    },
+    {
+      "from": "epub",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "72fc8975d76522585b96eca26201d28812309e8d140207a2009cc795e9fe0efb"
+    },
+    {
+      "from": "gfm",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "html",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "json",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "latex",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "pptx",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "rst",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "rtf",
+      "pages": 1,
+      "pypdfText": "Owned PDF text",
+      "mupdfText": "Owned PDF text\n",
+      "sha256": "2419a28d50ac70fbeecc50363f90cd6fc068204cf51c21f39ea65a28023c08f3"
+    },
+    {
+      "from": "tsv",
+      "pages": 1,
+      "pypdfText": "Owned PDF\ntext value",
+      "mupdfText": "Owned\nPDF\ntext\nvalue\n",
+      "sha256": "5393f2a50239da252213bea814c8e95b2e7d860f799a33608df64ac782990bb0"
+    }
+  ],
+  "repaired": false,
+  "warnings": ""
+}

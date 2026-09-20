@@ -1,0 +1,46 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/safe-python/src/runtime/euc-jis-2004-codec.test.ts (78 tests) 23482ms
+   ✓ matches every split byte pair with finalization and opaque state under strict  1539ms
+   ✓ matches every split byte pair with finalization and opaque state under ignore  486ms
+   ✓ matches every split byte pair with finalization and opaque state under replace  537ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block +0  482ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 1  384ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 2  578ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 3  442ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 4  419ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 5  398ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 6  489ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 7  888ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 8  738ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 9  736ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 10  604ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 12  331ms
+   ✓ matches JIS X 0213/0212 triple splits under 'strict' in block 14  311ms
+   ✓ matches every strict Unicode encoding and fault in plane 0  626ms
+   ✓ matches every strict Unicode encoding and fault in plane 1  469ms
+   ✓ matches every strict Unicode encoding and fault in plane 2  569ms
+   ✓ matches every strict Unicode encoding and fault in plane 3  499ms
+   ✓ matches every strict Unicode encoding and fault in plane 4  517ms
+   ✓ matches every strict Unicode encoding and fault in plane 5  481ms
+   ✓ matches every strict Unicode encoding and fault in plane 6  500ms
+   ✓ matches every strict Unicode encoding and fault in plane 7  466ms
+   ✓ matches every strict Unicode encoding and fault in plane 8  496ms
+   ✓ matches every strict Unicode encoding and fault in plane 9  479ms
+   ✓ matches every strict Unicode encoding and fault in plane 10  489ms
+   ✓ matches every strict Unicode encoding and fault in plane 11  534ms
+   ✓ matches every strict Unicode encoding and fault in plane 12  506ms
+   ✓ matches every strict Unicode encoding and fault in plane 13  540ms
+   ✓ matches every strict Unicode encoding and fault in plane 14  575ms
+   ✓ matches every strict Unicode encoding and fault in plane 15  527ms
+   ✓ matches every strict Unicode encoding and fault in plane 16  538ms
+ ✓ packages/safe-python/src/session-codec-utf7-user-audit.test.ts (343 tests) 29357ms
+   ✓ UTF-7 user audit: 'ordinary and incremental batch 0'  335ms
+   ✓ UTF-7 user audit: 'ordinary and incremental batch 1'  368ms
+   ✓ UTF-7 user audit: 'ordinary and incremental batch 3'  322ms
+
+ Test Files  2 passed (2)
+      Tests  421 passed (421)
+   Start at  19:55:25
+   Duration  38.10s (transform 9.43s, setup 165ms, import 11.45s, tests 52.84s, environment 0ms)

@@ -1,5 +1,0 @@
-{"command":"python -m pip install pypdf==6.18.1","exitCode":0,"stdout":"Successfully installed requested Python packages\n","stderr":""}
-{"command":"python -m pip install -r /requirements.txt","exitCode":0,"stdout":"Successfully installed requested Python packages\n","stderr":""}
-{"command":"python -m pip install /wheels/et_xmlfile-2.0.0-py3-none-any.whl","exitCode":0,"stdout":"Successfully installed requested Python packages\n","stderr":""}
-{"command":"python -c 'import pypdf, et_xmlfile; from importlib.metadata import version; print(version(\"pypdf\"), version(\"et-xmlfile\"))'","exitCode":0,"stdout":"6.18.1 2.0.0\n","stderr":""}
-{"networkRequests":0}

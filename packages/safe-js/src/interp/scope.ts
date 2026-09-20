@@ -12,6 +12,7 @@ type ScopeBinding = {
   kind: VariableDeclarationKind;
   deletable?: true;
   silentImmutable?: true;
+  importTarget?: {scope: Scope; name: string};
   value: InterpreterValue | typeof uninitialized;
   accounting?: { value: InterpreterValue; root: SandboxObject };
 };
@@ -67,6 +68,7 @@ export type ScopeFrame = {
 };
 
 export class Scope {
+  moduleId?: string;
   moduleEnvironment?: ModuleEnvironment;
   private objectEnvironment?: SandboxObject;
   private withEnvironment = false;
@@ -234,6 +236,10 @@ export class Scope {
     return this.parent?.lookupThis();
   }
 
+  lookupModuleId(): string {
+    return this.moduleId ?? this.parent?.lookupModuleId() ?? "<input>";
+  }
+
   lookupModuleEnvironment(): ModuleEnvironment | undefined {
     return this.moduleEnvironment ?? this.parent?.lookupModuleEnvironment();
   }
@@ -306,6 +312,11 @@ export class Scope {
       this.#bindings.set(name, { kind, value, ...options });
       if (isChargedBindingValue(value)) this.#bindingDataRoots = undefined;
     }
+  }
+
+  declareImport(name: string, target: Scope, targetName: string): void {
+    if (this.#bindings.has(name)) throw new SyntaxError(`Cannot redeclare imported binding '${name}'.`);
+    this.#bindings.set(name, {kind: "const", value: undefined, importTarget: {scope: target, name: targetName}});
   }
 
   declareAlias(name: string, target: string): void {
@@ -489,6 +500,11 @@ export class Scope {
   lookup(name: string): ScopeLookupResult {
     const binding = this.#bindings.get(name);
     if (binding !== undefined) {
+      if (binding.importTarget !== undefined) {
+        const imported = binding.importTarget.scope.lookup(binding.importTarget.name);
+        if (!imported.found) throw new ReferenceError(`Missing imported binding '${name}'.`);
+        return {found: true, kind: "const", value: imported.value};
+      }
       if (binding.value === uninitialized) {
         throw new ReferenceError(`Cannot access '${name}' before initialization.`);
       }
@@ -553,6 +569,7 @@ export class Scope {
     const cells: ScopeFrame["cells"] = [];
     const bindings: ScopeFrame["bindings"] = [];
     for (const [name, binding] of this.#bindings) {
+      if (binding.importTarget !== undefined) throw new TypeError("Source module import frames require graph checkpoint encoding.");
       let id = ids.get(binding);
       if (id === undefined) {
         id = cells.length;

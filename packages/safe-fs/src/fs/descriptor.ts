@@ -24,6 +24,7 @@ export interface DescriptorBackend<Resource> {
 
 function admitCapabilities(path: string, options: OpenFileOptions, capabilities: FileDescriptorCapabilities): void {
   if (![capabilities.positionedRead, capabilities.positionedWrite, capabilities.truncate].every(value => typeof value === "boolean")
+    || capabilities.publication !== undefined && capabilities.publication !== "conditional"
     || capabilities.position !== undefined && typeof capabilities.position !== "boolean"
     || capabilities.readObservation !== undefined && typeof capabilities.readObservation !== "boolean"
     || capabilities.openTruncate !== undefined && typeof capabilities.openTruncate !== "boolean"
@@ -90,6 +91,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     this.#backend = backend;
     const positionedAppendWrite = capabilities.positionedAppendWrite === true && capabilities.positionedWrite && options.access !== "read";
     this.capabilities = Object.freeze({
+      ...(capabilities.publication === undefined ? {} : { publication: capabilities.publication }),
       ...(capabilities.position === undefined ? {} : { position: capabilities.position }),
       ...(capabilities.readObservation === undefined ? {} : { readObservation: capabilities.readObservation }),
       ...(capabilities.openTruncate === undefined ? {} : { openTruncate: capabilities.openTruncate }),

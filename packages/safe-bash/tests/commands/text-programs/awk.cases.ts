@@ -5,6 +5,134 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const [name, replacement, expected] of [
+  ["plain text", "plain", "plain"],
+  ["literal backslash n", String.raw`\\n`, String.raw`\n`],
+  ["literal backslash t", String.raw`\\t`, String.raw`\t`],
+  ["literal backslash comma", String.raw`\\,`, String.raw`\,`],
+  ["literal backslash semicolon", String.raw`\\;`, String.raw`\;`],
+  ["literal backslash q", String.raw`\\q`, String.raw`\q`],
+  ["literal backslash 1", String.raw`\\1`, String.raw`\1`],
+  ["literal backslash 2", String.raw`\\2`, String.raw`\2`],
+  ["literal backslash 3", String.raw`\\3`, String.raw`\3`],
+  ["literal backslash 4", String.raw`\\4`, String.raw`\4`],
+  ["literal backslash 5", String.raw`\\5`, String.raw`\5`],
+  ["literal backslash 6", String.raw`\\6`, String.raw`\6`],
+  ["literal backslash 7", String.raw`\\7`, String.raw`\7`],
+  ["literal backslash 8", String.raw`\\8`, String.raw`\8`],
+  ["literal backslash 9", String.raw`\\9`, String.raw`\9`],
+  ["decoded octal", String.raw`\1`, "\x01"],
+  ["decoded newline", String.raw`\n`, "\n"],
+  ["decoded tab", String.raw`\t`, "\t"],
+  ["matched text", "<&>", "<x>"],
+  ["escaped ampersand", String.raw`\\&`, "&"],
+  ["backslash and matched text", String.raw`\\\\&`, "\\x"],
+  ["backslash and escaped ampersand", String.raw`\\\\\\&`, "\\&"],
+  ["trailing backslash", String.raw`\\`, "\\"],
+  ["escaped backslash", String.raw`\\\\`, "\\"],
+  ["escaped backslash before n", String.raw`\\\\n`, String.raw`\n`],
+] as const) {
+  for (const operation of ["sub", "gsub"]) {
+    for (const variable of [false, true]) {
+      test(`awk ${operation} replacement ${name}, variable=${variable}`, async () => {
+        const setup = variable ? `replacement="${replacement}";` : "";
+        const argument = variable ? "replacement" : `"${replacement}"`;
+        const program = `BEGIN { ${setup} value="xx"; count=${operation}(/x/,${argument},value); printf "%s\\n%d\\n",value,count }`;
+        const result = await runVirtual("awk", { args: [program] });
+        assert.equal(result.exitCode, 0, result.stderr.toString());
+        assert.equal(result.stderr.length, 0);
+        assert.deepEqual(result.stdout, Buffer.from(operation === "sub" ? `${expected}x\n1\n` : `${expected}${expected}\n2\n`));
+      });
+    }
+  }
+}
+
+test("awk program files preserve literal replacement backslashes through the shell", async () => {
+  const fs = await makeFileSystem({ "program.awk": String.raw`BEGIN {s="x"; gsub(/x/,"\\n",s); printf "%s\n",s}` });
+  const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+  try {
+    const result = await shell.exec("awk -f program.awk");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(Buffer.from(result.stdout), Buffer.from([0x5c, 0x6e, 0x0a]));
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("awk substitution without a match preserves its target", async () => {
+  const result = await runVirtual("awk", { args: [String.raw`BEGIN {value="unchanged"; print sub(/x/,"\\n",value),gsub(/x/,"\\t",value); print value}`] });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "0 0\nunchanged\n");
+  assert.equal(result.stderr.length, 0);
+});
+
+for (const separator of ["", " ", "\t", ";", "\n"]) {
+  test(`awk accepts a pattern after an action with separator ${JSON.stringify(separator)}`, async () => {
+    const fs = await makeFileSystem();
+    const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(textProgramCommands());
+    try {
+      const result = await shell.exec(`printf '2 102\\n3 103\\n4 104\\n' > input.txt\nawk 'BEGIN{n=0}${separator}NF{n++} END{print n}' input.txt`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "3\n");
+      assert.equal(result.stderr, "");
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
+
+for (const [name, program, expected] of [
+  ["record action", "{n++}NF{n++}END{print n}", "6\n"],
+  ["END action", "END{print n}NF{n++}", "3\n"],
+  ["function definition", "function count(){return 1}NF{n+=count()}END{print n}", "3\n"],
+  ["regular expression pattern", "BEGIN{n=0}/^[234] /{n++}END{print n}", "3\n"],
+  ["range pattern", "BEGIN{n=0}NR==1,NR==2{n++}END{print n}", "2\n"],
+  ["numeric pattern", "BEGIN{n=0}1{n++}END{print n}", "3\n"],
+  ["string pattern", 'BEGIN{n=0}"match"{n++}END{print n}', "3\n"],
+  ["field pattern", "BEGIN{n=0}$1{n++}END{print n}", "3\n"],
+  ["parenthesized pattern", "BEGIN{n=0}(NF>0){n++}END{print n}", "3\n"],
+  ["unary pattern", "BEGIN{n=0}!0{n++}END{print n}", "3\n"],
+  ["nested action", "BEGIN{if(1){n=0}}NF{n++}END{print n}", "3\n"],
+  ["default action at EOF", "BEGIN{}NF", "2 102\n3 103\n4 104\n"],
+  ["default action before semicolon", "NF;END{print NR}", "2 102\n3 103\n4 104\n3\n"],
+  ["default action before newline", "NF\nEND{print NR}", "2 102\n3 103\n4 104\n3\n"],
+  ["adjacent unpatterned actions", "{n++}{n++}END{print n}", "6\n"],
+] as const) {
+  test(`awk rule boundary: ${name}`, async () => {
+    const result = await runVirtual("awk", { args: [program], stdin: "2 102\n3 103\n4 104\n" });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), expected);
+    assert.equal(result.stderr.length, 0);
+    assert.deepEqual(result.files, {});
+  });
+}
+
+for (const [name, suffix] of [
+  ["default action before BEGIN", "NF BEGIN{}"],
+  ["default action before END", "NF END{}"],
+  ["default action before function", "NF function value(){return 1}"],
+  ["range default action before END", "NR==1,NR==2 END{}"],
+  ["missing pattern operand", "NF && {print}"],
+  ["missing range endpoint", "NF, {print}"],
+  ["unmatched action brace", "NF{print"],
+  ["extra closing brace", "}"],
+  ["missing statement separator", "NF{print 1 print 2}"],
+  ["invalid pattern keyword", "else{print}"],
+] as const) {
+  test(`awk rejects invalid rule boundary before effects: ${name}`, async () => {
+    let consumed = false;
+    const source = (async function* () { consumed = true; yield Buffer.from("input\n"); })();
+    const program = `BEGIN{print "bad" > "created"};${suffix}`;
+    const result = await runVirtual("awk", { args: [program] }, {}, source);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.notEqual(result.stderr.length, 0);
+    assert.deepEqual(result.files, {});
+    assert.equal(consumed, false);
+  });
+}
+
 for (const program of ['{ print }', 'BEGIN { while ((getline value < "-") > 0) print value }']) {
   for (const carriedBytes of [0, 64]) {
     test(`awk reader rejects before copying or decoding: carry=${carriedBytes}, ${program}`, async context => {

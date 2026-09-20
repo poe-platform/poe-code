@@ -311,6 +311,22 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
     assert.equal(digest(capture(path)), expected, `Peer declaration differs from binding: ${path}`);
     declarationPaths.add(path);
   }
+  if (manifest.devDependencies?.["@poe-code/pandoc"] !== undefined) {
+    const visit = directory => {
+      const filename = join(tooling, directory);
+      const stat = io.lstatSync(filename);
+      assert.ok(stat.isDirectory() && !stat.isSymbolicLink() && io.realpathSync(filename) === resolve(filename), "Pandoc declaration directory redirects");
+      for (const entry of io.readdirSync(filename, { withFileTypes: true })) {
+        const path = `${directory}/${entry.name}`;
+        if (entry.isDirectory()) visit(path);
+        else if (entry.name.endsWith(".d.ts")) {
+          capture(path);
+          declarationPaths.add(path);
+        }
+      }
+    };
+    for (const name of ["pandoc", "pdf"]) visit(`packages/${name}/dist`);
+  }
   let native;
   const nativeRuntime = importer => {
     assert.ok(importer.startsWith("packages/safe-js/dist/") && !importer.startsWith("packages/safe-js/dist/browser/") && !importer.startsWith(`${nativeSeek.directory}/`), "Private native peer edge requires the canonical Node runtime");
@@ -521,7 +537,7 @@ export function assertPeerDeclarationFiles(binding, files, consumer) {
 
 export function assertConsumerDeclarationFiles(files, installed, binding, io = filesystem) {
   installed = io.realpathSync(installed);
-  const selected = files.filter(path => contained(installed, path) || path.includes("/node_modules/virtual-bash/"));
+  const selected = files.filter(path => contained(installed, path) || path.includes("/node_modules/@poe-platform/safe-bash/"));
   assert.ok(selected.length > 0, "Consumer must include authenticated candidate declarations");
   for (const path of selected) {
     assert.ok(contained(join(installed, "dist"), path), `Candidate declaration used foreign/source fallback: ${path}`);

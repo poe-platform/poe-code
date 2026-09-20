@@ -1,1 +1,0 @@
-let undefined=7;await 0;return [undefined,Function("return typeof process+','+typeof require")()];

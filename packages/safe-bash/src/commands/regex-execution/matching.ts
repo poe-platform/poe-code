@@ -1,4 +1,4 @@
-import { PublicDiagnostic } from "../../diagnostics.js";
+import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { isAscii } from "node:buffer";
 import { matchRangeLimits, type Descriptor, type GrepDescriptor, type SearchDescriptor, type Match, type Row } from "./protocol.js";
 

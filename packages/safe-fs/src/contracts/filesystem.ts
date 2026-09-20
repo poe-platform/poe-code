@@ -19,6 +19,10 @@ export interface FileStat {
   readonly birthtimeMs?: number;
   readonly revision?: number;
   readonly identityScope?: object | symbol;
+  /** Authoritative backing identity within identityScope; aliases share this key. */
+  readonly opaqueIdentity?: string;
+  /** ABA-safe namespace generation, changed by replacement and delete/recreate. */
+  readonly opaqueVersion?: string;
   readonly ino?: number;
   readonly dev?: number;
   readonly rdevMajor?: number;
@@ -35,6 +39,7 @@ export interface DirectoryEntry {
 
 export interface FileSystemCapabilities {
   readonly open?: boolean;
+  readonly versionedDescriptors?: boolean;
   readonly readOnly?: boolean;
   readonly read?: boolean;
   readonly stat?: boolean;
@@ -65,7 +70,10 @@ export interface FileSystemCapabilities {
   readonly timestamps?: boolean;
   readonly atomicRename?: boolean;
   readonly atomicFileStaging?: boolean;
+  readonly atomicFilePublication?: boolean;
   readonly atomicFileMutation?: boolean;
+  readonly atomicEntryRemoval?: boolean;
+  readonly atomicTreeRemoval?: boolean;
   readonly atomicDirectoryMetadata?: boolean;
   readonly atomicRenameNoReplace?: boolean;
   readonly snapshotRmdir?: boolean;
@@ -182,10 +190,12 @@ export interface ConditionalWriteFileOptions extends FsOptions {
   readonly mode?: number;
 }
 
-export interface ConditionalRemoveFileOptions extends FsOptions {
+export interface ConditionalRemoveEntryOptions extends FsOptions {
   readonly parent: FileStat;
   readonly expected: FileStat;
 }
+
+export type ConditionalRemoveFileOptions = ConditionalRemoveEntryOptions;
 
 export interface FileStagingEntry {
   readonly path: string;
@@ -222,8 +232,21 @@ export interface PrepareDirectoryOptions extends FsOptions {
   readonly mtimeMs?: number;
 }
 
+export interface ConditionalFilePublicationOptions extends FsOptions {
+  readonly expected: FileStat | null;
+  readonly parent: FileStat;
+  readonly maxBytes: number;
+  readonly mode?: number;
+  readonly mtimeMs?: number;
+}
+
 export interface FileSystem {
+  /** Consume the complete source privately, then atomically compare/publish.
+   * Failures before commit preserve the destination. No stat/write fallback. */
+  publishFileConditional?(path: string, source: ByteSource, options: ConditionalFilePublicationOptions): Promise<FileStat>;
   writeFileConditional?(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat>;
+  removeEntryConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;
+  removeTreeConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;
   removeFileConditional?(path: string, options: ConditionalRemoveFileOptions): Promise<void>;
   readonly capabilities: FileSystemCapabilities;
   open?(path: string, options: OpenFileOptions): Promise<FileDescriptor>;

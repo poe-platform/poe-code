@@ -30,6 +30,28 @@ import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from 
 import { styleModelBatchOperations, styleModelBatchActions, styleModelBatchBootstrap } from "./style-model-batch-operations.js";
 export { styleModelBatchOperations } from "./style-model-batch-operations.js";
 
+// These are public descriptor names, independent of emitted constructor names.
+const modelTypes = [
+  [DocumentView, "DocumentModel"], [_NumberingDefinitions, "NumberingDefinitionsView"],
+  [_Header, "_Header"], [_Footer, "_Footer"], [XmlElementView, "XmlElementView"],
+  [ImagePartView, "ImagePart"], [CorePropertiesPartView, "CorePropertiesPart"],
+  [DocumentPartView, "DocumentPart"], [NumberingPart, "NumberingPart"],
+  [HeaderPart, "HeaderPart"], [FooterPart, "FooterPart"], [CommentsPart, "CommentsPart"],
+  [StoryPart, "StoryPart"], [SettingsPart, "SettingsPart"], [StylesPart, "StylesPart"],
+  [XmlPartView, "XmlPartView"], [PartView, "PartView"], [PackageView, "PackageView"],
+  [RelationshipView, "RelationshipView"], [TableStyle, "_TableStyle"],
+  [ParagraphStyle, "ParagraphStyle"], [CharacterStyle, "CharacterStyle"], [BaseStyle, "BaseStyle"],
+  [LatentStyle, "_LatentStyle"], [Drawing, "Drawing"], [InlineShape, "InlineShape"],
+  [InlineShapes, "InlineShapes"], [Settings, "Settings"], [Paragraph, "Paragraph"], [Run, "Run"],
+  [Table, "Table"], [_Cell, "_Cell"], [_Row, "_Row"], [_Column, "_Column"],
+  [_Rows, "_Rows"], [_Columns, "_Columns"], [Section, "Section"], [Sections, "Sections"],
+  [Comments, "Comments"], [Comment, "Comment"], [Hyperlink, "Hyperlink"],
+  [RenderedPageBreak, "RenderedPageBreak"], [Styles, "Styles"], [LatentStyles, "LatentStyles"],
+  [Font, "Font"], [ParagraphFormat, "ParagraphFormat"], [TabStops, "TabStops"],
+  [TabStop, "TabStop"], [ColorFormat, "ColorFormat"], [RGBColor, "RGBColor"],
+  [Relationships, "Relationships"], [CoreProperties, "CoreProperties"], [ImageParts, "ImageParts"]
+] as const;
+
 /** Executes the admitted style subgraph with document-owned handles and no host authority. */
 export async function applyStyleModelBatch(input: Uint8Array, operations: unknown, context: ImageModelContext = {}) {
   const settings = modelContext(context);
@@ -54,8 +76,8 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const currentRevision = () => document.store.revision + model.package.revision;
   let revision = currentRevision();
 
-  const isModel = (value: unknown): value is object => value instanceof Drawing || value instanceof InlineShape || value instanceof InlineShapes || value instanceof _NumberingDefinitions || value instanceof Settings || value instanceof DocumentView || value instanceof Paragraph || value instanceof Run || value instanceof Table || value instanceof _Cell || value instanceof _Row || value instanceof _Column || value instanceof _Rows || value instanceof _Columns || value instanceof Section || value instanceof Sections || value instanceof _Header || value instanceof _Footer || value instanceof Comments || value instanceof Comment || value instanceof Hyperlink || value instanceof RenderedPageBreak || value instanceof Styles || value instanceof BaseStyle || value instanceof LatentStyles || value instanceof LatentStyle || value instanceof Font || value instanceof ParagraphFormat || value instanceof TabStops || value instanceof TabStop || value instanceof ColorFormat || value instanceof RGBColor || value instanceof PartView || value instanceof PackageView || value instanceof Relationships || value instanceof RelationshipView || value instanceof XmlElementView || value instanceof CoreProperties || value instanceof ImageParts;
-  const type = (value: object): string => value instanceof DocumentView ? "DocumentModel" : value instanceof _NumberingDefinitions ? "NumberingDefinitionsView" : value instanceof _Header ? "_Header" : value instanceof _Footer ? "_Footer" : value instanceof XmlElementView ? "XmlElementView" : value instanceof ImagePartView ? "ImagePart" : value instanceof CorePropertiesPartView ? "CorePropertiesPart" : value instanceof DocumentPartView ? "DocumentPart" : value instanceof NumberingPart ? "NumberingPart" : value instanceof HeaderPart ? "HeaderPart" : value instanceof FooterPart ? "FooterPart" : value instanceof CommentsPart ? "CommentsPart" : value instanceof StoryPart ? "StoryPart" : value instanceof SettingsPart ? "SettingsPart" : value instanceof StylesPart ? "StylesPart" : value instanceof XmlPartView ? "XmlPartView" : value instanceof PartView ? "PartView" : value instanceof PackageView ? "PackageView" : value instanceof RelationshipView ? "RelationshipView" : value instanceof TableStyle ? "_TableStyle" : value instanceof ParagraphStyle ? "ParagraphStyle" : value instanceof CharacterStyle ? "CharacterStyle" : value instanceof BaseStyle ? "BaseStyle" : value instanceof LatentStyle ? "_LatentStyle" : value.constructor.name;
+  const isModel = (value: unknown): value is object => modelTypes.some(([constructor]) => value instanceof constructor);
+  const type = (value: object): string => modelTypes.find(([constructor]) => value instanceof constructor)![1];
   function encode(value: unknown): unknown {
     if (value instanceof Date) return value.toISOString();
     if (isLength(value)) return plainLength(value);

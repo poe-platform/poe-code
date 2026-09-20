@@ -547,6 +547,7 @@ fn validation(
                 .abs()
                 .le(&(f64::EPSILON * quotient.abs().max(1.0) * 4.0))
             {
+                let divisor = mcp_protocol_rust::numbers::format(divisor);
                 result.problem(
                     path,
                     &format!("multiple of {divisor}"),
@@ -570,7 +571,7 @@ fn validation(
                     _ => *value_number <= bound,
                 }
             {
-                let expected = format!("{operator} {bound}");
+                let expected = format!("{operator} {}", mcp_protocol_rust::numbers::format(bound));
                 result.problem(
                     path,
                     &expected,
@@ -659,6 +660,7 @@ fn limits(
                 (length as f64) < bound
             }
         {
+            let bound = mcp_protocol_rust::numbers::format(bound);
             result.problem(
                 path,
                 &format!("{prefix} {operator} {bound}"),

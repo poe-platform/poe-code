@@ -7,6 +7,26 @@ import {
   formatIssues as referenceFormat
 } from "../../toolcraft-schema/dist/json-schema/index.js";
 
+test("numeric diagnostics use JavaScript number spelling for bounds and divisors", () => {
+  for (const [schema, input] of [
+    [{ minimum: 1e21 }, 0],
+    [{ maximum: -1e21 }, 0],
+    [{ exclusiveMinimum: 1e-7 }, 0],
+    [{ exclusiveMaximum: -1e-7 }, 0],
+    [{ minimum: Number("2140888806576048.25") }, 0],
+    [{ multipleOf: 1.2345678901234568e-7 }, 1],
+    [{ minLength: 1e21 }, ""],
+    [{ minItems: 1e21 }, []],
+    [{ minProperties: 1e21 }, {}]
+  ]) {
+    const result = compileJsonSchema(schema).validate(input);
+    const expected = referenceCompile(schema).validate(input);
+    assert.equal(result.ok, false);
+    assert.deepEqual(result, expected);
+    assert.equal(formatIssues(result.issues), referenceFormat(expected.issues));
+  }
+});
+
 test("native diagnostics agree with the TypeScript compiler across supported applicators", () => {
   const schemas = [
     true,

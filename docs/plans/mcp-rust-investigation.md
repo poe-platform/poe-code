@@ -24,8 +24,10 @@ Boundary/subnormal/extreme cases and 32,768 deterministic bit-pattern samples ar
 cross-checked against V8. A separate development audit matched 1,048,047 finite
 binary64 samples byte-for-byte across 24,556,503 bytes (native parse/serialize about
 323 ms on this machine; this is not a comparison benchmark). Foundation checks now
-include 44 Rust and 18 native tests. Dependent number-text paths are being updated
-in their own package checkpoints.
+include 44 Rust and 18 native tests. Schema diagnostics now use the same number
+formatter for numeric bounds/divisors and length/count constraints; differential
+checks cover notation boundaries and midpoint values. Tool number text, nested
+JSON content and output-schema fallbacks are being updated separately.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
@@ -82,7 +84,7 @@ child schemas once rather than retaining cloned subtrees at every ancestor.
 The schema and server bindings share one descriptor-safe ingress source.
 
 This checkpoint runs all 2,226 cases in the locally vendored official draft-7 and
-2020-12 suites (640 groups), plus 23 Rust tests and 14 native safety/diagnostic
+2020-12 suites (640 groups), plus 23 Rust tests and 15 native safety/diagnostic
 comparison tests. This does not include optional upstream suites or establish
 complete ECMAScript regex compatibility. Schema URI normalization is checked against
 Node and TypeScript for special URL references, credentials, IPv4/IPv6 and controls;

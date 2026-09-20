@@ -27,12 +27,17 @@ against TypeScript, including its signed-zero equality behavior. Its graph owns
 child schemas once rather than retaining cloned subtrees at every ancestor.
 The schema and server bindings share one descriptor-safe ingress source.
 
-This checkpoint runs 1,076 official JSON Schema Test Suite cases in 302 selected
-groups, plus 17 Rust tests and 8 native safety/diagnostic comparison tests. The
-selected keyword families are listed in the maintained native test source; this
-is not a claim of full suite coverage. Schema URI normalization is checked against
+This checkpoint runs all 2,226 cases in the locally vendored official draft-7 and
+2020-12 suites (640 groups), plus 21 Rust tests and 9 native safety/diagnostic
+comparison tests. This does not include optional upstream suites or establish
+complete ECMAScript regex compatibility. Schema URI normalization is checked against
 Node and TypeScript for special URL references, credentials, IPv4/IPv6 and controls;
-full WHATWG and Unicode host compatibility remain pending. Patterns, custom formats, fluent DSL and
+full WHATWG and Unicode host compatibility remain pending. The own bounded Unicode
+pattern engine supports scalar matching, ranges/classes, repetition, alternation,
+lookahead, word boundaries and bundled Unicode 17 general categories. Tests compare
+it against TypeScript and exercise bounded failures for pathological patterns.
+Backreferences, lookbehind, named groups, Unicode scripts and most binary properties
+fail explicitly and remain pending, together with custom formats, fluent DSL and
 non-JSON host values remain pending. Known unfinished constraints fail explicitly
 at compilation, and no MCP consumer has been switched to the new schema package.
 

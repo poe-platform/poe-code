@@ -25,7 +25,8 @@
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "UNICODE-LICENSE.txt"
   ],
   "engines": {
     "node": ">=18.18"

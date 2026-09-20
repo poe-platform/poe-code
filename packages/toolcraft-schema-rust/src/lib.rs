@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 mod compile;
 mod evaluate;
+mod pattern;
+mod unicode_categories;
 mod uri;
 
 #[derive(Default)]
@@ -38,6 +40,8 @@ struct Node {
     base_uri: Arc<str>,
     document: usize,
     validation_vocabulary: bool,
+    pattern: Option<pattern::Pattern>,
+    property_patterns: Vec<(Vec<u16>, pattern::Pattern)>,
 }
 
 pub struct CompiledSchema {

@@ -1,11 +1,12 @@
 use super::*;
 
-const MAPS: [&str; 5] = [
+const MAPS: [&str; 6] = [
     "$defs",
     "definitions",
     "properties",
     "dependentSchemas",
     "dependencies",
+    "patternProperties",
 ];
 const ARRAYS: [&str; 4] = ["allOf", "anyOf", "oneOf", "prefixItems"];
 const SINGLE: [&str; 11] = [
@@ -244,6 +245,17 @@ impl Builder {
         } else {
             scope.validation_vocabulary
         };
+        let pattern = match schema.get("pattern") {
+            Some(Value::String(source)) => Some(pattern::Pattern::compile(source)?),
+            _ => None,
+        };
+        let property_patterns = match schema.get("patternProperties") {
+            Some(Value::Object(entries)) => entries
+                .iter()
+                .map(|(source, _)| Ok((source.clone(), pattern::Pattern::compile(source)?)))
+                .collect::<Result<Vec<_>, String>>()?,
+            _ => Vec::new(),
+        };
         self.nodes.push(Node {
             schema: shallow_schema(&schema),
             dialect,
@@ -256,6 +268,8 @@ impl Builder {
             base_uri: base_uri.clone(),
             document: scope.document,
             validation_vocabulary: scope.validation_vocabulary,
+            pattern,
+            property_patterns,
         });
         if let Value::Object(properties) = schema {
             for (key, value) in properties {
@@ -733,10 +747,11 @@ fn validate(value: &Value, dialect: Dialect) -> Result<(), String> {
     {
         return Err("$recursiveAnchor must be a boolean.".into());
     }
-    for keyword in ["pattern", "patternProperties"] {
-        if value.get(keyword).is_some() {
-            return Err(format!("Schema feature not yet implemented: {keyword}"));
-        }
+    if value
+        .get("pattern")
+        .is_some_and(|value| !matches!(value, Value::String(_)))
+    {
+        return Err("pattern must be a string.".into());
     }
     Ok(())
 }

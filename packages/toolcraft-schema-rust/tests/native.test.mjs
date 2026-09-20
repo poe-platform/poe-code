@@ -174,8 +174,8 @@ test("successful validation preserves caller value identity and schemas are copi
 });
 
 test("unfinished schema features fail explicitly rather than silently relaxing constraints", () => {
-  for (const schema of [{ pattern: "^a" }, { patternProperties: { a: false } }]) {
-    assert.throws(() => compileJsonSchema(schema), /Schema feature not yet implemented/);
+  for (const schema of [{ pattern: "(a)\\1" }, { pattern: "(?<=a)b" }]) {
+    assert.throws(() => compileJsonSchema(schema), /Pattern feature not yet implemented/);
   }
   assert.throws(
     () => compileJsonSchema({}, { formats: { uri: {} } }),
@@ -303,5 +303,121 @@ test("fragment references normalize controls and follow later registered resourc
     const reference = referenceCompile(schema, { registry });
     for (const input of [1, "bad"])
       assert.deepEqual(native.validate(input), reference.validate(input));
+  }
+});
+
+test("Rust Unicode patterns agree with the TypeScript engine for classes, assertions and repetition", () => {
+  const patterns = [
+    "",
+    "a",
+    "^a*$",
+    "a+",
+    "a?",
+    "(?:ab|c){2,3}",
+    "^(?=a)[^0-9]+$",
+    "a(?!b)",
+    "^.$",
+    "^.*$",
+    "^[^]*$",
+    "[]",
+    "[^]",
+    "[a-z]",
+    "[^a-z]",
+    "[-a]",
+    "[a-]",
+    "^\\d{2,}$",
+    "^\\D+$",
+    "^\\w+$",
+    "^\\W+$",
+    "^\\s+$",
+    "^\\S+$",
+    "\\ba\\b",
+    "\\Ba\\B",
+    "^a{0}$",
+    "^(?:a?){2,3}$",
+    "^(?:a*)*$",
+    "^\\p{Letter}+$",
+    "^\\P{Letter}+$",
+    "^\\p{Decimal_Number}+$",
+    "^\\p{General_Category=Mark}+$",
+    "^\\p{ASCII}+$",
+    "^\\p{Assigned}+$",
+    "^\\u{1F980}$",
+    "^\\uD83E\\uDD80$",
+    "^\\uD800$",
+    "^\\cA$",
+    "^\\0$"
+  ];
+  const inputs = [
+    "",
+    "a",
+    "b",
+    "aa",
+    "ab",
+    "abc",
+    "aab",
+    "xxaayy",
+    "a31b",
+    "π漢",
+    "123",
+    "１２",
+    "🦀",
+    "🦀🦀",
+    "\ud800",
+    "\udfff",
+    "\n",
+    "a\n",
+    "\r\n",
+    "\u2028",
+    "\u0301",
+    "\ufeff",
+    "\u0085",
+    "_",
+    "-",
+    "\u0001",
+    "\u0000"
+  ];
+  for (const left of ["a", "b", "1", "π", "🦀", "\n"]) {
+    for (const right of ["a", "b", "1", "π", "🦀", "\n"]) inputs.push(left + right);
+  }
+  for (const pattern of patterns) {
+    const native = compileJsonSchema({ pattern }),
+      reference = referenceCompile({ pattern });
+    for (const input of inputs)
+      assert.deepEqual(
+        native.validate(input),
+        reference.validate(input),
+        JSON.stringify({ pattern, input })
+      );
+  }
+  for (const schema of [
+    {
+      patternProperties: { "a*": { type: "integer" }, "aaa*": { maximum: 20 } },
+      additionalProperties: false
+    },
+    {
+      properties: { a: { minimum: 3 } },
+      patternProperties: { "^a": { maximum: 2 } },
+      unevaluatedProperties: false
+    },
+    { patternProperties: { "^\\p{Letter}+$": { type: "number" } }, additionalProperties: false }
+  ]) {
+    const native = compileJsonSchema(schema),
+      reference = referenceCompile(schema);
+    for (const input of [
+      {},
+      { a: 1 },
+      { a: 21 },
+      { aaaa: 31 },
+      { abc: "bad" },
+      { π: 1 },
+      { a: 1, other: 2 }
+    ]) {
+      assert.deepEqual(
+        native.validate(input),
+        reference.validate(input),
+        JSON.stringify({ schema, input })
+      );
+    }
   }
 });

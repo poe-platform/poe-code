@@ -225,6 +225,22 @@ impl Evaluator<'_> {
         }
         if node.validation_vocabulary {
             validation(schema, node.dialect, value, path, &mut result);
+            if let Value::String(text) = value
+                && let Some(pattern) = &node.pattern
+                && !pattern.matches(text)?
+            {
+                let Some(Value::String(source)) = schema.get("pattern") else {
+                    unreachable!("compiled string pattern");
+                };
+                let source = String::from_utf16_lossy(source);
+                result.problem(
+                    path,
+                    &format!("pattern {source}"),
+                    Some(value),
+                    units(&format!("must match pattern {source}")),
+                    "pattern",
+                );
+            }
         }
         if node.dialect == Dialect::Modern {
             if let Value::Object(properties) = value
@@ -286,6 +302,23 @@ impl Evaluator<'_> {
                     let mut child = self.at_child(
                         node,
                         &child_key("properties", key),
+                        key.clone(),
+                        value,
+                        path,
+                        depth,
+                    )?;
+                    evaluated.insert(key.clone());
+                    child.properties.insert(key.clone());
+                    result.merge(child);
+                }
+            }
+        }
+        for (source, pattern) in &node.property_patterns {
+            for (key, value) in properties {
+                if pattern.matches(key)? {
+                    let mut child = self.at_child(
+                        node,
+                        &child_key("patternProperties", source),
                         key.clone(),
                         value,
                         path,

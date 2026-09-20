@@ -803,6 +803,48 @@ describe("adaptCodex", () => {
     ]);
   });
 
+  it.each([true, false])("reports a supported recovery when Codex sandbox initialization fails (started=%s)", async (started) => {
+    const item = {
+      id: "sandbox-failure",
+      type: "command_execution",
+      command: "git status --short",
+      status: "failed",
+      exit_code: 1,
+      aggregated_output: "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted\n"
+    };
+    const lines = [
+      ...(started ? [JSON.stringify({ type: "item.started", item: { ...item, status: "in_progress" } })] : []),
+      JSON.stringify({ type: "item.completed", item })
+    ];
+
+    const events = await collect(adaptCodex(fromArray(lines)));
+    expect(events).toContainEqual(expect.objectContaining({
+      event: "tool_complete", id: item.id, status: "failed"
+    }));
+    const diagnostic = events.find((event) => event.event === "error");
+    expect(diagnostic).toEqual({
+      event: "error",
+      message: expect.stringContaining(item.aggregated_output.trim())
+    });
+    if (diagnostic?.event !== "error") throw new Error("Missing sandbox diagnostic");
+    expect(diagnostic.message).toContain("codex --enable use_legacy_landlock -s read-only");
+    expect(diagnostic.message).toContain("workspace-write");
+    expect(diagnostic.message).toContain("host that supports bubblewrap");
+  });
+
+  it.each([
+    { status: "completed", exit_code: 0, aggregated_output: "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted" },
+    { status: "failed", exit_code: 1, aggregated_output: "fatal: not a git repository" },
+    { status: "failed", exit_code: 1, aggregated_output: { message: "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted" } },
+    { status: "failed", exit_code: 1, aggregated_output: "Example: bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted" }
+  ])("does not diagnose unrelated command output (%j)", async (result) => {
+    const events = await collect(adaptCodex(fromArray([JSON.stringify({
+      type: "item.completed",
+      item: { id: "other", type: "command_execution", command: "cat example", ...result }
+    })])));
+    expect(events.some((event) => event.event === "error")).toBe(false);
+  });
+
   it("maps item.completed reasoning to ReasoningEvent", async () => {
     const updates = await collect(
       adaptCodex(

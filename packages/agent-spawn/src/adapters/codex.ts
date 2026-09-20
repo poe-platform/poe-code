@@ -30,6 +30,7 @@ type CodexItem = {
   result?: unknown;
   status?: unknown;
   exit_code?: unknown;
+  aggregated_output?: unknown;
   changes?: unknown;
   query?: unknown;
   message?: unknown;
@@ -207,6 +208,22 @@ export async function* adaptCodex(
             ? "failed"
             : item.status === "completed" || item.exit_code === 0 ? "completed" : undefined;
         yield { event: "tool_complete", id: item.id, kind, path, ...(status ? { status } : {}) };
+        if (itemType === "command_execution" && status === "failed"
+          && isNonEmptyString(item.aggregated_output)
+          && item.aggregated_output.trim().startsWith("bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted")) {
+          yield {
+            event: "error",
+            message: `${item.aggregated_output.trim()}
+Codex could not initialize its sandbox: this host rejected bubblewrap network namespace setup.
+For read-only work, verify the Landlock compatibility sandbox:
+  codex --enable use_legacy_landlock -c 'sandbox_mode="read-only"' sandbox /bin/pwd
+If that succeeds, start a new session:
+  codex --enable use_legacy_landlock -s read-only
+Poe Code supplies these flags for mode: "read".
+For workspace-write or policies incompatible with Landlock,
+use a host that supports bubblewrap and the required sandbox policy.`
+          };
+        }
       }
     }
   }

@@ -39,6 +39,11 @@ resume, and intentionally has no Poe configure/unconfigure flow or ACP pretence.
 
 Codex read mode enables its Landlock compatibility sandbox on Linux, retaining read-only filesystem and restricted network enforcement without requiring bubblewrap to configure a loopback interface. This avoids `RTM_NEWADDR: Operation not permitted` on restricted hosts. It requires a Codex installation supporting `use_legacy_landlock` and a host supporting Landlock; unsupported sandbox policies still fail closed. Other platforms use their native Codex sandbox.
 
+When a streamed Codex shell command fails with the loopback initialization error,
+Poe Code reports the original diagnostic and the compatibility check below in the
+CLI and SDK event stream. Workspace-write policies may require enforcement that
+Landlock cannot provide; use a host supporting bubblewrap for those policies.
+
 If a separately launched Codex session fails before executing a command with
 `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`, the host rejected
 bubblewrap's network namespace initialization. Verify the compatibility path

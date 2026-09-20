@@ -78,7 +78,8 @@ interactive terminal, but **required in CI**: without a TTY, `spawn` fails unles
 `gaslight` and `harness run`, and values are case-insensitive (`--mode READ` works).
 Only `--mode yolo` skips the agent's permission prompts, so keep it out of untrusted CI jobs.
 Codex `read` mode uses its Landlock compatibility sandbox on Linux to retain file and
-network restrictions on hosts that reject bubblewrap loopback setup.
+network restrictions on hosts that reject bubblewrap loopback setup. Streamed Codex
+sandbox initialization failures report compatibility guidance in the CLI and SDK.
 
 #### Spawn against a GitHub repository
 

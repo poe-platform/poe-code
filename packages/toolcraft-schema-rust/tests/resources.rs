@@ -16,7 +16,7 @@ fn valid(schema: &str, data: &str, registry: &[(&str, &str)]) -> bool {
         },
     )
     .unwrap()
-    .validate(&value(data))
+    .validate(&value(data), Default::default())
     .unwrap()
     .is_empty()
 }

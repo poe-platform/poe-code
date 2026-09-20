@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { Worker } from "node:worker_threads";
 import { compileJsonSchema, formatIssues } from "../dist/index.js";
 import {
   compileJsonSchema as referenceCompile,
@@ -177,10 +178,9 @@ test("unfinished schema features fail explicitly rather than silently relaxing c
   for (const schema of [{ pattern: "(a)\\1" }, { pattern: "(?<=a)b" }]) {
     assert.throws(() => compileJsonSchema(schema), /Pattern feature not yet implemented/);
   }
-  assert.throws(
-    () => compileJsonSchema({}, { formats: { uri: {} } }),
-    /Custom schema formats are not yet implemented/
-  );
+  assert.throws(() => compileJsonSchema({}, { formats: { uri: {} } }), {
+    message: "Format validator must be a function: uri"
+  });
 });
 
 test("registered resources, URI aliases, dynamic and recursive references match native diagnostics", () => {
@@ -420,4 +420,163 @@ test("Rust Unicode patterns agree with the TypeScript engine for classes, assert
       );
     }
   }
+});
+
+test("registered format callbacks match reference diagnostics through references and property names", () => {
+  for (const schema of [
+    { format: "key" },
+    {
+      type: "object",
+      propertyNames: { $ref: "#/$defs/key" },
+      $defs: { key: { type: "string", format: "key" } }
+    },
+    { properties: { value: { format: "key" } }, unevaluatedProperties: false }
+  ]) {
+    const formats = { key: (value) => value !== "invalid" };
+    const native = compileJsonSchema(schema, { formats }),
+      reference = referenceCompile(schema, { formats });
+    for (const input of [
+      1,
+      null,
+      "valid",
+      "invalid",
+      {},
+      { invalid: 1 },
+      { valid: 1 },
+      { value: "invalid" }
+    ]) {
+      assert.deepEqual(
+        native.validate(input),
+        reference.validate(input),
+        JSON.stringify({ schema, input })
+      );
+    }
+  }
+});
+
+test("format callbacks are snapshotted, require true, preserve errors and allow validation reentrancy", () => {
+  const formats = { key: () => false };
+  const compiled = compileJsonSchema({ format: "key" }, { formats });
+  formats.key = () => true;
+  assert.equal(compiled.validate("valid").ok, false);
+  assert.equal(compiled.validate(1).ok, true);
+  const inherited = Object.create({ key: () => false });
+  assert.equal(
+    compileJsonSchema({ format: "key" }, { formats: inherited }).validate("valid").ok,
+    true
+  );
+  for (const returned of [false, undefined, null, 1, "yes", Promise.resolve(true)]) {
+    assert.equal(
+      compileJsonSchema({ format: "key" }, { formats: { key: () => returned } }).validate("value")
+        .ok,
+      false
+    );
+  }
+  const thrown = new Error("format failed");
+  assert.throws(
+    () =>
+      compileJsonSchema(
+        { format: "key" },
+        {
+          formats: {
+            key: () => {
+              throw thrown;
+            }
+          }
+        }
+      ).validate("value"),
+    (error) => error === thrown
+  );
+  let nested;
+  nested = compileJsonSchema(
+    { format: "key" },
+    { formats: { key: (value) => value === "inner" || nested.validate("inner").ok } }
+  );
+  assert.equal(nested.validate("outer").ok, true);
+});
+
+test("format registrations reject getters without evaluating them and retain UTF16 names", () => {
+  let effects = 0;
+  for (const options of [
+    {
+      get formats() {
+        effects++;
+        return {};
+      }
+    },
+    {
+      formats: {
+        get key() {
+          effects++;
+          return () => true;
+        }
+      }
+    }
+  ]) {
+    assert.throws(() => compileJsonSchema({}, options), /data properties/);
+    assert.equal(effects, 0);
+  }
+  for (const schema of [{ format: "\ud800" }, { pattern: "\ud800" }]) {
+    const options = { formats: { "\ud800": () => false } };
+    const native = compileJsonSchema(schema, options),
+      reference = referenceCompile(schema, options);
+    assert.deepEqual(native.validate("bad"), reference.validate("bad"));
+  }
+});
+
+test("native schema options retain safe JSON admission outside registered format callbacks", () => {
+  let effects = 0;
+  for (const options of [
+    {
+      toJSON() {
+        effects++;
+        return {};
+      }
+    },
+    { other: () => true },
+    Object.assign(Object.create({ inherited: 1 }), { registry: {} })
+  ]) {
+    assert.throws(() => compileJsonSchema(true, options));
+    assert.equal(effects, 0);
+  }
+  const registry = Object.create(null);
+  registry["https://test.test/value"] = { type: "integer" };
+  assert.equal(
+    compileJsonSchema({ $ref: "https://test.test/value" }, { registry }).validate(1).ok,
+    true
+  );
+});
+
+test("compiled schemas and callbacks stay isolated across worker environments", async () => {
+  const module = new URL("../dist/index.js", import.meta.url).href;
+  await Promise.all(
+    [true, false].map(
+      (accept) =>
+        new Promise((resolve, reject) => {
+          let received;
+          const worker = new Worker(
+            "const { parentPort, workerData } = require('node:worker_threads');" +
+              "import(workerData.module).then(({ compileJsonSchema }) => {" +
+              "let accepted = 0; for (let i = 0; i < 100; i++) {" +
+              "const schema = compileJsonSchema({ pattern: '^value$', format: 'custom' }, { formats: { custom: () => workerData.accept } });" +
+              "accepted += Number(schema.validate('value').ok); } parentPort.postMessage(accepted);" +
+              "}).catch(error => { throw error; });",
+            { eval: true, workerData: { module, accept } }
+          );
+          worker.once("message", (value) => {
+            received = value;
+          });
+          worker.once("error", reject);
+          worker.once("exit", (code) => {
+            try {
+              assert.equal(code, 0);
+              assert.equal(received, accept ? 100 : 0);
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          });
+        })
+    )
+  );
 });

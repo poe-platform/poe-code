@@ -23,22 +23,23 @@ impl Evaluation {
     ) {
         self.issues.push(ValidationIssue {
             path: path.to_vec(),
-            expected: expected.into(),
+            expected: units(expected),
             received: value.map_or("undefined", received).into(),
             message,
-            keyword: keyword.into(),
+            keyword: units(keyword),
         });
     }
 }
 
-pub(super) struct Evaluator<'a> {
+pub(super) struct Evaluator<'a, 'formats> {
     pub graph: &'a CompiledSchema,
     pub active: HashSet<(usize, usize)>,
     pub calls: usize,
     pub dynamic_scope: Vec<usize>,
+    pub formats: Option<&'formats mut dyn FormatValidator>,
 }
 
-impl Evaluator<'_> {
+impl Evaluator<'_, '_> {
     pub fn evaluate(
         &mut self,
         id: usize,
@@ -232,15 +233,40 @@ impl Evaluator<'_> {
                 let Some(Value::String(source)) = schema.get("pattern") else {
                     unreachable!("compiled string pattern");
                 };
-                let source = String::from_utf16_lossy(source);
-                result.problem(
-                    path,
-                    &format!("pattern {source}"),
-                    Some(value),
-                    units(&format!("must match pattern {source}")),
-                    "pattern",
-                );
+                result.issues.push(ValidationIssue {
+                    path: path.to_vec(),
+                    expected: units("pattern ")
+                        .into_iter()
+                        .chain(source.iter().copied())
+                        .collect(),
+                    received: received(value).into(),
+                    message: units("must match pattern ")
+                        .into_iter()
+                        .chain(source.iter().copied())
+                        .collect(),
+                    keyword: units("pattern"),
+                });
             }
+        }
+        if let Value::String(text) = value
+            && let Some(Value::String(name)) = schema.get("format")
+            && let Some(formats) = &mut self.formats
+            && formats.check(name, text)? == Some(false)
+        {
+            let expected = units("format ")
+                .into_iter()
+                .chain(name.iter().copied())
+                .collect::<Vec<_>>();
+            result.issues.push(ValidationIssue {
+                path: path.to_vec(),
+                keyword: expected.clone(),
+                expected,
+                received: received(value).into(),
+                message: units("must match format ")
+                    .into_iter()
+                    .chain(name.iter().copied())
+                    .collect(),
+            });
         }
         if node.dialect == Dialect::Modern {
             if let Value::Object(properties) = value

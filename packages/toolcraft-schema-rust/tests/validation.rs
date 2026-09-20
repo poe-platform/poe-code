@@ -8,7 +8,7 @@ fn value(source: &str) -> Value {
 fn valid(schema: &str, data: &str) -> bool {
     CompiledSchema::compile(value(schema), Default::default())
         .unwrap()
-        .validate(&value(data))
+        .validate(&value(data), Default::default())
         .unwrap()
         .is_empty()
 }
@@ -128,9 +128,11 @@ fn diagnostic_paths_retain_surrogates_and_required_values_are_undefined() {
         Default::default(),
     )
     .unwrap();
-    let issues = compiled.validate(&value(r#"{"\ud800":1}"#)).unwrap();
+    let issues = compiled
+        .validate(&value(r#"{"\ud800":1}"#), Default::default())
+        .unwrap();
     assert_eq!(issues.len(), 2);
     assert_eq!(issues[0].path, vec![vec![0xd800]]);
-    assert_eq!(issues[0].keyword, "type");
+    assert_eq!(issues[0].keyword, "type".encode_utf16().collect::<Vec<_>>());
     assert_eq!(issues[1].received, "undefined");
 }

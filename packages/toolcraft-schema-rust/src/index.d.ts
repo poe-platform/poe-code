@@ -11,6 +11,7 @@ export interface CompiledJsonSchema {
 }
 export interface CompileJsonSchemaOptions {
   registry?: Record<string, unknown>;
+  formats?: Record<string, (value: string) => boolean>;
 }
 export declare function compileJsonSchema(
   schema: unknown,

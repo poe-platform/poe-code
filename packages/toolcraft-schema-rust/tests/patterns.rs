@@ -22,17 +22,28 @@ fn string_patterns_match_unicode_scalars_and_unanchored_substrings() {
         let validator = compiled(schema);
         assert!(
             validator
-                .validate(&Value::String(accepted.encode_utf16().collect()))
+                .validate(
+                    &Value::String(accepted.encode_utf16().collect()),
+                    Default::default()
+                )
                 .unwrap()
                 .is_empty()
         );
         assert!(
             !validator
-                .validate(&Value::String(rejected.encode_utf16().collect()))
+                .validate(
+                    &Value::String(rejected.encode_utf16().collect()),
+                    Default::default()
+                )
                 .unwrap()
                 .is_empty()
         );
-        assert!(validator.validate(&Value::Null).unwrap().is_empty());
+        assert!(
+            validator
+                .validate(&Value::Null, Default::default())
+                .unwrap()
+                .is_empty()
+        );
     }
 }
 
@@ -48,7 +59,13 @@ fn every_matching_property_pattern_applies_and_excludes_additional_properties() 
         (r#"{"a":"bad"}"#, false),
     ] {
         let value = json::parse(value.as_bytes(), Limits::default()).unwrap();
-        assert_eq!(validator.validate(&value).unwrap().is_empty(), valid);
+        assert_eq!(
+            validator
+                .validate(&value, Default::default())
+                .unwrap()
+                .is_empty(),
+            valid
+        );
     }
 }
 
@@ -70,6 +87,6 @@ fn malformed_patterns_fail_compilation_before_validation() {
 fn pathological_patterns_fail_with_a_bounded_evaluation_error() {
     let validator = compiled(r#"{"pattern":"(a+)+b"}"#);
     let value = Value::String(vec![u16::from(b'a'); 2_000]);
-    let error = validator.validate(&value).unwrap_err();
+    let error = validator.validate(&value, Default::default()).unwrap_err();
     assert!(error.starts_with("Pattern evaluation "), "{error}");
 }

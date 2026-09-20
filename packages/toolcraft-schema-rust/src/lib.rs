@@ -13,13 +13,23 @@ pub struct CompileOptions {
     pub registry: Vec<(String, Value)>,
 }
 
+pub trait FormatValidator {
+    /// None leaves an unregistered format as an annotation.
+    fn check(&mut self, name: &[u16], value: &[u16]) -> Result<Option<bool>, String>;
+}
+
+#[derive(Default)]
+pub struct ValidationOptions<'a> {
+    pub formats: Option<&'a mut dyn FormatValidator>,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ValidationIssue {
     pub path: Vec<Vec<u16>>,
-    pub expected: String,
+    pub expected: Vec<u16>,
     pub received: String,
     pub message: Vec<u16>,
-    pub keyword: String,
+    pub keyword: Vec<u16>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -50,12 +60,17 @@ pub struct CompiledSchema {
 }
 
 impl CompiledSchema {
-    pub fn validate(&self, value: &Value) -> Result<Vec<ValidationIssue>, String> {
+    pub fn validate(
+        &self,
+        value: &Value,
+        options: ValidationOptions<'_>,
+    ) -> Result<Vec<ValidationIssue>, String> {
         evaluate::Evaluator {
             graph: self,
             active: HashSet::new(),
             calls: 0,
             dynamic_scope: Vec::new(),
+            formats: options.formats,
         }
         .evaluate(0, value, &[], 0)
         .map(|result| result.issues)

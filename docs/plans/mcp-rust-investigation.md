@@ -28,7 +28,7 @@ child schemas once rather than retaining cloned subtrees at every ancestor.
 The schema and server bindings share one descriptor-safe ingress source.
 
 This checkpoint runs all 2,226 cases in the locally vendored official draft-7 and
-2020-12 suites (640 groups), plus 21 Rust tests and 9 native safety/diagnostic
+2020-12 suites (640 groups), plus 23 Rust tests and 14 native safety/diagnostic
 comparison tests. This does not include optional upstream suites or establish
 complete ECMAScript regex compatibility. Schema URI normalization is checked against
 Node and TypeScript for special URL references, credentials, IPv4/IPv6 and controls;
@@ -37,9 +37,16 @@ pattern engine supports scalar matching, ranges/classes, repetition, alternation
 lookahead, word boundaries and bundled Unicode 17 general categories. Tests compare
 it against TypeScript and exercise bounded failures for pathological patterns.
 Backreferences, lookbehind, named groups, Unicode scripts and most binary properties
-fail explicitly and remain pending, together with custom formats, fluent DSL and
+fail explicitly and remain pending, together with fluent DSL and
 non-JSON host values remain pending. Known unfinished constraints fail explicitly
 at compilation, and no MCP consumer has been switched to the new schema package.
+
+Custom formats now use an injected per-evaluation Rust validator interface, with
+an environment-local synchronous napi callback. The host snapshots own enumerable
+format functions without evaluating getters. Conformance tests cover strict true
+results, references/property names, inherited registrations, callback exceptions,
+reentrant validation, and isolated worker environments. Diagnostics preserve full
+UTF-16 pattern/format names in expected/message/keyword fields.
 
 The active goal began on 2026-09-20 at 02:45 UTC (September 19 at 21:45 Chicago).
 The user's minimum effort requirement is 24 hours, with a deadline of Monday,

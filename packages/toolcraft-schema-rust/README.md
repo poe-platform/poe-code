@@ -8,12 +8,13 @@ This private package is an additive implementation checkpoint.
 | Capability       | Available behavior                                                                                              |
 | ---------------- | --------------------------------------------------------------------------------------------------------------- |
 | Types and values | Boolean schemas, JSON types, `const`, `enum`, numeric bounds and multiples                                      |
-| Strings          | Unicode scalar length and bounded Unicode-mode patterns, including preserved lone UTF-16 surrogates            |
+| Strings          | Unicode scalar length and bounded Unicode-mode patterns, including preserved lone UTF-16 surrogates             |
 | Objects          | Properties, required fields, dependencies, property names and additional properties                             |
 | Arrays           | Draft-specific tuples, item schemas, contains counts and uniqueness                                             |
 | Composition      | `allOf`, `anyOf`, `oneOf`, `not`, conditionals and unevaluated members                                          |
 | References       | Resource IDs, local/remote registry pointers, anchors, dynamic/recursive references and draft-7 `$ref` siblings |
 | Vocabularies     | Registered metadata controls validation keywords while retaining applicators                                    |
+| Formats          | Explicit custom validators, snapshotted registrations, synchronous errors and reentrant validation              |
 | Diagnostics      | Structured issue paths, messages, keywords and formatted summaries                                              |
 
 ```ts
@@ -51,7 +52,14 @@ Pattern compilation, evaluation work and retained matcher states are bounded.
 Backreferences, lookbehind, named groups, script properties and most binary
 Unicode properties remain pending and fail explicitly at compilation.
 
-Full schema compatibility is still in progress. Custom formats,
+Register formats with `compileJsonSchema(schema, { formats: { name: value => boolean } })`.
+Only `true` accepts a string; other instance types skip format checks. Callbacks
+retain their original exception and may safely reenter validation. Unregistered
+formats remain annotations. Registration getters are rejected without being called.
+Native callbacks are borrowed only for a synchronous evaluation and are isolated
+between worker environments. Rust callers inject validators through `ValidationOptions`.
+
+Full schema compatibility is still in progress.
 the fluent schema DSL, and arbitrary non-JSON host values remain pending. Known
 unfinished constraints fail at compilation rather than being silently ignored;
 unregistered `format` remains an annotation. Current ingress requires JSON values.

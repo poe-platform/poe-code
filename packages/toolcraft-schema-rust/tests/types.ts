@@ -2,7 +2,8 @@ import { compileJsonSchema, formatIssues, type CompiledJsonSchema } from "../src
 const schema: CompiledJsonSchema = compileJsonSchema(
   { $ref: "https://example.test/message" },
   {
-    registry: { "https://example.test/message": { type: "object" } }
+    registry: { "https://example.test/message": { type: "object" } },
+    formats: { message: (value: string) => value.length > 0 }
   }
 );
 const input = { message: "hello" };

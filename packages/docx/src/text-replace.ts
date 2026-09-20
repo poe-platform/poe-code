@@ -4,7 +4,7 @@ import { archiveSettings } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { openDocumentLocations } from "./locations.js";
-import { encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { pathContains } from "./location-index.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { stageTrackedText, type TrackedTextEdit } from "./tracked-text.js";
@@ -54,6 +54,7 @@ export function textMarkup(node: XmlElement, text: string): string {
 
 /** Preserving literal replacement over owned bytes and explicit publication capabilities. */
 export async function replaceDocumentText(input: Uint8Array, options: TextReplaceOptions, context: PublicationContext): Promise<TextMutationData> {
+  closedRecord(options, ["input", ...Object.keys(options ?? {})]);
   const settings = archiveSettings(context);
   const { input: identity, ...operationOptions } = options;
   const invocation = validateDocxInvocation({ operation: "text.replace", inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);
@@ -64,6 +65,7 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
 
 /** Seeded placeholder text only; this is not anonymization. */
 export async function setDocumentDummyText(input: Uint8Array, options: DummyTextOptions, context: PublicationContext): Promise<TextMutationData> {
+  closedRecord(options, ["input", ...Object.keys(options ?? {})]);
   const settings = archiveSettings(context);
   const { input: identity, ...operationOptions } = options;
   const invocation = validateDocxInvocation({ operation: "lorem.set", inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);

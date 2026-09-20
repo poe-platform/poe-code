@@ -5,6 +5,8 @@ import {
   Audio,
   File,
   fileTypeFromBuffer,
+  toContentBlocks,
+  type ContentBlock,
   parseUriTemplate,
   validateProtocolValue,
   type HandlerRequestContext
@@ -18,20 +20,29 @@ const audioType: "audio" = Audio.fromBase64("", "audio/wav").toContentBlock().ty
 const resourceType: "resource" = File.fromText("Hello").toContentBlock().type;
 const detected: string | undefined = fileTypeFromBuffer(new Uint8Array())?.mime;
 void [imageType, audioType, resourceType, detected];
+const converted: ContentBlock[] = toContentBlocks([undefined, [File.fromText("Hello"), 1]]);
+void converted;
 const remoteImage: Promise<Image> = Image.fromUrl("https://example.test/image", { maxBytes: 1024 });
 const remoteAudio: Promise<Audio> = Audio.fromUrl("https://example.test/audio");
 const remoteFile: Promise<File> = File.fromUrl("https://example.test/file");
 void [remoteImage, remoteAudio, remoteFile];
-server.tool("inferred", "Typed schema", defineSchema({
-  name: { type: "string" }, count: { type: "integer", optional: true }
-}), args => {
-  const name: string = args.name;
-  const count: number | undefined = args.count;
-  // @ts-expect-error schema inference keeps strings distinct from numbers
-  const invalid: number = args.name;
-  void invalid;
-  return { value: name + count };
-}, defineSchema({ value: { type: "string" } }));
+server.tool(
+  "inferred",
+  "Typed schema",
+  defineSchema({
+    name: { type: "string" },
+    count: { type: "integer", optional: true }
+  }),
+  (args) => {
+    const name: string = args.name;
+    const count: number | undefined = args.count;
+    // @ts-expect-error schema inference keeps strings distinct from numbers
+    const invalid: number = args.name;
+    void invalid;
+    return { value: name + count };
+  },
+  defineSchema({ value: { type: "string" } })
+);
 server.tool<{ message: string }>("echo", "Echo", { type: "object" }, (args, context) => {
   const signal: AbortSignal = context.signal;
   const state: string | undefined = context.requestState;

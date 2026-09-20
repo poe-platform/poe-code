@@ -17,36 +17,56 @@ pub fn normalize_result(result: Option<Value>, modern: bool) -> Result<Value, St
         }
         return Ok(result.expect("validated explicit result"));
     }
-    let mut pending = result.into_iter().collect::<Vec<_>>();
-    let mut content = Vec::new();
-    while let Some(value) = pending.pop() {
-        match value {
-            Value::Array(values) => pending.extend(values.into_iter().rev()),
-            value if is_content_block(&value) => {
-                if !is_content_item(&value) {
-                    return Err("Invalid tool result".into());
-                }
-                content.push(value);
-            }
-            Value::String(units) => content.push(text_block(units)),
-            Value::Number(value) => {
-                let text = mcp_protocol_rust::numbers::format(value);
-                content.push(text_block(text.encode_utf16().collect()));
-            }
-            value => {
-                if !value.is_json_value() {
-                    return Err(
-                        "Tool return must be a JSON value or supported content helper".into(),
-                    );
-                }
-                content.push(text_block(json::stringify(&value).encode_utf16().collect()));
-            }
-        }
+    let content = to_content_blocks(result)?;
+    if !content.iter().all(is_content_item) {
+        return Err("Invalid tool result".into());
     }
     Ok(Value::Object(vec![(
         "content".encode_utf16().collect(),
         Value::Array(content),
     )]))
+}
+
+pub enum ConvertedContent {
+    Existing(Value),
+    Text(Vec<u16>),
+}
+
+pub fn convert_value(value: Value, require_content: bool) -> Result<ConvertedContent, String> {
+    if is_content_block(&value) {
+        return Ok(ConvertedContent::Existing(value));
+    }
+    if require_content {
+        return Err("Tool return must be a JSON value or supported content helper".into());
+    }
+    let text = match value {
+        Value::String(units) => units,
+        Value::Number(value) => mcp_protocol_rust::numbers::format(value)
+            .encode_utf16()
+            .collect(),
+        value => {
+            if !value.is_json_value() {
+                return Err("Tool return must be a JSON value or supported content helper".into());
+            }
+            json::stringify(&value).encode_utf16().collect()
+        }
+    };
+    Ok(ConvertedContent::Text(text))
+}
+
+pub fn to_content_blocks(result: Option<Value>) -> Result<Vec<Value>, String> {
+    let mut pending = result.into_iter().collect::<Vec<_>>();
+    let mut content = Vec::new();
+    while let Some(value) = pending.pop() {
+        match value {
+            Value::Array(values) => pending.extend(values.into_iter().rev()),
+            value => match convert_value(value, false)? {
+                ConvertedContent::Existing(value) => content.push(value),
+                ConvertedContent::Text(units) => content.push(text_block(units)),
+            },
+        }
+    }
+    Ok(content)
 }
 
 fn text_block(units: Vec<u16>) -> Value {

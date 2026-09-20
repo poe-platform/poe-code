@@ -91,6 +91,11 @@ File byte helpers decode text MIME types with UTF-8 replacement/BOM handling;
 binary MIME types produce blob resources. File byte inputs remain live until
 conversion, while image/audio helpers snapshot their input when created.
 Use `fileTypeFromBuffer(bytes)` to inspect a media signature without creating content.
+Use `toContentBlocks(value)` to flatten nested tool values into content blocks.
+Conversion preserves direct content-object identity and uses own descriptors for
+content classes. It does not validate protocol fields; tool replies validate them
+after conversion. Cyclic/sparse/accessor arrays and non-JSON leaves throw `TypeError`
+without running serialization hooks or property getters.
 Use `await Image.fromUrl(url)`, `Audio.fromUrl(url)` or `File.fromUrl(url)` for remote
 content. Loading uses Node's built-in fetch and a Rust byte accumulator, with a
 5 MiB default budget; pass `{ maxBytes }` to change it. Oversized streams are

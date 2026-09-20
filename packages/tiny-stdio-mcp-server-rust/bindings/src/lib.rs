@@ -2,7 +2,7 @@ use mcp_protocol_rust::{
     json::{Limits, Value},
     jsonrpc::{Id, RpcError},
 };
-use napi::{Error, bindgen_prelude::*};
+use napi::{Error, JsValue, Property, ValueType, bindgen_prelude::*};
 use napi_derive::napi;
 use std::{cell::RefCell, collections::HashMap, sync::Arc};
 use tiny_stdio_mcp_server_rust::features::{FeatureKind, RegistrationKind};
@@ -16,6 +16,46 @@ mod input;
 pub mod media;
 mod stdio;
 mod uri_template;
+
+#[napi(ts_return_type = "{ type: 'text'; text: string } | undefined")]
+pub fn convert_content_value<'env>(
+    env: Env,
+    source: Unknown<'env>,
+    require_content: bool,
+) -> Result<Either<Object<'env>, ()>> {
+    use tiny_stdio_mcp_server_rust::content::{ConvertedContent, convert_value};
+    // Primitive coercion is the platform intrinsic, not an object conversion:
+    // it cannot invoke valueOf/toString/serialization hooks. Retain JS strings
+    // directly instead of copying them through an owned UTF-16 JSON tree.
+    let primitive = !require_content
+        && matches!(
+            source.get_type()?,
+            ValueType::String | ValueType::Number | ValueType::Boolean | ValueType::Null
+        );
+    let text = if primitive {
+        Property::new()
+            .with_utf8_name("text")?
+            .with_value(&source.coerce_to_string()?)
+    } else {
+        let value = input::read(&env, source, input::Mode::Tool)?.ok_or_else(|| {
+            Error::from_reason("Tool return must be a JSON value or supported content helper")
+        })?;
+        match convert_value(value, require_content).map_err(Error::from_reason)? {
+            ConvertedContent::Existing(_) => return Ok(Either::B(())),
+            ConvertedContent::Text(units) => Property::new()
+                .with_utf8_name("text")?
+                .with_napi_value(&env, Utf16String::from(units))?,
+        }
+    };
+    let mut object = Object::new(&env)?;
+    object.define_properties(&[
+        Property::new()
+            .with_utf8_name("type")?
+            .with_napi_value(&env, "text")?,
+        text,
+    ])?;
+    Ok(Either::A(object))
+}
 
 #[napi(ts_return_type = "unknown")]
 pub fn define_schema(env: Env, source: Unknown<'_>) -> Result<NativeJson> {

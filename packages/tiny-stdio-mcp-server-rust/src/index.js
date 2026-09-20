@@ -1,7 +1,14 @@
 import { createRequire } from "node:module";
 import { connectStreams } from "./stdio.js";
 import { prepareToolValue } from "./media.js";
-export { Image, Audio, File, fileTypeFromBuffer, DEFAULT_FROM_URL_MAX_BYTES } from "./media.js";
+export {
+  Image,
+  Audio,
+  File,
+  toContentBlocks,
+  fileTypeFromBuffer,
+  DEFAULT_FROM_URL_MAX_BYTES
+} from "./media.js";
 
 const { NativeServer, NativeUriTemplate } = createRequire(import.meta.url)(
   "./tiny-stdio-mcp-server-rust.node"
@@ -108,7 +115,9 @@ export function createServer(options) {
             }
             const result = await handler(action.arguments, handlerContext);
             if (
-              action.modern && result !== null && typeof result === "object" &&
+              action.modern &&
+              result !== null &&
+              typeof result === "object" &&
               !Array.isArray(result) &&
               Object.getOwnPropertyDescriptor(result, "resultType")?.value === "input_required"
             )
@@ -237,8 +246,10 @@ export function createServer(options) {
   const defaultSession = createMessageSession();
   const server = {
     tool(name, description, inputSchema, handler, outputSchema) {
-      return registerTool({ name, description, inputSchema,
-        ...(outputSchema === undefined ? {} : { outputSchema }) }, handler);
+      return registerTool(
+        { name, description, inputSchema, ...(outputSchema === undefined ? {} : { outputSchema }) },
+        handler
+      );
     },
     registerTool,
     removeTool(name) {

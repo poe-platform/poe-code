@@ -32,8 +32,10 @@ class BinaryMedia extends ContentHelper {
   static async fromUrl(url, options) {
     const { data, contentType } = await readRemote(url, this.kind, options);
     const detected = fileTypeFromBuffer(data);
-    const mime = detected && native.supportedMediaMime(this.kind, detected.mime)
-      ? detected.mime : contentType.mimeType;
+    const mime =
+      detected && native.supportedMediaMime(this.kind, detected.mime)
+        ? detected.mime
+        : contentType.mimeType;
     if (!mime || !native.supportedMediaMime(this.kind, mime))
       throw new Error(`Unable to detect ${this.kind} MIME type from ${remoteLabel(url)}`);
     return new this(construction, native.mediaBytes(this.kind, data, mime));
@@ -59,7 +61,11 @@ export class File extends ContentHelper {
     return new File(construction, { kind: "text", data: text, mime: mimeType });
   }
   static fromBase64(base64, mimeType) {
-    return new File(construction, { kind: "bytes", data: native.decodeMediaBase64(base64), mime: mimeType });
+    return new File(construction, {
+      kind: "bytes",
+      data: native.decodeMediaBase64(base64),
+      mime: mimeType
+    });
   }
   static async fromUrl(url, options) {
     const { data, contentType } = await readRemote(url, "file", options);
@@ -90,10 +96,13 @@ function remoteLabel(url) {
 async function readRemote(url, kind, options) {
   const response = await fetch(url);
   if (!response.ok)
-    throw new Error(`Failed to fetch ${kind} from ${remoteLabel(url)}: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch ${kind} from ${remoteLabel(url)}: ${response.status} ${response.statusText}`
+    );
   const maxBytes = options?.maxBytes ?? DEFAULT_FROM_URL_MAX_BYTES;
   const bytes = new native.NativeRemoteBytes(maxBytes);
-  const sizeError = () => new Error(`Remote ${kind} from ${remoteLabel(url)} exceeds maximum size of ${maxBytes} bytes`);
+  const sizeError = () =>
+    new Error(`Remote ${kind} from ${remoteLabel(url)} exceeds maximum size of ${maxBytes} bytes`);
   const declared = response.headers.get("content-length");
   const length = declared === null ? undefined : Number(declared.trim());
   if (Number.isSafeInteger(length) && length >= 0 && length > maxBytes) throw sizeError();
@@ -120,15 +129,78 @@ async function readRemote(url, kind, options) {
   };
 }
 
+export function toContentBlocks(result) {
+  const ancestors = new Set();
+  const frames = [{ value: result, index: 0 }];
+  const blocks = [];
+  while (frames.length > 0) {
+    const frame = frames[frames.length - 1];
+    const value = frame.value;
+    if (value === undefined) {
+      frames.pop();
+      continue;
+    }
+    if (!Array.isArray(value)) {
+      frames.pop();
+      if (helpers.has(value)) {
+        blocks.push(ContentHelper.prototype.toContentBlock.call(value));
+        continue;
+      }
+      const source = value;
+      try {
+        if (isContentClass(source)) {
+          blocks.push(copyContentClass(source));
+          continue;
+        }
+        blocks.push(native.convertContentValue(source, false) ?? source);
+      } catch {
+        throw new TypeError("Tool return must be a JSON value or supported content helper");
+      }
+      continue;
+    }
+    if (frame.index === 0) {
+      if (ancestors.has(value)) throw new TypeError("Cyclic tool result array");
+      ancestors.add(value);
+    }
+    if (frame.index >= value.length) {
+      ancestors.delete(value);
+      frames.pop();
+      continue;
+    }
+    const entry = Object.getOwnPropertyDescriptor(value, String(frame.index++));
+    if (entry === undefined || !("value" in entry))
+      throw new TypeError("Tool result arrays must contain own data entries");
+    frames.push({ value: entry.value, index: 0 });
+  }
+  return blocks;
+}
+
+function isContentClass(value) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype !== null && prototype !== Object.prototype;
+}
+
+function copyContentClass(value) {
+  const source = Object.create(null, Object.getOwnPropertyDescriptors(value));
+  try {
+    native.convertContentValue(source, true);
+  } catch {
+    throw new TypeError("Tool return must be a JSON value or supported content helper");
+  }
+  return source;
+}
+
 // Replace only branded helpers in tool-return array positions. Descriptor
 // copying preserves holes/accessors/cycles for native ingress to reject safely.
 export function prepareToolValue(value) {
   if (helpers.has(value)) return ContentHelper.prototype.toContentBlock.call(value);
+  if (isContentClass(value)) return copyContentClass(value);
   if (!Array.isArray(value)) return value;
   const copies = new Map();
   const pending = [{ source: value, depth: 0 }];
   let entries = 0;
-  let hasHelpers = false;
+  let hasConversions = false;
   while (pending.length > 0) {
     const { source, depth } = pending.pop();
     if (depth > 256) return value;
@@ -139,13 +211,14 @@ export function prepareToolValue(value) {
     for (let index = 0; index < source.length; index++) {
       const descriptor = Object.getOwnPropertyDescriptor(source, String(index));
       if (descriptor && "value" in descriptor) {
-        if (helpers.has(descriptor.value)) hasHelpers = true;
+        if (helpers.has(descriptor.value) || isContentClass(descriptor.value))
+          hasConversions = true;
         else if (Array.isArray(descriptor.value))
           pending.push({ source: descriptor.value, depth: depth + 1 });
       }
     }
   }
-  if (!hasHelpers) return value;
+  if (!hasConversions) return value;
   for (const source of copies.keys()) {
     const copy = new Array(source.length);
     Object.setPrototypeOf(copy, Object.getPrototypeOf(source));
@@ -160,6 +233,8 @@ export function prepareToolValue(value) {
       if ("value" in descriptor) {
         if (helpers.has(descriptor.value))
           descriptor.value = ContentHelper.prototype.toContentBlock.call(descriptor.value);
+        else if (isContentClass(descriptor.value))
+          descriptor.value = copyContentClass(descriptor.value);
         else if (copies.has(descriptor.value)) descriptor.value = copies.get(descriptor.value);
       }
       Object.defineProperty(copy, index, descriptor);

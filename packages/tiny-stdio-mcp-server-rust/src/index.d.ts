@@ -54,13 +54,19 @@ interface SchemaPropertyDefinition {
   optional?: boolean;
   [keyword: string]: unknown;
 }
-type SchemaValue<T extends SchemaPropertyType> = T extends "string" ? string
-  : T extends "number" | "integer" ? number : T extends "boolean" ? boolean
-  : T extends "object" ? Record<string, unknown> : unknown[];
+type SchemaValue<T extends SchemaPropertyType> = T extends "string"
+  ? string
+  : T extends "number" | "integer"
+    ? number
+    : T extends "boolean"
+      ? boolean
+      : T extends "object"
+        ? Record<string, unknown>
+        : unknown[];
 type SchemaValues<T extends Record<string, SchemaPropertyDefinition>> = {
-  [K in keyof T as T[K]["optional"] extends true ? never : K]: SchemaValue<T[K]["type"]>
+  [K in keyof T as T[K]["optional"] extends true ? never : K]: SchemaValue<T[K]["type"]>;
 } & {
-  [K in keyof T as T[K]["optional"] extends true ? K : never]?: SchemaValue<T[K]["type"]>
+  [K in keyof T as T[K]["optional"] extends true ? K : never]?: SchemaValue<T[K]["type"]>;
 };
 export declare function defineSchema<T extends Record<string, SchemaPropertyDefinition>>(
   definition: T
@@ -240,31 +246,72 @@ export interface FileTypeResult {
 }
 export declare function fileTypeFromBuffer(data: Uint8Array): FileTypeResult | undefined;
 export declare const DEFAULT_FROM_URL_MAX_BYTES: number;
-export interface FromUrlOptions { maxBytes?: number; }
+export interface FromUrlOptions {
+  maxBytes?: number;
+}
 export interface ImageContent {
   type: "image";
   data: string;
   mimeType: string;
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
 }
 export interface AudioContent {
   type: "audio";
   data: string;
   mimeType: string;
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
 }
 export interface TextResourceContents {
   uri: string;
   mimeType: string;
   text: string;
+  _meta?: Record<string, unknown>;
 }
 export interface BlobResourceContents {
   uri: string;
   mimeType: string;
   blob: string;
+  _meta?: Record<string, unknown>;
 }
 export interface EmbeddedResource {
   type: "resource";
   resource: TextResourceContents | BlobResourceContents;
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
 }
+export interface ContentAnnotations {
+  audience?: ("user" | "assistant")[];
+  priority?: number;
+  lastModified?: string;
+}
+export interface TextContent {
+  type: "text";
+  text: string;
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
+}
+export interface ResourceLink {
+  type: "resource_link";
+  uri: string;
+  name: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+  size?: number;
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
+}
+export type ContentBlock =
+  | TextContent
+  | ImageContent
+  | AudioContent
+  | EmbeddedResource
+  | ResourceLink;
+type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[];
+export type ToolReturn = undefined | JsonValue | Image | Audio | File | ContentBlock | ToolReturn[];
+export declare function toContentBlocks(result: ToolReturn): ContentBlock[];
 export declare class Image {
   private constructor();
   static fromBytes(data: Uint8Array, format?: string): Image;

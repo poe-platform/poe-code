@@ -15,7 +15,7 @@ remain in progress. The format foundation cross-checks canonical base64 padding
 bits and resource URI syntax/authorities against the TypeScript implementation.
 Complete Unicode IDNA mapping, contextual joining, combining marks, and bidi host
 rules remain an explicit conformance gap; the current host checks are not a full
-replacement for WHATWG URL processing. Full public content conversion parity remains pending.
+replacement for WHATWG URL processing. Full server API/result compatibility remains pending.
 
 The JSON foundation now formats binary64 values with ECMAScript shortest notation,
 fixed/exponent boundaries and exact decimal midpoint ties using integer arithmetic.
@@ -81,6 +81,22 @@ queries and fragments. Mocked in-memory responses cross-check signature/header
 precedence, Windows-1252/UTF-16/UTF-8 and unsupported charset fallback, HTTP failures,
 declared/streamed/array-buffer limits and every invalid byte budget against TypeScript.
 Checks now include 63 Rust and 336 native tests; no live network fixtures are used.
+
+The public `toContentBlocks` converter now uses own Rust content classification,
+JSON serialization and number formatting with a Node adapter for array descriptors,
+host identities and own-descriptor class fallback. Recognizable content is preserved
+before protocol validation, including intentionally invalid URI/base64 examples.
+Tests cross-check primitives, nested/shared/cyclic/sparse/accessor arrays, non-JSON
+leaves, class/null prototypes, object identity, branded helpers and first-error order.
+Content classes also work through actual tool handlers. Checks expand to 343 native
+tests. A development microbenchmark found batching native conversion calls did not
+improve scalar arrays, so that experiment was removed. Direct native text construction
+uses the platform primitive intrinsic and retains JS strings without an owned JSON
+copy; structured values still use own Rust conversion. Own fields bypass prototype
+setters. Local Rust medians changed from 0.55 to 0.37 us for one scalar and 46.42 to
+29.18 us for 100 scalars. TypeScript remained faster (about 0.095 and 4.40 us in the
+final trial); these single-process samples establish
+no general Rust speed advantage. Evidence is in `out/rust-content-converter-*.json`.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

@@ -117,6 +117,7 @@ class ControlRelay {
 		const client = pair[1];
 		client.accept();
 		client.addEventListener("message", (event) => {
+			if (upstream.readyState !== WebSocket.OPEN) return;
 			assert.equal(typeof event.data, "string");
 			const frame = JSON.parse(event.data);
 			this.trackCommand(frame);
@@ -224,6 +225,7 @@ class ControlRelay {
 	private deliver(client: WebSocket, upstream: WebSocket, data: string) {
 		const frame: Reply = JSON.parse(data);
 		this.recordNativeTargets(frame);
+		if (client.readyState !== WebSocket.OPEN) return;
 		if (frame.id !== undefined) {
 			const timing = this.timings.get(frame.id);
 			if (

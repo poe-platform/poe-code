@@ -1,9 +1,9 @@
 # mcp-oauth-server-rust
 
-Rust authorization-server primitives with native Node bindings and zero npm runtime
-dependencies. This private additive rewrite currently provides credential records,
-refresh-token rotation/replay protection, grant/token revocation and CSRF helpers.
-Authorization endpoints and signed token issuance are still being implemented.
+Rust MCP authorization server with native Node bindings and zero npm runtime
+dependencies. Register public clients, request consent, issue ES256 or RS256 access
+tokens, rotate refresh tokens, revoke grants and verify resource-bound credentials.
+This private package is an additive alternative to `mcp-oauth-server`.
 
 ```ts
 import {
@@ -31,3 +31,49 @@ submitted UTF-8 token bytes using the platform's timing-safe primitive.
 The in-memory store retains records for its lifetime, including replay history;
 use a persistent store with an application retention policy for production.
 Existing packages and application imports remain unchanged.
+
+Create a server with your consent interaction and storage adapter:
+
+```ts
+import { generateKeyPairSync } from "node:crypto";
+import { createOAuthAuthorizationServer } from "mcp-oauth-server-rust";
+
+const { privateKey, publicKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
+const server = createOAuthAuthorizationServer({
+  issuer: "https://auth.example",
+  resources: ["https://api.example/mcp"],
+  scopesSupported: ["read"],
+  signingKey: {
+    algorithm: "ES256", keyId: "current", privateKey,
+    publicJwk: publicKey.export({ format: "jwk" })
+  },
+  store,
+  interaction: {
+    start: ({ transaction }) => new Response(`Consent for ${transaction.clientId}`)
+  }
+});
+const response = await server.handle(request);
+// After authenticating the user and validating consent/CSRF:
+const result = await server.completeAuthorization({ transactionId, subject: userId });
+```
+
+| Endpoint | Purpose |
+| --- | --- |
+| `/.well-known/oauth-authorization-server` | Authorization metadata |
+| `/.well-known/jwks.json` | Public verification keys |
+| `/register` | Public client registration |
+| `/authorize` | Authorization-code consent with S256 PKCE |
+| `/token` | Code exchange and refresh-token rotation |
+| `/revoke` | Token and associated grant revocation |
+
+Rust owns request admission, protocol errors, PKCE hashing, token plans and JWT claim
+policy. Node built-ins supply HTTP objects, URL parsing, storage callbacks and
+cryptographic signing/verification. Request bodies have configured byte limits;
+cancellation releases readers without waiting for a stalled underlying cancel.
+
+`verifyAccessToken(token, resource)` checks the signature, issuer, audience, token
+type and retained authorization record. `denyAuthorization(transactionId)` returns
+a denial redirect; `revokeGrant(grantId)` revokes associated credentials.
+
+Native artifacts are currently validated on the development platform. Broader
+platform packaging and performance measurements remain in progress.

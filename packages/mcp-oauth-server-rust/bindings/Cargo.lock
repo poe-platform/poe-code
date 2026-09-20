@@ -152,6 +152,7 @@ dependencies = [
 name = "mcp-oauth-server-rust-node"
 version = "0.1.0"
 dependencies = [
+ "mcp-oauth-rust",
  "mcp-oauth-server-rust",
  "mcp-protocol-rust",
  "napi",

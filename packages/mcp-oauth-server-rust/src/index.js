@@ -2,6 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { serialize, deserialize } from "node:v8";
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./mcp-oauth-server-rust.node");
+export { createOAuthAuthorizationServer } from "./server.js";
 function decode(record) {
   if (record == null) return undefined;
   return Object.assign(deserialize(record.payload), record.patches);

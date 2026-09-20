@@ -52,3 +52,40 @@ export interface VerifyAuthorizationInteractionCsrfInput {
 export declare function createInMemoryAuthorizationServerStore(): AuthorizationServerStore;
 export declare function createAuthorizationInteractionSecurity(options?: AuthorizationInteractionSecurityOptions): AuthorizationInteractionSecurity;
 export declare function verifyAuthorizationInteractionCsrf(input: VerifyAuthorizationInteractionCsrfInput): boolean;
+export interface OAuthJsonWebKey {
+  kty?: string; alg?: string; key_ops?: string[]; ext?: boolean; use?: string;
+  x5c?: string[]; x5t?: string; "x5t#S256"?: string; x5u?: string; kid?: string;
+  crv?: string; d?: string; dp?: string; dq?: string; e?: string; k?: string;
+  n?: string; p?: string; q?: string; qi?: string; x?: string; y?: string;
+}
+export interface AuthorizationInteractionStartContext { request: Request; transaction: AuthorizationTransactionRecord; }
+export interface AuthorizationInteraction { start(context: AuthorizationInteractionStartContext): Promise<Response> | Response; }
+export interface OAuthAuthorizationServerSigningKey {
+  algorithm: "ES256" | "RS256"; keyId: string;
+  privateKey: import("node:crypto").KeyObject; publicJwk: OAuthJsonWebKey;
+}
+export interface OAuthAuthorizationServerOptions {
+  issuer: string; resources: readonly string[];
+  scopesSupported?: readonly string[]; defaultScopes?: readonly string[];
+  signingKey: OAuthAuthorizationServerSigningKey; additionalPublicJwks?: readonly OAuthJsonWebKey[];
+  store: AuthorizationServerStore; interaction: AuthorizationInteraction;
+  accessTokenTtlSeconds?: number; authorizationCodeTtlSeconds?: number;
+  authorizationTransactionTtlSeconds?: number; refreshTokenTtlSeconds?: number;
+  maxRequestBodyBytes?: number; now?: () => number; randomToken?: () => string;
+  onGrantRevoked?(grant: AuthorizationGrantRecord): Promise<void> | void;
+}
+export interface CompleteAuthorizationInput { transactionId: string; subject: string; scopes?: readonly string[]; }
+export interface CompleteAuthorizationResult { redirectUrl: URL; grantId: string; }
+export interface VerifiedAuthorizationServerToken {
+  subject: string; clientId: string; resource: string; scopes: readonly string[];
+  tokenId: string; expiresAt: number;
+}
+export interface OAuthAuthorizationServer {
+  issuer: string;
+  handle(request: Request): Promise<Response>;
+  completeAuthorization(input: CompleteAuthorizationInput): Promise<CompleteAuthorizationResult>;
+  denyAuthorization(transactionId: string, error?: string): Promise<URL>;
+  revokeGrant(grantId: string): Promise<void>;
+  verifyAccessToken(token: string, resource: string): Promise<VerifiedAuthorizationServerToken>;
+}
+export declare function createOAuthAuthorizationServer(options: OAuthAuthorizationServerOptions): OAuthAuthorizationServer;

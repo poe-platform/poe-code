@@ -8,6 +8,8 @@ use napi_derive::napi;
 use std::cell::RefCell;
 #[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
 mod convert;
+mod policy_input;
+pub mod server_binding;
 fn kind(value: &str) -> Result<Kind> {
     Kind::parse(value).ok_or_else(|| napi::Error::from_reason("Unknown authorization record kind"))
 }

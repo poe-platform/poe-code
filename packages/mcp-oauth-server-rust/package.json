@@ -10,15 +10,17 @@
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && vitest run --config vitest.reference.config.ts && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
+    "jose": "6.2.3",
     "mcp-oauth-rust": "*",
     "mcp-oauth-server": "*",
     "mcp-protocol-rust": "*",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
   },
   "files": ["dist", "LICENSE"],
   "engines": { "node": ">=18.18" },

@@ -421,9 +421,23 @@ and code takers, cookie validation/call order and timing-safe UTF-8 CSRF compari
 An expiry/NaN mismatch was reproduced red before correction. Seven Rust tests,
 eight native groups and structural public type compatibility pass; focused build
 and lint pass. The actual npm tarball's standalone addon/store/security APIs were
-extracted and smoke-checked, then temporary artifacts purged. Authorization
-endpoints, token issuance/verification and original server end-to-end contracts
-remain outstanding; this checkpoint is not the completed server package rewrite.
+extracted and smoke-checked, then temporary artifacts purged.
+
+The authorization-server factory and every public endpoint/API are now implemented.
+Rust owns configuration and URL admission, scoped direct record capture, registration,
+authorization/code/refresh/revocation policy, S256 hashing, signing/key plans and
+compact JWS/JWT claim admission. Node built-ins supply URL/Request/Response, callback
+storage and asynchronous signing/WebCrypto verification. ES256 and RS256 tokens are
+verified by the official JOSE development oracle. Body cancellation releases reader
+locks/listeners without awaiting stalled underlying cancellation. Real failures for
+raw form fragments, Infinity limits, unused getters, non-enumerable record fields
+and mutated algorithm/key confusion were reproduced before correction.
+Fifteen Rust tests, 23 native groups, all 26 original server/security contracts and
+bidirectional public type compatibility pass, alongside focused build and lint.
+The signed hostile JWT matrix compares 110 header/claim combinations and their
+JOSE error metadata against the original implementation. The standalone tarball
+factory/endpoints are smoke-checked separately. The package remains private;
+cross-platform delivery and broader memory/performance evidence are unfinished.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

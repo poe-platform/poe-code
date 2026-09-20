@@ -11,6 +11,7 @@ independent Rust execution policies and no npm runtime dependencies.
 | Open host environments and select interactive shell defaults | `hostExecutionEnvFactory` |
 | Select Docker/Podman and discover running Colima profiles | `detectEngine`, `isEngineAvailable`, `detectContext` |
 | Add a Docker context while keeping Podman arguments unchanged | `buildContextArgs` |
+| Replay deterministic runs and timed stream output | `createMockRunner`, `createMockRunnerByCommand` |
 
 ```typescript
 import { createHostRunner } from '@poe-code/process-runner-rust';
@@ -49,8 +50,13 @@ after10 seconds and SIGKILL5 seconds later. Settlement removes listeners, clears
 timers and cleans private environment files once. Interactive inherited stdio
 requires all three streams plus `tty:true`; piped streams retain their identities.
 
-This is an additive experimental host and Docker-runner subset. Docker environments,
-workspace transfer, mock-runner helpers, full malformed/getter fidelity and
+Mock runners replay a shallow copy of behaviors or look up live own command
+entries. Consumed FIFO slots release their behavior references. Output completes
+before the default result; explicit exit delays may finish earlier. Repeated kill
+stops streams and settles once without rereading the exit-code getter.
+
+This is an additive experimental host, Docker-runner and mock subset. Docker environments,
+workspace transfer, full malformed/getter fidelity and
 cross-platform artifacts remain in progress. Existing applications keep their
 original TypeScript imports. Bounded cancellation measurements are not general
 process performance or memory acceptance.

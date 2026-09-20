@@ -2434,6 +2434,35 @@ acceptance. Evidence: `out/rust-process-docker-run-*`.
 Detached Docker environments/build contexts, mock/workspace transfer, real-engine
 acceptance, malformed/getter fidelity and the overall goal remain unfinished.
 
+### Process runner native mock lifecycle — 2026-09-20
+
+Added both root mock APIs with own Rust FIFO indices, completion-delay validation,
+exactly-once run/stream lifecycle and UTF-16 missing-command errors. The Node
+transport retains behavior objects, builtin streams and timer scheduling, reads
+the live exit code only on first settlement, preserves shallow-copy/live-command
+lookup semantics and ignores inherited command entries.
+
+Failing-first Rust/module-absence checks precede implementation. All97 actual
+SDK cases across5 modules plus3 additional Docker cases,12 Rust groups,9 native
+groups, strict subset types, fmt/clippy and uncached5-workspace build pass. Extra
+native cases cover failed FIFO slots, live command mutation, repeated kill,
+exit-code getter counts, piped stdin and Unicode stream bytes.
+
+A memory comparison caught consumed-slot retention before commit: all64 behavior
+objects/32MiB payload buffers remained live in the initial native queue, while
+the SDK released them. Clearing each consumed slot fixes this: native and SDK
+retain0 objects and return to10.5KB buffers while their runner stays alive.
+Direct/packed8MiB workers each pass4096 mock replays and64 output runs, alongside
+the earlier process workloads, with external imports blocked. One addon and zero
+npm runtime/peer/optional dependencies remain. Silent runs measure0.91–1.00µs
+native versus0.25–0.58µs SDK. Across65,536 more runs, heap3.86→3.88MB native,
+3.77→3.80MB SDK and buffers10.5KB each. Evidence: `out/rust-process-mock-*`.
+
+Root Docker environments/build contexts and workspace transfer remain unfinished,
+along with real-engine/cross-platform/full malformed acceptance and the larger
+rewrite/24-hour actual-effort requirement. The hook-lock correction's Linux
+release build and audit have passed; full publication is still pending.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

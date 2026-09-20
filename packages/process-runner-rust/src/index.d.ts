@@ -10,3 +10,6 @@ export function detectEngine():Engine;
 export function isEngineAvailable(engine:Engine):boolean;
 import type {DockerRunnerOptions}from'./types.js';
 export function createDockerRunner(options:DockerRunnerOptions):Runner;
+import type {MockRunBehavior}from'./types.js';
+export function createMockRunner(behaviors:MockRunBehavior[]):Runner;
+export function createMockRunnerByCommand(behaviorsByCommand:Record<string,MockRunBehavior>):Runner;

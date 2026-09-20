@@ -126,6 +126,43 @@ pub fn diagnostic_message(reason: &str, at_eof: bool) -> String {
         reason.into()
     }
 }
+// EOF flow errors identify root collections separately from block values and
+// show the original raw YAML line, as parseFrontmatter's public errors do.
+fn pretty_flow_error(raw: &[u16], error: &yaml::Error) -> Option<String> {
+    if error.offset < raw.len() {
+        return None;
+    }
+    let (kind, closer) = if error.reason.contains("flow sequence") {
+        ("Flow sequence", ']')
+    } else if error.reason.contains("flow mapping") {
+        ("Flow map", '}')
+    } else {
+        return None;
+    };
+    let first = raw.iter().find(|unit| !matches!(unit, 9 | 10 | 13 | 32));
+    let root = matches!(first, Some(91 | 123));
+    let reason = if root {
+        format!("{kind} must end with a {closer}")
+    } else {
+        format!("{kind} in block collection must be sufficiently indented and end with a {closer}")
+    };
+    let starts = line_starts(raw);
+    let (line, column) = line_position(&starts, error.offset.min(raw.len()));
+    let line_start = starts[line - 1];
+    let (end, _) = line_end(raw, line_start);
+    let excerpt_start = if column == 1 && line > 1 {
+        starts[line - 2]
+    } else {
+        line_start
+    };
+    let excerpt = String::from_utf16_lossy(&raw[excerpt_start..end])
+        .replace("\r\n", "\n")
+        .replace('\r', "\n");
+    Some(format!(
+        "{reason} at line {line}, column {column}:\n\n{excerpt}\n{}^\n",
+        " ".repeat(column - 1)
+    ))
+}
 #[derive(Debug)]
 pub struct Diagnostic {
     pub message: String,
@@ -208,7 +245,10 @@ pub fn parse_document(
             document.errors.push(Diagnostic {
                 message: diagnostic_message(&error.reason, at_eof),
                 position: Some((offset, offset + usize::from(!at_eof))),
-                parse_message: format!("Invalid YAML frontmatter: {error}"),
+                parse_message: format!(
+                    "Invalid YAML frontmatter: {}",
+                    pretty_flow_error(raw, &error).unwrap_or_else(|| error.to_string())
+                ),
             });
             document
         }

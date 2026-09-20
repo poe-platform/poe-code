@@ -62,3 +62,12 @@ test('parallel small-stack workers parse and stringify bounded deep documents',a
  parentPort.postMessage('done');})().catch(error=>{throw error;});`;
  await Promise.all([0,1].map(()=>new Promise((resolve,reject)=>{const worker=new Worker(source,{eval:true,workerData:{entry},resourceLimits:{stackSizeMb:4}});let done=false;worker.on('message',message=>{assert.equal(message,'done');done=true;});worker.on('error',reject);worker.on('exit',code=>code===0&&done?resolve():reject(new Error('Worker failed '+code)));})));
 });
+
+test('unfinished root and block flow errors retain SDK source context',()=>{
+ for(const raw of ['[unclosed\n','config: [unclosed\n','{unclosed\n','config: {unclosed\n','first: value\nnext: [one,\n  two\n','😀: [one\n']){
+  const source=`---\n${raw}---\nBody`;let actual,expected;
+  try{own.parseFrontmatter(source);}catch(error){actual={name:error.name,message:error.message};}
+  try{sdk.parseFrontmatter(source);}catch(error){expected={name:error.name,message:error.message};}
+  assert.deepEqual(actual,expected);
+ }
+});

@@ -58,3 +58,32 @@ fn absent_fences_and_null_yaml_return_empty_records_without_rewriting_body() {
         assert_eq!(&source[parsed.body_start..], u("Body"));
     }
 }
+
+#[test]
+fn missing_flow_closers_show_sdk_root_or_block_reasons_and_source_context() {
+    for (yaml, message) in [
+        (
+            "[unclosed\n",
+            "Flow sequence must end with a ] at line 2, column 1:\n\n[unclosed\n\n^\n",
+        ),
+        (
+            "config: [unclosed\n",
+            "Flow sequence in block collection must be sufficiently indented and end with a ] at line 2, column 1:\n\nconfig: [unclosed\n\n^\n",
+        ),
+        (
+            "{unclosed\n",
+            "Flow map must end with a } at line 2, column 1:\n\n{unclosed\n\n^\n",
+        ),
+        (
+            "config: {unclosed\n",
+            "Flow map in block collection must be sufficiently indented and end with a } at line 2, column 1:\n\nconfig: {unclosed\n\n^\n",
+        ),
+    ] {
+        let source = u(&format!("---\n{yaml}---\nBody"));
+        let parsed = parse_document(&source, false, None);
+        assert_eq!(
+            parsed.errors[0].parse_message,
+            format!("Invalid YAML frontmatter: {message}")
+        );
+    }
+}

@@ -2048,6 +2048,19 @@ metadata accessor stages are not yet fully SDK-compatible; transfer bounds are
 512 levels/100,000 nodes. YAML diagnostics/recovery/cyclic aliases, cross-platform
 artifacts, remaining MCP applications and the full poe-agent closure are unfinished.
 
+### Frontmatter unfinished-flow source context, 2026-09-20
+
+A direct-admission comparison reproduced a shared frontmatter error mismatch for
+an unfinished root sequence. The formatter now distinguishes EOF root flow
+collections from block values and prints the raw YAML line with the SDK's line,
+UTF-16 column and caret context. Four failing core cases now pass; six native
+SDK comparisons cover sequence/map roots and block values, multiline EOF and
+an astral key. Existing document diagnostic offsets remain unchanged. The
+frontmatter package's Rust/native/oracle/type routes and lint pass, with the
+11-workspace uncached build covering its consuming resolver addon. This fixes
+these EOF diagnostics only; general YAML diagnostic/recovery parity remains open.
+Evidence: `out/rust-frontmatter-flow-pretty-*`.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

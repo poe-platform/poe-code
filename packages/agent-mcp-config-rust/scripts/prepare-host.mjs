@@ -1,0 +1,11 @@
+import {mkdirSync,readdirSync,copyFileSync,writeFileSync} from 'node:fs';
+const root=new URL('../',import.meta.url),dist=new URL('dist/',root);
+mkdirSync(dist,{recursive:true});
+for(const filename of readdirSync(new URL('src/',root)))if(filename.endsWith('.d.ts'))copyFileSync(new URL('src/'+filename,root),new URL(filename,dist));
+const config=new URL('config/',dist),configSource=new URL('../config-mutations-rust/src/',root);
+mkdirSync(config,{recursive:true});
+for(const filename of readdirSync(configSource))if(filename.endsWith('.js')||filename.endsWith('.d.ts'))copyFileSync(new URL(filename,configSource),new URL(filename,config));
+writeFileSync(new URL('native.js',config),"export {native} from '../native.js';\n");
+const design=new URL('design/',config),designSource=new URL('../toolcraft-design-rust/src/',root);
+mkdirSync(design,{recursive:true});
+for(const filename of ['engine.js','data.js'])copyFileSync(new URL(filename,designSource),new URL(filename,design));

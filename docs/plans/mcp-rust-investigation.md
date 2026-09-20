@@ -1758,6 +1758,49 @@ shared bridge; no skip-artifact warning appears. Evidence underout/rust-config-
 embed-*. Existing finite performance/memory/platform limitations remain. The full
 MCP/poe-agent goal remains active and incomplete.
 
+## Agent MCP configuration rewrite
+
+Added private `agent-mcp-config-rust` with the compatible root TypeScript API,
+six-agent catalog derived from the existing own agent definitions, aliases,
+platform paths, standard/OpenCode/Goose shapes, validation and configuration
+conflict/removal policies. Rust controls capability ordering and decisions;
+the host preserves arbitrary JavaScript getters, object spreads, references,
+iterators, exception identities, WHATWG URLs and deep equality. Configuration
+execution, JSONC/TOML/YAML codecs and templates are embedded from the shared
+own native bridge into one addon, with no npm runtime/peer/optional dependencies.
+Original packages, production imports and release wiring remain unchanged.
+
+Failing-first tests exposed both unknown-platform coercion and unbounded native
+wrapper allocation in sequential operations. Platform fallback now avoids
+coercing unknown values. Validation/decision wrappers are reused in bounded
+pools and always discard operation state. The finite shape policy is compiled
+from the same Rust machine into a capability graph, removing per-field native
+transitions while retaining exact host read/assignment ordering. Nested calls
+and repeated throwing getters remain isolated. Graph traces match the Rust
+machine across all 96 style/flag combinations; shape computation follows that
+Rust-generated graph in JavaScript rather than crossing into Rust per field.
+
+Validation: twelve Rust groups, thirteen native groups, strict SDK type
+assignability, all 63 actual current SDK tests, maintained fmt/clippy and a
+twelve-workspace uncached build pass. Two 4 MiB-stack workers perform 9,216
+configure/remove operations over all six agents and three platforms. Packed
+root API passes stdio/HTTP idempotence, conflict and removal for every agent and
+platform with bare npm resolution blocked; exactly one native addon is present.
+Evidence: `out/rust-agent-mcp-{test,lint,build,pack-smoke}.log`; failing-first
+catalog/policy/native/wrapper/platform logs and isolated performance logs.
+
+Finite performance evidence: three-shape native snapshots reduce the earlier
+per-field native path from about 10 microseconds per shape to 345–472 ns.
+The original remains faster for these small documents; configure/remove
+samples are 191–331 microseconds per native pair. Separate-process memory
+samples include 12,288 subsequent configure/remove pairs across six agents with GC and event-loop idle
+between blocks; native RSS rises from 96.1 to 120.1 MiB while its JS heap goes
+from 5.10 to 5.29 MiB. Tight microtask-only measurement starves native finalizer
+delivery; wrapper reuse reduces that allocation pressure, but RSS still does
+not establish a memory advantage or a leak-free guarantee. No broad speed,
+stability or platform claim follows from these local measurements. Python
+adapters and the full remaining MCP/poe-agent closure are still unfinished.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

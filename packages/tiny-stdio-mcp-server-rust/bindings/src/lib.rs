@@ -166,12 +166,13 @@ impl NativeServer {
         }))
     }
 
-    #[napi]
-    pub fn set_tool(&self, env: Env, definition: Unknown<'_>, replace: bool) -> Result<u32> {
+    #[napi(ts_return_type = "{ handler: number; name: string }")]
+    pub fn set_tool(&self, env: Env, definition: Unknown<'_>, replace: bool) -> Result<NativeJson> {
         // Proxy descriptor traps can reenter this addon. Finish all JS calls
         // before borrowing mutable state; the core never retains JS handles.
         let definition = input::read(&env, definition, input::Mode::Json)?
             .ok_or_else(|| Error::from_reason("Tool definition required"))?;
+        let name = definition.get("name").cloned().unwrap_or(Value::Null);
         let mut state = self.state.borrow_mut();
         let id = state
             .next_handler
@@ -182,11 +183,14 @@ impl NativeServer {
             .set_tool(definition, id as u64, replace)
             .map_err(Error::from_reason)?;
         state.next_handler = id;
-        Ok(id)
+        Ok(NativeJson(object([
+            ("handler", Value::Number(id as f64)),
+            ("name", name),
+        ])))
     }
 
     #[napi]
-    pub fn remove_tool(&self, name: String) -> bool {
+    pub fn remove_tool(&self, name: Utf16String) -> bool {
         self.state.borrow_mut().server.remove_tool(&name)
     }
 

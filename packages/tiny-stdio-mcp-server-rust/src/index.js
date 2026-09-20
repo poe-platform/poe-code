@@ -19,10 +19,10 @@ export function createServer(options) {
   const toolHandlers = new Map();
   function registerTool(definition, handler, replace = false) {
     if (typeof handler !== "function") throw new TypeError("Tool handler must be a function");
-    const id = native.setTool(definition, replace);
-    handlers.delete(toolHandlers.get(definition.name));
+    const { handler: id, name } = native.setTool(definition, replace);
+    handlers.delete(toolHandlers.get(name));
     handlers.set(id, handler);
-    toolHandlers.set(definition.name, id);
+    toolHandlers.set(name, id);
     return server;
   }
   function createMessageSession() {

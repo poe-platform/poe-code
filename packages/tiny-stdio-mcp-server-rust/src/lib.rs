@@ -125,12 +125,8 @@ impl Server {
         Ok(())
     }
 
-    pub fn remove_tool(&mut self, name: &str) -> bool {
-        let Some(index) = self
-            .tools
-            .iter()
-            .position(|tool| tool.name.iter().copied().eq(name.encode_utf16()))
-        else {
+    pub fn remove_tool(&mut self, name: &[u16]) -> bool {
+        let Some(index) = self.tools.iter().position(|tool| tool.name == name) else {
             return false;
         };
         self.tools.remove(index);

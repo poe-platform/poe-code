@@ -221,8 +221,8 @@ fn tools_are_listed_in_registration_order_and_replacement_keeps_position() {
             context: value(r#"{"clientCapabilities":{}}"#)
         }
     );
-    assert!(server.remove_tool("b"));
-    assert!(!server.remove_tool("b"));
+    assert!(server.remove_tool(&[b'b' as u16]));
+    assert!(!server.remove_tool(&[b'b' as u16]));
 }
 
 #[test]

@@ -5,7 +5,7 @@ const INVALID_EXPIRY: &str = "OAuth token response has invalid expires_in";
 fn property(key: &str, value: Value) -> (Vec<u16>, Value) {
     (key.encode_utf16().collect(), value)
 }
-fn whitespace(unit: u16) -> bool {
+pub(crate) fn whitespace(unit: u16) -> bool {
     matches!(unit, 0x0009..=0x000d | 0x0020 | 0x00a0 | 0x1680 | 0x2000..=0x200a | 0x2028 | 0x2029 | 0x202f | 0x205f | 0x3000 | 0xfeff)
 }
 fn trimmed(value: Option<&Value>) -> Option<Vec<u16>> {

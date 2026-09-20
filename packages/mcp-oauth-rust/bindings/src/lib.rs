@@ -160,3 +160,61 @@ pub fn encode_token_form(text: Utf16String) -> Result<String> {
         .collect::<Result<Vec<_>>>()?;
     Ok(mcp_oauth_rust::tokens::encode_form(&pairs))
 }
+
+#[napi]
+pub fn normalize_callback_input(text: Utf16String) -> Utf16String {
+    mcp_oauth_rust::loopback::normalize_input(&text).into()
+}
+#[napi]
+pub fn render_success_page(title: Option<Utf16String>, body: Option<Utf16String>) -> Utf16String {
+    mcp_oauth_rust::loopback::build_success_page(
+        title.as_ref().map(|text| text.as_ref()),
+        body.as_ref().map(|text| text.as_ref()),
+    )
+    .into()
+}
+#[napi]
+pub struct NativeCallbackBinding {
+    binding: mcp_oauth_rust::loopback::CallbackBinding,
+}
+#[napi]
+impl NativeCallbackBinding {
+    #[napi(constructor)]
+    pub fn new(state: Option<Utf16String>) -> Self {
+        Self {
+            binding: mcp_oauth_rust::loopback::CallbackBinding::new(
+                state.map(|state| state.to_vec()),
+            ),
+        }
+    }
+    #[napi]
+    pub fn resolve(&self, text: Utf16String) -> Result<convert::NativeJson> {
+        let payload = json::parse_utf16(&text, Limits::default())
+            .map_err(|_| napi::Error::from_reason("Invalid OAuth callback"))?;
+        let field = |key| match payload.get(key) {
+            Some(Value::String(text)) => Some(text.clone()),
+            _ => None,
+        };
+        let callback = mcp_oauth_rust::loopback::CallbackParameters {
+            code: field("code"),
+            error: field("error"),
+            error_description: field("errorDescription"),
+            state: field("state"),
+            issuer: field("iss"),
+        };
+        let fields = match self.binding.resolve(&callback) {
+            Ok(code) => vec![("code".encode_utf16().collect(), Value::String(code))],
+            Err(error) => vec![
+                (
+                    "error".encode_utf16().collect(),
+                    Value::String(error.message),
+                ),
+                (
+                    "response".encode_utf16().collect(),
+                    Value::String(error.response),
+                ),
+            ],
+        };
+        Ok(convert::NativeJson(Value::Object(fields)))
+    }
+}

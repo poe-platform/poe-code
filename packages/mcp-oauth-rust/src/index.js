@@ -5,3 +5,4 @@ export const generateCodeChallenge = native.generateCodeChallenge;
 export function generateCodeVerifier() { return native.encodeCodeVerifier(randomBytes(32)); }
 export { fetchMcpResponse, readBoundedResponseText } from "./http.js";
 export { OAuthError, isRetryableOAuthError } from "./tokens.js";
+export { buildSuccessPage, extractCodeFromInput, createLoopbackAuthorizationSession } from "./loopback.js";

@@ -15,6 +15,7 @@ pub fn generate_code_challenge(verifier: &[u16]) -> String {
         .collect::<String>();
     base64::encode_url(&sha256(utf8.as_bytes()))
 }
+pub mod loopback;
 pub mod response;
 pub mod state;
 pub mod tokens;

@@ -297,6 +297,17 @@ checks cover grants, request secrets/Unicode/surrogates, all protocol error alia
 and abort reasons. The maintained build/lint/type checks and nine Rust / eighteen
 native groups pass. Full URL/IDNA normalization still uses the Node host primitive.
 
+Loopback callback binding, input normalization and exact UTF-16 HTML escaping now
+use the own Rust core. The Node host listens only on 127.0.0.1 with an ephemeral
+port, supports configured paths/browser/manual input and supplies platform URL
+parsing. Native/oracle tests cover HTTP response bodies/status/headers, callback
+state and issuer priority, denials, empty codes, pasted URLs/raw codes, browser
+rejection reasons (including undefined), and startup errors. Close intentionally
+improves on the original lifecycle: it rejects pending waits, is idempotent and
+removes only owned request listeners. 512 settlement/close cycles verify no owned
+listeners remain. The focused maintained build/lint/types and twelve Rust / twenty-
+four native groups pass. Provider/session/JWKS functionality remains incomplete.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

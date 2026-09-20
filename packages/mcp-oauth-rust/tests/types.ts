@@ -8,3 +8,8 @@ void reply;
 void text;
 const error: unknown = new OAuthError({ error: "server_error" }, 503);
 if (isRetryableOAuthError(error)) { const retryable: boolean = error.retryable; void retryable; }
+import { buildSuccessPage, extractCodeFromInput, createLoopbackAuthorizationSession, type LoopbackAuthorizationSession } from "../src/index.js";
+const page: string = buildSuccessPage({title:"Connected",body:"Return to the terminal"});
+const code: string | null = extractCodeFromInput("code");
+const loopback: Promise<LoopbackAuthorizationSession> = createLoopbackAuthorizationSession({callbackPath:"/oauth/callback",readLine:async()=>"code",openBrowser:async()=>undefined});
+void page; void code; void loopback;

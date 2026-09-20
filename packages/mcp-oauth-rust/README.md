@@ -24,8 +24,13 @@ form bodies and classify protocol errors. The host adapter bounds token response
 to 1 MiB, refuses redirects and uses a 30-second request deadline. Public
 `OAuthError` instances preserve protocol fields and retry/terminal classification.
 
-Session storage, browser
-callbacks and JWKS verification are still being implemented. Keep applications on
+Loopback sessions listen on an ephemeral `127.0.0.1` port and support browser or
+pasted callback input. Rust enforces state/issuer binding before accepting codes
+or denials and renders escaped success pages. Closing a session disposes its
+listeners and rejects pending waits; close is idempotent.
+
+Session storage, the default provider
+and JWKS verification are still being implemented. Keep applications on
 their existing OAuth package until conformance and integration are complete.
 
 `fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.

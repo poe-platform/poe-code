@@ -33,7 +33,8 @@
     "typescript": "5.9.3",
     "vitest": "4.1.11",
     "memfs": "4.56.10",
-    "ignore": "5.3.2"
+    "ignore": "5.3.2",
+    "mcp-oauth-rust": "*"
   },
   "files": [
     "dist",

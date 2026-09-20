@@ -13,6 +13,7 @@ independent Rust execution policies and no npm runtime dependencies.
 | Add a Docker context while keeping Podman arguments unchanged | `buildContextArgs` |
 | Replay deterministic runs and timed stream output | `createMockRunner`, `createMockRunnerByCommand` |
 | Read filtered build-context files and binary bytes | `readDockerBuildContextFiles` |
+| Upload and download workspaces with rollback and conflict checks | `uploadWorkspace`, `downloadWorkspace` |
 
 ```typescript
 import { createHostRunner } from '@poe-code/process-runner-rust';
@@ -34,7 +35,7 @@ Result settlement and cancellation-listener removal happen once.
 The own Node transport uses builtin child processes and retains stream, signal
 and environment identities. Rust owns active-run stdio/group planning, result
 admission, signal-target selection and lazy shell fallback order. The Rust core
-uses std and the repository's own JSON core; the single napi-rs addon is the only
+uses std and the repository's own JSON and SHA cores; the single napi-rs addon is the only
 native artifact. Rust also owns Docker argument ordering, port validation and
 environment-file serialization for the Docker runner. Environment
 values remain outside process arguments, and strings preserve UTF-16 code units.
@@ -63,8 +64,8 @@ and sorts relative paths with Node locale ordering. `.dockerignore` always stays
 in the file list. The SDK `docker/build-context` and `testing` subpaths are also
 available on this package.
 
-This is an additive experimental host, Docker-runner, context and mock subset. Docker environments,
-workspace transfer, full malformed/getter fidelity and
+This is an additive experimental process and workspace subset. Docker environments,
+full malformed/getter fidelity and
 cross-platform artifacts remain in progress. Existing applications keep their
 original TypeScript imports. Bounded cancellation measurements are not general
 process performance or memory acceptance.
@@ -91,4 +92,20 @@ transfer. It borrows input payloads, checks UTF-8 path limits and preserves orig
 UTF-16 error text. The Node binding returns Node-owned archive buffers. For a
 two-entry6.5KiB archive, a bounded comparison measured1.8–2.1µs native versus
 9.3–10.2µs for the SDK encoder. Sampled RSS stayed82–84MB across131,072 further
-encodes; the SDK stayed58MB. Full transfer APIs remain unfinished.
+encodes; the SDK stayed58MB.
+
+Workspace uploads stage files and archives before promotion. Rust owns the
+mutation and rollback order, ordered ignore rules, SHA-256 content state, size
+admission, conflict checks and remote-deletion candidates. Node executes builtin
+filesystem operations and keeps payload buffers outside retained native state.
+Downloads refuse or overwrite local conflicts, reject symlinks and use exclusive
+temporary writes followed by rename. Download traversal and filesystem sequencing
+currently remain in Node transport.
+
+A bounded three-file upload/download comparison measured248–321µs per native
+pair versus239–443µs SDK. Across4096 more pairs, native sampled heap grew
+6.86→7.17MB and SDK6.98→7.40MB; both ended near120MB RSS and74KB live buffers.
+The memory fixture releases only unreachable development memfs inodes at sample
+checkpoints. Direct and packed16MiB workers pass;8MiB workers exhaust the heap
+with the development filesystem loaded. These results establish neither a broad
+performance gain nor lower total memory use.

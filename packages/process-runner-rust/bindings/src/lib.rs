@@ -5,6 +5,8 @@ pub mod docker;
 pub mod ignore;
 pub mod mock;
 pub mod tar;
+pub mod upload_transaction;
+pub mod workspace;
 #[napi(object)]
 pub struct HostFacts {
     pub stdin: Option<String>,

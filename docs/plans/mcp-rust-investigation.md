@@ -2538,6 +2538,43 @@ unfinished, together with real-engine/cross-platform/malformed acceptance and
 the larger rewrite/24-hour actual-effort requirement. The lock correction's
 uncached release unit and publication remain pending.
 
+### Process runner workspace transfer policies — 2026-09-20
+
+Added root upload/download APIs without changing existing TypeScript integration.
+Portable Rust owns resumable staging/promotion/rollback effects and exception
+priority, ordered workspace ignore rules, borrowed SHA hashing, stable hash/path
+state, conflict detection and deletion candidates. Workspace patterns deliberately
+use the SDK dialect (case-sensitive, segment globstars, literal question marks and
+classes), independently of Docker build-context ignore. Node executes filesystem
+effects and retains payload bytes; native controllers retain no host callbacks or
+buffers. Download traversal, link checks and atomic write sequencing remain Node
+transport and are candidates for portable controllers.
+
+Failing-first core/addon/API absence and an embedded-LF exclusion discrepancy
+precede implementation/fix. All103 SDK cases plus5 lifecycle/context cases,28 Rust
+groups and17 native groups pass, along with strict types, fmt/clippy and the
+maintained uncached10-workspace build closure. Sixteen generated comparative
+transfer rounds verify exact archives/files, size warnings, filters, conflict
+refusal/overwrite and deletion. Six injected upload failures compare rollback
+contents and original exception identity. Symlinks and missing link-check support
+are covered with memfs. An8MiB Rust hash allocation contract passed with the
+existing fixed-stack SHA tail; no SHA payload-copy bug or change is claimed.
+
+Direct and packed16MiB workers pass256 transfers plus context/tar/mock/host/Docker
+policy workloads with production external imports blocked. The dev filesystem is
+loaded before blocking.8MiB workers fail heap exhaustion. One addon and no npm
+runtime/peer/optional dependencies remain. Transfer pairs measure247.7–321.1µs
+native versus238.9–443.3µs SDK. Across4096 extra pairs, sampled native heap
+6.86→7.17MB, SDK6.98→7.40MB; buffers74KB each and final RSS119.9/119.6MB.
+Only unreachable dev memfs inodes are released at checkpoints; environment state
+remains alive. No broad speed or total-memory acceptance follows. Evidence:
+`out/rust-process-workspace-*`.
+
+Docker runtime templates/detached environments, full malformed/getter and
+real-engine/cross-platform acceptance, the remaining MCP/agent packages and
+24-hour actual effort remain unfinished. Lock-correction release build, audit,
+checks, cached-unit and Bash shards pass; uncached unit/publication still pending.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

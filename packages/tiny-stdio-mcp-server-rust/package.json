@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint",
     "generate:protocol-schema": "node scripts/generate-protocol-schema.mjs"
   },

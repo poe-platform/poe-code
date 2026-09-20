@@ -1,5 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import * as nativeApi from "../dist/index.js";
+import * as referenceApi from "tiny-stdio-mcp-server";
+
+test("native server exposes the existing public runtime API and frozen error codes", () => {
+  for (const name of Object.keys(referenceApi)) assert.ok(Object.hasOwn(nativeApi, name), name);
+  assert.deepEqual(nativeApi.JSON_RPC_ERROR_CODES, referenceApi.JSON_RPC_ERROR_CODES);
+  assert.ok(Object.isFrozen(nativeApi.JSON_RPC_ERROR_CODES));
+});
 import { createServer } from "../dist/index.js";
 import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
 

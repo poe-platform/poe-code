@@ -32,6 +32,16 @@ export class ToolError extends Error {
   }
 }
 
+export const JSON_RPC_ERROR_CODES = Object.freeze({
+  PARSE_ERROR: -32700,
+  INVALID_REQUEST: -32600,
+  METHOD_NOT_FOUND: -32601,
+  INVALID_PARAMS: -32602,
+  INTERNAL_ERROR: -32603,
+  RESOURCE_NOT_FOUND: -32002,
+  UNSUPPORTED_PROTOCOL_VERSION: -32022
+});
+
 export function createServer(options) {
   const native = new NativeServer(options);
   const handlers = new Map();

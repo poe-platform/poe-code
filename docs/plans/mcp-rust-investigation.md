@@ -135,6 +135,16 @@ rather than relying on one microtask. A prior completed-tool signal assertion wa
 corrected against concrete reference evidence: admission signals remain un-aborted
 after successful completion. The expanded checks pass 68 Rust and 356 native tests.
 
+The server now exposes every existing public runtime export, including frozen
+JSON-RPC error codes, and the named protocol/handler/definition TypeScript contracts.
+A maintained compile fixture imports those contracts, exercises typed registration
+and assigns the native server to the reference Server interface. SDK transport
+overloads retain both the repository interface and official SDK acceptance without
+runtime SDK imports. Explicit input generics retain ordinary ToolReturn defaults.
+The package unit route now includes these static fixtures; runtime checks expand
+to 357 native tests alongside 68 Rust tests. This API checkpoint does not resolve
+the documented URI/regex completeness gaps or complete the remaining package ports.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

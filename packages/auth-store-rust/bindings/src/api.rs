@@ -1,10 +1,9 @@
 //! Native credential API shared by own addons.
+use crate::convert;
 use auth_store_rust::{KeychainPlan, Operation};
 use mcp_protocol_rust::json::{self, Limits, Value};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-#[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
-mod convert;
 fn envelope(result: std::result::Result<Value, Vec<u16>>) -> convert::NativeJson {
     let (key, value) = match result {
         Ok(value) => ("value", value),

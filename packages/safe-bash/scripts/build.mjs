@@ -235,7 +235,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       let peerPaths;
       // Explicit private workspace profiles admit declarations only, never sibling source.
       for (const [name, profile] of Object.entries(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
-        assert.ok(name === "safe-bash-contracts" || name.startsWith("safe-bash-command-"), "private workspace must own command contracts or a command");
+        assert.ok(name === "safe-bash-contracts" || name === "safe-bash-csv-engine" || name.startsWith("safe-bash-command-"), "private workspace must own admitted contracts, CSV engine or a command");
         assertLiteralInputPath(name);
         assert.ok(!name.includes("/"), "private workspace name must be a literal directory");
         assert.equal(manifest.devDependencies?.[name], "*", "private workspace must be an explicit local build dependency");

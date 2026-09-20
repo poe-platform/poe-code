@@ -4,6 +4,7 @@ import type { DocumentBudget } from "./budget.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import type { XmlElement } from "./package-xml.js";
 import { documentDialects } from "./dialect.js";
+import { storedBooleanValue } from "./stored-lexical.js";
 
 export interface RevisionInfo {
   readonly id: string | null;
@@ -43,7 +44,7 @@ export function revisionInfo(node: XmlElement): RevisionInfo | undefined {
       if (property.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" &&
         (attribute.namespace !== node.namespace || !allowed.includes(attribute.localName)))) return false;
       const val = property.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val")?.value;
-      if (["b", "i", "rtl", "vanish", "bidi"].includes(field)) return val === undefined || ["true", "false", "on", "off", "1", "0"].includes(val);
+      if (["b", "i", "rtl", "vanish", "bidi"].includes(field)) return val === undefined || storedBooleanValue(val) !== null;
       return !["rStyle", "pStyle"].includes(field) || val !== undefined;
     });
   return { id: attr("id"), author: attr("author"), timestamp: attr("date"), markup: name, namespace: node.namespace, name: attr("name"), type, support: supported ? "supported" : "opaque" };

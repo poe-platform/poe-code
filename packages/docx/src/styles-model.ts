@@ -25,11 +25,12 @@ import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor, UnsupportedEditError, replaceActiveStyleXml, insertActiveLatentStyles } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, PublicationError, publicationGenerationGuard, type PublicationOptions, type PublicationContext } from "./publication.js";
 
-import { WD_STYLE_TYPE } from "./formatting-values.js";
+import { WD_STYLE_TYPE, enumValue } from "./formatting-values.js";
 export { WD_STYLE_TYPE } from "./formatting-values.js";
 const types = { PARAGRAPH: "paragraph", CHARACTER: "character", TABLE: "table", LIST: "numbering" };
 function typeName(type: DocxEnumValue<"WD_STYLE_TYPE">): string {
-  if (!type || type.enum !== "WD_STYLE_TYPE" || !Object.hasOwn(types, type.name)) throw new InputTypeError("Expected a style type.");
+  enumValue(type);
+  if (type.enum !== "WD_STYLE_TYPE") throw new InputTypeError("Expected a style type.");
   return types[type.name];
 }
 const order = "name aliases basedOn next link autoRedefine hidden uiPriority semiHidden unhideWhenUsed qFormat locked personal personalCompose personalReply rsid pPr rPr tblPr trPr tcPr tblStylePr".split(" ");

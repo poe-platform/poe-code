@@ -47,12 +47,15 @@ Git commands. Changing Virtual Bash cannot repair an external Git command guard,
 and this evidence does not identify which component emitted that rejection.
 
 For checks that repository policy permits running in CI, retain the existing
-workflow and wait for results for the delivered commit. Here the Release workflow
-requires the reusable Release validation workflow before publication, including
+workflow and wait for results for the delivered commit. For a normal push to
+`main`, the Release workflow requires the reusable Release validation workflow
+before publication, including
 build, packed CLI checks, package lint, audit, unit checks, and Bash shards. Report
 the local commit, verified remote `main`, and successful publication separately.
 A push, a queued workflow, or a successful workflow with no new release is not
-evidence of a newly published package. CI offloading never makes an unexecuted
+evidence of a newly published package. A manually dispatched `build_only` run
+skips check jobs and is not evidence of full validation; do not use that option
+as a remedy for queue starvation. CI offloading never makes an unexecuted
 local check a pass or waives a required CI job.
 
 ## CLI Spot Checks

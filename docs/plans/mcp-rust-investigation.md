@@ -330,6 +330,13 @@ UTF-16 keys remain distinct, and invalid key sizes do not alter the cache. Six R
 tests and sixteen native groups plus lint/types pass. This proves cache retention
 bounds, not general process leak freedom or a performance advantage.
 
+The credential host adapter and native API now each have one shared source suitable
+for embedding directly in own consuming addons. Public `auth-store-rust` APIs load
+that adapter with the package's native core; separate binding families interoperate
+through encrypted documents. Six Rust tests and seventeen native groups plus
+focused lint/types pass. The OAuth port can reuse these sources in its own artifact
+without adding a runtime package import or duplicating credential policy.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

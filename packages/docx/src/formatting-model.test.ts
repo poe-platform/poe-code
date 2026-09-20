@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Font, ParagraphFormat, RGBColor } from "./formatting-model.js";
+import { BoundsError } from "./model-errors.js";
 import { w } from "../tests/fixtures/text.js";
 function owner(content: string) {
   const volume = Volume.fromJSON({ "/owner.xml": content });
@@ -108,7 +109,8 @@ it("supports readonly numeric tab indexing, bounded element views and owner equa
   const backing = owner(`<w:p xmlns:w="${w}"/>`), format = new ParagraphFormat(backing), tabs = format.tab_stops;
   const stop = tabs.add_tab_stop({ value: 2, unit: "pt" });
   expect(tabs[0]!.equals(stop)).toBe(true);
-  expect(tabs[-1]!.element.localName).toBe("tab");
+  expect(tabs.at(-1).element.localName).toBe("tab");
+  expect(() => tabs[-1]).toThrow(BoundsError);
   expect(tabs.element.localName).toBe("pPr");
   expect(new ParagraphFormat(backing).equals(format)).toBe(true);
   expect(format.part).toBeNull();

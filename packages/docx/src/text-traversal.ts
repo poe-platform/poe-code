@@ -3,6 +3,7 @@ import { DocumentBudget } from "./budget.js";
 import { type LocationIndex, type LocationEntry, pathContains } from "./location-index.js";
 import type { Location } from "./location-token.js";
 import type { XmlElement } from "./package-xml.js";
+import { storedBoolean } from "./stored-lexical.js";
 
 export type TextView = "final" | "original" | "all";
 export interface TextFormatting {
@@ -51,7 +52,7 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
   };
   const toggle = (node: XmlElement | undefined, name: string): boolean | null => {
     const property = named(node, name);
-    return property ? !["0", "false", "off"].includes(index.attr(property, "val") ?? "true") : null;
+    return property ? storedBoolean(index.attr(property, "val") ?? "true", "Invalid stored text formatting boolean.") : null;
   };
   const attributes = (node: XmlElement | undefined): Readonly<Record<string, string>> => Object.fromEntries(
     (node?.attributes ?? []).filter(a => a.namespace === node!.namespace).map(a => [a.localName, a.value]));

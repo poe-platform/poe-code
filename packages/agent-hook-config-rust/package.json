@@ -26,7 +26,8 @@
     "mcp-protocol-rust": "*",
     "typescript": "5.9.3",
     "vitest": "4.1.11",
-    "memfs": "4.56.10"
+    "memfs": "4.56.10",
+    "@poe-code/user-error-rust": "*"
   },
   "files": [
     "dist",

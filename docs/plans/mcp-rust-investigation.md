@@ -2168,6 +2168,25 @@ native range but still much slower. This is an optimization, not performance
 acceptance. Evidence: `out/rust-agent-hook-json-transfer-*`.
 
 
+### Hook symlink bridge — 2026-09-20
+
+Added Rust `links` policies and native `symlinkHooks`. Platform hosts supply only
+path/filesystem facts; Rust decides same-format admission, scope, parent traversal,
+matching-link idempotence, stale-link replacement and generated-file ownership.
+User-authored files receive compatible UserError recovery guidance and own error
+code. Generated files are restored exclusively when parent preparation or symlink
+creation fails; occupied restoration paths preserve both original exceptions in
+AggregateError. Parents are checked again after mkdir and before restoration.
+
+Added three failing-first in-memory Rust groups. All94 existing SDK cases now
+pass, including19 symlink/path-safety cases with mocked custom descriptor entries,
+recreated-file rollback failures and inherited error-code attacks. Four native
+groups and16 Rust groups pass; strict root API assignability and fmt/clippy pass.
+Own user-error constants are linked into the single addon, not imported as an npm
+runtime dependency. Hook ownership/cleanup and the skill/git-exclude prerequisite
+remain unfinished. Evidence: `out/rust-agent-hook-links-*`.
+
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

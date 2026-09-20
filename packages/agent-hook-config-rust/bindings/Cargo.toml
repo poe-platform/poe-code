@@ -8,6 +8,7 @@ license = "MIT"
 crate-type = ["cdylib"]
 [dependencies]
 agent-hook-config-rust = { path = ".." }
+user-error-rust = { path = "../../user-error-rust" }
 agent-defs-rust = { path = "../../agent-defs-rust" }
 config-mutations-rust = { path = "../../config-mutations-rust" }
 mcp-protocol-rust = { path = "../../mcp-protocol-rust" }

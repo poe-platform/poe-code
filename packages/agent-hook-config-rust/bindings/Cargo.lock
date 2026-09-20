@@ -29,6 +29,7 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
+ "user-error-rust",
 ]
 
 [[package]]
@@ -326,6 +327,10 @@ name = "unicode-segmentation"
 version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
+
+[[package]]
+name = "user-error-rust"
+version = "0.1.0"
 
 [[package]]
 name = "windows-link"

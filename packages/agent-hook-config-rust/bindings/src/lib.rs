@@ -2,6 +2,7 @@
 use agent_hook_config_rust::{
     self as core, Catalog, GeneratedEntry, Handler, SourceEntry, SupportStatus,
     io::{self, FileHost, FsError, ReadScope, Stats},
+    links::{self, LinkHost, PathFacts},
     paths::{PathPlan, Scope},
 };
 use config_mutations_rust::{snapshot, value::Value as V};
@@ -35,6 +36,7 @@ fn policy(error: Vec<u16>) -> NativeJson {
 pub fn hook_registry() -> NativeJson {
     let agents = agent_defs_rust::Registry::builtins();
     NativeJson(object(vec![
+        ("userErrorName", text(user_error_rust::USER_ERROR_NAME)),
         (
             "configs",
             J::Object(
@@ -589,3 +591,134 @@ pub fn hook_write(
         ]))),
     }
 }
+
+impl LinkHost for Host<'_> {
+    fn path_facts(
+        &mut self,
+        resolved: &[u16],
+        root: Option<&[u16]>,
+    ) -> std::result::Result<PathFacts, RuntimeError> {
+        let value = self
+            .call(
+                "pathFacts",
+                vec![
+                    J::String(resolved.to_vec()),
+                    root.map_or(J::Null, |root| J::String(root.to_vec())),
+                ],
+            )
+            .map_err(Self::error)?;
+        let root =
+            Self::text(value.get("root").cloned().unwrap_or(J::Null)).map_err(Self::error)?;
+        let relative =
+            Self::text(value.get("relative").cloned().unwrap_or(J::Null)).map_err(Self::error)?;
+        let separator =
+            Self::text(value.get("separator").cloned().unwrap_or(J::Null)).map_err(Self::error)?;
+        if separator.len() != 1 {
+            return Err(RuntimeError::Native(Error::from_reason(
+                "Invalid path separator",
+            )));
+        }
+        Ok(PathFacts {
+            root,
+            relative,
+            separator: separator[0],
+            absolute_relative: matches!(value.get("absolute"), Some(J::Bool(true))),
+        })
+    }
+    fn read_link(&mut self, path: &[u16]) -> std::result::Result<Vec<u16>, FsError<RuntimeError>> {
+        Self::text(self.call("readlink", vec![J::String(path.to_vec())])?)
+    }
+    fn symlink(&mut self, target: &[u16], path: &[u16]) -> std::result::Result<(), RuntimeError> {
+        self.call(
+            "symlink",
+            vec![J::String(target.to_vec()), J::String(path.to_vec())],
+        )
+        .map(|_| ())
+        .map_err(Self::error)
+    }
+}
+fn link_error(error: links::Error<RuntimeError>) -> Result<J> {
+    Ok(match error {
+        links::Error::Policy(message) => policy(message).0,
+        links::Error::UserAuthored(message) => object(vec![(
+            "userError",
+            object(vec![
+                ("message", J::String(message)),
+                ("code", text(links::USER_AUTHORED_CODE)),
+                ("name", text(user_error_rust::USER_ERROR_NAME)),
+            ]),
+        )]),
+        links::Error::Host(RuntimeError::Foreign(id)) => {
+            object(vec![("foreignError", J::Number(f64::from(id)))])
+        }
+        links::Error::Host(RuntimeError::Native(error)) => return Err(error),
+        links::Error::Restore { original, restore } => object(vec![
+            (
+                "aggregateError",
+                J::Array(vec![link_error(*original)?, link_error(*restore)?]),
+            ),
+            ("originalPrefix", text(links::ORIGINAL_FAILURE_PREFIX)),
+            ("restorePrefix", text(links::RESTORE_FAILURE_PREFIX)),
+        ]),
+    })
+}
+#[napi]
+pub fn hook_assert_path(
+    path: Utf16String,
+    root: Option<Utf16String>,
+    hook: Hook,
+) -> Result<NativeJson> {
+    match links::assert_no_symbolic_link(&path, root.as_deref(), &mut Host { hook }) {
+        Ok(()) => Ok(NativeJson(J::Null)),
+        Err(error) => Ok(NativeJson(link_error(error)?)),
+    }
+}
+#[napi]
+#[allow(clippy::too_many_arguments)]
+pub fn hook_symlink(
+    source: Option<Buffer>,
+    target: Option<Buffer>,
+    source_id: Utf16String,
+    target_id: Utf16String,
+    cwd: Utf16String,
+    home: Utf16String,
+    scope: String,
+    hook: Hook,
+) -> Result<NativeJson> {
+    let source = source
+        .map(|value| decode(&value).and_then(config))
+        .transpose()?;
+    let target = target
+        .map(|value| decode(&value).and_then(config))
+        .transpose()?;
+    match links::symlink_hooks(
+        source.as_ref(),
+        target.as_ref(),
+        &source_id,
+        &target_id,
+        &cwd,
+        &home,
+        if scope == "project" {
+            links::Scope::Project
+        } else {
+            links::Scope::User
+        },
+        &mut Host { hook },
+    ) {
+        Err(error) => Ok(NativeJson(link_error(error)?)),
+        Ok(result) => Ok(NativeJson(object(vec![
+            ("symlinkPath", J::String(result.symlink_path)),
+            ("targetPath", J::String(result.target_path)),
+            (
+                "replaced",
+                text(match result.replaced {
+                    links::Replaced::None => "none",
+                    links::Replaced::StaleSymlink => "stale-symlink",
+                    links::Replaced::GeneratedFile => "generated-file",
+                }),
+            ),
+        ]))),
+    }
+}
+#[napi]
+pub const USER_AUTHORED_HOOK_FILE_CODE: &str = links::USER_AUTHORED_CODE;

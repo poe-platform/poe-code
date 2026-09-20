@@ -15,6 +15,7 @@ library and own path crates.
 | Check whether an existing file is fully generated | `files::is_fully_generated` |
 | Portable home and scope decisions | `paths::plan_hook_path` |
 | Read selected scopes and atomically write hook files | `io::read_hooks`, `io::write_hooks` |
+| Link same-format hooks with generated-file rollback | `links::symlink_hooks` |
 
 ```rust
 use agent_hook_config_rust::Catalog;
@@ -46,7 +47,7 @@ mapping and transformation functions resolve ordinary aliases case-insensitively
 The independent Node workspace provides `getAgentConfig`, `resolveAgentSupport`,
 `supportedHookAgents`, `supportedTransformPairs`, `formatSupportedTransformPairs`,
 `isTransformSupported`, `resolveHookPath`, event/handler/placeholder rules,
-`transformHooks`, `readClaudeHooks`, and `writeCodexHooks`. The napi-rs addon and
+`transformHooks`, `readClaudeHooks`, `writeCodexHooks`, and `symlinkHooks`. The napi-rs addon and
 own host adapters have no npm runtime, peer or optional dependencies.
 
 ```typescript
@@ -64,8 +65,12 @@ fields, and missing and explicit null read matchers remain distinct. Transfer
 metadata is bounded at 128 levels and 262,144 values; filesystem documents use
 the own Rust parser. Development tests cross-check the existing SDK in memory.
 
+Same-format symlink bridging refuses user files, checks parent traversal twice,
+uses exclusive restoration after replacement failure, and retains both errors
+when restoration also fails.
+
 The initial Node transformation bridge is slower than the existing SDK for small
-hooks. It remains experimental. Symlink bridging, overlapping-run ownership and
+hooks. It remains experimental. Overlapping-run ownership and
 cleanup, Python adapters, getter-stage/malformed-input fidelity and cross-platform
 packaging remain in progress. Existing applications continue to use the original
 TypeScript package.

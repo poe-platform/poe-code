@@ -16,7 +16,7 @@
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
     "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
-    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint && node scripts/lint-bindings.mjs"
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",

@@ -298,15 +298,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "toolcraft-design-rust-node"
-version = "0.1.0"
-dependencies = [
- "napi-build",
- "napi-derive",
- "toolcraft-design-rust-napi-core",
-]
-
-[[package]]
 name = "unicode-ident"
 version = "1.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"

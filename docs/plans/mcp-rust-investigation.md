@@ -1595,6 +1595,21 @@ external2.22MB either. Native last three RSS samples104.02MB; original105.07/
 prove a general speed, memory or universal stability advantage. Evidence under
 out/rust-config-config-*. The full MCP/poe-agent goal remains active/incomplete.
 
+The template native bridge is now reusable through the own
+toolcraft-design-rust-napi-core path crate. The design addon reexports it; other
+own addons can embed the same registered rendering/data callbacks without
+copying Rust bridge logic. The private JS engine adapter accepts its native
+module and isolates each render's foreign handles/iterators. The package's public
+API and own-data selection behavior are unchanged. This keeps dependent packed
+addons self-contained without an npm production dependency or a second addon.
+Eleven Rust groups, eleven native groups, declarations, maintained lint (including
+the shared bridge) and six-workspace uncached build pass. The new failing-first
+test proves nested independent engine renders and foreign getter error identity;
+all existing generated SDK comparisons still pass. Packed design rendering and
+partial/error behavior pass with bare npm resolution blocked. Evidence under
+out/rust-design-embed-*. This is preparatory reuse for config template handlers,
+which remain outstanding; the full goal remains active and incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

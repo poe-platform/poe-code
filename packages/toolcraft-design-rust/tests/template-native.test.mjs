@@ -2,6 +2,19 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import * as original from '../../toolcraft-design/dist/components/template.js';
 import * as rust from '../dist/index.js';
+test('embeddable template adapter isolates render state and retains foreign failures',async()=>{
+ const {createRequire}=await import('node:module');
+ const {createTemplateEngine}=await import('../dist/engine.js');
+ const native=createRequire(import.meta.url)('../dist/toolcraft-design-rust.node');
+ const a=createTemplateEngine(native),b=createTemplateEngine(native),error=Error('foreign getter');
+ assert.throws(()=>a.renderTemplate('{{name}}',{get name(){throw error;}}),e=>e===error);
+ const view={name:'outer',bold(){return function(source,render){return '['+b.renderTemplate('{{name}}',{name:'inner'})+'/'+render(source)+']';};}};
+ assert.equal(a.renderTemplate('{{#bold}}{{name}}{{/bold}}',view),'[inner/outer]');
+ assert.equal(b.renderTemplate('{{name}}',{name:'<K>'},{escape:'none'}),'<K>');
+ assert.equal(a.renderTemplate('{{name}}',{name:'<K>'}),'&lt;K&gt;');
+ assert.deepEqual(a.getTemplatePartialNames('{{> one}}{{> two}}'),['one','two']);
+ assert.equal(b.resolveTemplatePartials('{{> one}}',{one:'value'}),'value');
+});
 test('native template discovery and partial expansion match the original',()=>{
  for(const template of ['Hello {{name}}','{{> one}}{{#items}}{{> two}}{{/items}}','Start\n  {{> one}}\nEnd']){
   assert.deepEqual(rust.getTemplatePartialNames(template),original.getTemplatePartialNames(template));

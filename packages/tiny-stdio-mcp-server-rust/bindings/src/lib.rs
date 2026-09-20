@@ -1,15 +1,13 @@
-use mcp_protocol_rust::{
-    json::{self, Limits, Value},
-    jsonrpc::RpcError,
-};
+use mcp_protocol_rust::{json::Value, jsonrpc::RpcError};
 use napi::{Error, bindgen_prelude::*};
 use napi_derive::napi;
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 use tiny_stdio_mcp_server_rust::{Action, Server, ServerOptions, Session};
 
 #[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
 mod convert;
 use convert::NativeJson;
+mod input;
 
 #[napi(object)]
 pub struct NativeServerOptions {
@@ -21,6 +19,10 @@ pub struct NativeServerOptions {
 
 #[napi]
 pub struct NativeServer {
+    state: RefCell<ServerState>,
+}
+
+struct ServerState {
     server: Server,
     sessions: HashMap<u32, Session>,
     next_session: u32,
@@ -32,33 +34,36 @@ impl NativeServer {
     #[napi(constructor)]
     pub fn new(options: NativeServerOptions) -> Self {
         Self {
-            server: Server::new(ServerOptions {
-                name: options.name,
-                version: options.version,
-                support_notifications: options.support_notifications != Some(false),
-                support_resource_subscriptions: options.support_resource_subscriptions
-                    != Some(false),
+            state: RefCell::new(ServerState {
+                server: Server::new(ServerOptions {
+                    name: options.name,
+                    version: options.version,
+                    support_notifications: options.support_notifications != Some(false),
+                    support_resource_subscriptions: options.support_resource_subscriptions
+                        != Some(false),
+                }),
+                sessions: HashMap::new(),
+                next_session: 0,
+                next_handler: 0,
             }),
-            sessions: HashMap::new(),
-            next_session: 0,
-            next_handler: 0,
         }
     }
 
     #[napi]
-    pub fn create_session(&mut self) -> Result<u32> {
-        let id = self
+    pub fn create_session(&self) -> Result<u32> {
+        let mut state = self.state.borrow_mut();
+        let id = state
             .next_session
             .checked_add(1)
             .ok_or_else(|| Error::from_reason("Session identifier exhausted"))?;
-        self.next_session = id;
-        self.sessions.insert(id, Session::default());
+        state.next_session = id;
+        state.sessions.insert(id, Session::default());
         Ok(id)
     }
 
     #[napi]
-    pub fn close_session(&mut self, id: u32) -> bool {
-        if let Some(mut session) = self.sessions.remove(&id) {
+    pub fn close_session(&self, id: u32) -> bool {
+        if let Some(mut session) = self.state.borrow_mut().sessions.remove(&id) {
             session.close();
             true
         } else {
@@ -68,55 +73,64 @@ impl NativeServer {
 
     #[napi(getter)]
     pub fn session_count(&self) -> u32 {
-        self.sessions.len() as u32
+        self.state.borrow().sessions.len() as u32
     }
 
     #[napi(ts_return_type = "unknown")]
-    pub fn normalize_result(&self, source: Option<Utf16String>) -> Result<NativeJson> {
-        let value = source
-            .map(|source| json::parse_utf16(&source, Limits::default()))
-            .transpose()
-            .map_err(|error| Error::from_reason(error.to_string()))?;
+    pub fn normalize_result(&self, env: Env, source: Unknown<'_>) -> Result<NativeJson> {
+        let value = input::read(&env, source, input::Mode::Tool)?;
         tiny_stdio_mcp_server_rust::content::normalize_result(value)
             .map(NativeJson)
             .map_err(Error::from_reason)
     }
 
     #[napi]
-    pub fn set_tool(&mut self, definition: Utf16String, replace: bool) -> Result<u32> {
-        let id = self
+    pub fn set_tool(&self, env: Env, definition: Unknown<'_>, replace: bool) -> Result<u32> {
+        // Proxy descriptor traps can reenter this addon. Finish all JS calls
+        // before borrowing mutable state; the core never retains JS handles.
+        let definition = input::read(&env, definition, input::Mode::Json)?
+            .ok_or_else(|| Error::from_reason("Tool definition required"))?;
+        let mut state = self.state.borrow_mut();
+        let id = state
             .next_handler
             .checked_add(1)
             .ok_or_else(|| Error::from_reason("Handler identifier exhausted"))?;
-        let definition = json::parse_utf16(&definition, Limits::default())
-            .map_err(|error| Error::from_reason(error.to_string()))?;
-        self.server
+        state
+            .server
             .set_tool(definition, id as u64, replace)
             .map_err(Error::from_reason)?;
-        self.next_handler = id;
+        state.next_handler = id;
         Ok(id)
     }
 
     #[napi]
-    pub fn remove_tool(&mut self, name: String) -> bool {
-        self.server.remove_tool(&name)
+    pub fn remove_tool(&self, name: String) -> bool {
+        self.state.borrow_mut().server.remove_tool(&name)
     }
 
     #[napi(ts_return_type = "unknown")]
     pub fn dispatch(
-        &mut self,
+        &self,
+        env: Env,
         id: u32,
         method: String,
-        source: Option<Utf16String>,
+        source: Unknown<'_>,
     ) -> Result<NativeJson> {
-        let Some(session) = self.sessions.get_mut(&id) else {
+        if !self.state.borrow().sessions.contains_key(&id) {
             return Ok(NativeJson(object([("type", string("none"))])));
+        }
+        let params = input::read(&env, source, input::Mode::Json)?;
+        let action = {
+            let mut state = self.state.borrow_mut();
+            let ServerState {
+                server, sessions, ..
+            } = &mut *state;
+            // A descriptor trap may have closed the session during conversion.
+            let Some(session) = sessions.get_mut(&id) else {
+                return Ok(NativeJson(object([("type", string("none"))])));
+            };
+            server.dispatch(session, &method, params)
         };
-        let params = source
-            .map(|source| json::parse_utf16(&source, Limits::default()))
-            .transpose()
-            .map_err(|error| Error::from_reason(error.to_string()))?;
-        let action = self.server.dispatch(session, &method, params);
         Ok(NativeJson(match action {
             Action::Reply(value) => object([("type", string("reply")), ("value", value)]),
             Action::Error(RpcError {

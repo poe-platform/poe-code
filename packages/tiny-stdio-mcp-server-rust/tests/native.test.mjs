@@ -5,6 +5,115 @@ import { Worker } from "node:worker_threads";
 import { createServer } from "../dist/index.js";
 import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
 
+test("proxy descriptor traps can reenter native state and close the converting session", async () => {
+  const { NativeServer } = createRequire(import.meta.url)(
+    "../dist/tiny-stdio-mcp-server-rust.node"
+  );
+  const native = new NativeServer({ name: "test", version: "0" });
+  const session = native.createSession();
+  let closed = false;
+  const params = new Proxy(
+    { value: 1 },
+    {
+      getOwnPropertyDescriptor(target, key) {
+        if (!closed) {
+          closed = true;
+          assert.equal(native.closeSession(session), true);
+          const other = native.createSession();
+          assert.equal(native.dispatch(other, "ping", undefined).type, "reply");
+          native.closeSession(other);
+        }
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      }
+    }
+  );
+  assert.equal(native.dispatch(session, "ping", params).type, "none");
+  assert.equal(native.sessionCount, 0);
+});
+
+test("native conversion preserves component JSON budgets inside request envelopes", async () => {
+  let metadata = null;
+  for (let i = 0; i < 64; i++) metadata = { value: metadata };
+  const server = createServer({ name: "test", version: "0" });
+  assert.deepEqual(await server.handleMessage("ping", { _meta: metadata }), { result: {} });
+  server.tool("count", "Count", { type: "object" }, (args) => args.values.length);
+  await server.handleMessage("initialize");
+  assert.deepEqual(
+    await server.handleMessage("tools/call", {
+      name: "count",
+      arguments: { values: new Array(9998).fill(null) }
+    }),
+    { result: { content: [{ type: "text", text: "9998" }] } }
+  );
+});
+
+test("native conversion preserves null prototypes, shared references, and UTF16 keys", async () => {
+  const server = createServer({ name: "test", version: "0" });
+  const shared = Object.create(null);
+  shared["\ud800\u0000"] = "\udfff";
+  shared.__proto__ = "data";
+  server.tool("echo", "Echo", { type: "object" }, (args) => {
+    assert.deepEqual(args.a, args.b);
+    assert.equal(Object.hasOwn(args.a, "__proto__"), true);
+    assert.equal(args.a["\ud800\u0000"], "\udfff");
+    return "ok";
+  });
+  await server.handleMessage("initialize");
+  assert.equal(
+    (
+      await server.handleMessage("tools/call", {
+        name: "echo",
+        arguments: { a: shared, b: shared }
+      })
+    ).error,
+    undefined
+  );
+});
+
+test("tool returns preserve undefined array entries and nonfinite primitive text", async () => {
+  for (const result of [["one", undefined, ["two", undefined]], Infinity, -Infinity, NaN]) {
+    const native = createServer({ name: "test", version: "0" });
+    const reference = referenceCreateServer({ name: "test", version: "0" });
+    for (const server of [native, reference]) {
+      server.tool("return", "Return", { type: "object" }, () => result);
+      await server.handleMessage("initialize");
+    }
+    assert.deepEqual(
+      await native.handleMessage("tools/call", { name: "return" }),
+      await reference.handleMessage("tools/call", { name: "return" })
+    );
+  }
+});
+
+test("invalid tool return objects do not execute getters or serialization hooks", async () => {
+  let effects = 0;
+  for (const result of [
+    {
+      get value() {
+        effects++;
+        return 1;
+      }
+    },
+    {
+      value: 1,
+      toJSON() {
+        effects++;
+        return { value: 1 };
+      }
+    },
+    { value: NaN },
+    new Date(0),
+    new Array(2)
+  ]) {
+    const server = createServer({ name: "test", version: "0" });
+    server.tool("return", "Return", { type: "object" }, () => result);
+    await server.handleMessage("initialize");
+    const response = await server.handleMessage("tools/call", { name: "return" });
+    assert.equal(response.error?.code, -32603);
+    assert.equal(effects, 0);
+  }
+});
+
 test("both native addons load and release independently in worker environments", async () => {
   const serverUrl = new URL("../dist/index.js", import.meta.url).href;
   const protocolUrl = new URL("../../mcp-protocol-rust/dist/index.js", import.meta.url).href;

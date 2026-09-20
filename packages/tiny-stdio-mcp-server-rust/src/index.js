@@ -8,7 +8,7 @@ export function createServer(options) {
   const toolHandlers = new Map();
   function registerTool(definition, handler, replace = false) {
     if (typeof handler !== "function") throw new TypeError("Tool handler must be a function");
-    const id = native.setTool(JSON.stringify(definition), replace);
+    const id = native.setTool(definition, replace);
     handlers.delete(toolHandlers.get(definition.name));
     handlers.set(id, handler);
     toolHandlers.set(definition.name, id);
@@ -19,11 +19,7 @@ export function createServer(options) {
     const controller = new AbortController();
     return {
       async handleMessage(method, params, context) {
-        const action = native.dispatch(
-          id,
-          method,
-          params === undefined ? undefined : JSON.stringify(params)
-        );
+        const action = native.dispatch(id, method, params);
         if (action.type === "reply") return { result: action.value };
         if (action.type === "error") return { error: action.value };
         if (action.type === "none") return { result: undefined };
@@ -43,9 +39,7 @@ export function createServer(options) {
               signal: request.signal
             });
             return {
-              result: native.normalizeResult(
-                result === undefined ? undefined : JSON.stringify(result)
-              )
+              result: native.normalizeResult(result)
             };
           } catch (error) {
             return {

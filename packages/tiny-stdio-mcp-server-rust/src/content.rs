@@ -1,20 +1,20 @@
 use mcp_protocol_rust::json::{self, Value};
 
 pub fn normalize_result(result: Option<Value>) -> Result<Value, String> {
-    if let Some(result) = &result
-        && let Some(Value::Array(content)) = result.get("content")
+    if let Some(value) = &result
+        && let Some(Value::Array(content)) = value.get("content")
     {
         if !content.iter().all(is_text_block)
-            || result
+            || value
                 .get("isError")
                 .is_some_and(|value| !matches!(value, Value::Bool(_)))
-            || result
+            || value
                 .get("structuredContent")
-                .is_some_and(|value| !matches!(value, Value::Object(_)) || !value.is_finite_json())
+                .is_some_and(|value| !matches!(value, Value::Object(_)) || !value.is_json_value())
         {
             return Err("Invalid tool result".into());
         }
-        return Ok(result.clone());
+        return Ok(result.expect("validated explicit result"));
     }
     let mut pending = result.into_iter().collect::<Vec<_>>();
     let mut content = Vec::new();
@@ -32,7 +32,7 @@ pub fn normalize_result(result: Option<Value>) -> Result<Value, String> {
                 content.push(text_block(text.encode_utf16().collect()));
             }
             value => {
-                if !value.is_finite_json() {
+                if !value.is_json_value() {
                     return Err(
                         "Tool return must be a JSON value or supported content helper".into(),
                     );

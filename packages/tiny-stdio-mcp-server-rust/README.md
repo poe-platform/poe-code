@@ -4,6 +4,12 @@ An independent Rust MCP engine with native Node bindings and JavaScript tool
 callbacks. The package includes its native addon and has no external npm runtime
 dependencies. It is private and under development.
 
+Values cross the native boundary directly. Conversion preserves UTF-16 strings
+and own property names, accepts shared references, and rejects cycles, accessors,
+and serialization hooks. Tool result arrays omit explicit `undefined` entries;
+sparse arrays are rejected. Native copying has depth, node, and string-byte
+budgets, and metadata and tool arguments retain the repository's JSON limits.
+
 The current API supports isolated message sessions, legacy initialization,
 modern discovery, tool registration and listing, asynchronous tool calls, text
 results, and cancellation. The reusable Rust core uses the standard library and

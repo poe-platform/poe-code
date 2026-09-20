@@ -122,6 +122,7 @@ const styleOrder = "name aliases basedOn next link autoRedefine hidden uiPriorit
 
 /** Edit named definitions using the same typed operation and publication rules as the CLI. */
 export async function editDocumentStyles(input: Uint8Array, options: StyleEditOptions, context: PublicationContext): Promise<StyleMutationData> {
+  closedRecord(options, ["operation", "input", ...Object.keys(options ?? {})]);
   const settings = archiveSettings(context);
   const { operation, input: identity, ...args } = options;
   if (!["styles.add", "styles.set", "styles.remove", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set"].includes(operation)) throw new InvalidValueError("Expected a style edit operation.");

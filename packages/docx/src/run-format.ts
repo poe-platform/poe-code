@@ -4,7 +4,7 @@ import { activeXmlChildren } from "./xml-active-children.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { openDocumentLocations } from "./locations.js";
-import { encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { pathContains } from "./location-index.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentArchiveEditor } from "./package-write.js";
@@ -58,6 +58,7 @@ function splitRun(editor: DocumentXmlEditor, run: XmlElement, start: number, end
 
 /** Scoped direct formatting over admitted bytes; all I/O is explicitly supplied. */
 export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOptions, context: PublicationContext): Promise<RunFormatData> {
+  closedRecord(options, ["input", ...Object.keys(options ?? {})]);
   const settings = archiveSettings(context);
   const { input: identity, ...operationOptions } = options;
   const invocation = validateDocxInvocation({ operation: "runs.set", inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);

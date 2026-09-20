@@ -8,3 +8,5 @@ export function buildContextArgs(engine:Engine,context:string|null):string[];
 export function detectContext():string|null;
 export function detectEngine():Engine;
 export function isEngineAvailable(engine:Engine):boolean;
+import type {DockerRunnerOptions}from'./types.js';
+export function createDockerRunner(options:DockerRunnerOptions):Runner;

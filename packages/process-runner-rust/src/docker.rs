@@ -12,6 +12,88 @@ fn append(target: &mut Text, text: &str) {
 }
 
 pub const ENGINE_ERROR: &str = "No container engine found. Please install Docker or Podman:\n  - Docker Desktop: https://www.docker.com/products/docker-desktop\n  - Colima (macOS): brew install colima && colima start\n  - Podman: https://podman.io/docs/installation";
+pub const ABORT_GRACE_MS: u32 = 10_000;
+pub const ABORT_FORCE_GRACE_MS: u32 = 5_000;
+pub fn container_name(name: &[u16], suffix: &str) -> Text {
+    let mut output = u("poe-run-");
+    if name.is_empty() {
+        append(&mut output, "command");
+    }
+    let mut index = 0;
+    while index < name.len() {
+        let unit = name[index];
+        if matches!(unit,48..=57|65..=90|97..=122|46|95|45) {
+            output.push(unit);
+        } else {
+            output.push(45);
+        }
+        if matches!(unit, 0xd800..=0xdbff) && matches!(name.get(index + 1), Some(0xdc00..=0xdfff)) {
+            index += 1;
+        }
+        index += 1;
+    }
+    append(&mut output, "-");
+    append(&mut output, suffix);
+    output
+}
+pub struct RunPlan {
+    pub modes: [String; 3],
+    pub inherit: bool,
+    pub interactive: bool,
+}
+pub fn run_plan(
+    stdin: Option<&str>,
+    stdout: Option<&str>,
+    stderr: Option<&str>,
+    tty: bool,
+) -> RunPlan {
+    let modes = [
+        stdin.unwrap_or("ignore"),
+        stdout.unwrap_or("pipe"),
+        stderr.unwrap_or("pipe"),
+    ];
+    RunPlan {
+        inherit: modes == ["inherit"; 3] && tty,
+        interactive: matches!(modes[0], "pipe" | "inherit"),
+        modes: modes.map(str::to_owned),
+    }
+}
+#[derive(Default)]
+pub struct DockerRun {
+    finished: bool,
+    aborted: bool,
+}
+impl DockerRun {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn abort(&mut self) -> bool {
+        if self.finished || self.aborted {
+            return false;
+        }
+        self.aborted = true;
+        true
+    }
+    pub fn finish(&mut self, code: Option<i32>) -> Option<i32> {
+        if self.finished {
+            return None;
+        }
+        self.finished = true;
+        Some(if self.aborted { 1 } else { code.unwrap_or(1) })
+    }
+}
+pub fn control_args(name: &[u16], signal: Option<&[u16]>) -> Vec<Text> {
+    match signal {
+        None => vec![u("stop"), name.to_vec()],
+        Some(signal) if equals(signal, "SIGTERM") => vec![u("stop"), name.to_vec()],
+        Some(signal) if equals(signal, "SIGKILL") => vec![u("kill"), name.to_vec()],
+        Some(signal) => {
+            let mut flag = u("--signal=");
+            flag.extend(signal);
+            vec![u("kill"), flag, name.to_vec()]
+        }
+    }
+}
 pub fn detect_engine(
     mut available: impl FnMut(&str) -> bool,
 ) -> Result<&'static str, &'static str> {

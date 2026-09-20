@@ -1,6 +1,61 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use process_runner_rust::docker;
+#[napi]
+pub const DOCKER_ABORT_GRACE_MS: u32 = docker::ABORT_GRACE_MS;
+#[napi]
+pub const DOCKER_ABORT_FORCE_GRACE_MS: u32 = docker::ABORT_FORCE_GRACE_MS;
+#[napi]
+pub fn docker_container_name(name: Utf16String, suffix: String) -> Utf16String {
+    docker::container_name(&name, &suffix).into()
+}
+#[napi(object)]
+pub struct DockerPlan {
+    pub modes: Vec<String>,
+    pub inherit: bool,
+    pub interactive: bool,
+}
+#[napi]
+pub fn docker_run_plan(
+    stdin: Option<String>,
+    stdout: Option<String>,
+    stderr: Option<String>,
+    tty: bool,
+) -> DockerPlan {
+    let plan = docker::run_plan(stdin.as_deref(), stdout.as_deref(), stderr.as_deref(), tty);
+    DockerPlan {
+        modes: plan.modes.into(),
+        inherit: plan.inherit,
+        interactive: plan.interactive,
+    }
+}
+#[napi]
+pub struct DockerRun {
+    state: docker::DockerRun,
+    name: Vec<u16>,
+}
+#[napi]
+impl DockerRun {
+    #[napi(constructor)]
+    pub fn new(name: Utf16String) -> Self {
+        Self {
+            state: docker::DockerRun::new(),
+            name: name.to_vec(),
+        }
+    }
+    #[napi]
+    pub fn abort(&mut self) -> bool {
+        self.state.abort()
+    }
+    #[napi]
+    pub fn finish(&mut self, code: Option<i32>) -> Option<i32> {
+        self.state.finish(code)
+    }
+    #[napi]
+    pub fn control(&self, signal: Option<Utf16String>) -> Vec<Utf16String> {
+        output(docker::control_args(&self.name, signal.as_deref()))
+    }
+}
 fn texts(values: Vec<Utf16String>) -> Vec<Vec<u16>> {
     values.into_iter().map(|value| value.to_vec()).collect()
 }

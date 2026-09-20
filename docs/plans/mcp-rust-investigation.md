@@ -2404,6 +2404,36 @@ Docker-runner/environment, mock and workspace-transfer behavior, full malformed/
 getter-stage fidelity, cross-platform binaries and overall acceptance remain
 unfinished. The24-hour actual-effort requirement remains unfinished.
 
+### Process runner native Docker runner — 2026-09-20
+
+Added the root Docker runner, preserving foreground runs, stream identity,
+Docker/Podman context rules, container controls and pre-aborted admission. Rust
+owns codepoint-correct ASCII container names, interactive stdio planning, control
+argv, abort result override and exactly-once settlement. Node owns builtin
+processes/signals/timers and private mode0600 environment-file transport.
+Settled runs clear timers/listeners/files; abort schedules10s SIGTERM then5s
+SIGKILL. Own argument-validation failure also cleans the allocated environment
+file; original production implementations remain unchanged.
+
+Failing-first Rust/module-absence checks precede implementation. All83 actual
+SDK cases across4 modules plus3 additional deterministic lifecycle cases pass,
+alongside9 Rust groups,7 native groups, strict subset API types, fmt/clippy and
+uncached5-workspace build. All maintained filesystem fixtures now use memfs;
+the initial SDK runner run preceded that interception and cleaned its temporary
+file. Extra cases check exact stream identities, cleanup/listener count, canceled
+escalation, late close/error events and contained control transport failures.
+
+Direct/packed8MiB workers each pass2048 simulated Docker runs,8192 policy cycles,
+4096 pre-aborts and16 real host children with external imports blocked. One addon
+and zero npm runtime/peer/optional dependencies remain. Simulated subprocess/
+abort workload speed is6.40–9.34µs native versus2.58–5.65µs SDK. Across65,536 more
+runs, sampled native heap4.99→5.09MB and buffers16.6KB; SDK4.97→5.05MB and16.6KB.
+These are deterministic transport checks, not real-engine or broad performance
+acceptance. Evidence: `out/rust-process-docker-run-*`.
+
+Detached Docker environments/build contexts, mock/workspace transfer, real-engine
+acceptance, malformed/getter fidelity and the overall goal remain unfinished.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

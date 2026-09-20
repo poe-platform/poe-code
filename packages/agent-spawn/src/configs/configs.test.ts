@@ -191,6 +191,30 @@ describe("configs/auto mode", () => {
 });
 
 describe("configs/read mode is non-mutating", () => {
+  it.each([
+    {},
+    { interactive: true },
+    { resumeThreadId: "read-session" }
+  ])("keeps Codex read spawns sandboxed without loopback setup (%j)", async (options) => {
+    const { buildSpawnArgs } = await import("../spawn.js");
+    const { args } = buildSpawnArgs("codex", {
+      prompt: "Read the repository",
+      mode: "read",
+      ...options
+    });
+
+    expect(args.slice(args.indexOf("-s"), args.indexOf("-s") + 2)).toEqual([
+      "-s",
+      "read-only"
+    ]);
+    expect(args.slice(args.indexOf("--enable"), args.indexOf("--enable") + 2)).toEqual([
+      "--enable",
+      "use_legacy_landlock"
+    ]);
+    expect(args).not.toContain("--dangerously-bypass-approvals-and-sandbox");
+    expect(args).not.toContain("danger-full-access");
+  });
+
   // Claude Code tools that can change the workspace: read mode must never enable one.
   const mutatingClaudeTools = ["Bash", "Write", "Edit", "MultiEdit", "NotebookEdit"];
 

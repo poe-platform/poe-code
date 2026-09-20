@@ -37,6 +37,8 @@ resume, and intentionally has no Poe configure/unconfigure flow or ACP pretence.
 | `edit` | File-editing mode when the agent supports scoped permissions.                    |
 | `read` | Read-only/research mode when the agent supports it.                              |
 
+Codex read mode enables its Landlock compatibility sandbox on Linux, retaining read-only filesystem and restricted network enforcement without requiring bubblewrap to configure a loopback interface. This avoids `RTM_NEWADDR: Operation not permitted` on restricted hosts. It requires a Codex installation supporting `use_legacy_landlock` and a host supporting Landlock; unsupported sandbox policies still fail closed. Other platforms use their native Codex sandbox.
+
 Omitting `mode` uses the shared `auto` default. Mode-specific args and env vars are declared in each agent config. `auto` is optional per config: agents without a native auto/approval mode omit it, and requesting it fails before launch with the supported-mode list (`supportsSpawnMode(agentId, mode)` exposes the same check for static validation). Over ACP, auto mode answers `session/request_permission` with an explicit rejection so the agent adapts instead of ending the turn. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
 
 ## MCP at spawn time

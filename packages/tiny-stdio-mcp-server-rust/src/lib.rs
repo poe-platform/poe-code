@@ -7,6 +7,7 @@ use std::sync::Arc;
 use toolcraft_schema_rust::CompiledSchema;
 
 pub mod content;
+pub mod features;
 pub mod output;
 pub mod requests;
 mod schema;
@@ -36,6 +37,7 @@ pub struct ServerOptions {
 pub struct Server {
     options: ServerOptions,
     tools: Vec<RegisteredTool>,
+    pub features: features::Features,
 }
 
 struct RegisteredTool {
@@ -74,6 +76,12 @@ pub enum Action {
         arguments: Value,
         context: Value,
     },
+    InvokeFeature {
+        handler: u64,
+        arguments: Option<Value>,
+        context: Value,
+        kind: features::FeatureKind,
+    },
 }
 
 impl Session {
@@ -94,6 +102,7 @@ impl Server {
         Self {
             options,
             tools: vec![],
+            features: features::Features::default(),
         }
     }
 
@@ -206,6 +215,28 @@ impl Server {
         );
         put(&mut properties, "_meta", Value::Object(metadata));
         Ok(Value::Object(properties))
+    }
+
+    pub fn decorate_resource_result(&self, value: Value) -> Result<Value, String> {
+        let value = self.decorate_result(value)?;
+        let ttl = value.get("ttlMs").cloned().unwrap_or(Value::Number(0.0));
+        if !matches!(ttl, Value::Number(number) if number.is_finite() && number.fract() == 0.0 && (0.0..=9_007_199_254_740_991.0).contains(&number))
+        {
+            return Err("MCP cache ttlMs must be a nonnegative safe integer".into());
+        }
+        let scope = value
+            .get("cacheScope")
+            .cloned()
+            .unwrap_or_else(|| string("private"));
+        if !string_matches(Some(&scope), "public") && !string_matches(Some(&scope), "private") {
+            return Err("MCP cacheScope must be public or private".into());
+        }
+        let Value::Object(mut fields) = value else {
+            unreachable!("decorated object");
+        };
+        put(&mut fields, "ttlMs", ttl);
+        put(&mut fields, "cacheScope", scope);
+        Ok(Value::Object(fields))
     }
 
     pub fn dispatch(&self, session: &mut Session, method: &str, params: Option<Value>) -> Action {
@@ -325,23 +356,7 @@ impl Server {
                     ),
                 );
             };
-            let mut context = object([("clientCapabilities", object([]))]);
-            if modern {
-                let params = params.as_ref().expect("validated modern request");
-                let Value::Object(fields) = &mut context else {
-                    unreachable!("object context")
-                };
-                fields[0].1 = params
-                    .get("_meta")
-                    .and_then(|metadata| metadata.get("io.modelcontextprotocol/clientCapabilities"))
-                    .expect("validated client capabilities")
-                    .clone();
-                for name in ["requestState", "inputResponses"] {
-                    if let Some(value) = params.get(name) {
-                        fields.push((name.encode_utf16().collect(), value.clone()));
-                    }
-                }
-            }
+            let context = handler_context(params.as_ref(), modern);
             let arguments = params
                 .and_then(|params| {
                     let Value::Object(properties) = params else {
@@ -374,6 +389,12 @@ impl Server {
                 handler: tool.handler,
                 arguments,
                 context,
+            };
+        }
+        if let Some(action) = self.features.dispatch(session, method, params, modern) {
+            return match action {
+                Action::Reply(result) if modern => Action::Reply(self.decorate_cacheable(result)),
+                action => action,
             };
         }
         failure(jsonrpc::METHOD_NOT_FOUND, "Method not found")
@@ -417,6 +438,27 @@ impl Server {
         ]);
         Value::Object(properties)
     }
+}
+
+fn handler_context(params: Option<&Value>, modern: bool) -> Value {
+    let mut context = object([("clientCapabilities", object([]))]);
+    if modern {
+        let params = params.expect("validated modern request");
+        let Value::Object(fields) = &mut context else {
+            unreachable!("object context");
+        };
+        fields[0].1 = params
+            .get("_meta")
+            .and_then(|metadata| metadata.get("io.modelcontextprotocol/clientCapabilities"))
+            .expect("validated client capabilities")
+            .clone();
+        for name in ["requestState", "inputResponses"] {
+            if let Some(value) = params.get(name) {
+                fields.push((name.encode_utf16().collect(), value.clone()));
+            }
+        }
+    }
+    context
 }
 
 pub fn select_protocol(method: &str, params: Option<&Value>) -> Result<bool, RpcError> {

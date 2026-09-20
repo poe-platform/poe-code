@@ -13,7 +13,8 @@ budgets, and metadata and tool arguments retain the repository's JSON limits.
 The current API supports isolated message sessions, legacy initialization,
 modern discovery, tool registration and listing, asynchronous tool calls, text,
 image, audio, resource-link and embedded-resource results, cancellation, and
-stdio connections. The reusable Rust core uses the standard library and
+stdio connections. It also registers/lists/gets prompts, reads exact and templated
+resources, and invokes custom methods. The reusable Rust core uses the standard library and
 the sibling `mcp-protocol-rust` and `toolcraft-schema-rust` cores.
 
 Tool input schemas compile at registration and are snapshotted. Calls validate
@@ -33,6 +34,12 @@ Use `parseUriTemplate(source)` for independent RFC 6570 expansion and matching.
 All four expansion levels support scalar, list and associative values, Unicode
 prefixes and percent encoding. Matching retains the existing readable-resource
 capture behavior. Compilation depth, matching work and expanded length are bounded.
+
+Prompt arguments must be strings and include every required argument. Prompt
+resource-link content follows each session's negotiated protocol version. Exact
+resources take precedence over templates; otherwise the first matching template
+handles a URI. Invalid prompt/resource results return JSON-RPC errors. Modern
+resource reads preserve and validate cache metadata, with private zero-TTL defaults.
 
 Set `maxActiveRequests` to bound running requests across sessions (default: 128).
 Concurrent requests with the same ID in one session are rejected. A
@@ -69,6 +76,7 @@ budgets are 1 MiB each, with at most 128 pending messages. Set
 them. Caller-owned streams remain open when a connection completes.
 
 This is an additive implementation checkpoint. HTTP transports,
-resources, prompts, subscriptions, and full result
+notification/subscription delivery, input-required/retry schemas, content helpers,
+SDK transport adapters, and full result
 compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

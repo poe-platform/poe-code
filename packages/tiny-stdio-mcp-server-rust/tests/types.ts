@@ -27,3 +27,23 @@ const template = parseUriTemplate("memo://{name}");
 const expanded: string = template.expand({ name: "a b" });
 const captured: Record<string, string> | null = template.match(expanded);
 void captured;
+server.prompt(
+  { name: "review", arguments: [{ name: "code", required: true }] },
+  (args, context) => ({
+    messages: [
+      { role: "user", content: { type: "text", text: args.code + context.signal.aborted } }
+    ]
+  })
+);
+server.resource({ uri: "memo://welcome", name: "welcome" }, (uri) => ({
+  contents: [{ uri, text: "hello" }]
+}));
+server.resourceTemplate({ uriTemplate: "memo://{name}", name: "memo" }, (uri) => ({
+  contents: [{ uri, text: uri }]
+}));
+server.method("custom/value", (params, context) => ({
+  value: params?.value,
+  aborted: context.signal.aborted
+}));
+const removedPrompt: boolean = server.removePrompt("review");
+void removedPrompt;

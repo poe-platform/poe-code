@@ -6,11 +6,20 @@ import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { createInterface } from "node:readline";
 
-test("official MCP SDK client initializes, lists tools, and calls the native stdio engine", async () => {
+test("official MCP SDK client initializes and uses tools, prompts and resources over native stdio", async () => {
   const readable = new PassThrough();
   const writable = new PassThrough();
   const server = createServer({ name: "sdk", version: "1" });
   server.tool("echo", "Echo", { type: "object" }, (args) => args.message);
+  server.prompt({ name: "review", arguments: [{ name: "code", required: true }] }, (args) => ({
+    messages: [{ role: "user", content: { type: "text", text: args.code } }]
+  }));
+  server.resource({ uri: "memo://welcome", name: "welcome" }, (uri) => ({
+    contents: [{ uri, text: "hello" }]
+  }));
+  server.resourceTemplate({ uriTemplate: "memo://{name}", name: "memo" }, (uri) => ({
+    contents: [{ uri, text: uri }]
+  }));
   const connected = server.connect({ readable, writable });
   const transport = {
     async start() {
@@ -32,6 +41,21 @@ test("official MCP SDK client initializes, lists tools, and calls the native std
   assert.deepEqual(
     (await client.callTool({ name: "echo", arguments: { message: "\ud800🦀" } })).content,
     [{ type: "text", text: "\ud800🦀" }]
+  );
+  assert.equal((await client.listPrompts()).prompts[0].name, "review");
+  assert.deepEqual(
+    (await client.getPrompt({ name: "review", arguments: { code: "main.rs" } })).messages,
+    [{ role: "user", content: { type: "text", text: "main.rs" } }]
+  );
+  assert.equal((await client.listResources()).resources[0].uri, "memo://welcome");
+  assert.equal(
+    (await client.listResourceTemplates()).resourceTemplates[0].uriTemplate,
+    "memo://{name}"
+  );
+  assert.equal((await client.readResource({ uri: "memo://welcome" })).contents[0].text, "hello");
+  assert.equal(
+    (await client.readResource({ uri: "memo://other" })).contents[0].text,
+    "memo://other"
   );
   await client.close();
   await connected;

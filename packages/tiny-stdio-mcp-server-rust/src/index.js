@@ -24,6 +24,7 @@ export function createServer(options) {
   const native = new NativeServer(options);
   const handlers = new Map();
   const toolHandlers = new Map();
+  const featureHandlers = new Map();
   function registerTool(definition, handler, replace = false) {
     if (typeof handler !== "function") throw new TypeError("Tool handler must be a function");
     const { handler: id, name } = native.setTool(definition, replace);
@@ -62,10 +63,21 @@ export function createServer(options) {
               ...action.context,
               signal: directLegacy ? controller.signal : request.signal
             });
-            return native.completeTool(result, action.modern, action.token);
+            if (action.handlerKind === "tool")
+              return native.completeTool(result, action.modern, action.token);
+            if (action.handlerKind === "custom" && !action.modern) return { result };
+            return native.completeFeature(
+              result,
+              action.modern,
+              action.handlerKind,
+              action.allowResourceLinks
+            );
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            if (error instanceof ToolError) {
+            if (
+              error instanceof ToolError &&
+              (action.handlerKind === "tool" || action.handlerKind === "custom")
+            ) {
               return {
                 error: {
                   code: error.code,
@@ -74,6 +86,7 @@ export function createServer(options) {
                 }
               };
             }
+            if (action.handlerKind !== "tool") return { error: { code: -32603, message } };
             return {
               result: native.normalizeResult(
                 { content: [{ type: "text", text: `Error: ${message}` }], isError: true },
@@ -166,5 +179,30 @@ export function createServer(options) {
       );
     }
   };
+  for (const kind of ["prompt", "resource", "resourceTemplate", "method"]) {
+    const registered = new Map();
+    featureHandlers.set(kind, registered);
+    server[kind] = (definition, handler) => {
+      if (typeof handler !== "function") throw new TypeError("Feature handler must be a function");
+      const { handler: id, name } = native.setFeature(kind, definition);
+      handlers.delete(registered.get(name));
+      handlers.set(id, handler);
+      registered.set(name, id);
+      return server;
+    };
+  }
+  for (const [method, kind] of [
+    ["removePrompt", "prompt"],
+    ["removeResource", "resource"],
+    ["removeResourceTemplate", "resourceTemplate"]
+  ]) {
+    server[method] = (name) => {
+      const handler = native.removeFeature(kind, name);
+      if (handler === null || handler === undefined) return false;
+      handlers.delete(handler);
+      featureHandlers.get(kind).delete(name);
+      return true;
+    };
+  }
   return server;
 }

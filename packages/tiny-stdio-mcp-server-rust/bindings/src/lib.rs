@@ -5,6 +5,7 @@ use mcp_protocol_rust::{
 use napi::{Error, bindgen_prelude::*};
 use napi_derive::napi;
 use std::{cell::RefCell, collections::HashMap, sync::Arc};
+use tiny_stdio_mcp_server_rust::features::{FeatureKind, RegistrationKind};
 use tiny_stdio_mcp_server_rust::{Action, Server, ServerOptions, Session};
 use tiny_stdio_mcp_server_rust::{requests::RequestTracker, select_protocol};
 
@@ -255,6 +256,101 @@ impl NativeServer {
         ])))
     }
 
+    #[napi(ts_return_type = "{ handler: number; name: string }")]
+    pub fn set_feature(
+        &self,
+        env: Env,
+        kind: String,
+        definition: Unknown<'_>,
+    ) -> Result<NativeJson> {
+        let kind = registration_kind(&kind)?;
+        let definition = input::read(&env, definition, input::Mode::Json)?
+            .ok_or_else(|| Error::from_reason("Feature definition required"))?;
+        let mut state = self.state.borrow_mut();
+        let id = state
+            .next_handler
+            .checked_add(1)
+            .ok_or_else(|| Error::from_reason("Handler identifier exhausted"))?;
+        let name = state
+            .server
+            .features
+            .register(kind, definition, u64::from(id))
+            .map_err(Error::from_reason)?;
+        state.next_handler = id;
+        Ok(NativeJson(object([
+            ("handler", Value::Number(f64::from(id))),
+            ("name", Value::String(name)),
+        ])))
+    }
+
+    #[napi]
+    pub fn remove_feature(&self, kind: String, name: Utf16String) -> Result<Option<f64>> {
+        Ok(self
+            .state
+            .borrow_mut()
+            .server
+            .features
+            .remove(registration_kind(&kind)?, &name)
+            .map(|handler| handler as f64))
+    }
+
+    #[napi(ts_return_type = "unknown")]
+    pub fn complete_feature(
+        &self,
+        env: Env,
+        source: Unknown<'_>,
+        modern: bool,
+        kind: String,
+        allow_resource_links: bool,
+    ) -> Result<NativeJson> {
+        let kind = match kind.as_str() {
+            "prompt" => FeatureKind::Prompt {
+                allow_resource_links,
+            },
+            "resource" => FeatureKind::Resource,
+            "custom" => FeatureKind::Custom,
+            _ => return Err(Error::from_reason("Unknown handler kind")),
+        };
+        let result = input::read(&env, source, input::Mode::Json)?;
+        let result = match tiny_stdio_mcp_server_rust::features::validate_result(kind, result) {
+            Ok(result) => result,
+            Err(error) => return Ok(NativeJson(object([("error", rpc_error_value(error))]))),
+        };
+        let result = if modern {
+            let decorated = match result {
+                Some(result) => {
+                    if kind == FeatureKind::Resource {
+                        self.state.borrow().server.decorate_resource_result(result)
+                    } else {
+                        self.state.borrow().server.decorate_result(result)
+                    }
+                }
+                None => Err("MCP result must be an object".into()),
+            };
+            match decorated {
+                Ok(result) => Some(result),
+                Err(message) => {
+                    return Ok(NativeJson(object([(
+                        "error",
+                        rpc_error_value(RpcError {
+                            code: -32603,
+                            message,
+                            data: None,
+                        }),
+                    )])));
+                }
+            }
+        } else {
+            result
+        };
+        Ok(NativeJson(Value::Object(
+            result
+                .into_iter()
+                .map(|result| ("result".encode_utf16().collect(), result))
+                .collect(),
+        )))
+    }
+
     #[napi]
     pub fn remove_tool(&self, name: Utf16String) -> bool {
         self.state.borrow_mut().server.remove_tool(&name)
@@ -381,7 +477,7 @@ impl ServerState {
                         .output_contract(*handler)
                         .expect("admitted tool output contract"),
                 );
-            } else {
+            } else if !matches!(action, Action::InvokeFeature { .. }) {
                 requests.finish(token);
             }
             (action, token)
@@ -414,7 +510,49 @@ fn action_value(action: Action) -> Value {
             ("handler", Value::Number(handler as f64)),
             ("arguments", arguments),
             ("context", context),
+            ("handlerKind", string("tool")),
         ]),
+        Action::InvokeFeature {
+            handler,
+            arguments,
+            context,
+            kind,
+        } => {
+            let (label, allow_links) = match kind {
+                FeatureKind::Prompt {
+                    allow_resource_links,
+                } => ("prompt", allow_resource_links),
+                FeatureKind::Resource => ("resource", false),
+                FeatureKind::Custom => ("custom", false),
+            };
+            let mut fields = vec![
+                ("type".encode_utf16().collect(), string("invoke")),
+                (
+                    "handler".encode_utf16().collect(),
+                    Value::Number(handler as f64),
+                ),
+                ("context".encode_utf16().collect(), context),
+                ("handlerKind".encode_utf16().collect(), string(label)),
+                (
+                    "allowResourceLinks".encode_utf16().collect(),
+                    Value::Bool(allow_links),
+                ),
+            ];
+            if let Some(arguments) = arguments {
+                fields.push(("arguments".encode_utf16().collect(), arguments));
+            }
+            Value::Object(fields)
+        }
+    }
+}
+
+fn registration_kind(kind: &str) -> Result<RegistrationKind> {
+    match kind {
+        "prompt" => Ok(RegistrationKind::Prompt),
+        "resource" => Ok(RegistrationKind::Resource),
+        "resourceTemplate" => Ok(RegistrationKind::ResourceTemplate),
+        "method" => Ok(RegistrationKind::Method),
+        _ => Err(Error::from_reason("Unknown feature registration kind")),
     }
 }
 

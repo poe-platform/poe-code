@@ -33,7 +33,15 @@ expander and matcher, exposed through `parseUriTemplate` in its native Node API.
 All 223 positive and 29 negative local RFC fixtures pass, with exact expansion and
 capture cross-checks against TypeScript. Additional tests cover UTF-16, invalid
 percent sequences, Unicode prefixes and bounded ambiguous matching/expansion.
-Resource registration and template dispatch still require the feature registry port.
+Resource registration and template dispatch now use a Rust feature registry, with
+prompt/resource/template snapshots, duplicate handling, removal and custom methods.
+Required prompt arguments, negotiated prompt content, exact-before-template resource
+resolution, modern resource cache metadata and feature results are validated in Rust.
+Legacy/modern callback errors and resource-not-found codes are cross-checked against
+TypeScript. An official SDK client lists/gets prompts and reads exact/template
+resources over the existing native stdio engine. Cancellation tests retain global
+capacity until a canceled feature callback settles. Notification delivery,
+subscriptions, complete input-required/retry payloads and SDK adapters remain pending.
 
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,

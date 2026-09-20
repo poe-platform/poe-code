@@ -41,6 +41,51 @@ export interface ToolDefinition {
   [field: string]: unknown;
 }
 
+export interface PromptArgument {
+  name: string;
+  title?: string;
+  description?: string;
+  required?: boolean;
+}
+export interface Prompt {
+  name: string;
+  title?: string;
+  description?: string;
+  arguments?: PromptArgument[];
+  [field: string]: unknown;
+}
+export interface Resource {
+  uri: string;
+  name: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+  [field: string]: unknown;
+}
+export interface ResourceTemplate {
+  uriTemplate: string;
+  name: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+  [field: string]: unknown;
+}
+export type PromptHandler = (
+  args: Record<string, string>,
+  context: HandlerRequestContext
+) => unknown | Promise<unknown>;
+export type ResourceHandler = (
+  uri: string,
+  context: HandlerRequestContext
+) => unknown | Promise<unknown>;
+export interface MessageSessionContext {
+  readonly signal: AbortSignal;
+}
+export type CustomMethodHandler = (
+  params: Record<string, unknown> | undefined,
+  context: MessageSessionContext
+) => unknown | Promise<unknown>;
+
 export interface MessageSession {
   handleMessage(
     method: string,
@@ -74,6 +119,13 @@ export interface Server {
     ) => unknown | Promise<unknown>
   ): Server;
   removeTool(name: string): boolean;
+  prompt(definition: Prompt, handler: PromptHandler): Server;
+  resource(definition: Resource, handler: ResourceHandler): Server;
+  resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server;
+  method(name: string, handler: CustomMethodHandler): Server;
+  removePrompt(name: string): boolean;
+  removeResource(uri: string): boolean;
+  removeResourceTemplate(uriTemplate: string): boolean;
   createMessageSession(): MessageSession;
   handleMessage: MessageSession["handleMessage"];
   connect(transport: Transport): Promise<void>;

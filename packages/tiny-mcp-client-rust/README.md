@@ -48,6 +48,10 @@ an SDK-compatible server over own message transports. Official SDK imports are
 needed only by applications/tests that choose an official SDK server; this package
 does not import it at runtime. Both helpers provide asynchronous cleanup.
 
-HTTP transport support, OAuth and additional SDK edge checks are still in progress.
+`parseBearerWwwAuthenticateHeader` reads OAuth challenges across mixed authentication
+schemes, quoted parameters and duplicate names. It preserves Unicode strings and
+returns parameters without an object prototype.
+
+HTTP transport support, OAuth discovery and additional SDK edge checks are still in progress.
 Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

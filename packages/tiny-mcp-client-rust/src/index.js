@@ -23,3 +23,4 @@ export function parseJsonRpcMessage(line) {
 }
 export { createInMemoryTransportPair, StdioTransport } from "./transports.js";
 export { createSdkTestPair, createTestPair } from "./sdk.js";
+export { parseBearerWwwAuthenticateHeader } from "./oauth-discovery.js";

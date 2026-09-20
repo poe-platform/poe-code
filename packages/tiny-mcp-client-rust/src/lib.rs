@@ -1,3 +1,4 @@
+pub mod challenge;
 pub mod client;
 pub mod http;
 pub mod layer;

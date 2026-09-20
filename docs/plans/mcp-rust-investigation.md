@@ -975,6 +975,15 @@ with `-rust` names exist. Python wheels can be a later milestone using the prove
 
 ## Sources
 
+The additive client now exposes own Bearer challenge parsing. Rust scans UTF-16
+authentication schemes, token68 credentials, quoted escapes and comma boundaries;
+Node's string lowercase primitive normalizes parameter names into a null-prototype
+record. This preserves contextual Unicode casing and lone surrogates without adding
+a Unicode dependency. A deterministic malformed corpus plus mixed-scheme cases
+compares 4,816 headers with the original implementation. Package checks pass 23 Rust
+tests and 54 native groups, with bidirectional challenge types and focused build/lint.
+HTTP transport and discovery remain incomplete; this is a parsing delivery only.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

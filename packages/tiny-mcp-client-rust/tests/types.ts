@@ -1,4 +1,14 @@
 import { PassThrough } from "node:stream";
+import { parseBearerWwwAuthenticateHeader } from "../src/index.js";
+import type { OAuthUnauthorizedChallenge as ReferenceChallenge } from "tiny-mcp-client";
+import type { OAuthUnauthorizedChallenge } from "../src/index.js";
+declare const referenceChallenge: ReferenceChallenge;
+declare const ownChallenge: OAuthUnauthorizedChallenge;
+const challengeToReference: ReferenceChallenge = ownChallenge;
+const challengeFromReference: OAuthUnauthorizedChallenge = referenceChallenge;
+void challengeToReference;
+void challengeFromReference;
+void parseBearerWwwAuthenticateHeader(null);
 import {
   McpClient,
   StdioTransport,

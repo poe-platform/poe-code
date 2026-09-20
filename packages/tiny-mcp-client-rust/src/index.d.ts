@@ -454,3 +454,9 @@ export declare function createTestPair<TClient extends McpClientConnection>(
   server: { connect(transport: InMemoryServerTransport): Promise<unknown> },
   createClient: () => TClient
 ): Promise<SdkTestPair<TClient>>;
+export interface OAuthUnauthorizedChallenge {
+  scheme: "Bearer";
+  params: Record<string, string>;
+  raw: string;
+}
+export declare function parseBearerWwwAuthenticateHeader(headerValue: string | null): OAuthUnauthorizedChallenge | null;

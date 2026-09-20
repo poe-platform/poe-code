@@ -1,5 +1,21 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+#[napi]
+pub fn parse_bearer_challenge(header: Utf16String) -> convert::NativeJson {
+    let value = tiny_mcp_client_rust::challenge::parse_bearer(&header)
+        .map(|params| {
+            Value::Array(
+                params
+                    .into_iter()
+                    .map(|(name, value)| {
+                        Value::Array(vec![Value::String(name), Value::String(value)])
+                    })
+                    .collect(),
+            )
+        })
+        .unwrap_or(Value::Null);
+    convert::NativeJson(value)
+}
 #[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
 mod convert;
 #[napi]

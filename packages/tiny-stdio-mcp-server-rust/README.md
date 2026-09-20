@@ -72,6 +72,8 @@ field types. Modern explicit results accept JSON primitives and arrays in
 `structuredContent`; legacy results require an object. Ordinary callback failures
 return tool error content. Throw `ToolError(code, message, data)` to return an
 explicit JSON-RPC error, preserving its code and optional data.
+Numeric text and JSON fallbacks use JavaScript's shortest number spelling,
+including exponent boundaries, subnormals, midpoint ties and negative zero.
 
 ```ts
 import { createServer } from "tiny-stdio-mcp-server-rust";

@@ -30,11 +30,7 @@ pub fn normalize_result(result: Option<Value>, modern: bool) -> Result<Value, St
             }
             Value::String(units) => content.push(text_block(units)),
             Value::Number(value) => {
-                let text = if value == 0.0 {
-                    "0".into()
-                } else {
-                    value.to_string()
-                };
+                let text = mcp_protocol_rust::numbers::format(value);
                 content.push(text_block(text.encode_utf16().collect()));
             }
             value => {

@@ -27,7 +27,9 @@ binary64 samples byte-for-byte across 24,556,503 bytes (native parse/serialize a
 include 44 Rust and 18 native tests. Schema diagnostics now use the same number
 formatter for numeric bounds/divisors and length/count constraints; differential
 checks cover notation boundaries and midpoint values. Tool number text, nested
-JSON content and output-schema fallbacks are being updated separately.
+JSON content and object/scalar output-schema fallbacks now match JavaScript
+shortest spelling across legacy and modern calls. The server checkpoint passes
+59 Rust and 312 native tests with these regressions included.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

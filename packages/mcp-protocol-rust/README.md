@@ -10,7 +10,7 @@ input bytes, nesting, and value count before accepting untrusted messages.
 | Duplicate keys  | The last value wins, preserving the first insertion position                                |
 | Unicode         | Strict UTF-8 input and lossless escaped UTF-16 code units                                   |
 | Resource limits | Configurable bytes, container depth, and parsed value count                                 |
-| Serialization   | Iterative traversal, escaped controls, and JavaScript-compatible non-finite-number handling |
+| Serialization   | Iterative traversal, escaped controls, and ECMAScript shortest number spelling              |
 | Wire formats    | Canonical base64 and strict absolute resource URI checks                                    |
 
 JSON-RPC helpers distinguish requests from notifications, preserve legacy IDs,
@@ -51,8 +51,10 @@ than removing stack protection. Array and object containers count as values;
 object keys do not. Limits of zero reject the corresponding resource use.
 
 Strings are stored as UTF-16 code units, so `"\ud800"` is preserved rather than
-replaced. Serialization retains property order and produces valid JSON; numeric
-exponent formatting is not promised to be byte-identical to `JSON.stringify`.
+replaced. Serialization retains property order and produces valid JSON. Numbers
+use ECMAScript's shortest spelling, decimal midpoint tie handling and fixed/exponent
+boundaries, including subnormal values and negative zero. Use `numbers::format`
+in Rust for JavaScript-compatible number text, including `NaN` and infinities.
 As with `JSON.parse`, numeric overflow can produce infinity, which serializes
 as `null`, matching `JSON.stringify`.
 

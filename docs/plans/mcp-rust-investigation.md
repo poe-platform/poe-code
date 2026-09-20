@@ -17,6 +17,16 @@ Complete Unicode IDNA mapping, contextual joining, combining marks, and bidi hos
 rules remain an explicit conformance gap; the current host checks are not a full
 replacement for WHATWG URL processing. Content helper classes remain pending.
 
+The JSON foundation now formats binary64 values with ECMAScript shortest notation,
+fixed/exponent boundaries and exact decimal midpoint ties using integer arithmetic.
+It retains distinct text versus JSON handling for NaN/infinities and negative zero.
+Boundary/subnormal/extreme cases and 32,768 deterministic bit-pattern samples are
+cross-checked against V8. A separate development audit matched 1,048,047 finite
+binary64 samples byte-for-byte across 24,556,503 bytes (native parse/serialize about
+323 ms on this machine; this is not a comparison benchmark). Foundation checks now
+include 44 Rust and 18 native tests. Dependent number-text paths are being updated
+in their own package checkpoints.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

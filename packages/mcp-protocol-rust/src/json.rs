@@ -452,10 +452,8 @@ pub fn stringify(value: &Value) -> String {
             Pending::Value(Value::Number(number)) => {
                 if !number.is_finite() {
                     output.push_str("null");
-                } else if *number == 0.0 {
-                    output.push('0');
                 } else {
-                    write!(output, "{number}").expect("writing to a String cannot fail");
+                    output.push_str(&crate::numbers::format(*number));
                 }
             }
             Pending::Value(Value::String(string)) => write_string(&mut output, string),

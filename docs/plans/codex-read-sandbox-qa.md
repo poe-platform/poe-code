@@ -71,3 +71,25 @@ backend failed with the reported loopback error. The Landlock backend printed
 the checkout path and configuration contents; filesystem writes and network
 socket creation were denied. The implementation was already present on remote
 `main` and in published release `v17.0.25` before this QA document was added.
+
+## Repeated occurrence (issue 140)
+
+Issue 140 reports the same startup failure as issue 139. On 2026-09-20, a second
+Codex CLI 0.155.1 session in this checkout reproduced it before even a skill-file
+read could run. The read-only compatibility probe again read the configuration
+successfully, denied a filesystem write, and denied network socket creation.
+The normal and resumed spawn regression tests and interactive launch tests cover
+the compatibility flags already supplied by Poe Code.
+
+The second session used workspace-write permissions. A direct workspace-write
+probe also failed with the loopback error; enabling `use_legacy_landlock` for that
+policy failed with `permission profiles requiring direct runtime enforcement are
+incompatible with --use-legacy-landlock`. Keep that refusal: the read-only
+compatibility flag cannot safely repair this workspace-write policy or change
+an existing session. New read-only launches use the existing fix; workspace-write
+requires a host capable of enforcing its sandbox policy.
+
+Deliver the recovery diagnostic in `59baca37f5ae69f027158a379de02c7512d15342`
+alongside the read-mode fix. It exposes the original failure and the supported
+read-only recovery in CLI and SDK streams, including when Codex sends no matching
+tool-start event. Verify both commits on remote main and in a published release.

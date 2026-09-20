@@ -41,3 +41,43 @@ test("SDK wire parsing rejects malformed objects while preserving raw UTF16 diag
   for (const text of ["null", "[]", "{\ud800"]) assert.deepEqual(parseSdkMessage(text), { error: "Malformed JSON line: " + text });
   assert.deepEqual(parseSdkMessage('{"jsonrpc":"2.0","id":1,"method":"ping"}'), { message: { jsonrpc: "2.0", id: 1, method: "ping" } });
 });
+
+test("test pair factory failures dispose transports and preserve the factory error", async () => {
+  const reason = new Error("factory failed");
+  let sdk; let closes = 0;
+  try {
+    await assert.rejects(native.createSdkTestPair({ async connect(transport) { sdk = transport; transport.onclose = () => closes++; await transport.start(); } }, () => { throw reason; }), error => error === reason);
+    assert.equal(closes, 1);
+  } finally { await sdk?.close(); }
+  let streams;
+  try {
+    await assert.rejects(native.createTestPair({ async connect(transport) { streams = transport; } }, () => { throw reason; }), error => error === reason);
+    assert.equal(streams.readable.writableEnded, true);
+    assert.equal(streams.writable.writableEnded, true);
+  } finally { streams?.readable.destroy(); streams?.writable.destroy(); }
+});
+
+test("test pair cleanup disposes transports even when client close rejects", async () => {
+  const reason = new Error("close failed");
+  let sdk; let closes = 0;
+  const pair = await native.createSdkTestPair({ async connect(transport) { sdk = transport; transport.onclose = () => closes++; await transport.start(); } }, () => ({ async connect() {}, async close() { throw reason; } }));
+  try {
+    await assert.rejects(pair.cleanup(), error => error === reason);
+    assert.equal(closes, 1);
+  } finally { await sdk.close(); }
+  let streams;
+  const streamPair = await native.createTestPair({ async connect(transport) { streams = transport; } }, () => ({ async connect() {}, async close() { throw reason; } }));
+  try {
+    await assert.rejects(streamPair.cleanup(), error => error === reason);
+    assert.equal(streams.readable.writableEnded, true);
+    assert.equal(streams.writable.writableEnded, true);
+  } finally { streams.readable.destroy(); streams.writable.destroy(); }
+});
+
+test("synchronous and asynchronous server startup failures close pairs without unhandled rejections", { timeout: 1000 }, async () => {
+  for (const helper of [native.createSdkTestPair, native.createTestPair]) for (const synchronous of [true, false]) {
+    const reason = new Error(`server failed ${synchronous}`);
+    const server = { connect() { if (synchronous) throw reason; return Promise.reject(reason); } };
+    await assert.rejects(helper(server, () => new native.McpClient({ clientInfo: { name: "client", version: "1" }, protocolVersion: "2025-03-26" })), error => error === reason);
+  }
+});

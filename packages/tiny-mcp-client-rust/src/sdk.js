@@ -63,29 +63,43 @@ export async function createSdkTestPair(server, createClient) {
   const clientSdk = new LinkedTransport(); const serverSdk = new LinkedTransport();
   clientSdk.peer = serverSdk; serverSdk.peer = clientSdk;
   const transport = new SdkTransportAdapter(clientSdk);
-  const connected = server.connect(serverSdk);
-  const client = createClient();
-  try { await client.connect(transport); }
-  catch (error) {
+  let connected;
+  let client;
+  try {
+    connected = Promise.resolve(server.connect(serverSdk));
+    void connected.catch(error => { transport.dispose(error instanceof Error ? error : new Error(String(error))); });
+    client = createClient();
+    await client.connect(transport);
+  } catch (error) {
     transport.dispose(new Error("SDK test pair setup failed"));
-    await clientSdk.close(); await serverSdk.close(); await connected;
+    await clientSdk.close(); await serverSdk.close(); await connected?.catch(() => undefined);
     throw error;
   }
   return { client, async cleanup() {
-    await client.close(); transport.dispose(new Error("SDK test pair cleanup"));
-    await clientSdk.close(); await serverSdk.close(); await connected;
+    try { await client.close(); }
+    finally {
+      transport.dispose(new Error("SDK test pair cleanup"));
+      await clientSdk.close(); await serverSdk.close(); await connected;
+    }
   } };
 }
 export async function createTestPair(server, createClient) {
   const pair = createInMemoryTransportPair();
-  const connected = server.connect(pair.serverTransport);
-  const client = createClient();
-  try { await client.connect(pair.clientTransport); }
-  catch (error) {
+  let connected;
+  let client;
+  try {
+    connected = Promise.resolve(server.connect(pair.serverTransport));
+    void connected.catch(error => { pair.clientTransport.dispose(error instanceof Error ? error : new Error(String(error))); });
+    client = createClient();
+    await client.connect(pair.clientTransport);
+  } catch (error) {
     pair.clientTransport.dispose(new Error("tiny-stdio-mcp-server test pair setup failed"));
-    await connected; throw error;
+    await connected?.catch(() => undefined); throw error;
   }
   return { client, async cleanup() {
-    await client.close(); pair.clientTransport.dispose(new Error("tiny-stdio-mcp-server test pair cleanup")); await connected;
+    try { await client.close(); }
+    finally {
+      pair.clientTransport.dispose(new Error("tiny-stdio-mcp-server test pair cleanup")); await connected;
+    }
   } };
 }

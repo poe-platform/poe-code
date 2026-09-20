@@ -247,6 +247,14 @@ official Server instances and own clients/servers without runtime dependencies.
 Additional SDK factory/server failure and hostile callback/serializer diagnostics
 remain for auditing; HTTP transport and OAuth remain incomplete.
 
+Validated SDK/stream test-pair cleanup gaps are now fixed in the additive client:
+client factories run inside the setup guard, synchronous/asynchronous server
+startup failures dispose transports without unhandled rejections, and rejected
+client close operations still execute disposal in `finally`. Focused tests first
+reproduced open transports after factory/close failures, then verified SDK close
+callbacks and stream ends, preserving setup errors and awaiting cleanup.
+Hostile callbacks/serializer diagnostics remain for further conformance auditing.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

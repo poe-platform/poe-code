@@ -13,6 +13,18 @@ pub enum Value {
     Object(Vec<(JsonString, Value)>),
 }
 
+impl Value {
+    pub fn get(&self, name: &str) -> Option<&Value> {
+        let Self::Object(properties) = self else {
+            return None;
+        };
+        properties
+            .iter()
+            .find(|(key, _)| key.iter().copied().eq(name.encode_utf16()))
+            .map(|(_, value)| value)
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Limits {
     pub max_bytes: usize,

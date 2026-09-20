@@ -12,6 +12,9 @@ input bytes, nesting, and value count before accepting untrusted messages.
 | Resource limits | Configurable bytes, container depth, and parsed value count                                 |
 | Serialization   | Iterative traversal, escaped controls, and JavaScript-compatible non-finite-number handling |
 
+JSON-RPC helpers distinguish requests from notifications, preserve legacy IDs,
+enforce modern safe request IDs, and format success/error envelopes.
+
 ```rust
 use mcp_protocol_rust::json::{parse, stringify, Limits};
 
@@ -33,6 +36,6 @@ exponent formatting is not promised to be byte-identical to `JSON.stringify`.
 As with `JSON.parse`, numeric overflow can produce infinity, which serializes
 as `null`, matching `JSON.stringify`.
 
-This additive package is under development. MCP message APIs and the native
+This additive package is under development. MCP dispatch APIs and the native
 TypeScript binding are being added; existing MCP packages continue to operate
 independently.

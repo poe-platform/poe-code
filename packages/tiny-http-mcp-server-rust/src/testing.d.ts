@@ -1,4 +1,5 @@
 import type {TokenVerifier} from './auth.js';
+export {createTestMcpServer,installInMemoryHttp,nodeFetch} from './test-support.js';
 export interface InMemoryAccessTokenInput {
  token?: string;
  issuer: string;

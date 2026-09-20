@@ -19,6 +19,10 @@
     "./testing": {
       "types": "./dist/testing.d.ts",
       "import": "./dist/testing.js"
+    },
+    "./test-support": {
+      "types": "./dist/test-support.d.ts",
+      "import": "./dist/test-support.js"
     }
   },
   "scripts": {
@@ -34,7 +38,8 @@
     "typescript": "5.9.3",
     "vitest": "4.1.11",
     "mcp-oauth-rust": "*",
-    "jose": "6.2.3"
+    "jose": "6.2.3",
+    "tiny-mcp-client": "*"
   },
   "files": [
     "dist",

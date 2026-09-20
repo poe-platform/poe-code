@@ -96,3 +96,11 @@ fn thousands_of_tokens_keep_dense_slots_and_both_indexes_consistent() {
     assert_eq!(tokens.len(), 4096);
     assert_eq!(tokens.index_len(), 4096);
 }
+
+#[test]
+fn fixture_reverse_preserves_javascript_utf16_unit_order() {
+    assert_eq!(
+        tiny_http_mcp_server_rust::testing::reverse_units(&[65, 0xd83e, 0xdd80, 0xd800, 0]),
+        vec![0, 0xd800, 0xdd80, 0xd83e, 65]
+    );
+}

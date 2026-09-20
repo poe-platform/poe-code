@@ -33,6 +33,7 @@ await handle.close();
 | Protected-resource metadata | `createProtectedResourceMetadataDocument`, `createProtectedResourceMetadataRouter` |
 | HTTP admission, observability and storage | `allowedHosts`, `allowedOrigins`, `observability`, `sessionStore` |
 | Isolated test bearer tokens | `./testing`: `createInMemoryTokenVerifier` |
+| HTTP fixtures and in-memory listeners | `./test-support`: `createTestMcpServer`, `installInMemoryHttp`, `nodeFetch` |
 
 Rust owns protocol/schema dispatch, HTTP admission, configuration limits, JWT
 policy and bounded replay retention. Node built-ins supply HTTP/URL objects,
@@ -51,6 +52,12 @@ issuer, audience, scope and expiry rules. An optional clock makes expiry
 deterministic. Verification returns isolated claims through structured cloning;
 custom claims cannot override the verified issuer, audience, expiry or scopes.
 
-The remaining testing helpers and CLI are still being ported. Broader platform artifacts,
+`./test-support` creates a fixture server with text, structured output, media,
+error and large-output tools. Importing it leaves Node globals unchanged.
+Call `installInMemoryHttp()` explicitly to exercise HTTP listeners without sockets;
+`nodeFetch` preserves streamed responses and propagates cancellation to the server.
+Unregistered hosts use the built-in HTTP/HTTPS client.
+
+The client-pair testing helpers and CLI are still being ported. Broader platform artifacts,
 performance measurements and inherited schema/URI corner cases remain in progress.
 Existing applications continue using the original packages.

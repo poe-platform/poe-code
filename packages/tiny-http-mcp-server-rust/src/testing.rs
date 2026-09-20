@@ -1,6 +1,10 @@
 //! In-memory test token identifiers and verification policy. Claims remain in the host.
 use std::collections::HashMap;
 
+pub fn reverse_units(text: &[u16]) -> Vec<u16> {
+    text.iter().rev().copied().collect()
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum VerificationError {
     Unknown,

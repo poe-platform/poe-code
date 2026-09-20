@@ -1,6 +1,7 @@
 import {createRequire} from 'node:module';
 import {TokenVerificationError} from './auth.js';
 const native=createRequire(import.meta.url)('./tiny-http-mcp-server-rust.node');
+export {createTestMcpServer,installInMemoryHttp,nodeFetch} from './test-support.js';
 
 export function createInMemoryTokenVerifier(options={}){
  const state=new native.NativeHttpTestTokens(),snapshots=[];

@@ -37,3 +37,13 @@ const oldTokenVerifier:OriginalTesting.InMemoryTokenVerifier=nativeVerifier;
 declare const originalTokenVerifier:OriginalTesting.InMemoryTokenVerifier;
 const nativeTokenVerifier:InMemoryTokenVerifier=originalTokenVerifier;
 void [originalInput,nativeInput,oldTokenVerifier,nativeTokenVerifier];
+
+import {createTestMcpServer,installInMemoryHttp,nodeFetch} from '../dist/test-support.js';
+import type * as OriginalSupport from 'tiny-http-mcp-server/test-support';
+const testServer:Original.HttpServer=createTestMcpServer({enableJsonResponse:false,sessionIdGenerator:undefined});
+const oldFixtureFactory:typeof OriginalSupport.createTestMcpServer=createTestMcpServer;
+const nativeFixtureFactory:typeof createTestMcpServer={} as typeof OriginalSupport.createTestMcpServer;
+const oldFetch:typeof OriginalSupport.nodeFetch=nodeFetch;
+const oldInstall:typeof OriginalSupport.installInMemoryHttp=installInMemoryHttp;
+nodeFetch(new Request('https://resource.example'));
+void [testServer,oldFixtureFactory,nativeFixtureFactory,oldFetch,oldInstall];

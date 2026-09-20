@@ -1063,6 +1063,28 @@ native error identity and zero npm runtime dependencies; temporary extraction an
 tarball are purged. The token store remains unbounded like the original helper.
 HTTP fixture/client-pair testing exports and CLI remain unfinished.
 
+The HTTP server also exposes own `./test-support` fixtures, explicit in-memory
+HTTP installation and `nodeFetch`, reexported by `./testing`. No imports patch
+globals, including test environments. Rust supplies fixture UTF-16 reversal;
+own native server dispatch/schema/media provide the fixture protocol behavior.
+Node supplies the HTTP prototype/stream surface. The memory bridge preserves
+streaming rather than retaining a duplicate response chunk list. Cancellation,
+pre-header/post-header abort and forced connection closure release response slots
+and signal listeners. Request objects/overrides, binary/stream/form bodies, multiple
+Set-Cookie values, IPv6 and bodyless status codes have direct native-artifact checks.
+A GC child reuses an open listener for 128 stream cancellations and confirms all
+response cycles release. The original TS client compares all 14 fixture tools in
+four protocol/JSON/SSE combinations with original fixtures. Shipped helpers import
+only local files and Node built-ins; clients/SDKs are development oracles only.
+The original contract suite's setup now explicitly installs the own memory bridge,
+and identity gates require native token helpers in OAuth and regression cases.
+Checks pass 21 Rust tests, 37 native groups and 142 original contracts in 16 files,
+public fixture/fetch declarations, focused lint and maintained build closure.
+Actual packed support additionally interoperates with the own native client in
+all four protocol/response combinations, alongside token isolation and zero npm
+runtime dependency checks. Packed temporary artifacts are purged. Client-pair
+exports and CLI remain in progress.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

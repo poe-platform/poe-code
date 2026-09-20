@@ -153,6 +153,11 @@ mod history_binding;
 pub mod policy_binding;
 mod testing_binding;
 
+#[napi]
+pub fn http_test_reverse(text: Utf16String) -> Utf16String {
+    tiny_http_mcp_server_rust::testing::reverse_units(&text).into()
+}
+
 #[path = "../../../mcp-oauth-rust/bindings/src/jwks_binding.rs"]
 pub mod jwks_binding;
 use mcp_oauth_rust::response::ResponseBudget;

@@ -18,6 +18,13 @@ rules remain an explicit conformance gap; the current host checks are not a full
 replacement for WHATWG URL processing. Content helper classes and output-schema
 normalization/validation also remain pending.
 
+The additive Rust server now compiles/snapshots tool input schemas with the Rust
+schema core and rejects invalid arguments before invoking handlers. Legacy and
+modern errors match TypeScript issue data and formatting. Disabling argument
+rejection is exposed with `validateToolArguments: false`; invalid JSON/object
+arguments remain rejected. Failed replacement compilation preserves the original
+registration. Output schema normalization/enforcement remains pending.
+
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,
 object/array applicators, composition, conditionals, unevaluated members, URI-based

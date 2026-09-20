@@ -3,6 +3,7 @@ export interface ServerOptions {
   version: string;
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;
+  validateToolArguments?: boolean;
   maxActiveRequests?: number;
   maxStdioLineBytes?: number;
   maxPendingStdioMessages?: number;

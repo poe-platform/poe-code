@@ -20,6 +20,7 @@ pub struct NativeServerOptions {
     pub version: Utf16String,
     pub support_notifications: Option<bool>,
     pub support_resource_subscriptions: Option<bool>,
+    pub validate_tool_arguments: Option<bool>,
     pub max_active_requests: Option<f64>,
     pub max_stdio_line_bytes: Option<f64>,
     pub max_pending_stdio_messages: Option<f64>,
@@ -69,6 +70,7 @@ impl NativeServer {
                     support_notifications: options.support_notifications != Some(false),
                     support_resource_subscriptions: options.support_resource_subscriptions
                         != Some(false),
+                    validate_tool_arguments: options.validate_tool_arguments != Some(false),
                 }),
                 sessions: HashMap::new(),
                 next_session: 0,

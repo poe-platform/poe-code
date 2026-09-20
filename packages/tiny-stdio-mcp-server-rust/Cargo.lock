@@ -11,4 +11,12 @@ name = "tiny-stdio-mcp-server-rust"
 version = "0.1.0"
 dependencies = [
  "mcp-protocol-rust",
+ "toolcraft-schema-rust",
+]
+
+[[package]]
+name = "toolcraft-schema-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
 ]

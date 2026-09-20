@@ -13,6 +13,7 @@ fn server() -> Server {
         version: "1.0".encode_utf16().collect(),
         support_notifications: false,
         support_resource_subscriptions: false,
+        validate_tool_arguments: true,
     })
 }
 fn error(message: &str) -> Action {

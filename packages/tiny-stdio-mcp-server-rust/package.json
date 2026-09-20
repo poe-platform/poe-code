@@ -22,11 +22,13 @@
     "@napi-rs/cli": "3.10.4",
     "@modelcontextprotocol/sdk": "1.29.0",
     "mcp-protocol-rust": "*",
-    "tiny-stdio-mcp-server": "^0.1.0"
+    "tiny-stdio-mcp-server": "^0.1.0",
+    "toolcraft-schema-rust": "*"
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "UNICODE-LICENSE.txt"
   ],
   "engines": {
     "node": ">=18.18"

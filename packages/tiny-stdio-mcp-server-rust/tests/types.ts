@@ -1,7 +1,7 @@
 import { createServer, type HandlerRequestContext } from "../src/index.js";
 import { PassThrough } from "node:stream";
 
-const server = createServer({ name: "typed", version: "1" });
+const server = createServer({ name: "typed", version: "1", validateToolArguments: true });
 server.tool<{ message: string }>("echo", "Echo", { type: "object" }, (args, context) => {
   const signal: AbortSignal = context.signal;
   const state: string | undefined = context.requestState;

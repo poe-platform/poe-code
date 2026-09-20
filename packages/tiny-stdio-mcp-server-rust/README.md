@@ -14,7 +14,13 @@ The current API supports isolated message sessions, legacy initialization,
 modern discovery, tool registration and listing, asynchronous tool calls, text,
 image, audio, resource-link and embedded-resource results, cancellation, and
 stdio connections. The reusable Rust core uses the standard library and
-the sibling `mcp-protocol-rust` core.
+the sibling `mcp-protocol-rust` and `toolcraft-schema-rust` cores.
+
+Tool input schemas compile at registration and are snapshotted. Calls validate
+arguments in Rust before invoking the handler, with structured JSON-RPC schema
+issues for invalid input. Set `validateToolArguments: false` to skip rejecting
+schema mismatches. Arguments must still be JSON objects. Failed schema compilation
+leaves an existing registration intact.
 
 Set `maxActiveRequests` to bound running requests across sessions (default: 128).
 Concurrent requests with the same ID in one session are rejected. A
@@ -51,6 +57,6 @@ budgets are 1 MiB each, with at most 128 pending messages. Set
 them. Caller-owned streams remain open when a connection completes.
 
 This is an additive implementation checkpoint. HTTP transports,
-schema enforcement, resources, prompts, subscriptions, and full result
+output-schema enforcement, resources, prompts, subscriptions, and full result
 compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

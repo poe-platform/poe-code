@@ -13,6 +13,7 @@ fn server() -> Server {
         version: "1.0".encode_utf16().collect(),
         support_notifications: true,
         support_resource_subscriptions: true,
+        validate_tool_arguments: true,
     })
 }
 fn error(code: i32, message: &str) -> Action {
@@ -181,6 +182,7 @@ fn capabilities_are_derived_from_server_options() {
         version: "0".encode_utf16().collect(),
         support_notifications: false,
         support_resource_subscriptions: false,
+        validate_tool_arguments: true,
     });
     let Action::Reply(result) = server.dispatch(&mut Session::default(), "initialize", None) else {
         panic!("initialize")
@@ -277,4 +279,61 @@ fn legacy_list_hides_non_object_output_schemas_and_keeps_modern_schemas() {
             r#"[{"name":"scalar","inputSchema":{"type":"object"},"outputSchema":{"type":"string"}}]"#
         ))
     );
+}
+
+#[test]
+fn invalid_tool_arguments_return_schema_issues_before_invocation() {
+    let mut server = server();
+    let mut session = Session::default();
+    server.dispatch(&mut session, "initialize", None);
+    server.set_tool(value(r#"{"name":"check","inputSchema":{"type":"object","properties":{"value":{"type":"integer","minimum":1}},"required":["value"]}}"#), 1, false).unwrap();
+    let Action::Error(error) = server.dispatch(
+        &mut session,
+        "tools/call",
+        Some(value(r#"{"name":"check","arguments":{"value":0}}"#)),
+    ) else {
+        panic!("invalid input cannot invoke handler");
+    };
+    assert_eq!(error.code, -32602);
+    assert_eq!(
+        error.message,
+        "Invalid tool arguments: data/value must be >= 1"
+    );
+    assert_eq!(
+        error.data,
+        Some(value(
+            r#"[{"path":["value"],"expected":">= 1","received":"integer","message":"must be >= 1","keyword":"minimum"}]"#
+        ))
+    );
+    assert!(matches!(
+        server.dispatch(
+            &mut session,
+            "tools/call",
+            Some(value(r#"{"name":"check","arguments":{"value":1}}"#))
+        ),
+        Action::Invoke { handler: 1, .. }
+    ));
+}
+
+#[test]
+fn schema_compilation_failure_does_not_replace_the_existing_tool() {
+    let mut server = server();
+    let mut session = Session::default();
+    server.dispatch(&mut session, "initialize", None);
+    server
+        .set_tool(
+            value(r#"{"name":"check","inputSchema":{"type":"object"}}"#),
+            1,
+            false,
+        )
+        .unwrap();
+    assert!(server.set_tool(value(r#"{"name":"check","inputSchema":{"type":"object","properties":{"value":{"pattern":"["}}}}"#), 2, true).is_err());
+    assert!(matches!(
+        server.dispatch(
+            &mut session,
+            "tools/call",
+            Some(value(r#"{"name":"check"}"#))
+        ),
+        Action::Invoke { handler: 1, .. }
+    ));
 }

@@ -3,10 +3,12 @@ use mcp_protocol_rust::{
     json::Value,
     jsonrpc::{self, RpcError},
 };
+use toolcraft_schema_rust::CompiledSchema;
 
 pub mod content;
 pub mod output;
 pub mod requests;
+mod schema;
 pub mod stdio;
 pub mod wire;
 
@@ -25,6 +27,7 @@ pub struct ServerOptions {
     pub version: Vec<u16>,
     pub support_notifications: bool,
     pub support_resource_subscriptions: bool,
+    pub validate_tool_arguments: bool,
 }
 
 pub struct Server {
@@ -36,6 +39,7 @@ struct RegisteredTool {
     name: Vec<u16>,
     descriptor: Value,
     handler: u64,
+    input_validator: CompiledSchema,
 }
 
 pub struct Session {
@@ -115,6 +119,13 @@ impl Server {
         }
         let tool = RegisteredTool {
             name: name.clone(),
+            input_validator: CompiledSchema::compile(
+                definition
+                    .get("inputSchema")
+                    .expect("validated input schema")
+                    .clone(),
+                Default::default(),
+            )?,
             descriptor: definition,
             handler,
         };
@@ -318,6 +329,20 @@ impl Server {
                 .unwrap_or_else(|| object([]));
             if !matches!(arguments, Value::Object(_)) || !arguments.is_json_value() {
                 return failure(jsonrpc::INVALID_PARAMS, "Tool arguments must be an object");
+            }
+            match tool
+                .input_validator
+                .validate(&arguments, Default::default())
+            {
+                Ok(issues) if self.options.validate_tool_arguments && !issues.is_empty() => {
+                    return Action::Error(schema::validation_error(
+                        jsonrpc::INVALID_PARAMS,
+                        "Invalid tool arguments: ",
+                        issues,
+                    ));
+                }
+                Err(message) => return failure(jsonrpc::INTERNAL_ERROR, &message),
+                _ => {}
             }
             return Action::Invoke {
                 handler: tool.handler,

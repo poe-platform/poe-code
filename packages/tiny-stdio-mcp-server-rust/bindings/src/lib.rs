@@ -10,7 +10,7 @@ use tiny_stdio_mcp_server_rust::{Action, Server, ServerOptions, Session};
 use tiny_stdio_mcp_server_rust::{requests::RequestTracker, select_protocol};
 
 #[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
-mod convert;
+pub(crate) mod convert;
 use convert::NativeJson;
 mod input;
 pub mod media;

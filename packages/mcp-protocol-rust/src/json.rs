@@ -14,6 +14,53 @@ pub enum Value {
 }
 
 impl Value {
+    /// The repository's JSON-value contract: finite numbers, depth <= 64,
+    /// and at most 10,000 values, including the root.
+    pub fn is_json_value(&self) -> bool {
+        let mut pending = vec![(self, 0)];
+        let mut scheduled = 1usize;
+        while let Some((value, depth)) = pending.pop() {
+            if depth > 64 {
+                return false;
+            }
+            let children = match value {
+                Self::Number(number) if !number.is_finite() => return false,
+                Self::Array(values) => values.len(),
+                Self::Object(properties) => properties.len(),
+                _ => 0,
+            };
+            if children > 10_000 - scheduled {
+                return false;
+            }
+            scheduled += children;
+            match value {
+                Self::Array(values) => {
+                    pending.extend(values.iter().map(|value| (value, depth + 1)))
+                }
+                Self::Object(properties) => {
+                    pending.extend(properties.iter().map(|(_, value)| (value, depth + 1)))
+                }
+                _ => {}
+            }
+        }
+        true
+    }
+
+    pub fn is_finite_json(&self) -> bool {
+        let mut pending = vec![self];
+        while let Some(value) = pending.pop() {
+            match value {
+                Self::Number(number) if !number.is_finite() => return false,
+                Self::Array(values) => pending.extend(values),
+                Self::Object(properties) => {
+                    pending.extend(properties.iter().map(|(_, value)| value))
+                }
+                _ => {}
+            }
+        }
+        true
+    }
+
     pub fn get(&self, name: &str) -> Option<&Value> {
         let Self::Object(properties) = self else {
             return None;

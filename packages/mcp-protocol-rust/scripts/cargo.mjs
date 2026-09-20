@@ -1,10 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, readdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const packageDirectory = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const packageDirectory = process.env.npm_package_json
+  ? path.dirname(process.env.npm_package_json)
+  : path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const operation = process.argv[2];
 const manifest = path.join(packageDirectory, "Cargo.toml");
 const targetDirectory = path.resolve(packageDirectory, "../../out/rust-mcp-target");
@@ -48,7 +50,7 @@ function run(command, args) {
 
 for (const args of commands[operation]) run("cargo", args);
 
-if (operation === "build" || operation === "test") {
+if ((operation === "build" || operation === "test") && existsSync(bindingManifest)) {
   const require = createRequire(import.meta.url);
   const cli = path.join(path.dirname(require.resolve("@napi-rs/cli/package.json")), "dist/cli.js");
   const output = path.join(packageDirectory, "dist");
@@ -65,11 +67,16 @@ if (operation === "build" || operation === "test") {
     "--output-dir",
     output,
     "--no-js",
+    "--dts",
+    existsSync(path.join(packageDirectory, "src/index.d.ts")) ? "native.d.ts" : "index.d.ts",
     "--release",
     "--",
     "--locked"
   ]);
   copyFileSync(path.join(packageDirectory, "src/index.js"), path.join(output, "index.js"));
+  if (existsSync(path.join(packageDirectory, "src/index.d.ts"))) {
+    copyFileSync(path.join(packageDirectory, "src/index.d.ts"), path.join(output, "index.d.ts"));
+  }
   if (operation === "test") {
     const tests = readdirSync(path.join(packageDirectory, "tests"))
       .filter((name) => name.endsWith(".test.mjs"))

@@ -2223,6 +2223,16 @@ skill lifecycle APIs remain unfinished, as do hook lifecycle cleanup, the overal
 rewrite and minimum24-hour requirement.
 
 
+### Skill filesystem error realm admission — 2026-09-20
+
+Additional failing-first native tests found plain objects, coded functions and
+foreign-realm Error objects were incorrectly admitted as missing files by the
+new host adapter. It now matches SDK `instanceof Error` plus own-code admission;
+other thrown values preserve identity and never silently fall back. Both native
+groups, all49 SDK cases,7 Rust groups, fmt/clippy and the uncached11-workspace
+build closure pass. Evidence: `out/rust-agent-skill-error-realm-*`.
+
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

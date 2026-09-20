@@ -26,7 +26,7 @@ export function files(run){
     default:throw new Error(`Unknown skill filesystem operation ${operation}`);
    }
    return JSON.stringify(value);
-  }catch(error){return JSON.stringify({error:errors.push(error)-1,code:error!==null&&(typeof error==='object'||typeof error==='function')&&Object.hasOwn(error,'code')?error.code:undefined});}
+  }catch(error){return JSON.stringify({error:errors.push(error)-1,code:error instanceof Error&&Object.hasOwn(error,'code')?error.code:undefined});}
  };
  const result=run(callback);
  if(result!==null&&typeof result==='object'){

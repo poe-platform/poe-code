@@ -6,3 +6,9 @@ test('own skill catalog aliases and independent configuration objects match SDK'
  for(const input of native.supportedAgents){assert.deepEqual(native.getAgentConfig(input),sdk.getAgentConfig(input));const first=native.getAgentConfig(input);first.localSkillDir='redirected';assert.deepEqual(native.getAgentConfig(input),sdk.getAgentConfig(input));}
  for(const path of ['~','~/','~./foo','~.foo','~\\foo','ordinary'])for(const scope of ['local','global']){const config={globalSkillDir:path,localSkillDir:path};assert.equal(native.resolveSkillDir(config,scope,'/repo','/home'),sdk.resolveSkillDir(config,scope,'/repo','/home'));}
 });
+
+test('filesystem missing codes are classified only on same-realm Error instances',async()=>{
+ const builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module'),{runInNewContext}=await import('node:vm');const original=builtin.default.statSync;
+ const fn=()=>{};fn.code='ENOENT';const otherRealm=runInNewContext("Object.assign(new Error('foreign realm'),{code:'ENOENT'})");
+ try{for(const fault of [{code:'ENOENT'},fn,otherRealm]){builtin.default.statSync=()=>{throw fault;};syncBuiltinESMExports();for(const api of [sdk,native]){let caught;try{api.resolveSkillReference('foo','/repo','/home');}catch(error){caught=error;}assert.equal(caught,fault);}}}finally{builtin.default.statSync=original;syncBuiltinESMExports();}
+});

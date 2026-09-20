@@ -322,8 +322,13 @@ operations cover serialized mutations, partial rollback, read-only reads and
 preventing resurrection after deletion. Focused maintained build/lint/types, four
 Rust tests and fifteen native groups pass. The npm dry-run package contains the
 native artifact and public declarations with no external runtime dependencies.
-The original global key-derivation cache behavior is retained for now and still
-needs a bounded-retention audit before claiming sustained memory stability.
+Completed key derivations now use an own Rust cache capped at 64 entries with LRU
+eviction, while pending derivations remain shared by the host and are removed on
+success/failure. Identity keys exceeding 16,384 UTF-16 units bypass caching. Native
+tests verify 4,096 churn cycles keep the bound, buffers cannot mutate retained keys,
+UTF-16 keys remain distinct, and invalid key sizes do not alter the cache. Six Rust
+tests and sixteen native groups plus lint/types pass. This proves cache retention
+bounds, not general process leak freedom or a performance advantage.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

@@ -4,7 +4,7 @@ Credential storage with reusable Rust policy and native TypeScript bindings. Thi
 private additive package has zero external npm runtime dependencies.
 
 - AES-256-GCM encrypted files compatible with `auth-store`.
-- Machine-bound scrypt keys, atomic writes and file permissions of `0600`.
+- Machine-bound scrypt keys, a bounded key cache, atomic writes and `0600` permissions.
 - Credential path checks that refuse symbolic links.
 - macOS Keychain commands and matching error diagnostics.
 - Serialized legacy migration with rollback when mirrored mutations fail.
@@ -22,3 +22,7 @@ const secret = await store.get();
 Rust owns document validation, credential path admission, Keychain command/result
 policy, backend selection and migration/rollback plans. Node supplies filesystem,
 process and platform cryptography operations. Existing consumers are unchanged.
+
+The completed-key cache retains at most 64 entries with least-recently-used eviction.
+Identity keys exceeding 16,384 UTF-16 units bypass caching. Concurrent derivations
+share pending work, and failed work is released so later requests can retry.

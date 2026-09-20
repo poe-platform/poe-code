@@ -5,7 +5,8 @@ import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 const native = createRequire(import.meta.url)("./auth-store-rust.node");
-const derivedKeys = new Map();
+const derivedKeys = new native.NativeDerivedKeyCache();
+const derivations = new Map();
 function ownCode(error,code) { return error instanceof Error && Object.hasOwn(error,"code") && error.code===code; }
 function unwrap(result) { if(Object.hasOwn(result,"error")) throw new Error(result.error); return result.value; }
 
@@ -57,11 +58,13 @@ export class EncryptedFileStore {
       const retryable=(async()=> {
         const identity=await this.#identity();
         const cacheKey=JSON.stringify([identity.hostname,identity.username,this.#salt]);
-        if(derivedKeys.has(cacheKey))return derivedKeys.get(cacheKey);
+        const cached=derivedKeys.lookup(cacheKey);
+        if(cached!==null)return cached;
+        if(derivations.has(cacheKey))return derivations.get(cacheKey);
         const derivation=new Promise((resolve,reject)=>scrypt(`${identity.hostname}:${identity.username}`,this.#salt,32,(error,key)=>error ? reject(error) : resolve(Buffer.from(key))));
-        derivedKeys.set(cacheKey,derivation);
-        try { return await derivation; }
-        catch(error) { if(derivedKeys.get(cacheKey)===derivation)derivedKeys.delete(cacheKey);throw error; }
+        derivations.set(cacheKey,derivation);
+        try {const key=await derivation;derivedKeys.insert(cacheKey,key);return key;}
+        finally {if(derivations.get(cacheKey)===derivation)derivations.delete(cacheKey);}
       })().catch(error=>{if(this.#keyPromise===retryable)this.#keyPromise=null;throw error;});
       this.#keyPromise=retryable;
     }

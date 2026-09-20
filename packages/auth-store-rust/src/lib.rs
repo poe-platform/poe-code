@@ -1,4 +1,5 @@
 //! Host-independent credential storage policy.
+pub mod cache;
 use mcp_protocol_rust::{
     json::{self, Limits, Value},
     strings::trim_ecmascript,

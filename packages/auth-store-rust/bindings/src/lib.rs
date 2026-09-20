@@ -125,3 +125,35 @@ pub fn provider_key(provider: Utf16String) -> Utf16String {
     text.extend(provider.iter());
     text.into()
 }
+
+use std::cell::RefCell;
+#[napi]
+#[derive(Default)]
+pub struct NativeDerivedKeyCache {
+    state: RefCell<auth_store_rust::cache::DerivedKeyCache>,
+}
+#[napi]
+impl NativeDerivedKeyCache {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi(getter)]
+    pub fn size(&self) -> u32 {
+        self.state.borrow().size() as u32
+    }
+    #[napi]
+    pub fn lookup(&self, key: Utf16String) -> Option<Buffer> {
+        self.state
+            .borrow_mut()
+            .lookup(&key)
+            .map(|value| value.to_vec().into())
+    }
+    #[napi]
+    pub fn insert(&self, key: Utf16String, value: Buffer) -> Result<()> {
+        self.state
+            .borrow_mut()
+            .insert(&key, &value)
+            .map_err(napi::Error::from_reason)
+    }
+}

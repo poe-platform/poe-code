@@ -1420,6 +1420,37 @@ components and other design APIs remain outstanding. The original production
 design imports are intact, and config mutation execution has not been integrated
 with this package yet. The full MCP and poe-agent closure goal remains active.
 
+The template binding now has an owned-data graph path. Plain data descriptors
+are captured without JSON hooks into a flat binary graph retaining UTF-16,
+undefined, nonfinite numbers, BigInt, sparse arrays, shared references and cycles.
+The own Rust graph environment performs property lookup, scope traversal and
+array iteration without host crossings. Object coercion and partial access stay
+in the caller. Proxies are rejected before reflective traps; getters, functions,
+custom prototypes/iterators, partial accessors and patched coercion intrinsics
+use the callback environment. Graph capture is bounded and otherwise falls back.
+The core now uses its own mcp-protocol-rust path crate for number formatting;
+there are still zero external core crates or npm runtime dependencies. Construct
+a fresh DataEnvironment per render; its scope/iterator handles are call-local.
+
+Validation now passes eleven Rust groups and ten native groups, types, maintained
+lint and the uncached maintained six-workspace build. The native growth test
+reproduced a Buffer receiver/reserve ordering bug before the fix. Snapshot decoder
+coverage rejects truncated, overcounted, unknown-tag, dangling-reference and
+trailing-byte buffers. Native cases cover 256-item capture, sparse arrays,
+nonenumerable values, cycles, proxy trap order and mutations from partial getters
+and coercion hooks. Two 4 MiB workers pass depth512 and 2048 render cycles.
+
+Same-process original/data/callback medians in nanoseconds (Node22.23.2 ARM64):
+literal366/1082/909, name676/3908/3396, config1818/5023/7102,
+256-item section37677/216436/764666. Capture reduces crossings on larger
+sections, but is still slower than JS and can regress tiny views. In separate
+1280-cycle memory processes, original/data final RSS is 61.2/75.3 MB, retained
+heap4.01/4.08 MB and external1.67MB either. The last three data samples are
+74.96/75.17/75.27MB RSS; this finite run is stability evidence, not a general
+leak-free or lower-memory claim. Thirty-two retained outputs add1.14/0.31MB heap.
+Evidence: out/rust-design-template-data-*. Existing design imports remain intact;
+the full rewrite, remaining design APIs and configuration execution are incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

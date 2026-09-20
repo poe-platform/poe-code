@@ -62,3 +62,27 @@ test('native generated template cases match output and error precedence',()=>{
   const partials={one:'value'};assert.deepEqual(outcomes(()=>rust.resolveTemplatePartials(text,partials)),outcomes(()=>original.resolveTemplatePartials(text,partials)));
  }
 });
+test('native data render keeps sparse arrays, numeric values, cycles and own descriptor values',()=>{
+ const cases=[{values:[undefined,null,false,0,-0,NaN,Infinity,-Infinity,1e-7,1e21,12n]}, {values:[,'K',]}, Object.assign(Object.create(null),{name:'K',values:[{name:'child'}]}),{name:new Date('2026-08-26')}];
+ const cycle={name:'K'};cycle.self=cycle;cases.push(cycle);
+ const shared={name:'child'};cases.push({repo:'parent',values:[shared,shared]});
+ const hidden={};Object.defineProperty(hidden,'name',{value:'hidden'});cases.push(hidden);
+ for(const view of cases)for(const source of ['{{name}}','{{#values}}[{{.}}/{{name}}/{{repo}}]{{/values}}','{{values.length}}/{{values.1}}','{{#self}}{{name}}{{/self}}'])assert.equal(rust.renderTemplate(source,view),original.renderTemplate(source,view));
+});
+test('native rendering ignores unused getters, JSON hooks and proxy introspection',()=>{
+ const view={name:'K',get unused(){throw Error('unused getter');},toJSON(){throw Error('foreign JSON hook');}};
+ const expected=original.renderTemplate('{{name}}',view),stringify=JSON.stringify;
+ try{JSON.stringify=()=>{throw Error('global JSON hook');};assert.equal(rust.renderTemplate('{{name}}',view),expected);}finally{JSON.stringify=stringify;}
+ function fixture(events){return new Proxy({name:'K'},{get(target,key,receiver){events.push(['get',String(key)]);return Reflect.get(target,key,receiver);},getOwnPropertyDescriptor(target,key){events.push(['descriptor',String(key)]);return Reflect.getOwnPropertyDescriptor(target,key);},ownKeys(){throw Error('unexpected own keys');},getPrototypeOf(){throw Error('unexpected prototype');}});}
+ const a=[],b=[];assert.equal(rust.renderTemplate('{{name}}',fixture(a)),original.renderTemplate('{{name}}',fixture(b)));assert.deepEqual(a,b);
+});
+test('native data snapshot grows for agent-sized array sections',()=>{
+ const view={repo:'parent',items:Array.from({length:256},(_,i)=>({name:`item_${i}`,enabled:i%2===0}))};
+ const source='{{#items}}[{{name}}/{{repo}}/{{enabled}}]{{/items}}';
+ assert.equal(rust.renderTemplate(source,view),original.renderTemplate(source,view));
+});
+test('native data selection preserves mutation from partial getters and coercion hooks',()=>{
+ function fixture(events){const view={name:'before',child:{[Symbol.toPrimitive](){events.push('coerce');view.name='after';return 'child';}}};const partials={get one(){events.push('partial');view.name+='!';return '{{name}}';}};return {view,partials};}
+ for(const source of ['{{child}} {{name}}','{{> one}} {{name}}']){const a=[],b=[],left=fixture(a),right=fixture(b);assert.equal(rust.renderTemplate(source,left.view,{partials:left.partials}),original.renderTemplate(source,right.view,{partials:right.partials}));assert.deepEqual(a,b);}
+ const nativeString=String;try{globalThis.String=function(value){return nativeString(value)+'!';};assert.equal(rust.renderTemplate('{{name}}',{name:'K'}),original.renderTemplate('{{name}}',{name:'K'}));}finally{globalThis.String=nativeString;}
+});

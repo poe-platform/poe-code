@@ -8,3 +8,6 @@ description = "Own std-only UTF-16 template and design primitives"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

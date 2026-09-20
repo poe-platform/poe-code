@@ -199,3 +199,42 @@ pub fn template_render(
     }
     Ok(result(value.map(Value::String)))
 }
+
+impl toolcraft_design_rust::data::DataHost for Host<'_> {
+    fn coerce(&mut self, handle: usize) -> std::result::Result<Option<Vec<u16>>, template::Error> {
+        Ok(Some(self.call(1, handle, 0, &[], &[])?.text.to_vec()))
+    }
+}
+#[napi]
+pub fn template_render_data(
+    source: Utf16String,
+    snapshot: Buffer,
+    callback: Callback<'_>,
+    options: NativeRenderOptions,
+) -> Result<NativeJson> {
+    use toolcraft_design_rust::data;
+    let mut host = Host {
+        callback,
+        error: None,
+    };
+    let value = (|| {
+        let graph = data::decode(&snapshot)?;
+        let mut env = data::DataEnvironment::new(&graph, &mut host)?;
+        template::render(
+            &source,
+            0,
+            &mut env,
+            template::RenderOptions {
+                escape_none: options.escape_none,
+                validate: options.validate,
+                yield_text: options.yield_text.as_ref().map(|s| s.as_ref()),
+                in_context: false,
+                partial_stack: vec![],
+            },
+        )
+    })();
+    if let Some(error) = host.error {
+        return Err(error);
+    }
+    Ok(result(value.map(Value::String)))
+}

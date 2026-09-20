@@ -282,6 +282,9 @@ dependencies = [
 [[package]]
 name = "toolcraft-design-rust"
 version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
 
 [[package]]
 name = "toolcraft-design-rust-node"

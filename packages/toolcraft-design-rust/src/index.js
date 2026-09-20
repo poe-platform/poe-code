@@ -1,4 +1,5 @@
 import {createRequire} from 'node:module';
+import {dataSnapshot} from './data.js';
 const native=createRequire(import.meta.url)('./toolcraft-design-rust.node');
 export class TemplateParseError extends Error{
  constructor(description,{line,column}){super(`${description} at line ${line}, column ${column}`);this.name='TemplateParseError';this.description=description;this.line=line;this.column=column;}
@@ -9,6 +10,10 @@ function partialCallback(partials){return function(op,handle,context,name){const
 export function getTemplatePartialNames(template){return unwrap(native.templatePartialNames(template));}
 export function resolveTemplatePartials(template,partials){return unwrap(native.templateExpand(template,partialCallback(partials)));}
 export function renderTemplate(template,view,options={}){
+ const data=template.includes('{{')?dataSnapshot(view,options):null;
+ if(data){const partial=partialCallback(options.partials??{});return unwrap(native.templateRenderData(template,data.buffer,(op,handle,context,name)=>{
+   if(op===6||op===7)return partial(op,handle,context,name);const reply=replies();reply.text=String(data.values[handle]);return reply;
+  },{context:0,escapeNone:options.escape==='none',validate:options.validate===true,yieldText:options.yield,inContext:false,stack:[]}));}
  const contexts=[{view,parent:null}],values=[],iterators=[],partial=partialCallback(options.partials??{});
  function store(value){const handle=values.length;values.push(value);return handle;}
  function lookup(context,name){

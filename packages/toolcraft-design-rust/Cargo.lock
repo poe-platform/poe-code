@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
+name = "mcp-protocol-rust"
+version = "0.1.0"
+
+[[package]]
 name = "toolcraft-design-rust"
 version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]

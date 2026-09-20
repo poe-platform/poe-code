@@ -16,8 +16,8 @@ mod stdio;
 
 #[napi(object)]
 pub struct NativeServerOptions {
-    pub name: String,
-    pub version: String,
+    pub name: Utf16String,
+    pub version: Utf16String,
     pub support_notifications: Option<bool>,
     pub support_resource_subscriptions: Option<bool>,
     pub max_active_requests: Option<f64>,
@@ -64,8 +64,8 @@ impl NativeServer {
         Ok(Self {
             state: RefCell::new(ServerState {
                 server: Server::new(ServerOptions {
-                    name: options.name,
-                    version: options.version,
+                    name: options.name.to_vec(),
+                    version: options.version.to_vec(),
                     support_notifications: options.support_notifications != Some(false),
                     support_resource_subscriptions: options.support_resource_subscriptions
                         != Some(false),

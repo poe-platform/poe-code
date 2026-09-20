@@ -1,6 +1,30 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createServer } from "../dist/index.js";
+import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
+
+test("server identity retains UTF16 strings in initialization and modern metadata", async () => {
+  const options = { name: "server\ud800\u0000", version: "v\udfff" };
+  const native = createServer(options),
+    reference = referenceCreateServer(options);
+  for (const [method, params] of [
+    ["initialize", { protocolVersion: "2025-11-25" }],
+    [
+      "server/discover",
+      {
+        _meta: {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientCapabilities": {}
+        }
+      }
+    ]
+  ]) {
+    assert.deepEqual(
+      await native.handleMessage(method, params),
+      await reference.handleMessage(method, params)
+    );
+  }
+});
 
 test("registration uses the admitted name without invoking proxy property reads", async () => {
   const server = createServer({ name: "test", version: "0" });

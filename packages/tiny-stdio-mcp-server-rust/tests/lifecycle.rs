@@ -9,8 +9,8 @@ fn value(source: &str) -> Value {
 }
 fn server() -> Server {
     Server::new(ServerOptions {
-        name: "test".into(),
-        version: "1.0".into(),
+        name: "test".encode_utf16().collect(),
+        version: "1.0".encode_utf16().collect(),
         support_notifications: true,
         support_resource_subscriptions: true,
     })
@@ -177,8 +177,8 @@ fn discovery_requires_explicit_request_metadata() {
 #[test]
 fn capabilities_are_derived_from_server_options() {
     let server = Server::new(ServerOptions {
-        name: "silent".into(),
-        version: "0".into(),
+        name: "silent".encode_utf16().collect(),
+        version: "0".encode_utf16().collect(),
         support_notifications: false,
         support_resource_subscriptions: false,
     });

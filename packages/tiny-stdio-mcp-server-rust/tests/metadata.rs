@@ -9,8 +9,8 @@ fn value(source: &str) -> Value {
 }
 fn server() -> Server {
     Server::new(ServerOptions {
-        name: "test".into(),
-        version: "1.0".into(),
+        name: "test".encode_utf16().collect(),
+        version: "1.0".encode_utf16().collect(),
         support_notifications: false,
         support_resource_subscriptions: false,
     })

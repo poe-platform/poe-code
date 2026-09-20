@@ -21,8 +21,8 @@ pub const SUPPORTED_PROTOCOL_VERSIONS: [&str; 4] = [
 
 #[derive(Clone, Debug)]
 pub struct ServerOptions {
-    pub name: String,
-    pub version: String,
+    pub name: Vec<u16>,
+    pub version: Vec<u16>,
     pub support_notifications: bool,
     pub support_resource_subscriptions: bool,
 }
@@ -330,8 +330,8 @@ impl Server {
 
     fn server_info(&self) -> Value {
         object([
-            ("name", string(&self.options.name)),
-            ("version", string(&self.options.version)),
+            ("name", Value::String(self.options.name.clone())),
+            ("version", Value::String(self.options.version.clone())),
         ])
     }
 

@@ -1,3 +1,4 @@
+import { failureText } from "./browser-native-failure";
 import assert from "node:assert/strict";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
 import { createPlaywrightCli } from "@poe-platform/safe-bash/playwright";
@@ -472,7 +473,7 @@ export default {
 			const error = failures[0];
 			return Response.json(
 				{
-					error: failures.map(String).join("; "),
+					error: failures.map(failureText).join("; "),
 					stack: error instanceof Error ? error.stack : undefined,
 				},
 				{ status: 500 },

@@ -1,3 +1,4 @@
+import { failureText } from "./browser-native-failure";
 import assert from "node:assert/strict";
 import { SHELL_PLAYWRIGHT_LIMITS } from "./persistent-playwright.fixture";
 import type { BrowserWorker } from "@cloudflare/playwright";
@@ -14,18 +15,6 @@ import {
 	controlFaultBinding,
 	assertFaultDisposal,
 } from "./browser-storage-admission.test.worker-relay";
-
-export function failureText(error: unknown) {
-	const pending = [error];
-	const messages: string[] = [];
-	for (let inspected = 0; pending.length && inspected < 16; inspected++) {
-		const current = pending.shift();
-		messages.push(String(current));
-		if (current instanceof AggregateError)
-			pending.push(...current.errors.slice(0, 16));
-	}
-	return messages.join("; ");
-}
 
 export function assertCommandFailure(
 	outcome: PromiseSettledResult<{

@@ -2,7 +2,7 @@ import {
 	assertBrowserPrivateStorageCancellation,
 	assertBrowserStorageReplacement,
 } from "./browser-storage.test.worker-cases";
-import { failureText } from './browser-storage-admission.test.worker-controls';
+import { failureText } from './browser-native-failure';
 
 export async function handleBrowserStorageScenario(
 	request: Request,

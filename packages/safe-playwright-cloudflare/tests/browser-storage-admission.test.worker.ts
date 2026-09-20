@@ -1,3 +1,4 @@
+import { failureText } from "./browser-native-failure";
 import assert from "node:assert/strict";
 import { transactionCommitBarrier } from "./browser-storage-commit.test.worker-cases";
 import { DurableObject } from "cloudflare:workers";
@@ -29,7 +30,6 @@ import {
 	assertCommandFailure,
 	checkpointFailures,
 	publicReaderLimit,
-	failureText,
 	heldGuest,
 } from "./browser-storage-admission.test.worker-controls";
 import {

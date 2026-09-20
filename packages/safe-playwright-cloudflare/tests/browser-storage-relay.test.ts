@@ -4,7 +4,6 @@ import { controlFaultBinding } from "./browser-storage-admission.test.worker-rel
 
 vi.mock("./browser-storage-admission.test.worker-controls", () => ({
   assertCommandFailure: vi.fn(),
-  failureText: vi.fn(),
 }));
 
 vi.mock("./browser-storage-admission.test.worker-records", () => ({ seed: vi.fn() }));

@@ -5,7 +5,7 @@ import { createCloudflarePlaywrightAdapter } from "../src/shell-playwright";
 import { controlFaultBinding } from "./browser-storage-admission.test.worker-relay";
 import type { Fixture, Origins } from "./browser-storage-admission.test.worker-cases";
 import { PROFILE_LIMITS } from "./persistent-playwright.fixture";
-import { failureText } from "./browser-storage-admission.test.worker-controls";
+import { failureText } from "./browser-native-failure";
 
 // Keep a real Chromium transaction active with requests, rather than withholding
 // a completed CDP reply. Every saved row must succeed before the release command.

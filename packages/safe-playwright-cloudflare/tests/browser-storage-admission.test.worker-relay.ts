@@ -1,3 +1,4 @@
+import { failureText } from "./browser-native-failure";
 import assert from "node:assert/strict";
 import type { BrowserWorker } from "@cloudflare/playwright";
 import { registerBrowserSocketClose } from "../src/browser-socket-closure";
@@ -8,7 +9,6 @@ import type {
 } from "./browser-storage-admission.test.worker-cases";
 import {
 	assertCommandFailure,
-	failureText,
 } from "./browser-storage-admission.test.worker-controls";
 import { seed } from "./browser-storage-admission.test.worker-records";
 

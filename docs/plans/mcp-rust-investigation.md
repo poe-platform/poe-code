@@ -2295,6 +2295,17 @@ SDK; lower native heap does not establish lower total memory. Evidence:
 `out/rust-agent-skill-apply-*`. Active skill lifecycle, complete package acceptance,
 the overall rewrite and minimum24-hour actual effort remain unfinished.
 
+### Fixed-memory incremental SHA-256 prerequisite — 2026-09-20
+
+Added an own `Sha256` streaming digest alongside the existing one-shot API for
+the upcoming skill-tree fingerprints. It keeps one64-byte tail and does not
+concatenate whole directories before hashing. Failing-first vectors cross-check
+Node builtin crypto at15 padding/input boundaries and8 chunk widths, including
+empty updates. The maintained OAuth unit route passes all56 native and153 SDK
+cases plus Rust groups and strict types; fmt/clippy and the uncached8-workspace
+build closure pass. Existing OAuth public behavior remains unchanged. Evidence:
+`out/rust-sha256-stream-*`. This is a prerequisite, not active skill completion.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

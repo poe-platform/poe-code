@@ -1,7 +1,7 @@
 //! Independent OAuth core. Binding hosts provide operating-system entropy and I/O.
 pub mod base64;
 mod sha256;
-pub use sha256::sha256;
+pub use sha256::{Sha256, sha256};
 
 pub fn generate_code_verifier(entropy: &[u8]) -> Result<String, &'static str> {
     if entropy.len() != 32 {

@@ -1,4 +1,7 @@
 //! SHA-256 compression and padding as specified in FIPS 180-4.
+const INITIAL: [u32; 8] = [
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+];
 const K: [u32; 64] = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -50,10 +53,7 @@ fn compress(state: &mut [u32; 8], bytes: &[u8; 64]) {
     }
 }
 pub fn sha256(bytes: &[u8]) -> [u8; 32] {
-    let mut state = [
-        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
-        0x5be0cd19,
-    ];
+    let mut state = INITIAL;
     let (chunks, remaining) = bytes.as_chunks::<64>();
     for chunk in chunks {
         compress(&mut state, chunk);
@@ -71,4 +71,65 @@ pub fn sha256(bytes: &[u8]) -> [u8; 32] {
         output.copy_from_slice(&word.to_be_bytes());
     }
     result
+}
+/// Incremental digest with a fixed-size tail, independent of total input size.
+#[derive(Clone)]
+pub struct Sha256 {
+    state: [u32; 8],
+    tail: [u8; 64],
+    used: usize,
+    length: u64,
+}
+impl Default for Sha256 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Sha256 {
+    pub fn new() -> Self {
+        Self {
+            state: INITIAL,
+            tail: [0; 64],
+            used: 0,
+            length: 0,
+        }
+    }
+    pub fn update(&mut self, mut bytes: &[u8]) {
+        self.length = self.length.wrapping_add(bytes.len() as u64);
+        if self.used > 0 {
+            let copied = bytes.len().min(64 - self.used);
+            self.tail[self.used..self.used + copied].copy_from_slice(&bytes[..copied]);
+            self.used += copied;
+            bytes = &bytes[copied..];
+            if self.used == 64 {
+                compress(&mut self.state, &self.tail);
+                self.used = 0;
+            } else {
+                return;
+            }
+        }
+        let (chunks, remaining) = bytes.as_chunks::<64>();
+        for chunk in chunks {
+            compress(&mut self.state, chunk);
+        }
+        self.tail[..remaining.len()].copy_from_slice(remaining);
+        self.used = remaining.len();
+    }
+    pub fn finalize(mut self) -> [u8; 32] {
+        let bits = self.length.wrapping_mul(8);
+        let padding_length = if self.used < 56 {
+            56 - self.used
+        } else {
+            120 - self.used
+        };
+        let mut padding = [0u8; 128];
+        padding[0] = 0x80;
+        padding[padding_length..padding_length + 8].copy_from_slice(&bits.to_be_bytes());
+        self.update(&padding[..padding_length + 8]);
+        let mut result = [0u8; 32];
+        for (output, word) in result.as_chunks_mut::<4>().0.iter_mut().zip(self.state) {
+            output.copy_from_slice(&word.to_be_bytes());
+        }
+        result
+    }
 }

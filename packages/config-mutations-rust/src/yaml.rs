@@ -110,9 +110,34 @@ pub fn parse(
     source: &[u16],
     date_key: Option<&mut dyn FnMut(i64) -> Vec<u16>>,
 ) -> Result<Parsed, Error> {
+    parse_with_options(source, date_key, ParseOptions::default())
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ParseOptions {
+    pub unique_keys: bool,
+    pub object_root: bool,
+}
+impl Default for ParseOptions {
+    fn default() -> Self {
+        Self {
+            unique_keys: true,
+            object_root: true,
+        }
+    }
+}
+/// Frontmatter admits duplicate keys and applies its own root-kind diagnostics.
+pub fn parse_with_options(
+    source: &[u16],
+    date_key: Option<&mut dyn FnMut(i64) -> Vec<u16>>,
+    options: ParseOptions,
+) -> Result<Parsed, Error> {
     if source.iter().all(|ch| crate::jsonc::trim_space(*ch)) {
         return Ok(Parsed {
-            value: Value::Object(vec![]),
+            value: if options.object_root {
+                Value::Object(vec![])
+            } else {
+                Value::Null
+            },
             date_ids: vec![],
             symbol_ids: vec![],
         });
@@ -220,17 +245,17 @@ pub fn parse(
     }
     check_aliases(&nodes)?;
     let (value, date_ids, symbol_ids) = if let Some(root) = root {
-        compose::configuration(&nodes, root, date_key)?
+        compose::configuration(&nodes, root, date_key, options.unique_keys)?
     } else {
         (Value::Null, vec![], vec![])
     };
     match value {
-        Value::Null => Ok(Parsed {
+        Value::Null if options.object_root => Ok(Parsed {
             value: Value::Object(vec![]),
             date_ids,
             symbol_ids,
         }),
-        Value::Object(_) => Ok(Parsed {
+        value if !options.object_root || matches!(value, Value::Object(_)) => Ok(Parsed {
             value,
             date_ids,
             symbol_ids,

@@ -143,6 +143,8 @@ pub fn config_toml_serialize(serialized: Buffer) -> Result<Utf16String> {
 pub fn config_yaml_parse(
     source: Utf16String,
     date_key: Option<Function<f64, Utf16String>>,
+    unique_keys: Option<bool>,
+    object_root: Option<bool>,
 ) -> Result<NativeJson> {
     use config_mutations_rust::yaml;
     let mut callback_error = None;
@@ -153,12 +155,16 @@ pub fn config_yaml_parse(
             vec![]
         }
     };
-    let parsed = yaml::parse(
+    let parsed = yaml::parse_with_options(
         &source,
         if date_key.is_some() {
             Some(&mut format)
         } else {
             None
+        },
+        yaml::ParseOptions {
+            unique_keys: unique_keys.unwrap_or(true),
+            object_root: object_root.unwrap_or(true),
         },
     );
     if let Some(error) = callback_error {
@@ -202,6 +208,11 @@ pub fn config_yaml_parse(
                 ),
                 ("line", Value::Number(error.line as f64)),
                 ("column", Value::Number(error.column as f64)),
+                (
+                    "reason",
+                    Value::String(error.reason.encode_utf16().collect()),
+                ),
+                ("offset", Value::Number(error.offset as f64)),
             ]),
         )]),
     }))

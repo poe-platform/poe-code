@@ -337,6 +337,7 @@ fn build(
     nodes: &[Entry],
     root: usize,
     date_key: &mut Option<&mut dyn FnMut(i64) -> Vec<u16>>,
+    unique_keys: bool,
 ) -> Result<Arc<Datum>, Error> {
     enum Task {
         Visit(usize, usize),
@@ -410,7 +411,7 @@ fn build(
                                     &key.kind,
                                     Kind::Scalar(Value::Null | Value::Bool(_) | Value::String(_))
                                 ) || matches!(&key.kind,Kind::Scalar(Value::Number(value)) if !value.is_nan());
-                                if comparable && !seen.insert(map_key(&key)) {
+                                if unique_keys && comparable && !seen.insert(map_key(&key)) {
                                     return Err(error(
                                         "Map keys must be unique",
                                         nodes[key_node].mark,
@@ -519,13 +520,14 @@ pub(super) fn configuration(
     nodes: &[Entry],
     root: usize,
     mut date_key: Option<&mut dyn FnMut(i64) -> Vec<u16>>,
+    unique_keys: bool,
 ) -> Result<(Value, Vec<usize>, Vec<usize>), Error> {
     enum Task<'a> {
         Visit(&'a Arc<Datum>, usize),
         Array(usize),
         Record(Vec<Vec<u16>>),
     }
-    let root = build(nodes, root, &mut date_key)?;
+    let root = build(nodes, root, &mut date_key, unique_keys)?;
     let mut tasks = vec![Task::Visit(&root, 0)];
     let mut values = vec![];
     let mut visits = 0usize;

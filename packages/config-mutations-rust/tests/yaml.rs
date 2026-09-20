@@ -1,4 +1,41 @@
 use config_mutations_rust::{value::Value, yaml};
+#[test]
+fn parser_options_allow_frontmatter_duplicates_and_nonobject_roots_without_changing_config_defaults()
+ {
+    let source: Vec<u16> = "title: first\ntitle: second\n".encode_utf16().collect();
+    assert!(yaml::parse(&source, None).is_err());
+    let options = yaml::ParseOptions {
+        unique_keys: false,
+        object_root: false,
+    };
+    assert_eq!(
+        yaml::parse_with_options(&source, None, options)
+            .unwrap()
+            .value
+            .get("title"),
+        Some(&Value::String("second".encode_utf16().collect()))
+    );
+    let sequence: Vec<u16> = "- alpha\n".encode_utf16().collect();
+    assert!(yaml::parse(&sequence, None).is_err());
+    assert_eq!(
+        yaml::parse_with_options(&sequence, None, options)
+            .unwrap()
+            .value,
+        Value::Array(vec![Value::String("alpha".encode_utf16().collect())])
+    );
+    let scalar: Vec<u16> = "42".encode_utf16().collect();
+    assert_eq!(
+        yaml::parse_with_options(&scalar, None, options)
+            .unwrap()
+            .value,
+        Value::Number(42.0)
+    );
+    let strict = yaml::ParseOptions {
+        unique_keys: true,
+        object_root: false,
+    };
+    assert!(yaml::parse_with_options(&source, None, strict).is_err());
+}
 fn parse(source: &str) -> Value {
     yaml::parse(&source.encode_utf16().collect::<Vec<_>>(), None)
         .unwrap()

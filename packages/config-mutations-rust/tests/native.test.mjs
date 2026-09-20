@@ -2,6 +2,16 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import * as json from '../dist/json.js';
 import {createRequire} from 'node:module';
+import {native} from '../dist/native.js';
+test('embedded YAML parser admits frontmatter duplicate/root policy and exposes diagnostic offsets',()=>{
+ const duplicate='title: first\ntitle: second\n';
+ assert.deepEqual(native.configYamlParse(duplicate,undefined,false,false).value,{title:'second'});
+ assert.deepEqual(native.configYamlParse('- alpha\n',undefined,false,false).value,['alpha']);
+ assert.equal(native.configYamlParse('42',undefined,false,false).value,42);
+ const error=native.configYamlParse(duplicate,undefined,true,false).error;
+ assert.equal(error.reason,'Map keys must be unique');assert.equal(error.offset,duplicate.indexOf('title',1));
+ assert.ok(native.configYamlParse('- alpha\n').error);
+});
 const oracle=createRequire(import.meta.url)('jsonc-parser');
 function expectedEdit(source,path,value){
  const indent=source.match(/^[\t ]+/m)?.[0]??'  ';

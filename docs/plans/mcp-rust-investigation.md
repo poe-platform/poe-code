@@ -1801,6 +1801,22 @@ not establish a memory advantage or a leak-free guarantee. No broad speed,
 stability or platform claim follows from these local measurements. Python
 adapters and the full remaining MCP/poe-agent closure are still unfinished.
 
+## YAML parser support for frontmatter
+
+The own YAML core now exposes `ParseOptions`/`parse_with_options` for duplicate
+key and object-root admission. The existing `parse` and Node config APIs retain
+strict unique keys and object roots. The shared native bridge accepts optional
+private flags and returns raw diagnostic reason/UTF-16 offset alongside its
+existing formatted message/line/column. This supports own frontmatter parsing
+without importing a production YAML SDK; the existing parser defaults are
+already YAML 1.2 (YAML 1.1 activates only through a document directive).
+Failing-first Rust/native groups cover last-key-wins mapping values, admitted
+array/scalar roots, retained default rejection and duplicate-key offsets.
+Validation: 82 Rust groups, 65 native groups, all260 current SDK cases,
+declarations, maintained lint/shared lint, eight-workspace uncached build and
+packed config root/codecs/template smoke pass. Evidence under
+`out/rust-config-yaml-options-*.log`. Frontmatter package work is ongoing.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

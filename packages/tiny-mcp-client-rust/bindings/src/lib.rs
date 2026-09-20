@@ -27,14 +27,9 @@ pub fn parse_json_rpc_message(line: Utf16String) -> convert::NativeJson {
 }
 
 use mcp_protocol_rust::json::{self, Value};
+use mcp_protocol_rust_napi_core::json_input as input;
 use std::cell::RefCell;
 use tiny_mcp_client_rust::layer::{Event, LayerError, MessageLayer};
-#[path = "../../../mcp-protocol-rust/bindings/src/json_input.rs"]
-#[expect(
-    dead_code,
-    reason = "shared ingress also includes tool result conversion"
-)]
-mod input;
 
 #[napi]
 pub struct NativeMessageLayer {

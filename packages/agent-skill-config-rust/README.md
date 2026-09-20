@@ -14,6 +14,7 @@ Node addon has no npm runtime, peer or optional dependencies.
 | Independent run-owned Git exclude blocks | `appendExcludeBlock`, `removeExcludeBlock` |
 | Install bundled skills without overwriting user files | `configure`, `unconfigure` |
 | Install named skills with explicit overwrite control | `installSkill` |
+| Temporarily copy selected skills into a spawning agent | `bridgeActiveSkills`, `cleanupBridgedSkills` |
 
 ```typescript
 import { resolveSkillReference } from '@poe-code/agent-skill-config-rust';
@@ -50,8 +51,18 @@ locations in order; `templates::bundled` supplies the compiled own templates for
 Rust hosts. The Node addon includes the own mutation engine in the same native
 artifact and loads its bundled template files using builtin filesystem APIs.
 
-This additive experimental workspace currently covers the APIs above. Active-skill bridging/cleanup,
-full malformed/accessor fidelity, Python bindings and cross-platform artifacts
+Active bridges resolve the whole reference batch before copying, report local,
+global, self-reference and same-name collisions, and copy nested binary assets.
+They reject symbolic links beneath the workspace/source root. Unmodified copies
+are shared by overlapping runs; a changed source is not reused. Cleanup checks
+the ownership token and tree fingerprint, preserves user replacements and changed
+copies, and removes only owned empty parents. Git bookkeeping failures roll back
+copies; exclude cleanup must succeed before targets are removed. Original
+manifests have idempotent cleanup, and serialized manifests retain duplicate-run
+exclude IDs.
+
+This additive experimental workspace provides the current root SDK API. Full
+malformed/accessor fidelity, Python bindings and cross-platform artifacts
 remain in progress. Small native Node lookups and configuration cycles are slower
 than the existing SDK.
 Existing applications continue to use the original TypeScript package.

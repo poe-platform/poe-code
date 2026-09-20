@@ -49,7 +49,10 @@ fn malformed(segment: &[u16]) -> bool {
         || segment.contains(&10)
         || segment.contains(&13)
 }
-fn execute<H: Host>(plan: PathPlan, host: &mut H) -> std::result::Result<Vec<u16>, H::Error> {
+pub(crate) fn execute<H: Host>(
+    plan: PathPlan,
+    host: &mut H,
+) -> std::result::Result<Vec<u16>, H::Error> {
     match plan {
         PathPlan::Resolve(path) => host.resolve(&[&path]),
         PathPlan::Join { directory, path } => host

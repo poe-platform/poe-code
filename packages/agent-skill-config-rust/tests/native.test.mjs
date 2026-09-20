@@ -42,3 +42,51 @@ test('native template loader retains bundled byte content and missing-template a
  for(const id of ['poe-generate.md','terminal-pilot.md'])assert.equal(await own.loadTemplate(id),await reference.loadTemplate(id));
  for(const api of [own,reference])await assert.rejects(api.loadTemplate('missing.md'),error=>error.message==='Template not found: missing.md');
 });
+test('native active skill lifecycles match SDK manifests, binary output and repeated cleanup',async()=>{
+ const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module');
+ const keys=['statSync','lstatSync','readFileSync','writeFileSync','mkdirSync','renameSync','unlinkSync','rmdirSync','rmSync','readdirSync','copyFileSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));
+ const restores=[sdk,native].map(api=>api.setGitDirRunnerForTest(()=>'/bridge/.git'));
+ try{for(const key of keys)builtin.default[key]=fs[key];syncBuiltinESMExports();
+  for(let round=0;round<32;round++){
+   const outputs=[];
+   for(const api of [sdk,native]){
+    vol.reset();vol.fromJSON({'/bridge/.poe-code/skills/alpha/SKILL.md':'# alpha '+round+' 😀\n','/bridge/.poe-code/skills/alpha/assets/.keep':'asset','/bridge/.claude/skills/beta/SKILL.md':'# beta\n','/bridge/.codex/skills/alpha/SKILL.md':'# codex\n','/home/.config/opencode/skills/native/SKILL.md':'# native\n','/bridge/.git/info/exclude':'keep\n'},'/');
+    const binary=Buffer.from(Array.from({length:257},(_,index)=>(index*17+round)&255));vol.writeFileSync('/bridge/.poe-code/skills/alpha/assets/blob.bin',binary);
+    const refs=['alpha','claude/beta','codex/alpha','opencode/native'];const first=api.bridgeActiveSkills('OpenCode','/bridge',refs,'/home','same'),second=api.bridgeActiveSkills('OpenCode','/bridge',refs,'/home','same');
+    const copied=vol.readFileSync('/bridge/.opencode/skills/alpha/assets/blob.bin');assert.deepEqual(copied,binary);
+    const liveExclude=vol.readFileSync('/bridge/.git/info/exclude','utf8');api.cleanupBridgedSkills(first);const mid=vol.readFileSync('/bridge/.git/info/exclude','utf8');
+    api.cleanupBridgedSkills(JSON.parse(JSON.stringify(second)));api.cleanupBridgedSkills(second);api.cleanupBridgedSkills(second);
+    outputs.push({first,second,copied,liveExclude,mid,cleaned:vol.toJSON()});
+   }
+   assert.deepEqual(outputs[1],outputs[0]);
+  }
+ }finally{for(const restore of restores)restore();Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
+});
+test('native fingerprint reads retain thrown values without inspecting error-code accessors',async()=>{
+ const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module'),{runInNewContext}=await import('node:vm');
+ const keys=['statSync','lstatSync','readFileSync','readdirSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));
+ const accessor=Object.defineProperty(new Error('fingerprint denied'),'code',{get(){throw new Error('unexpected error-code getter');}});
+ const fn=()=>{};fn.code='ENOENT';
+ try{for(const key of keys)builtin.default[key]=fs[key];
+  for(const fault of [{code:'ENOENT'},fn,runInNewContext("Object.assign(new Error('foreign'),{code:'ENOENT'})"),accessor]){
+   vol.reset();vol.fromJSON({'/reads/.poe-code/skills/foo/SKILL.md':'# foo\n'},'/');builtin.default.readFileSync=(path,encoding)=>{if(String(path)==='/reads/.poe-code/skills/foo/SKILL.md'&&encoding===undefined)throw fault;return fs.readFileSync(path,encoding);};syncBuiltinESMExports();
+   for(const api of [sdk,native]){let caught;try{api.bridgeActiveSkills('codex','/reads',['foo'],'/home','read');}catch(error){caught=error;}assert.equal(caught,fault);assert.equal(vol.existsSync('/reads/.codex'),false);}
+  }
+ }finally{Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
+});
+test('native active skill ownership rejects filesystem callback reentry',async()=>{
+ const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module');
+ const keys=['statSync','lstatSync','readFileSync','writeFileSync','mkdirSync','renameSync','unlinkSync','rmdirSync','rmSync','readdirSync','copyFileSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));const restore=native.setGitDirRunnerForTest(()=>undefined);
+ try{for(const key of keys)builtin.default[key]=fs[key];vol.reset();vol.fromJSON({'/nested/.poe-code/skills/foo/SKILL.md':'# foo\n'},'/');let nested;
+  builtin.default.copyFileSync=(source,target)=>{if(!nested){try{native.bridgeActiveSkills('codex','/nested',['foo'],'/home','nested');}catch(error){nested=error;}}return fs.copyFileSync(source,target);};syncBuiltinESMExports();
+  const result=native.bridgeActiveSkills('codex','/nested',['foo'],'/home','outer');assert.match(nested?.message??'',/already running/);native.cleanupBridgedSkills(result);
+  const next=native.bridgeActiveSkills('codex','/nested',['foo'],'/home','nested');assert.equal(next.entries.length,1);native.cleanupBridgedSkills(next);
+ }finally{restore();Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
+});
+test('native bridge copy failures retain primary errors without reading unrelated code getters',async()=>{
+ const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module');
+ const keys=['statSync','lstatSync','readFileSync','writeFileSync','mkdirSync','renameSync','unlinkSync','rmdirSync','rmSync','readdirSync','copyFileSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));const restores=[sdk,native].map(api=>api.setGitDirRunnerForTest(()=>undefined));
+ try{for(const key of keys)builtin.default[key]=fs[key];
+  for(const api of [sdk,native]){vol.reset();vol.fromJSON({'/fault/.poe-code/skills/foo/SKILL.md':'# foo\n'},'/');let inspected=0;const fault=Object.defineProperty(new Error('copy denied'),'code',{get(){inspected++;throw new Error('unexpected code getter');}});builtin.default.copyFileSync=()=>{throw fault;};syncBuiltinESMExports();let caught;try{api.bridgeActiveSkills('codex','/fault',['foo'],'/home','fault');}catch(error){caught=error;}assert.equal(caught,fault);assert.equal(inspected,0);assert.equal(vol.existsSync('/fault/.codex'),false);}
+ }finally{for(const restore of restores)restore();Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
+});

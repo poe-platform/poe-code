@@ -2306,6 +2306,41 @@ cases plus Rust groups and strict types; fmt/clippy and the uncached8-workspace
 build closure pass. Existing OAuth public behavior remains unchanged. Evidence:
 `out/rust-sha256-stream-*`. This is a prerequisite, not active skill completion.
 
+### Native active skill bridge and cleanup — 2026-09-20
+
+Added Rust batch resolution admission, grouped user errors, collision precedence,
+recursive copy policies, owned SHA-256 tree fingerprints, overlap reference counts,
+token checks, rollback and selective parent cleanup. Native bytes cross directly
+as Buffers instead of JSON number arrays; only metadata uses JSON callback transfer.
+The same single addon links own standard-library/path cores. Node keeps original
+manifest cleanup state in a WeakMap, retains serialized duplicate-run exclude IDs,
+and supplies builtin filesystem/path/UUID/Git primitives. RefCell admission rejects
+filesystem callback reentry before mutable Rust state access.
+
+Failing-first SDK API tests preceded implementation. All137 current source SDK
+cases across5 modules,13 Rust groups and8 native groups pass, including32 generated
+comparative nested-binary overlap rounds and exact manifests/exclude/final bytes.
+Strict bidirectional full root SDK assignment, fmt/clippy and the uncached maintained
+18-workspace closure pass. Additional failing-first copy-error tests caught eager
+error-code getter evaluation in unrelated host operations: codes are now inspected
+only for the relevant primitive's admitted conditions and getter failures retain
+their own original thrown values. Raw fingerprint reads never inspect codes.
+
+Direct/packed16MiB workers each pass512 overlapping pairs with external imports
+blocked, exactly one addon and zero npm runtime/peer/optional dependency groups.
+The native4KiB asset workload samples886.4–992.9µs per overlap pair versus585.9–649.8µs
+SDK. A second memfs retention defect emerged: rm/rmdir detach links without freeing
+their inodes. Both original fixture runs retain8 orphan inodes per pair and grow
+similarly. Releasing only unreachable development fixture inodes at each sample
+leaves12 live inodes while the addon stays live across8192 pairs: native heap7.37→7.54MB
+and buffers69.9KB, SDK11.16→11.54MB and69.9KB. Final RSS110.85MB native/120.05MB SDK.
+These bounded comparisons do not establish broad speed or memory acceptance.
+Evidence: `out/rust-agent-skill-lifecycle-*`.
+
+Current root APIs are implemented; malformed/getter-stage, recursive workload
+limits, cross-platform packaging and broad acceptance remain unfinished, along
+with the overall rewrite and minimum24-hour actual effort requirement.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

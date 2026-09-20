@@ -11,6 +11,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::sync::OnceLock;
 mod apply;
+mod bridge;
 mod templates;
 pub use config_mutations_rust_napi_core::*;
 fn u(text: &str) -> Vec<u16> {
@@ -139,6 +140,7 @@ enum RuntimeError {
 type Callback<'a> = Function<'a, FnArgs<(String, NativeJson)>, Utf16String>;
 struct Host<'a> {
     callback: Callback<'a>,
+    bytes: Option<bridge::ReadBytes<'a>>,
 }
 impl Host<'_> {
     fn call(&self, operation: &str, args: Vec<J>) -> std::result::Result<J, FsError<RuntimeError>> {
@@ -360,7 +362,10 @@ pub fn skill_append_exclude(
         &run,
         &entries,
         prefix.as_deref(),
-        &mut Host { callback },
+        &mut Host {
+            callback,
+            bytes: None,
+        },
     ) {
         Ok(id) => Ok(NativeJson(id.map_or(J::Null, J::String))),
         Err(error) => exclude_error(error),
@@ -373,7 +378,15 @@ pub fn skill_remove_exclude(
     prefix: Option<Utf16String>,
     callback: Callback,
 ) -> Result<NativeJson> {
-    match exclude::remove_file(&cwd, &run, prefix.as_deref(), &mut Host { callback }) {
+    match exclude::remove_file(
+        &cwd,
+        &run,
+        prefix.as_deref(),
+        &mut Host {
+            callback,
+            bytes: None,
+        },
+    ) {
         Ok(()) => Ok(NativeJson(J::Null)),
         Err(error) => exclude_error(error),
     }
@@ -390,7 +403,10 @@ pub fn skill_resolve(
         &reference,
         &cwd,
         &home,
-        &mut Host { callback },
+        &mut Host {
+            callback,
+            bytes: None,
+        },
     ) {
         Err(error) => return host_error(error),
         Ok(result) => result,

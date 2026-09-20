@@ -26,7 +26,8 @@
     "memfs": "4.56.10",
     "typescript": "5.9.3",
     "vitest": "4.1.11",
-    "@poe-code/config-mutations-rust": "*"
+    "@poe-code/config-mutations-rust": "*",
+    "mcp-oauth-rust": "*"
   },
   "files": [
     "dist",

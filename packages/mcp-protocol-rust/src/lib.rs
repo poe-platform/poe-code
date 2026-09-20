@@ -3,3 +3,4 @@ pub mod json;
 pub mod jsonrpc;
 pub mod metadata;
 pub mod numbers;
+pub mod strings;

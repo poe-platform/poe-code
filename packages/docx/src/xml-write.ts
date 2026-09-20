@@ -352,11 +352,27 @@ export class DocumentXmlEditor {
     const leaves = active.filter(child => !props.includes(child));
     const containers = new Set(this.compatibility[compatibilityContainers]);
     const branchElements = new Set(this.compatibility.branches.flatMap(branch => branch.alternateContent.children).filter(child => child.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" && ["Choice", "Fallback"].includes(child.localName)));
+    let previousCacheFragment = -1;
 
     if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" || !this.#canEdit(node) || this.#patches.has(node) || props.length > 1 || !fragments.length ||
       node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) || props.some(property => !cloneableRunProperty(property, node.namespace, containers, this.#budget, children)) ||
-      leaves.some(leaf => leaf.namespace !== node.namespace || !["t", "delText", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName) ||
-        leaf.content.some(content => content.kind !== "text") || leaf.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))) ||
+      leaves.some(leaf => {
+        if (leaf.namespace !== node.namespace || !["t", "delText", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(leaf.localName)) return true;
+        // Cached layout metadata is carried once, unchanged, rather than edited or cloned.
+        if (leaf.localName === "lastRenderedPageBreak") {
+          const original = this.sourceXml(leaf);
+          let copies = 0;
+          for (const [index, fragment] of fragments.entries()) {
+            this.#budget.charge("work", 1);
+            if (!fragment.content.has(leaf)) continue;
+            if (fragment.content.get(leaf) !== original || index < previousCacheFragment) return true;
+            previousCacheFragment = index;
+            copies++;
+          }
+          return leaf.children.length > 0 || copies !== 1;
+        }
+        return leaf.content.some(content => content.kind !== "text") || leaf.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute));
+      }) ||
       fragments.some(fragment => [...fragment.content.keys()].some(leaf => !leaves.includes(leaf)))) unsupported();
     const selected = new Set<XmlElement>([...leaves, ...props]);
     const paths = new Set<XmlElement>();
@@ -439,12 +455,37 @@ export class DocumentXmlEditor {
     if (!this.#dialect || node.namespace !== documentDialects[this.#dialect].w || node.localName !== "r" ||
       node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute)) ||
       node.children.some(child => child.namespace !== node.namespace || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak", "footnoteRef", "endnoteRef", "annotationRef"].includes(child.localName) ||
-        (child.localName === "rPr" ? !cloneableRunProperty(child, node.namespace, containers, this.#budget) : child.children.length > 0 || child.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))))) {
+        (child.localName === "rPr" ? !cloneableRunProperty(child, node.namespace, containers, this.#budget) : child.children.length > 0 || child.localName !== "lastRenderedPageBreak" && child.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.#canEdit(attribute))))) {
       this.replaceElement(node, xml);
       return;
     }
     this.assertShapeEditAllowed(node);
     if (!this.#canEdit(node) || this.#patches.has(node)) unsupported();
+    const caches = node.children.filter(child => child.localName === "lastRenderedPageBreak");
+    if (caches.length) {
+      // Physical run splitting may move retained cache metadata. Prove its raw
+      // identity and namespace context from actual XML, never comment substrings.
+      const bindings = [...node.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, uri]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(uri, true)}"`).join("");
+      const candidate = new DocumentXmlEditor(new TextEncoder().encode(`<fragment${bindings}>${xml}</fragment>`), this.#limits, this.#profile, this.#budget);
+      const retained: XmlElement[] = [];
+      const collect = (parent: XmlElement): void => {
+        this.#budget.charge("work", 1 + parent.children.length);
+        for (const child of parent.children) {
+          if (child.namespace === node.namespace && child.localName === "lastRenderedPageBreak") {
+            if (parent.namespace !== node.namespace || parent.localName !== "r" || child.children.length) unsupported();
+            retained.push(child);
+          }
+          collect(child);
+        }
+      };
+      collect(candidate.root);
+      if (retained.length !== caches.length || caches.some((cache, index) => {
+        const after = retained[index]!;
+        this.#budget.charge("work", 1 + cache.namespaces.size);
+        return candidate.sourceXml(after) !== this.sourceXml(cache) || after.namespaces.size !== cache.namespaces.size ||
+          [...cache.namespaces].some(([prefix, uri]) => after.namespaces.get(prefix) !== uri);
+      })) unsupported();
+    }
     this.#stageReplacement(node, xml, false, true);
   }
 

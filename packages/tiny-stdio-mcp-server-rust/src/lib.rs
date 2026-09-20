@@ -12,6 +12,7 @@ pub mod requests;
 mod schema;
 pub mod stdio;
 pub mod tool_result;
+pub mod uri_template;
 pub mod wire;
 
 pub const MODERN_PROTOCOL_VERSION: &str = "2026-07-28";

@@ -1,7 +1,14 @@
 import { createRequire } from "node:module";
 import { connectStreams } from "./stdio.js";
 
-const { NativeServer } = createRequire(import.meta.url)("./tiny-stdio-mcp-server-rust.node");
+const { NativeServer, NativeUriTemplate } = createRequire(import.meta.url)(
+  "./tiny-stdio-mcp-server-rust.node"
+);
+
+export function parseUriTemplate(source) {
+  if (typeof source !== "string") throw new Error("URI template must be a string.");
+  return new NativeUriTemplate(source);
+}
 
 export class ToolError extends Error {
   constructor(code, message, data) {

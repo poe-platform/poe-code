@@ -29,6 +29,11 @@ invocation retains its original contract until its callback settles, including
 when a tool is replaced or removed. Legacy scalar/array schemas retain the existing
 text fallback and omit structured content; modern calls validate those schemas.
 
+Use `parseUriTemplate(source)` for independent RFC 6570 expansion and matching.
+All four expansion levels support scalar, list and associative values, Unicode
+prefixes and percent encoding. Matching retains the existing readable-resource
+capture behavior. Compilation depth, matching work and expanded length are bounded.
+
 Set `maxActiveRequests` to bound running requests across sessions (default: 128).
 Concurrent requests with the same ID in one session are rejected. A
 `notifications/cancelled` message aborts that request; callbacks that continue

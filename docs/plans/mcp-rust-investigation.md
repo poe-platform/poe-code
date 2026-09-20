@@ -28,6 +28,13 @@ through replacement/removal. Legacy scalar/array schemas preserve text fallback
 and skip output validation; explicit error results bypass schema checks. Tests
 cross-check legacy/modern behavior and prove retained contracts survive changes.
 
+The server package now includes an independent Rust RFC 6570 template parser,
+expander and matcher, exposed through `parseUriTemplate` in its native Node API.
+All 223 positive and 29 negative local RFC fixtures pass, with exact expansion and
+capture cross-checks against TypeScript. Additional tests cover UTF-16, invalid
+percent sequences, Unicode prefixes and bounded ambiguous matching/expansion.
+Resource registration and template dispatch still require the feature registry port.
+
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,
 object/array applicators, composition, conditionals, unevaluated members, URI-based

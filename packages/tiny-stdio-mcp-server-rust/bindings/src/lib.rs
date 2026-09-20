@@ -13,6 +13,7 @@ mod convert;
 use convert::NativeJson;
 mod input;
 mod stdio;
+mod uri_template;
 
 #[napi(object)]
 pub struct NativeServerOptions {

@@ -81,3 +81,10 @@ export interface Server {
 }
 
 export declare function createServer(options: ServerOptions): Server;
+
+export type UriTemplateValue = string | string[] | Record<string, string>;
+export interface UriTemplate {
+  expand(variables: Record<string, UriTemplateValue>): string;
+  match(uri: string): Record<string, string> | null;
+}
+export declare function parseUriTemplate(source: string): UriTemplate;

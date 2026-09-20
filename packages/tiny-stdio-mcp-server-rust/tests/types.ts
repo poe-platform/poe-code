@@ -1,4 +1,4 @@
-import { createServer, type HandlerRequestContext } from "../src/index.js";
+import { createServer, parseUriTemplate, type HandlerRequestContext } from "../src/index.js";
 import { PassThrough } from "node:stream";
 
 const server = createServer({ name: "typed", version: "1", validateToolArguments: true });
@@ -23,3 +23,7 @@ const line: Promise<string | undefined> = server
   .createMessageSession()
   .handleLine('{"jsonrpc":"2.0","id":1,"method":"ping"}');
 void line;
+const template = parseUriTemplate("memo://{name}");
+const expanded: string = template.expand({ name: "a b" });
+const captured: Record<string, string> | null = template.match(expanded);
+void captured;

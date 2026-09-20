@@ -1,0 +1,9 @@
+[package]
+name = "auth-store-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Independent Rust credential storage policy"
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

@@ -308,6 +308,23 @@ removes only owned request listeners. 512 settlement/close cycles verify no owne
 listeners remain. The focused maintained build/lint/types and twelve Rust / twenty-
 four native groups pass. Provider/session/JWKS functionality remains incomplete.
 
+The additive private `auth-store-rust` prerequisite implements every current public
+credential-store API with a std/path-only Rust policy core and a self-contained
+addon. Rust owns encrypted document validation, backend selection, credential path
+plans, Keychain commands/diagnostics and migration/rollback policy. Node supplies
+platform AES-256-GCM/scrypt, filesystem and process operations. Existing consumers
+remain on `auth-store`. Native/oracle tests verify bidirectional encrypted document
+compatibility, Unicode/empty values, random IVs, 0600 permissions, tampering, wrong
+machine identities, derivation retry, file/ancestor symlinks, temporary collisions,
+write/chmod/rename failures preserving the old credential, inherited fields,
+Keychain signal/spawn/stream errors and exact migration calls. In-memory delayed
+operations cover serialized mutations, partial rollback, read-only reads and
+preventing resurrection after deletion. Focused maintained build/lint/types, four
+Rust tests and fifteen native groups pass. The npm dry-run package contains the
+native artifact and public declarations with no external runtime dependencies.
+The original global key-derivation cache behavior is retained for now and still
+needs a bounded-retention audit before claiming sustained memory stability.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

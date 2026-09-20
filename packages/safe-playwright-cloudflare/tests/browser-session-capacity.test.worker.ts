@@ -55,8 +55,18 @@ export class CapacitySessions extends DurableObject<Env> {
   }
 
   async dispose() {
-    await this.#cli.dispose();
-    return { sessions: await sessions(this.env.BROWSER) };
+    const errors: string[] = [];
+    try {
+      await this.#cli.dispose();
+    } catch (error) {
+      const pending: unknown[] = [error];
+      for (let inspected = 0; pending.length && inspected < 16; inspected++) {
+        const current = pending.shift();
+        errors.push(String(current));
+        if (current instanceof AggregateError) pending.push(...current.errors.slice(0, 16));
+      }
+    }
+    return { sessions: await sessions(this.env.BROWSER), errors };
   }
 }
 
@@ -65,6 +75,7 @@ export default {
     const origin = await request.text();
     const owner = env.SESSIONS.getByName("capacity-owner");
     const results = [];
+    const errors: string[] = [];
     try {
       for (let command of [
         `PLAYWRIGHT_CLI_SESSION=first playwright-cli open; playwright-cli -s first tab-new ${origin}/set-cookies`,
@@ -93,9 +104,15 @@ export default {
         }
         results.push(await owner.run(command));
       }
-      return Response.json({ results });
-    } finally {
-      await owner.dispose();
+    } catch (error) {
+      errors.push(String(error));
     }
+    try {
+      const disposal = await owner.dispose();
+      errors.push(...disposal.errors);
+    } catch (error) {
+      errors.push(String(error));
+    }
+    return Response.json({ results, errors }, { status: errors.length ? 500 : 200 });
   }
 };

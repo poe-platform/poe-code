@@ -418,7 +418,7 @@ export function assertFaultDisposal(
 	const failure = expected[fault];
 	assert.ok(failure, "Every fault needs an explicit disposal expectation");
 	if (failure.status === "fulfilled") {
-		assert.equal(outcome.status, "fulfilled", fault);
+		assert.equal(outcome.status, "fulfilled", outcome.status === "rejected" ? `${fault}: ${failureText(outcome.reason)}` : fault);
 		return;
 	}
 	assert.equal(

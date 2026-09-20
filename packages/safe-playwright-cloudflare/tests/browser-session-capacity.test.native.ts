@@ -71,7 +71,7 @@ test("native named sessions preserve tabs and cookies after capacity rejection",
         sessions: { sessionId: string }[];
       }[];
     };
-    expect(response.status).toBe(200);
+    expect(response.status, JSON.stringify(report)).toBe(200);
     expect(
       report.results.map((result) => result.exitCode),
       JSON.stringify(report)

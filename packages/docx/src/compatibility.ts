@@ -196,7 +196,9 @@ export class MarkupCompatibility {
       const result: CompatibilityContent[] = [];
       for (const node of element.content) {
         budget.charge("work", 1);
-        if (node.kind === "element") result.push(...visit(node, scope, blocked, element));
+        if (node.kind === "element") {
+          for (const child of visit(node, scope, blocked, element)) result.push(child);
+        }
         else { result.push(node); if (!blocked) this.#editable.add(node); }
       }
       return result;

@@ -82,7 +82,7 @@ export function readFontResources(archive: AdmittedDocumentArchive, roots: Reado
         budget.charge("retainedBytes", 96 + item.content.length * 8);
         selected.set(item.source, item.content.filter((node): node is Extract<CompatibilityContent, {source: XmlElement}> => "source" in node && node.disposition === "understood").map(node => node.source));
       }
-      projection.push(...item.content);
+      for (const child of item.content) projection.push(child);
     }
     const children = (node: XmlElement | undefined): readonly XmlElement[] => node ? selected.get(node) ?? [] : [];
     const child = (node: XmlElement | undefined, name: string) => children(node).find(c => c.namespace === node?.namespace && c.localName === name);

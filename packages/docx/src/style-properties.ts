@@ -25,7 +25,7 @@ export function styleIds(root: XmlElement, budget: DocumentBudget): Set<string> 
       const id = styleAttribute(node, "styleId");
       if (id !== undefined) ids.add(id);
     }
-    stack.push(...node.children);
+    for (const child of node.children) stack.push(child);
   }
   return ids;
 }

@@ -133,7 +133,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
       if (!("source" in current)) continue;
       const node = current.source;
       if (current.disposition !== "understood") { unknownNamespaces.add(node.namespace); continue; }
-      stack.push(...[...current.content].reverse());
+      for (let index = current.content.length - 1; index >= 0; index--) stack.push(current.content[index]!);
       if (node.namespace === w && (role === "story" || role === "glossary" || role === "settings")) {
         const name = node.localName;
         const count = countNames.get(name);

@@ -144,7 +144,7 @@ export class XmlElementView {
       const parent = stack.pop()!;
       this.#store.binding.budget.charge("work", 1);
       if (parent.children.includes(node)) { content = parent.content; index = content.indexOf(node) + 1; break; }
-      stack.push(...parent.children);
+      for (const child of parent.children) stack.push(child);
     }
     let text = "";
     for (; index < content.length; index++) { const token = content[index]!; if (token.kind !== "text" && token.kind !== "cdata") break; text += token.text; }

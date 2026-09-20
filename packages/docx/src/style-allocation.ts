@@ -28,7 +28,7 @@ export function styleAllocationIds(parts: Iterable<PackagePart>, budget: Documen
         const id = styleAttribute(node, "val");
         if (id !== undefined) ids.add(id);
       }
-      stack.push(...node.children);
+      for (const child of node.children) stack.push(child);
     }
   }
   return ids;

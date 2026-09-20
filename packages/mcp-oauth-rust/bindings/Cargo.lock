@@ -154,6 +154,7 @@ dependencies = [
  "auth-store-rust",
  "mcp-oauth-rust",
  "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
  "napi",
  "napi-build",
  "napi-derive",
@@ -162,6 +163,14 @@ dependencies = [
 [[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
+
+[[package]]
+name = "mcp-protocol-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "napi",
+]
 
 [[package]]
 name = "memchr"

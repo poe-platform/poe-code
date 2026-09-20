@@ -84,9 +84,8 @@ pub fn hash_bytes(bytes: Buffer) -> Buffer {
     mcp_oauth_rust::sha256(&bytes).to_vec().into()
 }
 
-#[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
-pub(crate) mod convert;
 use mcp_protocol_rust::json::Value;
+pub(crate) use mcp_protocol_rust_napi_core::convert;
 #[napi]
 pub fn create_authorization_state(
     issuer: Utf16String,

@@ -33,8 +33,8 @@ import { archiveSettings, type ArchiveLimits, ResourceLimitError, CancellationEr
 import { DocumentBudget, documentLimitDefaults, type DocumentLimits } from "./budget.js";
 import { createDocxCommandEngine, commandDiagnostic, docxInvocationBudgets, type DocxCommandRequest } from "./command.js";
 import { DocumentIo } from "./io.js";
-import { inspectDocument, validateDocument } from "./inspection.js";
-import { openDocumentLocations } from "./locations.js";
+import { inspectDocument, inspectionLocationView, validateDocument } from "./inspection.js";
+import type { DocumentLocations } from "./locations.js";
 import type { DocumentScope } from "./location-index.js";
 import type { Location } from "./location-token.js";
 import { executeXmlCommand } from "./xml-command.js";
@@ -282,8 +282,10 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
           output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: "capabilities", ok: true, data: discovery.data, warnings: [], errors: [], affected: 0, locations: [] }) + "\n" : discovery.human);
           budget.check("serializedOutput", output.length);
         } else {
+          const inspectionView: { document?: DocumentLocations } = {};
+          const readContext = { ...context, [inspectionLocationView]: inspectionView };
           const data = invocation.operation === "text.get" ? await extractDocumentText(bytes, context, invocation.options as TextOptions)
-            : invocation.operation === "inspect" ? await inspectDocument(bytes, context)
+            : invocation.operation === "inspect" ? await inspectDocument(bytes, readContext)
             : await validateDocument(bytes, context, invocation.options.profile === undefined ? {} : { profile: invocation.options.profile as "core-v1" });
           const locations: Location[] = [];
           if ("segments" in data) locations.push(...new Map(data.segments.map(segment => [segment.location.token, segment.location])).values());
@@ -293,7 +295,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
               const scope = selected.scope ?? "body";
               locations.push(...data.stories.filter(story => scope === "all-stories" || story.kind === scope).map(story => story.location));
             } else {
-              const document = await openDocumentLocations(bytes, context);
+              const document = inspectionView.document!;
               if (typeof selected.select === "string") locations.push(document.resolve(selected.select));
               else {
                 const query = { scope: (selected.scope ?? "body") as DocumentScope, ...(selected.section !== undefined ? { section: selected.section as number } : {}) };

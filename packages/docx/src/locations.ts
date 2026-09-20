@@ -67,7 +67,7 @@ class DocumentLocations {
   readonly #budget: DocumentBudget;
   readonly #inventory: boolean;
 
-  constructor(archive: AdmittedDocumentArchive, sourceSha256: string, context: ArchiveContext, mode: "editing" | "inventory") {
+  constructor(archive: AdmittedDocumentArchive, sourceSha256: string, context: ArchiveContext, mode: "editing" | "inventory", index?: LocationIndex) {
     const settings = archiveSettings(context);
     this.#context = settings;
     this.#generation = settings[documentSession]?.generation ?? 0;
@@ -75,8 +75,8 @@ class DocumentLocations {
     this.#sourceSha256 = sourceSha256;
     this.#admission = { mainPart: archive.mainPart, dialect: archive.dialect };
     this.#inventory = mode === "inventory";
-    this.#archive = this.#inventory ? this.#copyArchive(archive) : new DocumentArchiveEditor(archive, {}, undefined, this.#budget).snapshot();
-    this.#index = new LocationIndex(this.#archive, settings.limits, archive.mainPart, archive.dialect, this.#budget);
+    this.#archive = this.#inventory ? (index ? archive : this.#copyArchive(archive)) : new DocumentArchiveEditor(archive, {}, undefined, this.#budget).snapshot();
+    this.#index = index ?? new LocationIndex(this.#archive, settings.limits, archive.mainPart, archive.dialect, this.#budget);
   }
 
   get generation(): number { return this.#generation; }
@@ -347,4 +347,4 @@ class DocumentLocations {
   }
 }
 
-export type { DocumentLocations };
+export { DocumentLocations };

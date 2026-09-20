@@ -7,12 +7,13 @@ import { readPropertyParts } from "./property-values.js";
 import { activeControlLocks, activeSettingsProtection } from "./protection.js";
 import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { embeddedFontContentTypes, fontResourceRole, readFontResources, type FontResourceData } from "./font-resources.js";
-import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
+import { archiveSettings, documentSession, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
 import { isXmlContentType, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { LocationIndex } from "./location-index.js";
+import { DocumentLocations } from "./locations.js";
 import { encodeLocation, type Location, type LocationPayload } from "./location-token.js";
 import { validateDocumentArchive, type ValidationData, type ValidationOptions } from "./validation.js";
 
@@ -59,18 +60,21 @@ export interface InspectionData {
   readonly warnings: readonly InspectionWarning[];
 }
 
+export const inspectionLocationView = Symbol("inspection-location-view");
+interface InspectionContext extends ArchiveContext { readonly [inspectionLocationView]?: { document?: DocumentLocations } }
+
 const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 function attribute(node: XmlElement, name: string, namespace = ""): string | undefined {
   return node.attributes.find(a => a.localName === name && a.namespace === namespace)?.value;
 }
 /** Package data only: no layout, installed-font discovery or linked-resource acquisition. */
-export async function inspectDocument(input: Uint8Array, context: ArchiveContext): Promise<InspectionData> {
+export async function inspectDocument(input: Uint8Array, context: InspectionContext): Promise<InspectionData> {
   const { limits, signal, budget } = archiveSettings(context);
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
   budget.check("compressedInput", input.length);
   budget.charge("retainedBytes", input.length);
   const owned = new Uint8Array(input);
-  const archive = await readDocumentArchive(owned, { limits, signal, budget });
+  const archive = await readDocumentArchive(owned, { ...context, limits, signal, budget });
   const hash = async (bytes: Uint8Array): Promise<string> => {
     budget.charge("work", bytes.length);
     const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes));
@@ -165,10 +169,12 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
   properties.sort((a, b) => compare(a.part, b.part) || compare(a.name, b.name));
   const pages = properties.filter(p => p.group === "extended" && p.name === "pages");
   counts.cachedPages = pages.length === 1 && typeof pages[0]!.value === "number" && pages[0]!.value >= 0 ? pages[0]!.value : null;
-  const index = new LocationIndex(archive, limits, archive.mainPart, archive.dialect, budget, graph);
+  const index = new LocationIndex(archive, limits, archive.mainPart, archive.dialect, budget, graph, roots);
+  const view = context[inspectionLocationView];
+  if (view) view.document = new DocumentLocations(archive, sourceSha256, { ...context, limits, signal, budget }, "inventory", index);
   counts.images = index.entries.filter(entry => entry.kind === "image").length;
   const stories = index.entries.filter(entry => entry.kind === "story").map(entry => {
-    const value: LocationPayload = { version: 1, sourceSha256, generation: 0, part: entry.part, story: entry.story, path: entry.path, range: null };
+    const value: LocationPayload = { version: 1, sourceSha256, generation: context[documentSession]?.generation ?? 0, part: entry.part, story: entry.story, path: entry.path, range: null };
     const token = encodeLocation(value);
     budget.charge("retainedBytes", token.length * 4);
     return { kind: entry.scope ?? "story", location: { kind: "story" as const, token, value, positions: { ...entry.positions } }, properties: [], references: relationships.filter(r => r.owner === entry.part), support: "read" as const };

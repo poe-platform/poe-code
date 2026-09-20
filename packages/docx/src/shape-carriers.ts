@@ -20,12 +20,13 @@ export function collectShapeCarriers(root: XmlElement, dialect: DocumentDialect,
  const bodyRoots = new Set<XmlElement>();
  const records: { node: XmlElement; kind: 'shape' | 'group'; representation: 'native' | 'office' | 'vml'; group: XmlElement | null; bodies: ShapeBody[]; refusalReasons: string[]; active: boolean; opaque: boolean; support: 'supported' | 'preserve-only'; owner: XmlElement; links: string[]; ids: string[]; ancestors: XmlElement[] }[] = [];
  const attr = (n: XmlElement, name: string) => n.attributes.find(a => !a.namespace && a.localName === name)?.value;
- const pending: { node: XmlElement; owner: XmlElement | undefined; group: XmlElement | null; canvas: boolean; active: boolean; ancestors: XmlElement[] }[] = [{ node: root, owner: undefined, group: null, canvas: false, active: true, ancestors: [] }];
+ interface Ancestry { readonly node: XmlElement; readonly parent: Ancestry | undefined }
+ const pending: { node: XmlElement; owner: XmlElement | undefined; group: XmlElement | null; canvas: boolean; active: boolean; ancestry: Ancestry | undefined }[] = [{ node: root, owner: undefined, group: null, canvas: false, active: true, ancestry: undefined }];
  while (pending.length) {
   const frame = pending.pop()!;
-  const { node, active, ancestors } = frame;
+  const { node, active, ancestry } = frame;
   let { owner, group, canvas } = frame;
-  budget.charge('work', ancestors.length + 1); budget.charge('retainedBytes', 32 + ancestors.length * 8);
+  budget.charge('work', 1);
   if (node.namespace === vocabulary.w && ['drawing','pict'].includes(node.localName)) { owner = node; group = null; canvas = false; }
   if (node.namespace === vocabulary.wp && node.localName === 'wpc' && owner) canvas = true;
   let representation: 'native' | 'office' | 'vml' | undefined;
@@ -35,6 +36,13 @@ export function collectShapeCarriers(root: XmlElement, dialect: DocumentDialect,
   if (owner && node.namespace === officeGroup && ['wgp','grpSp'].includes(node.localName)) { representation = 'office'; kind = 'group'; }
   if (owner && node.namespace === vml && ['shape','arc','curve','line','oval','polyline','rect','roundrect','group'].includes(node.localName)) { representation = 'vml'; kind = node.localName === 'group' ? 'group' : 'shape'; }
   if (representation) {
+   budget.charge('retainedBytes', 32);
+   const ancestors: XmlElement[] = [];
+   for (let link = ancestry; link; link = link.parent) {
+    budget.charge('work', 1); budget.charge('retainedBytes', 24);
+    ancestors.push(link.node);
+   }
+   ancestors.reverse();
    const candidates: XmlElement[] = [], admitted = new Set<XmlElement>(), links: string[] = [], ids: string[] = [];
    const enclosing = ancestors.slice(ancestors.indexOf(owner!)+1);
    const foreignEnvelope = enclosing.some(n => !(n.namespace===vocabulary.wp && ['inline','anchor','wpc','wgp','grpSp'].includes(n.localName) || n.namespace===vocabulary.a && ['graphic','graphicData'].includes(n.localName) || n.namespace===officeGroup && ['wgp','grpSp'].includes(n.localName) || n.namespace===vml && n.localName==='group' || n.namespace===mc && ['AlternateContent','Choice','Fallback'].includes(n.localName)));
@@ -70,12 +78,14 @@ export function collectShapeCarriers(root: XmlElement, dialect: DocumentDialect,
    records.push({node,kind,representation,group,bodies,refusalReasons:reasons,active,opaque:!!candidates.length && !bodies.length,support:reasons.length || kind === 'group' ? 'preserve-only' : 'supported',owner:[...ancestors].reverse().find(n=>['body','hdr','ftr','footnote','endnote','comment','txbxContent'].includes(n.localName)&&(n.namespace===vocabulary.w||n.namespace===vocabulary.wp))??root,links,ids,ancestors});
    if (kind === 'group') group = node;
   }
+  if (node.children.length) budget.charge('retainedBytes', 32);
+  const descendantAncestry = node.children.length ? { node, parent: ancestry } : undefined;
   for (let i = node.children.length - 1; i >= 0; i--) {
    const child = node.children[i]!;
    const selected = node.namespace === mc && node.localName === 'AlternateContent' ? branches.get(node) : undefined;
-   budget.charge('work', ancestors.length + 1);
-   budget.charge('retainedBytes', 64 + (ancestors.length + 1) * 8);
-   pending.push({ node: child, owner, group, canvas, active: active && (!(node.namespace === mc && node.localName === 'AlternateContent') || selected === child), ancestors: [...ancestors, node] });
+   budget.charge('work', 1);
+   budget.charge('retainedBytes', 64);
+   pending.push({ node: child, owner, group, canvas, active: active && (!(node.namespace === mc && node.localName === 'AlternateContent') || selected === child), ancestry: descendantAncestry });
   }
  }
  for (const record of records) {

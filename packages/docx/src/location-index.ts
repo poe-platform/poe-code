@@ -74,7 +74,7 @@ export class LocationIndex {
   readonly #budget: DocumentBudget;
   readonly #grids = new Map<XmlElement, Map<string, XmlElement>>();
 
-  constructor(archive: DocumentArchive, limits: ArchiveLimits, mainPart: string, dialect: DocumentDialect, budget: DocumentBudget, graph = new DocumentPackage(archive, limits, budget)) {
+  constructor(archive: DocumentArchive, limits: ArchiveLimits, mainPart: string, dialect: DocumentDialect, budget: DocumentBudget, graph = new DocumentPackage(archive, limits, budget), parsedRoots: ReadonlyMap<string, XmlElement> = new Map()) {
     this.#budget = budget;
     const { w, r, a } = documentDialects[dialect];
     this.#w = w;
@@ -87,7 +87,7 @@ export class LocationIndex {
     for (const part of parts.sort((a, b) => a.partname < b.partname ? -1 : a.partname > b.partname ? 1 : 0)) {
       let root: XmlElement | undefined;
       if (isXmlContentType(part.content_type)) {
-        root = parseDocumentXml(part.bytes, {}, budget).root;
+        root = parsedRoots.get(part.partname) ?? parseDocumentXml(part.bytes, {}, budget).root;
         roots.set(part.partname, root);
         budget.charge("retainedBytes", 64);
         const raw = [{ node: root, path: [] as readonly number[] }];

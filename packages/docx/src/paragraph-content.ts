@@ -38,12 +38,15 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
   if (containsActiveRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
   const wordDrawingNamespace = documentDialects[dialectForNamespace(p.namespace)!].wp;
   const commentOwnsParagraph = (node: XmlElement, owner = false): boolean | undefined => {
-    budget.charge("work", 1);
-    if (node.namespace === p.namespace && ["body", "hdr", "ftr", "comment", "footnote", "endnote", "txbxContent"].includes(node.localName) || node.namespace === wordDrawingNamespace && node.localName === "txbxContent") owner = node.localName === "comment";
-    if (node === p) return owner;
-    for (const child of node.children) {
-      const found = commentOwnsParagraph(child, owner);
-      if (found !== undefined) return found;
+    const pending = [{ node, owner }];
+    while (pending.length) {
+      const frame = pending.pop()!;
+      node = frame.node;
+      owner = frame.owner;
+      budget.charge("work", 1);
+      if (node.namespace === p.namespace && ["body", "hdr", "ftr", "comment", "footnote", "endnote", "txbxContent"].includes(node.localName) || node.namespace === wordDrawingNamespace && node.localName === "txbxContent") owner = node.localName === "comment";
+      if (node === p) return owner;
+      for (let index = node.children.length - 1; index >= 0; index--) pending.push({ node: node.children[index]!, owner });
     }
     return undefined;
   };

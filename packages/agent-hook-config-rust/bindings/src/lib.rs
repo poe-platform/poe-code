@@ -232,7 +232,14 @@ fn encoded_handler(handler: Handler) -> J {
         fields.push(("args", J::Array(args.into_iter().map(J::String).collect())));
     }
     if let Some(timeout) = handler.timeout {
-        fields.push(("timeout", J::Number(timeout)));
+        fields.push((
+            "timeout",
+            if timeout.is_finite() && !(timeout == 0.0 && timeout.is_sign_negative()) {
+                J::Number(timeout)
+            } else {
+                text(&timeout.to_string())
+            },
+        ));
     }
     object(fields)
 }
@@ -250,7 +257,7 @@ pub fn hook_transform(
     from: Utf16String,
     to: Utf16String,
     run: Utf16String,
-) -> Result<NativeJson> {
+) -> Result<String> {
     let V::Array(rows) = decode(&source)? else {
         return Err(Error::from_reason("Expected source hooks"));
     };
@@ -267,33 +274,32 @@ pub fn hook_transform(
             })
         })
         .collect::<Result<Vec<_>>>()?;
-    Ok(
-        match core::transform_hooks(catalog(), &rows, &from, &to, &run) {
-            Err(error) => policy(error),
-            Ok(result) => NativeJson(object(vec![
-                (
-                    "entries",
-                    J::Array(result.entries.into_iter().map(generated).collect()),
+    let result = match core::transform_hooks(catalog(), &rows, &from, &to, &run) {
+        Err(error) => policy(error),
+        Ok(result) => NativeJson(object(vec![
+            (
+                "entries",
+                J::Array(result.entries.into_iter().map(generated).collect()),
+            ),
+            (
+                "drops",
+                J::Array(
+                    result
+                        .drops
+                        .into_iter()
+                        .map(|drop| {
+                            object(vec![
+                                ("reason", text(drop.reason)),
+                                ("detail", J::String(drop.detail)),
+                                ("sourceIndex", J::Number(drop.source_index as f64)),
+                            ])
+                        })
+                        .collect(),
                 ),
-                (
-                    "drops",
-                    J::Array(
-                        result
-                            .drops
-                            .into_iter()
-                            .map(|drop| {
-                                object(vec![
-                                    ("reason", text(drop.reason)),
-                                    ("detail", J::String(drop.detail)),
-                                    ("sourceIndex", J::Number(drop.source_index as f64)),
-                                ])
-                            })
-                            .collect(),
-                    ),
-                ),
-            ])),
-        },
-    )
+            ),
+        ])),
+    };
+    Ok(json::stringify(&result.0))
 }
 fn config(value: V) -> Result<core::Config> {
     fn json(value: V) -> Result<J> {

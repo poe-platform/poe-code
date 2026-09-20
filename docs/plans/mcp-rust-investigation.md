@@ -2155,6 +2155,19 @@ artifacts, the overall rewrite and minimum24-hour effort remain unfinished.
 
 ## Sources
 
+### Hook transform transfer refinement — 2026-09-20
+
+The own addon now serializes transform results once instead of creating every
+nested Node value through napi. Builtin JSON admission allocates the Node result;
+nonfinite/negative-zero timeout transfer markers are restored explicitly. Added
+UTF16/NUL/astral text, ignored Symbol metadata and all timeout-number tests;
+negative-zero coverage caught an intermediate codec regression and now passes.
+All75 SDK cases and4 native groups remain green. Three fresh32-entry samples are
+104.9–107.2µs native versus10.9–12.6µs SDK, improved from the earlier114.3–133.4µs
+native range but still much slower. This is an optimization, not performance
+acceptance. Evidence: `out/rust-agent-hook-json-transfer-*`.
+
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

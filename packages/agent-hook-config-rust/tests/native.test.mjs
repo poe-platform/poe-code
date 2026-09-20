@@ -21,3 +21,10 @@ test('native reader distinguishes absent and explicitly null matcher values with
   assert.deepEqual(own.readClaudeHooks('/repo','/home',{scope:'project'}),sdk.readClaudeHooks('/repo','/home',{scope:'project'}));
  }finally{Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
 });
+
+test('native transform retains all timeout numbers, UTF16 text and ignored dropped metadata',()=>{
+ for(const timeout of [NaN,Infinity,-Infinity,-0,0,1.5]){
+  const source=[{event:'Stop',matcher:'\ud800\u0000😀',handler:{type:'command',command:'echo \udc00\u0000😀 ${CLAUDE_PROJECT_DIR}',args:['\ud800','😀',''],statusMessage:'\udc00',timeout}},{event:'SessionEnd',handler:{type:'agent',extra:Symbol('ignored')}}];
+  assert.deepEqual(own.transformHooks(source,'claude','codex',{runId:'\ud800'}),sdk.transformHooks(source,'claude','codex',{runId:'\ud800'}));
+ }
+});

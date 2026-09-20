@@ -49,8 +49,8 @@ function selected(entry,generated=false){
  return {event:entry.event,matcher:entry.matcher,...(generated?{generatedId:entry.generatedId}:{}),handler:{type:handler.type,command:handler.command,args:handler.args,timeout:handler.timeout,statusMessage:handler.statusMessage}};
 }
 export function transformHooks(source,from,to,opts){
- const result=checked(native.hookTransform(admit(source.map(entry=>selected(entry))),from,to,opts.runId));
- for(const entry of result.entries)if(entry.matcher===null)entry.matcher=undefined;
+ const result=checked(JSON.parse(native.hookTransform(admit(source.map(entry=>selected(entry))),from,to,opts.runId)));
+ for(const entry of result.entries){if(entry.matcher===null)entry.matcher=undefined;if(typeof entry.handler.timeout==='string')entry.handler.timeout=Number(entry.handler.timeout==='inf'?'Infinity':entry.handler.timeout==='-inf'?'-Infinity':entry.handler.timeout);}
  result.drops=result.drops.map(({sourceIndex,...drop})=>({...drop,source:source[sourceIndex]}));return result;
 }
 function files(run){

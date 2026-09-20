@@ -315,6 +315,26 @@ Use the [typed options and linked family interfaces](src/plugins/index.ts) for
 their individual limits and hooks, including clocks and schedulers. Family budgets
 are separate from shell limits; `replace` applies across the entire bundle.
 
+The package root exports `createBoundedRegexProvider`, `BoundedRegexProvider`,
+and `BoundedRegexProviderOptions`. `agentCommands()` uses this provider by default;
+pass `regexExecutor` to configure its resource limits explicitly:
+
+```ts
+import { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
+
+shell.use(
+  agentCommands({
+    regexExecutor: createBoundedRegexProvider({ maxWorkers: 1, maxInputBytes: 65_536 }),
+    regex: { maxWorkers: 1 }
+  })
+);
+```
+
+Provider limits bound pattern/input/result bytes, matches, work, allocations,
+states, and active workers. `regex` configures executor queue and timeout limits.
+The default provider runs cooperatively; it does not provide native-worker or
+process-memory isolation. No internal-module import is needed.
+
 ### Environment variables
 
 There are no package-specific runtime environment switches. Supply these through

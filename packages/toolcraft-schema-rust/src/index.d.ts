@@ -18,3 +18,4 @@ export declare function compileJsonSchema(
   options?: CompileJsonSchemaOptions
 ): CompiledJsonSchema;
 export declare function formatIssues(issues: readonly ValidationIssue[]): string;
+export declare function normalizeLegacyNullability(schema: object): Record<string, unknown>;

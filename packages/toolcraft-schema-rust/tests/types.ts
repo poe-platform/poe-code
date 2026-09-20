@@ -1,4 +1,14 @@
-import { compileJsonSchema, formatIssues, type CompiledJsonSchema } from "../src/index.js";
+import {
+  compileJsonSchema,
+  formatIssues,
+  normalizeLegacyNullability,
+  type CompiledJsonSchema
+} from "../src/index.js";
+const nullableSchema: Record<string, unknown> = normalizeLegacyNullability({
+  type: "string",
+  nullable: true
+});
+void compileJsonSchema(nullableSchema);
 const schema: CompiledJsonSchema = compileJsonSchema(
   { $ref: "https://example.test/message" },
   {

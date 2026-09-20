@@ -108,6 +108,15 @@ proxy reentrancy occurs before borrowing server state. Contracts are snapshotted
 Checks expand to 66 Rust and 347 native tests, including malformed/encoded headers,
 unsupported annotation locations and safe getter/reentrancy behavior.
 
+The schema Rust package now exposes legacy nullable normalization, implemented in
+the reusable std-only core. Resource IDs/dialects, schema maps/arrays, dynamic and
+pointer references, escaped/percent-encoded paths and non-schema annotations match
+the reference normalizer. Differential normalized shapes and validator acceptance
+cover nested resources, draft-seven identifiers, dynamic/recursive anchors and
+nullable tuples. Host hooks/getters/cycles remain safely rejected. Normalization
+has bounded schema traversal. The schema checks include 26 Rust tests and 657
+native test groups (the full 2226 official cases remain included).
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

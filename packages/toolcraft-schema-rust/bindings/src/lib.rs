@@ -14,6 +14,15 @@ mod input;
 use convert::NativeJson;
 
 #[napi]
+pub fn normalize_legacy_nullability(env: Env, schema: Unknown<'_>) -> Result<NativeJson> {
+    let value = input::read(&env, schema, input::Mode::Json)?
+        .ok_or_else(|| Error::from_reason("JSON Schema must be a boolean or object."))?;
+    toolcraft_schema_rust::nullability::normalize_legacy_nullability(&value)
+        .map(NativeJson)
+        .map_err(Error::from_reason)
+}
+
+#[napi]
 pub struct NativeCompiledSchema {
     schema: CompiledSchema,
 }

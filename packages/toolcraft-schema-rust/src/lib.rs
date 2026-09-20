@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 mod compile;
 mod evaluate;
+pub mod nullability;
 mod pattern;
 mod unicode_categories;
 mod uri;

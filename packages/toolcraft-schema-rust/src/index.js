@@ -1,6 +1,9 @@
 import { createRequire } from "node:module";
 
-const { NativeCompiledSchema } = createRequire(import.meta.url)("./toolcraft-schema-rust.node");
+const { NativeCompiledSchema, normalizeLegacyNullability } = createRequire(import.meta.url)(
+  "./toolcraft-schema-rust.node"
+);
+export { normalizeLegacyNullability };
 
 export function compileJsonSchema(schema, options = {}) {
   const prototype = Object.getPrototypeOf(options);

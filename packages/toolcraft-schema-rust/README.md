@@ -46,6 +46,12 @@ Supply offline resources with `compileJsonSchema(schema, { registry: { [uri]: sc
 References never fetch from the network. Relative resource IDs resolve against their
 retrieval or declared base; parent pointers can cross nested resource boundaries.
 
+Use `normalizeLegacyNullability(schema)` before compilation for legacy schemas
+with `nullable: true`. The Rust normalizer creates a null alternative, preserves
+resource identities and annotations, and rewrites in-document pointer references
+when their targets move. The source schema remains unchanged; annotation objects
+such as defaults are copied without being interpreted as child schemas.
+
 Patterns support classes/ranges, alternation, groups, repetition, lookahead,
 word boundaries and Unicode general categories using bundled Unicode 17 data.
 Pattern compilation, evaluation work and retained matcher states are bounded.

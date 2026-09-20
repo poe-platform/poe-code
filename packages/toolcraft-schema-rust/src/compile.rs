@@ -485,7 +485,7 @@ fn canonical_fragment(fragment: &[u16]) -> Result<Vec<u16>, String> {
     Ok(result)
 }
 
-fn decode_segment(segment: &[u16]) -> Result<Vec<u16>, String> {
+pub(super) fn decode_segment(segment: &[u16]) -> Result<Vec<u16>, String> {
     let mut result = Vec::new();
     let mut index = 0;
     while index < segment.len() {

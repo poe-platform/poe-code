@@ -80,6 +80,12 @@ export type ResourceHandler = (
 ) => unknown | Promise<unknown>;
 export interface MessageSessionContext {
   readonly signal: AbortSignal;
+  notify(method: string, params?: Record<string, unknown>): Promise<void>;
+}
+export interface JSONRPCNotification {
+  jsonrpc: "2.0";
+  method: string;
+  params?: Record<string, unknown>;
 }
 export type CustomMethodHandler = (
   params: Record<string, unknown> | undefined,
@@ -126,7 +132,14 @@ export interface Server {
   removePrompt(name: string): boolean;
   removeResource(uri: string): boolean;
   removeResourceTemplate(uriTemplate: string): boolean;
-  createMessageSession(): MessageSession;
+  onNotification(listener: (notification: JSONRPCNotification) => void): () => void;
+  notifyToolsChanged(): Promise<void>;
+  notifyPromptsChanged(): Promise<void>;
+  notifyResourcesChanged(): Promise<void>;
+  notifyResourceUpdated(uri: string): Promise<void>;
+  createMessageSession(
+    listener?: (notification: JSONRPCNotification) => void | Promise<void>
+  ): MessageSession;
   handleMessage: MessageSession["handleMessage"];
   connect(transport: Transport): Promise<void>;
   listen(): Promise<void>;

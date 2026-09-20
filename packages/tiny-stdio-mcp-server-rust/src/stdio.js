@@ -122,13 +122,16 @@ class OutputAdapter {
   }
 }
 
-export function connectStreams({ readable, writable }, session, options) {
+export function connectStreams({ readable, writable }, createSession, options) {
   return new Promise((resolve, reject) => {
     let settled = false;
     let inputClosed = false;
     const pending = new Set();
     const input = new NativeStdioInput(options.maxLineBytes, options.maxPendingMessages);
     const output = new OutputAdapter(writable, options.maxOutputBytes, fail, finish);
+    const session = createSession((notification) =>
+      output.write(`${JSON.stringify(notification)}\n`)
+    );
 
     function detachInput() {
       readable.off("data", onData);

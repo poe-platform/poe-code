@@ -21,7 +21,7 @@ pub enum FeatureKind {
     Resource,
     Custom,
 }
-struct Registered {
+pub(crate) struct Registered {
     key: Vec<u16>,
     descriptor: Value,
     handler: u64,
@@ -121,7 +121,7 @@ impl Features {
         let index = collection.iter().position(|entry| entry.key == key)?;
         Some(collection.remove(index).handler)
     }
-    fn readable(&self, uri: &[u16]) -> Result<Option<&Registered>, String> {
+    pub(crate) fn readable(&self, uri: &[u16]) -> Result<Option<&Registered>, String> {
         if let Some(resource) = self.resources.iter().find(|resource| resource.key == uri) {
             return Ok(Some(resource));
         }

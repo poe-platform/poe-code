@@ -40,8 +40,15 @@ resolution, modern resource cache metadata and feature results are validated in 
 Legacy/modern callback errors and resource-not-found codes are cross-checked against
 TypeScript. An official SDK client lists/gets prompts and reads exact/template
 resources over the existing native stdio engine. Cancellation tests retain global
-capacity until a canceled feature callback settles. Notification delivery,
-subscriptions, complete input-required/retry payloads and SDK adapters remain pending.
+capacity until a canceled feature callback settles. Legacy resource subscriptions,
+session/global notifications, custom request-scoped delivery and stdio notification
+output now use independent Rust lifecycle/recipient state and Node callback adapters.
+Checks cover disabled capabilities, repeated initialization, cancellation, close,
+delivery failures and observer subscription changes before delivery. The official
+SDK subscribes/unsubscribes and receives resource/tool notifications over stdio.
+This checkpoint passes 56 Rust and 301 native tests plus focused build/lint/types.
+Modern long-lived subscription requests, complete input-required/retry payloads
+and SDK adapters remain pending.
 
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,

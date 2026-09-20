@@ -5,6 +5,10 @@ import { createServer } from "../dist/index.js";
 import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { createInterface } from "node:readline";
+import {
+  ResourceUpdatedNotificationSchema,
+  ToolListChangedNotificationSchema
+} from "@modelcontextprotocol/sdk/types.js";
 
 test("official MCP SDK client initializes and uses tools, prompts and resources over native stdio", async () => {
   const readable = new PassThrough();
@@ -37,6 +41,12 @@ test("official MCP SDK client initializes and uses tools, prompts and resources 
   };
   const client = new Client({ name: "oracle", version: "1" });
   await client.connect(transport);
+  const updated = new Promise((resolve) =>
+    client.setNotificationHandler(ResourceUpdatedNotificationSchema, resolve)
+  );
+  const toolsChanged = new Promise((resolve) =>
+    client.setNotificationHandler(ToolListChangedNotificationSchema, resolve)
+  );
   assert.equal((await client.listTools()).tools[0].name, "echo");
   assert.deepEqual(
     (await client.callTool({ name: "echo", arguments: { message: "\ud800🦀" } })).content,
@@ -57,6 +67,12 @@ test("official MCP SDK client initializes and uses tools, prompts and resources 
     (await client.readResource({ uri: "memo://other" })).contents[0].text,
     "memo://other"
   );
+  await client.subscribeResource({ uri: "memo://other" });
+  await server.notifyResourceUpdated("memo://other");
+  await server.notifyToolsChanged();
+  assert.deepEqual((await updated).params, { uri: "memo://other" });
+  assert.equal((await toolsChanged).method, "notifications/tools/list_changed");
+  await client.unsubscribeResource({ uri: "memo://other" });
   await client.close();
   await connected;
 });

@@ -128,6 +128,54 @@ impl NativeServer {
         self.state.borrow().sessions.len() as u32
     }
 
+    #[napi]
+    pub fn can_notify(&self, id: u32, modern: bool) -> bool {
+        self.state
+            .borrow()
+            .sessions
+            .get(&id)
+            .is_some_and(|session| session.can_notify(modern))
+    }
+
+    #[napi(ts_return_type = "{ notification: unknown; sessions: number[] } | null")]
+    pub fn notification(&self, kind: String, uri: Option<Utf16String>) -> Result<NativeJson> {
+        use tiny_stdio_mcp_server_rust::notifications::NotificationKind;
+        let kind = match kind.as_str() {
+            "tools" => NotificationKind::ToolsChanged,
+            "prompts" => NotificationKind::PromptsChanged,
+            "resources" => NotificationKind::ResourcesChanged,
+            "resource" => NotificationKind::ResourceUpdated(
+                uri.ok_or_else(|| Error::from_reason("Resource URI required"))?
+                    .to_vec(),
+            ),
+            _ => return Err(Error::from_reason("Unknown notification kind")),
+        };
+        let state = self.state.borrow();
+        Ok(NativeJson(
+            state
+                .server
+                .notification(
+                    kind,
+                    state.sessions.iter().map(|(id, session)| (*id, session)),
+                )
+                .map_or(Value::Null, |notification| {
+                    object([
+                        ("notification", notification.value),
+                        (
+                            "sessions",
+                            Value::Array(
+                                notification
+                                    .sessions
+                                    .into_iter()
+                                    .map(|id| Value::Number(id as f64))
+                                    .collect(),
+                            ),
+                        ),
+                    ])
+                }),
+        ))
+    }
+
     #[napi(getter)]
     pub fn stdio_options(&self) -> StdioOptions {
         self.state.borrow().stdio.clone()

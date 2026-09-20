@@ -3,11 +3,12 @@ use mcp_protocol_rust::{
     json::Value,
     jsonrpc::{self, RpcError},
 };
-use std::sync::Arc;
+use std::{collections::BTreeSet, sync::Arc};
 use toolcraft_schema_rust::CompiledSchema;
 
 pub mod content;
 pub mod features;
+pub mod notifications;
 pub mod output;
 pub mod requests;
 mod schema;
@@ -53,6 +54,7 @@ pub struct Session {
     notification_ready: bool,
     closed: bool,
     protocol_version: String,
+    resource_subscriptions: BTreeSet<Vec<u16>>,
 }
 
 impl Default for Session {
@@ -62,6 +64,7 @@ impl Default for Session {
             notification_ready: false,
             closed: false,
             protocol_version: DEFAULT_LEGACY_PROTOCOL_VERSION.into(),
+            resource_subscriptions: BTreeSet::new(),
         }
     }
 }
@@ -88,6 +91,7 @@ impl Session {
     pub fn close(&mut self) {
         self.closed = true;
         self.notification_ready = false;
+        self.resource_subscriptions.clear();
     }
     pub fn protocol_version(&self) -> &str {
         &self.protocol_version
@@ -390,6 +394,41 @@ impl Server {
                 arguments,
                 context,
             };
+        }
+        if method == "resources/subscribe" || method == "resources/unsubscribe" {
+            if !self.options.support_resource_subscriptions {
+                return failure(jsonrpc::METHOD_NOT_FOUND, "Method not found");
+            }
+            let Some(Value::String(uri)) = params.as_ref().and_then(|params| params.get("uri"))
+                .filter(|value| matches!(value, Value::String(uri) if mcp_protocol_rust::formats::is_valid_uri(uri))) else {
+                return failure(jsonrpc::INVALID_PARAMS, "Resource URI required");
+            };
+            if method == "resources/subscribe" {
+                match self.features.readable(uri) {
+                    Ok(Some(_)) => {
+                        session.resource_subscriptions.insert(uri.clone());
+                    }
+                    Ok(None) => {
+                        return failure(
+                            if modern {
+                                jsonrpc::INVALID_PARAMS
+                            } else {
+                                -32002
+                            },
+                            &format!("Resource not found: {}", String::from_utf16_lossy(uri)),
+                        );
+                    }
+                    Err(message) => return failure(jsonrpc::INTERNAL_ERROR, &message),
+                }
+            } else {
+                session.resource_subscriptions.remove(uri);
+            }
+            let result = object([]);
+            return Action::Reply(if modern {
+                self.decorate_result(result).expect("empty complete result")
+            } else {
+                result
+            });
         }
         if let Some(action) = self.features.dispatch(session, method, params, modern) {
             return match action {

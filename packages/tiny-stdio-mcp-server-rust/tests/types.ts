@@ -45,5 +45,26 @@ server.method("custom/value", (params, context) => ({
   value: params?.value,
   aborted: context.signal.aborted
 }));
+server.method("custom/notify", async (_params, context) => {
+  await context.notify("notifications/test", { value: "ready" });
+  return {};
+});
+const unsubscribe: () => void = server.onNotification((notification) => {
+  const method: string = notification.method;
+  void method;
+});
+unsubscribe();
+const notifications: Promise<void>[] = [
+  server.notifyToolsChanged(),
+  server.notifyPromptsChanged(),
+  server.notifyResourcesChanged(),
+  server.notifyResourceUpdated("memo://welcome")
+];
+void notifications;
+server
+  .createMessageSession(async (notification) => {
+    void notification.params;
+  })
+  .close();
 const removedPrompt: boolean = server.removePrompt("review");
 void removedPrompt;

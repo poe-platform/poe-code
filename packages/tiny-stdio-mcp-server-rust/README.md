@@ -41,6 +41,18 @@ resources take precedence over templates; otherwise the first matching template
 handles a URI. Invalid prompt/resource results return JSON-RPC errors. Modern
 resource reads preserve and validate cache metadata, with private zero-TTL defaults.
 
+Create a session with `server.createMessageSession(listener)` to receive its
+notifications. Call `notifyToolsChanged()`, `notifyPromptsChanged()` or
+`notifyResourcesChanged()` after changing a registry. Legacy sessions receive
+notifications after `notifications/initialized`; reinitialization pauses delivery
+until that handshake completes again. Subscribe to readable resources with
+`resources/subscribe`, then send updates through `notifyResourceUpdated(uri)`.
+Subscriptions are isolated per session and cleared on close. Global observers use
+`onNotification(listener)`, which returns an unsubscribe function. Custom methods
+can send request-scoped notifications with `context.notify(method, params)`.
+Cancellation and closed sessions suppress new delivery; started delivery retains
+its failure. Stdio notifications share the bounded output queue with responses.
+
 Set `maxActiveRequests` to bound running requests across sessions (default: 128).
 Concurrent requests with the same ID in one session are rejected. A
 `notifications/cancelled` message aborts that request; callbacks that continue
@@ -76,7 +88,7 @@ budgets are 1 MiB each, with at most 128 pending messages. Set
 them. Caller-owned streams remain open when a connection completes.
 
 This is an additive implementation checkpoint. HTTP transports,
-notification/subscription delivery, input-required/retry schemas, content helpers,
+modern long-lived subscription requests, input-required/retry schemas, content helpers,
 SDK transport adapters, and full result
 compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

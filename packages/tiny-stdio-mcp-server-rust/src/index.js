@@ -25,6 +25,8 @@ export function createServer(options) {
   const handlers = new Map();
   const toolHandlers = new Map();
   const featureHandlers = new Map();
+  const notificationListeners = new Set();
+  const sessionListeners = new Map();
   function registerTool(definition, handler, replace = false) {
     if (typeof handler !== "function") throw new TypeError("Tool handler must be a function");
     const { handler: id, name } = native.setTool(definition, replace);
@@ -33,8 +35,9 @@ export function createServer(options) {
     toolHandlers.set(name, id);
     return server;
   }
-  function createMessageSession() {
+  function createMessageSession(listener) {
     const id = native.createSession();
+    if (listener !== undefined) sessionListeners.set(id, listener);
     const controller = new AbortController();
     const requests = new Map();
     async function executeAction(action, context) {
@@ -59,10 +62,26 @@ export function createServer(options) {
         .then(async () => {
           if (request.signal.aborted) return { result: undefined };
           try {
-            const result = await handler(action.arguments, {
+            const handlerContext = {
               ...action.context,
               signal: directLegacy ? controller.signal : request.signal
-            });
+            };
+            if (action.handlerKind === "custom") {
+              handlerContext.notify = async (method, params) => {
+                if (
+                  handlerContext.signal.aborted ||
+                  listener === undefined ||
+                  !native.canNotify(id, action.modern)
+                )
+                  return;
+                await listener({
+                  jsonrpc: "2.0",
+                  method,
+                  ...(params === undefined ? {} : { params })
+                });
+              };
+            }
+            const result = await handler(action.arguments, handlerContext);
             if (action.handlerKind === "tool")
               return native.completeTool(result, action.modern, action.token);
             if (action.handlerKind === "custom" && !action.modern) return { result };
@@ -150,6 +169,7 @@ export function createServer(options) {
       close() {
         controller.abort();
         native.closeSession(id);
+        sessionListeners.delete(id);
       }
     };
     return session;
@@ -167,18 +187,42 @@ export function createServer(options) {
       return true;
     },
     createMessageSession,
+    onNotification(listener) {
+      notificationListeners.add(listener);
+      return () => notificationListeners.delete(listener);
+    },
     handleMessage: defaultSession.handleMessage,
     connect(transport) {
-      return connectStreams(transport, createMessageSession(), native.stdioOptions);
+      return connectStreams(transport, createMessageSession, native.stdioOptions);
     },
     listen() {
       return connectStreams(
         { readable: process.stdin, writable: process.stdout },
-        createMessageSession(),
+        createMessageSession,
         native.stdioOptions
       );
     }
   };
+  for (const [method, kind] of [
+    ["notifyToolsChanged", "tools"],
+    ["notifyPromptsChanged", "prompts"],
+    ["notifyResourcesChanged", "resources"],
+    ["notifyResourceUpdated", "resource"]
+  ]) {
+    server[method] = async (uri) => {
+      const delivery = native.notification(kind, uri);
+      if (delivery === null) return;
+      for (const listener of notificationListeners) listener(delivery.notification);
+      const current = native.notification(kind, uri);
+      await Promise.all(
+        (current?.sessions ?? []).map(async (id) => {
+          const listener = sessionListeners.get(id);
+          if (listener !== undefined && native.canNotify(id, false))
+            await listener(delivery.notification);
+        })
+      );
+    };
+  }
   for (const kind of ["prompt", "resource", "resourceTemplate", "method"]) {
     const registered = new Map();
     featureHandlers.set(kind, registered);

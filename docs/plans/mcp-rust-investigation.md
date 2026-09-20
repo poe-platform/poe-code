@@ -255,6 +255,17 @@ reproduced open transports after factory/close failures, then verified SDK close
 callbacks and stream ends, preserving setup errors and awaiting cleanup.
 Hostile callbacks/serializer diagnostics remain for further conformance auditing.
 
+The additive private `mcp-oauth-rust` package now has a std/path-only Rust core,
+self-contained napi-rs addon, zero npm runtime dependencies and public PKCE types.
+Own unpadded base64url/SHA-256 computes RFC7636 S256 challenges; Node supplies
+operating-system-backed entropy for 32-byte verifiers. The Rust core passes
+empty/abc/million-a SHA-256 vectors and the RFC PKCE vector. Native/reference tests
+cover surrogate/BOM conversion, every 0..255 padding length, 1,024 seeded binary
+hash inputs and 1,024 seeded UTF-16 verifier strings. The maintained package
+build/lint/type routes pass; no existing consumer or release wiring changes.
+Authorization state, client/token/browser/session/JWKS functionality remains
+required before OAuth package parity is complete.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

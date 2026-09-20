@@ -1,0 +1,9 @@
+[package]
+name = "mcp-oauth-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Independent Rust MCP OAuth primitives and lifecycle"
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

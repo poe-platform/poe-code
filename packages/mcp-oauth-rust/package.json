@@ -1,0 +1,28 @@
+{
+  "name": "mcp-oauth-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent Rust MCP OAuth with native Node bindings",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": {
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "mcp-protocol-rust": "*",
+    "mcp-oauth": "*",
+    "tsx": ">=4.21.0",
+    "typescript": "5.9.3"
+  },
+  "files": ["dist", "LICENSE"],
+  "engines": { "node": ">=18.18" },
+  "napi": { "binaryName": "mcp-oauth-rust" },
+  "repository": { "type": "git", "url": "git+https://github.com/poe-platform/poe-code.git", "directory": "packages/mcp-oauth-rust" }
+}

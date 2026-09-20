@@ -77,9 +77,14 @@ export class NumberingGraph {
   }
   project(root: XmlElement): void {
     if (root.namespace !== this.xml.root.namespace || this.#children.has(root)) return;
-    const collect = (content: readonly CompatibilityContent[]): void => {
-      for (const item of content) if ("source" in item) {
-        if (item.disposition !== "understood") continue;
+    this.budget.charge("retainedBytes", 24);
+    const stack = [{ content: new MarkupCompatibility(root, undefined, this.budget).content, position: 0 }];
+    while (stack.length) {
+      const frame = stack.at(-1)!;
+      if (frame.position === frame.content.length) { stack.pop(); continue; }
+      const item: CompatibilityContent = frame.content[frame.position++]!;
+      this.budget.charge("work", 1);
+      if ("source" in item && item.disposition === "understood") {
         this.budget.charge("work", 1 + item.content.length);
         this.budget.charge("retainedBytes", 96 + item.content.length * 8);
         this.#children.set(item.source, item.content.filter(node => "source" in node).map(node => node.source));
@@ -88,10 +93,12 @@ export class NumberingGraph {
           this.budget.charge("work", token.text.length);
           for (const char of token.text) if (!" \t\r\n".includes(char)) { this.#scalarText.add(item.source); break; }
         }
-        collect(item.content);
+        if (item.content.length) {
+          this.budget.charge("retainedBytes", 24);
+          stack.push({ content: item.content, position: 0 });
+        }
       }
-    };
-    collect(new MarkupCompatibility(root, undefined, this.budget).content);
+    }
   }
   children(node: XmlElement | undefined): readonly XmlElement[] {
     this.budget.charge("work", 1);

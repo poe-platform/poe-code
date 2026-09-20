@@ -257,12 +257,21 @@ export class LocationIndex {
       for (const entry of ordered) this.entries.push(entry);
     };
     story(main, body, "body", "body");
-    const walk = (node: XmlElement): XmlElement[] => {
+    const sections: XmlElement[] = [], sectionScan = [body];
+    budget.charge("retainedBytes", 8);
+    while (sectionScan.length) {
+      const node = sectionScan.pop()!;
       budget.charge("work", 1);
-      if (bodyRoots.has(node) || node.namespace === w && node.localName === "txbxContent") return [];
-      return [node, ...(this.children.get(node) ?? []).flatMap(walk)];
-    };
-    const sections = walk(body).filter(n => n.namespace === w && n.localName === "sectPr");
+      if (bodyRoots.has(node) || node.namespace === w && node.localName === "txbxContent") continue;
+      if (node.namespace === w && node.localName === "sectPr") {
+        budget.charge("retainedBytes", 8);
+        sections.push(node);
+      }
+      const children = this.children.get(node) ?? [];
+      budget.charge("work", children.length);
+      budget.charge("retainedBytes", children.length * 8);
+      for (let i = children.length - 1; i >= 0; i--) sectionScan.push(children[i]!);
+    }
     const sectionNodes: XmlElement[] = [];
     for (const child of this.named(body, "p")) {
       const properties = this.named(child, "pPr")[0];

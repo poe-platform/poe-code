@@ -73,7 +73,7 @@ function checked(value: unknown): LocationPayload {
   if (version !== 1 || typeof sourceSha256 !== "string" || sourceSha256.length !== 64 ||
     [...sourceSha256].some(c => !"0123456789abcdef".includes(c)) || !nonnegative(generation) ||
     typeof part !== "string" || part.length > 4096 || typeof story !== "string" || !story || story.length > 8192 ||
-    !Array.isArray(path) || path.length > 256 || Reflect.ownKeys(path).length !== path.length + 1 ||
+    !Array.isArray(path) || path.length * 2 > 24576 || Reflect.ownKeys(path).length !== path.length + 1 ||
     Array.from({ length: path.length }, (_, i) => Object.getOwnPropertyDescriptor(path, String(i))).some(d => !d || !("value" in d)) ||
     Array.from(path).some(n => !nonnegative(n))) throw new InvalidValueError("Invalid document location payload.");
   try {
@@ -99,7 +99,7 @@ export function encodeLocation(value: LocationPayload): string {
 }
 
 export function decodeLocation(token: string): LocationPayload {
-  if (typeof token !== "string" || token.length > 32779 || !token.startsWith("docx-loc-v1."))
+  if (typeof token !== "string" || token.length > 32780 || !token.startsWith("docx-loc-v1."))
     throw new InvalidValueError("Invalid document location token.");
   const data = token.slice(12);
   if (!data || [...data].some(c => !(c >= "A" && c <= "Z") && !(c >= "a" && c <= "z") &&

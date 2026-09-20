@@ -78,6 +78,28 @@ it("keeps explicit inventory locations read-only while default editing still val
 });
 
 describe("document location tokens", () => {
+  it.each([24575, 24576])("roundtrips every admitted canonical token byte boundary %s", size => {
+    const value = { ...payload, path: Array<number>(10000).fill(0), story: "a" };
+    value.story += "a".repeat(size - Buffer.byteLength(JSON.stringify(value)));
+    expect(Buffer.byteLength(JSON.stringify(value))).toBe(size);
+    const token = encodeLocation(value);
+    expect(decodeLocation(token)).toEqual(value);
+    expect(() => encodeLocation({ ...value, story: value.story + "aa" })).toThrowError(expect.objectContaining({ code: "usage" }));
+  });
+  it("rejects impossible encoded path sizes before enumerating or copying the path", () => {
+    const path = Array<number>(13000).fill(0);
+    const ownKeys = Reflect.ownKeys;
+    let enumerations = 0;
+    const spy = vi.spyOn(Reflect, "ownKeys").mockImplementation(value => {
+      if (value === path) enumerations++;
+      return ownKeys(value);
+    });
+    try {
+      expect(() => encodeLocation({ ...payload, path })).toThrowError(expect.objectContaining({ code: "usage" }));
+      expect(enumerations).toBe(0);
+      expect(path).toEqual(Array<number>(13000).fill(0));
+    } finally { spy.mockRestore(); }
+  });
   it("uses the exact ordered canonical token and detached values", () => {
     const token = "docx-loc-v1." + Buffer.from(JSON.stringify(payload)).toString("base64url");
     expect(encodeLocation(payload)).toBe(token);

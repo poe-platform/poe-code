@@ -40,6 +40,8 @@ interface Command {
   sessionId: string | undefined;
   targetId: string | undefined;
   internal: boolean;
+  detachedSessionId: string | undefined;
+  retirementConfirmed: boolean;
   replied: boolean;
   bytes: number;
   timer: ReturnType<typeof setTimeout>;
@@ -170,7 +172,10 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       if (pending.size >= limits.maxPendingCommands || bytes > limits.maxPendingBytes - pendingBytes) throw new Error('CDP pending command limit exceeded');
       const timer = setTimeout(() => retire(new Error(`CDP ${message.method} timed out`)), limits.commandTimeoutMs);
       pending.set(id, { clientId: input.id, clientKey, method: message.method, sessionId: message.sessionId,
-        targetId: identity(message.params?.targetId) ? message.params.targetId : undefined,
+        targetId: internal && identity(message.params?.sessionId) ? sessions.get(message.params.sessionId)
+          : identity(message.params?.targetId) ? message.params.targetId : undefined,
+        detachedSessionId: internal && identity(message.params?.sessionId) ? message.params.sessionId : undefined,
+        retirementConfirmed: false,
         internal, replied: false, bytes, timer });
       if (clientKey) clientKeys.add(clientKey);
       pendingBytes += bytes;
@@ -190,7 +195,13 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       clearTimeout(command.timer);
       if (command.clientKey) clientKeys.delete(command.clientKey);
       if (command.internal) {
-        if (message.error) throw new Error('Native private target detach failed');
+        // Chromium can retire the private session before acknowledging our detach.
+        // Accept only its exact rejection after a matching lifecycle event.
+        if (message.error && !(command.retirementConfirmed && message.error.code === -32602 &&
+          message.error.message === 'No session with given id' && Object.keys(message.error).length === 2 &&
+          Object.keys(message).every(key => ['id', 'sessionId', 'error'].includes(key)))) {
+          throw new Error('Native private target detach failed');
+        }
         return;
       }
       if (command.clientId === undefined) throw new Error('Missing client CDP response identity');
@@ -212,10 +223,16 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     const targetId = info?.targetId ?? message.params?.targetId;
     const sessionId = message.params?.sessionId;
     if (message.method === 'Target.targetDestroyed' && identity(targetId) && targets.delete(targetId)) {
+      for (const command of pending.values()) {
+        if (command.internal && command.targetId === targetId) command.retirementConfirmed = true;
+      }
       rememberRetirement(retiredTargets, targetId, limits.maxPrivateTargets);
       return;
     }
     if (message.method === 'Target.detachedFromTarget' && identity(sessionId) && sessions.delete(sessionId)) {
+      for (const command of pending.values()) {
+        if (command.internal && command.detachedSessionId === sessionId) command.retirementConfirmed = true;
+      }
       rememberRetirement(retiredSessions, sessionId, limits.maxPrivateSessions);
       return;
     }

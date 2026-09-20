@@ -4,6 +4,56 @@ import { createPlaywrightPrivateTargetTransport, type PlaywrightCDPTransport, ty
 
 type Message = { id?: number; method?: string; sessionId?: string; params?: Record<string, any>; result?: Record<string, any>; error?: Record<string, any> };
 
+for (const retirement of ['session', 'target', 'buffered'] as const) {
+  test(`confirmed private ${retirement} retirement tolerates a racing native detach rejection`, () => {
+    const state = fixture();
+    try {
+      const guard = state.beginCreation();
+      if (retirement !== 'buffered') guard.commit('scratch');
+      state.receive(attached('scratch', 'private'));
+      state.receive(retirement === 'target'
+        ? { method: 'Target.targetDestroyed', params: { targetId: 'scratch' } }
+        : { method: 'Target.detachedFromTarget', params: { sessionId: 'private' } });
+      if (retirement === 'buffered') guard.commit('scratch');
+      state.receive({ id: state.sent[0]!.id, error: { code: -32602, message: 'No session with given id' } });
+      assert.equal(state.closes(), 0);
+      assert.deepEqual(state.received, []);
+      state.transport.send({ id: 42, method: 'Storage.getCookies' });
+      state.receive({ id: state.sent.at(-1)!.id, result: { cookies: [] } });
+      assert.deepEqual(state.received, [{ id: 42, result: { cookies: [] } }]);
+    } finally { state.transport.close(); }
+  });
+}
+
+for (const retirement of ['none', 'foreign', 'wrong-error'] as const) {
+  test(`private detach rejection remains fatal with ${retirement} retirement evidence`, () => {
+    const state = fixture();
+    state.beginCreation().commit('scratch');
+    state.receive(attached('scratch', 'private'));
+    if (retirement !== 'none') state.receive({ method: 'Target.detachedFromTarget', params: { sessionId: retirement === 'foreign' ? 'other' : 'private' } });
+    state.receive({ id: state.sent[0]!.id, error: { code: retirement === 'wrong-error' ? -32000 : -32602, message: 'No session with given id' } });
+    assert.equal(state.closes(), 1);
+  });
+}
+
+for (const response of [
+  { error: { code: -32602, message: 'Other error' } },
+  { error: { code: -32602, message: 'No session with given id', data: 'extra' } },
+  { result: {}, error: { code: -32602, message: 'No session with given id' } },
+  { extra: true, error: { code: -32602, message: 'No session with given id' } },
+  { sessionId: 'foreign', error: { code: -32602, message: 'No session with given id' } },
+]) {
+  test(`confirmed private retirement rejects malformed detach reply ${JSON.stringify(response)}`, () => {
+    const state = fixture();
+    state.beginCreation().commit('scratch');
+    state.receive(attached('scratch', 'private'));
+    state.receive({ method: 'Target.detachedFromTarget', params: { sessionId: 'private' } });
+    state.receive({ id: state.sent[0]!.id, ...response });
+    assert.equal(state.closes(), 1);
+    assert.deepEqual(state.received, []);
+  });
+}
+
 function fixture(limits?: PlaywrightPrivateTargetTransportLimits) {
   const sent: Message[] = [];
   const received: Message[] = [];

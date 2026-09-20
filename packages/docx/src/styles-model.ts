@@ -22,7 +22,7 @@ import { addDocumentStylesPart } from "./styles-part.js";
 import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
 import type { DocxOperationArguments, DocxEnumValue } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { DocumentXmlEditor, replaceActiveStyleXml, insertActiveLatentStyles } from "./xml-write.js";
+import { DocumentXmlEditor, UnsupportedEditError, replaceActiveStyleXml, insertActiveLatentStyles } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, PublicationError, publicationGenerationGuard, type PublicationOptions, type PublicationContext } from "./publication.js";
 
 import { WD_STYLE_TYPE } from "./formatting-values.js";
@@ -438,7 +438,7 @@ export async function openDocumentStyleModel(input?: DocumentModelInput | null, 
 /** Internal binding preserves the admitted source identity without reopening input. */
 export async function bindDocumentStyleModel({ archive: admitted, settings, source }: Awaited<ReturnType<typeof admitDocumentModel>>) {
   const edges = admitted.package.relationships("/" + admitted.mainPart).filter(e => e.reltype === `${documentDialects[admitted.dialect].r}/styles`);
-  if (edges.length > 1 || edges[0]?.is_external) throw new RangeError("Expected one internal styles part.");
+  if (edges.length > 1 || edges[0]?.is_external) throw new UnsupportedEditError("Expected one internal styles part.");
   let archive: DocumentArchive = admitted;
   let part = edges[0]?.target_part.name;
   const createdStylesPart = part === undefined;

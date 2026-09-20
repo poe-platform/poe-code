@@ -132,11 +132,11 @@ export class ModelStore {
       save: (output, options) => this.save(output, options)
     });
     const dialect = dialectForNamespace(this.xml(this.mainPart).root.namespace)!;
-    const stylePart = new DocumentPackage(this.snapshot(), context.limits, context.budget)
+    const styleEdges = new DocumentPackage(this.snapshot(), context.limits, context.budget)
       .relationships(this.mainPart)
-      .find((edge) => edge.reltype === documentDialects[dialect].r + "/styles" && !edge.is_external)
-      ?.target_part.partname;
-    if (stylePart) this.bindStyles(stylePart);
+      .filter((edge) => edge.reltype === documentDialects[dialect].r + "/styles");
+    if (styleEdges.length === 1 && !styleEdges[0]!.is_external)
+      this.bindStyles(styleEdges[0]!.target_part.partname);
   }
   private bindStyles(partname: string): void {
     const token = Object.freeze({});
@@ -229,7 +229,7 @@ export class ModelStore {
   }
   withStyleDefinitions<T>(resolve: (styles: Styles) => T, owner = this.mainPart): T {
     owner = this.documentOwnerForStory(owner);
-    if (this.memberName(owner) === this.memberName(this.mainPart) && this.boundStyles) return resolve(this.boundStyles);
+    if (this.memberName(owner) === this.memberName(this.mainPart) && this.boundStyles) return resolve(this.styles);
     const graph = new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget);
     const dialect = dialectForNamespace(this.xml(owner).root.namespace)!;
     if (graph.relationships(owner).some(edge => edge.reltype === documentDialects[dialect].r + "/styles"))
@@ -237,9 +237,12 @@ export class ModelStore {
     return this.transaction(() => resolve(this.stylesForDocument(owner)));
   }
   get styles(): Styles {
+    const dialect = dialectForNamespace(this.xml(this.mainPart).root.namespace)!;
+    const edges = [...this.part(this.mainPart).rels.values()]
+      .filter(edge => edge.reltype === documentDialects[dialect].r + "/styles");
+    if (edges.length > 1 || edges[0]?.is_external) throw new UnsupportedEditError("Expected one internal styles owner.");
     if (!this.boundStyles) {
       this.writable();
-      const dialect = dialectForNamespace(this.xml(this.mainPart).root.namespace)!;
       const added = addDocumentStylesPart(
         this.snapshot(),
         {

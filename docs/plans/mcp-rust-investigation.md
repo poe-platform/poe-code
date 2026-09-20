@@ -154,6 +154,20 @@ params. Error diagnostics use the public McpError class. This is a parsing check
 not complete client parity: lifecycle, requests/retries, transports, subscriptions
 and OAuth remain in progress. No production imports or releases change.
 
+The client now includes an independent Rust message-layer state machine and native
+Node stream/callback adapter. Rust owns exchange limits, monotonic safe request
+IDs, response matching, batch admission, incoming callback capacity, cancellation
+and disposal. Legacy outgoing requests expose timers, caller signals and ID/timeout
+hooks; callbacks validate normative input requests/responses with the own server
+core. Tests cross-check TypeScript behavior for out-of-order replies, error data,
+timeouts, early cancellation hooks, malformed results, retained canceled callbacks,
+notification-before-batch admission and late-write suppression. Native client
+initialization/listing/tool calls work against both Rust and TypeScript stdio servers.
+The maintained check includes 6 Rust and 10 native tests plus TypeScript fixtures.
+Modern complete/input-required result processing, request retries, complete client
+lifecycle and standalone transports are still pending. Stream decoding currently
+uses the Node platform decoder with bounded line framing in the adapter.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

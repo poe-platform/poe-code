@@ -9,6 +9,14 @@ Rust preserves UTF-16 values and legacy numeric IDs, including fractional IDs.
 The client parser accepts arbitrary JSON params; server admission has separate
 rules. Native diagnostics use the public `McpError` class and error constants.
 
+`JsonRpcMessageLayer` supports asynchronous legacy requests over caller-owned
+streams, out-of-order responses, notifications and server callbacks. Rust owns
+request IDs, exchange limits, response matching, incoming capacity and cancellation
+state; Node owns timers, stream decoding and callback signals. Canceled incoming
+callbacks retain their IDs and capacity until their work settles. Disposal rejects
+pending requests and aborts callback signals. Modern metadata can be attached,
+but modern result validation and input-request retry orchestration remain pending.
+
 ```ts
 import { parseJsonRpcMessage } from "tiny-mcp-client-rust";
 const reply = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}');

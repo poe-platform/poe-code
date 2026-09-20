@@ -276,6 +276,7 @@ name = "tiny-mcp-client-rust"
 version = "0.1.0"
 dependencies = [
  "mcp-protocol-rust",
+ "tiny-stdio-mcp-server-rust",
 ]
 
 [[package]]
@@ -287,6 +288,21 @@ dependencies = [
  "napi-build",
  "napi-derive",
  "tiny-mcp-client-rust",
+]
+
+[[package]]
+name = "tiny-stdio-mcp-server-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "toolcraft-schema-rust",
+]
+
+[[package]]
+name = "toolcraft-schema-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
 ]
 
 [[package]]

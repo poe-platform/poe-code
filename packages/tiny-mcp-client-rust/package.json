@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -23,7 +23,9 @@
     "@modelcontextprotocol/sdk": "1.29.0",
     "mcp-protocol-rust": "*",
     "tiny-mcp-client": "*",
-    "tsx": ">=4.21.0"
+    "tiny-stdio-mcp-server-rust": "*",
+    "tsx": ">=4.21.0",
+    "typescript": "5.9.3"
   },
   "files": [
     "dist",

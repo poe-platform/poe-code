@@ -8,3 +8,4 @@ description = "Independent Rust MCP client engine"
 
 [dependencies]
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
+tiny-stdio-mcp-server-rust = { path = "../tiny-stdio-mcp-server-rust" }

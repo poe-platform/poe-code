@@ -53,9 +53,14 @@ checks cover tools, prompts, resources and updates; differential checks cover ID
 notification admission, ignored responses, startup failure, close, delivery errors
 and capacity retained by canceled callbacks. Its public transport types compile
 against the actual official SDK class without a consumer cast or type import.
-The expanded checkpoint passes 57 Rust and 305 native tests.
-Modern long-lived subscription requests and complete input-required/retry payloads
-remain pending.
+Modern `subscriptions/listen` now uses a native Rust registry with acknowledgment
+readiness, supported filters, deduplicated bounded URI sets and lossless request IDs.
+Host abort immediately removes a subscription while preserving active capacity for
+pending acknowledgment delivery. Events carry subscription metadata, and stdin EOF
+ends long-lived listeners. Tests cover lifecycle/filter parity with TypeScript,
+acknowledgment/broadcast failures, snapshots and admission bounds, plus real stdio
+and official SDK InMemoryTransport delivery. The expanded checkpoint passes
+59 Rust and 311 native tests. Complete input-required/retry payloads remain pending.
 
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,

@@ -13,6 +13,7 @@ pub mod output;
 pub mod requests;
 mod schema;
 pub mod stdio;
+pub mod subscriptions;
 pub mod tool_result;
 pub mod uri_template;
 pub mod wire;
@@ -55,6 +56,7 @@ pub struct Session {
     closed: bool,
     protocol_version: String,
     resource_subscriptions: BTreeSet<Vec<u16>>,
+    subscriptions: subscriptions::Subscriptions,
 }
 
 impl Default for Session {
@@ -65,12 +67,16 @@ impl Default for Session {
             closed: false,
             protocol_version: DEFAULT_LEGACY_PROTOCOL_VERSION.into(),
             resource_subscriptions: BTreeSet::new(),
+            subscriptions: subscriptions::Subscriptions::default(),
         }
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
+    Listen {
+        acknowledgment: Value,
+    },
     Reply(Value),
     Error(RpcError),
     NoReply,
@@ -92,6 +98,7 @@ impl Session {
         self.closed = true;
         self.notification_ready = false;
         self.resource_subscriptions.clear();
+        self.subscriptions = Default::default();
     }
     pub fn protocol_version(&self) -> &str {
         &self.protocol_version
@@ -305,6 +312,12 @@ impl Server {
         }
         if !modern && !session.initialized {
             return failure(jsonrpc::INVALID_REQUEST, "Server not initialized");
+        }
+        if modern && method == "subscriptions/listen" {
+            return failure(
+                jsonrpc::INVALID_PARAMS,
+                "subscriptions/listen requires a request ID",
+            );
         }
         if method == "tools/list" {
             let tools = self

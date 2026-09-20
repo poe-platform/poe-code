@@ -53,6 +53,15 @@ can send request-scoped notifications with `context.notify(method, params)`.
 Cancellation and closed sessions suppress new delivery; started delivery retains
 its failure. Stdio notifications share the bounded output queue with responses.
 
+Modern `subscriptions/listen` requests require a request ID and a `notifications`
+filter. The server acknowledges the supported subset before delivering events,
+tags them with `io.modelcontextprotocol/subscriptionId`, and holds the request open
+until cancellation or close. Filters select tool/prompt/resource list changes and
+specific resource URIs. URI filters are snapshotted, deduplicated, and limited to
+1024 absolute URIs of at most 8192 UTF-16 units each. Failed acknowledgments remove
+the subscription; canceled pending acknowledgments retain request capacity until
+delivery settles. Stdin EOF ends long-lived subscription requests and drains output.
+
 Set `maxActiveRequests` to bound running requests across sessions (default: 128).
 Concurrent requests with the same ID in one session are rejected. A
 `notifications/cancelled` message aborts that request; callbacks that continue
@@ -97,7 +106,7 @@ propagate to their caller. A canceled callback retains global request capacity
 until its underlying operation settles.
 
 This is an additive implementation checkpoint. HTTP transports,
-modern long-lived subscription requests, input-required/retry schemas, content helpers,
+input-required/retry schemas, content helpers,
 and full result
 compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

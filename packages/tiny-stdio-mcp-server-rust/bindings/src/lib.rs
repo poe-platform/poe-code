@@ -50,6 +50,7 @@ struct ServerState {
     requests: RequestTracker,
     stdio: StdioOptions,
     outputs: HashMap<u64, Arc<tiny_stdio_mcp_server_rust::tool_result::ToolOutput>>,
+    listens: HashMap<u64, u32>,
 }
 
 #[napi]
@@ -79,6 +80,7 @@ impl NativeServer {
                 next_session: 0,
                 next_handler: 0,
                 outputs: HashMap::new(),
+                listens: HashMap::new(),
                 requests: RequestTracker::new(limit as usize).map_err(Error::from_reason)?,
                 stdio: StdioOptions {
                     max_line_bytes: capacity(
@@ -137,7 +139,9 @@ impl NativeServer {
             .is_some_and(|session| session.can_notify(modern))
     }
 
-    #[napi(ts_return_type = "{ notification: unknown; sessions: number[] } | null")]
+    #[napi(
+        ts_return_type = "{ notification: unknown; sessions: number[]; subscriptions: { session: number; notification: unknown }[] } | null"
+    )]
     pub fn notification(&self, kind: String, uri: Option<Utf16String>) -> Result<NativeJson> {
         use tiny_stdio_mcp_server_rust::notifications::NotificationKind;
         let kind = match kind.as_str() {
@@ -171,6 +175,21 @@ impl NativeServer {
                                     .collect(),
                             ),
                         ),
+                        (
+                            "subscriptions",
+                            Value::Array(
+                                notification
+                                    .subscriptions
+                                    .into_iter()
+                                    .map(|delivery| {
+                                        object([
+                                            ("session", Value::Number(delivery.session as f64)),
+                                            ("notification", delivery.notification),
+                                        ])
+                                    })
+                                    .collect(),
+                            ),
+                        ),
                     ])
                 }),
         ))
@@ -196,7 +215,42 @@ impl NativeServer {
         }
         let mut state = self.state.borrow_mut();
         state.outputs.remove(&(token as u64));
+        if let Some(id) = state.listens.remove(&(token as u64))
+            && let Some(session) = state.sessions.get_mut(&id)
+        {
+            session.finish_subscription(token as u64);
+        }
         state.requests.finish(token as u64)
+    }
+
+    #[napi]
+    pub fn acknowledge_subscription(&self, id: u32, token: f64) -> bool {
+        if !token.is_finite()
+            || token.fract() != 0.0
+            || !(1.0..=9_007_199_254_740_991.0).contains(&token)
+        {
+            return false;
+        }
+        self.state
+            .borrow_mut()
+            .sessions
+            .get_mut(&id)
+            .is_some_and(|session| session.acknowledge_subscription(token as u64))
+    }
+
+    #[napi]
+    pub fn cancel_subscription(&self, id: u32, token: f64) -> bool {
+        if !token.is_finite()
+            || token.fract() != 0.0
+            || !(1.0..=9_007_199_254_740_991.0).contains(&token)
+        {
+            return false;
+        }
+        self.state
+            .borrow_mut()
+            .sessions
+            .get_mut(&id)
+            .is_some_and(|session| session.finish_subscription(token as u64))
     }
 
     #[napi(ts_return_type = "unknown")]
@@ -517,6 +571,7 @@ impl ServerState {
                 sessions,
                 requests,
                 outputs,
+                listens,
                 ..
             } = self;
             // A descriptor trap may have closed the session during conversion.
@@ -541,7 +596,7 @@ impl ServerState {
                     ),
                 ]));
             }
-            let token = match requests.begin(id, request_id, modern) {
+            let token = match requests.begin(id, request_id.clone(), modern) {
                 Ok(token) => token,
                 Err(error) => return Ok(action_value(Action::Error(error))),
             };
@@ -551,7 +606,16 @@ impl ServerState {
                 requests.finish(token);
                 return Err(Error::from_reason("Native request identifier exhausted"));
             }
-            let action = server.dispatch(session, method, params);
+            let action = if modern && method == "subscriptions/listen" {
+                server.listen(
+                    session,
+                    token,
+                    request_id,
+                    params.and_then(|params| params.get("notifications").cloned()),
+                )
+            } else {
+                server.dispatch(session, method, params)
+            };
             if let Action::Invoke { handler, .. } = &action {
                 outputs.insert(
                     token,
@@ -559,6 +623,8 @@ impl ServerState {
                         .output_contract(*handler)
                         .expect("admitted tool output contract"),
                 );
+            } else if matches!(action, Action::Listen { .. }) {
+                listens.insert(token, id);
             } else if !matches!(action, Action::InvokeFeature { .. }) {
                 requests.finish(token);
             }
@@ -578,6 +644,10 @@ impl ServerState {
 
 fn action_value(action: Action) -> Value {
     match action {
+        Action::Listen { acknowledgment } => object([
+            ("type", string("listen")),
+            ("acknowledgment", acknowledgment),
+        ]),
         Action::Reply(value) => object([("type", string("reply")), ("value", value)]),
         Action::Error(error) => {
             object([("type", string("error")), ("value", rpc_error_value(error))])

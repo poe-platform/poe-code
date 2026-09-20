@@ -40,6 +40,7 @@ export function createServer(options) {
     if (listener !== undefined) sessionListeners.set(id, listener);
     const controller = new AbortController();
     const requests = new Map();
+    const listening = new Set();
     async function executeAction(action, context) {
       if (action.type === "cancel") {
         requests.get(action.token)?.abort(new Error("Request cancelled"));
@@ -51,6 +52,7 @@ export function createServer(options) {
       const handler = handlers.get(action.handler);
       const request = new AbortController();
       requests.set(action.token, request);
+      if (action.type === "listen") listening.add(request);
       const directLegacy = context === undefined && !action.modern;
       const abortSession = () => request.abort(controller.signal.reason);
       const abortCaller = () => request.abort(context.signal.reason);
@@ -58,9 +60,27 @@ export function createServer(options) {
       if (controller.signal.aborted) abortSession();
       context?.signal?.addEventListener("abort", abortCaller, { once: true });
       if (context?.signal?.aborted) abortCaller();
+      const cancelSubscription = () => native.cancelSubscription(id, action.token);
+      if (action.type === "listen") {
+        request.signal.addEventListener("abort", cancelSubscription, { once: true });
+        if (request.signal.aborted) cancelSubscription();
+      }
       const operation = Promise.resolve()
         .then(async () => {
           if (request.signal.aborted) return { result: undefined };
+          if (action.type === "listen") {
+            await listener?.(action.acknowledgment);
+            if (!request.signal.aborted) native.acknowledgeSubscription(id, action.token);
+            await new Promise((resolve) => {
+              const abort = () => {
+                request.signal.removeEventListener("abort", abort);
+                resolve();
+              };
+              request.signal.addEventListener("abort", abort, { once: true });
+              if (request.signal.aborted) abort();
+            });
+            return { result: undefined };
+          }
           try {
             const handlerContext = {
               ...action.context,
@@ -117,17 +137,25 @@ export function createServer(options) {
         .finally(() => {
           native.finishRequest(action.token);
           requests.delete(action.token);
+          listening.delete(request);
+          request.signal.removeEventListener("abort", cancelSubscription);
         });
       try {
         if (directLegacy) return await operation;
-        return await new Promise((resolve) => {
+        return await new Promise((resolve, reject) => {
           const abort = () => resolve({ result: undefined });
           request.signal.addEventListener("abort", abort, { once: true });
           if (request.signal.aborted) abort();
-          operation.then((value) => {
-            request.signal.removeEventListener("abort", abort);
-            resolve(value);
-          });
+          operation.then(
+            (value) => {
+              request.signal.removeEventListener("abort", abort);
+              resolve(value);
+            },
+            (error) => {
+              request.signal.removeEventListener("abort", abort);
+              reject(error);
+            }
+          );
         });
       } finally {
         controller.signal.removeEventListener("abort", abortSession);
@@ -188,6 +216,9 @@ export function createServer(options) {
         controller.abort();
         native.closeSession(id);
         sessionListeners.delete(id);
+      },
+      endInput() {
+        for (const request of listening) request.abort(new Error("Stdio input closed"));
       }
     };
     return session;
@@ -252,7 +283,14 @@ export function createServer(options) {
       for (const listener of notificationListeners) listener(delivery.notification);
       const current = native.notification(kind, uri);
       await Promise.all(
-        (current?.sessions ?? []).map(async (id) => {
+        (current?.subscriptions ?? []).map(async (delivery) => {
+          const listener = sessionListeners.get(delivery.session);
+          if (listener !== undefined) await listener(delivery.notification);
+        })
+      );
+      const legacy = native.notification(kind, uri);
+      await Promise.all(
+        (legacy?.sessions ?? []).map(async (id) => {
           const listener = sessionListeners.get(id);
           if (listener !== undefined && native.canNotify(id, false))
             await listener(delivery.notification);

@@ -197,6 +197,7 @@ export function connectStreams({ readable, writable }, createSession, options) {
         fail(error);
       }
       inputClosed = true;
+      session.endInput();
       finish();
     }
 

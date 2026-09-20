@@ -32,6 +32,7 @@ await handle.close();
 | Express adapters without an Express runtime dependency | `createExpressMiddleware`, `createExpressOAuthHandlers` |
 | Protected-resource metadata | `createProtectedResourceMetadataDocument`, `createProtectedResourceMetadataRouter` |
 | HTTP admission, observability and storage | `allowedHosts`, `allowedOrigins`, `observability`, `sessionStore` |
+| Isolated test bearer tokens | `./testing`: `createInMemoryTokenVerifier` |
 
 Rust owns protocol/schema dispatch, HTTP admission, configuration limits, JWT
 policy and bounded replay retention. Node built-ins supply HTTP/URL objects,
@@ -45,6 +46,11 @@ streams, clears timers and releases replay records. `getRequestContext()` expose
 the authenticated request to HTTP tool handlers. `./server` provides the Node APIs
 without loading Express adapters.
 
-Testing helpers and the CLI are still being ported. Broader platform artifacts,
+`createInMemoryTokenVerifier` lets tests issue opaque bearer tokens with explicit
+issuer, audience, scope and expiry rules. An optional clock makes expiry
+deterministic. Verification returns isolated claims through structured cloning;
+custom claims cannot override the verified issuer, audience, expiry or scopes.
+
+The remaining testing helpers and CLI are still being ported. Broader platform artifacts,
 performance measurements and inherited schema/URI corner cases remain in progress.
 Existing applications continue using the original packages.

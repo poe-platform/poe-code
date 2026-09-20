@@ -151,6 +151,7 @@ mod session_binding;
 pub mod embedded_stdio;
 mod history_binding;
 pub mod policy_binding;
+mod testing_binding;
 
 #[path = "../../../mcp-oauth-rust/bindings/src/jwks_binding.rs"]
 pub mod jwks_binding;

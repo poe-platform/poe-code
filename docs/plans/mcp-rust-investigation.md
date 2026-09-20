@@ -1043,6 +1043,26 @@ tarball/extraction artifacts were purged after evidence collection.
 This is still an additive private port; full MCP/poe-agent and broad performance/
 platform acceptance remain incomplete.
 
+The HTTP server now exposes `./testing` with its own in-memory token verifier.
+Rust owns UTF-16 token identifiers, automatic ID sequencing, duplicate admission,
+dense snapshot slots and issuer/audience/expiry/scope policy. Node retains the
+claims snapshots visibly to GC and supplies structured cloning and the clock.
+The helper intentionally accepts any matching requested scope like the original
+test helper; production bearer admission retains its all-required-scopes rule.
+Original comparisons cover rejection ordering, clock calls, exact/fractional and
+non-finite expiry, empty/NUL/lone-surrogate identifiers, overridden standard claims,
+cycles/bigint/date/map/set and uncloneable claims. A failing accessor case reproduced
+partial issuance after a claims getter threw; preparing the ID before host capture
+and committing metadata afterward fixes it and preserves failed automatic ID
+consumption. Dense indexes remain consistent through 4,096 distinct tokens.
+An actual addon GC child verifies owner/claims cycles release after helper drop.
+Package checks pass 20 Rust tests, 29 native groups and the existing 133 original
+HTTP contracts, plus bidirectional shipped testing declarations and focused
+lint/build closure. The standalone packed helper also verifies isolated claims,
+native error identity and zero npm runtime dependencies; temporary extraction and
+tarball are purged. The token store remains unbounded like the original helper.
+HTTP fixture/client-pair testing exports and CLI remain unfinished.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

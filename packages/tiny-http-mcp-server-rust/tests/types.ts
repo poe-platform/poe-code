@@ -25,3 +25,15 @@ declare const oldOptions:Original.HttpTransportOptions;
 const compatibleOptions:HttpTransportOptions=oldOptions;
 const transport=new StreamableHttpTransport(nativeServer,{enableJsonResponse:true});
 void [compatibleHttpServer,compatibleNativeServer,compatibleOptions,transport];
+
+import {createInMemoryTokenVerifier,type InMemoryAccessTokenInput,type InMemoryTokenVerifier} from '../dist/testing.js';
+import type * as OriginalTesting from 'tiny-http-mcp-server/testing';
+const issued:InMemoryAccessTokenInput={issuer:'https://issuer.example',audience:['https://resource.example'],scopes:['read'],expiresAt:100};
+const originalInput:OriginalTesting.InMemoryAccessTokenInput=issued;
+declare const oldInput:OriginalTesting.InMemoryAccessTokenInput;
+const nativeInput:InMemoryAccessTokenInput=oldInput;
+const nativeVerifier=createInMemoryTokenVerifier({now:()=>10});
+const oldTokenVerifier:OriginalTesting.InMemoryTokenVerifier=nativeVerifier;
+declare const originalTokenVerifier:OriginalTesting.InMemoryTokenVerifier;
+const nativeTokenVerifier:InMemoryTokenVerifier=originalTokenVerifier;
+void [originalInput,nativeInput,oldTokenVerifier,nativeTokenVerifier];

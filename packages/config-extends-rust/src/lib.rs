@@ -1,4 +1,5 @@
 //! Portable layered configuration and prompt composition policies.
+pub mod document;
 pub mod prompt;
 use config_mutations_rust::value::Value;
 use std::collections::HashSet;

@@ -129,3 +129,87 @@ fn json(value: &Value) -> mcp_protocol_rust::json::Value {
         _ => panic!("Oracle fixtures contain JSON values only"),
     }
 }
+
+#[test]
+fn document_admission_matches_sdk_formats_bom_extends_and_markdown_prompts() {
+    use config_extends_rust::document::{Extends, Format, parse_document};
+    let mut cases = vec![];
+    let mut expected = vec![];
+    for extension in [".md", ".yaml", ".yml", ".json", ".txt", ""] {
+        for source in [
+            "{\"title\":\"Hello\",\"extends\":true}",
+            "title: Hello\nextends: './base.md'",
+            "---\nprompt: metadata\ntitle: next\n---\nBody",
+            "---\rtitle: Hello\r---\rBody",
+            "# comment only\n",
+            "null",
+            "---\n# horizontal rule",
+            "hello",
+            "[1]",
+            "extends: 42",
+            "extends: /absolute",
+            "extends: ''",
+        ] {
+            for bom in ["", "\u{feff}"] {
+                let source = format!("{bom}{source}");
+                let file = format!("/tmp/config{extension}");
+                cases.push(Value::Array(vec![s(&source), s(&file)]));
+                let result = match parse_document(
+                    &u(&source),
+                    &u(extension),
+                    &u(&file),
+                    &mut |path| path.first() == Some(&47),
+                    None,
+                ) {
+                    Ok(parsed) => o(vec![
+                        ("data", parsed.yaml.value),
+                        (
+                            "format",
+                            s(match parsed.format {
+                                Format::Markdown => "markdown",
+                                Format::Yaml => "yaml",
+                                Format::Json => "json",
+                            }),
+                        ),
+                        (
+                            "extends",
+                            match parsed.extends {
+                                Extends::Disabled => Value::Bool(false),
+                                Extends::Enabled => Value::Bool(true),
+                                Extends::Path(path) => Value::String(path),
+                            },
+                        ),
+                        ("hasExtendsField", Value::Bool(parsed.has_extends)),
+                    ]),
+                    Err(_) => s("error"),
+                };
+                expected.push(result);
+            }
+        }
+    }
+    let script = "import {parseDocument} from '../config-extends/dist/parse.js';let input='';for await(const chunk of process.stdin)input+=chunk;console.log(JSON.stringify(JSON.parse(input).map(args=>{try{return parseDocument(...args)}catch{return 'error'}})));";
+    let mut child = Command::new("node")
+        .args(["--input-type=module", "-e", script])
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(mcp_protocol_rust::json::stringify(&json(&Value::Array(cases))).as_bytes())
+        .unwrap();
+    let result = child.wait_with_output().unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let actual =
+        mcp_protocol_rust::json::parse(&result.stdout, mcp_protocol_rust::json::Limits::default())
+            .unwrap();
+    assert_eq!(actual, json(&Value::Array(expected)));
+}

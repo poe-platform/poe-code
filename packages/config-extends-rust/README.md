@@ -23,8 +23,15 @@ assert_eq!(resolved.sources.len(), 1);
 tokens. UTF-16 values preserve JavaScript source text, including lone surrogates;
 provenance paths escape literal dots and backslashes.
 
+`document::parse_document` admits Markdown, YAML and JSON, strips a leading BOM,
+extracts and validates `extends`, and retains Date/Symbol alias metadata when
+Markdown body text replaces a metadata prompt. Supply the platform's absolute
+path predicate; document parsing does not read files. The extension argument is
+the already normalized lowercase extension. YAML diagnostics use the own parser;
+JSON diagnostics and bounded parsing differ from Node's engine-specific messages.
+
 The core uses the standard library and own path crates. Merging and cloning use
 explicit work stacks with a depth bound of 1,000. This additive package currently
-provides the owned Rust merge/prompt core. Document resolution, filesystem
+provides the owned Rust merge/prompt/document core. Document resolution, filesystem
 adapters, JavaScript graph behavior and Node/Python bindings are still in
 progress; existing TypeScript packages and production imports are unchanged.

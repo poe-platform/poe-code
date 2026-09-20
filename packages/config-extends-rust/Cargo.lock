@@ -7,6 +7,7 @@ name = "config-extends-rust"
 version = "0.1.0"
 dependencies = [
  "config-mutations-rust",
+ "frontmatter-rust",
  "mcp-protocol-rust",
 ]
 
@@ -15,6 +16,13 @@ name = "config-mutations-rust"
 version = "0.1.0"
 dependencies = [
  "mcp-protocol-rust",
+]
+
+[[package]]
+name = "frontmatter-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
 ]
 
 [[package]]

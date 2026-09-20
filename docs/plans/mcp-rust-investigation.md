@@ -1890,6 +1890,22 @@ reside under `out/rust-config-extends-*.log`. This is a Rust core phase, not the
 full package rewrite: document discovery/resolution, arbitrary JavaScript graph
 semantics, Node/Python adapters and performance/memory acceptance remain.
 
+### config-extends document core, 2026-09-20
+
+Added additive Rust Markdown/YAML/JSON document parsing with extension precedence,
+BOM handling, lone-CR normalization, missing-fence fallback, prompt overrides,
+ECMAScript string trimming and platform-supplied relative-path validation for
+`extends`. Removed fields filter traversal-indexed Date/Symbol alias metadata
+without changing the identities of retained aliases. Prompt overrides preserve
+existing property position. Core JSON has a 512-depth/16 MiB bound and its own
+diagnostics; full YAML recovery/diagnostics remain limited by the shared parser.
+
+Validation: 16 Rust groups, fmt/clippy, and 144 generated document cases compared
+with the actual current TypeScript implementation via in-memory stdin/stdout.
+Initial missing-module and property-order failures and final green/lint logs are
+in `out/rust-config-extends-document-*` and `out/rust-config-extends-order-red.log`.
+Discovery, resolution, native bindings and full package acceptance remain open.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

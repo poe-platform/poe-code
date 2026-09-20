@@ -191,6 +191,18 @@ Maintained TypeScript fixtures cover the new public contracts. This checkpoint
 does not include notification streams or resource subscriptions; those and
 standalone transports/OAuth remain required before client parity is complete.
 
+Client notification-stream filters, acknowledgement admission/subset checks,
+tagged notification selection, completion correlation and the 64-stream cap now
+live in a separate reusable Rust core. The native adapter owns acknowledgement
+timers, promises and abort listeners. `McpClient` automatically subscribes configured
+list-change callbacks and supports explicit streams plus legacy/modern resource
+subscribe/unsubscribe. Concurrent resource calls coalesce without an aborted waiter
+canceling other callers; canceled setup can retry and completed streams reopen.
+Cross-checks cover premature/bad-ID completion, malformed filters, expanded filters,
+pre-abort, timeout, capacity recovery, cancellation and immutable native snapshots.
+End-to-end notifications pass for both clients, both servers and both protocols.
+Standalone stdio/HTTP/SDK transports, OAuth and additional edge auditing remain.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

@@ -387,6 +387,9 @@ export declare class McpClient {
   listResources(params?: PaginatedParams, options?: { signal?: AbortSignal }): Promise<PaginatedResult & { resources: Resource[] }>;
   listResourceTemplates(params?: PaginatedParams, options?: { signal?: AbortSignal }): Promise<PaginatedResult & { resourceTemplates: ResourceTemplate[] }>;
   readResource(params: ReadResourceParams, options?: { signal?: AbortSignal }): Promise<CacheableResultMetadata & { contents: ResourceContents[] }>;
+  listenNotifications(filter: NotificationFilter, options?: SubscriptionOptions): Promise<McpSubscription>;
+  subscribe(uri: string, options?: { signal?: AbortSignal }): Promise<void>;
+  unsubscribe(uri: string, options?: { signal?: AbortSignal }): Promise<void>;
   listPrompts(params?: PaginatedParams, options?: { signal?: AbortSignal }): Promise<PaginatedResult & { prompts: Prompt[] }>;
   getPrompt(params: GetPromptParams, options?: { signal?: AbortSignal }): Promise<GetPromptResult>;
   complete(params: CompleteParams, options?: { signal?: AbortSignal }): Promise<CompleteResult>;
@@ -395,4 +398,18 @@ export declare class McpClient {
   sendRootsChanged(): Promise<void>;
   ping(options?: { signal?: AbortSignal }): Promise<void>;
   close(): Promise<void>;
+}
+
+export interface NotificationFilter {
+  toolsListChanged?: boolean;
+  promptsListChanged?: boolean;
+  resourcesListChanged?: boolean;
+  resourceSubscriptions?: string[];
+}
+export interface SubscriptionOptions { signal?: AbortSignal; }
+export interface McpSubscription {
+  readonly id: RequestId;
+  readonly notifications: NotificationFilter;
+  readonly closed: Promise<void>;
+  cancel(): void;
 }

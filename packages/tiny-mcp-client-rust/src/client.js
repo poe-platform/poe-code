@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { JsonRpcMessageLayer, McpError } from "./index.js";
+import { SubscriptionManager } from "./subscriptions.js";
 const { NativeClient } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 function unwrap(value) {
   if (value.error !== undefined) {
@@ -14,6 +15,8 @@ export class McpClient {
   #layer;
   #transport;
   #generation;
+  #subscriptions;
+  #resources = new Map();
   constructor(options) {
     this.#options = options;
   }
@@ -47,6 +50,8 @@ export class McpClient {
       this.#layer = layer;
       this.#transport = transport;
       this.#generation = generation;
+      this.#subscriptions = undefined;
+      this.#resources.clear();
       transport.closed.then(
         (event) => {
           if (this.#transport !== transport || this.#generation !== generation) return;
@@ -85,7 +90,10 @@ export class McpClient {
       ]) {
         if (callback === undefined) continue;
         layer.onNotification(method, async (params) => {
-          if (!this.#core.notificationAllowed(method, params)) return;
+          const streamNotification = method.endsWith("/list_changed") || method === "notifications/resources/updated";
+          if (this.#core.modern && streamNotification) {
+            if (!this.#subscriptions?.filters.accepts(method, params)) return;
+          } else if (!this.#core.notificationAllowed(method, params)) return;
           if (method === "notifications/resources/updated") await callback(params.uri);
           else if (method === "notifications/message")
             await callback({
@@ -140,6 +148,13 @@ export class McpClient {
           "io.modelcontextprotocol/protocolVersion": "2026-07-28",
           "io.modelcontextprotocol/clientCapabilities": capabilities
         };
+        this.#subscriptions = new SubscriptionManager(layer);
+        const filter = {
+          ...(this.#options.onToolsChanged === undefined ? {} : { toolsListChanged: true }),
+          ...(this.#options.onPromptsChanged === undefined ? {} : { promptsListChanged: true }),
+          ...(this.#options.onResourcesChanged === undefined ? {} : { resourcesListChanged: true })
+        };
+        if (Object.keys(filter).length > 0) await this.#subscriptions.listen(filter, options);
         return connected;
       }
       const initialized = unwrap(
@@ -263,6 +278,76 @@ export class McpClient {
       options
     );
   }
+  async listenNotifications(filter, options = {}) {
+    unwrap(this.#core.checkConnection());
+    if (!this.#core.modern || this.#subscriptions === undefined)
+      throw new Error("Notification streams require modern MCP");
+    return await this.#subscriptions.listen(filter, options);
+  }
+  async subscribe(uri, options = {}) {
+    options.signal?.throwIfAborted();
+    unwrap(this.#core.checkResourceSubscriptions());
+    if (!this.#core.modern) {
+      await this.#layer.sendRequest("resources/subscribe", { uri }, options);
+      this.#core.setSubscription(uri, true);
+      return;
+    }
+    const existing = this.#resources.get(uri);
+    if (existing !== undefined) {
+      if (options.signal === undefined) await existing.subscription;
+      else {
+        let abort;
+        const canceled = new Promise((_resolve, reject) => {
+          abort = () => reject(options.signal.reason);
+          options.signal.addEventListener("abort", abort, { once: true });
+        });
+        try { options.signal.throwIfAborted(); await Promise.race([existing.subscription, canceled]); }
+        finally { options.signal.removeEventListener("abort", abort); }
+      }
+      return;
+    }
+    const controller = new AbortController();
+    const abortSetup = () => controller.abort(options.signal?.reason);
+    options.signal?.addEventListener("abort", abortSetup, { once: true });
+    const resources = this.#resources;
+    const subscribing = this.#subscriptions.listen({ resourceSubscriptions: [uri] }, { signal: controller.signal }).then(listening => {
+      if (resources.get(uri)?.subscription !== subscribing) {
+        listening.cancel();
+        throw new Error("Resource subscription canceled");
+      }
+      if (!listening.notifications.resourceSubscriptions?.includes(uri)) {
+        listening.cancel();
+        throw new Error("Server declined the resource subscription");
+      }
+      this.#core.setSubscription(uri, true);
+      void listening.closed.finally(() => {
+        if (resources.get(uri)?.subscription === subscribing) {
+          resources.delete(uri);
+          this.#core.setSubscription(uri, false);
+        }
+      }).catch(() => undefined);
+      return listening;
+    }).finally(() => options.signal?.removeEventListener("abort", abortSetup));
+    resources.set(uri, { controller, subscription: subscribing });
+    try { await subscribing; }
+    catch (error) {
+      if (resources.get(uri)?.subscription === subscribing) resources.delete(uri);
+      throw error;
+    }
+  }
+  async unsubscribe(uri, options = {}) {
+    options.signal?.throwIfAborted();
+    unwrap(this.#core.checkResourceSubscriptions());
+    if (!this.#core.modern) {
+      await this.#layer.sendRequest("resources/unsubscribe", { uri }, options);
+      this.#core.setSubscription(uri, false);
+      return;
+    }
+    const pending = this.#resources.get(uri);
+    this.#resources.delete(uri);
+    this.#core.setSubscription(uri, false);
+    pending?.controller.abort(new Error("Resource subscription canceled"));
+  }
   async getPrompt(params, options = {}) {
     unwrap(this.#core.checkCapability("prompts"));
     const result = await this.#layer.sendRequest("prompts/get", params, options);
@@ -306,6 +391,9 @@ export class McpClient {
   async close() {
     if (this.state === "closed") return;
     const reason = new Error("MCP client closed");
+    this.#subscriptions?.close();
+    this.#subscriptions = undefined;
+    this.#resources.clear();
     this.#layer?.dispose(reason);
     this.#transport?.dispose(reason);
     this.#layer = undefined;

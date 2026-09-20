@@ -32,6 +32,12 @@ reconnection. It exposes tool, resource, prompt and completion calls over a
 caller-provided transport. Progress callbacks follow active tool calls, and aborts
 or timeouts send cancellation notifications. TypeScript contracts cover these APIs.
 
-Notification subscriptions and standalone transports are still being
-implemented. Keep applications on their current MCP client until conformance and
+Modern notification streams validate acknowledgement filters, correlate tagged
+notifications and expose cancellation and completion. Configured list-change
+callbacks automatically open a stream. Resource subscriptions use legacy requests
+or modern streams; concurrent callers share setup, and subscriptions can reopen
+after completion. Filters and stream counts have explicit bounds.
+
+Standalone transports and OAuth are still being implemented.
+Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

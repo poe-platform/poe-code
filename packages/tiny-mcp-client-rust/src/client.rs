@@ -241,6 +241,26 @@ impl ClientState {
             _ => Ok(()),
         }
     }
+    pub fn require_resource_subscriptions(&self) -> Result<(), ClientError> {
+        self.require_connection()?;
+        let Some(capabilities) = &self.server_capabilities else {
+            return Err(error(None, "MCP client has not completed initialization"));
+        };
+        if self.modern {
+            return self.require_capability("resources");
+        }
+        if capabilities
+            .get("resources")
+            .and_then(|resources| resources.get("subscribe"))
+            != Some(&Value::Bool(true))
+        {
+            return Err(error(
+                None,
+                "Server does not support resource subscriptions",
+            ));
+        }
+        Ok(())
+    }
     pub fn validate_result(&self, method: &str, result: &Value) -> Result<(), ClientError> {
         let valid = match method {
             "tools/list" => matches!(result.get("tools"), Some(Value::Array(tools)) if tools.iter().all(|tool| matches!(tool.get("name"), Some(Value::String(_))) && matches!(tool.get("inputSchema"), Some(Value::Object(_))) && text_is(tool.get("inputSchema").and_then(|schema| schema.get("type")), "object"))) && optional_string(result.get("nextCursor")),

@@ -527,6 +527,13 @@ impl NativeClient {
         }
     }
     #[napi]
+    pub fn check_resource_subscriptions(&self) -> convert::NativeJson {
+        match self.state.borrow().require_resource_subscriptions() {
+            Ok(()) => convert::NativeJson(object(vec![])),
+            Err(error) => client_error(error),
+        }
+    }
+    #[napi]
     pub fn validate_result(
         &self,
         env: Env,
@@ -580,4 +587,95 @@ fn client_error(error: ClientError) -> convert::NativeJson {
         fields.push(("code", Value::Number(code.into())));
     }
     convert::NativeJson(object(vec![("error", object(fields))]))
+}
+
+use tiny_mcp_client_rust::subscriptions::{SubscriptionState, subscription_id};
+#[napi]
+#[derive(Default)]
+pub struct NativeSubscriptions {
+    state: RefCell<SubscriptionState>,
+}
+fn subscription_error(message: String) -> convert::NativeJson {
+    convert::NativeJson(object(vec![("error", text(&message))]))
+}
+#[napi]
+impl NativeSubscriptions {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn normalize(&self, env: Env, filter: Unknown<'_>) -> Result<convert::NativeJson> {
+        let filter = input::read(&env, filter, input::Mode::Json)?.unwrap_or(Value::Null);
+        Ok(match self.state.borrow().normalize(&filter) {
+            Ok(filter) => convert::NativeJson(object(vec![("filter", filter)])),
+            Err(error) => subscription_error(error),
+        })
+    }
+    #[napi]
+    pub fn register(
+        &self,
+        env: Env,
+        id: Unknown<'_>,
+        filter: Unknown<'_>,
+    ) -> Result<convert::NativeJson> {
+        let id = input::read(&env, id, input::Mode::Json)?.unwrap_or(Value::Null);
+        let filter = input::read(&env, filter, input::Mode::Json)?.unwrap_or(Value::Null);
+        Ok(match self.state.borrow_mut().register(id, filter) {
+            Ok(()) => convert::NativeJson(object(vec![])),
+            Err(error) => subscription_error(error),
+        })
+    }
+    #[napi]
+    pub fn acknowledge(&self, env: Env, params: Unknown<'_>) -> Result<convert::NativeJson> {
+        let params = input::read(&env, params, input::Mode::Json)?.unwrap_or(Value::Null);
+        Ok(match self.state.borrow_mut().acknowledge(&params) {
+            Ok(Some(ack)) => {
+                convert::NativeJson(object(vec![("id", ack.id), ("filter", ack.filter)]))
+            }
+            Ok(None) => convert::NativeJson(object(vec![])),
+            Err(error) => convert::NativeJson(object(vec![
+                (
+                    "id",
+                    subscription_id(&params).cloned().unwrap_or(Value::Null),
+                ),
+                ("error", text(&error)),
+            ])),
+        })
+    }
+    #[napi]
+    pub fn accepts(&self, env: Env, method: String, params: Unknown<'_>) -> bool {
+        let params = input::read(&env, params, input::Mode::Json)
+            .ok()
+            .flatten()
+            .unwrap_or(Value::Null);
+        self.state.borrow().accepts(&method, &params)
+    }
+    #[napi]
+    pub fn validate_completion(
+        &self,
+        env: Env,
+        id: Unknown<'_>,
+        result: Unknown<'_>,
+    ) -> Result<convert::NativeJson> {
+        let id = input::read(&env, id, input::Mode::Json)?.unwrap_or(Value::Null);
+        let result = input::read(&env, result, input::Mode::Json)?.unwrap_or(Value::Null);
+        Ok(
+            match self.state.borrow().validate_completion(&id, &result) {
+                Ok(()) => convert::NativeJson(object(vec![])),
+                Err(error) => subscription_error(error),
+            },
+        )
+    }
+    #[napi]
+    pub fn remove(&self, env: Env, id: Unknown<'_>) -> Result<()> {
+        if let Some(id) = input::read(&env, id, input::Mode::Json)? {
+            self.state.borrow_mut().remove(&id);
+        }
+        Ok(())
+    }
+    #[napi]
+    pub fn clear(&self) {
+        self.state.borrow_mut().clear();
+    }
 }

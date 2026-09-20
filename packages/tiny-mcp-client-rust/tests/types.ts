@@ -44,3 +44,10 @@ void client.callTool({ name: "echo", arguments: { message: "hello" } }, { progre
 void client.getPrompt({ name: "review" }).then(({ messages }) => messages[0]?.role);
 void client.complete({ ref: { type: "ref/prompt", name: "review" }, argument: { name: "topic", value: "r" } });
 void client.close();
+void client.subscribe("file:///workspace");
+void client.unsubscribe("file:///workspace");
+void client.listenNotifications({ toolsListChanged: true }).then(subscription => {
+  const closed: Promise<void> = subscription.closed;
+  void closed;
+  subscription.cancel();
+});

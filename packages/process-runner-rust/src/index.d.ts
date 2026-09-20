@@ -15,3 +15,4 @@ export {readDockerBuildContextFiles,type DockerBuildContextFile}from'./docker-bu
 export {uploadWorkspace,downloadWorkspace,type WorkspaceDownloadOptions,type WorkspaceTransferDirent,type WorkspaceTransferEnv,type WorkspaceTransferFileSystem,type WorkspaceTransferOptions,type WorkspaceTransferRunnerOptions,type WorkspaceTransferStats}from'./workspace-transfer.js';
 export {buildDockerRuntimeTemplate}from'./docker-template.js';
 export type {BuildDockerRuntimeTemplateInput,BuildDockerRuntimeTemplateResult}from'./docker-template.js';
+export {dockerExecutionEnvFactory}from'./docker-execution-env.js';

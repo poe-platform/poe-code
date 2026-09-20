@@ -9,3 +9,5 @@ pub mod workspace_ignore;
 pub mod workspace_state;
 
 pub mod docker_template;
+
+pub mod docker_environment;

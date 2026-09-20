@@ -147,3 +147,5 @@ pub const HOST_ATTACH_ERROR: &str = host::ATTACH_ERROR;
 pub const HOST_DETACH_ERROR: &str = host::DETACH_ERROR;
 
 pub mod docker_template;
+
+pub mod docker_environment;

@@ -15,6 +15,7 @@ independent Rust execution policies and no npm runtime dependencies.
 | Read filtered build-context files and binary bytes | `readDockerBuildContextFiles` |
 | Upload and download workspaces with rollback and conflict checks | `uploadWorkspace`, `downloadWorkspace` |
 | Cache and build Dockerfile runtime images by content | `buildDockerRuntimeTemplate` |
+| Keep containers open and detach or reattach jobs | `dockerExecutionEnvFactory` |
 
 ```typescript
 import { createHostRunner } from '@poe-code/process-runner-rust';
@@ -65,8 +66,8 @@ and sorts relative paths with Node locale ordering. `.dockerignore` always stays
 in the file list. The SDK `docker/build-context` and `testing` subpaths are also
 available on this package.
 
-This is an additive experimental process and workspace subset. Docker environments,
-full malformed/getter fidelity and
+This is an additive experimental process and workspace implementation.
+Full malformed/getter fidelity, real-engine verification and
 cross-platform artifacts remain in progress. Existing applications keep their
 original TypeScript imports. Bounded cancellation measurements are not general
 process performance or memory acceptance.
@@ -119,3 +120,16 @@ The current portable scalar SHA implementation is slower than Node crypto:
 4KiB hash calls measured12–14µs versus2.1–2.2µs, and64KiB calls150–179µs versus
 22–24µs. Sampled memory stayed steady across32,768 further calls. Hardware
 acceleration remains work for performance acceptance.
+
+Persistent Docker environments execute inside retained containers and support
+workspace transfer, sync modes, cancellation, interactive shells, detached job
+completion markers and reattachment with a persisted engine/context. Rust owns
+exec/status/control/log command plans, shell quoting, strict decimal exit codes,
+UTF-8 boundaries and follow/final-read decisions. Node owns asynchronous I/O,
+stream buffers, filesystem transport and polling timers. All14 SDK runtime
+exports have bidirectional TypeScript compatibility checks.
+
+Simulated open/exec/detach/status/wait/log/close cycles measured31–47µs native
+versus21–38µs SDK. Across32,768 further cycles, sampled RSS levels off after
+warmup near133–137MB native and130–137MB SDK, with25KB live buffers each.
+These checks do not establish a real-engine speed or total-memory improvement.

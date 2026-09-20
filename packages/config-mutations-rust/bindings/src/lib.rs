@@ -138,3 +138,78 @@ pub fn config_toml_serialize(serialized: Buffer) -> Result<Utf16String> {
         .map(Utf16String::from)
         .map_err(|e| Error::from_reason(e.to_string()))
 }
+
+#[napi]
+pub fn config_yaml_parse(
+    source: Utf16String,
+    date_key: Option<Function<f64, Utf16String>>,
+) -> Result<NativeJson> {
+    use config_mutations_rust::yaml;
+    let mut callback_error = None;
+    let mut format = |epoch: i64| match date_key.as_ref().unwrap().call(epoch as f64) {
+        Ok(text) => text.to_vec(),
+        Err(error) => {
+            callback_error = Some(error);
+            vec![]
+        }
+    };
+    let parsed = yaml::parse(
+        &source,
+        if date_key.is_some() {
+            Some(&mut format)
+        } else {
+            None
+        },
+    );
+    if let Some(error) = callback_error {
+        return Err(error);
+    }
+    Ok(NativeJson(match parsed {
+        Ok(parsed) => {
+            let mut temporals = vec![];
+            let value = snapshot::parsed(parsed.value, &mut vec![], &mut temporals);
+            object(vec![
+                ("value", value),
+                ("temporals", Value::Array(temporals)),
+                (
+                    "dateIds",
+                    Value::Array(
+                        parsed
+                            .date_ids
+                            .into_iter()
+                            .map(|id| Value::Number(id as f64))
+                            .collect(),
+                    ),
+                ),
+                (
+                    "symbolIds",
+                    Value::Array(
+                        parsed
+                            .symbol_ids
+                            .into_iter()
+                            .map(|id| Value::Number(id as f64))
+                            .collect(),
+                    ),
+                ),
+            ])
+        }
+        Err(error) => object(vec![(
+            "error",
+            object(vec![
+                (
+                    "message",
+                    Value::String(error.to_string().encode_utf16().collect()),
+                ),
+                ("line", Value::Number(error.line as f64)),
+                ("column", Value::Number(error.column as f64)),
+            ]),
+        )]),
+    }))
+}
+#[napi]
+pub fn config_yaml_serialize(serialized: Buffer) -> Result<Utf16String> {
+    let graph = snapshot::decode_graph(&serialized).map_err(Error::from_reason)?;
+    config_mutations_rust::yaml::stringify_graph(&graph)
+        .map(Utf16String::from)
+        .map_err(|e| Error::from_reason(e.reason))
+}

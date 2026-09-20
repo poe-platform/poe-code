@@ -6,3 +6,5 @@ const object:ConfigObject=format.parse('{}');
 const text:string=format.serialize(object);
 modifyAtPath(text,['nested',0],new Date());detectIndent(text);serializeUpdate(text,object,object);
 const toml:ConfigFormat=tomlFormat;toml.serialize({updated:new Date()});toml.parse('[section]\nkey=1');
+import {yamlFormat} from '../dist/yaml.js';
+const yaml:ConfigFormat=yamlFormat;yaml.serialize({enabled:true});yaml.parse('key: value');

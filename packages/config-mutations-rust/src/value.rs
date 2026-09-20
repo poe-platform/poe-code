@@ -8,6 +8,7 @@ pub enum Value {
     Number(f64),
     String(Vec<u16>),
     BigInt(Vec<u16>),
+    Symbol(Vec<u16>),
     Date(Temporal),
     /// Host-rendered Date text, after host validity and hook evaluation.
     DateLiteral(Vec<u16>),

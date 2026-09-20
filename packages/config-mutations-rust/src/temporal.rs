@@ -19,7 +19,7 @@ fn decimal(text: &[u16]) -> Option<i64> {
     }
     Some(value)
 }
-fn civil_days(year: i64, month: i64, day: i64) -> i64 {
+pub(crate) fn civil_days(year: i64, month: i64, day: i64) -> i64 {
     let year = year - i64::from(month <= 2);
     let era = year.div_euclid(400);
     let y = year - era * 400;

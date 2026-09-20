@@ -1333,6 +1333,56 @@ template rendering and the original root/testing exports remain outstanding.
 Existing application imports and release wiring are unchanged. The full MCP and
 poe-agent dependency-closure rewrite remains active.
 
+The YAML codec foundation now includes an own std-only UTF-16 Rust parser,
+composition and serializer plus private `./yaml` napi bindings. The licensed
+scanner/event-parser adaptation uses std buffers; serialization adapts YAML 2.9.0
+ISC formatting algorithms. The event parser, graph composition and serialization
+use explicit work stacks. Overall nesting is bounded to 512. A reproduced u8 flow
+depth limit was replaced; depth 511 passes on default Rust test stacks and 4 MiB
+Node workers. Alias preflight admits 99 scalar aliases and rejects 100 and nested
+amplification; cyclic configuration input rejects promptly instead of overflowing.
+
+Development comparisons cover valid/truncated/deleted documents, core/YAML 1.1
+scalars, tag directives, binary/timestamp values, pairs/ordered maps/sets, merge
+precedence, typed-key collisions, numeric property order, raw/escaped surrogates,
+and thousands of exact default serialization layouts. Reproduced defects fixed
+include multiple-tag loss, empty-block chomping, anchor/flow separation, YAML 1.1
+NaN cases, binary-key panics, complex alias keys, Date keys with host time zones,
+explicit merge Symbol values and array/object merge-key coercion. Tag escapes
+remain lexical in verbatim/local tags and decode in declared shorthand suffixes.
+
+Binary native graph snapshots preserve shared/circular objects and default anchor
+numbering, one no-argument `toJSON` call per source object, getter order, wrapper
+unboxing, Maps/iterables and iterator closure on child hook errors. Parsed Date and
+Symbol aliases retain source identities without coalescing independently authored
+values. JSONC/TOML share the binary writer without changing their contracts.
+
+Maintained validation: 34 Rust tests, 19 native groups, TypeScript declarations,
+Rust fmt/clippy and the four-workspace uncached build closure. Two independent
+4 MiB workers each pass depth-511 parse/serialize/parse, Date restoration and
+2,048 repeat cycles. Packed JSONC/TOML/YAML exports pass with every bare runtime
+npm import rejected. There are no npm production/peer/optional dependencies.
+
+Local Node 22.23.2/macOS ARM64 median nanoseconds, original/native:
+small parse 16653/2667 and serialize 5725/3435;
+64-property configuration (1425 units) parse 383896/77640 and serialize 134678/91439;
+4096-property document (83796 units) parse 233229000/5289875 and serialize 10484812/4166375.
+The large original parser's duplicate-key work is substantially more expensive
+than the Rust hash-based composition. These measurements do not imply universal
+speedups for other workloads or platforms. Retaining 32 large parses adds about
+11.2/10.5 MB heap. Separate 256-cycle processes peak at roughly 156 MB RSS either;
+no RSS reduction is claimed. The native 1280-cycle run plateaus around 137–140 MB
+RSS, 3.48–3.50 MB heap and 1.41 MB external memory after GC. Evidence is retained
+under `out/rust-config-yaml-*`.
+
+This remains an incremental codec foundation. Exact SDK warnings/error metadata
+and precedence, all authored complex-key/tag formatting, tagged merge-source
+edge cases and merge-source alias admission need further conformance work.
+SDK-specific Document/node serialization objects are not supported. Mutation
+execution, factories, templates and the original root/testing exports remain
+outstanding, as does the full MCP/poe-agent closure. Existing application imports,
+defaults and release wiring remain intact. The overall goal is still active.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

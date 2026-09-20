@@ -139,7 +139,9 @@ fn scalar(value: &Value, depth: usize) -> Result<Vec<u16>, Error> {
                             "Cannot convert undefined or null to object",
                         ));
                     }
-                    Value::Undefined | Value::Unsupported(_) => output.extend(units("undefined")),
+                    Value::Undefined | Value::Unsupported(_) | Value::Symbol(_) => {
+                        output.extend(units("undefined"))
+                    }
                 }
             }
         }
@@ -230,6 +232,11 @@ pub fn stringify(value: &Value) -> Result<Vec<u16>, Error> {
                 for (name, value) in entries(properties) {
                     if matches!(value, Value::Null | Value::Undefined) {
                         continue;
+                    }
+                    if matches!(value, Value::Symbol(_)) {
+                        return Err(Error::serialization(
+                            "cannot serialize values of type 'symbol'",
+                        ));
                     }
                     if let Value::Unsupported(kind) = value {
                         return Err(Error::serialization(format!(

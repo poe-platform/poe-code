@@ -140,6 +140,14 @@ pub fn parsed(value: Value, path: &mut Vec<Json>, temporals: &mut Vec<Json>) -> 
         Value::Bool(v) => Json::Bool(v),
         Value::Number(v) => Json::Number(v),
         Value::String(v) => Json::String(v),
+        Value::Symbol(description) => {
+            temporals.push(Json::Array(vec![
+                Json::Array(path.clone()),
+                Json::String("symbol".encode_utf16().collect()),
+                Json::String(description),
+            ]));
+            Json::Null
+        }
         Value::Date(value) => {
             temporals.push(Json::Array(vec![
                 Json::Array(path.clone()),
@@ -175,4 +183,66 @@ pub fn parsed(value: Value, path: &mut Vec<Json>, temporals: &mut Vec<Json>) -> 
         ),
         _ => unreachable!("TOML parse emits only TOML values"),
     }
+}
+
+pub fn decode_graph(snapshot: &[u8]) -> Result<config_mutations_rust::yaml::Graph> {
+    use config_mutations_rust::yaml::{Graph, GraphNode};
+    let mut input = Reader {
+        source: snapshot,
+        offset: 0,
+    };
+    let root = input.count()?;
+    let count = input.count()?;
+    if count > snapshot.len() / 2 {
+        return Err("Invalid configuration graph count");
+    }
+    let mut nodes = Vec::with_capacity(count);
+    let mut anchors = Vec::with_capacity(count);
+    for _ in 0..count {
+        anchors.push(match input.bytes(1)?[0] {
+            0 => None,
+            1 => Some(input.text()?),
+            _ => return Err("Invalid configuration anchor tag"),
+        });
+        let tag = input.bytes(1)?[0];
+        let node = match tag {
+            0 => GraphNode::Scalar(Value::Null),
+            1 => GraphNode::Scalar(Value::Undefined),
+            2 => GraphNode::Scalar(Value::Bool(false)),
+            3 => GraphNode::Scalar(Value::Bool(true)),
+            4 => GraphNode::Scalar(Value::Number(f64::from_le_bytes(
+                input.bytes(8)?.try_into().unwrap(),
+            ))),
+            5 => GraphNode::Scalar(Value::String(input.text()?)),
+            6 => GraphNode::Scalar(Value::BigInt(input.text()?)),
+            8 => GraphNode::Scalar(Value::Unsupported(input.text()?)),
+            9 | 10 => {
+                let count = input.count()?;
+                let width = if tag == 9 { 4 } else { 8 };
+                if count > (snapshot.len() - input.offset) / width {
+                    return Err("Invalid configuration collection count");
+                }
+                if tag == 9 {
+                    GraphNode::Sequence((0..count).map(|_| input.count()).collect::<Result<_>>()?)
+                } else {
+                    GraphNode::Mapping(
+                        (0..count)
+                            .map(|_| Ok((input.count()?, input.count()?)))
+                            .collect::<Result<_>>()?,
+                    )
+                }
+            }
+            11 => GraphNode::Alias(input.count()?),
+            _ => return Err("Invalid configuration graph tag"),
+        };
+        nodes.push(node);
+    }
+    if input.offset != snapshot.len() {
+        return Err("Trailing configuration graph bytes");
+    }
+    Ok(Graph {
+        nodes,
+        anchors,
+        root,
+    })
 }

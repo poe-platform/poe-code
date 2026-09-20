@@ -1,6 +1,7 @@
+import { styleAllocationIds } from "./style-allocation.js";
 import { originalModelDefaults } from "./default-model-styles.js";
 import { archiveSettings, documentSession, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
-import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
+import { admittedXml, readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { writeDocumentArchive } from "./document-write.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { parseDocumentXml } from "./package-xml.js";
@@ -117,7 +118,7 @@ async function populateTemplate(template: AdmittedDocumentArchive, content: Docx
   const stylesEdge = template.package.relationships("/" + main.name).find(edge => edge.reltype === `${r}/styles`);
   const stylesMember = stylesEdge && !stylesEdge.is_external ? template.members.find(member => member.name === stylesEdge.target_part.name) : undefined;
   const stylesEditor = stylesMember ? new DocumentXmlEditor(stylesMember.bytes, {}, undefined, budget) : undefined;
-  const rendered = renderContent(content, w, budget, stylesEditor?.root, pageGeometry(undefined, section, w, children).width);
+  const rendered = renderContent(content, w, budget, stylesEditor?.root, pageGeometry(undefined, section, w, children).width, styleAllocationIds(template.package.parts, budget, template[admittedXml]));
   if (rendered.body) editor[appendBodyBlocks](body, rendered.body);
   if (rendered.styles && stylesEditor) stylesEditor.insertChildren(stylesEditor.root, rendered.styles);
   const archive = { ...template, members: template.members.map(member => member === main ? { ...member, bytes: editor.serialize() } : member === stylesMember && rendered.styles ? { ...member, bytes: stylesEditor!.serialize() } : member) };

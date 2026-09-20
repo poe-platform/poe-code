@@ -3,6 +3,7 @@ import { UnsupportedDiagramMutationError } from "./diagrams.js";
 import {collectEquationUnits,UnsupportedEquationMutationError} from './equations.js';
 import {mathNamespace} from './equation-fragments.js';
 import { assertOutsideRevisionRanges, assertFormattingHistoryEditable } from "./revision-markup.js";
+import { styleAllocationIds } from "./style-allocation.js";
 import { renderInsertedTable } from "./table-insertion.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
@@ -67,7 +68,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
   let headingStyles = "";
   if (opts.level !== undefined) {
     if (opts.style !== undefined) throw new DocxUsageError("Heading level and style cannot be combined.");
-    const rendered = renderContent({ version: 1, blocks: [{ kind: "paragraph", level: opts.level }] }, w, budget, styles);
+    const rendered = renderContent({ version: 1, blocks: [{ kind: "paragraph", level: opts.level }] }, w, budget, styles, undefined, styleAllocationIds(graph.parts, budget));
     const paragraph = parseDocumentXml(new TextEncoder().encode(rendered.body), {}, budget).root;
     styleId = paragraph.children[0]!.children[0]!.attributes.find(a => a.namespace === w && a.localName === "val")!.value;
     headingStyles = rendered.styles;
@@ -82,7 +83,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
     const mainRoot = parseDocumentXml(archive.members.find(m => m.name === main)!.bytes, {}, budget).root;
     const owner = anchor ? graph.getPart(anchor.value.part) : mainPart;
     const root = owner.name !== main ? parseDocumentXml(owner.bytes, {}, budget).root : mainRoot;
-    const rendered = renderInsertedTable(opts, anchor, root, mainRoot, styles, budget);
+    const rendered = renderInsertedTable(opts, anchor, root, mainRoot, styles, budget, styleAllocationIds(graph.parts, budget));
     tableMarkup = rendered.body;
     headingStyles = selected.length ? rendered.styles : "";
     if (headingStyles && !stylesEdge) {

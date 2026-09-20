@@ -53,9 +53,10 @@ export function pageGeometry(page: DocxContent["page"], existing?: XmlElement, w
   return { width: width - margins.left! - margins.right! - margins.gutter!, xml };
 }
 
-export function renderContent(content: DocxContent, w: string, budget: DocumentBudget, stylesRoot?: XmlElement, containerWidth = 9360) {
+export function renderContent(content: DocxContent, w: string, budget: DocumentBudget, stylesRoot?: XmlElement, containerWidth = 9360, reservedStyleIds: ReadonlySet<string> = new Set()) {
   const styles = new Map<string, { id: string; type: string; outline?: string | undefined; builtin?: boolean }>();
   const ids = stylesRoot ? styleIds(stylesRoot, budget) : new Set<string>();
+  for (const id of reservedStyleIds) { budget.charge("work", 1); ids.add(id); }
   const children = stylesRoot ? activeXmlChildren(stylesRoot, budget) : (node: XmlElement) => node.children;
   for (const style of stylesRoot ? children(stylesRoot) : []) {
     if (style.namespace !== w || style.localName !== "style") continue;

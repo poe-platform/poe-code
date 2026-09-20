@@ -1,3 +1,4 @@
+import { styleAllocationIds } from "./style-allocation.js";
 import { snapshotSequence } from "./numeric-index.js";
 import { inlineImageRun } from "./inline-image-xml.js";
 import type { ModelStore } from "./model-store.js";
@@ -41,6 +42,8 @@ const relContentType = "application/vnd.openxmlformats-package.relationships+xml
 const packageRegister = Symbol("register");
 /** Internal canonical lookup includes admitted unlinked parts. */
 export const packagePart = Symbol("part");
+/** Internal package-wide allocation reservations include admitted unlinked document declarations. */
+export const packageStyleAllocationIds = Symbol("style-allocation-ids");
 const packageMetadata = Symbol("metadata");
 const packageRelationships = Symbol("relationships");
 const packageEdges = Symbol("edges");
@@ -181,6 +184,10 @@ export class PackageView {
     const budget = archiveSettings(this.#binding.context).budget;
     budget.charge("retainedBytes", metadata.bytes.length); budget.charge("work", metadata.bytes.length);
     return { ...metadata, bytes: new Uint8Array(metadata.bytes), modified: new Date(metadata.modified.getTime()) };
+  }
+  [packageStyleAllocationIds](): Set<string> {
+    const budget = archiveSettings(this.#binding.context).budget;
+    return styleAllocationIds(this.current().graph.parts, budget);
   }
   get parts(): readonly PartView[] { return snapshotSequence([...this.iter_parts()]); }
   *iter_parts(): IterableIterator<PartView> { for (const part of this.current().graph.iterParts()) yield this[packagePart](part.partname); }

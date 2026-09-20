@@ -9,7 +9,7 @@ import { sectionAttribute, sectionChild } from "./section-properties.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 
 /** Resolve explicit stored geometry; no layout engine or host metrics are consulted. */
-export function renderInsertedTable(options: DocxOperationArguments<"tables.add">, location: Location | undefined, root: XmlElement, mainRoot: XmlElement, styles: XmlElement | undefined, budget: DocumentBudget) {
+export function renderInsertedTable(options: DocxOperationArguments<"tables.add">, location: Location | undefined, root: XmlElement, mainRoot: XmlElement, styles: XmlElement | undefined, budget: DocumentBudget, reservedStyleIds: ReadonlySet<string> = new Set()) {
   const supplied = options.content;
   if (supplied && (supplied.page || supplied.theme || supplied.styles || supplied.blocks.length !== 1 || supplied.blocks[0]?.kind !== "table"))
     throw new InvalidValueError("Table content requires exactly one table and no document settings.");
@@ -24,7 +24,7 @@ export function renderInsertedTable(options: DocxOperationArguments<"tables.add"
   budget.table(options.rows, options.cols);
   const table: DocxTableInput = { kind: "table", rows: block?.rows ?? Array.from({ length: options.rows }, () => Array.from({ length: options.cols }, () => ({ blocks: [] }))), ...block, ...formatting };
   const width = tableContainerWidth(location, root, mainRoot, budget, options.before);
-  return renderContent({ version: 1, blocks: [table] }, mainRoot.namespace, budget, styles, width);
+  return renderContent({ version: 1, blocks: [table] }, mainRoot.namespace, budget, styles, width, reservedStyleIds);
 }
 
 /** Stored section or enclosing-cell width shared by insertion and explicit grid growth. */

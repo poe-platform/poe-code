@@ -3,7 +3,7 @@ import { storedBoolean } from "./stored-lexical.js";
 import { InvalidDocumentError } from "./document-error.js";
 import { styleLinkPatches } from "./style-links.js";
 import { admitDocumentModel } from "./model-admission.js";
-import { PackageView, StylesPart, packageBindStyles, packageAdmitImages } from "./package-view.js";
+import { PackageView, StylesPart, packageBindStyles, packageAdmitImages, packageStyleAllocationIds } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { budgetSharesReservations } from "./budget.js";
 import { type DocumentModelContext } from "./model-context.js";
@@ -16,7 +16,7 @@ import { runElementOpen } from "./run-properties.js";
 import { renderContent, xmlValue } from "./create-content.js";
 import { Font, ParagraphFormat, formattingXmlOwners, type FormattingXmlOwner } from "./formatting-model.js";
 import { activeXmlChildren } from "./xml-active-children.js";
-import { styleAttribute as attr, styleChild as child, styleToggle, styleInteger, mergeStyleChildren, styleIds } from "./style-properties.js";
+import { styleAttribute as attr, styleChild as child, styleToggle, styleInteger, mergeStyleChildren } from "./style-properties.js";
 import { styleDisplayName, styleStoredName } from "./style-names.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
@@ -183,7 +183,7 @@ export class Styles implements Iterable<BaseStyle> {
   [resolveHeadingStyle](level: number): ParagraphStyle {
     const budget = archiveSettings(this.store.context).budget;
     const root = this.rawElement;
-    const rendered = renderContent({version: 1, blocks: [{kind: "paragraph", level}]}, root.namespace, budget, root);
+    const rendered = renderContent({version: 1, blocks: [{kind: "paragraph", level}]}, root.namespace, budget, root, undefined, this.part.package[packageStyleAllocationIds]());
     if (rendered.styles) return this.wrap(this.store.add(rendered.styles)) as ParagraphStyle;
     const paragraph = parseDocumentXml(new TextEncoder().encode(rendered.body), {}, budget).root;
     const id = attr(child(child(paragraph, "pPr"), "pStyle"), "val");
@@ -200,7 +200,7 @@ export class Styles implements Iterable<BaseStyle> {
     if (!name.length) throw new InvalidValueError("Expected a nonempty style name.");
     const type = typeName(style_type);
     if ([...this].some(style => style.name === styleDisplayName(name, builtin))) throw new InvalidValueError("The style name already exists.");
-    const ids = styleIds(this.rawElement, archiveSettings(this.store.context).budget);
+    const ids = this.part.package[packageStyleAllocationIds]();
     let serial = 1; while (ids.has(`Style${serial}`)) serial++;
     const namespace = this.rawElement.namespace;
     return this.wrap(this.store.add(`<st:style xmlns:st="${namespace}" st:type="${type}" st:styleId="Style${serial}"${builtin ? "" : ' st:customStyle="1"'}><st:name st:val="${xmlValue(styleStoredName(name, builtin))}"/></st:style>`));

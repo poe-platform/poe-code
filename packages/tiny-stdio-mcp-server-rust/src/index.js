@@ -4,6 +4,9 @@ import { connectStreams } from "./stdio.js";
 const { NativeServer, NativeUriTemplate } = createRequire(import.meta.url)(
   "./tiny-stdio-mcp-server-rust.node"
 );
+export const { validateProtocolValue } = createRequire(import.meta.url)(
+  "./tiny-stdio-mcp-server-rust.node"
+);
 
 export function parseUriTemplate(source) {
   if (typeof source !== "string") throw new Error("URI template must be a string.");

@@ -179,6 +179,28 @@ export interface Server {
 
 export declare function createServer(options: ServerOptions): Server;
 
+export type ProtocolDefinition =
+  | "InputRequest"
+  | "InputResponses"
+  | "ClientCapabilities"
+  | "ElicitResult"
+  | "CreateMessageResult"
+  | "ListRootsResult"
+  | "DiscoverResult"
+  | "ListToolsResult"
+  | "CallToolResult"
+  | "ListPromptsResult"
+  | "GetPromptResult"
+  | "ListResourcesResult"
+  | "ListResourceTemplatesResult"
+  | "ReadResourceResult"
+  | "CompleteResult"
+  | "Result";
+export declare function validateProtocolValue(
+  definition: ProtocolDefinition,
+  value: unknown
+): boolean;
+
 export type UriTemplateValue = string | string[] | Record<string, string>;
 export interface UriTemplate {
   expand(variables: Record<string, UriTemplateValue>): string;

@@ -1,4 +1,9 @@
-import { createServer, parseUriTemplate, type HandlerRequestContext } from "../src/index.js";
+import {
+  createServer,
+  parseUriTemplate,
+  validateProtocolValue,
+  type HandlerRequestContext
+} from "../src/index.js";
 import { PassThrough } from "node:stream";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 
@@ -22,6 +27,8 @@ void server.connect({ readable: new PassThrough(), writable: new PassThrough() }
 void server.listen();
 const [sdkClient, sdkServer] = InMemoryTransport.createLinkedPair();
 void sdkClient;
+const retryValid: boolean = validateProtocolValue("InputResponses", { one: { action: "accept" } });
+void retryValid;
 void server.connectSDK(sdkServer);
 void session.handleSDKMessage({ jsonrpc: "2.0", id: "sdk", method: "ping" });
 const line: Promise<string | undefined> = server

@@ -31,6 +31,21 @@ JSON content and object/scalar output-schema fallbacks now match JavaScript
 shortest spelling across legacy and modern calls. The server checkpoint passes
 59 Rust and 312 native tests with these regressions included.
 
+The server now embeds the existing normative MCP 2026-07-28 schema data with its
+upstream licensing/source notices and a reproducible development generator. Own
+Rust schema evaluation validates protocol definitions, client capabilities and
+retry responses, rejecting malformed retry fields before handler invocation.
+URI/base64 and metadata/extension key formats use the own protocol foundation;
+`ListRootsResult` also enforces valid file roots. The public native validator
+rejects non-JSON input without executing accessors or serialization hooks.
+Each cached validator retains only transitively referenced definitions; a local
+fresh-process audit of all sixteen validators changed RSS growth from 5.31 MiB to
+1.98 MiB and initialization from 11.48 ms to 6.51 ms. These single process endpoints
+are not peak/leak evidence or a general backend comparison. Rust input-required
+capability/sequence validation is tested, but its Node invocation-result path is
+still pending. The expanded package checks include 62 Rust and 314 native tests,
+including concurrent worker use of cached capability/retry validators.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

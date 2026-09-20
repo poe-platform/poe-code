@@ -16,6 +16,16 @@ mod input;
 mod stdio;
 mod uri_template;
 
+#[napi]
+pub fn validate_protocol_value(env: Env, definition: String, source: Unknown<'_>) -> bool {
+    input::read(&env, source, input::Mode::Json)
+        .ok()
+        .flatten()
+        .is_some_and(|value| {
+            tiny_stdio_mcp_server_rust::protocol::validate_definition(&definition, &value)
+        })
+}
+
 #[napi(object)]
 pub struct NativeServerOptions {
     pub name: Utf16String,

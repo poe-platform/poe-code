@@ -75,6 +75,15 @@ explicit JSON-RPC error, preserving its code and optional data.
 Numeric text and JSON fallbacks use JavaScript's shortest number spelling,
 including exponent boundaries, subnormals, midpoint ties and negative zero.
 
+Modern requests validate client capabilities and retry responses against embedded
+normative MCP schemas using the independent Rust schema engine. Malformed retry
+fields are rejected before handlers run. `validateProtocolValue(definition, value)`
+also checks input requests/responses and server result shapes directly, including
+metadata keys, URI/base64 fields and file roots. Non-JSON values, serialization
+hooks and accessors return `false` without calling hooks/getters. Validators cache
+only the schema definitions reachable from each entry point. The normative schema
+data carries its upstream notice in `MCP-LICENSE.txt`; no SDK implementation is shipped.
+
 ```ts
 import { createServer } from "tiny-stdio-mcp-server-rust";
 

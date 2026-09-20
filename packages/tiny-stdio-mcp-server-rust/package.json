@@ -16,19 +16,22 @@
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
     "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
-    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint",
+    "generate:protocol-schema": "node scripts/generate-protocol-schema.mjs"
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
     "@modelcontextprotocol/sdk": "1.29.0",
     "mcp-protocol-rust": "*",
     "tiny-stdio-mcp-server": "^0.1.0",
-    "toolcraft-schema-rust": "*"
+    "toolcraft-schema-rust": "*",
+    "typescript": "5.9.3"
   },
   "files": [
     "dist",
     "LICENSE",
-    "UNICODE-LICENSE.txt"
+    "UNICODE-LICENSE.txt",
+    "MCP-LICENSE.txt"
   ],
   "engines": {
     "node": ">=18.18"

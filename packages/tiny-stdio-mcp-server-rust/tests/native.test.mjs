@@ -365,11 +365,13 @@ test("both native addons load and release independently in worker environments",
             `
       const { parentPort } = require("node:worker_threads");
       (async () => {
-        const { createServer } = await import(${JSON.stringify(serverUrl)});
+        const { createServer, validateProtocolValue } = await import(${JSON.stringify(serverUrl)});
         const { parseMessage } = await import(${JSON.stringify(protocolUrl)});
         const server = createServer({ name: "worker", version: "0" });
         const session = server.createMessageSession();
         for (let i = 0; i < 50; i++) {
+          if (!validateProtocolValue("ClientCapabilities", { sampling: { tools: {} } })) throw new Error("Bad concurrent capabilities");
+          if (!validateProtocolValue("InputResponses", { reply: { action: "accept", content: { fraction: 0.5 } } })) throw new Error("Bad concurrent retry schema");
           await session.handleMessage("ping");
           parseMessage('{"jsonrpc":"2.0","method":"ping"}');
         }

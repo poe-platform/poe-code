@@ -1,4 +1,4 @@
-use mcp_protocol_rust::metadata::{is_valid_metadata, is_valid_metadata_key};
+use mcp_protocol_rust::metadata::is_valid_metadata;
 use mcp_protocol_rust::{
     json::Value,
     jsonrpc::{self, RpcError},
@@ -10,6 +10,7 @@ pub mod content;
 pub mod features;
 pub mod notifications;
 pub mod output;
+pub mod protocol;
 pub mod requests;
 mod schema;
 pub mod stdio;
@@ -546,10 +547,30 @@ pub fn select_protocol(method: &str, params: Option<&Value>) -> Result<bool, Rpc
         return Err(missing());
     }
     let modern = string_matches(version, MODERN_PROTOCOL_VERSION);
-    if modern && !capabilities_are_valid(capabilities.expect("validated object capabilities")) {
+    if modern
+        && !protocol::validate_definition(
+            "ClientCapabilities",
+            capabilities.expect("validated object capabilities"),
+        )
+    {
         return Err(rpc_error(
             jsonrpc::INVALID_PARAMS,
             "Invalid MCP clientCapabilities",
+        ));
+    }
+    if modern
+        && params.is_some_and(|params| {
+            params
+                .get("requestState")
+                .is_some_and(|value| !matches!(value, Value::String(_)))
+                || params
+                    .get("inputResponses")
+                    .is_some_and(|value| !protocol::validate_definition("InputResponses", value))
+        })
+    {
+        return Err(rpc_error(
+            jsonrpc::INVALID_PARAMS,
+            "Invalid MCP retry parameters",
         ));
     }
     if !modern
@@ -594,47 +615,6 @@ pub fn select_protocol(method: &str, params: Option<&Value>) -> Result<bool, Rpc
 
 fn string_matches(value: Option<&Value>, expected: &str) -> bool {
     matches!(value, Some(Value::String(units)) if units.iter().copied().eq(expected.encode_utf16()))
-}
-
-fn capabilities_are_valid(value: &Value) -> bool {
-    for name in [
-        "roots",
-        "sampling",
-        "elicitation",
-        "experimental",
-        "extensions",
-    ] {
-        let Some(capability) = value.get(name) else {
-            continue;
-        };
-        let Value::Object(properties) = capability else {
-            return false;
-        };
-        let fields: &[&str] = match name {
-            "sampling" => &["context", "tools"],
-            "elicitation" => &["form", "url"],
-            _ => &[],
-        };
-        for field in fields {
-            if capability
-                .get(field)
-                .is_some_and(|value| !matches!(value, Value::Object(_)))
-            {
-                return false;
-            }
-        }
-        if ["experimental", "extensions"].contains(&name) {
-            for (key, value) in properties {
-                if !matches!(value, Value::Object(_))
-                    || (name == "extensions"
-                        && (!key.contains(&(b'/' as u16)) || !is_valid_metadata_key(key)))
-                {
-                    return false;
-                }
-            }
-        }
-    }
-    true
 }
 
 fn string(value: &str) -> Value {

@@ -11,9 +11,16 @@ input bytes, nesting, and value count before accepting untrusted messages.
 | Unicode         | Strict UTF-8 input and lossless escaped UTF-16 code units                                   |
 | Resource limits | Configurable bytes, container depth, and parsed value count                                 |
 | Serialization   | Iterative traversal, escaped controls, and JavaScript-compatible non-finite-number handling |
+| Wire formats    | Canonical base64 and strict absolute resource URI checks                                    |
 
 JSON-RPC helpers distinguish requests from notifications, preserve legacy IDs,
 enforce modern safe request IDs, and format success/error envelopes.
+
+`isBase64` validates alphabet, padding, and unused bits without decoding a buffer.
+`isValidUri` rejects controls, whitespace, raw non-ASCII characters, malformed
+percent escapes, relative identifiers, and misplaced brackets. It validates IPv6,
+ports, and special-scheme IPv4 hosts. Full internationalized-host conformance is
+still under review; do not use this checkpoint as a general URL security policy.
 
 The native Node binding parses directly into JavaScript values, preserving own
 `__proto__` properties and UTF-16 keys without a JavaScript JSON bridge. It ships

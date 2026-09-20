@@ -6,6 +6,16 @@ use napi_derive::napi;
 mod convert;
 use convert::NativeJson;
 
+#[napi]
+pub fn is_base64(input: Utf16String) -> bool {
+    mcp_protocol_rust::formats::is_base64(&input)
+}
+
+#[napi]
+pub fn is_valid_uri(input: Utf16String) -> bool {
+    mcp_protocol_rust::formats::is_valid_uri(&input)
+}
+
 pub struct NativeParsed(ParsedMessage);
 
 impl ToNapiValue for NativeParsed {

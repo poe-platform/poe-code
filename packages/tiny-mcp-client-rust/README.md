@@ -14,8 +14,11 @@ streams, out-of-order responses, notifications and server callbacks. Rust owns
 request IDs, exchange limits, response matching, incoming capacity and cancellation
 state; Node owns timers, stream decoding and callback signals. Canceled incoming
 callbacks retain their IDs and capacity until their work settles. Disposal rejects
-pending requests and aborts callback signals. Modern metadata can be attached,
-but modern result validation and input-request retry orchestration remain pending.
+pending requests and aborts callback signals. Modern calls validate result envelopes,
+cache metadata and normative protocol fields in Rust. `input_required` results invoke
+registered roots, sampling or elicitation callbacks, validate their responses, then
+retry with fresh IDs and snapshotted arguments. Retry rounds and per-round inputs
+are bounded, and missing capabilities or handlers reject before callbacks run.
 
 ```ts
 import { parseJsonRpcMessage } from "tiny-mcp-client-rust";
@@ -23,6 +26,6 @@ const reply = parseJsonRpcMessage('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}
 if (reply.type === "response") console.log(reply.message);
 ```
 
-Complete client lifecycle, request/retry management and transports are still being
+Complete client lifecycle, subscriptions and standalone transports are still being
 implemented. Keep applications on their current MCP client until conformance and
 integration are complete. Existing consumers and release wiring remain unchanged.

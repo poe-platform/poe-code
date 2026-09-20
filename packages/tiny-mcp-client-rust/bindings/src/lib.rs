@@ -263,3 +263,120 @@ fn layer_error(error: LayerError) -> convert::NativeJson {
     }
     convert::NativeJson(object(vec![("error", object(fields))]))
 }
+
+use tiny_mcp_client_rust::retries::{ResultAction, RetryState};
+#[napi]
+pub struct NativeRetryState {
+    state: RefCell<RetryState>,
+}
+#[napi]
+impl NativeRetryState {
+    #[napi(constructor)]
+    pub fn new(env: Env, method: String, params: Unknown<'_>) -> Result<Self> {
+        let params = input::read(&env, params, input::Mode::Json).map_err(|_| {
+            napi::Error::from_reason("Request params must contain only JSON values")
+        })?;
+        if params
+            .as_ref()
+            .is_some_and(|params| !params.is_json_value())
+        {
+            return Err(napi::Error::from_reason(
+                "Request params must contain only JSON values",
+            ));
+        }
+        Ok(Self {
+            state: RefCell::new(RetryState::new(method, params)),
+        })
+    }
+    #[napi]
+    pub fn process_result(
+        &self,
+        env: Env,
+        result: Unknown<'_>,
+        metadata: Unknown<'_>,
+        handlers: Vec<String>,
+    ) -> Result<convert::NativeJson> {
+        let result = input::read(&env, result, input::Mode::Json)?.unwrap_or(Value::Null);
+        let metadata = input::read(&env, metadata, input::Mode::Json)?
+            .unwrap_or_else(|| Value::Object(vec![]));
+        let capabilities = metadata
+            .get("io.modelcontextprotocol/clientCapabilities")
+            .cloned()
+            .unwrap_or_else(|| Value::Object(vec![]));
+        Ok(
+            match self
+                .state
+                .borrow_mut()
+                .process_result(result, &capabilities, &handlers)
+            {
+                Ok(ResultAction::Complete(result)) => convert::NativeJson(object(vec![
+                    ("type", text("complete")),
+                    ("result", result),
+                ])),
+                Ok(ResultAction::Inputs(requests)) => convert::NativeJson(object(vec![
+                    ("type", text("inputs")),
+                    (
+                        "requests",
+                        Value::Array(
+                            requests
+                                .into_iter()
+                                .map(|request| {
+                                    let mut fields = vec![
+                                        ("key", Value::String(request.key)),
+                                        ("method", text(&request.method)),
+                                    ];
+                                    if let Some(params) = request.params {
+                                        fields.push(("params", params));
+                                    }
+                                    object(fields)
+                                })
+                                .collect(),
+                        ),
+                    ),
+                ])),
+                Err(error) => rpc_error(error),
+            },
+        )
+    }
+    #[napi]
+    pub fn record_response(
+        &self,
+        env: Env,
+        key: Utf16String,
+        method: String,
+        response: Unknown<'_>,
+    ) -> convert::NativeJson {
+        let response = match input::read(&env, response, input::Mode::Json) {
+            Ok(Some(response)) => response,
+            _ => {
+                return rpc_error(mcp_protocol_rust::jsonrpc::RpcError {
+                    code: -32600,
+                    message: "Invalid MCP input response".into(),
+                    data: None,
+                });
+            }
+        };
+        match self
+            .state
+            .borrow_mut()
+            .record_response(key.to_vec(), &method, response)
+        {
+            Ok(()) => convert::NativeJson(object(vec![])),
+            Err(error) => rpc_error(error),
+        }
+    }
+    #[napi]
+    pub fn next_params(&self) -> convert::NativeJson {
+        convert::NativeJson(self.state.borrow().next_params())
+    }
+}
+fn rpc_error(error: mcp_protocol_rust::jsonrpc::RpcError) -> convert::NativeJson {
+    let mut fields = vec![
+        ("code", Value::Number(error.code.into())),
+        ("message", text(&error.message)),
+    ];
+    if let Some(data) = error.data {
+        fields.push(("data", data));
+    }
+    convert::NativeJson(object(vec![("error", object(fields))]))
+}

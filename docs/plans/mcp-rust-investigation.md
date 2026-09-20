@@ -168,6 +168,17 @@ Modern complete/input-required result processing, request retries, complete clie
 lifecycle and standalone transports are still pending. Stream decoding currently
 uses the Node platform decoder with bounded line framing in the adapter.
 
+Modern client result processing and retry state now live in own Rust code. Known
+results validate normative schemas; cacheable methods enforce ttlMs/cacheScope.
+Input requirements validate capability/transcript rules before selecting registered
+handlers. Roots/sampling/elicitation callbacks use one exchange signal; responses
+validate before retries preserve original argument snapshots, replace opaque retry
+fields and allocate fresh IDs. The 64-round/64-input limits match the reference.
+Tests cover canceled callback waits, retained exchange capacity, stale state removal,
+argument mutation, invalid roots, aggregate missing subcapabilities and pre-aborted
+requests. Check coverage expands to 8 Rust and 18 native tests plus type fixtures.
+Full client lifecycle, subscriptions, HTTP/stdio adapters and OAuth remain pending.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

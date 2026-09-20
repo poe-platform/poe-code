@@ -1,11 +1,13 @@
 import { createRequire } from "node:module";
 import { McpError } from "./index.js";
-const { NativeMessageLayer } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
+const { NativeMessageLayer, NativeRetryState } = createRequire(import.meta.url)(
+  "./tiny-mcp-client-rust.node"
+);
 
 function unwrap(value) {
   if (value.error !== undefined) {
-    const { code, message } = value.error;
-    throw code === undefined ? new Error(message) : new McpError(code, message);
+    const { code, message, data } = value.error;
+    throw code === undefined ? new Error(message) : new McpError(code, message, data);
   }
   return value;
 }
@@ -105,44 +107,87 @@ export class JsonRpcMessageLayer {
     const forward = () => controller.abort(options.signal.reason);
     options.signal?.addEventListener("abort", forward, { once: true });
     let id;
-    let cancel;
-    const work = new Promise((resolve, reject) => {
-      cancel = () => {
-        if (id !== undefined) this.cancelRequest(id, controller.signal.reason);
-        reject(controller.signal.reason);
-      };
-      controller.signal.addEventListener("abort", cancel, { once: true });
-      try {
-        const prepared = unwrap(
-          this.#native.prepareRequest(token, method, params, this.requestMetadata)
-        );
-        id = prepared.id;
-        options.onRequestId?.(id);
-        if (options.signal?.aborted) forward();
-        controller.signal.throwIfAborted();
-        const timeout =
-          timeoutMs === null
-            ? undefined
-            : setTimeout(() => {
-                this.#native.cancelRequest(id);
-                this.#pending.delete(id);
-                try {
-                  options.onTimeout?.(id);
-                } finally {
-                  reject(new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`));
-                }
-              }, timeoutMs);
-        this.#pending.set(id, { resolve, reject, timeout });
-        try {
-          this.#output.write(prepared.line);
-        } catch (error) {
-          this.cancelRequest(id, error);
-        }
-      } catch (error) {
-        reject(error);
-      }
+    let rejectAbort;
+    const aborted = new Promise((_resolve, reject) => {
+      rejectAbort = reject;
     });
-    return work.finally(() => {
+    const cancel = () => {
+      if (id !== undefined) this.cancelRequest(id, controller.signal.reason);
+      rejectAbort(controller.signal.reason);
+    };
+    controller.signal.addEventListener("abort", cancel, { once: true });
+    const once = (args) =>
+      new Promise((resolve, reject) => {
+        try {
+          const prepared = unwrap(
+            this.#native.prepareRequest(token, method, args, this.requestMetadata)
+          );
+          id = prepared.id;
+          options.onRequestId?.(id);
+          if (options.signal?.aborted) forward();
+          controller.signal.throwIfAborted();
+          const timeout =
+            timeoutMs === null
+              ? undefined
+              : setTimeout(() => {
+                  this.#native.cancelRequest(id);
+                  this.#pending.delete(id);
+                  try {
+                    options.onTimeout?.(id);
+                  } finally {
+                    reject(
+                      new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`)
+                    );
+                  }
+                }, timeoutMs);
+          this.#pending.set(id, { resolve, reject, timeout });
+          try {
+            this.#output.write(prepared.line);
+          } catch (error) {
+            this.cancelRequest(id, error);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      });
+    const work = (async () => {
+      let retry;
+      if (this.requestMetadata !== undefined) {
+        try {
+          retry = new NativeRetryState(method, params);
+        } catch (error) {
+          throw new McpError(-32602, error.message);
+        }
+      }
+      let args = params;
+      if (options.signal?.aborted) forward();
+      while (true) {
+        if (this.#disposed !== undefined) throw this.#disposed;
+        controller.signal.throwIfAborted();
+        const result = await once(args);
+        if (this.requestMetadata === undefined) return result;
+        if (retry === undefined) retry = new NativeRetryState(method, params);
+        const action = unwrap(
+          retry.processResult(result, this.requestMetadata, [...this.#inputHandlers.keys()])
+        );
+        if (action.type === "complete") return action.result;
+        for (const request of action.requests) {
+          if (this.#disposed !== undefined) throw this.#disposed;
+          controller.signal.throwIfAborted();
+          const response = await this.#inputHandlers.get(request.method)(request.params, {
+            id: request.key,
+            method: request.method,
+            signal: controller.signal
+          });
+          unwrap(retry.recordResponse(request.key, request.method, response));
+        }
+        if (this.#disposed !== undefined) throw this.#disposed;
+        controller.signal.throwIfAborted();
+        args = retry.nextParams();
+      }
+    })();
+    if (options.signal?.aborted) forward();
+    return Promise.race([work, aborted]).finally(() => {
       options.signal?.removeEventListener("abort", forward);
       controller.signal.removeEventListener("abort", cancel);
       this.#exchanges.delete(token);

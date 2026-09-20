@@ -193,7 +193,6 @@ describe("configs/auto mode", () => {
 describe("configs/read mode is non-mutating", () => {
   it.each([
     {},
-    { interactive: true },
     { resumeThreadId: "read-session" }
   ])("keeps Codex read spawns sandboxed without loopback setup (%j)", async (options) => {
     const { buildSpawnArgs } = await import("../spawn.js");

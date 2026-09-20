@@ -108,6 +108,24 @@ describe("spawnInteractive", () => {
     ]);
   });
 
+  it("keeps interactive Codex read launches sandboxed without loopback setup", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
+
+    await spawnInteractive("codex", { prompt: "Read the repository", mode: "read" });
+
+    const [command, args] = spawnMock.mock.calls[0];
+    expect(command).toBe("codex");
+    expect(args).toEqual([
+      "Read the repository",
+      "-a",
+      "never",
+      "-s",
+      "read-only",
+      "--enable",
+      "use_legacy_landlock"
+    ]);
+  });
+
   it("builds flag-based prompt args for opencode", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 

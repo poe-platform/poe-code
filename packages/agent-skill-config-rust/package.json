@@ -1,5 +1,46 @@
 {
- "name":"@poe-code/agent-skill-config-rust","version":"0.1.0","private":true,"description":"Portable Rust skill configuration and Git exclude blocks with zero npm runtime dependencies","type":"module","license":"MIT","main":"dist/index.js","types":"dist/index.d.ts","exports":{".":{"types":"./dist/index.d.ts","import":"./dist/index.js"}},
- "scripts":{"build":"node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build","test:unit":"node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json && vitest run --config vitest.sdk.config.mjs","lint":"node ../mcp-protocol-rust/scripts/cargo.mjs lint"},
- "devDependencies":{"@napi-rs/cli":"3.10.4","@poe-code/agent-skill-config":"*","@poe-code/agent-defs-rust":"*","mcp-protocol-rust":"*","memfs":"4.56.10","typescript":"5.9.3","vitest":"4.1.11"},"files":["dist","LICENSE"],"engines":{"node":">=18.18"},"napi":{"binaryName":"agent-skill-config-rust"},"repository":{"type":"git","url":"git+https://github.com/poe-platform/poe-code.git","directory":"packages/agent-skill-config-rust"}
+  "name": "@poe-code/agent-skill-config-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portable Rust skill configuration and Git exclude blocks with zero npm runtime dependencies",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json && vitest run --config vitest.sdk.config.mjs",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "@poe-code/agent-skill-config": "*",
+    "@poe-code/agent-defs-rust": "*",
+    "mcp-protocol-rust": "*",
+    "memfs": "4.56.10",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "@poe-code/config-mutations-rust": "*"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "agent-skill-config-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/agent-skill-config-rust"
+  }
 }

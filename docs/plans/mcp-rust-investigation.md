@@ -2264,6 +2264,37 @@ Evidence: `out/rust-agent-hook-bridge-*` and `out/rust-hook-memory-*`.
 The overall rewrite, malformed/getter-stage fidelity, broad performance/platform
 acceptance and minimum24-hour actual effort requirement remain unfinished.
 
+### Skill configuration, named installation and templates — 2026-09-20
+
+Added portable request machines for supported-agent admission, scope defaults,
+skill-name validation, conflict checks, bundled-content comparison, force handling
+and mutation plans. Rust template discovery walks package roots and tries source,
+distribution and legacy skill locations in SDK order. Node executes async injected
+filesystem requests and supplies mutation observers; its existing single addon
+statically links the own config mutation and template engines. The two bundled
+markdown files are own copies, included both in Rust and packed Node artifacts.
+
+Failing-first core/native/discovery evidence preceded implementation. All13 Rust
+groups,4 native groups,50 current SDK resolver/exclude/template cases, strict subset
+API type assignment, fmt/clippy and the uncached13-workspace build closure pass.
+The comparative native test covers all6 agents ×2 scopes ×2 dry-run states with
+exact filesystem bytes, returned paths and observer events through configure,
+install and unconfigure. It also tests user-file preservation, unsupported errors,
+invalid names and original filesystem exception identity. The source template
+oracle adapter preserves its original import-meta location for its memfs fixture.
+
+Direct and packed16MiB workers each pass1024 configuration/install/unconfigure
+cycles with external imports blocked.4MiB and8MiB worker limits terminate from
+heap exhaustion; those are failures, not low-memory acceptance. The packed package
+has one addon and zero npm runtime/peer/optional dependency groups.
+
+Three512-cycle samples are188.6–232.2µs native versus102.6–119.2µs SDK. Additional
+8192 cycles keep9 live fixture inodes: native sampled heap7.35→7.68MB and buffers
+65.8KB throughout, SDK10.95→11.37MB and73.97KB. RSS ends93.14MB native versus92.83MB
+SDK; lower native heap does not establish lower total memory. Evidence:
+`out/rust-agent-skill-apply-*`. Active skill lifecycle, complete package acceptance,
+the overall rewrite and minimum24-hour actual effort remain unfinished.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

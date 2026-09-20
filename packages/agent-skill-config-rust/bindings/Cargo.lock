@@ -23,6 +23,7 @@ version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
  "agent-skill-config-rust",
+ "config-mutations-rust-napi-core",
  "mcp-protocol-rust",
  "mcp-protocol-rust-napi-core",
  "napi",
@@ -41,6 +42,25 @@ name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+
+[[package]]
+name = "config-mutations-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "config-mutations-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust-napi-core",
+]
 
 [[package]]
 name = "convert_case"
@@ -305,6 +325,24 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "toolcraft-design-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "toolcraft-design-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust",
 ]
 
 [[package]]

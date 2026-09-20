@@ -10,6 +10,9 @@ use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::sync::OnceLock;
+mod apply;
+mod templates;
+pub use config_mutations_rust_napi_core::*;
 fn u(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }

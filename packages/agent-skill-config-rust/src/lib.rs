@@ -1,7 +1,9 @@
 //! Portable coding-agent skill catalogs and filesystem policies.
+pub mod apply;
 pub mod exclude;
 pub mod paths;
 pub mod resolve;
+pub mod templates;
 use agent_defs_rust::Registry;
 use mcp_protocol_rust::{json::Value, strings::trim_ecmascript};
 fn u(text: &str) -> Vec<u16> {

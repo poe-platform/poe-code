@@ -9,6 +9,7 @@ crate-type=["cdylib"]
 [dependencies]
 agent-skill-config-rust={path=".."}
 agent-defs-rust={path="../../agent-defs-rust"}
+config-mutations-rust-napi-core={path="../../config-mutations-rust/bindings/shared"}
 mcp-protocol-rust={path="../../mcp-protocol-rust"}
 mcp-protocol-rust-napi-core={path="../../mcp-protocol-rust/bindings/shared"}
 napi={version="=3.12.6",default-features=false,features=["napi6"]}

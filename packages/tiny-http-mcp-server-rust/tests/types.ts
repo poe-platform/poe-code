@@ -62,3 +62,20 @@ const oldTinyPairFactory:typeof OriginalTesting.createHttpTestPairWithTinyClient
 declare const oldLog:OriginalTesting.TinyHttpRequestLogEntry;
 const nativeLog:TinyHttpRequestLogEntry=oldLog;
 void [originalSdkPair,nativeSdkPair,originalTinyPair,nativeTinyPair,oldPairFactory,oldTinyPairFactory,nativeLog];
+
+import {runCli,isCliInvocation} from '../dist/cli.js';
+import {loadOAuthVerifier} from '../dist/load-oauth-verifier.js';
+import type * as OriginalCli from '../../tiny-http-mcp-server/dist/cli.js';
+import type * as OriginalLoader from '../../tiny-http-mcp-server/dist/load-oauth-verifier.js';
+const compatibleCli:typeof OriginalCli.runCli=runCli;
+declare const oldCli:typeof OriginalCli.runCli;
+const nativeCli:typeof runCli=oldCli;
+const compatibleInvocation:typeof OriginalCli.isCliInvocation=isCliInvocation;
+const compatibleLoader:typeof OriginalLoader.loadOAuthVerifier=loadOAuthVerifier;
+runCli(['--help'],{createServer:options=>{
+ const limit:number|undefined=options.maxSessions;
+ // @ts-expect-error CLI server options retain their concrete schema, not any.
+ const invalid:string=options.maxSessions;
+ void [limit,invalid];return {} as Pick<HttpServer,'listenHttp'>;
+}});
+void [compatibleCli,nativeCli,compatibleInvocation,compatibleLoader];

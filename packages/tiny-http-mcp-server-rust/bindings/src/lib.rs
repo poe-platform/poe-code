@@ -3,6 +3,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::cell::RefCell;
 mod auth_input;
+pub mod cli_binding;
 use convert::NativeJson;
 use embedded_stdio::convert;
 use tiny_http_mcp_server_rust::body::{self, BodyError, ByteBudget};

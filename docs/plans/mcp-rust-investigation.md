@@ -1130,6 +1130,27 @@ optional npm dependencies. Temporary pack/extraction artifacts are purged. This
 is an additional closure package, not completion of poe-agent; no speed or lower
 standalone memory claim is made for the Node adapter.
 
+The HTTP CLI is now implemented with a standalone suffix-named bin and public
+`./cli` API. Rust owns numeric option definitions, validation/error ordering,
+OAuth scope configuration, verifier module classification, help text and the
+shutdown state machine. Node supplies argument/URL/import/signal primitives.
+All 18 numeric flags compare with original behavior across valid decimals,
+Unicode whitespace, rounding/overflow and malformed inputs. Original CLI,
+verifier loading, invocation path and main HTTP suites run against the addon;
+only the advertised command-name assertion changes to the suffix name.
+Default shutdown removes signal/timer hooks on success, rejection, deadline,
+second signal and stdout failure, including synchronous injected callbacks.
+Throwing forced cleanup settles once. Maintained checks pass: 25 Rust tests,
+48 native groups, 443 Vitest contracts across 21 files, shipped types and lint.
+The maintained 13-package build closure passes. Help and invalid-port screenshots
+were visually inspected. Packing reproduced a missing executable mode; the
+existing repository prepack hook fixes it. The extracted standalone package
+passes executable mode, help/version/error, real HTTP initialize and SIGTERM
+shutdown with external npm resolution blocked. Evidence is under
+`out/rust-http-cli-*`; temporary tarball/extraction artifacts are purged.
+This is package delivery, not completion of the broader rewrite or platform,
+memory/stability/performance acceptance.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

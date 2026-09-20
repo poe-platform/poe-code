@@ -23,9 +23,14 @@
     "./test-support": {
       "types": "./dist/test-support.d.ts",
       "import": "./dist/test-support.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
     }
   },
   "scripts": {
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
     "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
     "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && vitest run --config vitest.reference.config.ts && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
@@ -59,5 +64,8 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/tiny-http-mcp-server-rust"
+  },
+  "bin": {
+    "tiny-http-mcp-server-rust": "dist/cli.js"
   }
 }

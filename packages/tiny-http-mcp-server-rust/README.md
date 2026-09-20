@@ -25,6 +25,7 @@ await handle.close();
 | Capability | API |
 | --- | --- |
 | Node HTTP listener or existing request handler | `listenHttp`, `handleRequest` |
+| Standalone HTTP service | `tiny-http-mcp-server-rust`, `./cli`: `runCli` |
 | Tools, resources, prompts and subscriptions | `createHttpServer` registration methods |
 | JSON or SSE responses and bounded replay | `enableJsonResponse`, stream/history limits |
 | OAuth bearer admission | `oauth.verifier`, `requiredScopes` |
@@ -67,6 +68,13 @@ the listener; cleanup settles both client and listener even if one fails.
 `createHttpTestPair` explicitly loads the official SDK for development conformance
 tests; install that SDK as a development dependency when using this oracle.
 
-The CLI is still being ported. Broader platform artifacts,
+Start a standalone service with `tiny-http-mcp-server-rust --port 3000`.
+Use `--help` to see admission limits, JSON/SSE settings and OAuth options.
+`--oauth-verifier-module` loads your verifier without bundling an authentication
+provider. SIGINT or SIGTERM closes the listener gracefully; a second signal or
+`--shutdown-grace-ms` deadline forces active connections to close.
+Applications can call `runCli(args, dependencies)` for the same configuration.
+
+Broader platform artifacts,
 performance measurements and inherited schema/URI corner cases remain in progress.
 Existing applications continue using the original packages.

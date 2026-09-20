@@ -68,15 +68,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "frontmatter-rust-node"
-version = "0.1.0"
-dependencies = [
- "frontmatter-rust-napi-core",
- "napi-build",
- "napi-derive",
-]
-
-[[package]]
 name = "futures"
 version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"

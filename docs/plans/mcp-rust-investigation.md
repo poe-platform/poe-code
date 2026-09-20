@@ -1860,6 +1860,18 @@ under bounded expansion, and depth512 is an intentional bound. Evidence under
 `out/rust-frontmatter-{test,lint,build,pack-smoke,original-performance,native-performance}.log`.
 The overall MCP/poe-agent rewrite and minimum effort requirement remain unfinished.
 
+The frontmatter conversion/registration bridge now resides in the own
+`frontmatter-rust-napi-core` path crate, reexported by its original addon.
+This lets dependent own addons embed the same frontmatter/YAML/template bridge
+and redirect the host's central native bootstrap. The root retains a direct
+napi-derive dependency for CLI artifact/type generation. Shared fmt/clippy is
+part of the maintained lint route. This is a refactor against the existing
+failing-first tests; no public behavior or production imports changed.
+Validation: seven Rust groups, eight native groups, all18 actual SDK cases,
+declarations, lint/shared lint, nine-workspace uncached build and packed root
+smoke with bare npm imports blocked pass. The build genuinely compiles the new
+shared bridge; evidence under `out/rust-frontmatter-embed-*.log`.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

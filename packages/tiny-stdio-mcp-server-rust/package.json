@@ -1,0 +1,42 @@
+{
+  "name": "tiny-stdio-mcp-server-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent Rust MCP server with native Node bindings",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "mcp-protocol-rust": "*",
+    "tiny-stdio-mcp-server": "^0.1.0"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "tiny-stdio-mcp-server-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-stdio-mcp-server-rust"
+  }
+}

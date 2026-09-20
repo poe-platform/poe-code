@@ -291,13 +291,40 @@ export class NumberingGraph {
     return `<nl:abstractNum xmlns:nl="${this.xml.root.namespace}" nl:abstractNumId="${id}"><nl:multiLevelType nl:val="multilevel"/>${levels}</nl:abstractNum>`;
   }
   private signature(node: XmlElement, root = false): string {
-    this.budget.charge("work", 1 + node.attributes.length + node.content.length);
-    const value = JSON.stringify([node.namespace, node.localName,
-      node.attributes.filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && !(root && a.namespace === node.namespace && a.localName === "abstractNumId")).map(a => [a.namespace, a.localName, a.value]).sort(),
-      node.content.map(c => c.kind === "element" ? this.signature(c) : c)]);
-    this.budget.charge("retainedBytes", value.length * 2);
-    this.budget.charge("work", value.length);
-    return value;
+    this.budget.charge("retainedBytes", 24);
+    const stack = [{ node, position: -1 }], fragments: string[] = [];
+    let length = 0;
+    const emit = (fragment: string): void => {
+      this.budget.charge("work", fragment.length);
+      this.budget.charge("retainedBytes", 8 + fragment.length * 2);
+      length += fragment.length;
+      fragments.push(fragment);
+    };
+    while (stack.length) {
+      this.budget.charge("work", 1);
+      const frame = stack.at(-1)!, current = frame.node;
+      if (frame.position === -1) {
+        this.budget.charge("work", 1 + current.attributes.length + current.content.length);
+        this.budget.charge("retainedBytes", 96 + current.attributes.length * 48);
+        const attributes = current.attributes.filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && !(root && current === node && a.namespace === current.namespace && a.localName === "abstractNumId")).map(a => [a.namespace, a.localName, a.value]).sort();
+        const header = JSON.stringify([current.namespace, current.localName, attributes]);
+        emit(header.slice(0, -1) + ",[");
+        frame.position = 0;
+      } else if (frame.position < current.content.length) {
+        if (frame.position) emit(",");
+        const content = current.content[frame.position++]!;
+        if (content.kind === "element") {
+          this.budget.charge("retainedBytes", 24);
+          stack.push({ node: content, position: -1 });
+        } else emit(JSON.stringify(content));
+      } else {
+        emit("]]");
+        stack.pop();
+      }
+    }
+    this.budget.charge("retainedBytes", length * 2);
+    this.budget.charge("work", length);
+    return fragments.join("");
   }
   private abstract(formats: readonly string[]): number {
     const original = parseDocumentXml(new TextEncoder().encode(this.definitionXml(formats, 0)), {}, this.budget).root;

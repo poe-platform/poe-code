@@ -2,7 +2,8 @@
 
 Date: 2026-09-19. Repository inspected: `1a9316310` on local `main`.
 Status: implementation active. The reusable `mcp-protocol-rust` JSON foundation
-is implemented; MCP package rewrites and native bindings are in progress.
+is implemented, including a tested napi-rs JSON binding; MCP package rewrites
+and the complete poe-agent dependency rewrite are in progress.
 No consumer integration, publication, or performance measurements have been performed.
 
 The active goal began on 2026-09-20 at 02:45 UTC (September 19 at 21:45 Chicago).
@@ -32,6 +33,58 @@ poe-code CLI or a running Node process. Separate Node bindings from the Rust cor
 so Python bindings can later use PyO3 and maturin against the same implementation.
 Python bindings are an architectural consideration, not additional implementation
 scope for the first MCP work.
+
+### Expanded poe-agent scope
+
+The user subsequently required the rewrite to include everything needed for
+`poe-agent`, and authorized committing each completed package and pushing directly
+to `main` without waiting for CI. Production consumers remain unchanged and Rust
+packages remain private. Package commits, verified remote delivery, and any release
+status are reported separately; publishing or enabling the Rust replacements is
+still outside this round.
+
+The declared runtime dependency closure of `@poe-code/poe-agent` contains nineteen
+workspace packages, including the agent itself. Each requires a suffixed Rust
+counterpart for the behavior actually needed by the independent agent:
+
+| Existing package                | Rust counterpart                     |
+| ------------------------------- | ------------------------------------ |
+| `@poe-code/poe-agent`           | `@poe-code/poe-agent-rust`           |
+| `@poe-code/agent-spawn`         | `@poe-code/agent-spawn-rust`         |
+| `@poe-code/poe-acp-client`      | `@poe-code/poe-acp-client-rust`      |
+| `@poe-code/user-error`          | `@poe-code/user-error-rust`          |
+| `auth-store`                    | `auth-store-rust`                    |
+| `tiny-mcp-client`               | `tiny-mcp-client-rust`               |
+| `@poe-code/agent-defs`          | `@poe-code/agent-defs-rust`          |
+| `@poe-code/agent-harness-tools` | `@poe-code/agent-harness-tools-rust` |
+| `@poe-code/agent-hook-config`   | `@poe-code/agent-hook-config-rust`   |
+| `@poe-code/agent-skill-config`  | `@poe-code/agent-skill-config-rust`  |
+| `@poe-code/poe-code-config`     | `@poe-code/poe-code-config-rust`     |
+| `@poe-code/process-runner`      | `@poe-code/process-runner-rust`      |
+| `toolcraft-design`              | `toolcraft-design-rust`              |
+| `@poe-code/config-extends`      | `@poe-code/config-extends-rust`      |
+| `@poe-code/config-mutations`    | `@poe-code/config-mutations-rust`    |
+| `@poe-code/frontmatter`         | `@poe-code/frontmatter-rust`         |
+| `@poe-code/providers`           | `@poe-code/providers-rust`           |
+| `@poe-code/task-list`           | `@poe-code/task-list-rust`           |
+| `toolcraft-schema`              | `toolcraft-schema-rust`              |
+
+This closure adds about 82,700 non-test TypeScript source lines by a first manifest
+inventory; source imports and optional paths still require review. Counts do not
+prove behavioral coverage. External packages currently supply OpenAI API/SSE
+handling, glob/ignore/shell parsing, HTML-to-Markdown conversion, YAML/TOML/JSONC,
+TypeScript config evaluation, and terminal width/wrapping. The native rewrite must
+provide those required behaviors without retaining the external runtime packages.
+Standard host HTTP, crypto, filesystem, and process adapters remain allowed.
+
+Acceptance includes the fluent agent builder, plugin registry and hooks, providers,
+streaming model protocols, MCP tools, files/shell/web/memory/skills/policy/compaction,
+child spawning, ACP, session branching and persistence, cancellation, background
+process cleanup, and transcript events. Exercise all of these with deterministic
+model/host adapters; no test calls a live model. Port the dependency graph in order
+and use the existing public APIs and tests as development-time references. A
+small native orchestration shell delegating agent logic back to TypeScript is not
+an independent Rust rewrite.
 
 ## Dependency policy
 

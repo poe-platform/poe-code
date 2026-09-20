@@ -93,3 +93,26 @@ Deliver the recovery diagnostic in `59baca37f5ae69f027158a379de02c7512d15342`
 alongside the read-mode fix. It exposes the original failure and the supported
 read-only recovery in CLI and SDK streams, including when Codex sends no matching
 tool-start event. Verify both commits on remote main and in a published release.
+
+## Repeated occurrence (issue 141)
+
+Issue 141 repeats issues 139 and 140. Verification on 2026-09-20 in the existing
+checkout with Codex CLI 0.155.1 confirmed the default read-only sandbox fails
+before `pwd` with the same loopback error. With `use_legacy_landlock`, both `pwd`
+and a repository configuration read succeed. Creating a file under `/tmp` and
+creating an IPv4 stream socket raise `PermissionError`; no QA file is created.
+All 675 tests in the maintained agent-spawn workspace unit route pass.
+
+The active API session uses a managed workspace-write profile, despite the
+original report describing read-only commands. A command being read-only does
+not select a read-only sandbox. The workspace-write probe fails during loopback
+setup, and its Landlock probe refuses the incompatible runtime-enforced profile.
+Poe Code does not initialize the API session's command sandbox and cannot change
+its startup permissions. Keep the existing restrictions; use a compatible host
+for that profile or start a new read-only session with the documented flags.
+
+Remote `main` and published `v17.0.27` contain read-mode fix `0045f2af1` and
+recovery diagnostic `59baca37f`. GitHub Release run `35514943296` succeeded,
+and the npm registry reports `poe-code@latest` as `17.0.27`. No additional runtime
+change is justified by this repeated report; this entry records the fresh
+verification and the boundary of the existing recovery.

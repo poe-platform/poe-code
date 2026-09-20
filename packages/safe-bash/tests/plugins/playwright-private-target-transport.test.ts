@@ -257,6 +257,56 @@ test('native detach failure retires rather than exposing or falsely acknowledgin
   assert.deepEqual(state.received, []);
 });
 
+for (const retirement of ['target', 'session', 'late-attachment'] as const) {
+  test(`confirmed private ${retirement} retirement keeps the public transport alive after native detach rejection`, () => {
+    const state = fixture();
+    try {
+      state.beginCreation().commit('scratch');
+      if (retirement === 'late-attachment') state.receive({ method: 'Target.targetDestroyed', params: { targetId: 'scratch' } });
+      state.receive(attached('scratch', 'private'));
+      if (retirement === 'target') state.receive({ method: 'Target.targetDestroyed', params: { targetId: 'scratch' } });
+      if (retirement === 'session') state.receive({ method: 'Target.detachedFromTarget', params: { sessionId: 'private' } });
+      state.receive({ id: state.sent[0]!.id, error: { code: -32602, message: 'No session with given id' } });
+      assert.equal(state.closes(), 0);
+      assert.deepEqual(state.received, []);
+      state.transport.send({ id: 42, method: 'Browser.getVersion' });
+      state.receive({ id: state.sent[1]!.id, result: { product: 'Chromium' } });
+      assert.deepEqual(state.received, [{ id: 42, result: { product: 'Chromium' } }]);
+      state.receive({ method: 'Runtime.executionContextCreated', sessionId: 'private', params: {} });
+      assert.equal(state.received.length, 1);
+    } finally { state.transport.close(); }
+  });
+}
+
+for (const [name, error, retired] of [
+  ['unconfirmed session', { code: -32602, message: 'No session with given id' }, false],
+  ['different code', { code: -32000, message: 'No session with given id' }, true],
+  ['different error', { code: -32602, message: 'Cannot detach' }, true],
+  ['extra error data', { code: -32602, message: 'No session with given id', data: 'unexpected' }, true],
+  ['retired parent session', { code: -32001, message: 'Session with given id not found.' }, true],
+] as const) {
+  test(`private detach still fails closed for ${name}`, () => {
+    const state = fixture();
+    state.beginCreation().commit('scratch');
+    state.receive(attached('scratch', 'private'));
+    if (retired) state.receive({ method: 'Target.targetDestroyed', params: { targetId: 'scratch' } });
+    state.receive({ id: state.sent[0]!.id, error });
+    assert.equal(state.closes(), 1);
+    assert.deepEqual(state.received, []);
+  });
+}
+
+test('another private target retirement cannot excuse a detach rejection', () => {
+  const state = fixture();
+  state.beginCreation().commit('scratch');
+  state.beginCreation().commit('other');
+  state.receive(attached('scratch', 'private'));
+  state.receive({ method: 'Target.targetDestroyed', params: { targetId: 'other' } });
+  state.receive({ id: state.sent[0]!.id, error: { code: -32602, message: 'No session with given id' } });
+  assert.equal(state.closes(), 1);
+  assert.deepEqual(state.received, []);
+});
+
 test('confirmed target retirement returns active capacity while retaining recent privacy', () => {
   const state = fixture({ maxPrivateTargets: 1 });
   state.beginCreation().commit('scratch');

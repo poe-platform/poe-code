@@ -393,6 +393,16 @@ cannot supply a missing issuer/expiry. Shared JSON depth/node/byte limits still
 apply to decoded documents. Cross-platform native artifact delivery remains a
 separate unfinished validation item.
 
+The OAuth development conformance gate now discovers all fifteen original test
+files through maintained source membership and redirects their implementation
+imports/mocks to the Rust package. TypeScript AST parsing derives factory/function
+identity assertions from each test's named imports; a test without a verified
+native import fails instead of silently executing the TS implementation. All
+153 original contracts pass, including registration/token/body ownership deadlines,
+loopback callbacks, resource normalization, state/PKCE and issuer credential binding.
+The independent native tests remain required for real addon execution and host
+lifecycle paths outside mocked interaction boundaries.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

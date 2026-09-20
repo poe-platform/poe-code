@@ -39,6 +39,7 @@ name = "agent-skill-config-rust"
 version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
+ "mcp-oauth-rust",
  "mcp-protocol-rust",
 ]
 
@@ -178,6 +179,13 @@ checksum = "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60"
 dependencies = [
  "cfg-if",
  "windows-link",
+]
+
+[[package]]
+name = "mcp-oauth-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
 ]
 
 [[package]]

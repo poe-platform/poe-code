@@ -15,6 +15,18 @@ input bytes, nesting, and value count before accepting untrusted messages.
 JSON-RPC helpers distinguish requests from notifications, preserve legacy IDs,
 enforce modern safe request IDs, and format success/error envelopes.
 
+The native Node binding parses directly into JavaScript values, preserving own
+`__proto__` properties and UTF-16 keys without a JavaScript JSON bridge. It ships
+the compiled addon with the package and has no npm runtime dependencies.
+
+```typescript
+import { parseJson, parseJsonUtf8, canonicalizeJson } from "mcp-protocol-rust";
+
+const value = parseJson('{"tools":[]}', { maxBytes: 1024 });
+const decoded = parseJsonUtf8(Buffer.from('{"id":1}'));
+const encoded = canonicalizeJson('{"id":1,"result":{}}');
+```
+
 ```rust
 use mcp_protocol_rust::json::{parse, stringify, Limits};
 
@@ -42,5 +54,5 @@ escaping those units internally does not consume extra input budget. Parse error
 offsets refer to the normalized UTF-8 source.
 
 This additive package is under development. MCP dispatch APIs and the native
-TypeScript binding are being added; existing MCP packages continue to operate
+platform artifacts are being added; existing MCP packages continue to operate
 independently.

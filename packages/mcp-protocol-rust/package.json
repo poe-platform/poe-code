@@ -14,5 +14,26 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/mcp-protocol-rust"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "mcp-protocol-rust"
   }
 }

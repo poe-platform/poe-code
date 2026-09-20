@@ -4,7 +4,7 @@ use mcp_protocol_rust::{
     jsonrpc::{self, RpcError},
 };
 use std::{collections::BTreeSet, sync::Arc};
-use toolcraft_schema_rust::CompiledSchema;
+use toolcraft_schema_rust::{CompiledSchema, nullability::normalize_legacy_nullability};
 
 pub mod content;
 pub mod features;
@@ -123,7 +123,7 @@ impl Server {
 
     pub fn set_tool(
         &mut self,
-        definition: Value,
+        mut definition: Value,
         handler: u64,
         replace: bool,
     ) -> Result<(), String> {
@@ -133,17 +133,31 @@ impl Server {
         if name.is_empty() {
             return Err("Tool name required".into());
         }
-        let existing = self.tools.iter().position(|tool| &tool.name == name);
+        let name = name.clone();
+        let existing = self.tools.iter().position(|tool| tool.name == name);
         if existing.is_some() && !replace {
             return Err(format!(
                 "Tool already registered: {}",
-                String::from_utf16_lossy(name)
+                String::from_utf16_lossy(&name)
             ));
         }
-        if !definition.get("inputSchema").is_some_and(|value| {
+        if let Value::Object(entries) = &mut definition {
+            for (key, schema) in entries {
+                if key.iter().copied().eq("inputSchema".encode_utf16())
+                    || key.iter().copied().eq("outputSchema".encode_utf16())
+                {
+                    *schema = normalize_legacy_nullability(schema)?;
+                }
+            }
+        }
+        let input_schema = definition.get("inputSchema");
+        let input_validator = input_schema
+            .map(|schema| CompiledSchema::compile(schema.clone(), Default::default()))
+            .transpose()?;
+        if !input_schema.is_some_and(|value| {
             matches!(value, Value::Object(_)) && string_matches(value.get("type"), "object")
         }) {
-            return Err("inputSchema must have type object".into());
+            return Err("inputSchema root type must be \"object\"".into());
         }
         let output_schema = definition.get("outputSchema").cloned();
         if output_schema
@@ -158,13 +172,7 @@ impl Server {
             .transpose()?;
         let tool = RegisteredTool {
             name: name.clone(),
-            input_validator: CompiledSchema::compile(
-                definition
-                    .get("inputSchema")
-                    .expect("validated input schema")
-                    .clone(),
-                Default::default(),
-            )?,
+            input_validator: input_validator.expect("validated input schema"),
             output: Arc::new(tool_result::ToolOutput {
                 schema: output_schema,
                 validator: output_validator,

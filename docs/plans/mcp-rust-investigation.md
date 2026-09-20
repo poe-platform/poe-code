@@ -117,6 +117,12 @@ nullable tuples. Host hooks/getters/cycles remain safely rejected. Normalization
 has bounded schema traversal. The schema checks include 26 Rust tests and 657
 native test groups (the full 2226 official cases remain included).
 
+Tool registration now normalizes both schemas before compiling, snapshotting or
+deriving header contracts. Native/reference cross-checks cover shorthand and full
+registration, listings, null acceptance and structured-result validation in both
+protocol modes. Invalid nullable roots and unreachable nullable header annotations
+reject without partial registration. The server passes 66 Rust and 349 native tests.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

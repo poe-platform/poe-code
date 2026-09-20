@@ -30,6 +30,11 @@ mirrors before handlers run and rejects mismatches with error `-32020`, even whe
 argument validation is disabled. Header names and paths are snapshotted at tool
 registration. Omit the header context for transports without parameter mirrors.
 
+Registration normalizes legacy `nullable: true` properties into null alternatives,
+including input and output contracts. Resource identities stay intact and moved
+pointer targets are remapped. Nullable root inputs remain invalid because MCP
+requires an object root; nullable header properties cannot define static mirrors.
+
 Use `defineSchema({ name: { type: "string" }, limit: { type: "integer", optional: true } })`
 to build object schemas with inferred TypeScript argument types. Arbitrary JSON
 Schema keywords are preserved; `optional` controls the required-property list.

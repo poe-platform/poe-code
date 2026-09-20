@@ -1,0 +1,17 @@
+import {TokenVerificationError,createProtectedResourceMetadataDocument,type ProtectedResourceMetadataOptions,type TokenVerifier,type VerifiedAccessToken,type RequestAuthInfo,type SessionStore} from '../src/index.js';
+import type * as Original from 'tiny-http-mcp-server';
+const metadata:ProtectedResourceMetadataOptions={resource:new URL('https://resource.example/mcp'),authorizationServers:['https://auth.example'],scopesSupported:['read']};
+createProtectedResourceMetadataDocument(metadata);
+new TokenVerificationError({error:'insufficient_scope',scope:['read']});
+declare const originalMetadata:Original.ProtectedResourceMetadataOptions;
+const compatible:ProtectedResourceMetadataOptions=originalMetadata;
+const reverse:Original.ProtectedResourceMetadataOptions=metadata;
+declare const token:VerifiedAccessToken;
+const originalToken:Original.VerifiedAccessToken=token;
+declare const originalVerifier:Original.TokenVerifier;
+const verifier:TokenVerifier=originalVerifier;
+declare const auth:RequestAuthInfo;
+const originalAuth:Original.RequestAuthInfo=auth;
+declare const store:SessionStore;
+const originalStore:Original.SessionStore=store;
+void [compatible,reverse,originalToken,verifier,originalAuth,originalStore];

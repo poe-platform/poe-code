@@ -439,6 +439,26 @@ JOSE error metadata against the original implementation. The standalone tarball
 factory/endpoints are smoke-checked separately. The package remains private;
 cross-platform delivery and broader memory/performance evidence are unfinished.
 
+
+The new `tiny-http-mcp-server-rust` foundation implements Rust JSON-RPC batch
+classification, sticky byte budgets, modern header/name mirrors, UTF-16 SSE
+formatting, bearer parsing/challenges/verifier-error/scope admission and resource
+metadata. Node supplies streams, URL and auth callback primitives. Request byte
+limits preserve original error precedence even when earlier chunks have invalid
+UTF-8. Scoped native verifier-error capture avoids whole-error serialization,
+cycles and bigint failures. Classified arrays share admitted object identities;
+the native plan retains each payload once rather than copying it into every group.
+An ordered Rust session table preserves replacements/live iterator order and
+releases both payloads and indexes under 4,096-operation churn. A real failing
+GC test demonstrated that strong ObjectRef ownership keeps an unreachable
+session/store cycle alive. The corrected design stores Rust index/slot identities
+while host objects remain in a JavaScript Map visible to GC; the cycle test passes.
+Eleven Rust tests, 16 native groups, 17 original header/UTF-8 contracts and public
+structural type checks pass with focused build/lint. The package has no npm runtime
+dependencies. This is a foundation checkpoint: HTTP factory/listening, complete
+session admission, SSE replay/backpressure, OAuth transport wiring, testing helpers
+and Express adapters remain unfinished.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

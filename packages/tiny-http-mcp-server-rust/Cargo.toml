@@ -1,0 +1,10 @@
+[package]
+name = "tiny-http-mcp-server-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Independent Rust streamable HTTP MCP server"
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }
+tiny-stdio-mcp-server-rust = { path = "../tiny-stdio-mcp-server-rust" }

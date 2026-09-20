@@ -105,7 +105,10 @@ export class NumberingGraph {
   reserve(root: XmlElement): void {
     this.#roots.push(root);
     this.project(root);
-    const visit = (node: XmlElement): void => {
+    this.budget.charge("retainedBytes", 8);
+    const stack = [root];
+    while (stack.length) {
+      const node = stack.pop()!;
       this.budget.charge("work", 1);
       if (node.namespace === this.xml.root.namespace && ["numId", "abstractNumId"].includes(node.localName)) {
         const value = numberingAttribute(node);
@@ -122,9 +125,10 @@ export class NumberingGraph {
         const id = nonnegativeInteger(numberingAttribute(node, abstract ? "abstractNumId" : "numId"));
         if (id !== undefined) (abstract ? this.reservedAbstracts : this.reservedInstances).add(id);
       }
-      node.children.forEach(visit);
-    };
-    visit(root);
+      this.budget.charge("work", node.children.length);
+      this.budget.charge("retainedBytes", node.children.length * 8);
+      for (let index = node.children.length - 1; index >= 0; index--) stack.push(node.children[index]!);
+    }
   }
   style(id: string, type: string): XmlElement {
     const found = this.children(this.styles).filter(n => n.namespace === this.xml.root.namespace && n.localName === "style" && numberingAttribute(n, "styleId") === id);
@@ -396,17 +400,27 @@ export class NumberingGraph {
     if (this.signature(graph.definition, true) !== this.signature(template, true)) return false;
     const id = integer(numberingAttribute(graph.num, "numId"));
     let used = false;
-    const visit = (node: XmlElement, ancestors: readonly XmlElement[]): void => {
-      this.budget.charge("work", 1);
-      if (node.namespace === this.xml.root.namespace && node.localName === "p") {
-        const binding = this.paragraph(node);
-        if (binding?.id === id && binding.level === level) used = true;
+    for (const root of this.#roots) {
+      if (used) break;
+      this.budget.charge("retainedBytes", 24);
+      const stack: { node: XmlElement; ancestors: readonly XmlElement[] }[] = [{ node: root, ancestors: [] }];
+      while (stack.length) {
+        const { node, ancestors } = stack.pop()!;
+        this.budget.charge("work", 1);
+        if (node.namespace === this.xml.root.namespace && node.localName === "p") {
+          const binding = this.paragraph(node);
+          if (binding?.id === id && binding.level === level) used = true;
+        }
+        if (node.namespace === this.xml.root.namespace && node.localName === "numId" && nonnegativeInteger(numberingAttribute(node)) === id &&
+          (!this.#children.has(node) || ancestors.at(-3)?.localName !== "p")) used = true;
+        if (!used && node.children.length) {
+          this.budget.charge("work", node.children.length);
+          this.budget.charge("retainedBytes", 24 + node.children.length * 24);
+          const parents = [...ancestors.slice(-2), node];
+          for (let index = node.children.length - 1; index >= 0; index--) stack.push({ node: node.children[index]!, ancestors: parents });
+        }
       }
-      if (node.namespace === this.xml.root.namespace && node.localName === "numId" && nonnegativeInteger(numberingAttribute(node)) === id &&
-        (!this.#children.has(node) || ancestors.at(-3)?.localName !== "p")) used = true;
-      if (!used) for (const child of node.children) visit(child, [...ancestors, node]);
-    };
-    for (const root of this.#roots) { if (used) break; visit(root, []); }
+    }
     if (used) return false;
     formats[level] = kind;
     const abstractId = this.abstract(formats);
@@ -511,19 +525,23 @@ export class NumberingGraph {
     const alternatives = new Set(this.xml.compatibility.branches.map(branch => branch.alternateContent));
     this.budget.charge("retainedBytes", 128 + (active.size + alternatives.size) * 16);
     const ranks = new Map<XmlElement, number[]>();
-    const collect = (node: XmlElement, found: Set<number>, alternate = false): void => {
-      this.budget.charge("work", 1);
-      if (node.namespace === root.namespace) {
-        const rank = ["numPicBullet", "abstractNum", "num", "numIdMacAtCleanup"].indexOf(node.localName);
-        if (rank >= 0) { if (alternate || active.has(node)) found.add(rank); return; }
-      }
-      // Retain order for every stored branch of an exposed alternative; ignored
-      // XML outside those alternatives cannot create numbering-order authority.
-      for (const child of node.children) collect(child, found, alternate || alternatives.has(node));
-    };
     for (const node of root.children) {
       const found = new Set<number>();
-      collect(node, found);
+      this.budget.charge("retainedBytes", 24);
+      const stack = [{ node, alternate: false }];
+      while (stack.length) {
+        const { node: current, alternate } = stack.pop()!;
+        this.budget.charge("work", 1);
+        if (current.namespace === root.namespace) {
+          const rank = ["numPicBullet", "abstractNum", "num", "numIdMacAtCleanup"].indexOf(current.localName);
+          if (rank >= 0) { if (alternate || active.has(current)) found.add(rank); continue; }
+        }
+        // Stored branches of exposed alternatives retain order authority;
+        // ignored XML outside those alternatives remains inert.
+        this.budget.charge("work", current.children.length);
+        this.budget.charge("retainedBytes", current.children.length * 24);
+        for (let index = current.children.length - 1; index >= 0; index--) stack.push({ node: current.children[index]!, alternate: alternate || alternatives.has(current) });
+      }
       this.budget.charge("retainedBytes", 96 + found.size * 16);
       ranks.set(node, [...found]);
     }

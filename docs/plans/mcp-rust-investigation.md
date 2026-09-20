@@ -275,6 +275,16 @@ states, 1,024 malformed UTF-8/base64 states and 1,024 direct arbitrary UTF-16
 byte-decoder comparisons. No prototype lookup can supply decoded fields. This is
 an internal state checkpoint; token/browser/provider/session/JWKS parity remains.
 
+Own Rust HTTP response budgets now validate safe limits, exact decimal declared
+lengths and bounded chunk counts, remaining rejected after overflow. Node's host
+adapter owns strict incremental UTF-8 decoding, reader tracking/lock release,
+abort cancellation and redirect refusal. Native/reference checks cover invalid
+limits, BOM/split Unicode at exact byte boundaries, invalid UTF-8, ignored malformed
+lengths, oversize declared/actual lengths, redirects, pre/mid-read abort and reader
+cleanup. Public wrappers preserve plain Error shapes rather than leaking napi's
+GenericFailure code on validation errors. Maintained public type fixtures cover
+both helpers. Token/browser/provider/session/JWKS functionality remains pending.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

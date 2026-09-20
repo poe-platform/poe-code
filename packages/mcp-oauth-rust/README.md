@@ -22,3 +22,8 @@ in Rust.
 Token exchange/refresh, session storage, browser
 callbacks and JWKS verification are still being implemented. Keep applications on
 their existing OAuth package until conformance and integration are complete.
+
+`fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.
+`readBoundedResponseText` enforces declared and actual byte limits, decodes strict
+UTF-8 incrementally and releases reader locks/tracking entries on completion,
+failure or abort. Length admission uses the allocation-free Rust core.

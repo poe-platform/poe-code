@@ -82,8 +82,10 @@ test("CDP command timeout retains its original reason through bridge shutdown", 
 	await waitForBrowserSocketClose(peer.socket);
 	const failure = await privacy.close().catch((error: unknown) => error);
 	expect(failure).toBeInstanceOf(AggregateError);
-	expect((failure as AggregateError).errors.map((error: Error) => error.message))
-		.toContain("CDP Browser.getVersion timed out");
+	const messages = (failure as AggregateError).errors.map((error: Error) => error.message);
+	expect(messages).toHaveLength(1);
+	expect(messages[0]).toContain("CDP Browser.getVersion timed out (command 1, pending 1, deadline 20ms, elapsed ");
+	expect(messages[0]).toContain("ms)");
 });
 
 test("late secondary clients hide already-active private identities", async () => {

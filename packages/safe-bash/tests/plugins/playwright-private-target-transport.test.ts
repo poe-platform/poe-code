@@ -233,6 +233,21 @@ for (const mode of ['creation', 'command', 'detach'] as const) {
   });
 }
 
+test('command timeout reports monotonic elapsed time and outstanding load without exposing payloads', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  let now = 100;
+  context.mock.method(performance, 'now', () => now);
+  const state = fixture({ commandTimeoutMs: 10 });
+  state.transport.send({ id: 41, method: 'Runtime.callFunctionOn', sessionId: 'private-session-name', params: { functionDeclaration: 'secret-payload' } });
+  state.transport.send({ id: 42, method: 'Runtime.enable' });
+  now = 145;
+  context.mock.timers.tick(11);
+  assert.deepEqual(state.reasons, ['CDP Runtime.callFunctionOn timed out (command 1, pending 2, deadline 10ms, elapsed 45ms)']);
+  assert.equal(state.closes(), 1);
+  context.mock.timers.tick(10000);
+  assert.equal(state.reasons.length, 1);
+});
+
 test('native detach failure retires rather than exposing or falsely acknowledging the target', () => {
   const state = fixture();
   state.beginCreation().commit('scratch');

@@ -170,7 +170,10 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       const clientKey = internal ? undefined : JSON.stringify([input.sessionId, input.id]);
       if (clientKey && clientKeys.has(clientKey)) throw new Error('Duplicate pending client CDP identity');
       if (pending.size >= limits.maxPendingCommands || bytes > limits.maxPendingBytes - pendingBytes) throw new Error('CDP pending command limit exceeded');
-      const timer = setTimeout(() => retire(new Error(`CDP ${message.method} timed out`)), limits.commandTimeoutMs);
+      const started = performance.now();
+      const timer = setTimeout(() => retire(new Error(
+        `CDP ${message.method} timed out (command ${id}, pending ${pending.size}, deadline ${limits.commandTimeoutMs}ms, elapsed ${Math.round(performance.now() - started)}ms)`,
+      )), limits.commandTimeoutMs);
       pending.set(id, { clientId: input.id, clientKey, method: message.method, sessionId: message.sessionId,
         targetId: internal && identity(message.params?.sessionId) ? sessions.get(message.params.sessionId)
           : identity(message.params?.targetId) ? message.params.targetId : undefined,

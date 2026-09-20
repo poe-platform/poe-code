@@ -56,8 +56,7 @@ for (const defect of ['none', 'stale', 'canonical-change', 'missing-literal', 'm
   noHeldReads(owned);
 });
 
-for (const defect of ["none", "public", "closure", "source", "link"]) test(`build qualified private command declarations: ${defect}`, async () => {
-  const name = "safe-bash-command-fixture";
+for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine"]) for (const defect of ["none", "public", "closure", "source", "link"]) test(`build qualified private declarations: ${name} ${defect}`, async () => {
   const implementation = {
     name, version: "0.0.1", private: defect !== "public", type: "module", dependencies: defect === "closure" ? { forbidden: "1" } : {},
     exports: { ".": { types: defect === "source" ? "./src/index.d.ts" : "./dist/index.d.ts", import: "./dist/index.js" } },

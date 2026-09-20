@@ -1955,6 +1955,19 @@ later reads. Ready in-memory hosts must complete in one poll. Failing-first and
 green evidence: `out/rust-config-extends-async-{red,green,lint}.log`. Native adapters
 and arbitrary foreign-runtime graph behavior are still unfinished.
 
+### Shared std-only binary snapshots, 2026-09-20
+
+Moved the own binary tree/graph decoder and parsed-value metadata conversion into
+`config-mutations-rust::snapshot`. The native bridge reexports this single source,
+so additional Rust/binding consumers need no duplicated codec or napi dependency
+in their cores. Host hooks, JavaScript adapters and production imports are unchanged.
+
+Validation: 84 Rust groups and focused maintained configuration tests pass, including 66 native groups,
+all 260 current SDK cases and new truncation/trailing/depth/lone-surrogate/opaque
+token core tests; fmt/clippy/shared-bridge lint and the eight-workspace uncached
+maintained build closure pass. Evidence:
+`out/rust-config-snapshot-core-{red,green,lint,build}.log`.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

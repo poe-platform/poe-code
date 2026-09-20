@@ -92,6 +92,10 @@ Supply a template loader and static or resolved variables. Execution preserves
 the existing SDK's HTML escaping default; template merges serialize the entire
 merged document. Loader failures and parse causes retain their host identities.
 
+The std-only `snapshot` module decodes binary tree/graph snapshots and preserves
+UTF-16 source units and opaque host tokens. Node bindings and other Rust callers
+share this implementation; truncated, trailing and excessively deep inputs reject.
+
 The Rust core also includes `atomic::AtomicMachine` for exclusive temporary
 writes, ten collision retries, rename and cleanup. It executes through injected
 platform requests and preserves host error tokens. Terminal states release owned

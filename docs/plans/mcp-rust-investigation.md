@@ -42,9 +42,15 @@ Each cached validator retains only transitively referenced definitions; a local
 fresh-process audit of all sixteen validators changed RSS growth from 5.31 MiB to
 1.98 MiB and initialization from 11.48 ms to 6.51 ms. These single process endpoints
 are not peak/leak evidence or a general backend comparison. Rust input-required
-capability/sequence validation is tested, but its Node invocation-result path is
-still pending. The expanded package checks include 62 Rust and 314 native tests,
-including concurrent worker use of cached capability/retry validators.
+capability/sequence validation now runs on actual tool/prompt/resource handler
+results. Invocation capability snapshots survive caller/handler mutations and
+concurrent calls, and are freed only when callbacks settle. Valid requirements
+bypass complete output contracts and resource cache defaults; malformed non-JSON
+requirements return RPC errors without executing getters. Opaque retry state and
+input responses reach handlers through direct sessions, wire messages, stdio and
+official SDK in-memory transports. The expanded package checks include 62 Rust
+and 323 native tests, including concurrent worker use of cached capability/retry
+validators and cancellation/reused-ID snapshot cleanup checks.
 
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and

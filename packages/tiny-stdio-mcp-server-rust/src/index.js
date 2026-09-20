@@ -105,6 +105,12 @@ export function createServer(options) {
               };
             }
             const result = await handler(action.arguments, handlerContext);
+            if (
+              action.modern && result !== null && typeof result === "object" &&
+              !Array.isArray(result) &&
+              Object.getOwnPropertyDescriptor(result, "resultType")?.value === "input_required"
+            )
+              return native.completeInputRequired(result, action.token);
             if (action.handlerKind === "tool")
               return native.completeTool(result, action.modern, action.token);
             if (action.handlerKind === "custom" && !action.modern) return { result };

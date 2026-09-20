@@ -84,6 +84,14 @@ hooks and accessors return `false` without calling hooks/getters. Validators cac
 only the schema definitions reachable from each entry point. The normative schema
 data carries its upstream notice in `MCP-LICENSE.txt`; no SDK implementation is shipped.
 
+Tool, prompt and resource handlers can return modern `input_required` results with
+opaque `requestState` and requests for roots, sampling or elicitation. Rust checks
+the requests against the capabilities supplied when that invocation was admitted;
+missing support returns the complete required capability set. Retry parameters
+reach the handler through `context.requestState` and `context.inputResponses`.
+Input requirements skip complete output schemas and resource cache defaults.
+Cycles and non-JSON requirements return RPC errors without running getters or hooks.
+
 ```ts
 import { createServer } from "tiny-stdio-mcp-server-rust";
 
@@ -116,8 +124,6 @@ and closing or failing startup disposes the session. Notification send failures
 propagate to their caller. A canceled callback retains global request capacity
 until its underlying operation settles.
 
-This is an additive implementation checkpoint. HTTP transports,
-input-required/retry schemas, content helpers,
-and full result
-compatibility are still being implemented. Keep existing applications on their
+This is an additive implementation checkpoint. HTTP transports, content helpers,
+and full result compatibility are still being implemented. Keep existing applications on their
 current MCP packages until those features and conformance checks are complete.

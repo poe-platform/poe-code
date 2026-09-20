@@ -61,6 +61,7 @@ struct ServerState {
     stdio: StdioOptions,
     outputs: HashMap<u64, Arc<tiny_stdio_mcp_server_rust::tool_result::ToolOutput>>,
     listens: HashMap<u64, u32>,
+    invocations: HashMap<u64, (String, Value)>,
 }
 
 #[napi]
@@ -91,6 +92,7 @@ impl NativeServer {
                 next_handler: 0,
                 outputs: HashMap::new(),
                 listens: HashMap::new(),
+                invocations: HashMap::new(),
                 requests: RequestTracker::new(limit as usize).map_err(Error::from_reason)?,
                 stdio: StdioOptions {
                     max_line_bytes: capacity(
@@ -225,6 +227,7 @@ impl NativeServer {
         }
         let mut state = self.state.borrow_mut();
         state.outputs.remove(&(token as u64));
+        state.invocations.remove(&(token as u64));
         if let Some(id) = state.listens.remove(&(token as u64))
             && let Some(session) = state.sessions.get_mut(&id)
         {
@@ -261,6 +264,41 @@ impl NativeServer {
             .sessions
             .get_mut(&id)
             .is_some_and(|session| session.finish_subscription(token as u64))
+    }
+
+    #[napi(ts_return_type = "unknown")]
+    pub fn complete_input_required(
+        &self,
+        env: Env,
+        source: Unknown<'_>,
+        token: f64,
+    ) -> Result<NativeJson> {
+        // Conversion can reenter JS via proxy descriptor traps; borrow only
+        // after ingress completes, and reject non-JSON requirements as RPC errors.
+        let value = input::read(&env, source, input::Mode::Json);
+        let invalid = || RpcError {
+            code: -32603,
+            message: "Invalid MCP input_required result".into(),
+            data: None,
+        };
+        let result = match value {
+            Ok(Some(value)) => {
+                let state = self.state.borrow();
+                match state.invocations.get(&(token as u64)) {
+                    Some((method, capabilities)) => {
+                        state
+                            .server
+                            .decorate_invocation_result(method, value, capabilities)
+                    }
+                    None => Err(invalid()),
+                }
+            }
+            _ => Err(invalid()),
+        };
+        Ok(NativeJson(match result {
+            Ok(result) => object([("result", result)]),
+            Err(error) => object([("error", rpc_error_value(error))]),
+        }))
     }
 
     #[napi(ts_return_type = "unknown")]
@@ -582,6 +620,7 @@ impl ServerState {
                 requests,
                 outputs,
                 listens,
+                invocations,
                 ..
             } = self;
             // A descriptor trap may have closed the session during conversion.
@@ -626,6 +665,21 @@ impl ServerState {
             } else {
                 server.dispatch(session, method, params)
             };
+            if modern
+                && let Action::Invoke { context, .. } | Action::InvokeFeature { context, .. } =
+                    &action
+            {
+                invocations.insert(
+                    token,
+                    (
+                        method.to_owned(),
+                        context
+                            .get("clientCapabilities")
+                            .cloned()
+                            .unwrap_or_else(|| object([])),
+                    ),
+                );
+            }
             if let Action::Invoke { handler, .. } = &action {
                 outputs.insert(
                     token,

@@ -191,6 +191,26 @@ impl Server {
         true
     }
 
+    pub fn decorate_invocation_result(
+        &self,
+        method: &str,
+        value: Value,
+        capabilities: &Value,
+    ) -> Result<Value, RpcError> {
+        if string_matches(value.get("resultType"), "input_required") {
+            protocol::validate_input_required(method, &value, capabilities)?;
+            self.decorate_metadata(value)
+                .map_err(|message| rpc_error(-32603, &message))
+        } else {
+            let result = if method == "resources/read" {
+                self.decorate_resource_result(value)
+            } else {
+                self.decorate_result(value)
+            };
+            result.map_err(|message| rpc_error(-32603, &message))
+        }
+    }
+
     pub fn decorate_result(&self, value: Value) -> Result<Value, String> {
         let Value::Object(mut properties) = value else {
             return Err("MCP result must be an object".into());
@@ -206,13 +226,18 @@ impl Server {
             return Err("Unrecognized MCP resultType".into());
         }
         if result_type.is_some_and(|value| string_matches(Some(value), "input_required")) {
-            // Input-required validation needs the complete client capability
-            // and input-request schemas; it is not silently accepted here.
             return Err("Invalid MCP input_required result".into());
         }
         if result_type.is_none() {
             put(&mut properties, "resultType", string("complete"));
         }
+        self.decorate_metadata(Value::Object(properties))
+    }
+
+    fn decorate_metadata(&self, value: Value) -> Result<Value, String> {
+        let Value::Object(mut properties) = value else {
+            return Err("MCP result must be an object".into());
+        };
         let mut metadata = match properties
             .iter_mut()
             .find(|(name, _)| name.iter().copied().eq("_meta".encode_utf16()))

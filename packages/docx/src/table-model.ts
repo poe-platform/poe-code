@@ -381,7 +381,7 @@ export class _Cell {
     return this.paragraphs.map((p) => p.text).join("\n");
   }
   set text(value: string) {
-    if (typeof value !== "string") throw new TypeError("Expected text.");
+    if (typeof value !== "string") throw new InputTypeError("Expected text.");
     this.store.cellText(this.ref, value);
   }
   add_paragraph(text = "", style: string | ParagraphStyle | null = null): Paragraph {

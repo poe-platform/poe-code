@@ -14,7 +14,14 @@ import {
 import { PassThrough } from "node:stream";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 
-const server = createServer({ name: "typed", version: "1", validateToolArguments: true });
+const server = createServer({
+  name: "typed",
+  version: "1",
+  validateToolArguments: true,
+  maxConcurrentToolCalls: 4,
+  maxQueuedToolCalls: 64,
+  toolCallTimeoutMs: 1000
+});
 const imageType: "image" = Image.fromBytes(new Uint8Array(), "png").toContentBlock().type;
 const audioType: "audio" = Audio.fromBase64("", "audio/wav").toContentBlock().type;
 const resourceType: "resource" = File.fromText("Hello").toContentBlock().type;

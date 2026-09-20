@@ -141,6 +141,7 @@ fn register_tool_rejects_duplicates_without_replacing_the_existing_handler() {
         ),
         Action::Invoke {
             handler: 1,
+            name: "echo".encode_utf16().collect(),
             arguments: value("{}"),
             context: value(r#"{"clientCapabilities":{}}"#)
         }

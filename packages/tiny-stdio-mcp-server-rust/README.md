@@ -86,6 +86,14 @@ Concurrent requests with the same ID in one session are rejected. A
 `notifications/cancelled` message aborts that request; callbacks that continue
 running retain capacity until they settle.
 
+Tool handlers share FIFO capacity across all sessions: four active handlers and
+64 queued calls by default. Set `maxConcurrentToolCalls` and `maxQueuedToolCalls`
+to change these limits; zero queued calls disables waiting. Full queues return
+RPC error `-32000`. Set `toolCallTimeoutMs` for a deadline that includes waiting.
+Timeouts return `-32603` and abort the handler signal. Canceled or expired waiters
+never start, while callbacks that continue after cancellation or timeout retain
+both tool capacity and request identity until their work settles.
+
 Content validates canonical base64, strict absolute resource URIs, and annotation
 field types. Modern explicit results accept JSON primitives and arrays in
 `structuredContent`; legacy results require an object. Ordinary callback failures

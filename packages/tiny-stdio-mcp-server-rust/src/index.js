@@ -39,6 +39,31 @@ export function createServer(options) {
   const featureHandlers = new Map();
   const notificationListeners = new Set();
   const sessionListeners = new Map();
+  const toolWaiters = new Map();
+  const toolCallTimeoutMs = native.toolCallTimeoutMs;
+  function acquireTool(token, signal) {
+    signal.throwIfAborted();
+    const admitted = native.acquireTool(token);
+    if (admitted === true) return Promise.resolve();
+    if (admitted !== false) throw new ToolError(-32000, "Too many queued tool calls");
+    return new Promise((resolve, reject) => {
+      const abort = () => {
+        native.cancelQueuedTool(token);
+        toolWaiters.delete(token);
+        reject(signal.reason);
+      };
+      toolWaiters.set(token, { resolve, signal, abort });
+      signal.addEventListener("abort", abort, { once: true });
+    });
+  }
+  function releaseTool(token) {
+    const next = native.releaseTool(token);
+    const waiting = toolWaiters.get(next);
+    if (waiting === undefined) return;
+    toolWaiters.delete(next);
+    waiting.signal.removeEventListener("abort", waiting.abort);
+    waiting.resolve();
+  }
   function registerTool(definition, handler) {
     if (typeof handler !== "function") throw new TypeError("Tool handler must be a function");
     const { handler: id, name } = native.setTool(definition, false);
@@ -53,6 +78,13 @@ export function createServer(options) {
     const controller = new AbortController();
     const requests = new Map();
     const listening = new Set();
+    controller.signal.addEventListener(
+      "abort",
+      () => {
+        for (const request of requests.values()) request.abort(controller.signal.reason);
+      },
+      { once: true }
+    );
     async function executeAction(action, context) {
       if (action.type === "cancel") {
         requests.get(action.token)?.abort(new Error("Request cancelled"));
@@ -66,10 +98,8 @@ export function createServer(options) {
       requests.set(action.token, request);
       if (action.type === "listen") listening.add(request);
       const directLegacy = context === undefined && !action.modern;
-      const abortSession = () => request.abort(controller.signal.reason);
       const abortCaller = () => request.abort(context.signal.reason);
-      controller.signal.addEventListener("abort", abortSession, { once: true });
-      if (controller.signal.aborted) abortSession();
+      if (controller.signal.aborted) request.abort(controller.signal.reason);
       context?.signal?.addEventListener("abort", abortCaller, { once: true });
       if (context?.signal?.aborted) abortCaller();
       const cancelSubscription = () => native.cancelSubscription(id, action.token);
@@ -77,6 +107,7 @@ export function createServer(options) {
         request.signal.addEventListener("abort", cancelSubscription, { once: true });
         if (request.signal.aborted) cancelSubscription();
       }
+      let pendingWork;
       const operation = Promise.resolve()
         .then(async () => {
           if (request.signal.aborted) return { result: undefined };
@@ -113,7 +144,46 @@ export function createServer(options) {
                 });
               };
             }
-            const result = await handler(action.arguments, handlerContext);
+            let result;
+            if (action.handlerKind === "tool") {
+              const admission = new AbortController();
+              const cancel = () => admission.abort(request.signal.reason);
+              request.signal.addEventListener("abort", cancel, { once: true });
+              if (request.signal.aborted) cancel();
+              handlerContext.signal = admission.signal;
+              const work = (async () => {
+                await acquireTool(action.token, admission.signal);
+                try {
+                  admission.signal.throwIfAborted();
+                  return await handler(action.arguments, handlerContext);
+                } finally {
+                  releaseTool(action.token);
+                }
+              })();
+              pendingWork = work;
+              let timeout;
+              try {
+                result =
+                  toolCallTimeoutMs === undefined || toolCallTimeoutMs === null
+                    ? await work
+                    : await Promise.race([
+                        work,
+                        new Promise((_resolve, reject) => {
+                          timeout = setTimeout(() => {
+                            const error = new ToolError(
+                              -32603,
+                              `Tool call timed out: ${action.toolName}`
+                            );
+                            admission.abort(error);
+                            reject(error);
+                          }, toolCallTimeoutMs);
+                        })
+                      ]);
+              } finally {
+                if (timeout !== undefined) clearTimeout(timeout);
+                request.signal.removeEventListener("abort", cancel);
+              }
+            } else result = await handler(action.arguments, handlerContext);
             if (
               action.modern &&
               result !== null &&
@@ -155,10 +225,14 @@ export function createServer(options) {
           }
         })
         .finally(() => {
-          native.finishRequest(action.token);
-          requests.delete(action.token);
-          listening.delete(request);
-          request.signal.removeEventListener("abort", cancelSubscription);
+          const finish = () => {
+            native.finishRequest(action.token);
+            requests.delete(action.token);
+            listening.delete(request);
+            request.signal.removeEventListener("abort", cancelSubscription);
+          };
+          if (pendingWork === undefined) finish();
+          else pendingWork.then(finish, finish);
         });
       try {
         if (directLegacy) return await operation;
@@ -178,7 +252,6 @@ export function createServer(options) {
           );
         });
       } finally {
-        controller.signal.removeEventListener("abort", abortSession);
         context?.signal?.removeEventListener("abort", abortCaller);
         request.abort();
       }

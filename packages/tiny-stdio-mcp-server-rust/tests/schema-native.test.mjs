@@ -187,7 +187,7 @@ test("in-flight calls retain their output contract after tool replacement or rem
     );
     await native.handleMessage("initialize");
     const pending = native.handleMessage("tools/call", { name: "check" });
-    await Promise.resolve();
+    await new Promise(resolve => setImmediate(resolve));
     native.removeTool("check");
     if (!remove) native.tool("check", "Replacement", { type: "object" }, () => "replacement");
     release({});

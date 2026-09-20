@@ -123,6 +123,18 @@ registration, listings, null acceptance and structured-result validation in both
 protocol modes. Invalid nullable roots and unreachable nullable header annotations
 reject without partial registration. The server passes 66 Rust and 349 native tests.
 
+Shared tool admission now uses an own Rust bounded FIFO queue with Node wake-up
+and timer adapters. Defaults (four active, 64 queued), configured/zero waiting,
+overflow errors, cancellations and response timeouts match the reference behavior.
+Running callbacks retain both tool slots and global request identity after timeout
+until actual settlement; expired waiters do not execute. Session abort fan-out uses
+one listener instead of per-request session listeners. Tests cover direct sessions,
+official SDK in-memory interoperability, repeated success/failure listener cleanup
+and fake-clock timeout/identity retention. Older tests now wait for handler startup
+rather than relying on one microtask. A prior completed-tool signal assertion was
+corrected against concrete reference evidence: admission signals remain un-aborted
+after successful completion. The expanded checks pass 68 Rust and 356 native tests.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

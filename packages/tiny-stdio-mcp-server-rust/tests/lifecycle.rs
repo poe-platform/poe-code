@@ -219,6 +219,7 @@ fn tools_are_listed_in_registration_order_and_replacement_keeps_position() {
         server.dispatch(&mut session, "tools/call", Some(value(r#"{"name":"b"}"#))),
         Action::Invoke {
             handler: 3,
+            name: "b".encode_utf16().collect(),
             arguments: value("{}"),
             context: value(r#"{"clientCapabilities":{}}"#)
         }

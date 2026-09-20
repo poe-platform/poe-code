@@ -217,7 +217,7 @@ test("native admission rejects duplicate IDs within one session and isolates oth
   other.close();
 });
 
-test("modern requests validate context IDs and abort their context signal after completion", async () => {
+test("modern requests validate context IDs and completed tool signals match TypeScript", async () => {
   const server = createServer({ name: "test", version: "0" });
   let signal;
   let calls = 0;
@@ -241,7 +241,14 @@ test("modern requests validate context IDs and abort their context signal after 
     (await server.handleMessage("tools/call", params, { requestId: "one" })).error,
     undefined
   );
-  assert.equal(signal.aborted, true);
+  const reference = referenceCreateServer({ name: "test", version: "0" });
+  let referenceSignal;
+  reference.tool("echo", "Echo", { type: "object" }, (_args, context) => {
+    referenceSignal = context.signal;
+    return "done";
+  });
+  await reference.handleMessage("tools/call", params, { requestId: "one" });
+  assert.equal(signal.aborted, referenceSignal.aborted);
 });
 
 test("proxy descriptor traps can reenter native state and close the converting session", async () => {

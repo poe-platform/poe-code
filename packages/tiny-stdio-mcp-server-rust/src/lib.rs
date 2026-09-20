@@ -6,6 +6,7 @@ use mcp_protocol_rust::{
 use std::{collections::BTreeSet, sync::Arc};
 use toolcraft_schema_rust::{CompiledSchema, nullability::normalize_legacy_nullability};
 
+pub mod admission;
 pub mod content;
 pub mod features;
 pub mod headers;
@@ -86,6 +87,7 @@ pub enum Action {
     NoReply,
     Invoke {
         handler: u64,
+        name: Vec<u16>,
         arguments: Value,
         context: Value,
     },
@@ -451,6 +453,7 @@ impl Server {
             }
             return Action::Invoke {
                 handler: tool.handler,
+                name: tool.name.clone(),
                 arguments,
                 context,
             };

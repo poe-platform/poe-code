@@ -124,7 +124,7 @@ test("concurrent input requirements retain admission capabilities despite handle
   const supported = params({ roots: {} });
   const first = session.handleMessage("tools/call", supported, { requestId: "first" });
   const second = session.handleMessage("tools/call", params(), { requestId: "second" });
-  await Promise.resolve();
+  await new Promise(resolve => setImmediate(resolve));
   delete supported._meta["io.modelcontextprotocol/clientCapabilities"].roots;
   releases[1]();
   assert.equal((await second).error.code, -32021);
@@ -142,7 +142,7 @@ test("canceled input callbacks retain capacity until settled and do not contamin
     });
   const session = server.createMessageSession();
   const pending = session.handleMessage("tools/call", params({ roots: {} }), { requestId: "same" });
-  await Promise.resolve();
+  await new Promise(resolve => setImmediate(resolve));
   await session.handleMessage("notifications/cancelled", { requestId: "same" });
   assert.deepEqual(await pending, { result: undefined });
   assert.ok((await session.handleMessage("tools/call", params(), { requestId: "other" })).error);
@@ -150,7 +150,7 @@ test("canceled input callbacks retain capacity until settled and do not contamin
   // Allow the handler completion and its finally cleanup to settle.
   await new Promise(resolve => setImmediate(resolve));
   const next = session.handleMessage("tools/call", params(), { requestId: "same" });
-  await Promise.resolve();
+  await new Promise(resolve => setImmediate(resolve));
   release();
   assert.equal((await next).error.code, -32021);
   session.close();

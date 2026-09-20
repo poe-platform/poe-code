@@ -83,6 +83,9 @@ pub struct NativeServerOptions {
     pub support_notifications: Option<bool>,
     pub support_resource_subscriptions: Option<bool>,
     pub validate_tool_arguments: Option<bool>,
+    pub max_concurrent_tool_calls: Option<f64>,
+    pub max_queued_tool_calls: Option<f64>,
+    pub tool_call_timeout_ms: Option<f64>,
     pub max_active_requests: Option<f64>,
     pub max_stdio_line_bytes: Option<f64>,
     pub max_pending_stdio_messages: Option<f64>,
@@ -112,12 +115,37 @@ struct ServerState {
     outputs: HashMap<u64, Arc<tiny_stdio_mcp_server_rust::tool_result::ToolOutput>>,
     listens: HashMap<u64, u32>,
     invocations: HashMap<u64, (String, Value)>,
+    tool_admission: tiny_stdio_mcp_server_rust::admission::ToolAdmission,
+    tool_call_timeout_ms: Option<f64>,
 }
 
 #[napi]
 impl NativeServer {
     #[napi(constructor)]
     pub fn new(options: NativeServerOptions) -> Result<Self> {
+        if options
+            .tool_call_timeout_ms
+            .is_some_and(|value| !value.is_finite() || value.fract() != 0.0 || value <= 0.0)
+        {
+            return Err(Error::from_reason(
+                "toolCallTimeoutMs must be a positive integer.",
+            ));
+        }
+        let concurrent = options.max_concurrent_tool_calls.unwrap_or(4.0);
+        let queued = options.max_queued_tool_calls.unwrap_or(64.0);
+        for (name, value, minimum) in [
+            ("maxConcurrentToolCalls", concurrent, 1.0),
+            ("maxQueuedToolCalls", queued, 0.0),
+        ] {
+            if !value.is_finite()
+                || value.fract() != 0.0
+                || !(minimum..=9_007_199_254_740_991.0).contains(&value)
+            {
+                return Err(Error::from_reason(format!(
+                    "{name} must be a safe integer greater than or equal to {minimum}."
+                )));
+            }
+        }
         let limit = options.max_active_requests.unwrap_or(128.0);
         if !limit.is_finite()
             || limit.fract() != 0.0
@@ -143,6 +171,12 @@ impl NativeServer {
                 outputs: HashMap::new(),
                 listens: HashMap::new(),
                 invocations: HashMap::new(),
+                tool_admission: tiny_stdio_mcp_server_rust::admission::ToolAdmission::new(
+                    concurrent as usize,
+                    queued as usize,
+                )
+                .map_err(Error::from_reason)?,
+                tool_call_timeout_ms: options.tool_call_timeout_ms,
                 requests: RequestTracker::new(limit as usize).map_err(Error::from_reason)?,
                 stdio: StdioOptions {
                     max_line_bytes: capacity(
@@ -265,6 +299,45 @@ impl NativeServer {
     #[napi(getter)]
     pub fn active_request_count(&self) -> u32 {
         self.state.borrow().requests.active_count() as u32
+    }
+
+    #[napi(getter)]
+    pub fn tool_call_timeout_ms(&self) -> Option<f64> {
+        self.state.borrow().tool_call_timeout_ms
+    }
+
+    #[napi]
+    pub fn acquire_tool(&self, token: f64) -> Result<Option<bool>> {
+        let mut state = self.state.borrow_mut();
+        if !token.is_finite()
+            || token.fract() != 0.0
+            || !state.outputs.contains_key(&(token as u64))
+        {
+            return Err(Error::from_reason("Unknown tool request"));
+        }
+        match state.tool_admission.acquire(token as u64) {
+            Ok(tiny_stdio_mcp_server_rust::admission::Admission::Running) => Ok(Some(true)),
+            Ok(tiny_stdio_mcp_server_rust::admission::Admission::Queued) => Ok(Some(false)),
+            Err(message) if message == "Too many queued tool calls" => Ok(None),
+            Err(message) => Err(Error::from_reason(message)),
+        }
+    }
+
+    #[napi]
+    pub fn cancel_queued_tool(&self, token: f64) -> bool {
+        self.state
+            .borrow_mut()
+            .tool_admission
+            .cancel_queued(token as u64)
+    }
+
+    #[napi]
+    pub fn release_tool(&self, token: f64) -> Option<f64> {
+        self.state
+            .borrow_mut()
+            .tool_admission
+            .release(token as u64)
+            .map(|next| next as f64)
     }
 
     #[napi]
@@ -812,11 +885,13 @@ fn action_value(action: Action) -> Value {
         Action::NoReply => object([("type", string("none"))]),
         Action::Invoke {
             handler,
+            name,
             arguments,
             context,
         } => object([
             ("type", string("invoke")),
             ("handler", Value::Number(handler as f64)),
+            ("toolName", Value::String(name)),
             ("arguments", arguments),
             ("context", context),
             ("handlerKind", string("tool")),

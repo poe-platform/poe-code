@@ -4,6 +4,9 @@ export interface ServerOptions {
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;
   validateToolArguments?: boolean;
+  maxConcurrentToolCalls?: number;
+  maxQueuedToolCalls?: number;
+  toolCallTimeoutMs?: number;
   maxActiveRequests?: number;
   maxStdioLineBytes?: number;
   maxPendingStdioMessages?: number;

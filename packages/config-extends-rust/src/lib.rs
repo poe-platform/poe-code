@@ -1,11 +1,12 @@
 //! Portable layered configuration and prompt composition policies.
 pub mod discover;
 pub mod document;
+pub mod foreign;
 pub mod prompt;
 pub mod prompt_document;
 pub mod resolve;
 use config_mutations_rust::value::Value;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 #[derive(Clone, Debug)]
 pub struct Layer {
     pub source: Vec<u16>,
@@ -32,10 +33,39 @@ pub fn escape_path(segments: &[Vec<u16>]) -> Vec<u16> {
     output
 }
 type Fields = [(Vec<u16>, Value)];
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct BorrowedLayer<'a> {
     source: &'a [u16],
     fields: &'a Fields,
+    indices: Option<HashMap<&'a [u16], usize>>,
+}
+impl<'a> BorrowedLayer<'a> {
+    fn new(source: &'a [u16], fields: &'a Fields) -> Self {
+        let indices = if fields.len() > 32 {
+            let mut indices = HashMap::with_capacity(fields.len());
+            for (index, (key, _)) in fields.iter().enumerate() {
+                indices.entry(key.as_slice()).or_insert(index);
+            }
+            Some(indices)
+        } else {
+            None
+        };
+        Self {
+            source,
+            fields,
+            indices,
+        }
+    }
+    fn get(&self, key: &[u16]) -> Option<&'a Value> {
+        if let Some(indices) = &self.indices {
+            indices.get(key).map(|index| &self.fields[*index].1)
+        } else {
+            self.fields
+                .iter()
+                .find(|(name, _)| name == key)
+                .map(|(_, value)| value)
+        }
+    }
 }
 struct Entry<'a> {
     key: Vec<u16>,
@@ -103,10 +133,7 @@ pub fn merge_layers(layers: &[Layer]) -> Result<Merged, &'static str> {
         let Value::Object(fields) = &layer.data else {
             return Err("Config layer data must be an object.");
         };
-        roots.push(BorrowedLayer {
-            source: &layer.source,
-            fields,
-        });
+        roots.push(BorrowedLayer::new(&layer.source, fields));
         let mut tasks = vec![(&layer.data, 0)];
         while let Some((value, depth)) = tasks.pop() {
             if depth > 1000 {
@@ -153,8 +180,7 @@ pub fn merge_layers(layers: &[Layer]) -> Result<Merged, &'static str> {
                     let mut winner = None;
                     let mut objects = vec![];
                     for layer in &layers {
-                        let Some((_, value)) = layer.fields.iter().find(|(field, _)| *field == key)
-                        else {
+                        let Some(value) = layer.get(&key) else {
                             continue;
                         };
                         if matches!(value, Value::Undefined)
@@ -169,10 +195,7 @@ pub fn merge_layers(layers: &[Layer]) -> Result<Merged, &'static str> {
                         if matches!(winner, Some((_, Value::Object(_))))
                             && let Value::Object(fields) = value
                         {
-                            objects.push(BorrowedLayer {
-                                source: layer.source,
-                                fields,
-                            });
+                            objects.push(BorrowedLayer::new(layer.source, fields));
                         }
                     }
                     let Some((source, value)) = winner else {

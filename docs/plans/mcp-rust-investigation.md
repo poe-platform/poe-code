@@ -1968,6 +1968,41 @@ token core tests; fmt/clippy/shared-bridge lint and the eight-workspace uncached
 maintained build closure pass. Evidence:
 `out/rust-config-snapshot-core-{red,green,lint,build}.log`.
 
+### config-extends standalone Node parsing/merging, 2026-09-20
+
+Added a zero-npm-runtime-dependency private package and one self-contained addon
+embedding the shared frontmatter/configuration/design bridges. Node parseDocument
+and mergeLayers have SDK-assignable declarations. Rust owns foreign-handle merge
+decisions, explicit traversal, pruning and provenance; host operations preserve
+getter/layer-access order, sparse/custom array maps, prototypes, opaque identities,
+exceptions and iterator cleanup. Ordinary eligible data uses one binary snapshot
+and native owned merge; proxies/getters/species/custom maps take the handle path.
+Wide owned layers now index borrowed UTF-16 keys instead of repeated linear scans.
+Timestamp scalar YAML roots spread to empty records, and root errors retain lone
+UTF-16 filename units. Existing TS implementations and production imports remain.
+
+Validation: 35 Rust groups, 12 native groups, all 55 current SDK parse/merge cases,
+strict type assignability, fmt/clippy, and the 11-workspace uncached maintained
+build pass. Packed imports run with bare packages blocked, exactly one addon and
+zero runtime/peer/optional dependencies. Two 4 MiB workers pass 1,000-deep object
+merges, 200-deep dense arrays, bounded excessive-array rejection and 1,024 combined
+parse/merge cycles. Native and packed evidence is in `out/rust-config-extends-*`.
+
+A 400-level foreign callback error caused SIGSEGV in the initial test process.
+Shallow nested errors preserve identity; callback mapping is now capped at 32,
+with direct/main/4 MiB worker/packed bounded rejection verified. Ordinary eligible
+snapshots cap at depth256 and fall back; iterative object handling caps at1000.
+Full YAML diagnostics/recovery/cyclic-alias conformance and async Node APIs remain
+unfinished. This package is not accepted as a full rewrite yet.
+
+Performance on a32-field fixture in fresh sequential processes: Markdown parse
+~25.6–27.5us vs SDK~120.6–123.6us. Snapshot merge~33.3–35.1us vs SDK~16.3–18.8us;
+the callback path previously took~293–303us. Indexing2048-field owned input improves
+~6.3–6.5ms to~2.7–2.9ms, still above SDK~1.45–1.51ms. After8192 additional parse and
+merge cycles with explicit GC/idle, native RSS61.7→61.8MiB/heap4.15→4.15MiB; SDK
+RSS98.3→100.5MiB/heap8.73→8.74MiB. These fixtures support a parsing/memory benefit,
+not a general speed or leak-free/stability guarantee.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -4,6 +4,26 @@ Compose owned configuration from highest to lowest priority, with provenance
 for every resolved field. Nested objects fill missing values, arrays replace,
 nulls delete, and empty prompts inherit from lower-priority layers.
 
+The Node adapter currently exposes `parseDocument` and `mergeLayers` with
+TypeScript declarations and a self-contained napi-rs addon. It needs no npm
+runtime dependencies. Existing package tests check both functions against the
+current TypeScript SDK, including observable getter ordering, sparse/custom
+array maps, opaque value identity and safe prototype-named keys.
+Ordinary records and dense arrays use one binary snapshot/native call. Getters,
+proxies and custom array behavior use foreign handles so observable operations
+stay in JavaScript. Recursive foreign array mapping is capped at 32; ordinary
+snapshots support depth 256 and deeper object merges use the iterative handle path.
+
+```typescript
+import {parseDocument, mergeLayers} from '@poe-code/config-extends-rust';
+
+const document = parseDocument('---\ntitle: Demo\n---\nWrite a review', 'review.md');
+const resolved = mergeLayers([
+  {source: 'document', data: document.data},
+  {source: 'defaults', data: {model: 'default'}}
+]);
+```
+
 ```rust
 use config_extends_rust::{Layer, merge_layers};
 use config_mutations_rust::value::Value;
@@ -51,6 +71,6 @@ core's policy errors rather than retaining an absent host exception object.
 
 The core uses the standard library and own path crates. Merging and cloning use
 explicit work stacks with a depth bound of 1,000. This additive package currently
-provides owned merging, async rooted document resolution and templates. Node/Python
-adapters and JavaScript graph behavior are still in
-progress; existing TypeScript packages and production imports are unchanged.
+provides owned merging, async rooted document resolution, templates and portable
+foreign-handle merge decisions. Async Node resolution and Python adapters remain
+in progress; existing TypeScript packages and production imports are unchanged.

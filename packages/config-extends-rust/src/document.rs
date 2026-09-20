@@ -30,6 +30,12 @@ fn error(message: impl AsRef<str>) -> Error {
         message: message.as_ref().encode_utf16().collect(),
     }
 }
+fn named(prefix: &str, path: &[u16], suffix: &str) -> Error {
+    let mut message: Vec<u16> = prefix.encode_utf16().collect();
+    message.extend(path);
+    message.extend(suffix.encode_utf16());
+    Error { message }
+}
 fn equals(units: &[u16], text: &str) -> bool {
     units.iter().copied().eq(text.encode_utf16())
 }
@@ -213,21 +219,28 @@ pub fn parse_document(
                 },
             )
             .map_err(|diagnostic| {
-                error(format!(
-                    "Invalid JSON configuration in {}: {diagnostic}",
-                    String::from_utf16_lossy(file_path)
-                ))
+                named(
+                    "Invalid JSON configuration in ",
+                    file_path,
+                    &format!(": {diagnostic}"),
+                )
             })?,
         )),
     };
     if format == Format::Yaml && parsed.value == Value::Null {
         parsed.value = Value::Object(vec![]);
     }
+    // The SDK accepts any non-array object then spreads its own fields. A Date
+    // scalar therefore admits an empty record; frontmatter keeps its plain-root rule.
+    if format == Format::Yaml && matches!(parsed.value, Value::Date(_)) {
+        parsed = empty(Value::Object(vec![]));
+    }
     if !matches!(parsed.value, Value::Object(_)) {
-        return Err(error(format!(
-            "Invalid configuration in {}: expected an object root.",
-            String::from_utf16_lossy(file_path)
-        )));
+        return Err(named(
+            "Invalid configuration in ",
+            file_path,
+            ": expected an object root.",
+        ));
     }
     let has_extends = parsed.value.get("extends").is_some();
     let extends = extends(parsed.value.get("extends"), file_path, is_absolute)?;

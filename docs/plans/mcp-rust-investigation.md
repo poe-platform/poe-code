@@ -2199,6 +2199,30 @@ closure pass. This is the skill rewrite prerequisite, not completed skill APIs.
 Evidence: `out/rust-agent-defs-skill-*`.
 
 
+### Skill catalog, resolution and Git exclude subset — 2026-09-20
+
+Added independent `agent-skill-config-rust` core and private npm workspace. The
+catalog uses the declarative skill descriptors; Rust owns alias support, home/scope
+plans, ordered reference admission and project-before-user lookup. Git exclude
+policies retain existing lines, allocate independent same-run ownership IDs,
+remove only complete matching marker blocks and atomically update files with
+symlink traversal checks, exclusive temp creation and selective cleanup.
+
+Validation:7 Rust groups including128 generated SDK in-memory block lifecycles
+and catalog comparisons,1 native group, all49 existing SDK resolver/exclude cases,
+strict bidirectional root API types, fmt/clippy, and the uncached maintained
+11-workspace build closure. Direct/packed4MiB workers each run4096 catalog/path/
+missing-reference cycles with external imports blocked. Packed artifacts have
+exactly one addon and zero runtime/peer/optional dependency groups.
+
+Three missing-prefixed-lookup samples:14.3–14.6µs native versus8.3–9.1µs SDK. After
+131,072 additional lookups, sampled RSS85.2→85.7MB and heap9.14→9.17MB with explicit
+GC, stabilizing after65,536 cycles. No performance acceptance or general leak-free
+claim. Evidence: `out/rust-agent-skill-*`. Configure/install/templates and active
+skill lifecycle APIs remain unfinished, as do hook lifecycle cleanup, the overall
+rewrite and minimum24-hour requirement.
+
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

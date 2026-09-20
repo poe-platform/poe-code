@@ -1,8 +1,15 @@
 use mcp_protocol_rust::json::Value;
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 mod compile;
 mod evaluate;
+mod uri;
+
+#[derive(Default)]
+pub struct CompileOptions {
+    pub registry: Vec<(String, Value)>,
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ValidationIssue {
@@ -13,7 +20,7 @@ pub struct ValidationIssue {
     pub keyword: String,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Dialect {
     Draft7,
     Modern,
@@ -24,10 +31,18 @@ struct Node {
     dialect: Dialect,
     children: HashMap<Vec<u16>, usize>,
     reference: Option<usize>,
+    dynamic_reference: Option<(usize, Option<Vec<u16>>)>,
+    recursive_reference: Option<(usize, bool)>,
+    resource_root: usize,
+    resource_uri: Arc<str>,
+    base_uri: Arc<str>,
+    document: usize,
+    validation_vocabulary: bool,
 }
 
 pub struct CompiledSchema {
     nodes: Vec<Node>,
+    dynamic_anchors: HashMap<usize, HashMap<Vec<u16>, usize>>,
 }
 
 impl CompiledSchema {
@@ -36,6 +51,7 @@ impl CompiledSchema {
             graph: self,
             active: HashSet::new(),
             calls: 0,
+            dynamic_scope: Vec::new(),
         }
         .evaluate(0, value, &[], 0)
         .map(|result| result.issues)

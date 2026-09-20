@@ -35,6 +35,7 @@ pub(super) struct Evaluator<'a> {
     pub graph: &'a CompiledSchema,
     pub active: HashSet<(usize, usize)>,
     pub calls: usize,
+    pub dynamic_scope: Vec<usize>,
 }
 
 impl Evaluator<'_> {
@@ -53,7 +54,18 @@ impl Evaluator<'_> {
         if !self.active.insert(pair) {
             return Ok(Evaluation::default());
         }
+        let node = &self.graph.nodes[id];
+        let pushed = self
+            .dynamic_scope
+            .last()
+            .is_none_or(|root| self.graph.nodes[*root].resource_uri != node.resource_uri);
+        if pushed {
+            self.dynamic_scope.push(node.resource_root);
+        }
         let result = self.node(id, value, path, depth);
+        if pushed {
+            self.dynamic_scope.pop();
+        }
         self.active.remove(&pair);
         result
     }
@@ -118,6 +130,37 @@ impl Evaluator<'_> {
                 return Ok(result);
             }
         }
+        if let Some((reference, anchor)) = &node.dynamic_reference {
+            let target = anchor
+                .as_ref()
+                .and_then(|anchor| {
+                    self.dynamic_scope.iter().find_map(|root| {
+                        graph
+                            .dynamic_anchors
+                            .get(root)
+                            .and_then(|anchors| anchors.get(anchor))
+                            .copied()
+                    })
+                })
+                .unwrap_or(*reference);
+            result.merge(self.evaluate(target, value, path, depth + 1)?);
+        }
+        if let Some((reference, dynamic)) = node.recursive_reference {
+            let target = if dynamic {
+                self.dynamic_scope
+                    .iter()
+                    .rev()
+                    .find(|root| {
+                        graph.nodes[**root].schema.get("$recursiveAnchor")
+                            == Some(&Value::Bool(true))
+                    })
+                    .copied()
+                    .unwrap_or(reference)
+            } else {
+                reference
+            };
+            result.merge(self.evaluate(target, value, path, depth + 1)?);
+        }
         for keyword in ["allOf", "anyOf", "oneOf"] {
             if let Some(Value::Array(schemas)) = schema.get(keyword) {
                 let mut successful = Vec::new();
@@ -180,7 +223,9 @@ impl Evaluator<'_> {
         if let Value::Array(items) = value {
             self.array(node, items, value, path, depth, &mut result)?;
         }
-        validation(schema, node.dialect, value, path, &mut result);
+        if node.validation_vocabulary {
+            validation(schema, node.dialect, value, path, &mut result);
+        }
         if node.dialect == Dialect::Modern {
             if let Value::Object(properties) = value
                 && schema.get("unevaluatedProperties").is_some()

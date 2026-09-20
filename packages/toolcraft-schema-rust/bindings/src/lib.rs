@@ -1,7 +1,7 @@
 use mcp_protocol_rust::json::Value;
 use napi::{Env, Error, bindgen_prelude::*};
 use napi_derive::napi;
-use toolcraft_schema_rust::CompiledSchema;
+use toolcraft_schema_rust::{CompileOptions, CompiledSchema};
 
 #[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
 mod convert;
@@ -21,11 +21,33 @@ pub struct NativeCompiledSchema {
 #[napi]
 impl NativeCompiledSchema {
     #[napi(constructor)]
-    pub fn new(env: Env, schema: Unknown<'_>) -> Result<Self> {
+    pub fn new(env: Env, schema: Unknown<'_>, options: Option<Unknown<'_>>) -> Result<Self> {
         let value = input::read(&env, schema, input::Mode::Json)?
             .ok_or_else(|| Error::from_reason("JSON Schema must be a boolean or object."))?;
+        let options = options
+            .map(|options| input::read(&env, options, input::Mode::Json))
+            .transpose()?
+            .flatten();
+        if options
+            .as_ref()
+            .and_then(|options| options.get("formats"))
+            .is_some_and(|formats| !matches!(formats, Value::Object(entries) if entries.is_empty()))
+        {
+            return Err(Error::from_reason(
+                "Custom schema formats are not yet implemented",
+            ));
+        }
+        let registry = match options.as_ref().and_then(|options| options.get("registry")) {
+            Some(Value::Object(entries)) => entries
+                .iter()
+                .map(|(uri, schema)| (String::from_utf16_lossy(uri), schema.clone()))
+                .collect(),
+            None => Vec::new(),
+            _ => return Err(Error::from_reason("registry must be an object.")),
+        };
         Ok(Self {
-            schema: CompiledSchema::compile(value).map_err(Error::from_reason)?,
+            schema: CompiledSchema::compile(value, CompileOptions { registry })
+                .map_err(Error::from_reason)?,
         })
     }
 

@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { test } from "node:test";
 import { compileJsonSchema } from "../dist/index.js";
 
-// These keyword families have landed in this checkpoint. Graph URI resolution,
-// dynamic references, vocabularies and patterns get their own conformance gates
-// as those implementations land; unavailable cases are never counted as passes.
+// Patterns get their conformance gate when the implementation lands; unavailable
+// cases are never counted as passes.
 const families = [
   "type",
   "const",
@@ -24,8 +23,30 @@ const families = [
   "required",
   "dependentRequired",
   "uniqueItems",
-  "not"
+  "not",
+  "ref",
+  "refRemote",
+  "defs",
+  "definitions",
+  "anchor",
+  "dynamicRef",
+  "vocabulary"
 ];
+const registry = {};
+const remoteRoot = new URL(
+  "../../toolcraft-schema/test/json-schema-test-suite/remotes/",
+  import.meta.url
+);
+function loadRegistry(directory, prefix = "") {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = `${prefix}${entry.name}`;
+    const url = new URL(entry.isDirectory() ? `${entry.name}/` : entry.name, directory);
+    if (entry.isDirectory()) loadRegistry(url, `${path}/`);
+    else if (entry.name.endsWith(".json"))
+      registry[`http://localhost:1234/${path}`] = JSON.parse(readFileSync(url, "utf8"));
+  }
+}
+loadRegistry(remoteRoot);
 for (const draft of ["draft7", "draft2020-12"]) {
   for (const family of families) {
     const file = new URL(
@@ -33,8 +54,11 @@ for (const draft of ["draft7", "draft2020-12"]) {
       import.meta.url
     );
     if (!existsSync(file)) {
-      assert.equal(family, "dependentRequired");
-      assert.equal(draft, "draft7");
+      assert.ok(
+        draft === "draft7"
+          ? ["dependentRequired", "defs", "anchor", "dynamicRef", "vocabulary"].includes(family)
+          : family === "definitions"
+      );
       continue;
     }
     const groups = JSON.parse(readFileSync(file, "utf8"));
@@ -50,7 +74,7 @@ for (const draft of ["draft7", "draft2020-12"]) {
             }
           : group.schema;
       test(`official ${draft} ${family}: ${group.description}`, () => {
-        const compiled = compileJsonSchema(schema);
+        const compiled = compileJsonSchema(schema, { registry });
         for (const entry of group.tests) {
           assert.equal(compiled.validate(entry.data).ok, entry.valid, entry.description);
         }

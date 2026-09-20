@@ -9,5 +9,11 @@ export type ValidationResult<T> = { ok: true; value: T } | { ok: false; issues: 
 export interface CompiledJsonSchema {
   validate<T>(value: T): ValidationResult<T>;
 }
-export declare function compileJsonSchema(schema: unknown): CompiledJsonSchema;
+export interface CompileJsonSchemaOptions {
+  registry?: Record<string, unknown>;
+}
+export declare function compileJsonSchema(
+  schema: unknown,
+  options?: CompileJsonSchemaOptions
+): CompiledJsonSchema;
 export declare function formatIssues(issues: readonly ValidationIssue[]): string;

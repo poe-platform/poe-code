@@ -174,13 +174,134 @@ test("successful validation preserves caller value identity and schemas are copi
 });
 
 test("unfinished schema features fail explicitly rather than silently relaxing constraints", () => {
-  for (const schema of [
-    { pattern: "^a" },
-    { $dynamicRef: "#node" },
-    { $id: "https://example.test/schema" },
-    { patternProperties: { a: false } }
-  ]) {
+  for (const schema of [{ pattern: "^a" }, { patternProperties: { a: false } }]) {
     assert.throws(() => compileJsonSchema(schema), /Schema feature not yet implemented/);
   }
-  assert.throws(() => compileJsonSchema({}, { formats: {} }), /options are not yet implemented/);
+  assert.throws(
+    () => compileJsonSchema({}, { formats: { uri: {} } }),
+    /Custom schema formats are not yet implemented/
+  );
+});
+
+test("registered resources, URI aliases, dynamic and recursive references match native diagnostics", () => {
+  const cases = [
+    [
+      { $ref: "https://retrieve.test/root#/$defs/value" },
+      {
+        "https://retrieve.test/root": {
+          $id: "https://declared.test/root",
+          $defs: { value: { $ref: "value" } }
+        },
+        "https://declared.test/value": { type: "integer", minimum: 2 }
+      }
+    ],
+    [
+      {
+        $id: "https://test.test/root",
+        $defs: { leaf: { type: "integer" } },
+        $ref: " \t#/$defs/leaf\n "
+      },
+      {}
+    ],
+    [
+      {
+        $id: "https://test.test/root",
+        $dynamicAnchor: "node",
+        type: "object",
+        properties: { next: { $dynamicRef: "#node" }, value: { type: "integer" } }
+      },
+      {}
+    ],
+    [
+      {
+        $id: "https://test.test/root",
+        $recursiveAnchor: true,
+        type: "object",
+        properties: { next: { $recursiveRef: "#" }, value: { type: "integer" } }
+      },
+      {}
+    ],
+    [
+      {
+        $schema: "https://test.test/meta",
+        properties: { value: { minimum: 10 }, forbidden: false }
+      },
+      {
+        "https://test.test/meta": {
+          $vocabulary: { "https://json-schema.org/draft/2020-12/vocab/core": true }
+        }
+      }
+    ]
+  ];
+  for (const [schema, registry] of cases) {
+    const native = compileJsonSchema(schema, { registry });
+    const reference = referenceCompile(schema, { registry });
+    for (const input of [
+      null,
+      1,
+      2,
+      "bad",
+      {},
+      { value: 1 },
+      { next: { value: "bad" } },
+      { forbidden: 1 }
+    ]) {
+      assert.deepEqual(
+        native.validate(input),
+        reference.validate(input),
+        JSON.stringify({ schema, input })
+      );
+    }
+  }
+  for (const [schema, registry] of [
+    [true, { "https://test.test/bad": null }],
+    [{ $ref: "https://test.test/missing" }, {}]
+  ]) {
+    let expected;
+    try {
+      referenceCompile(schema, { registry });
+    } catch (error) {
+      expected = error.message;
+    }
+    assert.notEqual(expected, undefined);
+    assert.throws(() => compileJsonSchema(schema, { registry }), { message: expected });
+  }
+});
+
+test("schema resource URI normalization agrees with Node URL and the TypeScript compiler", () => {
+  for (const [reference, base] of [
+    ["http:relative", "http://example.test/a/root"],
+    ["https:relative", "http://example.test/a/root"],
+    ["\\\\other.test\\x", "https://example.test/a/root"],
+    ["?x='", "https://example.test/a/root"],
+    ["https://user:@example.test", "https://example.test"],
+    ["https://@example.test", "https://example.test"],
+    ["https://[0:0:0:0:0:0:0:1]/", "https://example.test"],
+    ["https://127.1/", "https://example.test"],
+    ["https://%65xample.test/", "https://example.test"]
+  ]) {
+    const schema = { $id: base, $ref: reference };
+    const registry = { [new URL(reference, base).href]: { type: "integer" } };
+    const native = compileJsonSchema(schema, { registry });
+    const expected = referenceCompile(schema, { registry });
+    for (const input of [1, "bad"])
+      assert.deepEqual(native.validate(input), expected.validate(input), reference);
+  }
+});
+
+test("fragment references normalize controls and follow later registered resource aliases", () => {
+  for (const [schema, registry] of [
+    [{ $defs: { leaf: { type: "integer" } }, $ref: "#/$defs/leaf\t\n " }, {}],
+    [
+      { $id: "https://test.test/root", $defs: { leaf: { type: "string" } }, $ref: "#/$defs/leaf" },
+      {
+        "https://test.test/root": { $defs: { leaf: { type: "integer" } } }
+      }
+    ]
+  ]) {
+    const native = compileJsonSchema(schema, { registry });
+    const reference = referenceCompile(schema, { registry });
+    for (const input of [1, "bad"])
+      assert.deepEqual(native.validate(input), reference.validate(input));
+  }
 });

@@ -5,15 +5,16 @@ The addon ships inside the package with zero external npm runtime dependencies.
 The reusable core depends only on the standard library and our JSON primitives.
 This private package is an additive implementation checkpoint.
 
-| Capability | Available behavior |
-| --- | --- |
-| Types and values | Boolean schemas, JSON types, `const`, `enum`, numeric bounds and multiples |
-| Strings | Unicode scalar length, including preserved lone UTF-16 surrogates |
-| Objects | Properties, required fields, dependencies, property names and additional properties |
-| Arrays | Draft-specific tuples, item schemas, contains counts and uniqueness |
-| Composition | `allOf`, `anyOf`, `oneOf`, `not`, conditionals and unevaluated members |
-| References | Local pointers, anchors, recursion and draft-7 `$ref` sibling behavior |
-| Diagnostics | Structured issue paths, messages, keywords and formatted summaries |
+| Capability       | Available behavior                                                                                              |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- |
+| Types and values | Boolean schemas, JSON types, `const`, `enum`, numeric bounds and multiples                                      |
+| Strings          | Unicode scalar length, including preserved lone UTF-16 surrogates                                               |
+| Objects          | Properties, required fields, dependencies, property names and additional properties                             |
+| Arrays           | Draft-specific tuples, item schemas, contains counts and uniqueness                                             |
+| Composition      | `allOf`, `anyOf`, `oneOf`, `not`, conditionals and unevaluated members                                          |
+| References       | Resource IDs, local/remote registry pointers, anchors, dynamic/recursive references and draft-7 `$ref` siblings |
+| Vocabularies     | Registered metadata controls validation keywords while retaining applicators                                    |
+| Diagnostics      | Structured issue paths, messages, keywords and formatted summaries                                              |
 
 ```ts
 import { compileJsonSchema, formatIssues } from "toolcraft-schema-rust";
@@ -40,10 +41,15 @@ Equality retains the existing compiler's signed-zero behavior. Diagnostic paths
 support lone surrogates even where the TypeScript compiler's URI scanner throws.
 Graph depth, node count, evaluation calls and diagnostic count are bounded.
 
-Full schema compatibility is still in progress. URI-based schema resources and
-registries, dynamic/recursive references, vocabularies, patterns, custom formats,
+Supply offline resources with `compileJsonSchema(schema, { registry: { [uri]: schema } })`.
+References never fetch from the network. Relative resource IDs resolve against their
+retrieval or declared base; parent pointers can cross nested resource boundaries.
+
+Full schema compatibility is still in progress. Patterns, custom formats,
 the fluent schema DSL, and arbitrary non-JSON host values remain pending. Known
 unfinished constraints fail at compilation rather than being silently ignored;
 unregistered `format` remains an annotation. Current ingress requires JSON values.
 Keep existing applications on `toolcraft-schema` until the full conformance gates
 and native distribution checks are complete.
+Schema URI resolution covers hierarchical/opaque bases and common Node URL
+normalization. Full WHATWG URL and Unicode host/IDNA conformance remain pending.

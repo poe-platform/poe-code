@@ -6,7 +6,7 @@ fn value(source: &str) -> Value {
 }
 
 fn valid(schema: &str, data: &str) -> bool {
-    CompiledSchema::compile(value(schema))
+    CompiledSchema::compile(value(schema), Default::default())
         .unwrap()
         .validate(&value(data))
         .unwrap()
@@ -114,15 +114,19 @@ fn invalid_schema_shapes_and_unresolved_references_fail_before_validation() {
         r#"{"anyOf":[]}"#,
         r##"{"$ref":"#/missing"}"##,
     ] {
-        assert!(CompiledSchema::compile(value(schema)).is_err(), "{schema}");
+        assert!(
+            CompiledSchema::compile(value(schema), Default::default()).is_err(),
+            "{schema}"
+        );
     }
 }
 
 #[test]
 fn diagnostic_paths_retain_surrogates_and_required_values_are_undefined() {
-    let compiled = CompiledSchema::compile(value(
-        r#"{"properties":{"\ud800":{"type":"string"}},"required":["missing"]}"#,
-    ))
+    let compiled = CompiledSchema::compile(
+        value(r#"{"properties":{"\ud800":{"type":"string"}},"required":["missing"]}"#),
+        Default::default(),
+    )
     .unwrap();
     let issues = compiled.validate(&value(r#"{"\ud800":1}"#)).unwrap();
     assert_eq!(issues.len(), 2);

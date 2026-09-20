@@ -20,17 +20,19 @@ normalization/validation also remain pending.
 
 `toolcraft-schema-rust` now has a private native checkpoint with independent
 compilation/evaluation of boolean and type schemas, scalar limits, value equality,
-object/array applicators, composition, conditionals, unevaluated members, local
-pointers/anchors and recursion. Native validation and issue formatting are checked
+object/array applicators, composition, conditionals, unevaluated members, URI-based
+resources/registries, pointers/anchors, dynamic/recursive refs and vocabularies.
+Native validation and issue formatting are checked
 against TypeScript, including its signed-zero equality behavior. Its graph owns
 child schemas once rather than retaining cloned subtrees at every ancestor.
 The schema and server bindings share one descriptor-safe ingress source.
 
-This checkpoint runs 804 official JSON Schema Test Suite cases in 176 selected
-groups, plus 9 Rust tests and 5 native safety/diagnostic comparison tests. The
+This checkpoint runs 1,076 official JSON Schema Test Suite cases in 302 selected
+groups, plus 17 Rust tests and 8 native safety/diagnostic comparison tests. The
 selected keyword families are listed in the maintained native test source; this
-is not a claim of full suite coverage. URI-based resources/registries, dynamic
-and recursive references, vocabularies, patterns, custom formats, fluent DSL and
+is not a claim of full suite coverage. Schema URI normalization is checked against
+Node and TypeScript for special URL references, credentials, IPv4/IPv6 and controls;
+full WHATWG and Unicode host compatibility remain pending. Patterns, custom formats, fluent DSL and
 non-JSON host values remain pending. Known unfinished constraints fail explicitly
 at compilation, and no MCP consumer has been switched to the new schema package.
 

@@ -3,9 +3,7 @@ import { createRequire } from "node:module";
 const { NativeCompiledSchema } = createRequire(import.meta.url)("./toolcraft-schema-rust.node");
 
 export function compileJsonSchema(schema, options = {}) {
-  if (Object.keys(options).length !== 0)
-    throw new Error("Schema compilation options are not yet implemented");
-  const compiled = new NativeCompiledSchema(schema);
+  const compiled = new NativeCompiledSchema(schema, options);
   return {
     validate(value) {
       const result = compiled.validate(value);

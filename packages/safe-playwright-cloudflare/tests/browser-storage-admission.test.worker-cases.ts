@@ -113,6 +113,7 @@ export async function coldRestore(
 	}
 	const second = create("cold-owner");
 	const other = create("cold-other-owner");
+  const failures: unknown[] = [];
 	try {
 		assert.equal(
 			(await second.run(["eval", "() => undefined", "--json"])).exitCode,
@@ -184,9 +185,14 @@ export async function coldRestore(
 			await other.client.inspectSessions()[0]!.context.cookies?.(),
 			[],
 		);
-	} finally {
-		await Promise.all([second.client.dispose(), other.client.dispose()]);
-	}
+  } catch (error) {
+    failures.push(error);
+  } finally {
+    const outcomes = await Promise.allSettled([second, other].map(owner => Promise.resolve().then(() => owner.client.dispose())));
+    failures.push(...outcomes.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []));
+  }
+  if (failures.length === 1) throw failures[0];
+  if (failures.length) throw new AggregateError(failures, 'Cold-owner restore and disposal failed');
 }
 
 export async function twoReplacements(f: Fixture, input: Origins) {

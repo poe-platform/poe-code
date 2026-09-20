@@ -454,6 +454,29 @@ test('graceful disposal releases the session even when the final checkpoint is r
   assert.ok(f.events.includes('release'));
 });
 
+for (const recoverable of [false, true]) test(`disposal preserves ${recoverable ? 'recoverable' : 'unsafe'} checkpoint and retirement failures`, async () => {
+  const checkpointFailure = recoverable ? new PlaywrightStorageReadError(new Error('storage read failed')) : new Error('checkpoint context closed');
+  const retirementFailure = new Error('owner deletion failed');
+  let failing = false;
+  const f = fixture({ async restore() { return undefined; }, async delete() {}, async checkpoint() {
+    if (failing) throw checkpointFailure;
+  } });
+  await f.run('open');
+  f.context.close = async () => { throw retirementFailure; };
+  failing = true;
+  const disposal = f.controller.dispose();
+  assert.equal(f.controller.dispose(), disposal);
+  await assert.rejects(disposal, error => {
+    const leaves = (value: unknown): unknown[] => value instanceof AggregateError ? value.errors.flatMap(leaves) : [value];
+    const failures = leaves(error);
+    assert.ok(failures.includes(checkpointFailure), 'checkpoint failure must survive retirement');
+    assert.ok(failures.includes(retirementFailure), 'retirement failure must survive checkpoint');
+    return true;
+  });
+  assert.equal(f.events.filter(event => event === 'release').length, 1);
+  assert.equal(f.controller.inspectSessions().length, 0);
+});
+
 test('expiration after a recoverable checkpoint still retires the live browser', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: 1000 });
   let failing = false;

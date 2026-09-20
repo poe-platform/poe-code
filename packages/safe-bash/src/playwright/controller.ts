@@ -1265,10 +1265,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     if (disposal) return disposal;
     // Install shared completion before notifying potentially reentrant hosts.
     disposal = Promise.resolve().then(async () => {
-      const retirements = [...sessions.values()].filter(s => s.lease).map(async session => {
-        try { await checkpoint(session, new AbortController().signal, false); }
-        finally { await release(session); }
-      });
+      const retirements = [...sessions.values()].filter(s => s.lease)
+        .map(session => checkpointAndRelease(session, new AbortController().signal));
       await Promise.allSettled([...work]);
       const results = await Promise.allSettled(retirements);
       results.push(...await Promise.allSettled([...sessions.values()].map(release)));

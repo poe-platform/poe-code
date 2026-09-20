@@ -224,16 +224,18 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
     const sourceLocks = activeControlLocks(source.root, source.compatibility, budget);
     const lockedOwners = new Set([...sourceLocks].filter(([lock]) => lock.attributes.find(attribute => attribute.namespace === lock.namespace && attribute.localName === "val")?.value !== "unlocked").map(([, binding]) => binding.owner));
     const currentOwners = new Set(current ? [...activeControlLocks(current.root, current.compatibility, budget).values()].map(binding => binding.owner) : []);
-    const visit = (node: XmlElement, path: readonly number[]) => {
+    const pending: { node: XmlElement; target: XmlElement | undefined }[] = [{ node: source.root, target: current?.root }];
+    while (pending.length) {
+      const { node, target } = pending.pop()!;
       budget.charge("work", 1);
       if (lockedOwners.has(node)) {
-        let target: XmlElement | undefined = current?.root;
-        for (const index of path) target = target?.children[index];
         if (!target || !current || !currentOwners.has(target) || current.sourceXml(target) !== source.sourceXml(node)) throw new UnsupportedEditError("Protected content controls must remain unchanged.");
       }
-      node.children.forEach((child, index) => visit(child, [...path, index]));
-    };
-    visit(source.root, []);
+      for (let i = node.children.length - 1; i >= 0; i--) {
+        budget.charge("retainedBytes", 32);
+        pending.push({ node: node.children[i]!, target: target?.children[i] });
+      }
+    }
   }
   for (const owner of ["/", ...packageView.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)]) for (const edge of packageView.relationships(owner)) if (signatureRelationshipTypes.includes(edge.reltype)) throw new UnsupportedEditError("Signed package publication is not supported.");
   for (const part of packageView.parts) {

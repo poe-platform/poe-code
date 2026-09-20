@@ -447,13 +447,16 @@ export class ModelStore {
     // Callbacks resolve against the current owner editor; publication occurs only after successful serialization.
     this.editors.set(part, candidate);
     const oldToCandidate = new Map<XmlElement, XmlElement>();
-    const pair = (left: XmlElement, right: XmlElement) => {
+    const pairs = [{ left: old.root, right: candidate.root }];
+    while (pairs.length) {
+      const { left, right } = pairs.pop()!;
+      this.context.budget.charge("work", 1);
       oldToCandidate.set(left, right);
-      left.children.forEach((child, index) => {
-        if (right.children[index]) pair(child, right.children[index]!);
-      });
-    };
-    pair(old.root, candidate.root);
+      for (let i = left.children.length - 1; i >= 0; i--) if (right.children[i]) {
+        this.context.budget.charge("retainedBytes", 32);
+        pairs.push({ left: left.children[i]!, right: right.children[i]! });
+      }
+    }
     const retained = [...this.handles.values()].filter((handle) => handle.ref.part === part);
     const prior = retained.map((handle) => handle.node);
     retained.forEach((handle) => {
@@ -505,8 +508,9 @@ export class ModelStore {
       const bytes = candidate.serialize();
       const next = new DocumentXmlEditor(bytes, {}, undefined, this.context.budget);
       const map = new Map<XmlElement, XmlElement>();
-      const reconcile = (left: XmlElement, right: XmlElement) => {
-        this.context.budget.charge("work", 1);
+      const budget = this.context.budget;
+      const reconcile = function* (left: XmlElement, right: XmlElement): Generator<{ left: XmlElement; right: XmlElement }, void, void> {
+        budget.charge("work", 1);
         map.set(left, right);
         const oldChildren = left.children,
           newChildren = right.children;
@@ -522,10 +526,10 @@ export class ModelStore {
                 (root) => root.namespace === child.namespace && root.localName === child.localName
               );
               if (offset >= 0 && newChildren[position + offset])
-                reconcile(child, newChildren[position + offset]!);
+                yield { left: child, right: newChildren[position + offset]! };
               position += roots.length;
             } else {
-              if (newChildren[position]) reconcile(child, newChildren[position]!);
+              if (newChildren[position]) yield { left: child, right: newChildren[position]! };
               position++;
             }
           }
@@ -539,7 +543,7 @@ export class ModelStore {
           const source = candidate.sourceXml(child);
           let j = floor;
           for (; j < newChildren.length; j++) {
-            this.context.budget.charge("work", 1);
+            budget.charge("work", 1);
             if (source === next.sourceXml(newChildren[j]!)) break;
           }
           if (j < newChildren.length) {
@@ -548,7 +552,8 @@ export class ModelStore {
             floor = j + 1;
           }
         });
-        oldChildren.forEach((child, i) => {
+        for (let i = 0; i < oldChildren.length; i++) {
+          const child = oldChildren[i]!;
           let j = matched.get(i);
           if (
             j === undefined &&
@@ -566,11 +571,20 @@ export class ModelStore {
           if (j !== undefined) {
             if (candidate.sourceXml(child) !== next.sourceXml(newChildren[j]!))
               replacements.set(child, [newChildren[j]!]);
-            reconcile(child, newChildren[j]!);
+            yield { left: child, right: newChildren[j]! };
           }
-        });
+        }
       };
-      reconcile(candidate.root, next.root);
+      budget.charge("retainedBytes", 128);
+      const pending = [reconcile(candidate.root, next.root)];
+      while (pending.length) {
+        const step = pending[pending.length - 1]!.next();
+        if (step.done) pending.pop();
+        else {
+          budget.charge("retainedBytes", 128);
+          pending.push(reconcile(step.value.left, step.value.right));
+        }
+      }
       for (const handle of retained) if (handle.node) handle.node = map.get(handle.node) ?? null;
       this.editors.set(part, next);
       this.handleIndex = undefined;

@@ -146,14 +146,21 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
       pieces = [];
     };
     if (ancestors.some(n => !visible(n.localName) || n.localName === "tr" && n.children.some(p => p.localName === "trPr" && p.children.some(c => !visible(c.localName))))) continue;
-    const visit = (current: XmlElement, path: readonly number[], run?: XmlElement, runOffset = { value: 0 }): void => {
+    type TraversalRequest = { current: XmlElement; path: readonly number[]; run: XmlElement | undefined; runOffset: { value: number } };
+    const visit = function* (current: XmlElement, path: readonly number[], run?: XmlElement, runOffset = { value: 0 }): Generator<TraversalRequest, void, void> {
       budget.charge("work", targets.length + 1);
       if (current.namespace !== w) {
         if (branches.has(current)) {
           const selectedBranch = branches.get(current);
-          if (selectedBranch) visit(selectedBranch, [...path, current.children.indexOf(selectedBranch)], run, runOffset);
+          if (selectedBranch) {
+            budget.charge("work", path.length + 1); budget.charge("retainedBytes", 128 + (path.length + 1) * 8);
+            yield { current: selectedBranch, path: [...path, current.children.indexOf(selectedBranch)], run, runOffset };
+          }
         } else if (containers.has(current)) {
-          current.children.forEach((child, index) => visit(child, [...path, index], run, runOffset));
+          for (let index = 0; index < current.children.length; index++) {
+            budget.charge("work", path.length + 1); budget.charge("retainedBytes", 128 + (path.length + 1) * 8);
+            yield { current: current.children[index]!, path: [...path, index], run, runOffset };
+          }
         } else flush();
         return;
       }
@@ -208,11 +215,23 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
       const previous = unsupported;
       unsupported ||= lockedOwners.has(current) || changedProperties || ["moveTo", "moveFrom"].includes(name);
       const childOffset = name === "r" ? { value: 0 } : runOffset;
-      current.children.forEach((child, i) => visit(child, [...path, i], name === "r" ? current : run, childOffset));
+      for (let i = 0; i < current.children.length; i++) {
+        budget.charge("work", path.length + 1); budget.charge("retainedBytes", 128 + (path.length + 1) * 8);
+        yield { current: current.children[i]!, path: [...path, i], run: name === "r" ? current : run, runOffset: childOffset };
+      }
       if (container || changedProperties) flush();
       unsupported = previous;
     };
-    visit(node, paragraph.value.path);
+    budget.charge("retainedBytes", 128);
+    const pending = [visit(node, paragraph.value.path)];
+    while (pending.length) {
+      const step = pending[pending.length - 1]!.next();
+      if (step.done) pending.pop();
+      else {
+        const request = step.value;
+        pending.push(visit(request.current, request.path, request.run, request.runOffset));
+      }
+    }
     flush();
     if (dummy && targets.length) {
       const text = paragraphPieces.map(piece => piece.text).join("");

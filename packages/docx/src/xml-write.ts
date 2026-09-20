@@ -103,7 +103,7 @@ function unsupported(): never {
 
 // Index only XML already admitted by the namespace-aware parser. Every retained
 // token must match; no omitted subtree may be reconstructed from a partial view.
-function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
+function indexSource(document: DocumentXml, source: string, budget: DocumentBudget): Map<Token, Span> {
   const spans = new Map<Token, Span>();
   let offset = source.charCodeAt(0) === 0xfeff ? 1 : 0;
   const consume = (value: string): void => {
@@ -118,7 +118,21 @@ function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
     if (end < 0) unsupported();
     return end;
   };
-  const visit = (node: XmlContent): void => {
+  const visit = (root: XmlContent): void => {
+    type Frame = { node: XmlContent; close?: undefined } | { node: XmlElement; close: { start: number; contentStart: number } };
+    budget.charge("retainedBytes", 64);
+    const pending: Frame[] = [{ node: root }];
+    while (pending.length) {
+      const { node, close } = pending.pop()!;
+      budget.charge("work", 1);
+      if (close && node.kind === "element") {
+        const contentEnd = offset;
+        consume("</" + node.name);
+        whitespace();
+        consume(">");
+        spans.set(node, { ...close, end: offset, contentEnd, owner: node });
+        continue;
+      }
     if (node.kind === "element") {
       const start = offset;
       consume("<" + node.name);
@@ -145,14 +159,11 @@ function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
       } else {
         consume(">");
         const contentStart = offset;
-        for (const child of node.content) visit(child);
-        const contentEnd = offset;
-        consume("</" + node.name);
-        whitespace();
-        consume(">");
-        spans.set(node, { start, end: offset, contentStart, contentEnd, owner: node });
+        budget.charge("retainedBytes", 64 * (node.content.length + 1));
+        pending.push({ node, close: { start, contentStart } });
+        for (let i = node.content.length - 1; i >= 0; i--) pending.push({ node: node.content[i]! });
       }
-      return;
+      continue;
     }
     let suffix = "";
     if (node.kind === "comment") { consume("<!--"); suffix = "-->"; }
@@ -171,6 +182,7 @@ function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
     }
     spans.set(node, { start, end: offset, owner: node });
     offset += suffix.length;
+    }
   };
   if (document.root.declaration !== undefined) {
     consume("<?xml");
@@ -225,7 +237,7 @@ export class DocumentXmlEditor {
     this.#dialect = dialectForNamespace(this.#document.root.namespace);
     this.#guardCompatibility = this.#dialect !== undefined;
     this.#source = new TextDecoder(this.#document.encoding, { fatal: true, ignoreBOM: true }).decode(this.#document.bytes);
-    this.#spans = indexSource(this.#document, this.#source);
+    this.#spans = indexSource(this.#document, this.#source, this.#budget);
     const stack: XmlContent[] = [this.#document.root];
     while (stack.length) {
       const node = stack.pop()!;
@@ -660,7 +672,7 @@ export class DocumentXmlEditor {
     if (fragment.root.content.length !== 1 || !added || added.namespace !== tabs.namespace || added.localName !== "tab" ||
       added.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value !== String(position)) unsupported();
     const attributes = (node: XmlElement, omitPosition = false) => node.attributes.filter(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && !(omitPosition && a.namespace === tabs.namespace && a.localName === "pos")).map(a => [a.namespace, a.localName, a.value]).sort();
-    const spans = indexSource(fragment, fragmentSource), addedSpan = spans.get(added)!;
+    const spans = indexSource(fragment, fragmentSource, this.#budget), addedSpan = spans.get(added)!;
     if (moving) {
       if (JSON.stringify(attributes(added, true)) !== JSON.stringify(attributes(moving, true)) ||
         JSON.stringify([...added.namespaces]) !== JSON.stringify([...moving.namespaces]) ||
@@ -686,7 +698,7 @@ export class DocumentXmlEditor {
       let afterOwner = candidate.root; for (const index of ownerPath) afterOwner = afterOwner.children[index]!;
       const afterProps = afterOwner.localName === "pPr" ? afterOwner : projected(afterOwner).find(n => n.namespace === tabs.namespace && n.localName === "pPr"), afterTabs = afterOwner.localName === "tabs" ? afterOwner : afterProps && projected(afterProps).find(n => n.namespace === tabs.namespace && n.localName === "tabs");
       if (!afterTabs) unsupported();
-      const candidateSpans = indexSource(candidate, source), span = candidateSpans.get(afterTabs)!;
+      const candidateSpans = indexSource(candidate, source, this.#budget), span = candidateSpans.get(afterTabs)!;
       if (source.slice(span.contentStart!, span.contentEnd!) !== expected || JSON.stringify(attributes(afterTabs)) !== JSON.stringify(attributes(tabs)) || JSON.stringify([...afterTabs.namespaces]) !== JSON.stringify([...tabs.namespaces])) unsupported();
       if (moving) {
         const afterStops = projected(afterTabs).filter(n => n.namespace === tabs.namespace && n.localName === "tab"), moved = afterStops[stops.filter(n => n !== moving && storedMeasure(n.attributes.find(a => a.namespace === tabs.namespace && a.localName === "pos")?.value ?? "").emu <= position * 635).length]!;

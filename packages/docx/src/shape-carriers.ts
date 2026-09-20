@@ -20,7 +20,11 @@ export function collectShapeCarriers(root: XmlElement, dialect: DocumentDialect,
  const bodyRoots = new Set<XmlElement>();
  const records: { node: XmlElement; kind: 'shape' | 'group'; representation: 'native' | 'office' | 'vml'; group: XmlElement | null; bodies: ShapeBody[]; refusalReasons: string[]; active: boolean; opaque: boolean; support: 'supported' | 'preserve-only'; owner: XmlElement; links: string[]; ids: string[]; ancestors: XmlElement[] }[] = [];
  const attr = (n: XmlElement, name: string) => n.attributes.find(a => !a.namespace && a.localName === name)?.value;
- const visit = (node: XmlElement, owner: XmlElement | undefined, group: XmlElement | null, canvas: boolean, active: boolean, ancestors: XmlElement[]) => {
+ const pending: { node: XmlElement; owner: XmlElement | undefined; group: XmlElement | null; canvas: boolean; active: boolean; ancestors: XmlElement[] }[] = [{ node: root, owner: undefined, group: null, canvas: false, active: true, ancestors: [] }];
+ while (pending.length) {
+  const frame = pending.pop()!;
+  const { node, active, ancestors } = frame;
+  let { owner, group, canvas } = frame;
   budget.charge('work', ancestors.length + 1); budget.charge('retainedBytes', 32 + ancestors.length * 8);
   if (node.namespace === vocabulary.w && ['drawing','pict'].includes(node.localName)) { owner = node; group = null; canvas = false; }
   if (node.namespace === vocabulary.wp && node.localName === 'wpc' && owner) canvas = true;
@@ -34,15 +38,20 @@ export function collectShapeCarriers(root: XmlElement, dialect: DocumentDialect,
    const candidates: XmlElement[] = [], admitted = new Set<XmlElement>(), links: string[] = [], ids: string[] = [];
    const enclosing = ancestors.slice(ancestors.indexOf(owner!)+1);
    const foreignEnvelope = enclosing.some(n => !(n.namespace===vocabulary.wp && ['inline','anchor','wpc','wgp','grpSp'].includes(n.localName) || n.namespace===vocabulary.a && ['graphic','graphicData'].includes(n.localName) || n.namespace===officeGroup && ['wgp','grpSp'].includes(n.localName) || n.namespace===vml && n.localName==='group' || n.namespace===mc && ['AlternateContent','Choice','Fallback'].includes(n.localName)));
-   const scan = (n: XmlElement, parents: XmlElement[] = []) => {
+   const scan: { n: XmlElement; parent: XmlElement | undefined; grandparent: XmlElement | undefined }[] = [{ n: node, parent: undefined, grandparent: undefined }];
+   while (scan.length) {
+    const { n, parent, grandparent } = scan.pop()!;
     budget.charge('work', 1);
-    if (n !== node && ((n.namespace === vocabulary.wp && ['wsp','wgp','grpSp'].includes(n.localName)) || n.namespace === officeShape && n.localName === 'wsp' || n.namespace === officeGroup || n.namespace === vml && ['shape','group'].includes(n.localName))) return;
-    if (n.localName === 'txbxContent' && [vocabulary.wp, vocabulary.w, documentDialects.transitional.w, wordExtension].includes(n.namespace)) { candidates.push(n); const parent=parents.at(-1), grandparent=parents.at(-2);
+    if (n !== node && ((n.namespace === vocabulary.wp && ['wsp','wgp','grpSp'].includes(n.localName)) || n.namespace === officeShape && n.localName === 'wsp' || n.namespace === officeGroup || n.namespace === vml && ['shape','group'].includes(n.localName))) continue;
+    if (n.localName === 'txbxContent' && [vocabulary.wp, vocabulary.w, documentDialects.transitional.w, wordExtension].includes(n.namespace)) { candidates.push(n);
      if (parent && grandparent === node && (representation === 'native' ? parent.namespace===vocabulary.wp && parent.localName==='txbx' && n.namespace===vocabulary.wp : representation === 'office' ? parent.namespace===officeShape && parent.localName==='txbx' && n.namespace===documentDialects.transitional.w : parent.namespace===vml && parent.localName==='textbox' && n.namespace===documentDialects.transitional.w)) admitted.add(n); }
     if (n.localName === 'linkedTxbx' && [vocabulary.wp,officeShape].includes(n.namespace)) links.push(attr(n,'id') ?? '');
     if (n.localName === 'txbx' && [vocabulary.wp,officeShape].includes(n.namespace)) ids.push(attr(n,'id') ?? '0');
-    for (const child of n.children) scan(child,[...parents,n]);
-   }; scan(node);
+    for (let i = n.children.length - 1; i >= 0; i--) {
+     budget.charge('retainedBytes', 32);
+     scan.push({ n: n.children[i]!, parent: n, grandparent: parent });
+    }
+   }
    candidates.forEach(n => bodyRoots.add(n));
    const reasons: string[] = [];
    if (foreignEnvelope) reasons.push('foreign-envelope');
@@ -61,11 +70,14 @@ export function collectShapeCarriers(root: XmlElement, dialect: DocumentDialect,
    records.push({node,kind,representation,group,bodies,refusalReasons:reasons,active,opaque:!!candidates.length && !bodies.length,support:reasons.length || kind === 'group' ? 'preserve-only' : 'supported',owner:[...ancestors].reverse().find(n=>['body','hdr','ftr','footnote','endnote','comment','txbxContent'].includes(n.localName)&&(n.namespace===vocabulary.w||n.namespace===vocabulary.wp))??root,links,ids,ancestors});
    if (kind === 'group') group = node;
   }
-  for (const child of node.children) {
+  for (let i = node.children.length - 1; i >= 0; i--) {
+   const child = node.children[i]!;
    const selected = node.namespace === mc && node.localName === 'AlternateContent' ? branches.get(node) : undefined;
-   visit(child,owner,group,canvas,active && (!(node.namespace === mc && node.localName === 'AlternateContent') || selected === child),[...ancestors,node]);
+   budget.charge('work', ancestors.length + 1);
+   budget.charge('retainedBytes', 64 + (ancestors.length + 1) * 8);
+   pending.push({ node: child, owner, group, canvas, active: active && (!(node.namespace === mc && node.localName === 'AlternateContent') || selected === child), ancestors: [...ancestors, node] });
   }
- }; visit(root,undefined,null,false,true,[]);
+ }
  for (const record of records) {
   for (const other of records) {
    budget.charge('work', 1);

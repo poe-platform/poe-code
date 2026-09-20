@@ -89,13 +89,18 @@ export class LocationIndex {
       if (isXmlContentType(part.content_type)) {
         root = parseDocumentXml(part.bytes, {}, budget).root;
         roots.set(part.partname, root);
-        const raw = (node: XmlElement, path: readonly number[]) => {
+        budget.charge("retainedBytes", 64);
+        const raw = [{ node: root, path: [] as readonly number[] }];
+        while (raw.length) {
+          const { node, path } = raw.pop()!;
           budget.charge("work", 1);
-          budget.charge("retainedBytes", 64 + path.length * 8);
           this.#paths.set(node, path);
-          node.children.forEach((child, i) => raw(child, [...path, i]));
-        };
-        raw(root, []);
+          for (let i = node.children.length - 1; i >= 0; i--) {
+            budget.charge("work", path.length + 1);
+            budget.charge("retainedBytes", 64 + (path.length + 1) * 8);
+            raw.push({ node: node.children[i]!, path: [...path, i] });
+          }
+        }
         const effective = (content: readonly CompatibilityContent[]): XmlElement[] => {
           const result: XmlElement[] = [];
           for (const child of content) {
@@ -121,12 +126,14 @@ export class LocationIndex {
         const nativeCarriers = new Map<XmlElement, XmlElement[]>();
         // Native image carriers remain inert read locations; namespace recognition
         // here never changes compatibility branch selection or text understanding.
-        const carriers = (node: XmlElement, owner?: XmlElement) => {
+        const carriers: { node: XmlElement; owner: XmlElement | undefined }[] = [{ node: root, owner: undefined }];
+        while (carriers.length) {
+          const { node, owner } = carriers.pop()!;
           budget.charge("work", 1);
           if (node.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" && node.localName === "AlternateContent") {
             const selected = branches.get(node);
-            if (selected) carriers(selected, owner);
-            return;
+            if (selected) { budget.charge("retainedBytes", 32); carriers.push({ node: selected, owner }); }
+            continue;
           }
           if (node.namespace === "urn:schemas-microsoft-com:vml" && node.localName === "imagedata" && owner) {
             const pending = nativeCarriers.get(owner) ?? [];
@@ -134,7 +141,7 @@ export class LocationIndex {
             budget.charge("retainedBytes", 16);
             pending.push(node);
             this.children.set(node, []);
-            return;
+            continue;
           }
           if (this.shapeCarriers.has(node) && !this.children.has(node)) {
             this.children.set(node, []);
@@ -149,9 +156,11 @@ export class LocationIndex {
             this.children.set(owner, [...this.children.get(owner) ?? [], node]);
           }
           const next = this.children.has(node) ? node : owner;
-          for (const child of node.children) carriers(child, next);
-        };
-        carriers(root);
+          for (let i = node.children.length - 1; i >= 0; i--) {
+            budget.charge("retainedBytes", 32);
+            carriers.push({ node: node.children[i]!, owner: next });
+          }
+        }
         for (const [owner, pending] of nativeCarriers) {
           const initial = this.children.get(owner) ?? [];
           budget.charge("work", initial.length + pending.length);
@@ -221,17 +230,21 @@ export class LocationIndex {
       budget.charge("retainedBytes", owners.length * 64);
       const indexed = new Set(owners.filter(e => e.kind === "annotation").map(e => e.node));
       const ownerPositions = new Map(owners.map(e => [e.node, e.positions]));
-      const inventory = (current: XmlElement, inherited: LocationPositions) => {
+      const inventory: { current: XmlElement; inherited: LocationPositions }[] = [{ current: node, inherited: positions }];
+      while (inventory.length) {
+        const { current, inherited } = inventory.pop()!;
         budget.charge("work", 1);
-        if (current !== node && (bodyRoots.has(current) || current.namespace === w && current.localName === "txbxContent")) return;
+        if (current !== node && (bodyRoots.has(current) || current.namespace === w && current.localName === "txbxContent")) continue;
         const positions = ownerPositions.get(current) ?? inherited;
         if (revisionInfo(current) && !indexed.has(current)) this.#add({ kind: "annotation", part, story: id, path: this.#paths.get(current)!, node: current, scope, positions });
         if (branches.has(current)) {
           const selected = branches.get(current);
-          if (selected) inventory(selected, positions);
-        } else for (const child of current.children) inventory(child, positions);
-      };
-      inventory(node, positions);
+          if (selected) { budget.charge("retainedBytes", 32); inventory.push({ current: selected, inherited: positions }); }
+        } else for (let i = current.children.length - 1; i >= 0; i--) {
+          budget.charge("retainedBytes", 32);
+          inventory.push({ current: current.children[i]!, inherited: positions });
+        }
+      }
       const ordered = this.entries.splice(entryStart);
       budget.charge("retainedBytes", ordered.length * 8);
       ordered.sort((a, b) => {

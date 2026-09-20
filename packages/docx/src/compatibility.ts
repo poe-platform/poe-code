@@ -160,6 +160,7 @@ export class MarkupCompatibility {
     const understood = new Set(settings.understoodNamespaces);
     const branches: CompatibilityBranch[] = [];
     const containers: XmlElement[] = [];
+    const editable = this.#editable;
     const attribute = (element: XmlElement, name: string) => element.attributes.find(a => a.namespace === mc && a.localName === name)?.value;
     const scopeFor = (element: XmlElement, parent: Scope): Scope => {
       budget.charge("work", 1 + parent.ignorable.size + parent.process.length * (element.attributes.length + 1) +
@@ -185,36 +186,48 @@ export class MarkupCompatibility {
         if (!a.namespace || a.namespace === xml || !scope.ignorable.has(a.namespace)) invalid();
       }
     };
-    const opaque = (element: XmlElement): CompatibilityElement => {
+    type TraversalRequest = { mode: "opaque"; element: XmlElement }
+      | { mode: "content"; element: XmlElement; scope: Scope; blocked: boolean }
+      | { mode: "visit"; element: XmlElement; scope: Scope; blocked: boolean; owner?: XmlElement };
+    type Traversal = Generator<TraversalRequest, CompatibilityContent[], CompatibilityContent[]>;
+    const opaque = function* (element: XmlElement): Traversal {
       budget.charge("work", 1 + element.content.length);
-      return Object.freeze({
+      const content: CompatibilityContent[] = [];
+      for (const node of element.content) {
+        if (node.kind === "element") {
+          const children = yield { mode: "opaque", element: node };
+          for (const child of children) content.push(child);
+        } else content.push(node);
+      }
+      return [Object.freeze({
         source: element, disposition: "extension", attributes: element.attributes,
-        content: Object.freeze(element.content.map(node => node.kind === "element" ? opaque(node) : node))
-      });
+        content: Object.freeze(content)
+      })];
     };
-    const visitContent = (element: XmlElement, scope: Scope, blocked: boolean): CompatibilityContent[] => {
+    const visitContent = function* (element: XmlElement, scope: Scope, blocked: boolean): Traversal {
       const result: CompatibilityContent[] = [];
       for (const node of element.content) {
         budget.charge("work", 1);
         if (node.kind === "element") {
-          for (const child of visit(node, scope, blocked, element)) result.push(child);
+          const children = yield { mode: "visit", element: node, scope, blocked, owner: element };
+          for (const child of children) result.push(child);
         }
-        else { result.push(node); if (!blocked) this.#editable.add(node); }
+        else { result.push(node); if (!blocked) editable.add(node); }
       }
       return result;
     };
-    const visit = (element: XmlElement, parent: Scope, blocked: boolean, owner?: XmlElement): CompatibilityContent[] => {
+    const visit = function* (element: XmlElement, parent: Scope, blocked: boolean, owner?: XmlElement): Traversal {
       const exact = settings.understoodElements!.find(name => matches(element, name));
       const exactAttribute = (attribute: XmlAttribute) => exact?.attributes.some(name => matches(attribute, name)) === true;
       const dimensions = drawingNamespaces.includes(element.namespace) && element.localName === "ext" && owner?.namespace === element.namespace && owner.localName === "xfrm" && !element.children.length && element.content.every(node => node.kind === "text" && !node.text.trim()) && ["cx", "cy"].every(name => element.attributes.filter(attribute => attribute.namespace === "" && attribute.localName === name).length === 1) && element.attributes.every(attribute => attribute.namespace === xmlns || attribute.namespace === "" && ["cx", "cy"].includes(attribute.localName) && attribute.value.length > 0 && [...attribute.value].every(char => "0123456789".includes(char)) && Number.isSafeInteger(Number(attribute.value)) && Number(attribute.value) > 0);
-      if (!dimensions && settings.extensionElements!.some(name => matches(element, name))) return [opaque(element)];
+      if (!dimensions && settings.extensionElements!.some(name => matches(element, name))) return yield { mode: "opaque", element };
       const scope = scopeFor(element, parent);
       if (scope.ignorable.has(element.namespace) && !understood.has(element.namespace) && !exact) {
         if (!scope.process.some(pair => matches(element, pair))) return [];
         if (element.attributes.some(a => a.namespace === xml && ["base", "lang", "space"].includes(a.localName))) invalid();
         mustUnderstand(element);
         containers.push(element);
-        return visitContent(element, scope, blocked);
+        return yield { mode: "content", element, scope, blocked };
       }
       if (element.namespace === mc) {
         if (element.localName !== "AlternateContent") invalid();
@@ -258,7 +271,7 @@ export class MarkupCompatibility {
         if (!selected) return [];
         mustUnderstand(selected);
         containers.push(element, selected);
-        return visitContent(selected, { ...selectedScope, alternate: true }, blocked);
+        return yield { mode: "content", element: selected, scope: { ...selectedScope, alternate: true }, blocked };
       }
       mustUnderstand(element);
       const known = understood.has(element.namespace) || exact !== undefined;
@@ -274,13 +287,30 @@ export class MarkupCompatibility {
       const attributes = element.attributes.filter(a => a.namespace !== mc &&
         !(scope.ignorable.has(a.namespace) && !understood.has(a.namespace) && !exactAttribute(a)));
       if (!protectedContent) {
-        this.#editable.add(element);
-        for (const a of attributes) if (a.namespace !== xmlns && (exact ? a.namespace === xml && ["lang", "space"].includes(a.localName) || exactAttribute(a) : !a.namespace || a.namespace === xml || understood.has(a.namespace))) this.#editable.add(a);
+        editable.add(element);
+        for (const a of attributes) if (a.namespace !== xmlns && (exact ? a.namespace === xml && ["lang", "space"].includes(a.localName) || exactAttribute(a) : !a.namespace || a.namespace === xml || understood.has(a.namespace))) editable.add(a);
       }
+      const content = yield { mode: "content", element, scope, blocked: protectedContent };
       return [Object.freeze({ source: element, disposition: known ? "understood" : "opaque",
-        attributes: Object.freeze(attributes), content: Object.freeze(visitContent(element, scope, protectedContent)) })];
+        attributes: Object.freeze(attributes), content: Object.freeze(content) })];
     };
-    this.content = Object.freeze(visit(root, { ignorable: new Set(), process: [], alternate: false }, false));
+    budget.charge("retainedBytes", 128);
+    const pending: Traversal[] = [visit(root, { ignorable: new Set(), process: [], alternate: false }, false)];
+    let content: CompatibilityContent[] = [];
+    while (pending.length) {
+      const step = pending[pending.length - 1]!.next(content);
+      if (step.done) { pending.pop(); content = step.value; }
+      else {
+        const request = step.value;
+        budget.charge("work", 1);
+        budget.charge("retainedBytes", 128);
+        content = [];
+        pending.push(request.mode === "opaque" ? opaque(request.element)
+          : request.mode === "content" ? visitContent(request.element, request.scope, request.blocked)
+          : visit(request.element, request.scope, request.blocked, request.owner));
+      }
+    }
+    this.content = Object.freeze(content);
     this.branches = Object.freeze(branches);
     this[compatibilityContainers] = Object.freeze(containers);
   }

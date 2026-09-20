@@ -1,6 +1,7 @@
 import type { ModelStore, ModelRef } from "./model-store.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { BoundsError } from "./model-errors.js";
+import { InvalidDocumentError } from "./document-error.js";
 import { numericSequence, snapshotSequence } from "./numeric-index.js";
 import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError } from "./xml-write.js";
@@ -70,7 +71,7 @@ function readEnum<E extends keyof DocxEnumNames>(
 ): DocxEnumValue<E> | null {
   if (raw === undefined) return null;
   const name = Object.keys(names).find((k) => names[k] === raw);
-  if (!name) throw new TypeError("Unknown stored table enumeration value.");
+  if (!name) throw new InvalidDocumentError("Unknown stored table enumeration value.");
   return symbols[name as DocxEnumNames[E]]!;
 }
 function properties(

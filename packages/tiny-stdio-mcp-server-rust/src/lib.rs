@@ -5,7 +5,10 @@ use mcp_protocol_rust::{
 };
 
 pub mod content;
+pub mod output;
 pub mod requests;
+pub mod stdio;
+pub mod wire;
 
 pub const MODERN_PROTOCOL_VERSION: &str = "2026-07-28";
 pub const DEFAULT_LEGACY_PROTOCOL_VERSION: &str = "2025-11-25";

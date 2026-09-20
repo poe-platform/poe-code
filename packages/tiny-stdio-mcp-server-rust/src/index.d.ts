@@ -4,6 +4,9 @@ export interface ServerOptions {
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;
   maxActiveRequests?: number;
+  maxStdioLineBytes?: number;
+  maxPendingStdioMessages?: number;
+  maxStdioOutputBytes?: number;
 }
 
 export interface HandleResult {
@@ -37,6 +40,15 @@ export interface MessageSession {
     context?: MessageRequestContext
   ): Promise<HandleResult>;
   close(): void;
+  handleLine(
+    line: string,
+    write?: (response: string) => Promise<void>
+  ): Promise<string | undefined>;
+}
+
+export interface Transport {
+  readable: NodeJS.ReadableStream;
+  writable: NodeJS.WritableStream;
 }
 
 export interface Server {
@@ -56,6 +68,8 @@ export interface Server {
   removeTool(name: string): boolean;
   createMessageSession(): MessageSession;
   handleMessage: MessageSession["handleMessage"];
+  connect(transport: Transport): Promise<void>;
+  listen(): Promise<void>;
 }
 
 export declare function createServer(options: ServerOptions): Server;

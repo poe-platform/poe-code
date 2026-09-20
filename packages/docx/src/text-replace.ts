@@ -54,23 +54,25 @@ export function textMarkup(node: XmlElement, text: string): string {
 
 /** Preserving literal replacement over owned bytes and explicit publication capabilities. */
 export async function replaceDocumentText(input: Uint8Array, options: TextReplaceOptions, context: PublicationContext): Promise<TextMutationData> {
-  xmlValue(options.find); xmlValue(options.with);
-  return mutateDocumentText(input, options, context, "text.replace");
+  const settings = archiveSettings(context);
+  const { input: identity, ...operationOptions } = options;
+  const invocation = validateDocxInvocation({ operation: "text.replace", inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);
+  const opts = invocation.options as DocxOperationArguments<"text.replace">;
+  xmlValue(opts.find); xmlValue(opts.with);
+  return mutateDocumentText(input, identity, context, "text.replace", settings, invocation);
 }
 
 /** Seeded placeholder text only; this is not anonymization. */
 export async function setDocumentDummyText(input: Uint8Array, options: DummyTextOptions, context: PublicationContext): Promise<TextMutationData> {
   const settings = archiveSettings(context);
-  validateDocxInvocation({ operation: "lorem.set", inputs: [options.input?.path ?? "document"], options: Object.fromEntries(Object.entries(options).filter(([key]) => key !== "input")) }, settings.budget);
-  return mutateDocumentText(input, options, context, "lorem.set");
+  const { input: identity, ...operationOptions } = options;
+  const invocation = validateDocxInvocation({ operation: "lorem.set", inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);
+  return mutateDocumentText(input, identity, context, "lorem.set", settings, invocation);
 }
 
-async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions | DummyTextOptions, context: PublicationContext,
-  operation: "text.replace" | "lorem.set"): Promise<TextMutationData> {
-  const settings = archiveSettings(context);
+async function mutateDocumentText(input: Uint8Array, identity: PublicationInput | undefined, context: PublicationContext,
+  operation: "text.replace" | "lorem.set", settings: ReturnType<typeof archiveSettings>, invocation: ReturnType<typeof validateDocxInvocation>): Promise<TextMutationData> {
   const dummy = operation === "lorem.set";
-  const { input: identity, ...operationOptions } = options;
-  const invocation = validateDocxInvocation({ operation, inputs: [identity?.path ?? "document"], options: operationOptions }, settings.budget);
   const opts = invocation.options as DocxOperationArguments<"text.replace"> & Partial<DocxOperationArguments<"lorem.set">>;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget });

@@ -8,6 +8,7 @@ license = "MIT"
 crate-type = ["cdylib"]
 [dependencies]
 config-extends-rust = { path = ".." }
+toolcraft-design-rust = { path = "../../toolcraft-design-rust" }
 config-mutations-rust = { path = "../../config-mutations-rust" }
 frontmatter-rust-napi-core = { path = "../../frontmatter-rust/bindings/shared" }
 mcp-protocol-rust = { path = "../../mcp-protocol-rust" }

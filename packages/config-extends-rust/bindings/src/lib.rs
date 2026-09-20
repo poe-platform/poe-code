@@ -1,4 +1,5 @@
 //! Standalone addon for document admission and foreign-runtime merge policies.
+mod resolution;
 use config_extends_rust::{document, foreign};
 pub use frontmatter_rust_napi_core::*;
 use mcp_protocol_rust::json::{self, Value};

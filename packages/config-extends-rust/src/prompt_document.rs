@@ -6,6 +6,10 @@ use crate::{
 use config_mutations_rust::value::Value;
 use toolcraft_design_rust::data::{Graph, Node};
 pub trait Host: resolve::Host {
+    /// Report an absent mandatory document; foreign hosts may retain its original exception.
+    fn missing_document(&mut self, path: &[u16]) -> Error<Self::Error> {
+        named("Prompt document not found: ", path)
+    }
     /// None is an own ENOENT; errors must not be reclassified as missing files.
     fn realpath(
         &mut self,
@@ -216,7 +220,7 @@ pub async fn resolve_prompt_document<H: Host>(
         None => match discover::Host::read(&mut fs, &file_path).await? {
             Some(content) => content,
             None if input.optional => u("---\nextends: true\n---\n"),
-            None => return Err(named("Prompt document not found: ", &file_path)),
+            None => return Err(fs.host.missing_document(&file_path)),
         },
     };
     let mut chain = vec![ChainLayer::Document(DocumentLayer {

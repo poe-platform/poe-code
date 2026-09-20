@@ -2014,6 +2014,40 @@ admission/render capabilities use own defaults and allow foreign runtime values
 without reading original data layers early. Rooted hosts preserve these capabilities.
 Async Node APIs are still unfinished; this is an independently usable core step.
 
+### Runtime-free async Node resolver bridge, 2026-09-20
+
+Delivered Node `findBase`, `resolve`, and `resolvePromptDocument` through a
+manually polled Rust future on the originating JS thread. Synchronous path,
+admission and template host callbacks keep runtime values in Node; reads and
+canonical lookups yield explicit requests and resume without replay. Completed
+machines explicitly discard their futures/callback references and reuse a pool
+of at most eight idle wrappers. Original data layers remain foreign until final
+merging; opaque Date/Symbol aliases and view getters/lambdas retain host behavior.
+A missing-document host capability preserves original mandatory ENOENT exceptions.
+The package still uses one standalone addon and zero npm runtime/peer/optional
+dependencies. No external runtime crate was added to the own core.
+
+TDD evidence: all three async Node APIs initially failed as missing; the owned
+preparation regression first failed compilation. Passing validation includes
+36 Rust groups, 17 native groups, all117 actual current SDK parse/merge/discover/
+resolve/prompt-document cases, strict API assignability, package fmt/clippy and
+the11-workspace uncached maintained build. Native comparisons exercise24 rooted
+path/overlay/optional/symlink cases including call order.192 concurrent resolver
+runs preserve separate callbacks. Main and packed imports each run two4MiB workers
+with1024 resolver and1024 prompt-document cycles. Packed smoke blocks external
+imports, counts exactly one addon, checks zero runtime dependencies and exercises
+the default Node filesystem. Temporary packed assets were purged; evidence remains
+under `out/rust-config-extends-async-*`.
+
+Fresh sequential process measurements: native resolver96.4–107.1us vsSDK45.0–62.1us;
+rooted prompt155.1–166.1us vsSDK94.8–101.0us. After4096 additional cycles of each,
+nativeRSS63.5→63.7MiB/heap4.64→4.66MiB; SDKRSS87.3→87.6MiB/heap9.15→9.20MiB.
+These fixtures show a resolver speed regression and lower observed resident memory;
+no general performance, leak-free or stability guarantee is claimed. Document/base
+metadata accessor stages are not yet fully SDK-compatible; transfer bounds are
+512 levels/100,000 nodes. YAML diagnostics/recovery/cyclic aliases, cross-platform
+artifacts, remaining MCP applications and the full poe-agent closure are unfinished.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

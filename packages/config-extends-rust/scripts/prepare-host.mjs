@@ -5,3 +5,7 @@ copyFileSync(new URL('src/index.d.ts',root),new URL('index.d.ts',dist));
 copyFileSync(new URL('../frontmatter-rust/src/index.js',root),new URL('index.js',frontmatter));
 writeFileSync(new URL('native.js',frontmatter),"export {native} from '../native.js';\n");
 for(const name of ['yaml-snapshot.js','snapshot.js'])copyFileSync(new URL('../config-mutations-rust/src/'+name,root),new URL(name,config));
+
+const design=new URL('design/',dist);
+mkdirSync(design,{recursive:true});
+for(const name of ['engine.js','data.js'])copyFileSync(new URL('../toolcraft-design-rust/src/'+name,root),new URL(name,design));

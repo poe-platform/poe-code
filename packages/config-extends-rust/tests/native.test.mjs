@@ -61,3 +61,54 @@ test('wide owned layers preserve indexed priority, nested provenance and UTF-16 
  high.nested=Object.fromEntries(Array.from({length:64},(_,index)=>[`child${index}`,index%2===0?undefined:index]));low.nested=Object.fromEntries(Array.from({length:64},(_,index)=>[`child${index}`,'inherited']));high['\ud800']='unit';high['literal.dot']='literal';
  const layers=[{source:'high',data:high},{source:'low',data:low}];assert.deepEqual(mergeLayers(layers),sdkMerge(layers));
 });
+
+test('async discovery suspends without replay and preserves filesystem exceptions',async()=>{
+ const {findBase}=await import('../dist/index.js'),calls=[],failure=Object.assign(new Error('denied'),{code:'EACCES'});
+ const fs={async readFile(file){calls.push(file);await Promise.resolve();if(file.endsWith('.yaml'))return 'title: found';throw Object.assign(new Error('missing'),{code:'ENOENT'});}};
+ assert.deepEqual(await findBase('job',['/bases'],fs),{content:'title: found',filePath:'/bases/job.yaml'});
+ assert.deepEqual(calls,['/bases/job.md','/bases/job.yaml']);
+ await assert.rejects(findBase('job',['/bases'],{async readFile(){throw failure}}),error=>error===failure);
+});
+test('async resolver retains opaque identities and defers original data getters',async()=>{
+ const {resolve}=await import('../dist/index.js'),calls=[],failure=new Error('getter failed');
+ const chain=[{source:'override',get data(){calls.push('data');return {settings:{own:true},get late(){throw failure}};}},{source:'document',filePath:'/work/job.yaml',content:'extends: true\nsettings: scalar\ndate: &d !!timestamp 2026-01-01\nfirst: *d\nsecond: *d'},{source:'base',path:'/bases'}];
+ const fs={async readFile(){assert.equal(calls.includes('data'),false);calls.push('read');return '---\nsettings:\n  inherited: true\n---\nHello {{name}}';}};
+ await assert.rejects(resolve(chain,{fs,view:{name:'World'}}),error=>error===failure);assert.equal(calls[0],'read');
+ const result=await resolve(chain.slice(1),{fs:{async readFile(){return '---\nsettings:\n  inherited: true\n---\nHello {{name}}';}},view:{name(){return 'World'}}});
+ assert.equal(result.data.prompt,'Hello World');assert.equal(result.data.first,result.data.second);assert.ok(result.data.date instanceof Date);
+});
+test('rooted async prompts return both template and rendered text with missing error identity',async()=>{
+ const {resolvePromptDocument}=await import('../dist/index.js'),missing=Object.assign(new Error('original missing'),{code:'ENOENT'});
+ const fs={async realpath(file){if(file==='/work/missing.md')throw missing;return file;},async readFile(){throw missing;}};
+ const result=await resolvePromptDocument({cwd:'/work',filePath:'job.md',content:'---\nextends: true\n---\nDoc({{yield}})',baseDocuments:[{filePath:'/bases/job.md',content:'Base {{name}}'}],variables:{name:'World'},fs});
+ assert.equal(result.template,'Doc(Base {{name}})');assert.equal(result.prompt,'Doc(Base World)');
+ await assert.rejects(resolvePromptDocument({cwd:'/work',filePath:'missing.md',fs}),error=>error===missing);
+});
+
+test('concurrent async resolutions retain independent callbacks and reuse completed machines',async()=>{
+ const {resolve}=await import('../dist/index.js');
+ for(let round=0;round<8;round++){
+  const results=await Promise.all(Array.from({length:24},(_,index)=>resolve([{source:`doc-${index}`,filePath:`/work/${index}.md`,content:'---\nextends: true\n---\nDoc({{yield}})'},{source:`base-${index}`,path:'/bases'}],{fs:{async readFile(file){await Promise.resolve();assert.equal(file,`/bases/${index}.md`);return `Base ${round}:${index} {{name}}`; }},view:{name:`view-${index}`}})));
+  for(let index=0;index<results.length;index++){assert.equal(results[index].data.prompt,`Doc(Base ${round}:${index} view-${index})`);assert.equal(results[index].sources.prompt,`doc-${index}`);}
+ }
+});
+test('rooted async canonical paths and overlays match SDK results, reads and failures',async()=>{
+ const {resolvePromptDocument}=await import('../dist/index.js'),{resolvePromptDocument:sdk}=await import('../../config-extends/dist/index.js');
+ const cases=[
+  {cwd:'/work',filePath:'job.md'},
+  {cwd:'/work',filePath:'missing.md',optional:true,baseDocuments:[{filePath:'/bases/missing.md',content:'Base {{name}}'}],variables:{name:'World'}},
+  {cwd:'/work',filePath:'job.md',content:'---\nextends: ../outside/base.md\n---\nBody'},
+  {cwd:'/work',filePath:'../outside/job.md',content:'Body'},
+  {cwd:'/work',filePath:'job.md',content:'Body',basePaths:['relative']},
+  {cwd:'/work',filePath:'job.md',content:'{{>snippet}}'},
+  {cwd:'/work',filePath:'job.md',content:'{{required}}',validate:false},
+  {cwd:'/work',filePath:'job.md',content:'{{required}}'},
+ ];
+ for(const canonical of ['/work','/canonical','/outside'])for(const options of cases){
+  function fixture(){const calls=[],missing=Object.assign(new Error('missing fixture'),{code:'ENOENT'}),files=new Map([['/work/job.md','File {{name}}'],['/work/snippet.md','Partial {{name}}'],['/outside/base.md','Outside']]);return {calls,fs:{async realpath(file){calls.push(['realpath',file]);if(file==='/work')return canonical==='/outside'?'/work':canonical;if(files.has(file))return canonical+file.slice('/work'.length);throw missing;},async readFile(file){calls.push(['read',file]);if(files.has(file))return files.get(file);throw missing;}}};}
+  const first=fixture(),second=fixture();let result,expected;
+  try{result=await resolvePromptDocument({...options,fs:first.fs});}catch(error){result={error:error.message};}
+  try{expected=await sdk({...options,fs:second.fs});}catch(error){expected={error:error.message};}
+  assert.deepEqual(result,expected,JSON.stringify({canonical,options}));assert.deepEqual(first.calls,second.calls);
+ }
+});

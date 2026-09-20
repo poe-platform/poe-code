@@ -58,3 +58,4 @@ export function mergeLayers(layers){
  const inputs=[];for(const layer of layers)inputs.push(intern(layer));
  const result=native.extendsForeignMerge(inputs,hook);return {data:values[result.data],sources:result.sources};
 }
+export {findBase,resolve,resolvePromptDocument} from './resolution.js';

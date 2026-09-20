@@ -36,6 +36,7 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
+ "toolcraft-design-rust",
 ]
 
 [[package]]

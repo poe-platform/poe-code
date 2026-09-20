@@ -58,6 +58,10 @@ composes prompts and renders an optional owned template graph. It records every
 document and partial in the returned chain and limits extends depth to five.
 Supply a `resolve::Host` for platform paths and in-memory or real filesystem I/O.
 Host errors are returned intact through `discover::Error::Host`.
+`resolve::prepare` returns the ordered document/base layers before data merging.
+Foreign adapters can inspect their original data layers at the final merge stage
+without discarding lower object candidates. Hosts can admit runtime values and
+render runtime views; the default capabilities use the own parser and template engine.
 Discovery and resolution return standard Rust futures. Host reads and canonical
 path lookups may suspend; use your runtime to await them. The core adds no async
 runtime dependency and does not replay earlier work when a read resumes.

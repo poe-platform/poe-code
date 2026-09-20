@@ -705,3 +705,60 @@ fn generated_rooted_overlay_optional_and_template_cases_match_sdk_results_and_re
         json(&obj(vec![("cases", Value::Array(expected))]))
     );
 }
+
+#[test]
+fn prepared_resolution_preserves_lower_object_candidates_and_document_position() {
+    use config_extends_rust::resolve::prepare;
+    let mut fs = memory(&[(
+        "/bases/job.yaml",
+        "settings:\n  inherited: true\nprompt: Base",
+    )]);
+    let chain = vec![
+        ChainLayer::Data(Layer {
+            source: u("override"),
+            data: Value::Object(vec![(
+                u("settings"),
+                Value::Object(vec![(u("own"), Value::Bool(true))]),
+            )]),
+        }),
+        ChainLayer::Document(DocumentLayer {
+            source: u("document"),
+            file_path: u("/work/job.yaml"),
+            content: u("extends: true\nsettings: scalar"),
+            base_name: None,
+        }),
+        ChainLayer::Base(BaseLayer {
+            source: u("base"),
+            path: u("/bases"),
+        }),
+    ];
+    let prepared = complete(prepare(&chain, &Options::default(), &mut fs)).unwrap();
+    assert_eq!(prepared.document_index, 1);
+    assert_eq!(prepared.layers.len(), 2);
+    assert_eq!(
+        prepared.layers[0].data.get("settings"),
+        Some(&Value::String(u("scalar")))
+    );
+    assert_eq!(
+        prepared.layers[1].data.get("settings"),
+        Some(&Value::Object(vec![(u("inherited"), Value::Bool(true))]))
+    );
+    assert_eq!(prepared.prompt_source, Some(u("base")));
+    let result = complete(resolve(&chain, &Options::default(), &mut fs)).unwrap();
+    assert_eq!(
+        result.data.get("settings"),
+        Some(&Value::Object(vec![
+            (u("own"), Value::Bool(true)),
+            (u("inherited"), Value::Bool(true))
+        ]))
+    );
+    assert_eq!(
+        result
+            .sources
+            .iter()
+            .find(|(key, _)| *key == u("prompt"))
+            .unwrap()
+            .1,
+        u("base")
+    );
+}

@@ -40,6 +40,15 @@ pub struct Resolved {
     pub sources: Vec<(Vec<u16>, Vec<u16>)>,
     pub chain: Vec<Vec<u16>>,
 }
+/// Document/base layers prepared before foreign data layers are inspected.
+#[derive(Debug)]
+pub struct Prepared {
+    pub document_index: usize,
+    pub layers: Vec<Layer>,
+    pub document_source: Vec<u16>,
+    pub prompt_source: Option<Vec<u16>>,
+    pub chain: Vec<Vec<u16>>,
+}
 pub trait Host: discover::Host {
     fn resolve(&mut self, path: &[u16]) -> Vec<u16>;
     fn dirname(&mut self, path: &[u16]) -> Vec<u16>;
@@ -48,6 +57,47 @@ pub trait Host: discover::Host {
     /// Lowercase extension, including its leading dot.
     fn extension(&mut self, path: &[u16]) -> Vec<u16>;
     fn is_absolute(&mut self, path: &[u16]) -> bool;
+    /// Admit a document using the own parser; foreign hosts may preserve runtime values.
+    fn admit(
+        &mut self,
+        content: &[u16],
+        file: &[u16],
+    ) -> Result<document::ParsedDocument, Error<Self::Error>> {
+        let extension = self.extension(file);
+        document::parse_document(
+            content,
+            &extension,
+            file,
+            &mut |path| self.is_absolute(path),
+            None,
+        )
+        .map_err(|error| Error::Policy(error.message))
+    }
+    /// Render with the own data engine; foreign hosts may provide runtime views.
+    fn render(
+        &mut self,
+        prompt: &[u16],
+        options: &Options<'_>,
+    ) -> Result<Vec<u16>, Error<Self::Error>> {
+        let empty = Graph {
+            nodes: vec![Node::Object(vec![])],
+            root: 0,
+        };
+        let graph = options.view.unwrap_or(&empty);
+        let mut partials = NoPartials;
+        let mut environment = DataEnvironment::new(graph, &mut partials).map_err(template_error)?;
+        template::render(
+            prompt,
+            0,
+            &mut environment,
+            RenderOptions {
+                escape_none: true,
+                validate: options.validate,
+                ..RenderOptions::default()
+            },
+        )
+        .map_err(template_error)
+    }
     /// Own ENOTDIR is treated as missing only for path-valued extends.
     fn path_not_found(&self, _error: &Self::Error) -> bool {
         false
@@ -64,21 +114,6 @@ fn named<E>(prefix: &str, name: &[u16], suffix: &str) -> Error<E> {
     message.extend(name);
     message.extend(u(suffix));
     Error::Policy(message)
-}
-fn parse<H: Host>(
-    content: &[u16],
-    file: &[u16],
-    host: &mut H,
-) -> Result<document::ParsedDocument, Error<H::Error>> {
-    let extension = host.extension(file);
-    document::parse_document(
-        content,
-        &extension,
-        file,
-        &mut |path| host.is_absolute(path),
-        None,
-    )
-    .map_err(|error| Error::Policy(error.message))
 }
 fn set_prompt(layer: &mut Layer, prompt: Vec<u16>) {
     let Value::Object(fields) = &mut layer.data else {
@@ -178,7 +213,7 @@ async fn load_bases<H: Host>(
             }
             return Err(Error::Policy(message));
         }
-        let parsed = parse(&content, &file, host)?;
+        let parsed = host.admit(&content, &file)?;
         visited.push(resolved);
         files.push(file.clone());
         layers.push(Layer {
@@ -293,11 +328,11 @@ impl Partials for NoPartials {
     }
 }
 impl DataHost for NoPartials {}
-pub async fn resolve<H: Host>(
+pub async fn prepare<H: Host>(
     chain: &[ChainLayer],
     options: &Options<'_>,
     host: &mut H,
-) -> Result<Resolved, Error<H::Error>> {
+) -> Result<Prepared, Error<H::Error>> {
     let documents: Vec<_> = chain
         .iter()
         .enumerate()
@@ -320,7 +355,7 @@ pub async fn resolve<H: Host>(
             _ => None,
         })
         .collect();
-    let parsed = parse(&document.content, &document.file_path, host)?;
+    let parsed = host.admit(&document.content, &document.file_path)?;
     let should_extend =
         parsed.extends != Extends::Disabled || options.auto_extend && !parsed.has_extends;
     let (mut base_layers, base_files) = if should_extend {
@@ -345,25 +380,7 @@ pub async fn resolve<H: Host>(
     let composed = prompt::compose_prompts(&expanded_document, &base_layers).map_err(policy)?;
     if let Some(composed) = &composed {
         let prompt = if options.view.is_some() || options.validate {
-            let empty = Graph {
-                nodes: vec![Node::Object(vec![])],
-                root: 0,
-            };
-            let graph = options.view.unwrap_or(&empty);
-            let mut partials = NoPartials;
-            let mut environment =
-                DataEnvironment::new(graph, &mut partials).map_err(template_error)?;
-            template::render(
-                &composed.prompt,
-                0,
-                &mut environment,
-                RenderOptions {
-                    escape_none: true,
-                    validate: options.validate,
-                    ..RenderOptions::default()
-                },
-            )
-            .map_err(template_error)?
+            host.render(&composed.prompt, options)?
         } else {
             composed.prompt.clone()
         };
@@ -375,6 +392,24 @@ pub async fn resolve<H: Host>(
             fields.retain(|(key, _)| *key != u("prompt"));
         }
     }
+    let mut layers = vec![expanded_document];
+    layers.extend(base_layers);
+    prompt_files.extend(partial_files);
+    Ok(Prepared {
+        document_index: index,
+        layers,
+        document_source: document.source.clone(),
+        prompt_source: composed.and_then(|prompt| prompt.source),
+        chain: prompt_files,
+    })
+}
+/// Resolve owned layers after document preparation; foreign runtimes can defer their merge.
+pub async fn resolve<H: Host>(
+    chain: &[ChainLayer],
+    options: &Options<'_>,
+    host: &mut H,
+) -> Result<Resolved, Error<H::Error>> {
+    let prepared = prepare(chain, options, host).await?;
     let data_layers = |layers: &[ChainLayer]| {
         layers
             .iter()
@@ -384,24 +419,21 @@ pub async fn resolve<H: Host>(
             })
             .collect::<Vec<_>>()
     };
-    let mut layers = data_layers(&chain[..index]);
-    layers.push(expanded_document);
-    layers.extend(base_layers);
-    layers.extend(data_layers(&chain[index + 1..]));
+    let mut layers = data_layers(&chain[..prepared.document_index]);
+    layers.extend(prepared.layers);
+    layers.extend(data_layers(&chain[prepared.document_index + 1..]));
     let mut merged = merge_layers(&layers).map_err(policy)?;
-    if let Some(composed) = composed
-        && let Some(source) = composed.source
+    if let Some(source) = prepared.prompt_source
         && let Some((_, provenance)) = merged
             .sources
             .iter_mut()
-            .find(|(key, value)| *key == u("prompt") && *value == document.source)
+            .find(|(key, value)| *key == u("prompt") && *value == prepared.document_source)
     {
         *provenance = source;
     }
-    prompt_files.extend(partial_files);
     Ok(Resolved {
         data: merged.data,
         sources: merged.sources,
-        chain: prompt_files,
+        chain: prepared.chain,
     })
 }

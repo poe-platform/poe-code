@@ -2003,6 +2003,17 @@ merge cycles with explicit GC/idle, native RSS61.7→61.8MiB/heap4.15→4.15MiB;
 RSS98.3→100.5MiB/heap8.73→8.74MiB. These fixtures support a parsing/memory benefit,
 not a general speed or leak-free/stability guarantee.
 
+### Deferred foreign resolver preparation, 2026-09-20
+
+Added `resolve::prepare` with document position, ordered unmerged document/base
+layers, composed prompt provenance and source chain. Owned resolution now merges
+this representation together with data overrides and fallback layers. A failing
+core test reproduced the missing preparation API; the passing regression shows
+that a high-priority object still inherits fields below a document scalar. Host
+admission/render capabilities use own defaults and allow foreign runtime values
+without reading original data layers early. Rooted hosts preserve these capabilities.
+Async Node APIs are still unfinished; this is an independently usable core step.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

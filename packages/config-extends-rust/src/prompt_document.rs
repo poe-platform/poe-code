@@ -134,6 +134,20 @@ impl<H: Host> resolve::Host for Rooted<'_, H> {
     fn is_absolute(&mut self, path: &[u16]) -> bool {
         self.host.is_absolute(path)
     }
+    fn admit(
+        &mut self,
+        content: &[u16],
+        file: &[u16],
+    ) -> Result<crate::document::ParsedDocument, Error<Self::Error>> {
+        self.host.admit(content, file).map_err(Error::Host)
+    }
+    fn render(
+        &mut self,
+        prompt: &[u16],
+        options: &Options<'_>,
+    ) -> Result<Vec<u16>, Error<Self::Error>> {
+        self.host.render(prompt, options).map_err(Error::Host)
+    }
     fn path_not_found(&self, error: &Self::Error) -> bool {
         matches!(error,Error::Host(error) if self.host.path_not_found(error))
     }

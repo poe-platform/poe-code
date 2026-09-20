@@ -2,6 +2,7 @@
 pub mod discover;
 pub mod document;
 pub mod prompt;
+pub mod prompt_document;
 pub mod resolve;
 use config_mutations_rust::value::Value;
 use std::collections::HashSet;

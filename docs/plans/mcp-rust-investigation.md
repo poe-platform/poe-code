@@ -1925,6 +1925,21 @@ Rooted prompt-document resolution, native/foreign-graph adapters and performance
 acceptance are still incomplete. These are additive cores, not full acceptance
 of config-extends or the larger MCP/poe-agent rewrite.
 
+### config-extends rooted prompt-document core, 2026-09-20
+
+Added Rust prompt-document resolution with original-root lexical and canonical
+symlink containment, absolute base admission, last-document-wins memory overlays,
+optional missing-document inheritance, and separate template/rendered-prompt
+resolution with metadata and provenance. Path operations and canonical lookup
+remain host capabilities. Owned missing paths become policy errors; an absent
+host exception object cannot be retained by this core's Option-based interface.
+
+Validation: 30 Rust groups plus fmt/clippy pass; 32 additional generated cases
+match actual SDK rooted-overlay/optional/template results, errors and filesystem
+read ordering. Tests explicitly cover symlink escapes and canonical roots. Logs:
+`out/rust-config-extends-rooted-{red,green,lint}.log`. Async/native/foreign-graph
+adapters and full package acceptance remain unfinished.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

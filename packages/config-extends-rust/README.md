@@ -39,8 +39,15 @@ document and partial in the returned chain and limits extends depth to five.
 Supply a `resolve::Host` for platform paths and in-memory or real filesystem I/O.
 Host errors are returned intact through `discover::Error::Host`.
 
+`prompt_document::resolve_prompt_document` adds rooted document paths, symlink
+containment, absolute base directories, in-memory base-document overlays and
+optional missing-document inheritance. It returns both the composed template
+and rendered prompt, plus metadata, provenance and source files. Supply a
+`prompt_document::Host` with canonical path lookup; missing paths use the owned
+core's policy errors rather than retaining an absent host exception object.
+
 The core uses the standard library and own path crates. Merging and cloning use
 explicit work stacks with a depth bound of 1,000. This additive package currently
-provides owned merging, document resolution and templates. Rooted prompt-document
-resolution, filesystem adapters, JavaScript graph behavior and Node/Python bindings are still in
+provides owned merging, rooted document resolution and templates. Async filesystem
+adapters, JavaScript graph behavior and Node/Python bindings are still in
 progress; existing TypeScript packages and production imports are unchanged.

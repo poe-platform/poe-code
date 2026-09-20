@@ -4,6 +4,7 @@ use process_runner_rust::host::{self, KillTarget, Stdio};
 pub mod docker;
 pub mod ignore;
 pub mod mock;
+pub mod tar;
 #[napi(object)]
 pub struct HostFacts {
     pub stdin: Option<String>,

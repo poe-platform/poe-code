@@ -85,3 +85,10 @@ SDK reference. After131,072 further cycles, native heap stayed3.84–3.87MB and 
 111.8–112.4MB; the reference stayed4.00–4.04MB and59.9–62.8MB. These results do
 not establish a performance or total-memory improvement. Full malformed-pattern
 error parity, including a reference-library `SyntaxError` case, remains unfinished.
+
+The portable core also provides a deterministic USTAR encoder for workspace
+transfer. It borrows input payloads, checks UTF-8 path limits and preserves original
+UTF-16 error text. The Node binding returns Node-owned archive buffers. For a
+two-entry6.5KiB archive, a bounded comparison measured1.8–2.1µs native versus
+9.3–10.2µs for the SDK encoder. Sampled RSS stayed82–84MB across131,072 further
+encodes; the SDK stayed58MB. Full transfer APIs remain unfinished.

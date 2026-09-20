@@ -1,0 +1,5 @@
+import {test}from'node:test';import assert from'node:assert/strict';import {Volume,createFsFromVolume}from'memfs';import {uploadWorkspace}from'../../process-runner/dist/workspace-transfer.js';import {native}from'../dist/native.js';
+test('own deterministic ustar archives match SDK bytes at padding and UTF8 path boundaries',async()=>{
+ for(const size of [0,1,511,512,513,4096]){const path='prefix/'+ 'é'.repeat(50),content=Buffer.alloc(size,255),volume=Volume.fromJSON({'/repo/Dockerfile':'FROM node',['/repo/'+path]:''}),fs=createFsFromVolume(volume);fs.writeFileSync('/repo/'+path,content);const env={cwd:'/repo',uploadDir:'/upload',workspaceDir:'/workspace',fs:fs.promises};await uploadWorkspace(env,{});const expected=fs.readFileSync('/upload/workspace.tar'),actual=native.workspaceTar([{path:'Dockerfile',bytes:Buffer.from('FROM node')},{path,bytes:content}]);assert.equal(actual.error,undefined);assert.deepEqual(actual.bytes,expected);}
+ const reply=native.workspaceTar([{path:'\ud800'.repeat(34),bytes:Buffer.alloc(0)}]);assert.equal(reply.error,'Workspace tar path is too long to represent: '+'\ud800'.repeat(34));assert.equal(reply.bytes,undefined);
+});

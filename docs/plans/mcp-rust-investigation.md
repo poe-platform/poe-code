@@ -2498,6 +2498,46 @@ rewrite/24-hour actual-effort requirement remain unfinished. The lock-correction
 release build/audit/checks/cached-unit and all4 Bash shards pass; uncached unit
 and publication are still pending.
 
+### Process runner deterministic workspace archive prerequisite — 2026-09-20
+
+Added the portable std-only USTAR encoder with borrowed file payloads, deterministic
+mode0644/zero ownership/timestamps, checksum,512-byte padding and1024-byte final
+tail. UTF-8 byte limits select100-byte leaf/155-byte prefix splits while path
+errors preserve original UTF-16 units. Paths are validated before full archive
+allocation; checked lengths and fallible reservation avoid overflow/allocation
+panics. This is an internal prerequisite, not a completed root transfer API.
+
+Failing-first core/API-absence checks precede implementation. The first native
+draft had a computed-key syntax error, corrected before recording the actual
+native API-absence red; that syntax error is not behavioral evidence. All97 SDK
+cases plus5 additional cases,18 Rust groups,12 native groups, strict subset types,
+fmt/clippy and uncached5-workspace build pass. SDK upload through memfs produces
+byte-identical archive references across six payload padding sizes, binary data
+and multibyte path boundaries. Original long/lone-surrogate path errors are checked.
+
+Initial external-buffer outputs retained high resident allocator usage after
+warmup despite live buffers returning to baseline. Switching this binding's
+output to `BufferSlice::copy_from` and immediate Node Buffer conversion avoids
+that external output allocation. Live input DTO Buffer references remain scoped
+to the synchronous call; no JS callback occurs while payload slices are borrowed.
+No external registry source was edited. RSS samples improve from252.5→247.0MB
+for the former route to82.3→83.6MB for Node-owned output across131,072 further
+encodes. Sampled heap3.66→3.69MB, buffers14.6KB and external1.47MB stay steady.
+
+For two entries/6656-byte output, final native speed1.77–2.12µs versus9.30–10.20µs
+SDK. The private SDK encoder is extracted with the development TypeScript AST
+compiler into `/out` for a fair encoder-only comparison; the production package
+does not import it. SDK RSS57.7→57.9MB, heap3.81→3.84MB and buffers22.8KB.
+Direct/packed8MiB workers each add4096 archive encodes and invalid-path checks
+to the earlier process workloads with external imports blocked. One addon and
+zero npm runtime/peer/optional dependency groups remain. Evidence:
+`out/rust-process-tar-*`.
+
+Upload/download state machines and Docker runtime/detached environments remain
+unfinished, together with real-engine/cross-platform/malformed acceptance and
+the larger rewrite/24-hour actual-effort requirement. The lock correction's
+uncached release unit and publication remain pending.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

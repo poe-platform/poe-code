@@ -6,5 +6,6 @@ rust-version = "1.88"
 license = "MIT"
 description = "Declarative Rust coding-agent hook configuration and bridge policies"
 [dependencies]
+agent-skill-config-rust = { path = "../agent-skill-config-rust" }
 agent-defs-rust = { path = "../agent-defs-rust" }
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }

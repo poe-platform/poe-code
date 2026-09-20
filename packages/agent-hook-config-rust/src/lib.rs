@@ -408,4 +408,6 @@ pub fn transform_hooks(
     Ok(result)
 }
 
+pub mod bridge;
+pub mod lifecycle;
 pub mod links;

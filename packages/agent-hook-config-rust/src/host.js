@@ -1,6 +1,10 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
 import {Snapshot} from './snapshot.js';
+import {execFileSync} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
+let gitDirRunner=cwd=>{try{return execFileSync('git',['rev-parse','--git-dir'],{cwd,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}catch{return undefined;}};
+export function setGitDirRunnerForTest(runner){const previous=gitDirRunner;gitDirRunner=runner;return ()=>{gitDirRunner=previous;};}
 export function admit(value){
  const snapshot=new Snapshot(),active=new Set();let nodes=0;
  function write(value,depth){
@@ -32,6 +36,12 @@ export function files(run){
     case 'resolve':value=path.resolve(...args);break;
     case 'join':value=path.join(...args);break;
     case 'dirname':value=path.dirname(args[0]);break;
+    case 'gitDir':value=gitDirRunner(args[0])??null;break;
+    case 'excludePathFacts':{const resolved=path.resolve(args[0]);value={resolved,root:path.parse(resolved).root,separator:path.sep,absolute:path.isAbsolute(args[0])};break;}
+    case 'excludeTemporary':value=`${args[0]}.poe-code-${process.pid}-${randomUUID()}.tmp`;break;
+    case 'cleanupTemporary':value=`${args[0]}.cleanup-${process.pid}-${randomUUID()}.tmp`;break;
+    case 'rmdir':fs.rmdirSync(args[0]);value=null;break;
+    case 'remove':fs.rmSync(args[0],{force:true});value=null;break;
     case 'pathFacts':{const root=path.parse(args[0]).root,relative=path.relative(args[1]??root,args[0]);value={root,relative,absolute:path.isAbsolute(relative),separator:path.sep};break;}
     case 'readlink':value=fs.readlinkSync(args[0]);break;
     case 'symlink':fs.symlinkSync(...args);value=null;break;
@@ -44,7 +54,7 @@ export function files(run){
     default:throw new Error(`Unknown hook filesystem operation ${operation}`);
    }
    return JSON.stringify(value);
-  }catch(error){const id=errors.push(error)-1;return JSON.stringify({error:id,code:error!==null&&(typeof error==='object'||typeof error==='function')&&Object.hasOwn(error,'code')?error.code:undefined});}
+  }catch(error){const id=errors.push(error)-1;return JSON.stringify({error:id,code:error instanceof Error&&Object.hasOwn(error,'code')?error.code:undefined});}
  };
  const result=run(callback);
  function failure(result){

@@ -14,6 +14,15 @@ name = "agent-hook-config-rust"
 version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
+ "agent-skill-config-rust",
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "agent-skill-config-rust"
+version = "0.1.0"
+dependencies = [
+ "agent-defs-rust",
  "mcp-protocol-rust",
 ]
 

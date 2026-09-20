@@ -28,3 +28,52 @@ test('native transform retains all timeout numbers, UTF16 text and ignored dropp
   assert.deepEqual(own.transformHooks(source,'claude','codex',{runId:'\ud800'}),sdk.transformHooks(source,'claude','codex',{runId:'\ud800'}));
  }
 });
+
+test('native lifecycle matches SDK rollback ownership and byte output over repeated in-memory bridge rounds',async()=>{
+ const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module');
+ const {setGitDirRunnerForTest}=await import('../dist/skill/testing.js');
+ const keys=['lstatSync','readFileSync','writeFileSync','mkdirSync','renameSync','unlinkSync','readlinkSync','symlinkSync','rmdirSync','rmSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));
+ const restoreOwn=setGitDirRunnerForTest(()=>'/repo/.git'),restoreSdk=(await import('../../agent-skill-config/dist/index.js')).setGitDirRunnerForTest(()=>'/repo/.git');
+ try{
+  for(const key of keys)builtin.default[key]=fs[key];syncBuiltinESMExports();
+  for(let round=0;round<32;round++){
+   const run='run-'+round;const source={hooks:{Stop:[{hooks:[{type:'command',command:'${CLAUDE_PROJECT_DIR}/run',timeout:round}]}],SessionEnd:[{hooks:[{type:'http',url:'https://example.test',headers:{one:'two'}}]}]}};
+   const fixture={'/repo/.claude/settings.json':JSON.stringify(source),'/repo/.git/info/exclude':'user\n','/repo/.codex/hooks.json':JSON.stringify({other:{untouched:true},hooks:{Stop:[{matcher:'',hooks:[]}],SessionStart:[]}})};
+   const outputs=[];
+   for(const api of [sdk,own]){vol.reset();vol.fromJSON(fixture,'/');const first=api.bridgeHooks('claude','codex','/repo','/home',run,{scope:'project'}),second=api.bridgeHooks('claude','codex','/repo','/home',run,{scope:'project'});const live=vol.readFileSync('/repo/.codex/hooks.json','utf8');api.cleanupBridgedHooks(first);const afterFirst=vol.readFileSync('/repo/.codex/hooks.json','utf8');api.cleanupBridgedHooks(second);api.cleanupBridgedHooks(second);outputs.push({first,second,live,afterFirst,cleaned:vol.toJSON()});}
+   assert.deepEqual(outputs[1],outputs[0]);
+  }
+ }finally{restoreOwn();restoreSdk();Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
+});
+
+test('filesystem missing codes are classified only on same-realm Error instances',async()=>{
+ const builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module'),{runInNewContext}=await import('node:vm');const original=builtin.default.lstatSync;
+ const fn=()=>{};fn.code='ENOENT';const otherRealm=runInNewContext("Object.assign(new Error('foreign realm'),{code:'ENOENT'})");
+ try{for(const fault of [{code:'ENOENT'},fn,otherRealm]){builtin.default.lstatSync=()=>{throw fault;};syncBuiltinESMExports();for(const api of [sdk,own]){let caught;try{api.readClaudeHooks('/repo','/home',{scope:'project'});}catch(error){caught=error;}assert.equal(caught,fault);}}}finally{builtin.default.lstatSync=original;syncBuiltinESMExports();}
+});
+
+test('failed native transformation preparation releases its live ownership',async()=>{
+ const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module'),{setGitDirRunnerForTest}=await import('../dist/skill/testing.js');
+ const keys=['lstatSync','readFileSync','writeFileSync','mkdirSync','renameSync','unlinkSync','rmdirSync','rmSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));const restore=setGitDirRunnerForTest(()=>'/setup/.git');
+ try{
+  for(const key of keys)builtin.default[key]=fs[key];syncBuiltinESMExports();
+  for(const mode of ['invalid-command','missing-parent-stat']){
+   vol.reset();const path='/setup/.claude/settings.json';vol.fromJSON({[path]:JSON.stringify({hooks:{Stop:[{hooks:[{type:'command',command:mode==='invalid-command'?42:'run'}]}]}})},'/');
+   const fault=new Error('parent preparation denied');let parentCalls=0;
+   builtin.default.lstatSync=target=>{if(mode==='missing-parent-stat'&&String(target)==='/setup/.codex'&&++parentCalls===2)throw fault;return fs.lstatSync(target);};syncBuiltinESMExports();
+   assert.throws(()=>own.bridgeHooks('claude','codex','/setup','/home',mode,{scope:'project'}));
+   builtin.default.lstatSync=fs.lstatSync;syncBuiltinESMExports();vol.writeFileSync(path,JSON.stringify({hooks:{Stop:[{hooks:[{type:'command',command:'run'}]}]}}));
+   const result=own.bridgeHooks('claude','codex','/setup','/home',mode,{scope:'project'});assert.deepEqual(result.generatedEntryIds,[`generated-${mode}-0`]);own.cleanupBridgedHooks(result);
+  }
+ }finally{restore();Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
+});
+
+test('native lifecycle refuses callback reentry without mutating nested ownership',async()=>{
+ const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module'),{setGitDirRunnerForTest}=await import('../dist/skill/testing.js');
+ const keys=['lstatSync','readFileSync','writeFileSync','mkdirSync','renameSync','unlinkSync','rmdirSync','rmSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));const restore=setGitDirRunnerForTest(()=>'/reentry/.git');
+ try{for(const key of keys)builtin.default[key]=fs[key];vol.fromJSON({'/reentry/.claude/settings.json':JSON.stringify({hooks:{Stop:[{hooks:[{type:'command',command:'run'}]}]}})},'/');let nested;
+  builtin.default.mkdirSync=(target,opts)=>{if(String(target)==='/reentry/.codex'&&!nested){try{own.bridgeHooks('claude','codex','/reentry','/home','nested',{scope:'project'});}catch(error){nested=error;}}return fs.mkdirSync(target,opts);};syncBuiltinESMExports();
+  const result=own.bridgeHooks('claude','codex','/reentry','/home','outer',{scope:'project'});assert.match(nested?.message??'',/already running/);own.cleanupBridgedHooks(result);
+  const next=own.bridgeHooks('claude','codex','/reentry','/home','nested',{scope:'project'});assert.deepEqual(next.generatedEntryIds,['generated-nested-0']);own.cleanupBridgedHooks(next);
+ }finally{restore();Object.assign(builtin.default,original);syncBuiltinESMExports();vol.reset();}
+});

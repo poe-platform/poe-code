@@ -7,6 +7,7 @@ license = "MIT"
 [lib]
 crate-type = ["cdylib"]
 [dependencies]
+agent-skill-config-rust = { path = "../../agent-skill-config-rust" }
 agent-hook-config-rust = { path = ".." }
 user-error-rust = { path = "../../user-error-rust" }
 agent-defs-rust = { path = "../../agent-defs-rust" }

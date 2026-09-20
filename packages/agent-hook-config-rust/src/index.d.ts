@@ -10,3 +10,5 @@ export { transformHooks } from "./transform-hooks.js";
 export { writeCodexHooks } from "./write-hooks.js";
 export type { SymlinkResult } from "./symlink-hooks.js";
 export { symlinkHooks } from "./symlink-hooks.js";
+export type {BridgeHookManifest,BridgeStrategy,BridgeStrategyRequest}from'./bridge-hooks.js';
+export {bridgeHooks,cleanupBridgedHooks}from'./bridge-hooks.js';

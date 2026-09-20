@@ -2233,6 +2233,37 @@ groups, all49 SDK cases,7 Rust groups, fmt/clippy and the uncached11-workspace
 build closure pass. Evidence: `out/rust-agent-skill-error-realm-*`.
 
 
+### Native hook lifecycle and memory isolation — 2026-09-20
+
+Added portable Rust ownership, prior-group tracking, automatic bridge strategies,
+overlapping runs, rollback and selective cleanup. The existing single addon links
+the own skill exclude core; Node retains hidden manifest state in a WeakMap and
+supplies filesystem primitives. Callback reentry is rejected through RefCell
+admission before mutable state access. A failing-first preparation test caught
+ownership retained after transformation/parent-inspection errors and now passes.
+The hook host also retains plain coded objects and foreign-realm errors.
+
+All121 current SDK cases,19 Rust groups and8 native groups pass, including32
+comparative overlapping lifecycle rounds with exact in-memory file bytes, strict
+full SDK root assignability, fmt/clippy and the uncached16-workspace build closure.
+Direct and packed4MiB workers each pass512 overlapping pairs with external imports
+blocked; the packed artifact has one addon and zero npm runtime/peer/optional
+dependency groups. Overlapping-created empty groups can remain after cleanup,
+matching the SDK; no unrelated user configuration is deleted to hide this.
+
+The original persistent-memfs8192-pair samples grew for both APIs. Investigation
+found memfs rename overwrites its child link without releasing the old inode;
+each1024 pairs retained8193 additional inodes. Resetting fixture history returns
+both heaps and buffers to warmed levels. A separate development-only replacement
+host that releases replaced fixture inodes keeps9 live inodes: native heap6.84MB
+after1024 pairs to6.94MB after8192, arrayBuffers66KB throughout; SDK11.13MB to11.46MB,
+also66KB. Native RSS rises70.94MB to81.82MB; SDK90.59MB to92.82MB. Allocator residency
+and these bounded sampled workloads do not establish general memory acceptance.
+Evidence: `out/rust-agent-hook-bridge-*` and `out/rust-hook-memory-*`.
+
+The overall rewrite, malformed/getter-stage fidelity, broad performance/platform
+acceptance and minimum24-hour actual effort requirement remain unfinished.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

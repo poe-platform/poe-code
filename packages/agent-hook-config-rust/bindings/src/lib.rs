@@ -303,27 +303,33 @@ pub fn hook_transform(
     };
     Ok(json::stringify(&result.0))
 }
+fn json_snapshot(value: V) -> Result<J> {
+    Ok(match value {
+        V::Null => J::Null,
+        V::Bool(value) => J::Bool(value),
+        V::Number(value) => J::Number(value),
+        V::String(value) => J::String(value),
+        V::Array(values) => J::Array(
+            values
+                .into_iter()
+                .map(json_snapshot)
+                .collect::<Result<_>>()?,
+        ),
+        V::Object(fields) => J::Object(
+            fields
+                .into_iter()
+                .filter(|(_, value)| !matches!(value, V::Undefined))
+                .map(|(key, value)| Ok((key, json_snapshot(value)?)))
+                .collect::<Result<_>>()?,
+        ),
+        _ => return Err(Error::from_reason("Unsupported hook configuration value")),
+    })
+}
 fn config(value: V) -> Result<core::Config> {
-    fn json(value: V) -> Result<J> {
-        Ok(match value {
-            V::Null => J::Null,
-            V::Bool(value) => J::Bool(value),
-            V::Number(value) => J::Number(value),
-            V::String(value) => J::String(value),
-            V::Array(values) => J::Array(values.into_iter().map(json).collect::<Result<_>>()?),
-            V::Object(fields) => J::Object(
-                fields
-                    .into_iter()
-                    .filter(|(_, value)| !matches!(value, V::Undefined))
-                    .map(|(key, value)| Ok((key, json(value)?)))
-                    .collect::<Result<_>>()?,
-            ),
-            _ => return Err(Error::from_reason("Unsupported hook configuration value")),
-        })
-    }
-    core::Config::from_value(&json(value)?)
+    core::Config::from_value(&json_snapshot(value)?)
         .map_err(|error| Error::from_reason(String::from_utf16_lossy(&error)))
 }
+
 #[napi]
 pub fn hook_transform_pairs(configs: Buffer) -> Result<NativeJson> {
     let V::Object(fields) = decode(&configs)? else {
@@ -722,3 +728,5 @@ pub fn hook_symlink(
 }
 #[napi]
 pub const USER_AUTHORED_HOOK_FILE_CODE: &str = links::USER_AUTHORED_CODE;
+
+mod bridge;

@@ -82,7 +82,7 @@ fn execute<H: FileHost>(
     }
     .map_err(Error::Host)
 }
-fn parse<E>(path: &[u16], content: Vec<u16>) -> std::result::Result<Value, Error<E>> {
+pub(crate) fn parse<E>(path: &[u16], content: Vec<u16>) -> std::result::Result<Value, Error<E>> {
     json::parse_utf16(&content, Limits::default()).map_err(|_| Error::MalformedJson {
         path: path.to_vec(),
         content,
@@ -143,7 +143,7 @@ pub fn read_hooks<H: FileHost>(
 }
 // Format already parsed values, never patch existing text. String escapes come
 // from the own JSON serializer; only structural punctuation receives whitespace.
-fn pretty(value: &Value) -> Vec<u16> {
+pub(crate) fn pretty(value: &Value) -> Vec<u16> {
     let json = json::stringify(value);
     let source = json.as_bytes();
     let mut output = String::new();

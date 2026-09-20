@@ -16,7 +16,7 @@ pub struct Mutation {
 fn malformed(path: &[u16]) -> Vec<u16> {
     message(&[&u("Malformed hooks in "), path])
 }
-fn field_mut<'a>(value: &'a mut Value, name: &str) -> Option<&'a mut Value> {
+pub(crate) fn field_mut<'a>(value: &'a mut Value, name: &str) -> Option<&'a mut Value> {
     let Value::Object(fields) = value else {
         return None;
     };
@@ -38,7 +38,7 @@ fn index(key: &[u16]) -> Option<u32> {
     }
     (number < u32::MAX).then_some(number)
 }
-fn entries(value: &Value) -> Vec<(&[u16], &Value)> {
+pub(crate) fn entries(value: &Value) -> Vec<(&[u16], &Value)> {
     let Value::Object(fields) = value else {
         return vec![];
     };
@@ -101,7 +101,7 @@ pub fn read_settings(value: &Value, path: &[u16]) -> Result<Vec<Record>> {
     }
     Ok(output)
 }
-fn generated(handler: &Value, prefix: &[u16]) -> bool {
+pub(crate) fn generated(handler: &Value, prefix: &[u16]) -> bool {
     matches!(handler.get("statusMessage"),Some(Value::String(value)) if value.starts_with(prefix))
 }
 /// Existing settings are replaceable only when every handler proves generated ownership.
@@ -123,7 +123,7 @@ pub fn is_fully_generated(file: &Value) -> bool {
             .iter()
             .all(|entry| generated(&entry.handler, &u("[generated:poe-code:")))
 }
-fn validate(file: &Value, path: &[u16]) -> Result<()> {
+pub(crate) fn validate(file: &Value, path: &[u16]) -> Result<()> {
     if !matches!(file, Value::Object(_)) {
         return Err(malformed(path));
     }

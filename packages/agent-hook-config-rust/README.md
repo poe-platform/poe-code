@@ -16,6 +16,7 @@ library and own path crates.
 | Portable home and scope decisions | `paths::plan_hook_path` |
 | Read selected scopes and atomically write hook files | `io::read_hooks`, `io::write_hooks` |
 | Link same-format hooks with generated-file rollback | `links::symlink_hooks` |
+| Own overlapping runs, rollback and selective cleanup | `bridge::Bridge` |
 
 ```rust
 use agent_hook_config_rust::Catalog;
@@ -47,7 +48,8 @@ mapping and transformation functions resolve ordinary aliases case-insensitively
 The independent Node workspace provides `getAgentConfig`, `resolveAgentSupport`,
 `supportedHookAgents`, `supportedTransformPairs`, `formatSupportedTransformPairs`,
 `isTransformSupported`, `resolveHookPath`, event/handler/placeholder rules,
-`transformHooks`, `readClaudeHooks`, `writeCodexHooks`, and `symlinkHooks`. The napi-rs addon and
+`transformHooks`, `readClaudeHooks`, `writeCodexHooks`, `symlinkHooks`,
+`bridgeHooks`, and `cleanupBridgedHooks`. The napi-rs addon and
 own host adapters have no npm runtime, peer or optional dependencies.
 
 ```typescript
@@ -70,7 +72,12 @@ uses exclusive restoration after replacement failure, and retains both errors
 when restoration also fails.
 
 The initial Node transformation bridge is slower than the existing SDK for small
-hooks. It remains experimental. Overlapping-run ownership and
-cleanup, Python adapters, getter-stage/malformed-input fidelity and cross-platform
+hooks. It remains experimental. Bridge manifests retain independent ownership for
+overlapping runs, including callers using the same run ID. Cleanup removes owned
+generated handlers and Git exclude blocks, preserves user handlers and existing
+empty groups, and is idempotent for the original manifest. Failed preparation
+releases ownership; recursive filesystem callback entry is rejected.
+
+Python adapters, getter-stage/malformed-input fidelity and cross-platform
 packaging remain in progress. Existing applications continue to use the original
 TypeScript package.

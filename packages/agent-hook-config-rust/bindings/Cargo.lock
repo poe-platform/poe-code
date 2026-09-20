@@ -14,6 +14,7 @@ name = "agent-hook-config-rust"
 version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
+ "agent-skill-config-rust",
  "mcp-protocol-rust",
 ]
 
@@ -23,6 +24,7 @@ version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
  "agent-hook-config-rust",
+ "agent-skill-config-rust",
  "config-mutations-rust",
  "mcp-protocol-rust",
  "mcp-protocol-rust-napi-core",
@@ -30,6 +32,14 @@ dependencies = [
  "napi-build",
  "napi-derive",
  "user-error-rust",
+]
+
+[[package]]
+name = "agent-skill-config-rust"
+version = "0.1.0"
+dependencies = [
+ "agent-defs-rust",
+ "mcp-protocol-rust",
 ]
 
 [[package]]

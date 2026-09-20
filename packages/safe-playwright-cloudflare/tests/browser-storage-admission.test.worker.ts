@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { transactionCommitBarrier } from "./browser-storage-commit.test.worker-cases";
 import { DurableObject } from "cloudflare:workers";
 import type { BrowserWorker } from "@cloudflare/playwright";
 import {
@@ -267,6 +268,9 @@ export default {
 				return Response.json({ ok: true });
 			}
 			switch (pathname) {
+				case "/transaction-commit-barrier":
+					await transactionCommitBarrier(owner => fixture(env, owner), env.BROWSER, input);
+					return Response.json({ ok: true });
 				case "/checkpoint-navigation-timeout":
 				case "/checkpoint-navigation-cancel": {
 					const relay = controlFaultBinding(env.BROWSER);

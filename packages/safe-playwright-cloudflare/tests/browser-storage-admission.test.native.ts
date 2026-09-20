@@ -55,6 +55,7 @@ afterAll(async () => {
 });
 
 for (const scenario of [
+	"transaction-commit-barrier",
 	"checkpoint-navigation-timeout",
 	"checkpoint-navigation-cancel",
 	"profile-store",

@@ -20,6 +20,25 @@ type Reply = {
 };
 
 class ControlRelay {
+	private restoreProbe: ((expression: string) => string) | undefined;
+	private restoreStart = Promise.withResolvers<void>();
+	get restoreStarted() { return this.restoreStart.promise; }
+	private probeFrame: { sessionId?: string; params: Record<string, unknown> } | undefined;
+	private probeSocket: WebSocket | undefined;
+	private probeId = -1;
+	private probes = new Map<number, ReturnType<typeof Promise.withResolvers<unknown>>>();
+	interceptRestore(transform: (expression: string) => string) {
+		this.restoreProbe = transform;
+	}
+	async inspectRestore(expression: string) {
+		assert.ok(this.probeFrame && this.probeSocket);
+		const id = this.probeId--;
+		const result = Promise.withResolvers<unknown>();
+		this.probes.set(id, result);
+		this.probeSocket.send(JSON.stringify({ id, method: "Runtime.evaluate", sessionId: this.probeFrame.sessionId,
+			params: { ...this.probeFrame.params, expression, awaitPromise: true, returnByValue: true } }));
+		return result.promise;
+	}
 	private intercepted = false;
 	private holdingNavigation = false;
 	private heldNavigationId: number | undefined;
@@ -99,11 +118,27 @@ class ControlRelay {
 		client.accept();
 		client.addEventListener("message", (event) => {
 			assert.equal(typeof event.data, "string");
-			this.trackCommand(JSON.parse(event.data));
-			upstream.send(event.data);
+			const frame = JSON.parse(event.data);
+			this.trackCommand(frame);
+			if (this.restoreProbe && frame.method === "Runtime.evaluate" && frame.params?.expression?.includes("async function restoreStorageOrigin(")) {
+				this.probeFrame = frame;
+				this.probeSocket = upstream;
+				frame.params.expression = this.restoreProbe(frame.params.expression);
+				this.restoreProbe = undefined;
+				this.restoreStart.resolve();
+			}
+			upstream.send(JSON.stringify(frame));
 		});
 		upstream.addEventListener("message", (event) => {
 			assert.equal(typeof event.data, "string");
+			const frame = JSON.parse(event.data);
+			const probe = this.probes.get(frame.id);
+			if (probe) {
+				this.probes.delete(frame.id);
+				if (frame.error || frame.result?.exceptionDetails) probe.reject(new Error(JSON.stringify(frame)));
+				else probe.resolve(frame.result?.result?.value);
+				return;
+			}
 			this.deliver(client, upstream, event.data);
 		});
 		client.addEventListener("close", () => upstream.close());

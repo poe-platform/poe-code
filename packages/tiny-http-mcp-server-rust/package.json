@@ -11,11 +11,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
     }
   },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && vitest run --config vitest.reference.config.ts && tsc --project tsconfig.types.json",
+    "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && vitest run --config vitest.reference.config.ts && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -24,11 +28,15 @@
     "tiny-stdio-mcp-server-rust": "*",
     "tiny-http-mcp-server": "*",
     "typescript": "5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "mcp-oauth-rust": "*",
+    "jose": "6.2.3"
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "UNICODE-LICENSE.txt",
+    "MCP-LICENSE.txt"
   ],
   "engines": {
     "node": ">=18.18"

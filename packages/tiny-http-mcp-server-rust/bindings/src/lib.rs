@@ -3,9 +3,8 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::cell::RefCell;
 mod auth_input;
-#[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
-mod convert;
 use convert::NativeJson;
+use embedded_stdio::convert;
 use tiny_http_mcp_server_rust::body::{self, BodyError, ByteBudget};
 fn parse(text: &[u16]) -> Result<Value> {
     json::parse_utf16(text, Limits::default()).map_err(|_| napi::Error::from_reason("Parse error"))
@@ -147,3 +146,52 @@ pub fn protected_resource_metadata(options: Utf16String) -> Result<NativeJson> {
 }
 
 mod session_binding;
+
+#[path = "../../../tiny-stdio-mcp-server-rust/bindings/src/lib.rs"]
+pub mod embedded_stdio;
+mod history_binding;
+pub mod policy_binding;
+
+#[path = "../../../mcp-oauth-rust/bindings/src/jwks_binding.rs"]
+pub mod jwks_binding;
+use mcp_oauth_rust::response::ResponseBudget;
+#[napi]
+pub struct NativeResponseBudget {
+    state: RefCell<ResponseBudget>,
+}
+#[napi]
+impl NativeResponseBudget {
+    #[napi(constructor)]
+    pub fn new(limit: f64) -> Result<Self> {
+        Ok(Self {
+            state: RefCell::new(ResponseBudget::new(limit).map_err(napi::Error::from_reason)?),
+        })
+    }
+    #[napi]
+    pub fn check_content_length(&self, length: Option<Utf16String>) -> Result<()> {
+        self.state
+            .borrow_mut()
+            .check_content_length(length.as_ref().map(|v| v.as_ref()))
+            .map_err(napi::Error::from_reason)
+    }
+    #[napi]
+    pub fn admit(&self, bytes: f64) -> Result<()> {
+        if !bytes.is_finite()
+            || bytes.fract() != 0.0
+            || !(0.0..=9_007_199_254_740_991.0).contains(&bytes)
+        {
+            return Err(napi::Error::from_reason(
+                "HTTP response chunk size must be a nonnegative safe integer",
+            ));
+        }
+        self.state
+            .borrow_mut()
+            .admit(bytes as u64)
+            .map_err(napi::Error::from_reason)
+    }
+}
+#[napi]
+pub fn check_http_redirect(redirected: bool, response_type: String) -> Result<()> {
+    mcp_oauth_rust::response::validate_redirect(redirected, &response_type)
+        .map_err(napi::Error::from_reason)
+}

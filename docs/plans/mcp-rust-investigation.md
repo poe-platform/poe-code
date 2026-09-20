@@ -459,6 +459,35 @@ dependencies. This is a foundation checkpoint: HTTP factory/listening, complete
 session admission, SSE replay/backpressure, OAuth transport wiring, testing helpers
 and Express adapters remain unfinished.
 
+
+The HTTP factory, listener, transport and Express-compatible adapters are now
+implemented against the embedded additive Rust server core. The standalone addon
+contains our protocol/schema/server and JWKS cores; its host files import Node
+built-ins and local artifacts only. Rust HTTP policy owns host/origin/Accept and
+modern mirrors, limits, session/protocol/message admission, status/rejection plans
+and projected callback-result observations. Node executes storage/callbacks,
+HTTP writes, AbortControllers, async-local request context and timers. Native
+configuration capture preserves null/nonfinite rejection without whole-option
+serialization. Projected result capture fixes a red cyclic/getter notification
+result that previously produced 500 instead of 202, and avoids copying unused
+large callback payloads during session bookkeeping. Native replay history evicts
+through a bounded deque and shares immutable payload snapshots; 4,096 insertions
+verify release after snapshot drop. A non-enumerable external store losing its
+metadata still counts retained local handlers for session admission, matching
+the original contract. ES/RS/PS/EdDSA JWKS verification embeds the own OAuth core;
+32 concurrent official-JOSE-signed token checks coalesce to one fetch.
+Sixteen Rust tests, 22 native groups and 133 original contracts across fourteen
+transport/security/context/protocol/stream test files pass with focused build,
+lint and bidirectional HTTP server/options types. Reference fixtures import the
+native family for core/media helpers; factory identity assertions prohibit silently
+executing the TS HTTP implementation. The HTTP bridge declarations retain the
+original core session/SDK interface so native-only stdio conveniences do not
+prevent structural interchangeability. The actual standalone tarball's factory,
+modern discovery and legacy session/tool flows are checked separately, including
+a live loopback listener/tool/shutdown smoke. Testing
+helpers, CLI, broader platform validation/performance and inherited schema/URI
+corner cases remain unfinished; this is not completion of the full rewrite goal.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

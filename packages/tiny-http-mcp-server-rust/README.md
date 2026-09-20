@@ -1,34 +1,50 @@
 # tiny-http-mcp-server-rust
 
-An additive Rust rewrite of the HTTP MCP server with native Node bindings and zero
-npm runtime dependencies. This private package is under construction: HTTP
-listening, complete transport/session admission, SSE replay and Express adapters
-are not yet available.
-
-The current public APIs create protected-resource metadata and structured token
-verification errors:
+Build an MCP service over HTTP with a native Rust protocol core and zero npm
+runtime dependencies. This private additive rewrite supports legacy stateful
+sessions and modern requests, JSON or SSE responses, resource/prompt/tool
+registration, bearer authentication and Express-compatible middleware.
 
 ```ts
-import {
-  createProtectedResourceMetadataDocument,
-  TokenVerificationError
-} from "tiny-http-mcp-server-rust";
+import { createHttpServer, defineSchema } from "tiny-http-mcp-server-rust";
 
-const metadata = createProtectedResourceMetadataDocument({
-  resource: "https://api.example/mcp",
-  authorizationServers: ["https://auth.example"],
-  scopesSupported: ["read"]
-});
-throw new TokenVerificationError({ error: "insufficient_scope", scope: ["read"] });
+const server = createHttpServer({ name: "echo", version: "1", enableJsonResponse: true });
+server.tool(
+  "echo", "Repeat a message", defineSchema({ message: { type: "string" } }),
+  (args, context) => {
+    context.signal.throwIfAborted();
+    return args.message;
+  }
+);
+const handle = await server.listenHttp({ hostname: "127.0.0.1", port: 0 });
+console.log(handle.url);
+// When the application shuts down:
+await handle.close();
 ```
 
-The native foundations also implement JSON-RPC body classification, byte budgets,
-modern header mirrors, bearer admission, SSE formatting and an ordered session
-index. They are being connected to the full transport. Node built-ins supply
-HTTP/URL objects and cryptographic primitives. Session objects retain JavaScript
-identity and remain visible to its garbage collector; Rust retains index/slot
-identities without hidden strong references to user objects.
+| Capability | API |
+| --- | --- |
+| Node HTTP listener or existing request handler | `listenHttp`, `handleRequest` |
+| Tools, resources, prompts and subscriptions | `createHttpServer` registration methods |
+| JSON or SSE responses and bounded replay | `enableJsonResponse`, stream/history limits |
+| OAuth bearer admission | `oauth.verifier`, `requiredScopes` |
+| Public JWT verification keys | `createJwksTokenVerifier` |
+| Express adapters without an Express runtime dependency | `createExpressMiddleware`, `createExpressOAuthHandlers` |
+| Protected-resource metadata | `createProtectedResourceMetadataDocument`, `createProtectedResourceMetadataRouter` |
+| HTTP admission, observability and storage | `allowedHosts`, `allowedOrigins`, `observability`, `sessionStore` |
 
-Existing applications continue using the original packages. Native artifacts are
-currently checked on the development platform; wider packaging and performance
-measurements remain in progress.
+Rust owns protocol/schema dispatch, HTTP admission, configuration limits, JWT
+policy and bounded replay retention. Node built-ins supply HTTP/URL objects,
+cryptographic primitives and application callback execution. Sessions preserve
+JavaScript identity and stay visible to its garbage collector; Rust retains their
+index and slot identities without hidden strong references to user objects.
+
+Request, response, session, stream, buffer and replay limits are configurable.
+Closing the transport aborts active modern requests, closes session handlers and
+streams, clears timers and releases replay records. `getRequestContext()` exposes
+the authenticated request to HTTP tool handlers. `./server` provides the Node APIs
+without loading Express adapters.
+
+Testing helpers and the CLI are still being ported. Broader platform artifacts,
+performance measurements and inherited schema/URI corner cases remain in progress.
+Existing applications continue using the original packages.

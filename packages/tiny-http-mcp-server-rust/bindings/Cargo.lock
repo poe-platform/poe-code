@@ -134,6 +134,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mcp-oauth-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
 
@@ -283,11 +290,13 @@ dependencies = [
 name = "tiny-http-mcp-server-rust-node"
 version = "0.1.0"
 dependencies = [
+ "mcp-oauth-rust",
  "mcp-protocol-rust",
  "napi",
  "napi-build",
  "napi-derive",
  "tiny-http-mcp-server-rust",
+ "tiny-stdio-mcp-server-rust",
 ]
 
 [[package]]

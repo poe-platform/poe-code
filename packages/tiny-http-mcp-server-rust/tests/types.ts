@@ -1,4 +1,4 @@
-import {TokenVerificationError,createProtectedResourceMetadataDocument,type ProtectedResourceMetadataOptions,type TokenVerifier,type VerifiedAccessToken,type RequestAuthInfo,type SessionStore} from '../src/index.js';
+import {TokenVerificationError,createProtectedResourceMetadataDocument,type ProtectedResourceMetadataOptions,type TokenVerifier,type VerifiedAccessToken,type RequestAuthInfo,type SessionStore} from '../dist/index.js';
 import type * as Original from 'tiny-http-mcp-server';
 const metadata:ProtectedResourceMetadataOptions={resource:new URL('https://resource.example/mcp'),authorizationServers:['https://auth.example'],scopesSupported:['read']};
 createProtectedResourceMetadataDocument(metadata);
@@ -15,3 +15,13 @@ const originalAuth:Original.RequestAuthInfo=auth;
 declare const store:SessionStore;
 const originalStore:Original.SessionStore=store;
 void [compatible,reverse,originalToken,verifier,originalAuth,originalStore];
+
+import {createHttpServer,StreamableHttpTransport,defineSchema,type HttpServer,type HttpTransportOptions} from '../dist/index.js';
+const nativeServer=createHttpServer({name:'native',version:'1'}).tool('echo','Echo',defineSchema({value:{type:'string'}}),(args,context)=>{context.signal.throwIfAborted();return args.value;});
+const compatibleHttpServer:Original.HttpServer=nativeServer;
+declare const oldHttpServer:Original.HttpServer;
+const compatibleNativeServer:HttpServer=oldHttpServer;
+declare const oldOptions:Original.HttpTransportOptions;
+const compatibleOptions:HttpTransportOptions=oldOptions;
+const transport=new StreamableHttpTransport(nativeServer,{enableJsonResponse:true});
+void [compatibleHttpServer,compatibleNativeServer,compatibleOptions,transport];

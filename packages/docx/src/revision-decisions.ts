@@ -72,7 +72,12 @@ export async function editDocumentRevisionDecisions(input: Uint8Array, request: 
       budget.charge("work", 1);
       if (current !== node && revisionInfo(current)) throw new UnsupportedEditError("Nested revision owners cannot be decided implicitly.");
       if (!xml.compatibility.canEdit(current) || current.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute))) throw new UnsupportedEditError("Opaque revision content cannot be changed.");
-      for (const content of current.content) if (content.kind !== "element" && (content.kind !== "text" || [...content.text].some(char => char !== " " && char !== "\t" && char !== "\r" && char !== "\n") && !["t", "delText"].includes(current.localName))) throw new UnsupportedEditError("Revision content contains unsupported lexical boundaries.");
+      for (const content of current.content) {
+        if (info.type === "format" && ["comment", "processing-instruction"].includes(content.kind)) continue;
+        if (content.kind !== "element" && (content.kind !== "text" && !(info.type === "format" && content.kind === "cdata") ||
+          [...content.text].some(char => char !== " " && char !== "\t" && char !== "\r" && char !== "\n") && !["t", "delText"].includes(current.localName)))
+          throw new UnsupportedEditError("Revision content contains unsupported lexical boundaries.");
+      }
       for (const child of current.children) descendants(child);
     };
     descendants(node);

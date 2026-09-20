@@ -53,7 +53,7 @@ export function createServer(options) {
                 signal: directLegacy ? controller.signal : request.signal
               });
               return {
-                result: native.normalizeResult(result)
+                result: native.normalizeResult(result, action.modern)
               };
             } catch (error) {
               return {

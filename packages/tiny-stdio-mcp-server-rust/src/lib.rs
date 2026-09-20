@@ -134,6 +134,44 @@ impl Server {
         true
     }
 
+    pub fn decorate_result(&self, value: Value) -> Result<Value, String> {
+        let Value::Object(mut properties) = value else {
+            return Err("MCP result must be an object".into());
+        };
+        let result_type = properties
+            .iter()
+            .find(|(name, _)| name.iter().copied().eq("resultType".encode_utf16()))
+            .map(|(_, value)| value);
+        if result_type.is_some_and(|value| {
+            !string_matches(Some(value), "complete")
+                && !string_matches(Some(value), "input_required")
+        }) {
+            return Err("Unrecognized MCP resultType".into());
+        }
+        if result_type.is_some_and(|value| string_matches(Some(value), "input_required")) {
+            // Input-required validation needs the complete client capability
+            // and input-request schemas; it is not silently accepted here.
+            return Err("Invalid MCP input_required result".into());
+        }
+        if result_type.is_none() {
+            put(&mut properties, "resultType", string("complete"));
+        }
+        let mut metadata = match properties
+            .iter_mut()
+            .find(|(name, _)| name.iter().copied().eq("_meta".encode_utf16()))
+        {
+            Some((_, Value::Object(metadata))) => std::mem::take(metadata),
+            _ => Vec::new(),
+        };
+        put(
+            &mut metadata,
+            "io.modelcontextprotocol/serverInfo",
+            self.server_info(),
+        );
+        put(&mut properties, "_meta", Value::Object(metadata));
+        Ok(Value::Object(properties))
+    }
+
     pub fn dispatch(&self, session: &mut Session, method: &str, params: Option<Value>) -> Action {
         if session.closed {
             return Action::NoReply;
@@ -457,6 +495,17 @@ fn capabilities_are_valid(value: &Value) -> bool {
 
 fn string(value: &str) -> Value {
     Value::String(value.encode_utf16().collect())
+}
+
+fn put(properties: &mut Vec<(Vec<u16>, Value)>, name: &str, value: Value) {
+    if let Some((_, previous)) = properties
+        .iter_mut()
+        .find(|(key, _)| key.iter().copied().eq(name.encode_utf16()))
+    {
+        *previous = value;
+    } else {
+        properties.push((name.encode_utf16().collect(), value));
+    }
 }
 fn object<const N: usize>(properties: [(&str, Value); N]) -> Value {
     Value::Object(

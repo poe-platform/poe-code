@@ -5,6 +5,41 @@ import { Worker } from "node:worker_threads";
 import { createServer } from "../dist/index.js";
 import { createServer as referenceCreateServer } from "tiny-stdio-mcp-server";
 
+test("malformed modern input-required results are rejected before text normalization", async () => {
+  const server = createServer({ name: "test", version: "0" });
+  server.tool("input", "Input", { type: "object" }, () => ({ resultType: "input_required" }));
+  assert.deepEqual(
+    await server.handleMessage("tools/call", {
+      name: "input",
+      _meta: {
+        "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+        "io.modelcontextprotocol/clientCapabilities": {}
+      }
+    }),
+    { error: { code: -32603, message: "Invalid MCP input_required result" } }
+  );
+});
+
+test("modern tool results agree with the reference server metadata decoration", async () => {
+  const options = { name: "test", version: "0" };
+  const native = createServer(options);
+  const reference = referenceCreateServer(options);
+  const params = {
+    name: "echo",
+    _meta: {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  };
+  for (const server of [native, reference]) {
+    server.tool("echo", "Echo", { type: "object" }, () => "done");
+  }
+  assert.deepEqual(
+    await native.handleMessage("tools/call", params),
+    await reference.handleMessage("tools/call", params)
+  );
+});
+
 test("native admission keeps duplicate IDs and cancelled operations active until settlement", async () => {
   const server = createServer({ name: "test", version: "0", maxActiveRequests: 1 });
   let release;
@@ -250,14 +285,14 @@ test("modern callback context preserves capabilities and resumable input", async
   server.tool("echo", "Echo", { type: "object" }, (_args, context) => {
     assert.deepEqual(context.clientCapabilities, capabilities);
     assert.equal(context.requestState, "resume-one");
-    assert.deepEqual(context.inputResponses, { form: { answer: 42 } });
+    assert.deepEqual(context.inputResponses, { rootResponse: { roots: [] } });
     return "done";
   });
   const session = server.createMessageSession();
   const result = await session.handleMessage("tools/call", {
     name: "echo",
     requestState: "resume-one",
-    inputResponses: { form: { answer: 42 } },
+    inputResponses: { rootResponse: { roots: [] } },
     _meta: {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientCapabilities": capabilities

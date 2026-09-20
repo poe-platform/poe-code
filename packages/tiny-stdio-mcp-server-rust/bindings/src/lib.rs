@@ -103,11 +103,27 @@ impl NativeServer {
     }
 
     #[napi(ts_return_type = "unknown")]
-    pub fn normalize_result(&self, env: Env, source: Unknown<'_>) -> Result<NativeJson> {
+    pub fn normalize_result(
+        &self,
+        env: Env,
+        source: Unknown<'_>,
+        modern: Option<bool>,
+    ) -> Result<NativeJson> {
         let value = input::read(&env, source, input::Mode::Tool)?;
-        tiny_stdio_mcp_server_rust::content::normalize_result(value)
-            .map(NativeJson)
-            .map_err(Error::from_reason)
+        if modern == Some(true) && value.as_ref().and_then(|value| value.get("resultType")).is_some_and(|value| matches!(value, Value::String(units) if units.iter().copied().eq("input_required".encode_utf16()))) {
+            return Err(Error::from_reason("Invalid MCP input_required result"));
+        }
+        let value = tiny_stdio_mcp_server_rust::content::normalize_result(value)
+            .map_err(Error::from_reason)?;
+        Ok(NativeJson(if modern == Some(true) {
+            self.state
+                .borrow()
+                .server
+                .decorate_result(value)
+                .map_err(Error::from_reason)?
+        } else {
+            value
+        }))
     }
 
     #[napi]

@@ -171,34 +171,7 @@ pub fn config_yaml_parse(
         return Err(error);
     }
     Ok(NativeJson(match parsed {
-        Ok(parsed) => {
-            let mut temporals = vec![];
-            let value = snapshot::parsed(parsed.value, &mut vec![], &mut temporals);
-            object(vec![
-                ("value", value),
-                ("temporals", Value::Array(temporals)),
-                (
-                    "dateIds",
-                    Value::Array(
-                        parsed
-                            .date_ids
-                            .into_iter()
-                            .map(|id| Value::Number(id as f64))
-                            .collect(),
-                    ),
-                ),
-                (
-                    "symbolIds",
-                    Value::Array(
-                        parsed
-                            .symbol_ids
-                            .into_iter()
-                            .map(|id| Value::Number(id as f64))
-                            .collect(),
-                    ),
-                ),
-            ])
-        }
+        Ok(parsed) => parsed_yaml_snapshot(parsed).0,
         Err(error) => object(vec![(
             "error",
             object(vec![
@@ -216,6 +189,35 @@ pub fn config_yaml_parse(
             ]),
         )]),
     }))
+}
+/// Preserve YAML date/symbol metadata when embedding this bridge.
+pub fn parsed_yaml_snapshot(parsed: config_mutations_rust::yaml::Parsed) -> NativeJson {
+    let mut temporals = vec![];
+    let value = snapshot::parsed(parsed.value, &mut vec![], &mut temporals);
+    NativeJson(object(vec![
+        ("value", value),
+        ("temporals", Value::Array(temporals)),
+        (
+            "dateIds",
+            Value::Array(
+                parsed
+                    .date_ids
+                    .into_iter()
+                    .map(|id| Value::Number(id as f64))
+                    .collect(),
+            ),
+        ),
+        (
+            "symbolIds",
+            Value::Array(
+                parsed
+                    .symbol_ids
+                    .into_iter()
+                    .map(|id| Value::Number(id as f64))
+                    .collect(),
+            ),
+        ),
+    ]))
 }
 #[napi]
 pub fn config_yaml_serialize(serialized: Buffer) -> Result<Utf16String> {

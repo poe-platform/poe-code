@@ -1817,6 +1817,17 @@ declarations, maintained lint/shared lint, eight-workspace uncached build and
 packed config root/codecs/template smoke pass. Evidence under
 `out/rust-config-yaml-options-*.log`. Frontmatter package work is ongoing.
 
+YAML graph snapshot capture is now a reusable private host module. Configuration
+serialization retains aliases by default; frontmatter can opt out so repeated
+objects and toJSON hooks are independently emitted, matching the current SDK's
+`aliasDuplicateObjects: false` behavior. The own shared Rust bridge also exposes
+its parsed YAML date/symbol metadata snapshot conversion for dependent addons.
+Validation: 82 Rust groups, 66 native groups, all260 actual current SDK cases,
+declarations, maintained lint/shared lint, eight-workspace uncached build and
+packed configuration root/codecs/template smoke pass. Evidence under
+`out/rust-config-yaml-snapshot-*.log`; default configuration API behavior is
+unchanged, while the own frontmatter package remains in progress.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

@@ -2669,6 +2669,59 @@ advanced; successful workflow is not successful publication. The newer template
 release failed root unit before this correction. Publication remains unverified.
 The overall additive rewrite and minimum24-hour effort remain unfinished.
 
+### Own OAuth test-server prerequisite — 2026-09-20
+
+Added `tiny-oauth-test-server-rust`, private/suffixed, with own std/path-core grant
+state and one napi-rs addon. Rust owns configuration/admission, DCR metadata,
+loopback redirect and duplicate-param policy, consent decisions, single-use codes,
+PKCE/verifier replay, refresh rotation/expiry, explicit revocation, listener
+admission/reset, endpoint/metadata/claims/response/HTML/redaction plans and CLI
+values/output. Node supplies canonical WHATWG URL facts, builtin HTTP/entropy/key
+operations, asynchronous signatures, request logging and transport cleanup.
+No runtime TypeScript/SDK fallback. Existing imports/defaults/releases untouched.
+Core remains portable for future host/Python bindings; Python bindings not added.
+
+Failing-first core/addon/module, response/priority, redaction, CLI and listener
+absence precede implementation. The SDK catches non-finite JSON values collapsing
+to null/default; the transport now preserves markers so Rust rejects them. Own
+comparisons catch live default-scope array mutation loss and missing RSA2048-bit
+minimum; captured array identity is observed at admission, and Rust signing facts
+produce the SDK TypeError for undersized RSA. Root direct URL/TTL validation
+priority and the empty-resource URL diagnostic had failing evidence and were corrected. Static clients retain precedence
+over colliding dynamic IDs in separate registries. No access-token record reader
+exists in the SDK; omitting those private duplicate records preserves public
+revocation behavior and reduces retention. Other observable histories remain.
+A missing binding JSON dependency and an empty native-test list causing Node
+autodiscovery of a Vitest file were tooling failures, fixed before delivery.
+
+All48 SDK root cases,4 CLI cases (only expected package-name literals adapted to
+the required suffix),5 own Vitest cases,8 Rust groups,3 native groups, strict
+bidirectional root/CLI types, fmt/clippy with denied warnings and maintained
+uncached11-workspace closure pass.104 declared workspaces/301 dependency edges.
+Filesystem fixtures are in memory; no models queried. Direct/packed16MiB workers
+each verify64 real localhost HTTP listener cycles,1024 direct signatures/revokes,
+64 code exchanges/replay checks,4096 unavailable-issuer admissions and CLI help
+with external production imports blocked. Exactly one addon and no npm runtime,
+peer or optional dependency groups.
+
+Measured direct-token calls81–89µs native versus73–83µs SDK. Across16,384 extra
+calls with the same seeded P-256 key and fixture alive, native sampled heap
+6.40→6.47MB, SDK9.52→20.25MB; buffers76.2KB each, final RSS94.0/110.0MB. This
+shows bounded retention benefit from omitted unobservable token copies, without
+a general performance/memory acceptance. The final portable listener additions
+were independently verified after this token-only measurement; token policy did
+not change. Evidence: `out/rust-oauth-fixture-*`.
+
+Help/error screenshots inspected: readable suffix, aligned options and clear
+invalid-port error plus help. `screenshot-poe-code` hardcodes the main CLI and its
+predev full build fails in safe-bash-playground; the maintained generic screenshot
+harness directly captures this package's built CLI instead. The root predev
+failure was not counted as a screenshot or successful build. The actual plan
+continues to require the MCP OAuth fixture, terminal MCP renderers and agent
+closure, malformed/getter/cross-platform/aggregate/performance acceptance and
+24-hour actual effort. Release6a082b4c6 is pending; successful publication remains
+unverified.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

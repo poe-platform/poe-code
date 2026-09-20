@@ -21,14 +21,14 @@ function fixture() {
   return { lease, adapter, pages, navigations };
 }
 
-test('restoration retains selection and defers navigation until controller initialization', async () => {
+test('restoration retains selection without navigation during controller initialization', async () => {
   const f = fixture();
   const signal = new AbortController().signal;
   const restored = await restoreBrowserProfile({ adapter: f.adapter, profile, limits, name: 'host-owned', signal });
   expect(restored.selectedPage).toBe(f.pages[1]);
   expect(f.navigations).toEqual([]);
   await restored.initialize!({ signal });
-  expect(f.navigations).toEqual(profile.tabs);
+  expect(f.navigations).toEqual([]);
 });
 
 test('failed allocation retires the lease and preserves cleanup errors', async () => {
@@ -49,7 +49,7 @@ test('provider profile state is restored before any saved tab navigation', async
   const restore = vi.fn(async () => { expect(f.navigations).toEqual([]); });
   Object.assign(f.lease.context, { browserProfile: { restore } });
   const signal = new AbortController().signal;
-  const restored = await restoreBrowserProfile({ adapter: f.adapter, profile: { ...profile, runtimeState: state }, limits, name: 'host-owned', signal });
+  const restored = await restoreBrowserProfile({ adapter: f.adapter, profile: { ...profile, runtimeState: state }, limits, name: 'host-owned', signal, tabRestoration: 'navigate' });
   await restored.initialize!({ signal });
   expect(restore).toHaveBeenCalledWith(state, signal);
   expect(f.navigations).toEqual(profile.tabs);

@@ -72,9 +72,11 @@ storage state, ordered tab URLs, selection, context options, session configurati
 and optional expiry metadata. Cloudflare checkpoints also retain provider-qualified
 dynamic context/page emulation, timeouts, and init scripts through the same
 state-transfer implementation used for `run-code` reconnect. An incompatible
-adapter rejects those settings before navigation. Restoration allocates tabs in order and returns an
-initializer to the standard controller, which installs configuration before
-navigation. Failed allocation releases the acquired lease. After adoption, the
+adapter rejects unsupported settings. Restoration allocates blank tabs in order,
+preserves selection, and returns an initializer to the standard controller, which
+installs configuration before provider settings. Saved URLs are replayed only with
+explicit `tabRestoration: 'navigate'`; replay can repeat action endpoints.
+Failed allocation releases the acquired lease. After adoption, the
 controller owns failed-initialization retirement. Checkpoints settle isolated
 storage-reader cleanup before returning bytes, including closed-origin IndexedDB.
 Live-context `state-load` retains tab identity, DOM, and sessionStorage.

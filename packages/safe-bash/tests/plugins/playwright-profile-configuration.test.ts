@@ -115,7 +115,7 @@ test('configured restore preserves storage/context settings and defers runtime r
   assert.equal(events.length, 0);
   for (const page of item.pages) page.goto = mock.fn(async url => { events.push(url); });
   await restored.initialize!({ signal: item.controller.signal });
-  assert.deepEqual(events, ['runtime', ...profile.tabs]);
+  assert.deepEqual(events, ['runtime']);
   assert.deepEqual(restore.mock.calls[0]!.arguments, [runtimeState, item.controller.signal]);
   assert.equal(item.release.mock.callCount(), 0);
 });

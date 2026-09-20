@@ -112,14 +112,16 @@ export function encodeBrowserProfile(profile: BrowserProfile, limits: BrowserPro
  return bytes;
 }
 
-/** Return an initializer so the standard controller installs configuration before navigation. */
+/** Restore blank tabs by default; the controller installs configuration before initialization. */
 export async function restoreBrowserProfile(options: {
   adapter: PlaywrightAdapter; profile: BrowserProfile; limits: BrowserProfileLimits;
   name: string; signal: AbortSignal;
+  /** Saved URLs may repeat actions. Navigation requires explicit host authorization. */
+  tabRestoration?: 'blank' | 'navigate';
   /** Interrupted-owner recovery: storage only, one blank page, no script or URL replay. */
   recovery?: boolean;
 }): Promise<NonNullable<Awaited<ReturnType<PlaywrightSessionPersistence['restore']>>>> {
-  const { adapter, limits, name, signal } = options;
+  const { adapter, limits, name, signal, tabRestoration } = options;
   signal.throwIfAborted();
   const profile = parseBrowserProfile(encodeBrowserProfile(options.profile, limits), limits);
   const lease = await adapter.acquire({
@@ -157,7 +159,7 @@ export async function restoreBrowserProfile(options: {
           if (!runtime) throw new Error('Browser adapter cannot restore provider profile settings');
           await runtime.restore(profile.runtimeState, signal);
         }
-        for (let i = 0; i < pages.length; i++) {
+        for (let i = 0; tabRestoration === 'navigate' && i < pages.length; i++) {
           signal.throwIfAborted();
           await pages[i]!.goto(urls[i]!);
         }

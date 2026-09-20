@@ -20,11 +20,12 @@ The native Node binding parses directly into JavaScript values, preserving own
 the compiled addon with the package and has no npm runtime dependencies.
 
 ```typescript
-import { parseJson, parseJsonUtf8, canonicalizeJson } from "mcp-protocol-rust";
+import { parseJson, parseJsonUtf8, canonicalizeJson, parseMessage } from "mcp-protocol-rust";
 
 const value = parseJson('{"tools":[]}', { maxBytes: 1024 });
 const decoded = parseJsonUtf8(Buffer.from('{"id":1}'));
 const encoded = canonicalizeJson('{"id":1,"result":{}}');
+const request = parseMessage('{"jsonrpc":"2.0","id":1,"method":"tools/list"}');
 ```
 
 ```rust
@@ -52,6 +53,11 @@ as `null`, matching `JSON.stringify`.
 surrogates. Its byte limit counts UTF-8 widths, with three bytes per unpaired unit;
 escaping those units internally does not consume extra input budget. Parse error
 offsets refer to the normalized UTF-8 source.
+
+`parseMessage` and `parseMessageUtf8` return the existing server parser's
+`ParseResult | ParseError` shape. They keep legacy null and fractional request IDs
+for compatibility, even where the official SDK schemas reject them. Modern
+requests with protocol-version metadata require safe integer or string IDs.
 
 This additive package is under development. MCP dispatch APIs and the native
 platform artifacts are being added; existing MCP packages continue to operate

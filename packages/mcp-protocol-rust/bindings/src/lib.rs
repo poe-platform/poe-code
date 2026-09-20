@@ -1,8 +1,48 @@
 use mcp_protocol_rust::json::{self, Limits, Value};
+use mcp_protocol_rust::jsonrpc::{self, ParsedMessage};
 use napi::{Env, Property, bindgen_prelude::*};
 use napi_derive::napi;
 
 pub struct NativeJson(Value);
+
+pub struct NativeParsed(ParsedMessage);
+
+impl ToNapiValue for NativeParsed {
+    unsafe fn to_napi_value(env: sys::napi_env, parsed: Self) -> Result<sys::napi_value> {
+        let environment = Env::from_raw(env);
+        let mut object = Object::new(&environment)?;
+        match parsed.0 {
+            ParsedMessage::Request(request) => {
+                let mut payload = Object::new(&environment)?;
+                payload.set("jsonrpc", "2.0")?;
+                let notification = request.id.is_none();
+                if let Some(id) = request.id {
+                    payload.set("id", NativeJson(id.into_value()))?;
+                }
+                payload.set("method", Utf16String::from(request.method))?;
+                match request.params {
+                    Some(params) => payload.set("params", NativeJson(params))?,
+                    None => payload.set("params", ())?,
+                }
+                object.set("success", true)?;
+                object.set("isNotification", notification)?;
+                object.set("request", payload)?;
+            }
+            ParsedMessage::Error { id, error } => {
+                let mut payload = Object::new(&environment)?;
+                payload.set("code", error.code)?;
+                payload.set("message", error.message)?;
+                if let Some(data) = error.data {
+                    payload.set("data", NativeJson(data))?;
+                }
+                object.set("success", false)?;
+                object.set("error", payload)?;
+                object.set("id", NativeJson(id.into_value()))?;
+            }
+        }
+        unsafe { Object::to_napi_value(env, object) }
+    }
+}
 
 impl ToNapiValue for NativeJson {
     unsafe fn to_napi_value(env: sys::napi_env, value: Self) -> Result<sys::napi_value> {
@@ -92,4 +132,26 @@ pub fn canonicalize_json(
     json::parse_utf16(&input, ParseLimits::resolve(limits)?)
         .map(|value| json::stringify(&value))
         .map_err(|error| Error::new(format!("{:?}", error.kind), error.to_string()))
+}
+
+#[napi(ts_return_type = "ParseResult | ParseError")]
+pub fn parse_message(
+    input: Utf16String,
+    limits: Option<ParseLimits>,
+) -> Result<NativeParsed, String> {
+    Ok(NativeParsed(jsonrpc::parse_message_utf16(
+        &input,
+        ParseLimits::resolve(limits)?,
+    )))
+}
+
+#[napi(ts_return_type = "ParseResult | ParseError")]
+pub fn parse_message_utf8(
+    input: Buffer,
+    limits: Option<ParseLimits>,
+) -> Result<NativeParsed, String> {
+    Ok(NativeParsed(jsonrpc::parse_message(
+        &input,
+        ParseLimits::resolve(limits)?,
+    )))
 }

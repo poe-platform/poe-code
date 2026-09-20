@@ -40,6 +40,52 @@ fn parses_a_request_with_owned_parameters() {
 }
 
 #[test]
+fn utf16_requests_preserve_raw_surrogates_in_ids_and_parameters() {
+    let mut input = units("{\"jsonrpc\":\"2.0\",\"id\":\"");
+    input.push(0xd800);
+    input.extend(units("\",\"method\":\"echo\",\"params\":{\"value\":\""));
+    input.push(0xdfff);
+    input.extend(units("\"}}"));
+    assert_eq!(
+        jsonrpc::parse_message_utf16(&input, Limits::default()),
+        ParsedMessage::Request(Request {
+            id: Some(Id::String(vec![0xd800])),
+            method: units("echo"),
+            params: Some(Value::Object(vec![(
+                units("value"),
+                Value::String(vec![0xdfff])
+            )])),
+        })
+    );
+}
+
+#[test]
+fn utf16_requests_share_envelope_validation_and_parser_limits() {
+    for input in [
+        r#"{"jsonrpc":"2.0","method":"ping"}"#,
+        r#"{"jsonrpc":"2.0","method":"ping","params":null}"#,
+        r#"{"jsonrpc":"2.0","id":null,"method":"ping"}"#,
+        r#"{"jsonrpc":"2.0","id":null,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28"}}}"#,
+        "not JSON",
+    ] {
+        assert_eq!(
+            jsonrpc::parse_message_utf16(&units(input), Limits::default()),
+            parse(input)
+        );
+    }
+    assert_eq!(
+        jsonrpc::parse_message_utf16(
+            &units("{}"),
+            Limits {
+                max_bytes: 1,
+                ..Limits::default()
+            }
+        ),
+        failure(Id::Null, -32700, "Parse error")
+    );
+}
+
+#[test]
 fn distinguishes_missing_id_from_a_legacy_null_request_id() {
     assert_eq!(
         parse(r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#),

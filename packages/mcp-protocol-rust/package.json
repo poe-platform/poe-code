@@ -16,7 +16,9 @@
     "directory": "packages/mcp-protocol-rust"
   },
   "devDependencies": {
-    "@napi-rs/cli": "3.10.4"
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@napi-rs/cli": "3.10.4",
+    "tiny-stdio-mcp-server": "^0.1.0"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -34,6 +36,7 @@
     "node": ">=18.18"
   },
   "napi": {
-    "binaryName": "mcp-protocol-rust"
+    "binaryName": "mcp-protocol-rust",
+    "dtsHeaderFile": "src/native-types.d.ts"
   }
 }

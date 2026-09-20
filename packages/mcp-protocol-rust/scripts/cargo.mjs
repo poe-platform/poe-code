@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -71,6 +71,9 @@ if (operation === "build" || operation === "test") {
   ]);
   copyFileSync(path.join(packageDirectory, "src/index.js"), path.join(output, "index.js"));
   if (operation === "test") {
-    run(process.execPath, ["--test", "tests/native.test.mjs"]);
+    const tests = readdirSync(path.join(packageDirectory, "tests"))
+      .filter((name) => name.endsWith(".test.mjs"))
+      .map((name) => path.join("tests", name));
+    run(process.execPath, ["--test", ...tests]);
   }
 }

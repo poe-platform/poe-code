@@ -56,7 +56,15 @@ pub enum ParsedMessage {
 }
 
 pub fn parse_message(input: &[u8], limits: Limits) -> ParsedMessage {
-    let value = match json::parse(input, limits) {
+    parse_decoded(json::parse(input, limits))
+}
+
+pub fn parse_message_utf16(input: &[u16], limits: Limits) -> ParsedMessage {
+    parse_decoded(json::parse_utf16(input, limits))
+}
+
+fn parse_decoded(parsed: Result<Value, json::Error>) -> ParsedMessage {
+    let value = match parsed {
         Ok(value) => value,
         Err(_) => return invalid(Id::Null, PARSE_ERROR, "Parse error"),
     };

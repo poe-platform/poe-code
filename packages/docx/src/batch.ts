@@ -3,7 +3,7 @@ import { docxBatchMutates, validateDocxBatch, validateDocxInvocation, type DocxB
 import { documentBatchActions } from "./batch-operations.js";
 import { DocumentSession } from "./document-session.js";
 import { docxOperationSchemas } from "./operation-schema.js";
-import { UnsupportedProfileError } from "./package-xml.js";
+import { parseDocumentXml, UnsupportedProfileError } from "./package-xml.js";
 import { publishDocumentArchive, type PublicationContext, type PublicationOptions } from "./publication.js";
 import type { DocumentModelContext } from "./model-context.js";
 import { closedRecord, encodeLocation, type Location } from "./location-token.js";
@@ -11,6 +11,9 @@ import type { DocumentBudget } from "./budget.js";
 import type { DocxBatchItem } from "./operation-types.js";
 import { applyStyleModelBatch } from "./style-model-batch.js";
 import type { ModelBatchItemResult } from "./model-batch-effects.js";
+import { admittedXml } from "./admission.js";
+import { documentDialects } from "./dialect.js";
+import { styleIds } from "./style-properties.js";
 
 export interface DocumentBatchItemResult {
   readonly id: string;
@@ -82,6 +85,7 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
   if (!batch.operations.length) return { results: [], publication: null };
   const session = await DocumentSession.open(input, { ...context, ...settings, budget });
   const results: DocumentBatchItemResult[] = [];
+  const addedStyles = new Map<string, ReadonlySet<string>>();
   let changed = false;
   for (const [index, item] of batch.operations.entries()) {
     const id = item.id ?? `step${index + 1}`;
@@ -91,7 +95,17 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
       const beforeGeneration = session.generation;
       const previousMatches = budget.usage.matches;
       const arguments_ = { ...item.arguments, ...(mutates ? { output: "-" } : {}) };
+      const priorStyles = item.operation === "styles.add" ? await session.snapshot() : undefined;
       const data = rebaseLocations(await documentBatchActions.get(item.operation)!(input, { ...item, arguments: arguments_ }, session.context), session.generation, beforeGeneration, budget);
+      if (priorStyles) {
+        const edge = priorStyles.package.relationships("/" + priorStyles.mainPart).find(edge => edge.reltype === `${documentDialects[priorStyles.dialect].r}/styles` && !edge.is_external);
+        const member = edge && priorStyles.members.find(member => member.name === edge.target_part.name);
+        const previousIds = member ? styleIds(priorStyles[admittedXml]?.get(member.bytes) ?? parseDocumentXml(member.bytes, {}, budget).root, budget) : new Set<string>();
+        budget.charge("retainedBytes", previousIds.size * 32 + 64);
+        const ids = (data as { changes: readonly { id: string }[] }).changes.filter(change => !previousIds.has(change.id)).map(change => change.id);
+        budget.charge("retainedBytes", ids.reduce((size, id) => size + id.length * 4 + 32, 64));
+        addedStyles.set(id, new Set(ids));
+      }
       const record = data as { changed?: boolean; changes?: readonly { after?: Location | null }[]; items?: readonly { location?: Location }[]; item?: { location: Location }; warnings?: readonly { code: string; message: string }[] };
       const affected = mutates && record.changed !== false ? record.changes?.length ?? 0 : 0;
       const matches = mutates ? record.changes?.length ?? 0 : record.items?.length ?? (record.item ? 1 : 0);
@@ -112,8 +126,11 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
   }
   const mutates = docxBatchMutates(batch);
   const changes = results.flatMap(result => {
-    const data = result.data as { changes?: readonly { kind: string; before?: Location | null; after?: Location | null }[] };
-    return (data.changes ?? []).map(change => ({ kind: (change.kind === "insert" ? "add" : change.kind === "format" ? "set" : change.kind === "delete" ? "remove" : change.kind) as "add" | "set" | "remove" | "replace", before: change.before ?? null, after: change.after ?? null }));
+    const data = result.data as { changes?: readonly { kind: string; id?: string; before?: Location | null; after?: Location | null }[] };
+    return (data.changes ?? []).map(change => {
+      const kind = change.kind === "style" ? result.operation === "styles.add" ? addedStyles.get(result.id)!.has(change.id!) ? "add" : "set" : result.operation.endsWith(".add") ? "add" : result.operation.endsWith(".remove") ? "remove" : "set" : change.kind === "insert" ? "add" : change.kind === "format" ? "set" : change.kind === "delete" ? "remove" : change.kind;
+      return { kind: kind as "add" | "set" | "remove" | "replace", before: change.before ?? null, after: change.after ?? null };
+    });
   });
   const publication: DocumentBatchData["publication"] = mutates ? { changed, changes, dryRun: options.dryRun ?? false, output: null } : null;
   const prospective = { results, publication: publication ? { ...publication, output: options.dryRun ? null : { path: options.inPlace ? identity?.path ?? null : options.output === "-" ? null : options.output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } } : null };

@@ -337,6 +337,21 @@ through encrypted documents. Six Rust tests and seventeen native groups plus
 focused lint/types pass. The OAuth port can reuse these sources in its own artifact
 without adding a runtime package import or duplicating credential policy.
 
+OAuth session and client-registration persistence now embeds the own credential
+API in the OAuth native binary and bundles its single host/type source beside the
+addon. Rust validates stored-session fields/dates, projects stored clients, and
+hashes resource/issuer keys with the own SHA-256 implementation. Node normalizes
+resource URLs and supplies filename assembly/platform I/O. Native/oracle checks
+verify encrypted stores interoperate in both directions, URI-specific filename and
+Keychain account/service selection, optional/invalid stored fields, Date limits,
+malformed JSON SyntaxError diagnostics, infinite expiry, raw issuer surrogate
+hashing, client projection and clear/missing paths. Public declarations are checked
+from actual built output, including the bundled credential option types. Fourteen
+Rust tests and twenty-nine native groups plus maintained build/lint/types pass.
+JSON parsing retains the shared core's depth/node/byte limits; metadata beyond those
+limits is rejected rather than promising unbounded JSON.parse parity. Default
+provider and JWKS verification remain incomplete.
+
 The additive Rust server now compiles/snapshots tool input schemas with the Rust
 schema core and rejects invalid arguments before invoking handlers. Legacy and
 modern errors match TypeScript issue data and formatting. Disabling argument

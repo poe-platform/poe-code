@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { fetchMcpResponse, readBoundedResponseText } from "./http.js";
+import { canonicalizeResourceIndicator } from "./resource.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 
 export class OAuthError extends Error {
@@ -51,11 +52,8 @@ export async function refreshAccessToken(input) {
   return requestTokens(input, { grant_type: "refresh_token", refresh_token: input.refreshToken });
 }
 async function requestTokens(input, grant) {
-  let resource;
-  try { resource = new URL(input.resource); }
-  catch { throw new Error("Resource indicator must be an absolute URL"); }
-  resource.hash = "";
-  const form = { client_id: input.clientId, ...grant, resource: resource.toString() };
+  const resource = canonicalizeResourceIndicator(input.resource);
+  const form = { client_id: input.clientId, ...grant, resource };
   if (input.clientSecret !== undefined) form.client_secret = input.clientSecret;
   const signal = AbortSignal.timeout(30_000);
   const response = await fetchMcpResponse(input.fetch, input.tokenEndpoint, {

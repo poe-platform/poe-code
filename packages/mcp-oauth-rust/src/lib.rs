@@ -17,5 +17,6 @@ pub fn generate_code_challenge(verifier: &[u16]) -> String {
 }
 pub mod loopback;
 pub mod response;
+pub mod session;
 pub mod state;
 pub mod tokens;

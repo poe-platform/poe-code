@@ -1,8 +1,77 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+#[path = "../../../auth-store-rust/bindings/src/api.rs"]
+pub mod credential_api;
 #[napi]
 pub fn encode_code_verifier(entropy: Buffer) -> Result<String> {
     mcp_oauth_rust::generate_code_verifier(&entropy).map_err(napi::Error::from_reason)
+}
+
+#[napi]
+pub fn read_stored_oauth_value(text: Utf16String, client: bool) -> convert::NativeJson {
+    let parsed = match json::parse_utf16(&text, Limits::default()) {
+        Ok(value) => value,
+        Err(_) => {
+            return convert::NativeJson(Value::Object(vec![(
+                "parseError".encode_utf16().collect(),
+                Value::Bool(true),
+            )]));
+        }
+    };
+    let result = if client {
+        mcp_oauth_rust::session::read_stored_client(&parsed)
+    } else if mcp_oauth_rust::session::validate_session(&parsed) {
+        Ok(parsed)
+    } else {
+        Err("Stored OAuth session must match the expected shape")
+    };
+    let (key, value) = match result {
+        Ok(value) => ("value", value),
+        Err(message) => ("error", Value::String(message.encode_utf16().collect())),
+    };
+    convert::NativeJson(Value::Object(vec![(key.encode_utf16().collect(), value)]))
+}
+#[napi]
+pub fn oauth_storage_defaults(key: Utf16String, client: bool) -> convert::NativeJson {
+    let key = char::decode_utf16(key.iter().copied())
+        .map(|point| point.unwrap_or(char::REPLACEMENT_CHARACTER))
+        .collect::<String>();
+    let hash = mcp_oauth_rust::sha256(key.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    let (salt, directory, service, prefix) = if client {
+        (
+            "poe-code:mcp-oauth:clients:v1",
+            ".poe-code/mcp-oauth/clients",
+            "poe-code-mcp-oauth-clients",
+            "issuer",
+        )
+    } else {
+        (
+            "poe-code:mcp-oauth:v1",
+            ".poe-code/mcp-oauth",
+            "poe-code-mcp-oauth",
+            "provider",
+        )
+    };
+    convert::NativeJson(Value::Object(
+        [
+            ("hash", hash.as_str()),
+            ("salt", salt),
+            ("directory", directory),
+            ("service", service),
+            ("accountPrefix", prefix),
+        ]
+        .into_iter()
+        .map(|(key, value)| {
+            (
+                key.encode_utf16().collect(),
+                Value::String(value.encode_utf16().collect()),
+            )
+        })
+        .collect(),
+    ))
 }
 #[napi]
 pub fn generate_code_challenge(verifier: Utf16String) -> String {

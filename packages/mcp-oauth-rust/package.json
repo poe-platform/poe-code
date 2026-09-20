@@ -9,13 +9,15 @@
   "types": "dist/index.d.ts",
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
-    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+    "build": "node scripts/cargo.mjs build",
+    "test:unit": "node scripts/cargo.mjs test && tsc --project tsconfig.types.json",
+    "lint": "node scripts/cargo.mjs lint"
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
     "@modelcontextprotocol/sdk": "1.29.0",
+    "auth-store-rust": "*",
+    "memfs": "4.56.10",
     "mcp-protocol-rust": "*",
     "mcp-oauth": "*",
     "tsx": ">=4.21.0",

@@ -1,3 +1,25 @@
+import type { CreateSecretStoreInput } from "./auth-store-types.js";
+export interface StoredOAuthTokens {
+  accessToken: string;
+  refreshToken?: string;
+  tokenType: "Bearer";
+  expiresAt: number | null;
+  scope?: string;
+}
+export interface StoredOAuthSession {
+  resource: string;
+  authorizationServer: string;
+  client: { clientId: string; clientSecret?: string };
+  tokens?: StoredOAuthTokens;
+  discovery: { resourceMetadataUrl: string; resourceMetadata: Record<string,unknown>; authorizationServerMetadata: Record<string,unknown> };
+}
+export interface OAuthSessionStore {
+  load(resource: string): Promise<StoredOAuthSession | null>;
+  save(resource: string, session: StoredOAuthSession): Promise<void>;
+  clear(resource: string): Promise<void>;
+}
+export declare function createAuthStoreSessionStore(options?: CreateSecretStoreInput): OAuthSessionStore;
+export declare function canonicalizeResourceIndicator(value: string | URL): string;
 export declare function generateCodeVerifier(): string;
 export declare function generateCodeChallenge(verifier: string): string;
 export declare class OAuthError extends Error {

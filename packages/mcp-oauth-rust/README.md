@@ -29,8 +29,13 @@ pasted callback input. Rust enforces state/issuer binding before accepting codes
 or denials and renders escaped success pages. Closing a session disposes its
 listeners and rejects pending waits; close is idempotent.
 
-Session storage, the default provider
-and JWKS verification are still being implemented. Keep applications on
+Encrypted session and client-registration persistence uses the embedded Rust
+credential store. URI-specific filenames and Keychain accounts match the original
+package, including resource normalization and machine-bound encrypted documents.
+Session admission and client-field projection run in Rust. The package ships these
+capabilities in its own addon and has no runtime import of `auth-store`.
+
+The default provider and JWKS verification are still being implemented. Keep applications on
 their existing OAuth package until conformance and integration are complete.
 
 `fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.

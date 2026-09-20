@@ -25,6 +25,10 @@
     "./execution": {
       "types": "./dist/execution.d.ts",
       "import": "./dist/execution.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
     }
   },
   "scripts": {

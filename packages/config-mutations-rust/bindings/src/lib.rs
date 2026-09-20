@@ -226,3 +226,5 @@ pub use toolcraft_design_rust_napi_core::*;
 pub fn config_safe_timestamp(iso: Utf16String) -> Utf16String {
     config_mutations_rust::backup::safe_timestamp(&iso).into()
 }
+mod mock;
+pub use mock::config_mock_directory_parts;

@@ -29,3 +29,9 @@ const read:Promise<string|null>=rootApi.readFileIfExists(fs,'~/config');
 const exists:Promise<boolean>=rootApi.pathExists(fs,'~/config');
 const timestamp:string=rootApi.createTimestamp();
 void read;void exists;void timestamp;
+
+const testingApi:typeof import('../../config-mutations/dist/testing/index.js')=await import('../dist/testing.js');
+const mock=testingApi.createMockFs({'~/config':'content'});
+const buffer:Promise<Buffer>=mock.readFile('~/config');
+void buffer;
+rootApi.runMutations([rootApi.configMutation.merge({target:'~/agent.json',value:{enabled:true}})],{fs:mock,homeDir:'/home/test'});

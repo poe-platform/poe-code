@@ -101,8 +101,21 @@ for the remaining handlers; it is not a new public npm API.
 The root SDK also exposes raw `renderTemplate`, filesystem read/existence helpers,
 `isConfigObject`, `isNotFound` and filename-safe timestamps. Filesystem helpers
 remain host adapters over your injected filesystem; own Rust formats timestamps.
-The original testing export remains under development. It is not integrated into
-applications. JSON nesting is bounded to 512
+The `./testing` API supplies `createMockFs` and parse/serialize helpers for each
+format. Its mutable `files` record and `directories` Set stay in memory; Rust
+owns admission, exclusive-write collisions, stat modes and filesystem errors.
+It preserves the SDK's path expansion and Buffer/view behavior and supports
+running the complete mutation API without disk fixtures.
+
+```ts
+import {createMockFs,parseJson} from '@poe-code/config-mutations-rust/testing';
+const fs=createMockFs({'~/agent.json':'{"enabled":false}\n'});
+await runMutations([configMutation.merge({target:'~/agent.json',value:{enabled:true}})],
+  {fs,homeDir:'/home/test'});
+const enabled=parseJson(fs.getContent('~/agent.json')!).enabled;
+```
+
+It is not integrated into applications. JSON nesting is bounded to 512
 levels; malformed edit input
 is rejected rather than recovered by the development oracle's tolerant editor.
 Unlike the original JSONC parser, `__proto__` keys are retained as ordinary own

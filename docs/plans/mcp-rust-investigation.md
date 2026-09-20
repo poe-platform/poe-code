@@ -1666,6 +1666,34 @@ empty at runtime. Evidence underout/rust-config-public-*. Prior finite workload
 and memory limits still apply; no general performance/memory/stability advantage
 is claimed. The full MCP/poe-agent goal remains active and incomplete.
 
+The original config testing API now has an own additive rewrite: createMockFs
+and six parse/serialize helpers. MockMachine uses std-only injected admission
+requests for lazy exclusive/recursive options, file/prototype membership,
+directory/parent existence, stat modes, read/write/mkdir/unlink/rename/list/
+chmod/exists actions and exact SDK error code/message construction. Its terminal
+states release path buffers; the host always discards on exit, including foreign
+option exceptions. Public files Record/directories Set, Node path normalization,
+UTF-16 path parts, buffers/views, prototype membership, getter evaluation and
+list iteration remain in the host. They retain caller-visible mutation identity.
+No physical filesystem fixture, SDK production dependency or production wiring
+change. Helpers bind the own codecs; public root/testing runtime symbol sets and
+strict type surfaces match the current SDK. This is API coverage, not a claim
+of universal codec conformance or whole-goal completion.
+
+Validation: eighty Rust groups, sixty-four native groups, whole testing SDK
+type assignability, maintained fmt/clippy and eight-workspace uncached maintained
+build pass. Failing-first tests compare every mock method/path/buffer/error and
+mutable state to the SDK, including lazy option/prototype/Set effects, and run
+the own full mutation API through the own mock. Two4 MiB workers pass depth512
+paths and2048 merge/backup/transform/restore cycles each. Packed root/testing/
+template/config APIs run with bare npm resolution blocked; runtime dependency
+categories stay empty. A5120-cycle mock memory run including throwing options
+per cycle retains original/native RSS58.80/60.69MB, heap5.49/5.52MB, external1.47MB
+either; last native RSS60.65/60.69/60.69MB. Both modules load in each process.
+No general performance/memory/stability advantage or leak-free guarantee.
+Evidence underout/rust-config-testing-*. The full MCP/poe-agent goal is active
+and incomplete; codec metadata/edge conformance and platform acceptance remain.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

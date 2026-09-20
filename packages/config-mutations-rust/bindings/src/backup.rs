@@ -109,7 +109,22 @@ fn value(result: std::result::Result<Request, Vec<u16>>, retryable: bool) -> Nat
 #[napi]
 impl ConfigBackupMachine {
     #[napi(constructor)]
-    pub fn new(kind: String, target: Utf16String, walk: Vec<Utf16String>) -> Result<Self> {
+    pub fn new(
+        kind: String,
+        target: Utf16String,
+        walk: Vec<Utf16String>,
+        content: Option<Utf16String>,
+    ) -> Result<Self> {
+        if kind == "invalidDocument" {
+            return Ok(Self {
+                machine: BackupMachine::new_invalid(
+                    target.to_vec(),
+                    content
+                        .ok_or_else(|| Error::from_reason("Missing invalid backup source"))?
+                        .to_vec(),
+                ),
+            });
+        }
         let kind = match kind.as_str() {
             "backup" => Kind::Backup,
             "restoreBackup" => Kind::Restore,

@@ -5,6 +5,7 @@ use crate::execution::Outcome;
 pub enum Kind {
     Backup,
     Restore,
+    Invalid,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Request {
@@ -119,15 +120,23 @@ impl BackupMachine {
             pending_error: None,
         }
     }
+    pub fn new_invalid(target: Vec<u16>, content: Vec<u16>) -> Self {
+        let mut machine = Self::new(Kind::Invalid, target, vec![]);
+        machine.content = Some(content);
+        machine
+    }
     pub fn checks_collisions(&self) -> bool {
-        matches!(
-            self.stage,
-            Stage::WalkWrite | Stage::LinkWrite | Stage::Write
-        )
+        self.stage == Stage::Write
+            || self.kind == Kind::Backup
+                && matches!(self.stage, Stage::WalkWrite | Stage::LinkWrite)
     }
     pub fn start(&mut self) -> Result<Request, Vec<u16>> {
         if self.stage != Stage::New {
             return Err(u("Backup mutation already started"));
+        }
+        if self.kind == Kind::Invalid {
+            self.stage = Stage::Timestamp;
+            return Ok(Request::Timestamp);
         }
         if self.kind == Kind::Restore {
             self.stage = Stage::List;
@@ -159,10 +168,10 @@ impl BackupMachine {
             Outcome {
                 changed: true,
                 effect: "copy",
-                detail: if self.kind == Kind::Backup {
-                    "backup"
-                } else {
+                detail: if self.kind == Kind::Restore {
                     "restore"
+                } else {
+                    "backup"
                 },
             }
         } else {
@@ -306,7 +315,9 @@ impl BackupMachine {
                     self.error(error)
                 }
                 Stage::WalkWrite | Stage::LinkWrite | Stage::Write => {
-                    if exists {
+                    if self.kind == Kind::Invalid && self.stage != Stage::Write {
+                        self.error(WriteError::Host(token))
+                    } else if exists {
                         self.collision = self.collision.saturating_add(1);
                         self.begin_write()
                     } else {
@@ -334,7 +345,7 @@ impl BackupMachine {
                 let mut message = u("Refusing mutation write through symbolic link: ");
                 message.extend_from_slice(&self.walk[self.link_index]);
                 let error = WriteError::Message(message);
-                if self.stage == Stage::LinkWrite {
+                if self.stage == Stage::LinkWrite && self.kind != Kind::Invalid {
                     self.cleanup(error)
                 } else {
                     self.error(error)
@@ -401,13 +412,26 @@ impl BackupMachine {
             }
             (Stage::Timestamp, Response::Timestamp(timestamp)) => {
                 self.base_backup = self.target.clone();
-                self.base_backup.extend(u(".backup-"));
+                self.base_backup.extend(u(if self.kind == Kind::Invalid {
+                    ".invalid-"
+                } else {
+                    ".backup-"
+                }));
                 self.base_backup.extend(
                     timestamp
                         .into_iter()
                         .map(|c| if matches!(c, 58 | 46) { 45 } else { c }),
                 );
-                if self.content.is_none() {
+                if self.kind == Kind::Invalid {
+                    self.base_backup.push(46);
+                    let extension = self
+                        .target
+                        .iter()
+                        .rposition(|c| *c == 46)
+                        .map(|dot| self.target[dot + 1..].to_vec())
+                        .unwrap_or_else(|| u("bak"));
+                    self.base_backup.extend(extension);
+                } else if self.content.is_none() {
                     self.base_backup.extend(u(".missing"));
                 }
                 self.begin_write()

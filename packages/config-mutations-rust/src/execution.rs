@@ -337,3 +337,21 @@ pub const FILE_FACTORIES: &[Factory] = &[
         fields: &["target", "label"],
     },
 ];
+
+pub const CONFIG_FACTORIES: &[Factory] = &[
+    Factory {
+        name: "merge",
+        kind: "configMerge",
+        fields: &["target", "value", "format", "pruneByPrefix", "label"],
+    },
+    Factory {
+        name: "prune",
+        kind: "configPrune",
+        fields: &["target", "shape", "format", "onlyIf", "label"],
+    },
+    Factory {
+        name: "transform",
+        kind: "configTransform",
+        fields: &["target", "format", "transform", "label"],
+    },
+];

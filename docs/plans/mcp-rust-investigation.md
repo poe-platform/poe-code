@@ -1560,6 +1560,41 @@ deltas, not isolated package load. This finite stability evidence does not show
 a speed/lower-memory advantage or universal leak-free behavior. Evidence under
 out/rust-config-backup-*. The full MCP/poe-agent goal remains active and incomplete.
 
+Configuration merge/prune/transform execution and all three configMutation
+factories are now implemented in the additive `./execution` API. Own Rust
+ConfigMachine controls format detection/selection, read/parse ordering, fresh
+documents, invalid-backup admission, guard/value checks, serialization decisions,
+dry runs, deletion, create/update/noop outcomes and atomic-write requests. Invalid
+backups extend BackupMachine with the SDK's separate destination-guard boundary,
+exclusive suffix retries and cleanup behavior. Missing prune stops before format
+selection; invalid prune leaves the file intact; merge/transform back up invalid
+content before invoking foreign callbacks. The Node adapter retains foreign
+document/patch/transform identities, getters, receivers and exception identity;
+host merge/prune/prefix property algorithms remain JavaScript. Do not claim that
+arbitrary JS graphs now merge in Rust. Portable `config_data` owned-value APIs
+use explicit clone/merge/prune work stacks, depth1000 bounds, ordered keys,
+Undefined skipping, array replacement, repeated prefix maps and shallow managed
+subtree replacement. They preserve the SDK's empty-child prune changed-flag quirk.
+
+Validation: seventy Rust groups (including100 generated owned merge/prune SDK
+comparisons), forty-eight native groups, strict declarations, maintained
+fmt/clippy and the uncached seven-workspace maintained build. Native tests cover
+all formats, invalid-backup collisions and symlinks, guards/resolvers/dry runs,
+format error ordering, fs/observer exceptions, prefix behavior, getter/receiver
+ordering, in-place transforms and factory field getter/reference identity.
+Two4 MiB workers pass500-level JSON, depth512 paths and2048 config round trips
+each. Packed JSON/TOML/YAML invalid backup/merge/prune/transform pass with bare
+npm resolution blocked; no production/peer/optional npm dependencies added.
+Template handlers/factories and root/testing exports remain outstanding.
+
+Sequential controlled-host64-field JSON merge/prune/transform round trip:
+original180459/native223173ns onNode22.23.2/macOSARM64. Separate controlled-host
+5120-cycle checks retain original/native RSS106.43/104.02MB, heap9.47/9.07MB,
+external2.22MB either. Native last three RSS samples104.02MB; original105.07/
+106.43/106.43MB. Both modules load in each process; these finite samples do not
+prove a general speed, memory or universal stability advantage. Evidence under
+out/rust-config-config-*. The full MCP/poe-agent goal remains active/incomplete.
+
 ## Sources
 
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and

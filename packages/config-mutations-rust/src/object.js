@@ -14,3 +14,16 @@ export function prune(obj,shape){let changed=false;const result=cloneConfigObjec
  }
  delete result[key];changed=true;
 }return {changed,result};}
+
+export function mergeWithPruneByPrefix(base,patch,pruneByPrefix){
+ const result=cloneConfigObject(base),prefixMap=pruneByPrefix??{};
+ for(const[key,value]of Object.entries(patch)){
+  if(value===undefined)continue;
+  const current=result[key],prefix=prefixMap[key];
+  if(isConfigObject(current)&&isConfigObject(value)){
+   if(prefix){const pruned={};for(const[name,entry]of Object.entries(current))if(!name.startsWith(prefix))setConfigEntry(pruned,name,entry);const merged=cloneConfigObject(pruned);for(const[name,entry]of Object.entries(value))if(entry!==undefined)setConfigEntry(merged,name,entry);setConfigEntry(result,key,merged);}
+   else setConfigEntry(result,key,mergeWithPruneByPrefix(current,value,prefixMap));
+  }else setConfigEntry(result,key,value);
+ }
+ return result;
+}

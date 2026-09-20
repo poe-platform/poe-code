@@ -17,7 +17,7 @@ import {yamlFormat} from '@poe-code/config-mutations-rust/yaml';
 const settings=yamlFormat.parse('extensions:\n  terminal:\n    enabled: true\n');
 const yaml=yamlFormat.serialize(settings);
 
-import {runMutations,fileMutation} from '@poe-code/config-mutations-rust/execution';
+import {runMutations,fileMutation,configMutation} from '@poe-code/config-mutations-rust/execution';
 const result=await runMutations([
   fileMutation.ensureDirectory({path:'~/.agent'}),
   {kind:'chmod',target:'~/.agent',mode:0o700},
@@ -30,6 +30,14 @@ await runMutations([fileMutation.backup({target:'~/.agent/config.json',once:true
 // Later, restore and consume the most recent generated backup.
 await runMutations([fileMutation.restoreBackup({target:'~/.agent/config.json'})],
   {fs:yourFileSystem,homeDir:yourHomeDirectory});
+
+// Merge JSONC, TOML or YAML, preserving a backup when the input is invalid.
+await runMutations([
+  configMutation.merge({target:'~/.agent/config.json',value:{enabled:true}}),
+  configMutation.prune({target:'~/.agent/config.json',shape:{legacy:{}}}),
+  configMutation.transform({target:'~/.agent/config.json',
+    transform:doc=>({content:{...doc,version:2},changed:true})})
+], {fs:yourFileSystem,homeDir:yourHomeDirectory});
 ```
 
 The own Rust parser and editor preserve UTF-16 strings, trailing commas, indentation,
@@ -57,11 +65,21 @@ Document/node objects are not serialization inputs. Standalone Rust callers can
 supply Date-key coercion; the Node adapter uses the host time zone.
 
 The `./execution` API runs directory creation/removal, guarded file removal,
-permission changes, backups and restoration in order. The `fileMutation` factory
+permission changes, backups, restoration and configuration updates in order.
+The `fileMutation` and `configMutation` factories
 keeps resolver and guard identities while deriving its layouts from Rust. Its Rust state machine checks symbolic links before
 writes, retains dry-run outcomes and requests host controls lazily; injected
 filesystem errors and observers retain their identities. Paths must start with
 `~` and remain inside the managed home before optional mapping.
+
+Configuration policy runs in Rust: format selection, missing/invalid-document
+handling, invalid backups, guards, dry runs, deletion and serialized comparisons.
+JSONC updates retain unaffected comments. Prefix pruning supports replacing
+managed keys before a shallow table merge. Arbitrary JavaScript documents,
+callbacks, getters and replacement references remain in the Node adapter;
+their merge/prune property operations currently run in JavaScript. Standalone
+Rust callers can use `config_data::merge` and `config_data::prune` with owned
+codec values, explicit work stacks and a depth limit of 1,000.
 
 The Rust core also includes `atomic::AtomicMachine` for exclusive temporary
 writes, ten collision retries, rename and cleanup. It executes through injected
@@ -69,7 +87,7 @@ platform requests and preserves host error tokens. Terminal states release owned
 buffers immediately. This is an internal foundation
 for the remaining handlers; it is not a new public npm API.
 
-Configuration/template execution, config/template factories and the original
+Template execution, template factories and the original
 root/testing exports remain under development. It is not integrated into
 applications. JSON nesting is bounded to 512
 levels; malformed edit input
@@ -99,3 +117,9 @@ A 16 KiB backup/restore round trip in memfs takes about212 µs native versus160 
 in TypeScript on Node22/macOSARM64. A separate controlled-host run of5120 cycles
 levels near109 MB RSS for native and78 MB for TypeScript, with about8.9 MB retained
 JS heap either. These results do not show a general speed or memory advantage.
+
+A 64-field JSON merge/prune/transform round trip on the same platform takes
+about 223 µs native versus 180 µs in TypeScript. A controlled-host check of 5,120
+round trips retains about 104/106 MB RSS and 9.1/9.5 MB JS heap respectively;
+both implementations are loaded in each process. This finite check does not
+establish a general memory advantage or leak-free guarantee.

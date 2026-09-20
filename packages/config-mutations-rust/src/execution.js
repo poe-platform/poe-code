@@ -1,9 +1,12 @@
+import {applyConfig} from './config.js';
 import {applyBackup} from './backup.js';
 import {writeWalk} from './path.js';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 const native=createRequire(import.meta.url)('./config-mutations-rust.node');
-export const fileMutation=Object.fromEntries(native.configFileFactories().map(({name,kind,fields})=>[name,options=>Object.fromEntries([['kind',kind],...fields.map(field=>[field,options[field]])])]));
+function factories(specifications){return Object.fromEntries(specifications.map(({name,kind,fields})=>[name,options=>Object.fromEntries([['kind',kind],...fields.map(field=>[field,options[field]])])]));}
+export const fileMutation=factories(native.configFileFactories());
+export const configMutation=factories(native.configConfigFactories());
 function isNotFound(error){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code==='ENOENT';}
 function expandHome(target,home){
  if(target.startsWith('~./'))target=`~/.${target.slice(3)}`;
@@ -22,7 +25,7 @@ function resolvePath(raw,context){
  return filename.length===0?directory:path.join(directory,filename);
 }
 function resolveTarget(mutation,options){const value=['ensureDirectory','removeDirectory'].includes(mutation.kind)?mutation.path:mutation.target;return typeof value==='function'?value(options):value;}
-function label(kind,target){const display=target??'target';switch(kind){case 'ensureDirectory':return `Create ${display}`;case 'removeDirectory':return `Remove directory ${display}`;case 'removeFile':return `Remove ${display}`;case 'chmod':return `Set permissions on ${display}`;case 'backup':return `Backup ${display}`;case 'restoreBackup':return `Restore ${display}`;default:return 'Operation';}}
+function label(kind,target){const display=target??'target';switch(kind){case 'ensureDirectory':return `Create ${display}`;case 'removeDirectory':return `Remove directory ${display}`;case 'removeFile':return `Remove ${display}`;case 'chmod':return `Set permissions on ${display}`;case 'backup':return `Backup ${display}`;case 'restoreBackup':return `Restore ${display}`;case 'configMerge':case 'configPrune':case 'configTransform':return `Update ${display}`;default:return 'Operation';}}
 function pendingDetails(mutation,context,options){
  try{const raw=resolveTarget(mutation,options);if(raw===undefined)return {kind:mutation.kind,label:mutation.label??mutation.kind};
   try{const targetPath=resolvePath(raw,context);return {kind:mutation.kind,label:mutation.label??label(mutation.kind,targetPath),targetPath};}
@@ -31,7 +34,8 @@ function pendingDetails(mutation,context,options){
 }
 
 async function applyFile(mutation,context,options){
- const targetPath=resolvePath(resolveTarget(mutation,options),context),details={kind:mutation.kind,label:mutation.label??label(mutation.kind,targetPath),targetPath};
+ const raw=resolveTarget(mutation,options),targetPath=resolvePath(raw,context),details={kind:mutation.kind,label:mutation.label??label(mutation.kind,targetPath),targetPath};
+ if(['configMerge','configPrune','configTransform'].includes(mutation.kind))return {outcome:await applyConfig(mutation,context,options,raw,targetPath),details};
  if(mutation.kind==='backup'||mutation.kind==='restoreBackup')return {outcome:await applyBackup(mutation,context,targetPath),details};
  const machine=new native.ConfigFileMachine(mutation.kind,writeWalk(targetPath,context.homeDir));
  let request=machine.start();
@@ -61,7 +65,7 @@ async function applyFile(mutation,context,options){
   request=machine.respond(response);
  }
 }
-/** Execute supported file mutations in order with an injected filesystem. */
+/** Execute supported file and configuration mutations in order with an injected filesystem. */
 export async function runMutations(mutations,context,options){
  const effects=[],resolverOptions=options??{};let changed=false;
  for(const mutation of mutations){const pending=pendingDetails(mutation,context,resolverOptions);context.observers?.onStart?.(pending);

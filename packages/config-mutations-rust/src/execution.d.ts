@@ -1,3 +1,4 @@
+import type {ConfigObject} from './index.js';
 export type ValueResolver<T>=T|((options:MutationOptions)=>T);
 export interface MutationOptions{[key:string]:unknown;}
 export interface FileSystem{
@@ -13,7 +14,7 @@ export interface FileSystem{
  chmod?(path:string,mode:number):Promise<void>;
 }
 export interface MutationDetails{kind:string;label:string;targetPath?:string;}
-export interface MutationOutcome{changed:boolean;effect:'none'|'mkdir'|'delete'|'chmod'|'copy';detail:'create'|'update'|'delete'|'noop'|'backup'|'restore';}
+export interface MutationOutcome{changed:boolean;effect:'none'|'mkdir'|'delete'|'chmod'|'copy'|'write';detail:'create'|'update'|'delete'|'noop'|'backup'|'restore';}
 export interface MutationObservers{
  onStart?(details:MutationDetails):void;
  onComplete?(details:MutationDetails,outcome:MutationOutcome):void;
@@ -34,9 +35,14 @@ export interface ChmodMutation extends BaseMutation{kind:'chmod';target:ValueRes
 export interface BackupMutation extends BaseMutation{kind:'backup';target:ValueResolver<string>;once?:boolean;}
 export interface RestoreBackupMutation extends BaseMutation{kind:'restoreBackup';target:ValueResolver<string>;}
 export type FileMutation=BackupMutation|RestoreBackupMutation|EnsureDirectoryMutation|RemoveDirectoryMutation|RemoveFileMutation|ChmodMutation;
+export interface ConfigMergeMutation extends BaseMutation{kind:'configMerge';target:ValueResolver<string>;value:ValueResolver<ConfigObject>;format?:'json'|'toml'|'yaml';pruneByPrefix?:Record<string,string>;}
+export interface ConfigPruneMutation extends BaseMutation{kind:'configPrune';target:ValueResolver<string>;shape:ValueResolver<ConfigObject>;format?:'json'|'toml'|'yaml';onlyIf?:(doc:ConfigObject,options:MutationOptions)=>boolean;}
+export interface ConfigTransformMutation extends BaseMutation{kind:'configTransform';target:ValueResolver<string>;format?:'json'|'toml'|'yaml';transform:(doc:ConfigObject,options:MutationOptions)=>{content:ConfigObject|null;changed:boolean};}
+export type ConfigMutation=ConfigMergeMutation|ConfigPruneMutation|ConfigTransformMutation;
+export type Mutation=FileMutation|ConfigMutation;
 export interface MutationResult{changed:boolean;effects:MutationOutcome[];}
-/** Execute file mutations with platform operations supplied by the caller. */
-export function runMutations(mutations:FileMutation[],context:MutationContext,options?:MutationOptions):Promise<MutationResult>;
+/** Execute file and configuration mutations with platform operations supplied by the caller. */
+export function runMutations(mutations:Mutation[],context:MutationContext,options?:MutationOptions):Promise<MutationResult>;
 
 export const fileMutation:{
  ensureDirectory(options:Omit<EnsureDirectoryMutation,'kind'>):EnsureDirectoryMutation;
@@ -45,4 +51,10 @@ export const fileMutation:{
  chmod(options:Omit<ChmodMutation,'kind'>):ChmodMutation;
  backup(options:Omit<BackupMutation,'kind'>):BackupMutation;
  restoreBackup(options:Omit<RestoreBackupMutation,'kind'>):RestoreBackupMutation;
+};
+
+export const configMutation:{
+ merge(options:Omit<ConfigMergeMutation,'kind'>):ConfigMergeMutation;
+ prune(options:Omit<ConfigPruneMutation,'kind'>):ConfigPruneMutation;
+ transform(options:Omit<ConfigTransformMutation,'kind'>):ConfigTransformMutation;
 };

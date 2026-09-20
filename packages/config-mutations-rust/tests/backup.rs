@@ -211,3 +211,53 @@ fn target_symlinks_reject_before_once_and_dry_restore_skips_link_checks() {
 fn m_restore() -> BackupMachine {
     m(Kind::Restore)
 }
+#[test]
+fn invalid_document_backup_checks_links_outside_cleanup_boundary() {
+    let mut m = BackupMachine::new_invalid(u("/home/k/file.json"), u("bad"));
+    assert_eq!(m.start().unwrap(), Request::Timestamp);
+    assert_eq!(
+        m.respond(Response::Timestamp(u("2026-09-20T10:20:30.000Z")))
+            .unwrap(),
+        Request::Walk(u("/home/k/file.json.invalid-2026-09-20T10-20-30-000Z.json"))
+    );
+    assert!(!m.checks_collisions());
+    m.respond(Response::Walk(vec![u("link")])).unwrap();
+    assert_eq!(
+        m.respond(Response::Link(true)).unwrap(),
+        Request::Error(WriteError::Message(u(
+            "Refusing mutation write through symbolic link: link"
+        )))
+    );
+}
+#[test]
+fn invalid_document_write_collisions_retry_but_other_write_errors_clean() {
+    let mut m = BackupMachine::new_invalid(u("/home/k/dot.dir/file"), u("bad"));
+    m.start().unwrap();
+    m.respond(Response::Timestamp(u("date"))).unwrap();
+    assert!(matches!(
+        m.respond(Response::Walk(vec![])).unwrap(),
+        Request::WriteExclusive { .. }
+    ));
+    assert!(m.checks_collisions());
+    assert_eq!(
+        m.respond(Response::Failure {
+            exists: true,
+            token: 4
+        })
+        .unwrap(),
+        Request::Walk(u("/home/k/dot.dir/file.invalid-date.dir/file-1"))
+    );
+    m.respond(Response::Walk(vec![])).unwrap();
+    assert!(matches!(
+        m.respond(Response::Failure {
+            exists: false,
+            token: 5
+        })
+        .unwrap(),
+        Request::Unlink { cleanup: true, .. }
+    ));
+    assert_eq!(
+        m.respond(Response::Unit).unwrap(),
+        Request::Error(WriteError::Host(5))
+    );
+}

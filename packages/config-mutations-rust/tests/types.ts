@@ -16,3 +16,6 @@ void operation;
 
 import {fileMutation} from '../dist/execution.js';
 runMutations([fileMutation.backup({target:'~/config',once:true}),fileMutation.restoreBackup({target:'~/config'})],{fs,homeDir:'/home/test'});
+
+import {configMutation} from '../dist/execution.js';
+runMutations([configMutation.merge({target:'~/config.json',value:{enabled:true}}),configMutation.prune({target:'~/config.json',shape:{enabled:null},onlyIf:(doc,ctx)=>doc.enabled===true&&ctx.remove===true}),configMutation.transform({target:'~/config.json',transform:doc=>({content:doc,changed:false})})],{fs,homeDir:'/home/test'});

@@ -3,8 +3,8 @@ import {writeWalk} from './path.js';
 import {writeAtomically} from './io.js';
 const native=createRequire(import.meta.url)('./config-mutations-rust.node');
 function hasCode(error,code){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code===code;}
-export async function applyBackup(mutation,context,target){
- const machine=new native.ConfigBackupMachine(mutation.kind,target,mutation.kind==='backup'?writeWalk(target,context.homeDir):[]);let request=machine.start(),pendingError;
+export async function applyBackup(mutation,context,target,content){
+ const machine=new native.ConfigBackupMachine(mutation.kind,target,mutation.kind==='backup'?writeWalk(target,context.homeDir):[],content);let request=machine.start(),pendingError;
  while(true){
   if(request.kind==='done')return request.outcome;
   if(request.kind==='error'){if(Object.hasOwn(request,'token'))throw pendingError;throw Error(request.message);}

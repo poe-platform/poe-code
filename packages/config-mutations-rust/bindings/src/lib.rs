@@ -218,3 +218,6 @@ mod atomic;
 mod backup;
 mod execution;
 pub use execution::config_file_factories;
+mod config;
+pub use config::config_select_format;
+pub use execution::config_config_factories;

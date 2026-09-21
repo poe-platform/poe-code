@@ -279,7 +279,9 @@ calling host clocks or store factories, so those callbacks cannot replace the
 factory used for later servers. Declared binding policies also retain nonenumerable
 values; selected clock, store and recovery methods keep their original host
 receiver and live state, including private class fields. Browser settings, nested landing-page values and
-native persistence paths/settings are captured at the same boundary. Supply `oauth.sessionStore(server)` for host-owned
+native persistence paths/settings are captured at the same boundary, including
+nonenumerable backend policies, filesystem and Keychain dependencies. Selected
+machine/home/random and Keychain callbacks retain their original host receiver. Supply `oauth.sessionStore(server)` for host-owned
 persistence, or `oauth.authStore` for the native secret-store backend.
 `oauth.sessionLockTimeoutMs` bounds transaction lock acquisition (default 30 s).
 Cancellation settles native provider calls while a host store callback waits.

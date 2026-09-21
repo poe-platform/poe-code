@@ -1,4 +1,4 @@
-import type { DefaultOAuthClientProviderOptions } from "mcp-oauth";
+import { snapshotOAuthPersistenceOptions, type DefaultOAuthClientProviderOptions } from "mcp-oauth";
 import type { ConfigurationBindingOptions } from "./runtime-configuration.js";
 
 export function snapshotOAuthBindingOptions(oauth: NonNullable<ConfigurationBindingOptions["oauth"]>): NonNullable<ConfigurationBindingOptions["oauth"]> {
@@ -14,9 +14,4 @@ export function snapshotOAuthBrowserOptions(browser: DefaultOAuthClientProviderO
     ...(browser.landingPage === undefined ? {} : { landingPage: { ...browser.landingPage } }) };
 }
 
-export function snapshotOAuthPersistenceOptions(options: NonNullable<DefaultOAuthClientProviderOptions["authStore"]>): NonNullable<DefaultOAuthClientProviderOptions["authStore"]> {
-  return { ...options,
-    ...(options.fileStore === undefined ? {} : { fileStore: { ...options.fileStore } }),
-    ...(options.keychainStore === undefined ? {} : { keychainStore: { ...options.keychainStore,
-      ...(options.keychainStore.lock === undefined ? {} : { lock: { ...options.keychainStore.lock } }) } }) };
-}
+export { snapshotOAuthPersistenceOptions } from "mcp-oauth";

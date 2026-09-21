@@ -1,3 +1,4 @@
+export { snapshotOAuthPersistenceOptions } from "./client/persistence-options.js";
 export { normalizeOAuthScope } from "./client/scope.js";
 export { waitForOAuthOperation } from "./client/cancellable-operation.js";
 export { parseOAuthTokenGrant } from "./client/token-grant.js";

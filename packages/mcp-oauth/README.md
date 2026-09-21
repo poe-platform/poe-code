@@ -74,7 +74,11 @@ unlimited secret lifetimes do not require a clock read. Valid negative epoch
 times remain supported.
 Native session and client persistence factories also capture file paths, salts,
 Keychain identities, lock locations and selected filesystem/command handles.
-Mutating these settings cannot redirect a later read or write.
+Mutating these settings cannot redirect a later read or write. Declared options
+retain nonenumerable values; selected filesystem, machine/home/random callbacks
+and Keychain runners keep their original host receiver, including private class
+state. `snapshotOAuthPersistenceOptions(options)` exposes this capture boundary
+for integrations that defer native store construction.
 The factories copy these settings before reading the selected backend environment
 variable, so its getter cannot replace them. They resolve that variable once at creation;
 later environment changes cannot move a transaction between file and Keychain.

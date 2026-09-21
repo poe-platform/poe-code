@@ -1,3 +1,4 @@
+import { snapshotOAuthPersistenceOptions } from "./persistence-options.js";
 import { normalizeStoredOAuthClient } from "./client-registration.js";
 import crypto from "node:crypto";
 import path from "node:path";
@@ -92,12 +93,7 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput, name
 }
 
 function snapshotPersistenceOptions(options: CreateSecretStoreInput): CreateSecretStoreInput {
-  const snapshot = {
-    ...options,
-    ...(options.fileStore === undefined ? {} : { fileStore: { ...options.fileStore } }),
-    ...(options.keychainStore === undefined ? {} : { keychainStore: { ...options.keychainStore,
-      ...(options.keychainStore.lock === undefined ? {} : { lock: { ...options.keychainStore.lock } }) } })
-  };
+  const snapshot = snapshotOAuthPersistenceOptions(options);
   snapshot.backend = resolveSecretStoreBackend(snapshot);
   return snapshot;
 }
@@ -108,6 +104,7 @@ export function createNamedSecretStore(
   defaults: { salt: string; directory: string; service: string; accountPrefix: string },
   namespace?: string
 ): SecretStore {
+  options = snapshotOAuthPersistenceOptions(options);
   const hash = crypto.createHash("sha256").update(namespace === undefined ? key : JSON.stringify([namespace, key])).digest("hex");
   const configuredFilePath = options.fileStore?.filePath;
   const parsedFilePath = configuredFilePath === undefined ? null : path.parse(configuredFilePath);

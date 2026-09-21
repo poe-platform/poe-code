@@ -1,5 +1,5 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-const mock=vi.hoisted(()=>({bytes:[] as Buffer[],writes:[] as Buffer[],environment:'',exit:null as number|null,disposed:0,fault:null as Error|null,resize:[] as number[][]}));
+const mock=vi.hoisted(()=>({bytes:[] as Buffer[],writes:[] as Buffer[],environment:'',exit:null as number|null,disposed:0,fault:null as Error|null,resize:[] as number[][],exitTail:null as Buffer|null}));
 vi.mock('../dist/native.js',async()=>{
  const actual=await vi.importActual<typeof import('../dist/native.js')>('../dist/native.js');
  class Pty{
@@ -9,13 +9,13 @@ vi.mock('../dist/native.js',async()=>{
   write(bytes:Buffer){mock.writes.push(bytes);}
   resize(cols:number,rows:number){mock.resize.push([cols,rows]);}
   signal(){mock.exit=0;}
-  get exitCode(){return mock.exit;}
+  get exitCode(){if(mock.exitTail){mock.bytes.push(mock.exitTail);mock.exitTail=null;}return mock.exit;}
   dispose(){mock.disposed++;}
  }
  return{native:{...actual.native,NativeTerminalPty:Pty}};
 });
 import {TerminalSession} from '../dist/index.js';
-beforeEach(()=>{vi.useFakeTimers();mock.bytes=[];mock.writes=[];mock.exit=null;mock.disposed=0;mock.fault=null;mock.resize=[];});
+beforeEach(()=>{vi.useFakeTimers();mock.bytes=[];mock.writes=[];mock.exit=null;mock.disposed=0;mock.fault=null;mock.resize=[];mock.exitTail=null;});
 afterEach(()=>{vi.useRealTimers();});
 it('decodes split UTF8, drains exit output and disposes subscriptions once',async()=>{
  const bytes=Buffer.from('ready 🦀\r\ntail');
@@ -39,6 +39,14 @@ it('types Unicode scalar inputs at the requested cadence and validates before ef
  expect(mock.writes.slice(2).map(bytes=>bytes.toString())).toEqual(['a\rb\rc\r','\x03']);
  await expect(session.resize(0,3)).rejects.toThrow('positive integers');expect(mock.resize).toEqual([]);
  await session.signal('SIGTERM');await vi.advanceTimersByTimeAsync(2);expect(await session.close()).toBe(0);
+});
+it('drains bytes written between an empty read and observing process exit',async()=>{
+ mock.bytes=[Buffer.from('ready\r\n')];mock.exit=7;mock.exitTail=Buffer.from('final tail');
+ const session=new TerminalSession({id:'exit-race',command:'test',cols:20,rows:3});
+ await vi.advanceTimersByTimeAsync(0);
+ expect(await session.waitForExit({timeout:100})).toBe(7);
+ expect(await session.history()).toEqual(['ready','final tail']);
+ expect(mock.disposed).toBe(1);
 });
 it('transport failure rejects pending waiters and releases the native transport',async()=>{
  const session=new TerminalSession({id:'fault',command:'test',cols:20,rows:3});

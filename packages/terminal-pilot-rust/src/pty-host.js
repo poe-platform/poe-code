@@ -15,14 +15,17 @@ export function createPty({command,args,cwd,env,cols,rows}) {
   if(stopped)return;
   try{
    let reads=0;
-   for(;reads<64;reads++){
-    const bytes=pty.read();if(bytes.length===0)break;
-    const text=decoder.write(bytes);if(text!=='')emit('data',text);
-   }
-   // Drain all available output before publishing an already-reaped exit.
-   if(reads<64){
+   const drain=()=>{
+    while(reads<64){
+     const bytes=pty.read();if(bytes.length===0)return true;
+     reads++;const text=decoder.write(bytes);if(text!=='')emit('data',text);
+    }
+    return false;
+   };
+   if(drain()){
     const exitCode=pty.exitCode;
-    if(exitCode!=null){
+    // An empty read can precede the child's final write/exit. Drain again after reaping.
+    if(exitCode!=null&&drain()){
      const tail=decoder.end();if(tail!=='')emit('data',tail);
      stopped=true;emit('exit',{exitCode});return;
     }

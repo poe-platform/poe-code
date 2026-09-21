@@ -3022,6 +3022,18 @@ SDK-pin release35550571891 build/audit now pass and unit/Bash stages are running
 with no verified publication. Active segment resumes01:24:12 UTC after the
 checkpoint gap. Full goal and24-hour effort remain incomplete.
 
+### Terminal exit-tail regression (2026-09-21 UTC)
+
+A deterministic transport red writes final bytes between an empty PTY read and
+the subsequent exit observation: history incorrectly contains only ready rather
+than ready/final-tail. Own Node adapter now drains again after reaping, sharing
+the same per-poll64-read work budget, before finalizing UTF-8 and publishing exit.
+This is a host-effects fix; it does not change Rust lifecycle policy. Full focused
+unit route passes244 Vitest (238 original applicable plus six own), eleven Rust
+tests and ten native groups in the current tree. Concurrent separate macOS spawn
+optimization is still being validated and is not part of this atomic fix.
+Evidence out/rust-terminal-pilot-exit-tail-red.log and -unit.log.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

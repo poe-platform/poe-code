@@ -79,7 +79,7 @@ writeFileSync(
   new URL("src/index.d.ts", root),
   imports +
     index +
-    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\n"
+    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\nexport {runCommand} from './run-command.js';\nexport type {CommandRunner,CommandRunnerOptions,CommandRunnerResult} from './run-command.js';\n"
 );
 
 writeFileSync(
@@ -138,4 +138,14 @@ writeFileSync(
       "createSpawnParallel"
     ]) +
     "\n"
+);
+
+writeFileSync(
+  new URL("src/run-command.d.ts", root),
+  declarations("run-command.d.ts", [
+    "CommandRunnerResult",
+    "CommandRunnerOptions",
+    "CommandRunner",
+    "runCommand"
+  ]) + "\n"
 );

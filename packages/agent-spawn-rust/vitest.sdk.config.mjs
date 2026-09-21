@@ -18,6 +18,14 @@ export default defineConfig({
           if (name === "./parallel.js") return path("dist/parallel.js");
           if (name === "./spawn.js") return path("tests/parallel-spawn.mjs");
         }
+        if (
+          [
+            path("../agent-spawn/src/run-command.test.ts"),
+            path("../agent-spawn/src/run-command.integration.test.ts")
+          ].includes(importer) &&
+          name === "./run-command.js"
+        )
+          return path("dist/run-command.js");
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -69,7 +77,9 @@ export default defineConfig({
       configs,
       types,
       path("../agent-spawn/src/retry.test.ts"),
-      path("../agent-spawn/src/parallel.test.ts")
+      path("../agent-spawn/src/parallel.test.ts"),
+      path("../agent-spawn/src/run-command.test.ts"),
+      path("../agent-spawn/src/run-command.integration.test.ts")
     ],
     environment: "node",
     fileParallelism: false,

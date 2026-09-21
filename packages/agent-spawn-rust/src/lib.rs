@@ -1,4 +1,5 @@
 //! Independent declarative spawn planning and execution policies.
+pub mod command;
 pub mod mcp;
 pub mod parallel;
 pub mod retry;

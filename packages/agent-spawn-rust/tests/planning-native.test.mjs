@@ -141,3 +141,22 @@ test("parallel preserves payload identity and cleans linked cancellation listene
     assert.equal(getEventListeners(individual.signal, "abort").length, 0);
   }
 });
+test("command options getters are read once and UTF-8 streams retain complete text", async () => {
+  for (const implementation of [reference, own]) {
+    let reads = 0;
+    const options = {
+      get stdin() {
+        reads++;
+        return reads === 1 ? "first 🌍" : "incorrect second value";
+      }
+    };
+    const result = await implementation.runCommand(
+      process.execPath,
+      ["-e", "process.stdin.pipe(process.stdout)"],
+      options
+    );
+    assert.equal(result.stdout, "first 🌍");
+    assert.equal(result.exitCode, 0);
+    assert.equal(reads, 1);
+  }
+});

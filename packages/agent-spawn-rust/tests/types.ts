@@ -35,3 +35,8 @@ type Parallel = Pick<typeof original, "createSpawnParallel" | "SpawnParallelErro
 const e: Parallel = own;
 const f: Pick<typeof own, keyof Parallel> = null as unknown as Parallel;
 void [e, f];
+
+type Command = Pick<typeof original, "runCommand">;
+const g: Command = own;
+const h: Pick<typeof own, keyof Command> = null as unknown as Command;
+void [g, h];

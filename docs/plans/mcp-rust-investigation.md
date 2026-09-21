@@ -3370,3 +3370,29 @@ Evidence out/rust-agent-spawn-parallel-*. Actual command/stream execution and th
 larger closure remain unfinished. Retry commit ab1aa9f03 is verified on remote
 main; its release 35557365606 is queued. Earlier planning release was cancelled.
 No successful publication or overall/minimum-effort completion is claimed.
+
+### Independent command execution, 2026-09-21 03:29 UTC
+
+The additive runCommand API uses Rust for output ownership, managed-group policy,
+first termination admission, error/signal/timeout/abort result selection, messages,
+timing policy and single completion. Result extraction moves output buffers out
+of native state; completed commands reject additional buffer retention. Node
+supplies subprocess/stdin/UTF-8 decoding/signals/timers and group-exit probes.
+Portable tests were red before implementation. A real-subprocess native red
+reproduced an own duplicate getter read; normalized own options now read once.
+Inherited options/numeric error codes are ignored, matching original contracts.
+
+All 10 portable Rust cases, 7 native groups and 196 applicable original cases
+pass. The eight newly redirected command cases include the actual Unix shell-
+descendant cleanup integration test; nothing is filtered from these suites.
+Bidirectional runCommand types, maintained lint/fmt/clippy, package unit checks,
+formatting and explicit uncached focused build closure pass. Packed/direct16MiB
+workers each add16 real subprocess calls, retain8 output results, and validate
+pre-start cancellation alongside existing planning/retry/parallel workload.
+Recursive AST audit covers31 files, one addon, no npm runtime/peer/optional groups.
+Heap endpoints~9.1/~9.4MB; RSS still includes auditor parent. There is no isolated
+leak/peak or throughput advantage claim. Output has no size cap, matching original.
+Evidence out/rust-agent-spawn-command-*. Full agent spawn, adapters/rendering,
+resources/runtime/telemetry and larger closure remain unfinished. Parallel commit
+0e0762140 is verified on remote main. Release35557562373 is pending; retry release
+35557365606 is in progress. No successful publication is verified.

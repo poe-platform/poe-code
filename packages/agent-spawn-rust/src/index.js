@@ -151,3 +151,5 @@ export function mergeSpawnEnvironment(...sources) {
 }
 export { createSpawnRetry, calculateBackoffMs, defaultIsRetryable } from "./retry.js";
 export { createSpawnParallel, SpawnParallelError } from "./parallel.js";
+
+export { runCommand } from "./run-command.js";

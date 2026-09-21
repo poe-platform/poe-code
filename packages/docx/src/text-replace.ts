@@ -162,7 +162,7 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
       }
       pieces = [];
     };
-    if (ancestors.some(n => !visible(n.localName) || n.localName === "tr" && n.children.some(p => p.localName === "trPr" && p.children.some(c => !visible(c.localName))))) continue;
+    if (ancestors.some(n => n.namespace === w && (!visible(n.localName) || n.localName === "tr" && n.children.some(p => p.localName === "trPr" && p.children.some(c => !visible(c.localName)))))) continue;
     type TraversalRequest = { current: XmlElement; path: readonly number[]; run: XmlElement | undefined; runOffset: { value: number } };
     const visit = function* (current: XmlElement, path: readonly number[], run?: XmlElement, runOffset = { value: 0 }): Generator<TraversalRequest, void, void> {
       budget.charge("work", targets.length + 1);

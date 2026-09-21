@@ -256,3 +256,5 @@ pub mod run_context_binding;
 pub mod tool_results_binding;
 
 pub mod session_tree_binding;
+
+pub mod transcript_binding;

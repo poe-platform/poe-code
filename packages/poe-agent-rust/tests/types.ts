@@ -139,3 +139,10 @@ import * as referenceTree from "../../poe-agent/dist/runtime/session/session-tre
 const treeA: typeof referenceTree = own;
 const treeB: Pick<typeof own, keyof typeof referenceTree> = referenceTree;
 void [treeA, treeB];
+
+import * as referenceTranscript from "../../poe-agent/dist/runtime/transcript.js";
+const transcriptA: typeof referenceTranscript = own;
+const transcriptB: Pick<typeof own, keyof typeof referenceTranscript> = referenceTranscript;
+const transcriptOptionsA: referenceTranscript.CreateTranscriptWriterOptions = {} as own.CreateTranscriptWriterOptions;
+const transcriptOptionsB: own.CreateTranscriptWriterOptions = {} as referenceTranscript.CreateTranscriptWriterOptions;
+void [transcriptA, transcriptB, transcriptOptionsA, transcriptOptionsB];

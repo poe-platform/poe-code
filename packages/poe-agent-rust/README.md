@@ -82,3 +82,10 @@ selected branch. Rust owns identity lookup, traversal and staged entry-kind
 classification; Node retains serialization and opaque message content. Repeated
 branch IDs reject as cycles, protecting against unbounded traversal. This also
 rejects a changing parent getter that deliberately revisits an ID before ending.
+
+`mapAcpEventToSessionUpdates(event)` builds ACP replay updates in Rust while
+preserving opaque tool payloads. `createTranscriptWriter({ logPath, fs })` appends
+one JSON line per update, creates the directory once and rejects symlink paths.
+Serialization hooks and filesystem failures preserve their original causes; a
+failed append or serialization permits a later write. Closing has no persistent
+file handle to release and permits subsequent writes.

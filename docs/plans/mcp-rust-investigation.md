@@ -4497,3 +4497,40 @@ Atomic import94cfa4578 is pushed. Root35567221359 in progress; current successfu
 publication unverified. Continuous active06:08:38–06:11:35 adds177s, bringing
 conservative actual effort to88,778s (24.66h). Minimum effort fulfilled; full
 rewrite/acceptance incomplete. Continue active work after06:11:35 UTC.
+
+### Poe agent ACP replay and transcripts, 2026-09-21 06:19 UTC
+
+Portable and complete original transcript-file reds precede generic Rust update
+templates and staged event classification. The native mapper retains opaque JS
+argument/result references, repeated type/id/content getters, arbitrary getter
+causes, usage metadata, NaN and positive-zero clamp behavior. Node supplies length
+and subtraction expressions to preserve VM coercion and BigInt failure ordering.
+Own data properties avoid prototype setters. Host JSON serialization preserves
+cycles/custom hooks/causes after path admission; injected filesystem adapters retain
+original mkdir caching, symlink checks, append failures/retry and close semantics.
+Shipped ACP declarations are embedded from the own ACP Rust package’s maintained
+type source, without runtime imports.
+
+Initial build exposed a napi-rs macro lifetime restriction and a mistaken declaration
+source-relative path; both corrected. Original usage/native differential cases then
+reproduced callback receiving one tuple array rather than two arguments. FnArgs
+corrects actual callback argument semantics. Final maintained package checks pass:
+22 Rust cases,35 native groups,138 applicable complete original cases across8 files,
+including all18 transcript cases. Bidirectional own/reference transcript declarations,
+lint/fmt/clippy, maintained uncached113-workspace/28-build/338-edge closure and direct/
+packed16MiB cumulative workers pass. Each worker adds16,384 mapped updates and512
+serialized writes. Audit41 JS/declaration files, one addon, zero runtime groups.
+Endpoint heap~8.9–9.4MB and parent-inclusive RSS establish no peak/leak/memory advantage.
+Warmed five alternating8192 mappings measure TS~0.15–0.73ms, native~13.46–14.62ms;
+small template mapping fails the speed gate. Full agent execution/integration and
+broader acceptance remain incomplete. Evidence out/rust-poe-agent-transcript-*.
+
+Root API0b2a5e7d4 is pushed. Root35567221359 FAILED its build job, release skipped: new
+OAuth grant/resource binding modules refer to crate::registration_binding, which
+does not exist when embedded under client modules in the combined HTTP addon.
+This is an own portability defect, not waived. A focused maintained combined build
+red is running; relative sibling imports are the next atomic fix. Current root
+35567435784 in progress; no successful current publication verified. Continuous
+active06:11:35–06:19:34 adds479s, bringing conservative actual effort to89,257s
+(24.79h). Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue
+active work after06:19:34 UTC.

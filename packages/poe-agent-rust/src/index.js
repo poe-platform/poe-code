@@ -69,3 +69,4 @@ export { default as systemPromptPlugin } from "./plugin-system-prompt.js";
 export { default as environmentPlugin } from "./plugin-environment.js";
 export { loadSystemPrompt, loadSystemPromptSync } from "./system-prompt.js";
 export { default as filesPlugin } from "./plugin-files.js";
+export { openaiChatCompletionsPlugin } from "./plugin-openai-chat-completions.js";

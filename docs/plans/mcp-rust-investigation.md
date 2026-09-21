@@ -4991,3 +4991,45 @@ remains pending; no current publication success verified. Continuous active
 08:14:43–08:20:59 adds376s,bringing conservative effort to95747s (26.60h). Minimum
 fulfilled; provider plugins/agent builder/session/spawn/toolcraft/Python/platform
 and wider performance acceptance remain incomplete. Continue after08:20:59 UTC.
+
+### Poe agent Chat Completions provider, 2026-09-21 08:33 UTC
+
+Additive exported openaiChatCompletionsPlugin preserves original options/header
+merge,base URL/environment precedence,explicit/Poe-env/own-store/SDK-env credential
+resolution,verbatim tool names,images/tool messages/reasoning fields,schema normalization,
+streamed text/tool arguments,exact host JSON.parse error strings,usage/cache counters
+and stops. Rust owns ordered tool identities/index correlation,exact UTF16 argument
+assembly,usage normalization and stop mapping; host retains request objects,signals
+and parse diagnostics. Native input projects used fields instead of enumerating
+metadata; an unused-getter/nonfinite-usage red preceded this repair. Tool state has
+8388608 retained-unit and4096 tool/index bounds. Frames from one network read use one
+native batch call; valid prefixes still deliver before later API/JSON failures.
+Original constructor/auth mocks are AST-rewritten to own transport/store modules,
+with explicit own-import guards; no reference production fallback.
+
+Checks pass49 Rust cases,83 native groups,280 complete applicable original reference
+cases/19 files,bidirectional provider declarations,fmt/clippy,focused ESLint and
+diff checks. Seeded128 end-to-end own/original provider fixtures compare complete
+event lists and application request bodies,including interleaved IDs,invalid args,
+nonstandard finish reasons,reasoning/images/cache counters. Adversarial index/retained
+data bounds pass. Initial own build/test overlap removed tiny-client reference dist
+and caused two native file imports to fail; settled maintained rerun passes fully.
+Uncached maintained closure113 workspaces/36 builds/339 edges passes. Direct/packed
+16MiB old-space workers each complete1024 calls/6144 provider events with external
+imports blocked and no remaining caller abort listeners. Packed audit125 JS/declaration
+files,one addon,zero runtime groups/imports (existing explicit SDK dev adapter exception).
+Evidence out/rust-poe-agent-openai-chat-*,out/rust-poe-agent-chat-*.
+
+Full provider pre-batch CPU47.24–60.13ms TS versus52.97–63.97ms own;mixed/FAIL.
+Settled five alternating warmed512-call/16384-frame batched samples measure TS
+43.70–57.44ms versus own48.44–51.92ms:FAIL. Batch reduces overhead but not enough
+for uniform speed advantage. Transport-only scoped speed PASS remains distinct.
+Finite transport8192-call GC heap6.93→7.30MB,RSS66.6→76.9MB does not establish full
+provider leak freedom/memory superiority. No complete engine/runtime accepted.
+
+Transportd14f07d97 exact remote-main delivery verified; root35577498449 pending
+(build/audit jobs pending). No current successful publication verified. Concurrent
+e296d0d90 adds legacy MCP revisions in originals; validate and port next. Continuous
+active08:20:59–08:33:29 adds750s,bringing conservative effort to96497s (26.80h).
+Minimum fulfilled; remaining Responses/other plugins/builder/session/spawn/toolcraft/
+Python/platform/performance acceptance incomplete. Continue after08:33:29 UTC.

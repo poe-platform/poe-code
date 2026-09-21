@@ -164,9 +164,14 @@ Directory matches are batched into one native call. Traversal detects symlink cy
 patterns exceeding 16,384 units, 64 nesting levels or 10,000 range alternatives reject.
 `grep` requires the `rg` executable or an injected `searchContent` function.
 
-The internal OpenAI-compatible streaming transport uses Node fetch and owned Rust
-SSE framing/retry policy. It supports the Chat Completions and Responses operations
-needed by the pending provider plugins, with cancellation and bounded error bodies.
-It is development work; the provider plugins are not available yet. The official
-SDK is only a development reference. Mocked streaming benchmarks are faster than
-the SDK, but this does not predict end-to-end model latency or memory superiority.
+`openaiChatCompletionsPlugin({ apiKey, baseUrl })` provides streamed text and tool
+calls with verbatim tool names, image messages, reasoning fields and usage counters.
+Credentials resolve from the explicit key, `POE_API_KEY`, the own credential store,
+then `OPENAI_API_KEY`. The default endpoint is `https://api.poe.com/v1`.
+Node fetch and Rust SSE framing/retry policy replace the SDK runtime dependency.
+Rust assembles tools and maps usage/stops in batches per network read; Node preserves
+request objects and exact argument-parse diagnostics. Retained tool state is limited
+to 8,388,608 UTF16 units and 4,096 tool identities/indices; error bodies to 1 MiB.
+The official SDK is only a development reference. The transport alone is faster in
+mocked benchmarks; the full provider currently fails its speed gate. Responses
+transport support is internal; its provider plugin is still pending.

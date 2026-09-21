@@ -130,7 +130,14 @@ export default class OpenAI {
         }
         throw new APIError(response.status, parsed?.error, text, response.headers);
       }
-      return this.#events(response, controller, signal, forward);
+      const projection = { started: false };
+      const stream = this.#events(response, controller, signal, forward, projection);
+      stream.mapFrames = (map) => {
+        if (projection.started) throw new Error("Cannot project a consumed stream");
+        projection.map = map;
+        return stream;
+      };
+      return stream;
     }
   }
   #retryDelay(headers, attempt) {
@@ -152,7 +159,8 @@ export default class OpenAI {
       throw new Error("Invalid provider retry delay");
     return Math.max(0, result);
   }
-  async *#events(response, controller, signal, forward) {
+  async *#events(response, controller, signal, forward, projection) {
+    projection.started = true;
     let reader;
     let complete = false;
     const cancel = () => {
@@ -174,16 +182,25 @@ export default class OpenAI {
           return;
         }
         const frames = parser.push(decoder.decode(chunk.value, { stream: true }));
+        const values = [];
+        let failure;
         for (const frame of frames) {
           if (done) continue;
           if (frame.data.startsWith("[DONE]")) {
             done = true;
             continue;
           }
-          const data = JSON.parse(frame.data);
-          if (data?.error) throw new APIError(undefined, data.error, undefined, response.headers);
-          yield frame.event?.startsWith("thread.") ? { event: frame.event, data } : data;
+          try {
+            const data = JSON.parse(frame.data);
+            if (data?.error) throw new APIError(undefined, data.error, undefined, response.headers);
+            values.push(frame.event?.startsWith("thread.") ? { event: frame.event, data } : data);
+          } catch (error) {
+            failure = error;
+            break;
+          }
         }
+        if (values.length) yield* projection.map ? projection.map(values) : values;
+        if (failure !== undefined) throw failure;
       }
     } finally {
       signal?.removeEventListener("abort", forward);

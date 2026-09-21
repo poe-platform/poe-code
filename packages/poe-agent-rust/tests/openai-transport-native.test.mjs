@@ -25,6 +25,31 @@ const collect = async (stream) => {
   return result;
 };
 
+test("frame projection batches each read and delivers its valid prefix before a stream error", async () => {
+  const client = new OwnOpenAI({
+    apiKey: "test",
+    fetch: async () =>
+      response(
+        'data: {"text":"one"}\n\ndata: {"text":"two"}\n\ndata: {"error":{"message":"failed"}}\n\n'
+      )
+  });
+  const stream = await client.chat.completions.create({ stream: true });
+  const batches = [],
+    events = [];
+  await assert.rejects(
+    (async () => {
+      for await (const event of stream.mapFrames((frames) => {
+        batches.push(frames.length);
+        return frames.map((frame) => frame.text);
+      }))
+        events.push(event);
+    })(),
+    { message: "failed" }
+  );
+  assert.deepEqual(events, ["one", "two"]);
+  assert.deepEqual(batches, [2]);
+});
+
 test("abort cancels a returned stream even before its iterator is started", async () => {
   let canceled = 0;
   const controller = new AbortController(),

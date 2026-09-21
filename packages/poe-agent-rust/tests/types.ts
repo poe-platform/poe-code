@@ -217,3 +217,8 @@ import referenceFilesPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-
 const filesA: typeof referenceFilesPlugin = own.filesPlugin;
 const filesB: typeof own.filesPlugin = referenceFilesPlugin;
 void [filesA, filesB];
+
+import { openaiChatCompletionsPlugin as referenceChatPlugin } from "../../poe-agent/dist/plugins/poe-agent-plugin-openai-chat-completions.js";
+const chatA: typeof referenceChatPlugin = own.openaiChatCompletionsPlugin;
+const chatB: typeof own.openaiChatCompletionsPlugin = referenceChatPlugin;
+void [chatA, chatB];

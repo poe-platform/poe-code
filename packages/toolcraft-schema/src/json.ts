@@ -17,11 +17,20 @@ export function Json(options: Omit<JsonValueSchema, "kind"> = {}): JsonValueSche
   };
 }
 
-export function isJsonValue(value: unknown): boolean {
+export interface JsonValueValidationOptions {
+  readonly maxNodes?: number;
+  readonly maxDepth?: number;
+}
+
+export function isJsonValue(value: unknown, options: JsonValueValidationOptions = {}): boolean {
+  const maxNodes = options.maxNodes ?? 10_000;
+  const maxDepth = options.maxDepth ?? 64;
+  if (!Number.isSafeInteger(maxNodes) || maxNodes < 1) throw new Error("maxNodes must be a positive safe integer");
+  if (!Number.isSafeInteger(maxDepth) || maxDepth < 0 || maxDepth > 256) throw new Error("maxDepth must be an integer between 0 and 256");
   const ancestors = new Set<object>();
   let nodes = 0;
   const visit = (item: unknown, depth: number): boolean => {
-    if (++nodes > 10_000 || depth > 64) return false;
+    if (++nodes > maxNodes || depth > maxDepth) return false;
     if (item === null || typeof item === "string" || typeof item === "boolean") return true;
     if (typeof item === "number") return Number.isFinite(item);
     if (typeof item !== "object" || ancestors.has(item)) return false;
@@ -41,7 +50,7 @@ export function isJsonValue(value: unknown): boolean {
     ancestors.add(item);
     let valid = true;
     if (Array.isArray(item)) {
-      if (item.length > 10_000) valid = false;
+      if (item.length > maxNodes) valid = false;
       else for (let index = 0; index < item.length; index++) {
         const property = Object.getOwnPropertyDescriptor(item, String(index));
         if (property === undefined || !("value" in property) || !visit(property.value, depth + 1)) {

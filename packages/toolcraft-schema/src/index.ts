@@ -644,6 +644,7 @@ export function toJsonSchemaDocument(
 
 export { Json, OneOf, RecordBuilder as Record, Union, isPlainRecord, validate };
 export { isJsonValue } from "./json.js";
+export type { JsonValueValidationOptions } from "./json.js";
 export { cloneDefaultValue } from "./clone-default.js";
 export { unicodeLength } from "./json-schema/utils.js";
 export { compileJsonSchema, formatIssues } from "./json-schema/index.js";

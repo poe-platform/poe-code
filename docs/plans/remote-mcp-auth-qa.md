@@ -709,3 +709,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Require six MCP POSTs/two retired sessions, no token/consent, absence of
     synthetic plaintext in encrypted files, then explicit grant+client reset.
     Inspect summary screenshot and purge only owned synthetic evidence.
+
+65. Supply an invalid out-of-range relative clock whose added lifetime yields
+    a valid Date; also use undefined/null JavaScript host-clock results. Through
+    raw parser/SDK import/management virtual-file import/environment binding,
+    require twenty-one safe failures before discovery/store writes/factories,
+    including supplied authoritative absolute raw expiry. Retain a valid signed
+    Date boundary and delayed original issuedAt without using the invalid clock.
+    Require four metadata GETs/twelve MCP POSTs/four retired sessions, two full
+    schema/guidance/tool calls preserving falsey JSON/exact005930. Reject a real
+    token response's invalid clock before activation, retaining durable pending
+    refresh after its one redemption. Require three total installation/pending
+    writes. Inspect summary screenshot and purge only owned evidence.

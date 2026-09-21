@@ -84,7 +84,10 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
         throw new Error("Imported OAuth refresh token or expiry requires an access token");
       if (issuedAt !== undefined && lifetime === undefined)
         throw new Error("Imported OAuth issuance time requires a relative lifetime");
-      const expiresAt = expiry ?? (lifetime === undefined ? null : (issuedAt ?? (options.oauth?.now ?? Date.now)()) + lifetime * 1000);
+      const anchor = expiry === undefined && lifetime !== undefined ? issuedAt ?? (options.oauth?.now ?? Date.now)() : undefined;
+      if (expiry === undefined && lifetime !== undefined && (typeof anchor !== "number" || !Number.isSafeInteger(anchor) || Math.abs(anchor) > 8_640_000_000_000_000))
+        throw new Error(`Invalid OAuth relative expiry in ${refs.expiresIn?.env ?? refs.expiresAt.env}`);
+      const expiresAt = expiry ?? (lifetime === undefined ? null : anchor! + lifetime * 1000);
       if (expiresAt !== null && (!Number.isSafeInteger(expiresAt) || Math.abs(expiresAt) > 8_640_000_000_000_000))
         throw new Error(`Invalid OAuth relative expiry in ${refs.expiresIn?.env ?? refs.expiresAt.env}`);
       if (accessToken !== undefined && (clientId === undefined || clientId.trim() === ""))

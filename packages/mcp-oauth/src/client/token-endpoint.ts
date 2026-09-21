@@ -180,7 +180,10 @@ async function requestTokens(input: {
       throw new Error("OAuth token response has invalid expires_in");
     }
 
-    expiresAt = input.now() + expiresIn * 1000;
+    const issuedAt = input.now();
+    if (!Number.isSafeInteger(issuedAt) || Math.abs(issuedAt) > MAX_JS_DATE_MS)
+      throw new Error("OAuth token response has invalid expires_in");
+    expiresAt = issuedAt + expiresIn * 1000;
     if (
       !Number.isSafeInteger(expiresAt) ||
       expiresAt > MAX_JS_DATE_MS ||

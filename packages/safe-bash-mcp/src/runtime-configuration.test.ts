@@ -314,3 +314,18 @@ it.each(["bearer", "header"])("captures later %s environment values before the i
   expect(new Headers(bound[1].headers).get(mode === "bearer" ? "Authorization" : "X-Key"))
     .toBe(`${mode === "bearer" ? "Bearer " : ""}original-second-credential`);
 });
+
+
+it("rejects a relative import's out-of-range clock anchor before invoking host store factories", () => {
+  const sessionStore = vi.fn(() => memoryStore()), now = vi.fn(() => -8_640_000_000_060_000);
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "private-access",
+    MCP_CATALOG_EXPIRES_IN: "60" }, oauth: { now, sessionStore } })).toThrow("Invalid OAuth relative expiry");
+  expect(now).toHaveBeenCalledOnce(); expect(sessionStore).not.toHaveBeenCalled();
+});
+
+it.each([undefined, null])("rejects a nonnumeric relative-import clock before host stores: %s", timestamp => {
+  const sessionStore = vi.fn(() => memoryStore());
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "private-access",
+    MCP_CATALOG_EXPIRES_IN: "1" }, oauth: { now: () => timestamp as unknown as number, sessionStore } })).toThrow("Invalid OAuth relative expiry");
+  expect(sessionStore).not.toHaveBeenCalled();
+});

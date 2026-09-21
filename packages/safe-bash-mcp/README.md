@@ -310,6 +310,9 @@ binding. For a delayed import, supply its original epoch millisecond `issuedAt`
 or real absolute expiry; absolute expiry takes precedence. Without issuance
 time, a relative lifetime means remaining lifetime at binding. Init emits empty
 `EXPIRES_IN` and `ISSUED_AT` entries; older configs without them remain valid.
+Relative-lifetime host clocks must return valid integer epoch milliseconds
+within the JavaScript Date range; binding rejects invalid anchors before store
+factories run, even when adding the lifetime would produce a valid expiry.
 Persisted rotated or cleared grants take precedence over imported environment
 tokens. A fresh import avoids discovery; an expired or explicitly rejected grant
 binds validated discovery before refreshing with its original client.

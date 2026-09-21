@@ -34,7 +34,9 @@ export function parseOAuthTokenGrant(value: unknown, options: OAuthTokenGrantImp
   // value is selected. Reload uses only the resulting normalized timestamp.
   const absoluteSeconds = typeof seconds === "number" ? seconds * 1000 : undefined;
   if (absoluteSeconds !== undefined && !validTimestamp(absoluteSeconds)) throw invalid();
-  const relative = typeof lifetime === "number" ? (options.issuedAt ?? (options.now ?? Date.now)()) + lifetime * 1000 : undefined;
+  const anchor = typeof lifetime === "number" ? options.issuedAt ?? (options.now ?? Date.now)() : undefined;
+  if (typeof lifetime === "number" && !validTimestamp(anchor)) throw invalid();
+  const relative = typeof lifetime === "number" ? (anchor as number) + lifetime * 1000 : undefined;
   if (relative !== undefined && !validTimestamp(relative)) throw invalid();
   const expiresAt = options.expiresAt ?? (typeof milliseconds === "number" ? milliseconds : undefined) ?? absoluteSeconds ?? relative ?? null;
   let scope: string | undefined;

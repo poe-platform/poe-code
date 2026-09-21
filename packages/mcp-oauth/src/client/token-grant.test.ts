@@ -55,3 +55,19 @@ it("captures timing options before its host clock can replace the validated abso
   expect(parseOAuthTokenGrant({ access_token: "private-access", token_type: "Bearer", expires_in: 60 }, options))
     .toEqual({ accessToken: "private-access", tokenType: "Bearer", expiresAt: 61_000 });
 });
+
+
+it.each([undefined, 0])("rejects an out-of-range issuance clock even when its lifetime produces a valid date: absolute=%s", expiresAt => {
+  expect(() => parseOAuthTokenGrant({ ...raw, expires_in: 1 }, { expiresAt, now: () => -8_640_000_000_001_000 }))
+    .toThrow(new Error("Invalid OAuth token grant"));
+});
+
+it("retains the valid negative Date boundary as an issuance clock", () => {
+  expect(parseOAuthTokenGrant({ ...raw, expires_in: 1 }, { now: () => -8_640_000_000_000_000 }).expiresAt)
+    .toBe(-8_639_999_999_999_000);
+});
+
+it.each([undefined, null])("rejects a host clock's nonnumeric relative anchor: %s", timestamp => {
+  expect(() => parseOAuthTokenGrant({ ...raw, expires_in: 1 }, { now: () => timestamp as unknown as number }))
+    .toThrow(new Error("Invalid OAuth token grant"));
+});

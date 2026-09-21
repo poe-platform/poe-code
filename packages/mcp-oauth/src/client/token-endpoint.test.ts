@@ -210,3 +210,12 @@ it.each([{}, { error: "" }, { error: "  " }, { error_description: "private-marke
   expect(error.message).toContain("HTTP 403");
   expect(error.message).not.toContain("private-marker");
 });
+
+
+it.each(["authorization_code", "refresh_token"])("rejects an invalid clock anchor before accepting a %s response lifetime", async mode => {
+  const common = { tokenEndpoint: "https://auth.example/token", clientId: "client", resource: "https://resource.example/mcp",
+    now: () => -8_640_000_000_001_000, fetch: async () => jsonResponse({ access_token: "private-access", token_type: "Bearer", expires_in: 1 }) };
+  const run = mode === "refresh_token" ? refreshAccessToken({ ...common, refreshToken: "private-refresh" })
+    : exchangeAuthorizationCode({ ...common, code: "code", codeVerifier: "verifier", redirectUri: "http://127.0.0.1/callback" });
+  await expect(run).rejects.toThrow(new Error("OAuth token response has invalid expires_in"));
+});

@@ -196,6 +196,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "@poe-code/agent-spawn-rust#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

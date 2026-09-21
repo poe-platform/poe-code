@@ -311,3 +311,56 @@ pub fn provider_normalize_imported_tokens(text: Utf16String, now: f64) -> Result
         .map_err(napi::Error::from_reason)?;
     Ok(NativeJson(result.unwrap_or(Value::Null)))
 }
+
+#[napi]
+pub fn provider_token_method(text: Utf16String) -> Result<NativeJson> {
+    let input = parse(&text)?;
+    Ok(result(
+        mcp_oauth_rust::token_auth::normalize(input.get("method"))
+            .map(|method| {
+                method.map_or(Value::Null, |method| {
+                    Value::String(method.label().encode_utf16().collect())
+                })
+            })
+            .map_err(str::to_owned),
+    ))
+}
+#[napi]
+pub fn provider_registration_method(text: Utf16String) -> Result<NativeJson> {
+    let input = parse(&text)?;
+    Ok(result(
+        mcp_oauth_rust::token_auth::choose_registration_method(
+            input.get("metadata").unwrap_or(&Value::Null),
+            input.get("method"),
+        )
+        .map(|method| Value::String(method.label().encode_utf16().collect()))
+        .map_err(str::to_owned),
+    ))
+}
+#[napi]
+pub fn provider_assert_token_method(text: Utf16String) -> Result<NativeJson> {
+    let input = parse(&text)?;
+    Ok(result(
+        mcp_oauth_rust::token_auth::assert_supported(
+            input.get("client").unwrap_or(&Value::Null),
+            input.get("metadata").unwrap_or(&Value::Null),
+        )
+        .map(|()| Value::Null)
+        .map_err(str::to_owned),
+    ))
+}
+#[napi]
+pub fn provider_assert_session_method(text: Utf16String) -> Result<NativeJson> {
+    let input = parse(&text)?;
+    Ok(result(
+        mcp_oauth_rust::token_auth::normalize(input.get("method"))
+            .and_then(|method| {
+                mcp_oauth_rust::token_auth::assert_session_method(
+                    input.get("client").unwrap_or(&Value::Null),
+                    method,
+                )
+            })
+            .map(|()| Value::Null)
+            .map_err(str::to_owned),
+    ))
+}

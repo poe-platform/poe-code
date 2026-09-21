@@ -4092,3 +4092,33 @@ including all11 token-auth-provider cases, but full OAuth acceptance remains ope
 Continuous active05:15:58–05:22:35 adds397s, bringing conservative effort to85,838s
 (23.84h). Minimum24h remains unfulfilled by562s. Full rewrite remains incomplete;
 active work continues after05:22:35 UTC.
+
+### OAuth provider token authentication, 2026-09-21 05:24 UTC
+
+Portable and original SDK reds precede Rust authentication method admission,
+bounded discovery method lists, registration selection and cached method-profile
+checks. Dynamic registration prefers none/basic/post in that order; explicit
+methods reject when unadvertised. Confidential methods require a secret. Host
+provider propagates methods through code exchange/refresh, including fresh DCR
+methods, and treats full imported registrations as configured static ownership.
+Public-client methods never send an available secret. Options reject unsupported
+methods at creation. Authentication checks precede pending refresh persistence
+and interactive token exchange. Existing registration metadata and own extension
+ownership are retained.
+
+All45 Rust cases and77 native groups pass. Entire token-auth-provider11-case and
+registration-metadata19-case reference files pass (30/30); declarations compile.
+Focused maintained build/lint/fmt/clippy/formatting and direct/packed artifact checks
+pass. Full maintained unit route remains failing:339/367 original cases pass,
+28 fail across5 files. Required residuals cover scope, secret expiry/registration
+issuer trust, obsolete redirect replacement, resource identity and explicit
+OAuth interaction. No full provider acceptance is claimed. Direct/packed16MiB
+workers each add12,288 authentication policies to prior workloads, with zero
+runtime dependency groups and one addon. Endpoint memory is workload evidence,
+not isolated leak/peak/advantage proof. Evidence out/rust-oauth-provider-auth-*.
+
+Agent result41ec2ca65 is pushed and verified within concurrent original main work.
+Root35564374719 remains pending; current root publication is unverified. Continuous
+active05:22:35–05:23:55 adds80s, bringing conservative effort to85,918s (23.87h).
+Minimum24h remains unfulfilled by482s; full rewrite remains open. Active work
+continues after05:23:55 UTC.

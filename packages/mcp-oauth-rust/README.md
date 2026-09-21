@@ -114,3 +114,9 @@ broader performance validation remain separate work.
 `readBoundedResponseText` enforces declared and actual byte limits, decodes strict
 UTF-8 incrementally and releases reader locks/tracking entries on completion,
 failure or abort. Length admission uses the allocation-free Rust core.
+
+The default provider retains configured/imported token authentication methods
+through code exchange and refresh. Discovery method lists are bounded and checked
+before credentials are sent. Dynamic registration prefers public authentication,
+then Basic, then POST when supported; explicit selections must be advertised.
+Cached grants with a different explicitly selected method are rejected.

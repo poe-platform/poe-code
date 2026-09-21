@@ -83,3 +83,74 @@ pub fn plan(
         authorization,
     })
 }
+
+impl Method {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Post => "client_secret_post",
+            Self::Basic => "client_secret_basic",
+        }
+    }
+}
+fn supported(metadata: &Value) -> Result<Option<&[Value]>, &'static str> {
+    match metadata.get("token_endpoint_auth_methods_supported") {
+        None => Ok(None),
+        Some(Value::Array(values))
+            if values.len() <= 128
+                && values.iter().all(|value| matches!(value, Value::String(_))) =>
+        {
+            Ok(Some(values))
+        }
+        _ => Err("Invalid OAuth token endpoint authentication metadata"),
+    }
+}
+fn advertised(values: &[Value], method: Method) -> bool {
+    values.iter().any(|value| matches!(value,Value::String(value) if value.iter().copied().eq(method.label().encode_utf16())))
+}
+pub fn choose_registration_method(
+    metadata: &Value,
+    requested: Option<&Value>,
+) -> Result<Method, &'static str> {
+    let requested = normalize(requested)?;
+    let supported = supported(metadata)?;
+    let method=requested.or_else(|| match supported {
+        None => Some(Method::None),
+        Some(values) => [Method::None,Method::Basic,Method::Post].into_iter().find(|method|advertised(values,*method)),
+    }).ok_or("Authorization server does not support the requested OAuth token endpoint authentication")?;
+    if supported.is_some_and(|values| !advertised(values, method)) {
+        return Err(
+            "Authorization server does not support the requested OAuth token endpoint authentication",
+        );
+    }
+    Ok(method)
+}
+fn client_method(client: &Value) -> Result<Method, &'static str> {
+    Ok(normalize(client.get("tokenEndpointAuthMethod"))?.unwrap_or(
+        if matches!(client.get("clientSecret"), Some(Value::String(_))) {
+            Method::Post
+        } else {
+            Method::None
+        },
+    ))
+}
+pub fn assert_supported(client: &Value, metadata: &Value) -> Result<(), &'static str> {
+    let method = client_method(client)?;
+    if method != Method::None && !matches!(client.get("clientSecret"), Some(Value::String(_))) {
+        return Err("OAuth token endpoint authentication requires a client secret");
+    }
+    if supported(metadata)?.is_some_and(|values| !advertised(values, method)) {
+        return Err(
+            "Authorization server does not support the requested OAuth token endpoint authentication",
+        );
+    }
+    Ok(())
+}
+pub fn assert_session_method(client: &Value, expected: Option<Method>) -> Result<(), &'static str> {
+    if expected.is_some_and(|expected| client_method(client).ok() != Some(expected)) {
+        return Err(
+            "Stored session does not match the requested OAuth token endpoint authentication; select separate persistence or reset it",
+        );
+    }
+    Ok(())
+}

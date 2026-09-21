@@ -8,7 +8,11 @@ import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
-import { createAuthStoreSessionStore, createAuthStoreClientStore, assertPersistenceNamespace } from "./session-store.js";
+import {
+  createAuthStoreSessionStore,
+  createAuthStoreClientStore,
+  assertPersistenceNamespace
+} from "./session-store.js";
 import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 import { fetchMcpResponse } from "./http.js";
@@ -26,7 +30,8 @@ const METADATA = [
   "token_endpoint",
   "registration_endpoint",
   "authorization_response_iss_parameter_supported",
-  "code_challenge_methods_supported"
+  "code_challenge_methods_supported",
+  "token_endpoint_auth_methods_supported"
 ];
 function scalar(value) {
   if (
@@ -49,7 +54,11 @@ function project(record, keys) {
   const result = {};
   for (const key of keys) {
     const value = ownEntry(record, key);
-    if (key === "code_challenge_methods_supported" && Array.isArray(value))
+    if (
+      (key === "code_challenge_methods_supported" ||
+        key === "token_endpoint_auth_methods_supported") &&
+      Array.isArray(value)
+    )
       result[key] = value.map(scalar);
     else result[key] = scalar(value);
   }
@@ -121,35 +130,74 @@ export function createDefaultOAuthClientProvider(options) {
   assertPersistenceNamespace(options.persistenceNamespace);
   loopbackTarget(options.browser);
   const requestedScope = normalizeOAuthScope(options.client.metadata?.scope);
-  const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
+  const requestedTokenMethod =
+    unwrap(
+      native.providerTokenMethod(
+        JSON.stringify({ method: scalar(options.client.tokenEndpointAuthMethod) })
+      )
+    ) ?? undefined;
+  const sessionStore =
+    options.sessionStore ??
+    createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
   const clientStore =
-    options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
+    options.authStore === undefined
+      ? null
+      : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
   const now = options.now ?? Date.now;
-  const registration = options.client.registration === undefined ? undefined : parseOAuthClientRegistration(options.client.registration);
-  const optionalString = (value) => typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
+  const registration =
+    options.client.registration === undefined
+      ? undefined
+      : parseOAuthClientRegistration(options.client.registration);
+  const optionalString = (value) =>
+    typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
   const configuredClient = normalizeStoredOAuthClient({
     clientId: optionalString(options.client.clientId) ?? registration?.client_id.trim(),
-    clientSecret: optionalString(options.client.clientSecret) ?? optionalString(registration?.client_secret),
+    clientSecret:
+      optionalString(options.client.clientSecret) ?? optionalString(registration?.client_secret),
     registration,
     tokenEndpointAuthMethod: options.client.tokenEndpointAuthMethod
   });
+  const configuredTokenMethod = requestedTokenMethod ?? configuredClient?.tokenEndpointAuthMethod;
   let initialGrant;
   if (options.initialGrant !== undefined) {
     let url;
-    try { url = new URL(options.initialGrant.resource); }
-    catch { throw new Error("OAuth initial grant resource must be an absolute HTTP URL"); }
-    if ((url.protocol !== "http:" && url.protocol !== "https:") || url.username || url.password || url.hash)
-      throw new Error("OAuth initial grant resource must be an HTTP URL without credentials or fragments");
+    try {
+      url = new URL(options.initialGrant.resource);
+    } catch {
+      throw new Error("OAuth initial grant resource must be an absolute HTTP URL");
+    }
+    if (
+      (url.protocol !== "http:" && url.protocol !== "https:") ||
+      url.username ||
+      url.password ||
+      url.hash
+    )
+      throw new Error(
+        "OAuth initial grant resource must be an HTTP URL without credentials or fragments"
+      );
     let tokens;
-    try { tokens = native.providerNormalizeImportedTokens(JSON.stringify(project(options.initialGrant.tokens, [...TOKENS, "expiresIn", "issuedAt"])), Number(now())); }
-    catch { throw new Error("OAuth initial grant has invalid tokens or expiry"); }
+    try {
+      tokens = native.providerNormalizeImportedTokens(
+        JSON.stringify(project(options.initialGrant.tokens, [...TOKENS, "expiresIn", "issuedAt"])),
+        Number(now())
+      );
+    } catch {
+      throw new Error("OAuth initial grant has invalid tokens or expiry");
+    }
     if (tokens === null || configuredClient === null)
       throw new Error("OAuth initial grant requires valid tokens and the original client ID");
     if (requestedScope !== undefined && tokens.scope !== requestedScope)
       throw new Error("OAuth initial grant does not match the requested OAuth scope");
-    try { new Headers({ Authorization: `Bearer ${tokens.accessToken}` }); }
-    catch { throw new Error("OAuth initial grant access token is not a valid HTTP header value"); }
-    initialGrant = { resource: canonicalizeResourceIndicator(url), tokens, client: configuredClient };
+    try {
+      new Headers({ Authorization: `Bearer ${tokens.accessToken}` });
+    } catch {
+      throw new Error("OAuth initial grant access token is not a valid HTTP header value");
+    }
+    initialGrant = {
+      resource: canonicalizeResourceIndicator(url),
+      tokens,
+      client: configuredClient
+    };
   }
   let initialGrantConsumed = false;
   const registeredClients = new native.NativeProviderClientCache();
@@ -255,7 +303,14 @@ export function createDefaultOAuthClientProvider(options) {
         let session = await loadSession(resource);
         if (session !== null && initialGrant?.resource === resource) initialGrantConsumed = true;
         const input = {
-          configured: { ...clientOptions(options.client), ...configuredClient, mode: initialGrant === undefined ? options.client.mode : "static" },
+          configured: {
+            ...clientOptions(options.client),
+            ...configuredClient,
+            mode:
+              initialGrant === undefined && configuredClient?.registration === undefined
+                ? options.client.mode
+                : "static"
+          },
           session:
             session === null
               ? null
@@ -286,11 +341,18 @@ export function createDefaultOAuthClientProvider(options) {
           await sessionStore.clear(resource);
           session = null;
         }
-        if (session === null && discovery !== undefined && !initialGrantConsumed && initialGrant?.resource === resource) {
+        if (
+          session === null &&
+          discovery !== undefined &&
+          !initialGrantConsumed &&
+          initialGrant?.resource === resource
+        ) {
           endpoints(discovery.authorizationServerMetadata);
           session = {
-            resource, authorizationServer: discovery.authorizationServer,
-            client: initialGrant.client, tokens: initialGrant.tokens,
+            resource,
+            authorizationServer: discovery.authorizationServer,
+            client: initialGrant.client,
+            tokens: initialGrant.tokens,
             ...(requestedScope === undefined ? {} : { requestedScope }),
             discovery: {
               resourceMetadataUrl: discovery.resourceMetadataUrl,
@@ -310,6 +372,15 @@ export function createDefaultOAuthClientProvider(options) {
         )
           force = false;
         const resolved = discoveryFor(discovery, session);
+        if (
+          session !== null &&
+          (session.tokens !== undefined || session.refreshState === "pending")
+        )
+          unwrap(
+            native.providerAssertSessionMethod(
+              JSON.stringify({ client: session.client, method: configuredTokenMethod })
+            )
+          );
         if (session?.refreshState === "pending") {
           if (!interactive || options.allowInteractive === false || resolved === undefined)
             throw new Error(
@@ -355,6 +426,14 @@ export function createDefaultOAuthClientProvider(options) {
   }
   async function refreshSession(resource, session, discovery, fetch, signal) {
     const urls = endpoints(discovery.authorizationServerMetadata);
+    unwrap(
+      native.providerAssertTokenMethod(
+        JSON.stringify({
+          client: session.client,
+          metadata: project(discovery.authorizationServerMetadata, METADATA)
+        })
+      )
+    );
     if (refreshing.has(resource)) return refreshing.get(resource);
     const promise = (async () => {
       const retries = new native.NativeOAuthRetryState();
@@ -367,6 +446,7 @@ export function createDefaultOAuthClientProvider(options) {
               tokenEndpoint: urls.token,
               clientId: session.client.clientId,
               clientSecret: session.client.clientSecret,
+              tokenEndpointAuthMethod: session.client.tokenEndpointAuthMethod,
               refreshToken: session.tokens.refreshToken,
               resource,
               fetch,
@@ -425,7 +505,11 @@ export function createDefaultOAuthClientProvider(options) {
     const metadata = discovery.authorizationServerMetadata;
     const registration = ownEntry(metadata, "registration_endpoint");
     const hasRegistration = typeof registration === "string";
-    const configured = clientOptions(options.client);
+    const configured = {
+      ...clientOptions(options.client),
+      ...configuredClient,
+      mode: configuredClient?.registration === undefined ? options.client.mode : "static"
+    };
     const initial = unwrap(
       native.providerInitialClient(JSON.stringify(configured), hasRegistration)
     );
@@ -452,6 +536,12 @@ export function createDefaultOAuthClientProvider(options) {
       JSON.stringify(clientMetadata(options.client)),
       redirect
     );
+    const registrationMethod = unwrap(
+      native.providerRegistrationMethod(
+        JSON.stringify({ metadata: project(metadata, METADATA), method: requestedTokenMethod })
+      )
+    );
+    body.token_endpoint_auth_method = registrationMethod;
     const deadline = AbortSignal.timeout(30_000);
     const signal =
       parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
@@ -464,6 +554,17 @@ export function createDefaultOAuthClientProvider(options) {
     const payload = await readOAuthJsonObjectResponse(response, signal);
     const registrationValue = parseOAuthClientRegistration(payload);
     const normalized = unwrap(native.providerRegisteredClient(JSON.stringify(registrationValue)));
+    const responseMethod =
+      unwrap(
+        native.providerTokenMethod(
+          JSON.stringify({ method: registrationValue.token_endpoint_auth_method })
+        )
+      ) ??
+      requestedTokenMethod ??
+      (ownEntry(metadata, "token_endpoint_auth_methods_supported") === undefined
+        ? undefined
+        : registrationMethod);
+    if (responseMethod !== undefined) normalized.tokenEndpointAuthMethod = responseMethod;
     if (!registrationMatchesRedirect(normalized, redirect, true))
       throw new Error("OAuth client registration does not match the requested redirect URI");
     const client = { ...normalized, requestedRedirectUri: redirect };
@@ -489,6 +590,14 @@ export function createDefaultOAuthClientProvider(options) {
         let client = null;
         try {
           client = await resolveClient(current, discovery, loopback.redirectUri, fetch, signal);
+          unwrap(
+            native.providerAssertTokenMethod(
+              JSON.stringify({
+                client: client.client,
+                metadata: project(discovery.authorizationServerMetadata, METADATA)
+              })
+            )
+          );
           const pending = {
             resource,
             authorizationServer: discovery.authorizationServer,
@@ -523,6 +632,7 @@ export function createDefaultOAuthClientProvider(options) {
             tokenEndpoint: urls.token,
             clientId: client.client.clientId,
             clientSecret: client.client.clientSecret,
+            tokenEndpointAuthMethod: client.client.tokenEndpointAuthMethod,
             code,
             codeVerifier: verifier,
             redirectUri: loopback.redirectUri,
@@ -569,7 +679,12 @@ export function createDefaultOAuthClientProvider(options) {
       validateUrl(input.requestUrl, "Protected resource request URL");
       const url = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensure(url, undefined, input.fetch, false, false, input.signal);
-      if (session === null && !initialGrantConsumed && initialGrant?.resource === url && !expired(initialGrant.tokens)) {
+      if (
+        session === null &&
+        !initialGrantConsumed &&
+        initialGrant?.resource === url &&
+        !expired(initialGrant.tokens)
+      ) {
         input.headers.set("Authorization", `Bearer ${initialGrant.tokens.accessToken}`);
         return { ...initialGrant.tokens };
       }
@@ -585,7 +700,11 @@ export function createDefaultOAuthClientProvider(options) {
           resource = canonicalizeResourceIndicator(input.discovery.resource);
         unwrap(native.providerRequestMatches(url, resource));
         const cached = await loadSession(resource);
-        const currentTokens = cached?.tokens ?? (!initialGrantConsumed && initialGrant?.resource === resource ? initialGrant.tokens : undefined);
+        const currentTokens =
+          cached?.tokens ??
+          (!initialGrantConsumed && initialGrant?.resource === resource
+            ? initialGrant.tokens
+            : undefined);
         let rejectedCurrent = currentTokens !== undefined;
         let presented = input.presentedTokens;
         if (presented !== undefined) {

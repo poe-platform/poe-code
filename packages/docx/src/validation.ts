@@ -220,7 +220,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       issue(node, "latent-name", "A latent style exception requires its native name attribute.");
     if (!Object.hasOwn(definitionNames, name)) continue;
     const raw = attr(node, definitionNames[name]!);
-    const id = name === "style" ? raw : integer(raw, name === "footnote" || name === "endnote" ? -1 : 0, name === "num" || name === "abstractNum" ? Number.MAX_SAFE_INTEGER : 2147483647);
+    const id = name === "style" ? raw : integer(raw, name === "footnote" || name === "endnote" ? -1 : 0, name === "comment" ? 2147483647 : Number.MAX_SAFE_INTEGER);
     const key = `${node.part}:${name}`;
     const entries = definitions.get(key) ?? new Map<string, Node>();
     if (name === "style") {
@@ -397,10 +397,10 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     if (name === "abstractNumId" && !lookup("abstractNum", integer(attr(node, "val"), 0, Number.MAX_SAFE_INTEGER), node.part)) issue(node, "numbering-reference", "Abstract numbering reference has no definition.");
     if (["footnoteReference", "endnoteReference", "commentReference", "commentRangeStart", "commentRangeEnd"].includes(name)) {
       const type = name.startsWith("footnote") ? "footnote" : name.startsWith("endnote") ? "endnote" : "comment";
-      if (!lookup(type, integer(attr(node, "id")))) issue(node, type === "comment" ? "comment-reference" : "note-reference", "Annotation reference has no definition.");
+      if (!lookup(type, integer(attr(node, "id"), 0, type === "comment" ? 2147483647 : Number.MAX_SAFE_INTEGER))) issue(node, type === "comment" ? "comment-reference" : "note-reference", "Annotation reference has no definition.");
     }
     if (name === "bookmarkStart" || name === "bookmarkEnd") {
-      const id = integer(attr(node, "id"));
+      const id = integer(attr(node, "id"), 0, Number.MAX_SAFE_INTEGER);
       const key = node.story + ":" + id;
       if (name === "bookmarkStart") {
         if (!claim(node.story + ":bookmark", id) || !claim("bookmark-name", attr(node, "name"))) issue(node, "bookmark-range", "Invalid or duplicate bookmark start.");

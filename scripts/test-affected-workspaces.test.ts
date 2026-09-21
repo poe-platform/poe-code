@@ -53,6 +53,12 @@ describe("change-based unit scope", () => {
     for (const files of [[], ["docs/plans/test-performance.md"], ["README.md"]]) expect(selected(files)).toEqual([]);
   });
 
+  it("retains the full plan for test inputs and executable files under docs", () => {
+    for (const filename of ["docs/plans/qualify-realms-and-recovery/legacy-v8.json", "docs/fixtures/input.docx", "docs/audit/check.mjs"]) {
+      expect(selected([filename]), filename).toEqual(["root", "virtual-bash", "consumer", "docx", "safe-js"]);
+    }
+  });
+
   it("unions changes and admits new package tasks from current manifests", () => {
     const fixtureOptions = fixture();
     fixtureOptions.fileSystem.mkdirSync("/repo/packages/new", { recursive: true });

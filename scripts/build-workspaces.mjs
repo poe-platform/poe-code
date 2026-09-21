@@ -270,7 +270,11 @@ export function affectedUnitWorkspaces(plan, changedFiles) {
   for (const filename of changedFiles) {
     assert.ok(typeof filename === "string" && filename && !filename.startsWith("/") && !filename.includes("\0")
       && !filename.includes("\\") && !filename.split("/").some(part => part === ".." || part === "." || !part), "Invalid repository-relative changed path");
-    if (filename.startsWith("docs/") || filename === "README.md") continue;
+    if (filename.startsWith("docs/")) {
+      if (filename.endsWith(".md")) continue;
+      return undefined;
+    }
+    if (filename === "README.md") continue;
     if (filename.startsWith("packages/")) {
       const workspace = plan.workspaces.find(candidate => filename === candidate.path + "/package.json" || filename.startsWith(candidate.path + "/"));
       if (!workspace) return undefined;

@@ -329,3 +329,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     require no tools/list or tools/call. Await actual page-body delivery before
     inspecting the safe summary screenshot; record results and purge only
     owned synthetic evidence.
+
+31. Create a native provider with an imported relative grant whose own lifetime
+    field is nonenumerable. Let its clock mutate caller access/refresh/scope
+    values while anchoring expiry. Require original values, exact61000ms expiry
+    and original Authorization through actual HTTP schema discovery. Separately
+    parse a raw grant with a clock that replaces validated expiry options with
+    Infinity. Require the original finite expiry, successful HTTP authorization
+    using the parsed result and rejection when a new parse explicitly receives
+    those now-invalid options. Creating a new provider may capture the caller's
+    newly selected token values. Require two listings/two distinct retired
+    sessions, no tool/consent/token traffic, inspect safe summary output and purge
+    owned synthetic evidence. Preserve existing own timing-field reads; do not
+    infer that nonenumerable access credentials were previously accepted.

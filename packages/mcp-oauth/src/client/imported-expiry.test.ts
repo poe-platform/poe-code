@@ -45,3 +45,24 @@ it.each([
 ])("rejects unsafe relative import expiry before provider creation: %#", invalid => {
   expect(() => fixture({ expiresAt: null, ...invalid })).toThrow("initial grant");
 });
+
+it("captures imported token values before its host clock anchors the lifetime", async () => {
+  const tokens = { accessToken: "original-access", refreshToken: "original-refresh", tokenType: "Bearer" as const, scope: "read", expiresIn: 60 };
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "original" }, browser: {},
+    initialGrant: { resource, tokens }, now: () => { tokens.accessToken = "replacement-access"; tokens.refreshToken = "replacement-refresh"; tokens.scope = "write"; return 1000; },
+    sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } });
+  const headers = new Headers();
+  const grant = await provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch: vi.fn(async () => { throw new Error("unexpected network"); }) });
+  expect(grant).toEqual({ accessToken: "original-access", refreshToken: "original-refresh", tokenType: "Bearer", scope: "read", expiresAt: 61_000 });
+  expect(headers.get("Authorization")).toBe("Bearer original-access");
+});
+
+it("preserves accepted own nonenumerable timing fields while capturing a relative import", async () => {
+  const tokens = { accessToken: "private-access", tokenType: "Bearer" as const, expiresIn: 60 };
+  Object.defineProperty(tokens, "expiresIn", { enumerable: false });
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "original" }, browser: {}, now: () => 1000,
+    initialGrant: { resource, tokens }, sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } });
+  const headers = new Headers();
+  expect(await provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch: vi.fn() })).toMatchObject({ accessToken: "private-access", expiresAt: 61_000 });
+  expect(headers.get("Authorization")).toBe("Bearer private-access");
+});

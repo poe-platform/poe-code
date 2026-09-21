@@ -157,9 +157,13 @@ used only for its resource.
 Discovery binds an expired or explicitly rejected grant before silent refresh,
 using the original configured client. Persisted sessions take precedence,
 including sessions whose tokens have been cleared; an import cannot revive them.
-Input tokens are copied and invalid expiry values fail before authorization.
+Input tokens are copied before any host clock anchors a relative lifetime;
+clock mutation cannot replace the selected access/refresh/scope values. Invalid
+expiry values fail before authorization.
 For a raw OAuth response, `parseOAuthTokenGrant(response, { issuedAt, expiresAt })`
-returns normalized `StoredOAuthTokens`. It accepts `access_token`, `refresh_token`,
+returns normalized `StoredOAuthTokens`. Timing options are captured before the
+host clock runs, so it cannot bypass their earlier validation. The parser accepts
+`access_token`, `refresh_token`,
 `token_type`, `scope`, `expires_in` (seconds), `expires_at` (epoch seconds), and
 `expiresAt` (epoch milliseconds). Numeric absolute expiry wins over relative
 lifetime; the options timestamp wins over response timestamps. The optional

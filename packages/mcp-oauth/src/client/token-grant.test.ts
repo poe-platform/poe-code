@@ -49,3 +49,9 @@ it("permits explicit unlimited expiry while validating supplied relative data", 
   expect(parseOAuthTokenGrant({ ...raw, expires_in: 0 }, { now: () => 10_000 })).toMatchObject({ expiresAt: 10_000 });
   expect(() => parseOAuthTokenGrant({ ...raw, expires_in: -1 }, { expiresAt: 0 })).toThrow("Invalid OAuth token grant");
 });
+
+it("captures timing options before its host clock can replace the validated absolute expiry", () => {
+  const options = { expiresAt: undefined as number | undefined, now: () => { options.expiresAt = Infinity; return 1000; } };
+  expect(parseOAuthTokenGrant({ access_token: "private-access", token_type: "Bearer", expires_in: 60 }, options))
+    .toEqual({ accessToken: "private-access", tokenType: "Bearer", expiresAt: 61_000 });
+});

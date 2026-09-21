@@ -323,8 +323,8 @@ test("build directory index is never shared across invocations", async () => {
   noHeldReads(owned);
 });
 
-for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(
-  `build directory index invalidates changed ${field} before using cached names`, async () => {
+for (const oversized of [false, true]) for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(
+  `build directory ${oversized ? "partial" : "full"} index invalidates changed ${field} before using cached names`, async () => {
     const owned = fixture();
     const before = owned.memory.lstatSync("/owned");
     const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
@@ -339,7 +339,8 @@ for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"
     };
     owned.fileSystem.readdirSync = (path, ...args) => {
       const names = listing(path, ...args);
-      return path === "/owned" && changed ? [...names, "PACKAGE"] : names;
+      if (path !== "/owned") return names;
+      return [...names, ...(oversized ? Array.from({ length: 32769 }, (_, index) => "neighbor-" + index) : []), ...(changed ? ["PACKAGE"] : [])];
     };
     afterInputRead(owned, root + "/integration-boundaries.json", () => { changed = true; });
     await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
@@ -748,6 +749,18 @@ for (const defect of ["alias", "spelling", "incomplete"]) test(`oversized direct
     await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
     assert.deepEqual(owned.reads, []);
   }
+  noHeldReads(owned);
+});
+
+for (const limit of ["names", "characters"]) test(`build oversized directory remembers only requested stable names above its ${limit} bound`, async () => {
+  const owned = fixture();
+  const listing = owned.fileSystem.readdirSync;
+  const neighbors = Array.from({ length: limit === "names" ? 32769 : 20000 }, (_, index) => (limit === "names" ? "extra-" : "extra-".repeat(10)) + index);
+  owned.fileSystem.readdirSync = (path, ...args) => path === "/owned" ? [...listing(path, ...args), ...neighbors] : listing(path, ...args);
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  // Package and tool paths select two different components in this oversized ancestor.
+  assert.equal(owned.listings.filter(path => path === "/owned").length, 2);
+  assert.ok(owned.metadata.filter(path => path === "/owned").length > 20);
   noHeldReads(owned);
 });
 

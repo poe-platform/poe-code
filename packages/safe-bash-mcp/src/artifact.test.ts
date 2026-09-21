@@ -7,6 +7,26 @@ import { generateRemoteMcpArtifact, initRemoteMcpConfiguration, parseRemoteMcpAr
 const tool: Tool = { name: "search_items", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
   outputSchema: { type: "object", properties: { query: { type: "string" } } }, annotations: { readOnlyHint: true } };
 const server = { name: "catalog", url: "https://catalog.example/mcp", protocolVersion: "2025-03-26" as const };
+
+it("keeps an explicit empty registry authoritative despite unrelated environment configuration", async () => {
+  const readAmbient = vi.fn(() => { throw new Error("unrelated environment must remain unread"); });
+  const env = Object.defineProperties({}, Object.fromEntries([
+    "HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "MCPORTER_CONFIG"
+  ].map(name => [name, { enumerable: true, get: readAmbient }])));
+  const fetch = vi.fn<HttpTransportFetch>();
+  const { configuration } = initRemoteMcpConfiguration([]);
+  const generated = await generateRemoteMcpArtifact(configuration, { binding: { env }, schema: { fetch } });
+  expect(generated.artifact.configuration.servers).toEqual([]);
+  expect(generated.artifact.schemas).toEqual([]);
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  try {
+    await shell.use(await remoteMcpArtifactPlugin(generated.artifact, { binding: { env }, commands: { fetch } }));
+    expect((await shell.exec("catalog --help")).exitCode).not.toBe(0);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(readAmbient).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+
 function remote() {
   const requests: { method: string; params?: unknown }[] = [];
   const fetch = vi.fn<HttpTransportFetch>(async (_url, init) => {

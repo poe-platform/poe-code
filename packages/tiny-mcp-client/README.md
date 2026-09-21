@@ -60,6 +60,8 @@ timer; a timeout releases request capacity so later operations can proceed.
 Legacy SSE mode opens a GET stream and posts messages to the endpoint announced
 by the server. Announced endpoints must remain on the original origin without
 embedded credentials or fragments; endpoint changes close the connection.
+Empty fragment delimiters are rejected too; escaped hashes in an endpoint path
+or query remain literal data.
 Both transports accept the same headers, OAuth provider and response limits.
 Static HTTP headers are copied and validated when the transport is constructed,
 before OAuth callbacks run. Invalid headers fail without reflecting their values.

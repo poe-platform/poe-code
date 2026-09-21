@@ -47,7 +47,7 @@ describe("legacy remote SSE transport", () => {
     expect(remote.cancel).toHaveBeenCalledOnce();
   });
 
-  it.each(["https://attacker.example/messages", "http://legacy.example/messages", "https://user:password@legacy.example/messages", "/messages#fragment", "file:///tmp/messages"])(
+  it.each(["https://attacker.example/messages", "http://legacy.example/messages", "https://user:password@legacy.example/messages", "/messages#fragment", "/messages#", "file:///tmp/messages"])(
     "rejects unsafe endpoint %s before transmitting credentials", async endpoint => {
       const remote = fixture(endpoint);
       const transport = new HttpTransport({ url, mode: "sse", fetch: remote.fetch, headers: { Authorization: "Bearer token" } });

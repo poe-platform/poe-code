@@ -3443,7 +3443,7 @@ export class HttpTransport implements McpTransport {
         const endpoint = new URL(message.data, this.url);
         const resource = new URL(this.url);
         if ((endpoint.protocol !== "http:" && endpoint.protocol !== "https:") ||
-            endpoint.origin !== resource.origin || endpoint.username || endpoint.password || endpoint.hash)
+            endpoint.origin !== resource.origin || endpoint.username || endpoint.password || endpoint.href.includes("#"))
           throw new Error("Unsafe legacy SSE endpoint");
         if (this.legacyEndpoint !== undefined && this.legacyEndpoint !== endpoint.href)
           throw new Error("Legacy SSE endpoint changed during the active connection");

@@ -258,3 +258,14 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     virtual-shell call. Require complete content/falsey values/nested metadata/
     exact005930, offline help/supplied schemas and one retired session without
     discovery/consent. Inspect safe summary screenshot and purge owned evidence.
+
+37. Announce named/empty endpoint fragments through actual legacy SSE. Cover
+    native clients plus schema/generated-command/resource/management-auth routes,
+    pinned SSE and automatic HTTP404 fallback. Require eighteen safe failures
+    before any credential POST to those endpoints and every receive stream closed.
+    Across all three supported legacy revisions retain percent-escaped hash
+    endpoint path/query with twelve valid handshakes, six complete calls/three
+    full text+blob resources/three complete tool listings and guidance/falsey
+    values/nested metadata/exact005930. Require thirty closed receive streams/
+    eight HTTP fallback failures and zero metadata/token/consent/credential writes.
+    Inspect safe summary screenshot and purge only owned synthetic evidence.

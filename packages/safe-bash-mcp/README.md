@@ -30,6 +30,7 @@ server identity, capabilities and instructions.
 | `remoteMcpCommands(servers, options)` | Generate a plugin that registers those commands |
 | `initRemoteMcpConfiguration(servers, options)` | Create versioned configuration and empty credential templates |
 | `parseRemoteMcpConfiguration(value, options)` | Validate and copy configuration from JSON text or an object |
+| `bindRemoteMcpConfiguration(value, options)` | Resolve environment references into runtime server credentials |
 | `createRemoteMcpManagementCommand(servers, options)` | Create the safe-bash `mcp init` command |
 
 Use `headers` or the client's `oauth` options for credentials. URLs must use
@@ -133,5 +134,35 @@ also use explicit `{ env: "VARIABLE_NAME" }` references. Literal credentials
 and unknown configuration fields are rejected. Supplied schemas remain
 authoritative, including an empty tool list.
 
-Runtime binding of declarative credentials and reproducible artifact generation
-are under development.
+Bind configuration explicitly when preparing runtime commands:
+
+```ts
+import { bindRemoteMcpConfiguration, createRemoteMcpCommands } from "safe-bash-mcp";
+
+const runtimeServers = bindRemoteMcpConfiguration(configuration, {
+  env: environmentSnapshot,
+  oauth: { allowInteractive: false }
+});
+const commands = await createRemoteMcpCommands(runtimeServers);
+```
+
+Binding reads only own data properties of the supplied environment; it never
+falls back to `process.env`. Required missing variables fail before provider
+setup, and empty optional values use public fallbacks or remain absent. Values
+are captured independently from later environment changes. Credential inputs
+have a 1 MiB combined byte limit (`maxCredentialBytes`); shared references count
+once. Binding produces runtime credentials separately from the configuration
+used in artifacts. Do not serialize runtime server entries as configuration.
+
+OAuth uses the native provider and defaults to headless operation. Set
+`oauth.allowInteractive: true` and `oauth.browser.openBrowser` to enable login.
+Configured scope and exact redirect values come from environment references or
+their public fallbacks. Supply `oauth.sessionStore(server)` for host-owned
+persistence, or `oauth.authStore` for the native secret-store backend. Existing
+access-token imports require the original client ID; refresh-token/expiry fields
+require an access token. Expiry must be a decimal Unix epoch millisecond value.
+Persisted rotated or cleared grants take precedence over imported environment
+tokens. A fresh import avoids discovery; an expired or explicitly rejected grant
+binds validated discovery before refreshing with its original client.
+
+Reproducible artifact generation is under development.

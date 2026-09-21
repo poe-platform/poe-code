@@ -9,3 +9,5 @@ export type { EnvironmentReference, PublicEnvironmentReference, OAuthCredentialR
   RemoteMcpServerConfiguration, RemoteMcpConfiguration, InitRemoteMcpServer, ConfigurationOptions, RemoteMcpInitialization } from "./configuration.js";
 export { createRemoteMcpManagementCommand } from "./management.js";
 export type { RemoteMcpManagementOptions } from "./management.js";
+export { bindRemoteMcpConfiguration } from "./runtime-configuration.js";
+export type { ConfigurationBindingOptions, BoundRemoteMcpServer } from "./runtime-configuration.js";

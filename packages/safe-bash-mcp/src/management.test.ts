@@ -19,6 +19,26 @@ async function run(script: string, env: Record<string, string> = {}) {
 }
 
 describe("remote MCP management init command", () => {
+  it("rejects invalid or repeated discovery/resource timeouts before credential binding or network", async () => {
+    const fetch = vi.fn();
+    const readCredential = vi.fn(() => { throw new Error("must remain unread"); });
+    const binding = { env: Object.defineProperty({}, "GOOGLE_APP_ID", { enumerable: true, get: readCredential }) };
+    const definition = createRemoteMcpManagementCommand(servers, { generation: { binding, schema: { fetch } }, resources: { binding, fetch } });
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
+    try {
+      for (const command of ["generate", "resource catalog"]) {
+        for (const flags of ["--timeout-ms", "--timeout-ms=", "--timeout-ms=0", "--timeout-ms=-1", "--timeout-ms=1.5",
+          "--timeout-ms=20oops", "--timeout-ms=2147483648", "--timeout-ms=20 --timeout-ms=30"]) {
+          const result = await shell.exec(`mcp ${command} ${flags}`);
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toBe("");
+          expect(result.stderr).toContain("--timeout-ms");
+        }
+      }
+      expect(readCredential).not.toHaveBeenCalled();
+      expect(fetch).not.toHaveBeenCalled();
+    } finally { await shell.dispose(); }
+  });
   it("routes all management help before reading credentials or creating native sessions", async () => {
     const readCredential = vi.fn(() => { throw new Error("help must not read credentials"); });
     const env = Object.defineProperty({}, "GOOGLE_APP_ID", { enumerable: true, get: readCredential });

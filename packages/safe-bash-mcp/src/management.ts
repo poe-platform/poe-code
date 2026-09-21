@@ -22,15 +22,28 @@ export interface RemoteMcpManagementOptions extends ConfigurationOptions {
   readonly resources?: RemoteMcpResourceOptions & { readonly binding?: ConfigurationBindingOptions };
 }
 
-function resourceArguments(args: readonly string[], maxInputBytes: number): { name: string; request: RemoteMcpResourceRequest } {
+function timeoutMilliseconds(value: string | undefined): number {
+  if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9"))
+    throw new Error("--timeout-ms requires a positive supported millisecond interval");
+  const timeout = Number(value);
+  if (!Number.isSafeInteger(timeout) || timeout < 1 || timeout > 2_147_483_647)
+    throw new Error("--timeout-ms requires a positive supported millisecond interval");
+  return timeout;
+}
+
+function resourceArguments(args: readonly string[], maxInputBytes: number): { name: string; request: RemoteMcpResourceRequest; requestTimeoutMs?: number } {
   const positional: string[] = [];
   let cursor: string | undefined;
   let templates = false;
+  let requestTimeoutMs: number | undefined;
   let literal = false;
   for (let index = 1; index < args.length; index++) {
     const arg = args[index];
     if (!literal && arg === "--") { literal = true; continue; }
-    if (!literal && arg === "--templates") {
+    if (!literal && (arg === "--timeout-ms" || arg.startsWith("--timeout-ms="))) {
+      if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
+      requestTimeoutMs = timeoutMilliseconds(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length));
+    } else if (!literal && arg === "--templates") {
       if (templates) throw new Error("--templates can only be supplied once");
       templates = true;
     } else if (!literal && (arg === "--cursor" || arg.startsWith("--cursor="))) {
@@ -47,7 +60,7 @@ function resourceArguments(args: readonly string[], maxInputBytes: number): { na
   if (uri !== undefined && (templates || cursor !== undefined)) throw new Error("Resource reads cannot use --templates or --cursor");
   const request: RemoteMcpResourceRequest = uri === undefined ? { operation: templates ? "templates" : "list", ...(cursor === undefined ? {} : { cursor }) }
     : { operation: "read", uri };
-  return { name, request: snapshotRemoteMcpResourceRequest(request, maxInputBytes) };
+  return { name, request: snapshotRemoteMcpResourceRequest(request, maxInputBytes), requestTimeoutMs };
 }
 
 function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; file?: string } {
@@ -77,10 +90,7 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
       if (file === undefined || file === "") throw new Error("--file requires a virtual path or - for stdin");
     } else if (arg === "--timeout-ms" || arg.startsWith("--timeout-ms=")) {
       if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
-      const value = arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length);
-      if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9")) throw new Error("--timeout-ms requires a positive supported millisecond interval");
-      requestTimeoutMs = Number(value);
-      if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647) throw new Error("--timeout-ms requires a positive supported millisecond interval");
+      requestTimeoutMs = timeoutMilliseconds(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length));
     } else if (arg === "--") {
       if (name !== undefined || index + 2 !== args.length) throw new Error(`${command} requires exactly one server name`);
       name = args[++index];
@@ -129,6 +139,7 @@ export function createRemoteMcpManagementCommand(
     "With a URI, read remote text/blob contents. URIs are sent to the MCP server.",
     "Complete results are JSON, including metadata and nextCursor; provide that",
     "cursor explicitly to request the next page. No tools are discovered or called.",
+    "--timeout-ms <milliseconds> bounds the complete resource operation (default 30000).",
     "  --help  Show this help.", ""].join("\n");
   const importHelp = [`Usage: ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
     "Read OAuth credential JSON from stdin (default) or a virtual --file path.",
@@ -167,6 +178,8 @@ export function createRemoteMcpManagementCommand(
     "  config  Resolved configuration with every tool schema.",
     "  module  Dependency-free ESM data module exporting the artifact as default.",
     "Credentials remain environment references in every generated format.", "",
+    "Generation --timeout-ms <milliseconds> bounds each discovery request",
+    "(default 30000). Supplied schemas remain offline.", "",
     ...authenticationGuidance, "",
     "  --help  Show this help.", ""
   ].join("\n");
@@ -182,6 +195,7 @@ export function createRemoteMcpManagementCommand(
         operation.signal.throwIfAborted();
         let output: string;
         let generationFormat: string | undefined;
+        let generationTimeoutMs: number | undefined;
         let authentication: ReturnType<typeof credentialArguments> | undefined;
         let credentialImport: ReturnType<typeof credentialArguments> | undefined;
         let credentialReset: ReturnType<typeof credentialArguments> | undefined;
@@ -214,6 +228,11 @@ export function createRemoteMcpManagementCommand(
             let format: string | undefined;
             for (let index = 1; index < args.length; index++) {
               const arg = args[index];
+              if (command === "generate" && (arg === "--timeout-ms" || arg.startsWith("--timeout-ms="))) {
+                if (generationTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
+                generationTimeoutMs = timeoutMilliseconds(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length));
+                continue;
+              }
               if (arg !== "--format" && !arg.startsWith("--format=")) throw new Error(`Unknown ${command} argument '${arg}'`);
               if (format !== undefined) throw new Error("--format can only be supplied once");
               format = arg === "--format" ? args[++index] : arg.slice("--format=".length);
@@ -239,7 +258,9 @@ export function createRemoteMcpManagementCommand(
             signal.throwIfAborted();
             const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
             const [bound] = bindRemoteMcpConfiguration({ version: 1, servers: [server] }, settings?.binding ?? { env: context.env });
-            const result = await accessRemoteMcpResources(bound, selected.request, { ...settings, maxInputBytes: Math.min(maxInputBytes, settings?.maxInputBytes ?? maxInputBytes), signal });
+            const result = await accessRemoteMcpResources(bound, selected.request, { ...settings,
+              requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
+              maxInputBytes: Math.min(maxInputBytes, settings?.maxInputBytes ?? maxInputBytes), signal });
             output = `${JSON.stringify(result)}\n`;
           } catch (error) {
             operation.signal.throwIfAborted();
@@ -348,7 +369,8 @@ export function createRemoteMcpManagementCommand(
             const generated = await generateRemoteMcpArtifact(initialization.configuration, {
               ...options, ...generation,
               binding: generation?.binding ?? { env: context.env },
-              schema: { ...generation?.schema, signal: schemaSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, schemaSignal]) }
+              schema: { ...generation?.schema, requestTimeoutMs: generationTimeoutMs ?? generation?.schema?.requestTimeoutMs,
+                signal: schemaSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, schemaSignal]) }
             });
             output = generationFormat === "module" ? generated.module : generationFormat === "config" ? `${JSON.stringify(generated.artifact.configuration, null, 2)}\n` : generated.json;
           } catch (error) {

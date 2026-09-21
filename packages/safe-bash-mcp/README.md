@@ -171,6 +171,8 @@ runtime credentials and a host transport adapter, with the usual headless policy
 The SDK accepts `{ operation: "list" | "templates", cursor?: string }` or
 `{ operation: "read", uri: string }`. `maxInputBytes` bounds its request JSON
 (default 1 MiB); `requestTimeoutMs` bounds the complete resource operation.
+Management `--timeout-ms <milliseconds>` overrides that SDK/host setting
+(default 30,000 ms), including initialization and the resource request.
 
 Prepare credential configuration without reading secrets or connecting:
 
@@ -376,7 +378,9 @@ shell.use(await remoteMcpArtifactPlugin(generated.artifact, {
 
 `mcp generate` prints the JSON artifact. Use `--format config` for resolved
 configuration or `--format module` for an ESM data module that exports the
-artifact as default. Shell redirection works for all formats. Host-selected SDK
+artifact as default. `--timeout-ms <milliseconds>` overrides the SDK's
+`schema.requestTimeoutMs` for each discovery request (default 30,000 ms).
+Supplied schemas remain offline. Shell redirection works for all formats. Host-selected SDK
 generation settings are available as management `options.generation`; discovery
 uses the command's environment unless the host supplies an explicit binding.
 

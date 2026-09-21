@@ -106,6 +106,19 @@ it("bounds an in-flight resource request with the complete operation deadline", 
   await expect(accessRemoteMcpResources(server, { operation: "read", uri: "memo://one" }, { fetch: f.fetch, requestTimeoutMs: 20 })).rejects.toMatchObject({ name: "TimeoutError" });
   expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
 });
+it.each(["--timeout-ms 20", "--timeout-ms=20"])("applies a CLI resource deadline over the host timeout: %s", async flag => {
+  const f = remote({ wait: true });
+  const definition = createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch, requestTimeoutMs: 1000 } });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
+  try {
+    const result = await shell.exec(`mcp resource docs memo://one ${flag}`);
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(JSON.parse(result.stderr).error.message).toContain("timeout");
+    expect(f.requests.some(request => request.method === "resources/read")).toBe(true);
+    expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
+  } finally { await shell.dispose(); }
+});
 it("returns native protocol diagnostics on stderr with a nonzero management status", async () => {
   const f = remote({ fail: true });
   const definition = createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch } });

@@ -101,6 +101,13 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     headless OAuth policy and nonzero protocol-failure diagnostics. Test bounded
     input, complete deadlines and pre-aborted host signals before credential
     binding. Inspect the resource help/result screenshot and purge own fixtures.
+    Check `mcp resource --timeout-ms=100` against a stalled real resource read:
+    the CLI override must replace a longer host deadline, retain exit 1 and
+    close its session. Check `mcp generate --timeout-ms 100` against stalled
+    tools/list with the same override and cleanup expectations. Generation's
+    timeout applies per discovery request; resource timeout covers the complete
+    operation. Supplied schemas remain offline with an explicit timeout. Inspect
+    help and timeout diagnostics using the maintained screenshot renderer.
 
 13. For server input, use actual modern HTTP input_required responses and legacy
     server-initiated elicitation/create requests over an HTTP receive stream.

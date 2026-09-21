@@ -60,3 +60,29 @@ it("shows generation output formats in management help", async () => {
   expect(result.exitCode).toBe(0); expect(result.stdout).toContain("generate");
   expect(result.stdout).toContain("module"); expect(result.stdout).toContain("absent");
 });
+it.each(["--timeout-ms 20", "--timeout-ms=20"])("applies a CLI discovery deadline over the host timeout: %s", async flag => {
+  const methods: string[] = [];
+  const fetch = vi.fn<HttpTransportFetch>(async (_url, init) => {
+    if (init?.method === "DELETE") return new Response(null, { status: 204 });
+    if (init?.method !== "POST") return new Response(null, { status: 405 });
+    const request = JSON.parse(String(init.body)); methods.push(request.method);
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    if (request.method === "initialize") return Response.json({ jsonrpc: "2.0", id: request.id,
+      result: { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "catalog", version: "1" } } },
+      { headers: { "Mcp-Session-Id": "discovery-session" } });
+    return new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true }));
+  });
+  const { tools: ignoredTools, ...absent } = server;
+  const result = await run(`mcp generate ${flag}`, { generation: { schema: { fetch, requestTimeoutMs: 1000 } } }, absent);
+  expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+  expect(JSON.parse(result.stderr).error.message).toContain("timed out after 20ms");
+  expect(methods).toContain("tools/list");
+  expect(fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
+});
+it("keeps supplied-schema generation offline with an explicit discovery timeout", async () => {
+  const fetch = vi.fn<HttpTransportFetch>();
+  const result = await run("mcp generate --timeout-ms=20 --format=config", { generation: { schema: { fetch } } });
+  expect(result.exitCode).toBe(0);
+  expect(JSON.parse(result.stdout).servers[0].tools).toEqual(server.tools);
+  expect(fetch).not.toHaveBeenCalled();
+});

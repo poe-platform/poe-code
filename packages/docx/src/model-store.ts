@@ -17,7 +17,7 @@ import {
   publicationGenerationGuard
 } from "./publication.js";
 import type { ArchiveSink } from "./archive-write.js";
-import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
+import { paragraphTextRun, replaceParagraphContent, paragraphReferenceMarkers, paragraphAnnotationMarkers } from "./paragraph-content.js";
 import { renderContent, xmlValue } from "./create-content.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { runElementOpen } from "./run-properties.js";
@@ -311,7 +311,7 @@ export class ModelStore {
       this.context.budget.charge("work", 1);
       if (
         node.namespace === old.root.namespace &&
-        ["footnoteRef", "endnoteRef"].includes(node.localName)
+        (paragraphReferenceMarkers.has(node.localName) || paragraphAnnotationMarkers.has(node.localName))
       )
         return;
       detached.add(node);
@@ -433,14 +433,14 @@ export class ModelStore {
         });
       };
       reconcile(candidate.root, next.root);
-      // Retained note markers may move into a dedicated marker run.
-      const noteMarkers = (root: XmlElement): XmlElement[] => {
+      // Retained annotations may move when destructive assignment replaces their container.
+      const retainedMarkers = (root: XmlElement): XmlElement[] => {
         const result: XmlElement[] = [];
         const visit = (node: XmlElement): void => {
           this.context.budget.charge("work", 1);
           if (
             node.namespace === root.namespace &&
-            ["footnoteRef", "endnoteRef"].includes(node.localName)
+            (paragraphReferenceMarkers.has(node.localName) || paragraphAnnotationMarkers.has(node.localName))
           )
             result.push(node);
           for (const child of node.children) visit(child);
@@ -449,8 +449,8 @@ export class ModelStore {
         return result;
       };
       if (discarded.length) {
-        const previous = noteMarkers(candidate.root),
-          current = noteMarkers(next.root);
+        const previous = retainedMarkers(candidate.root),
+          current = retainedMarkers(next.root);
         if (previous.length === current.length)
           previous.forEach((node, index) => {
             const replacement = current[index]!;
@@ -601,41 +601,67 @@ export class ModelStore {
   }
   cellText(ref: ModelRef, text: string): void {
     if (typeof text !== "string") throw new InputTypeError("Expected cell text.");
+    const owner = this.node(ref);
+    const discarded = owner.children
+      .filter(child => child.namespace === owner.namespace && child.localName === "p")
+      .map(child => this.ref(ref.part, child));
     this.change(ref.part, (xml) => {
       const cell = this.node(ref);
       if (cell.children.some((child) => child.localName !== "tcPr" && child.localName !== "p"))
         throw new UnsupportedEditError("Whole cell text cannot discard rich blocks.");
       const props = cell.children.find((child) => child.localName === "tcPr");
       const paragraphs = cell.children.filter((child) => child.localName === "p");
-      const annotated = (node: XmlElement): boolean => {
-        this.context.budget.charge("work", 1);
-        return (
-          (node.namespace === cell.namespace &&
-            [
-              "bookmarkStart",
-              "bookmarkEnd",
-              "commentRangeStart",
-              "commentRangeEnd",
-              "proofErr",
-              "permStart",
-              "permEnd",
-              "footnoteRef",
-              "endnoteRef"
-            ].includes(node.localName)) ||
-          node.children.some(annotated)
-        );
+      const namespaces = new Map(cell.namespaces);
+      const rangeMarkers: Record<string, readonly [string, boolean]> = {
+        bookmarkStart: ["bookmark", true], bookmarkEnd: ["bookmark", false],
+        commentRangeStart: ["comment", true], commentRangeEnd: ["comment", false],
+        permStart: ["permission", true], permEnd: ["permission", false]
       };
-      if (paragraphs.some(annotated))
-        throw new UnsupportedEditError("Whole cell text cannot discard annotation markers.");
-      for (const p of paragraphs) replaceParagraphContent(xml, p, "", "");
+      const ranges = new Set<string>();
+      const content = paragraphs.map((p, index) => {
+        for (const marker of p.children) {
+          this.context.budget.charge("work", 1);
+          if (marker.namespace !== cell.namespace) continue;
+          const range = rangeMarkers[marker.localName];
+          const attribute = (name: string) => marker.attributes.find(a =>
+            a.namespace === cell.namespace && a.localName === name)?.value;
+          const proof = marker.localName === "proofErr" ? attribute("type") : undefined;
+          const family = range?.[0] ?? (proof === "spellStart" || proof === "spellEnd" ? "spell" :
+            proof === "gramStart" || proof === "gramEnd" ? "grammar" : undefined);
+          if (!family) {
+            if (marker.localName === "proofErr")
+              throw new UnsupportedEditError("Whole cell text cannot relocate malformed annotation markers.");
+            continue;
+          }
+          const id = range ? attribute("id") : "proof";
+          const start = range ? range[1] : proof === "spellStart" || proof === "gramStart";
+          const key = `${family}:${id}`;
+          if (id === undefined || (start ? ranges.has(key) : !ranges.has(key)))
+            throw new UnsupportedEditError("Whole cell text cannot relocate malformed annotation markers.");
+          if (start) ranges.add(key);
+          else ranges.delete(key);
+        }
+        for (const [prefix, namespace] of p.namespaces) {
+          if (namespaces.has(prefix) && namespaces.get(prefix) !== namespace)
+            throw new UnsupportedEditError("Whole cell text cannot relocate conflicting namespace scopes.");
+          namespaces.set(prefix, namespace);
+        }
+        const replacement = replaceParagraphContent(xml, p, "", index === 0 ? text : "");
+        return replacement.slice(runElementOpen(p).length, -(`</${p.name}>`.length));
+      }).join("");
+      if (ranges.size)
+        throw new UnsupportedEditError("Whole cell text cannot relocate unmatched annotation markers.");
+      const declarations = [...namespaces].filter(([prefix]) => prefix !== "xml")
+        .map(([prefix, namespace]) => ` ${prefix ? `xmlns:${prefix}` : "xmlns"}="${xmlValue(namespace)}"`).join("");
+      const prefix = [...namespaces].find(([name, namespace]) => name && namespace === cell.namespace)?.[0];
+      const name = prefix ? `${prefix}:p` : "p";
       xml.replaceElement(
         cell,
         runElementOpen(cell) +
           (props ? xml.sourceXml(props) : "") +
-          `<bm:p xmlns:bm="${cell.namespace}">${paragraphTextRun(cell.namespace, text)}</bm:p></${cell.name}>`
+          `<${name}${declarations}>${content || paragraphTextRun(cell.namespace, text)}</${name}></${cell.name}>`
       );
-    });
-    this.invalidateDescendants(ref);
+    }, discarded);
   }
   setPart(part: string, bytes: Uint8Array, contentType?: string): void {
     if (!this.transactionDepth) {

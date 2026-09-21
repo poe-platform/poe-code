@@ -169,7 +169,7 @@ it("retains note marker owners while invalidating their replaced run owners", as
   expect(paragraph.text).toBe("New");
 });
 
-it("rejects cell replacement before losing markers spanning paragraphs", async () => {
+it("retains balanced markers spanning paragraphs during cell replacement", async () => {
   const document = await Document(
     await textFixture(
       table([
@@ -181,9 +181,11 @@ it("rejects cell replacement before losing markers spanning paragraphs", async (
   const cell = document.tables[0]!.cell(0, 0);
   const paragraph = cell.paragraphs[0]!;
   const run = paragraph.runs[0]!;
-  expect(() => {
-    cell.text = "Rejected";
-  }).toThrow("annotation markers");
-  expect(cell.text).toBe("Start\nEnd");
-  expect(run.text).toBe("Start");
+  cell.text = "Replacement";
+  expect(cell.text).toBe("Replacement");
+  expect(cell.paragraphs).toHaveLength(1);
+  expect(cell.paragraphs[0]!.element.children.map(n => n.localName)).toEqual([
+    "bookmarkStart", "r", "bookmarkEnd"
+  ]);
+  expect(() => run.text).toThrow(StaleHandleError);
 });

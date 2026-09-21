@@ -29,7 +29,7 @@ export function paragraphTextRun(
   return `<pi:r xmlns:pi="${w}">${style === undefined ? "" : `<pi:rPr><pi:rStyle pi:val="${xmlValue(style)}"/></pi:rPr>`}${content}</pi:r>`;
 }
 
-const markers = new Set([
+export const paragraphAnnotationMarkers = new Set([
   "bookmarkStart",
   "bookmarkEnd",
   "commentRangeStart",
@@ -37,6 +37,10 @@ const markers = new Set([
   "proofErr",
   "permStart",
   "permEnd"
+]);
+
+export const paragraphReferenceMarkers = new Set([
+  "footnoteRef", "endnoteRef", "footnoteReference", "endnoteReference", "commentReference"
 ]);
 
 /** Text assignment intentionally removes runs; annotations and paragraph ownership survive. */
@@ -57,10 +61,10 @@ export function replaceParagraphContent(
       patches.set(child, "");
       continue;
     }
-    if (markers.has(child.localName)) continue;
+    if (paragraphAnnotationMarkers.has(child.localName)) continue;
     const check = (node: XmlElement): void => {
       if (
-        ["footnoteRef", "endnoteRef"].includes(node.localName) &&
+        paragraphReferenceMarkers.has(node.localName) &&
         (child.localName !== "r" || !child.children.includes(node))
       )
         throw new UnsupportedEditError("Whole paragraph text cannot discard nested note markers.");
@@ -71,7 +75,7 @@ export function replaceParagraphContent(
         throw new UnsupportedEditError("Whole paragraph text cannot discard XML annotations.");
       if (
         node.namespace !== p.namespace ||
-        ![
+        (![
           "r",
           "rPr",
           "t",
@@ -79,10 +83,8 @@ export function replaceParagraphContent(
           "br",
           "cr",
           "lastRenderedPageBreak",
-          "hyperlink",
-          "footnoteRef",
-          "endnoteRef"
-        ].includes(node.localName)
+          "hyperlink"
+        ].includes(node.localName) && !paragraphReferenceMarkers.has(node.localName))
       ) {
         throw new UnsupportedEditError(
           "Whole paragraph text cannot replace fields, objects or review content."
@@ -92,27 +94,34 @@ export function replaceParagraphContent(
     };
     check(child);
     const noteMarks = child.children.filter(
-      (n) => n.namespace === p.namespace && ["footnoteRef", "endnoteRef"].includes(n.localName)
+      (n) => n.namespace === p.namespace && paragraphReferenceMarkers.has(n.localName)
     );
-    const preserved = noteMarks.length
-      ? runElementOpen(child) +
-        child.children
-          .filter((n) => n.localName === "rPr" || noteMarks.includes(n))
-          .map((n) => xml.sourceXml(n))
-          .join("") +
-        `</${child.name}>`
-      : "";
-    const hasText = child.children.some(
-      (n) => !["rPr", "footnoteRef", "endnoteRef"].includes(n.localName)
-    );
+    if (noteMarks.length) {
+      const formatting = child.children.filter(n => n.localName === "rPr")
+        .map(n => xml.sourceXml(n)).join("");
+      let pending = "", replacement = "";
+      const flush = () => {
+        if (pending) replacement += runElementOpen(child) + formatting + pending + `</${child.name}>`;
+        pending = "";
+      };
+      for (const node of child.children) {
+        if (node.localName === "rPr") continue;
+        if (noteMarks.includes(node)) pending += xml.sourceXml(node);
+        else if (!inserted) {
+          flush();
+          if (text) replacement += paragraphTextRun(p.namespace, text);
+          inserted = true;
+        }
+      }
+      flush();
+      patches.set(child, replacement);
+      continue;
+    }
     patches.set(
       child,
-      preserved +
-        (inserted || !text || (!hasText && noteMarks.length)
-          ? ""
-          : paragraphTextRun(p.namespace, text))
+      inserted || !text ? "" : paragraphTextRun(p.namespace, text)
     );
-    if (hasText || !noteMarks.length) inserted = true;
+    inserted = true;
   }
   return (
     runElementOpen(p) +
@@ -137,7 +146,7 @@ export function splitParagraphContent(
     if (child.namespace !== p.namespace)
       throw new UnsupportedEditError("Caret insertion cannot split opaque content.");
     if (child.localName === "pPr") continue;
-    if (markers.has(child.localName)) {
+    if (paragraphAnnotationMarkers.has(child.localName)) {
       halves[offset < caret ? 0 : 1] += xml.sourceXml(child);
       continue;
     }

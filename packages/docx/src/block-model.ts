@@ -2,7 +2,7 @@ import type { ModelRef, ModelStore } from "./model-store.js";
 import type { XmlElement } from "./package-xml.js";
 import { InputTypeError } from "./archive.js";
 import { Font, ParagraphFormat, type FormattingXmlOwner } from "./formatting-model.js";
-import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
+import { paragraphTextRun, replaceParagraphContent, paragraphReferenceMarkers } from "./paragraph-content.js";
 import { runElementOpen } from "./run-properties.js";
 import { xmlValue } from "./create-content.js";
 import { Hyperlink, RenderedPageBreak, markCommentRange } from "./review-model.js";
@@ -255,7 +255,8 @@ export class Run {
     if (typeof value !== "string") throw new InputTypeError("Expected run text.");
     const run = this.store.node(this.ref);
     const discarded = run.children
-      .filter((child) => child.namespace !== run.namespace || child.localName !== "rPr")
+      .filter((child) => child.namespace !== run.namespace ||
+        (child.localName !== "rPr" && !paragraphReferenceMarkers.has(child.localName)))
       .map((child) => this.store.ref(this.ref.part, child));
     this.store.change(
       this.ref.part,
@@ -267,12 +268,24 @@ export class Run {
         if (
           r.children.some(
             (child) =>
-              !["rPr", "t", "tab", "br", "cr", "lastRenderedPageBreak"].includes(child.localName)
+              child.namespace !== r.namespace ||
+              (!["rPr", "t", "tab", "br", "cr", "lastRenderedPageBreak"].includes(child.localName) &&
+                !paragraphReferenceMarkers.has(child.localName))
           )
         )
           throw new UnsupportedEditError("Whole run text cannot discard owned resources.");
         const fragment = paragraphTextRun(r.namespace, value);
         const inner = fragment.slice(fragment.indexOf(">") + 1, fragment.lastIndexOf("</"));
+        let content = "", inserted = false;
+        for (const child of r.children) {
+          if (child === props) continue;
+          if (paragraphReferenceMarkers.has(child.localName)) content += xml.sourceXml(child);
+          else if (!inserted) {
+            content += inner;
+            inserted = true;
+          }
+        }
+        if (!inserted) content += inner;
         xml.replaceElement(
           r,
           runElementOpen(r).slice(0, -1) +
@@ -280,7 +293,7 @@ export class Run {
               ? ">"
               : ` xmlns:pi="${r.namespace}">`) +
             (props ? xml.sourceXml(props) : "") +
-            inner +
+            content +
             `</${r.name}>`
         );
       },

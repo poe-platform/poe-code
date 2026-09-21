@@ -310,7 +310,7 @@ function validateSelections(operation: string, options: Record<string, unknown>)
     const scope = operation.split(".")[0];
     if (options.scope !== undefined && options.scope !== scope && options.scope !== "all-stories") usage("Inapplicable story scope.");
   }
-  const global = ["styles", "properties", "settings", "fonts", "signatures", "custom-xml", "glossary"];
+  const global = ["styles", "properties", "settings", "signatures", "custom-xml", "glossary"];
   if (global.includes(operation.split(".")[0]!) && (selected.length || options.select !== undefined || options.scope !== undefined)) usage("Package-global resources reject story selection.");
 }
 function validateEffects(operation: string, options: Record<string, unknown>, schema: DocxOperationSchema): void {

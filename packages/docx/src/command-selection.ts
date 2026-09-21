@@ -28,7 +28,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (["sections", "headers", "footers"].includes(resource) &&
     selected.some(key => key !== "section")) reject("Section resources reject descendant selectors.");
   if (resource === "sections" && has("scope")) reject("Sections are package-global resources.");
-  if (["styles", "properties", "settings", "fonts", "signatures", "custom-xml", "glossary"].includes(resource) &&
+  if (["styles", "properties", "settings", "signatures", "custom-xml", "glossary"].includes(resource) &&
     (selected.length || token || has("scope"))) reject("Global resources reject story selectors.");
   if (all && operation !== "text.replace" && operation !== "lorem.set" && operation !== "revisions.add" && !["controls.repeat", "controls.bind"].includes(operation) &&
     !["set", "remove", "accept", "reject"].includes(action)) reject("All is not applicable to this operation.");

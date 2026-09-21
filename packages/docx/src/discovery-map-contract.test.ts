@@ -209,7 +209,9 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
   const latentMembership = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-audit-20260919/latent-has-discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations; apis: typeof audit.apis; runtimeExports: string[]; runtimeMembers: typeof native.runtimeMembers };
   Object.assign(audit.operations, latentMembership.operations);
   Object.assign(audit.apis, latentMembership.apis);
-  audit.runtimeExports = latentMembership.runtimeExports;
+  const fonts = JSON.parse(readFileSync(new URL("../../../docs/docx/font-inventory-20260921/discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations; runtimeExports: string[]; runtimeMembers: typeof native.runtimeMembers };
+  Object.assign(audit.operations, fonts.operations);
+  audit.runtimeExports = fonts.runtimeExports;
   expect(Object.keys(audit.operations).sort()).toEqual(Object.keys(docxOperationSchemas).sort());
   expect(Object.keys(audit.apis).sort()).toEqual(api.rows.map((row) => row.id).sort());
   expect(audit.runtimeExports).toEqual(Object.keys(await import("./index.js")).sort());
@@ -249,6 +251,7 @@ it("keeps the current evidence snapshot joined to live declarations and every AP
   };
   Object.assign(runtimeAudit.exports, native.runtimeMembers);
   Object.assign(runtimeAudit.exports, latentMembership.runtimeMembers);
+  Object.assign(runtimeAudit.exports, fonts.runtimeMembers);
   expect(Object.keys(runtimeAudit.exports).sort()).toEqual(audit.runtimeExports);
   expect(runtimeAudit.unjoinedExports).toEqual([]);
   for (const [name, entry] of Object.entries(runtimeAudit.exports)) {

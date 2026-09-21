@@ -29,6 +29,7 @@ import { inspectDocumentSettings } from "./settings.js";
 import { editDocumentControlBindings } from "./control-bindings.js";
 import { inspectDocumentPackageResources, packageResourceWarnings } from "./ancillary-resources.js";
 import { inspectDocumentSignatures, stripDocumentSignatures } from "./signatures.js";
+import { inspectDocumentFonts } from "./font-inventory.js";
 
 type Action = (input: Uint8Array, item: DocxBatchOperation, context: PublicationContext & Pick<ImageInsertionContext, "binaryResolver">) => Promise<unknown>;
 export const documentBatchActions = new Map<string, Action>();
@@ -45,6 +46,7 @@ documentBatchActions.set("controls.set", (input, item, context) => editDocumentC
 documentBatchActions.set("controls.repeat", (input, item, context) => editDocumentControlRepeats(input, item.arguments as DocxOperationArguments<"controls.repeat">, context));
 documentBatchActions.set("template.apply", (input, item, context) => applyDocumentTemplate(input, item.arguments as DocxOperationArguments<"template.apply">, context));
 documentBatchActions.set("settings.list", (input, item, context) => inspectDocumentSettings(input, item.arguments as DocxOperationArguments<"settings.list">, context));
+documentBatchActions.set("fonts.list", (input, item, context) => inspectDocumentFonts(input, item.arguments as DocxOperationArguments<"fonts.list">, context));
 documentBatchActions.set("controls.bind", (input, item, context) => editDocumentControlBindings(input, item.arguments as DocxOperationArguments<"controls.bind">, context));
 for (const operation of ["custom-xml.list", "glossary.list"] as const)
   documentBatchActions.set(operation, async (input, item, context) => {

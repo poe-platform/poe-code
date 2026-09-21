@@ -27,6 +27,7 @@ import { executeListsCommand } from "./lists-command.js";
 import { executeSectionsCommand } from "./sections-command.js";
 import { executeStoriesCommand } from "./stories-command.js";
 import { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
+import { inspectDocumentFonts } from "./font-inventory.js";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
 import { archiveSettings, type ArchiveLimits, ResourceLimitError, CancellationError } from "./archive.js";
@@ -144,7 +145,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
       const equationOperation = ["equations.list", "equations.add", "equations.replace"].includes(invocation.operation);
       const equationEditOperation = equationOperation && invocation.operation !== "equations.list";
       const signatureOperation = ["signatures.list", "signatures.remove"].includes(invocation.operation);
-      const packageResourceOperation = signatureOperation || invocation.operation === "settings.list" || objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
+      const fontOperation = invocation.operation === "fonts.list";
+      const packageResourceOperation = fontOperation || signatureOperation || invocation.operation === "settings.list" || objectOperation || equationOperation || diagramOperation || chartOperation || imageLayoutOperation || imageReplacementOperation || imageInsertionOperation || imageOperation || propertyOperation || ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "diff") {
           acquiring = true;
@@ -171,7 +173,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
         if (invocation.operation !== "extract" && !shapeOperation && !packageResourceOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && !["tables.get", "tables.list", "paragraphs.get", "runs.get", "paragraphs.list", "runs.list"].includes(invocation.operation) && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "capabilities" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && !["sanitize", "text.replace", "lorem.set"].includes(invocation.operation) && invocation.operation !== "runs.set" && !["paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.remove", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
-        if (invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined && !(key === "shape" && (shapeOperation || ["text.get", "text.replace"].includes(invocation.operation))))) {
+        if (!fontOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined && !(key === "shape" && (shapeOperation || ["text.get", "text.replace"].includes(invocation.operation))))) {
           throw Object.assign(new Error("This inspection selector is not implemented."), { code: "unsupported-profile" });
         }
         const input = invocation.inputs[0]!;
@@ -197,6 +199,11 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
           archiveReceipt = extraction;
           const envelope = { version: 1, operation: "extract", ok: true, data: extraction, affected: 0, locations: [], warnings: [], errors: [] };
           output = new TextEncoder().encode(invocation.options.json ? JSON.stringify(envelope) + "\n" : `Extracted: ${extraction.entries.length}; complete: true\n`);
+          budget.check("serializedOutput", output.length);
+        } else if (fontOperation) {
+          const data = await inspectDocumentFonts(bytes, invocation.options as DocxOperationArguments<"fonts.list">, context);
+          const human = `Font resources: ${data.items.length}\n` + data.items.map(item => `${escapeTerminalText(item.name)}: ${item.support}; ${item.details.parts.length} parts; ${item.references.length} references\n`).join("");
+          output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: invocation.operation, ok: true, data, affected: 0, locations: data.items.map(item => item.location), warnings: [], errors: [] }) + "\n" : human);
           budget.check("serializedOutput", output.length);
         } else if (shapeOperation || packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sanitize", "sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.remove", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "lorem.set", "runs.set", "paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
           output = invocation.operation === "sanitize" ? await executeSanitizeCommand(invocation, bytes, inputIdentity, request, context)

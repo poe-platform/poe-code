@@ -1,4 +1,5 @@
 export { sanitizeDocument, type SanitizationData } from "./sanitize.js";
+export { inspectDocumentFonts, type FontInventoryData, type FontInventoryRecord } from "./font-inventory.js";
 export { DocumentError, InvalidDocumentError } from "./document-error.js";
 export { PermissionError } from "./io-errors.js";
 export { BoundsError, MissingKeyError, StaleHandleError, OwnershipError } from "./model-errors.js";

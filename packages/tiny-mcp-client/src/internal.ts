@@ -2511,6 +2511,8 @@ export type HttpTransportFetch = (
 
 export interface HttpTransportOptions {
   url: string;
+  /** Legacy SSE uses a GET stream that announces the RPC POST endpoint. */
+  mode?: "streamable-http" | "sse";
   headers?: RequestInit["headers"];
   fetch?: HttpTransportFetch;
   oauth?: OAuthClientProviderOptions;
@@ -2660,6 +2662,11 @@ export class HttpTransport implements McpTransport {
   readonly writable: Writable;
   readonly closed: Promise<McpTransportClosedEvent>;
   private readonly url: string;
+  private readonly mode: "streamable-http" | "sse";
+  private legacyEndpoint: string | undefined;
+  private legacyEndpointReady: Promise<string> | undefined;
+  private resolveLegacyEndpoint: ((endpoint: string) => void) | undefined;
+  private rejectLegacyEndpoint: ((reason: Error) => void) | undefined;
   private readonly headers: HeadersInit;
   private readonly fetchImpl: HttpTransportFetch;
   private readonly readStream = new PassThrough();
@@ -2683,6 +2690,7 @@ export class HttpTransport implements McpTransport {
 
   constructor({
     url,
+    mode = "streamable-http",
     headers = {},
     fetch: fetchImpl = defaultHttpTransportFetch,
     oauth,
@@ -2694,6 +2702,7 @@ export class HttpTransport implements McpTransport {
       throw new Error("HTTP response byte limit must be a positive safe integer");
     this.maxResponseBytes = maxResponseBytes;
     this.url = url;
+    this.mode = mode;
     this.headers = headers;
     this.fetchImpl = fetchImpl;
     this.onWarning = onWarning;
@@ -2747,6 +2756,9 @@ export class HttpTransport implements McpTransport {
     }
 
     this.disposed = true;
+    this.rejectLegacyEndpoint?.(reason);
+    this.rejectLegacyEndpoint = undefined;
+    this.resolveLegacyEndpoint = undefined;
     this.toolParameterHeaders.clear();
     this.abortInFlightFetches();
     this.cancelOpenResponseReaders();
@@ -2880,8 +2892,10 @@ export class HttpTransport implements McpTransport {
     const id = parsed.type === "request" ? parsed.message.id : undefined;
     if (controller !== undefined && id !== undefined) this.modernRequests.set(id, controller);
     try {
+      const postUrl = this.mode === "sse" ? await this.ensureLegacyEndpoint() : this.url;
       const hasSessionId = !modern && this.sessionId !== undefined;
       const response = await this.fetchWithOAuthRetry({
+        url: postUrl,
         method: "POST",
         createHeaders: () => this.createPostHeaders(message, modern),
         body: line,
@@ -2912,7 +2926,7 @@ export class HttpTransport implements McpTransport {
         void response.body?.cancel().catch(() => undefined);
         return;
       }
-      if (!modern) {
+      if (!modern && this.mode !== "sse") {
         this.captureSessionId(response);
         this.maybeOpenGetSseStream();
       }
@@ -3032,6 +3046,18 @@ export class HttpTransport implements McpTransport {
     });
   }
 
+  private ensureLegacyEndpoint(): Promise<string> {
+    if (this.legacyEndpointReady !== undefined) return this.legacyEndpointReady;
+    this.legacyEndpointReady = new Promise((resolve, reject) => {
+      this.resolveLegacyEndpoint = resolve;
+      this.rejectLegacyEndpoint = reject;
+    });
+    void this.consumeGetSseStream().catch((error: unknown) => {
+      this.dispose(error instanceof Error ? error : new Error(String(error)));
+    });
+    return this.legacyEndpointReady;
+  }
+
   private async sendSessionTerminationRequest(sessionId: string, signal: AbortSignal): Promise<void> {
     const headers = await this.createDeleteHeaders(sessionId);
     signal.throwIfAborted();
@@ -3090,11 +3116,16 @@ export class HttpTransport implements McpTransport {
     const contentType = response.headers.get("Content-Type");
     if (contentType === null) {
       void response.body?.cancel().catch(() => undefined);
+      if (this.mode === "sse") throw new Error("Legacy SSE GET returned an unsupported content type");
       return;
     }
 
     if (contentType.split(";")[0]?.trim().toLowerCase() === "text/event-stream") {
-      await this.forwardSseResponseMessages(response);
+      await this.forwardSseResponseMessages(response, undefined, undefined, this.mode === "sse");
+      if (this.mode === "sse") {
+        if (!this.disposed) throw new Error("Legacy SSE stream ended");
+        return;
+      }
       this.getSseStreamStarted = false;
       if (!this.disposed && this.sessionId !== undefined && this.lastEventId !== undefined) {
         this.maybeOpenGetSseStream();
@@ -3103,6 +3134,7 @@ export class HttpTransport implements McpTransport {
     }
 
     void response.body?.cancel().catch(() => undefined);
+    if (this.mode === "sse") throw new Error("Legacy SSE GET returned an unsupported content type");
   }
 
   private async throwForPostHttpError(
@@ -3235,13 +3267,14 @@ export class HttpTransport implements McpTransport {
   private async forwardSseResponseMessages(
     response: Response,
     signal?: AbortSignal,
-    context?: HttpResponseMessages
+    context?: HttpResponseMessages,
+    acceptEndpoint = false
   ): Promise<void> {
     if (response.body === null) {
       return;
     }
 
-    const parser = new SseParser(this.maxResponseBytes);
+    const parser = new SseParser(this.maxResponseBytes, acceptEndpoint);
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const reader = response.body.getReader();
     this.openResponseReaders.add(reader);
@@ -3311,6 +3344,20 @@ export class HttpTransport implements McpTransport {
 
   private writeSseMessages(messages: ParsedSseMessage[], context?: HttpResponseMessages): void {
     for (const message of messages) {
+      if (message.event === "endpoint") {
+        const endpoint = new URL(message.data, this.url);
+        const resource = new URL(this.url);
+        if ((endpoint.protocol !== "http:" && endpoint.protocol !== "https:") ||
+            endpoint.origin !== resource.origin || endpoint.username || endpoint.password || endpoint.hash)
+          throw new Error("Unsafe legacy SSE endpoint");
+        if (this.legacyEndpoint !== undefined && this.legacyEndpoint !== endpoint.href)
+          throw new Error("Legacy SSE endpoint changed during the active connection");
+        this.legacyEndpoint = endpoint.href;
+        this.resolveLegacyEndpoint?.(endpoint.href);
+        this.resolveLegacyEndpoint = undefined;
+        this.rejectLegacyEndpoint = undefined;
+        continue;
+      }
       this.writeReadableLine(context?.validate(message.data, true) ?? message.data);
       if (context?.completed) return;
     }
@@ -3325,6 +3372,7 @@ export class HttpTransport implements McpTransport {
   }
 
   private async fetchWithOAuthRetry(input: {
+    url?: string;
     method: "GET" | "POST";
     createHeaders: () => Promise<Headers>;
     body?: BodyInit;
@@ -3332,7 +3380,7 @@ export class HttpTransport implements McpTransport {
   }): Promise<Response> {
     const request = async (): Promise<Response> =>
       this.fetchWithAbort(
-        this.url,
+        input.url ?? this.url,
         {
           method: input.method,
           headers: await input.createHeaders(),
@@ -3501,6 +3549,7 @@ export async function* readLines(stream: Readable, maxLineBytes = 16 * 1024 * 10
 export interface ParsedSseMessage {
   data: string;
   id?: string;
+  event?: "endpoint";
 }
 
 export class SseParser {
@@ -3513,7 +3562,7 @@ export class SseParser {
   private _lastEventId: string | undefined;
   private dataBytes = 0;
 
-  constructor(private readonly maxEventBytes = 16 * 1024 * 1024) {
+  constructor(private readonly maxEventBytes = 16 * 1024 * 1024, private readonly acceptEndpoint = false) {
     if (!Number.isSafeInteger(maxEventBytes) || maxEventBytes < 1)
       throw new Error("SSE event byte limit must be a positive safe integer");
   }
@@ -3605,7 +3654,7 @@ export class SseParser {
       this._lastEventId = this.eventId;
     }
 
-    if (this.dataLines.length === 0 || eventType !== "message") {
+    if (this.dataLines.length === 0 || (eventType !== "message" && !(this.acceptEndpoint && eventType === "endpoint"))) {
       this.resetEvent();
       return;
     }
@@ -3613,6 +3662,7 @@ export class SseParser {
     const message: ParsedSseMessage = {
       data: this.dataLines.join("\n"),
     };
+    if (eventType === "endpoint") message.event = "endpoint";
 
     if (this.hasEventId) {
       message.id = this.eventId;

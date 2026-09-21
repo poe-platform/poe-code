@@ -1,6 +1,6 @@
 # tiny-mcp-client
 
-`tiny-mcp-client` is a lightweight Model Context Protocol client used by tests, fixtures, and package integrations. It supports stdio transports, streamable HTTP transports, in-memory test pairs, JSON-RPC helpers, and OAuth metadata discovery for OAuth-protected MCP HTTP servers.
+`tiny-mcp-client` is a lightweight Model Context Protocol client used by tests, fixtures, and package integrations. It supports stdio transports, Streamable HTTP and legacy HTTP/SSE transports, in-memory test pairs, JSON-RPC helpers, and OAuth metadata discovery for OAuth-protected MCP HTTP servers.
 
 ## Usage
 
@@ -29,8 +29,13 @@ await client.close();
 | Transport                       | Description                                                                                                 |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `StdioTransport`                | Spawns an MCP server process and communicates over stdio.                                                   |
-| `HttpTransport`                 | Connects to streamable HTTP MCP endpoints, including session IDs, SSE GET streams, and session termination. |
+| `HttpTransport`                 | Connects to Streamable HTTP endpoints, or legacy HTTP/SSE with `mode: "sse"`. |
 | `createInMemoryTransportPair()` | Creates paired streams for in-process tests.                                                                |
+
+Legacy SSE mode opens a GET stream and posts messages to the endpoint announced
+by the server. Announced endpoints must remain on the original origin without
+embedded credentials or fragments; endpoint changes close the connection.
+Both transports accept the same headers, OAuth provider and response limits.
 
 ## OAuth HTTP support
 

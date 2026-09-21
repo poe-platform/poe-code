@@ -202,10 +202,20 @@ export class Hyperlink {
   get contains_page_break(): boolean {
     const node = this.store.node(this.ref),
       children = activeModelChildren(this.store, this.ref.part),
-      visit = (n: XmlElement): boolean =>
-        n.namespace === node.namespace &&
-        (n.localName === "lastRenderedPageBreak" || children(n).some(visit));
-    return visit(node);
+      budget = this.store.context.budget,
+      pending = [node];
+    budget.charge("retainedBytes", 8);
+    while (pending.length) {
+      const current = pending.pop()!;
+      budget.charge("work", 1);
+      if (current.namespace !== node.namespace) continue;
+      if (current.localName === "lastRenderedPageBreak") return true;
+      const nested = children(current);
+      budget.charge("work", nested.length);
+      budget.charge("retainedBytes", nested.length * 8);
+      for (let index = nested.length - 1; index >= 0; index--) pending.push(nested[index]!);
+    }
+    return false;
   }
   get history(): boolean {
     return hyperlinkHistory(commentAttribute(this.store.node(this.ref), "history"));

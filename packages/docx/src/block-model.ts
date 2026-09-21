@@ -108,16 +108,23 @@ export class Paragraph {
     const p = this.store.node(this.ref);
     const children = activeModelChildren(this.store, this.ref.part);
     const result: RenderedPageBreak[] = [];
-    const visit = (node: XmlElement) => {
+    const pending = [p];
+    this.store.context.budget.charge("retainedBytes", 8);
+    while (pending.length) {
+      const node = pending.pop()!;
       this.store.context.budget.charge("work", 1);
-      if (node.namespace !== p.namespace) return;
+      if (node.namespace !== p.namespace) continue;
       if (node.localName === "lastRenderedPageBreak")
         result.push(
           new RenderedPageBreak(this.store, this.store.ref(this.ref.part, node), this.ref)
         );
-      else for (const child of children(node)) visit(child);
-    };
-    visit(p);
+      else {
+        const nested = children(node);
+        this.store.context.budget.charge("work", nested.length);
+        this.store.context.budget.charge("retainedBytes", nested.length * 8);
+        for (let index = nested.length - 1; index >= 0; index--) pending.push(nested[index]!);
+      }
+    }
     return snapshotSequence(result);
   }
   get contains_page_break(): boolean {

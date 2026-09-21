@@ -3192,3 +3192,61 @@ Active work resumes02:08:44 UTC after the checkpoint gap and continues.
   [build tooling](https://napi.rs/docs/cli/build).
 - Registry metadata from crates.io for `rmcp`, `napi`, `napi-derive`, and `napi-build`,
   and npm metadata for `@napi-rs/cli`. Version observations are date-specific.
+
+### ACP client rewrite, 2026-09-21 02:58 UTC
+
+The additive private `@poe-code/poe-acp-client-rust` now exposes the complete original
+public client, transport, JSON-RPC, update, stream-helper and report API. Rust owns
+ACP dialect validation, request correlation, UTF-16 framing, lifecycle/capability
+admission, terminal identities, prompt queue admission, tool aggregation, legacy
+mapping, usage/error/report policy and redaction. Node supplies streams, process,
+promises/callbacks, dates, filesystem and crypto effects. One napi-rs addon embeds
+own std/path-only cores, with no original runtime imports or npm runtime/peer/
+optional dependency groups. Declaration generation is a manual development-only
+reference step; shipped declarations import only local files and Node types.
+
+Portable and original-reference tests were red before the corresponding modules.
+15 portable Rust cases,6 native groups and all172 original ACP cases pass. The
+reference route now redirects the entire unified suite, transport suite and plan
+replay suite without removing describes. Bidirectional public method and function
+contracts pass. Original tests cover real subprocess lifecycle, memfs report
+persistence, fs/terminal/permission callbacks, sessions, prompt multiplexing,
+extensions, cleanup/retry, schemas and malformed numeric payloads.
+
+Additional reproduced defects include retained replaced callbacks, completed
+512KiB framing allocation, notification-to-next-frame handler ordering, invented
+signal after rejected TERM, cyclic opaque notification payload rejection and
+notification identity loss. The fixes release replaced callback identities and
+large completed framing buffers, dispatch frames sequentially, distinguish failed
+signal delivery, project protocol fields through data descriptors without calling
+accessors/hooks and queue host identities via Rust-admitted tokens. Closed queues
+refuse tokens, preventing early-return notifications from accumulating host refs.
+State getters now read the native scalar directly:100 reads with512KiB negotiated
+metadata improved from16.41ms to0.042ms in the observed microbenchmark.
+
+Focused lint/fmt/clippy, type contracts, npm ci dry-run and the maintained explicit
+uncached111-workspace/5-build/330-edge closure pass. Direct and packed16MiB workers
+each run32 injected clients,8 real subprocesses and544 prompt turns while retaining
+544 notification objects and40 closed clients. All18 packaged JavaScript/type
+files pass AST import auditing; one addon and zero dependency groups pass. Endpoint
+heap is~8.3MB. Worker RSS includes the parent TypeScript auditor and is not isolated
+leak acceptance. Evidence out/rust-acp-*.
+
+Separate fresh-process packet benchmarks retain128 outputs and compare identical
+checksums. For8192 small mixed packets, TypeScript samples are4.12–6.04ms and Rust
+bindings30.11–36.49ms. Post-GC heap is~4.84/~4.82MB and RSS~57.3/~58.1MB. This is
+explicitly a failing performance advantage gate; there is no Rust speed or memory
+advantage claim. Conversion overhead needs further profiling. Native scalar state
+reads also remain slower than the original JS getter despite avoiding metadata
+copies. Prompt queues retain unread values and are not bounded by a configured
+limit. Aggregate/getter acceptance beyond notifications, platform artifacts,
+Python bindings and broad agent performance remain incomplete.
+
+Release35550571891 finished all gates successfully, but its release job explicitly
+skipped publication because its main checkout was stale. Release35554043660 failed
+its root workspace dependency test for missing safe-bash-mcp; that failure is
+reproduced locally and will receive a separate focused fix. No published release
+is verified. Remaining agent-spawn/poe-agent, provider/config/task/runtime/design
+closure and overall goal are unfinished. The inherited active02:08:44–02:41:05 UTC
+segment (1,941s) is now recorded; work resumed02:43:12 UTC after the checkpoint gap.
+The24-hour minimum actual effort remains unfulfilled.

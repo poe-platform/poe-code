@@ -20,8 +20,10 @@ export class OAuthError extends Error {
   readonly status: number;
   readonly retryable: boolean;
   readonly terminal: boolean;
+  /** True only when a complete OAuth error response establishes rejection. */
+  readonly outcomeKnown: boolean;
 
-  constructor(shape: OAuthErrorShape, status: number) {
+  constructor(shape: OAuthErrorShape, status: number, outcomeKnown = true) {
     super(shape.error_description ?? shape.error);
     this.name = "OAuthError";
     this.error = shape.error;
@@ -32,6 +34,7 @@ export class OAuthError extends Error {
     this.status = status;
     this.retryable = isRetryableOAuthError(this);
     this.terminal = !this.retryable;
+    this.outcomeKnown = outcomeKnown;
   }
 }
 
@@ -210,7 +213,8 @@ export async function readOAuthJsonObjectResponse(
 
   const record = payload as Record<string, unknown>;
   if (!response.ok) {
-    throw new OAuthError(readOAuthError(record, fallbackError.error), response.status);
+    const error = getOwnEntry(record, "error");
+    throw new OAuthError(readOAuthError(record, fallbackError.error), response.status, typeof error === "string" && error.trim().length > 0);
   }
 
   return record;
@@ -236,7 +240,7 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
 
 function createFallbackOAuthError(status: number): OAuthError {
   const error = status === 503 ? "temporarily_unavailable" : "server_error";
-  return new OAuthError({ error }, status);
+  return new OAuthError({ error }, status, false);
 }
 
 function normalizeBearerTokenType(value: unknown): "Bearer" | null {

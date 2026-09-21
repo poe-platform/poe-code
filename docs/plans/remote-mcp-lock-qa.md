@@ -22,3 +22,9 @@ or services are used.
 6. Inspect claim names and contents: only PID, random identity and numeric ticket
    metadata may appear; no token or client credentials. Record observed results
    in the main remote MCP progress ledger and purge the fixture directory.
+7. Repeat with the synthetic endpoint holding its response after recording a
+   redemption. Kill the requesting process before it receives the response.
+   A fresh process must recover the dead filesystem claim but refuse to replay
+   the pending refresh. Check that the endpoint still reports one redemption
+   and the stored tokenless session retains the original client and pending
+   refresh marker, even when the new provider also receives the initial grant.

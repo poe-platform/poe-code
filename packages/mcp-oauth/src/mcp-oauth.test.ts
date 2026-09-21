@@ -1691,7 +1691,10 @@ describe("createDefaultOAuthClientProvider", () => {
     if (result.action === "fail") {
       expect(result.error?.message).toBe(error);
     }
-    expect(await sessionStore.load(RESOURCE_URL)).toEqual(originalSession);
+    const retained = await sessionStore.load(RESOURCE_URL);
+    expect(retained).toMatchObject({ client: originalSession.client, refreshState: "pending" });
+    expect(retained?.tokens).toBeUndefined();
+    expect(originalSession.tokens?.refreshToken).toBe("refresh-current");
   });
 
   it("clears invalid refresh tokens, avoids echoing them, and falls back to one fresh authorization flow", async () => {

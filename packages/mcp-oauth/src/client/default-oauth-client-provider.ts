@@ -189,6 +189,12 @@ export function createDefaultOAuthClientProvider(
         forceRefresh = false;
       const sessionDiscovery = resolveDiscovery(discovery, session);
 
+      if (session?.refreshState === "pending") {
+        if (!allowInteractive || options.allowInteractive === false || sessionDiscovery === undefined)
+          throw new Error("OAuth refresh outcome is unknown; authorize again before using this resource");
+        return authorizeSession(canonicalResource, clearSessionTokens(session), sessionDiscovery, fetch, signal);
+      }
+
       if (session?.tokens !== undefined && !forceRefresh && !isExpired(session.tokens, now)) {
         return session;
       }
@@ -232,6 +238,10 @@ export function createDefaultOAuthClientProvider(
       return session;
     }
 
+    const pendingSession: StoredOAuthSession = { ...clearSessionTokens(session), refreshState: "pending" };
+    await saveSession(resource, pendingSession);
+    signal?.throwIfAborted();
+
     let refreshAttempted = false;
     let refreshedTokens: StoredOAuthTokens;
 
@@ -253,7 +263,10 @@ export function createDefaultOAuthClientProvider(
         break;
       } catch (error) {
         signal?.throwIfAborted();
-        if (error instanceof OAuthError && error.error === "invalid_grant") {
+        // Network errors, lost/malformed bodies and gateway failures cannot
+        // establish whether a rotating refresh token was already consumed.
+        if (!(error instanceof OAuthError) || !error.outcomeKnown) throw error;
+        if (error.error === "invalid_grant") {
           const clearedSession = clearSessionTokens(session);
           await saveSession(resource, clearedSession);
           return clearedSession;
@@ -276,6 +289,7 @@ export function createDefaultOAuthClientProvider(
           continue;
         }
 
+        await saveSession(resource, session);
         throw error;
       }
     }
@@ -615,6 +629,7 @@ function sameTokenGrant(left: StoredOAuthTokens, right: StoredOAuthTokens): bool
 function clearSessionTokens(session: StoredOAuthSession): StoredOAuthSession {
   const nextSession = { ...session };
   delete nextSession.tokens;
+  delete nextSession.refreshState;
   return nextSession;
 }
 
@@ -628,6 +643,9 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
   if (session === null) {
     return null;
   }
+  const refreshState = getOwnEntry(session, "refreshState");
+  if (refreshState !== undefined && (refreshState !== "pending" || getOwnEntry(session, "tokens") !== undefined))
+    throw new Error("Stored OAuth refresh state is invalid");
 
   const client = normalizeStoredClient(getOwnEntry(session, "client"));
   if (client === null) {

@@ -49,7 +49,7 @@ it("refreshes exactly the current rejected grant", async () => {
   const f = fixture();
   expect(await f.run({ ...tokens })).toEqual({ action: "retry" });
   expect(f.fetch).toHaveBeenCalledOnce();
-  expect(f.save).toHaveBeenCalledOnce();
+  expect(f.save).toHaveBeenCalledTimes(2);
 });
 
 it("rejects a provenance snapshot whose access token does not match the presented header", async () => {

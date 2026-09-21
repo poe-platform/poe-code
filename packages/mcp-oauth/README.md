@@ -118,9 +118,17 @@ acquisition, while token and browser operations retain their own deadlines.
 The native `auth-store` session adapter implements this hook for both encrypted
 files and Keychain identities, including across independent processes. Locks
 cover the complete read, refresh/authorization and persisted winner. Dead-owner
-claims are recovered without stealing a live transaction. A process crash or
-cancellation after refresh redemption but before persistence is still an
-uncertain token outcome; recovery for that case is under development.
+claims are recovered without stealing a live transaction.
+
+Before sending a refresh request, the provider persists a tokenless session with
+`refreshState: "pending"`, retaining the original client and discovery binding.
+A successful response replaces it with the rotated grant. A crash, cancellation,
+network disconnect or incomplete response leaves the marker, so another process
+cannot replay a possibly consumed refresh token or revive the initial import.
+Such a session requires fresh authorization. Interactive unauthorized handling
+can recover it; headless requests fail with an explicit unknown-outcome error.
+Only complete OAuth error responses establish a rejected request and allow a
+transient retry or restoration of the original grant. Gateway error pages do not.
 
 ## Environment Variables
 

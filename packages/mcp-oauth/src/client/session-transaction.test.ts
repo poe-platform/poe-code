@@ -37,7 +37,7 @@ it("serializes complete refresh transactions across providers sharing a session 
   f.finish.resolve();
   expect(await Promise.all([first, second])).toEqual(["Bearer winner", "Bearer winner"]);
   expect(f.fetch).toHaveBeenCalledOnce();
-  expect(f.store.save).toHaveBeenCalledOnce();
+  expect(f.store.save).toHaveBeenCalledTimes(2);
 });
 
 it("cancels a waiting request promptly without canceling the owner or releasing its lock", async () => {
@@ -66,7 +66,7 @@ it("holds a host backend lock across reread, redemption and persistence", async 
   const events: string[] = [];
   const load = f.store.load, save = f.store.save;
   f.store.load = async key => { events.push("read"); return load(key); };
-  f.store.save = async (key, value) => { events.push("persist"); await save(key, value); };
+  f.store.save = async (key, value) => { events.push(value.refreshState === "pending" ? "intent" : "persist"); await save(key, value); };
   f.store.withLock = async (key, operation, options) => {
     expect(key).toBe(resource); expect(options.timeoutMs).toBeGreaterThan(0);
     events.push("locked");
@@ -74,10 +74,10 @@ it("holds a host backend lock across reread, redemption and persistence", async 
   };
   const pending = f.authorize();
   await f.entered.promise;
-  expect(events).toEqual(["locked", "read"]);
+  expect(events).toEqual(["locked", "read", "intent"]);
   f.finish.resolve();
   expect(await pending).toBe("Bearer winner");
-  expect(events).toEqual(["locked", "read", "persist", "released"]);
+  expect(events).toEqual(["locked", "read", "intent", "persist", "released"]);
 });
 
 it("times out a waiter without letting a following transaction bypass the owner", async () => {

@@ -81,6 +81,8 @@ export interface StoredOAuthSession {
     clientSecret?: string;
   };
   tokens?: StoredOAuthTokens;
+  /** A refresh was begun; its winning response may not have been persisted. */
+  refreshState?: "pending";
   discovery: {
     resourceMetadataUrl: string;
     resourceMetadata: Record<string, unknown>;

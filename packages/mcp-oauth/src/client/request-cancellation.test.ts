@@ -51,7 +51,7 @@ it("closes the callback and preserves request cancellation identity during autho
   }
 });
 
-it("cancels stalled token bodies with the request signal without changing stored credentials", async () => {
+it("cancels stalled token bodies with the request signal while retaining tokenless refresh intent", async () => {
   const controller = new AbortController();
   const entered = Promise.withResolvers<void>();
   const cancel = vi.fn();
@@ -71,6 +71,8 @@ it("cancels stalled token bodies with the request signal without changing stored
     await entered.promise; await setImmediate(); controller.abort(reason); await setImmediate();
     expect(cancel).toHaveBeenCalledOnce();
     expect(await pending).toBe(reason);
-    expect(save).not.toHaveBeenCalled();
+    expect(save).toHaveBeenCalledOnce();
+    expect(save).toHaveBeenCalledWith(resource, expect.objectContaining({ refreshState: "pending", client: session.client }));
+    expect(save.mock.calls[0]?.[1]).not.toHaveProperty("tokens");
   } finally { try { body.close(); } catch { /* Cancelled. */ } await pending; }
 });

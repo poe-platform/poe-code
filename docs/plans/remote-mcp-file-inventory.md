@@ -435,7 +435,9 @@ a fixture. Any additional supporting document needed by a later finding must
 be read before counting that finding resolved.
 
 There are no pending complete reads in the scoped source/test inventory.
-Remaining work includes generated-tool scalar CLI/SDK policies, transport
-cleanup/error precedence checks, acceptance reconciliation and the requested
+Generated-tool scalar CLI/SDK policies, cleanup/error precedence checks and
+public consumer types are reconciled by later increments in the main ledger
+and acceptance audit. Remaining work includes continued operation-level runtime
+input ownership, updating evidence after subsequent changes and the requested
 fourteen-hour meaningful-work duration. This inventory does not close those
 gates or claim remote delivery.

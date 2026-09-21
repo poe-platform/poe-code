@@ -64,9 +64,12 @@ Additional complete reads after the legacy-revision conformance increment:
   source files and229 tests: 127/170 complete reads and41/59 explicit scope
   exclusions. Excluded files are not counted as complete reads. Additional
   supporting dependencies must be read if a later finding requires them.
-- Reconcile remaining required consumer types and SDK/management parity.
-- Reconcile all acceptance criteria against final implementation, tests, manual QA
-  and documentation; identify any unsupported generic behavior explicitly.
+- Public consumer types and scalar SDK/management parity are reconciled in
+  `remote-mcp-acceptance-audit.md`, with strict built-export compilation and
+  maintained/manual evidence recorded in the main ledger. Keep this evidence
+  current if subsequent changes alter the public surfaces.
+- Continue updating the acceptance map after operation-level findings and
+  identify unsupported generic behavior explicitly.
 - Continue meaningful implementation/audit work through the requested fourteen
   hours. Closed issue inventory coverage alone is not completion.
 

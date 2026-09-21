@@ -4,6 +4,7 @@ import {
   registrationMatchesRedirect
 } from "./registration.js";
 import { withOAuthSessionTransaction } from "./transaction.js";
+import { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./registration.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
@@ -125,6 +126,33 @@ export function createDefaultOAuthClientProvider(options) {
   const clientStore =
     options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
   const now = options.now ?? Date.now;
+  const registration = options.client.registration === undefined ? undefined : parseOAuthClientRegistration(options.client.registration);
+  const optionalString = (value) => typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
+  const configuredClient = normalizeStoredOAuthClient({
+    clientId: optionalString(options.client.clientId) ?? registration?.client_id.trim(),
+    clientSecret: optionalString(options.client.clientSecret) ?? optionalString(registration?.client_secret),
+    registration,
+    tokenEndpointAuthMethod: options.client.tokenEndpointAuthMethod
+  });
+  let initialGrant;
+  if (options.initialGrant !== undefined) {
+    let url;
+    try { url = new URL(options.initialGrant.resource); }
+    catch { throw new Error("OAuth initial grant resource must be an absolute HTTP URL"); }
+    if ((url.protocol !== "http:" && url.protocol !== "https:") || url.username || url.password || url.hash)
+      throw new Error("OAuth initial grant resource must be an HTTP URL without credentials or fragments");
+    let tokens;
+    try { tokens = native.providerNormalizeImportedTokens(JSON.stringify(project(options.initialGrant.tokens, [...TOKENS, "expiresIn", "issuedAt"])), Number(now())); }
+    catch { throw new Error("OAuth initial grant has invalid tokens or expiry"); }
+    if (tokens === null || configuredClient === null)
+      throw new Error("OAuth initial grant requires valid tokens and the original client ID");
+    if (requestedScope !== undefined && tokens.scope !== requestedScope)
+      throw new Error("OAuth initial grant does not match the requested OAuth scope");
+    try { new Headers({ Authorization: `Bearer ${tokens.accessToken}` }); }
+    catch { throw new Error("OAuth initial grant access token is not a valid HTTP header value"); }
+    initialGrant = { resource: canonicalizeResourceIndicator(url), tokens, client: configuredClient };
+  }
+  let initialGrantConsumed = false;
   const registeredClients = new native.NativeProviderClientCache();
   const refreshing = new Map(),
     authorizing = new Map();
@@ -226,8 +254,9 @@ export function createDefaultOAuthClientProvider(options) {
       resource,
       async () => {
         let session = await loadSession(resource);
+        if (session !== null && initialGrant?.resource === resource) initialGrantConsumed = true;
         const input = {
-          configured: clientOptions(options.client),
+          configured: { ...clientOptions(options.client), ...configuredClient, mode: initialGrant === undefined ? options.client.mode : "static" },
           session:
             session === null
               ? null
@@ -257,6 +286,21 @@ export function createDefaultOAuthClientProvider(options) {
         if (unwrap(native.providerBindingAction(resource, JSON.stringify(input))) === "clear") {
           await sessionStore.clear(resource);
           session = null;
+        }
+        if (session === null && discovery !== undefined && !initialGrantConsumed && initialGrant?.resource === resource) {
+          endpoints(discovery.authorizationServerMetadata);
+          session = {
+            resource, authorizationServer: discovery.authorizationServer,
+            client: initialGrant.client, tokens: initialGrant.tokens,
+            ...(requestedScope === undefined ? {} : { requestedScope }),
+            discovery: {
+              resourceMetadataUrl: discovery.resourceMetadataUrl,
+              resourceMetadata: discovery.resourceMetadata,
+              authorizationServerMetadata: discovery.authorizationServerMetadata
+            }
+          };
+          await sessionStore.save(resource, session);
+          initialGrantConsumed = true;
         }
         if (
           force &&
@@ -526,6 +570,10 @@ export function createDefaultOAuthClientProvider(options) {
       validateUrl(input.requestUrl, "Protected resource request URL");
       const url = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensure(url, undefined, input.fetch, false, false, input.signal);
+      if (session === null && !initialGrantConsumed && initialGrant?.resource === url && !expired(initialGrant.tokens)) {
+        input.headers.set("Authorization", `Bearer ${initialGrant.tokens.accessToken}`);
+        return { ...initialGrant.tokens };
+      }
       if (session === null || session.tokens === undefined || expired(session.tokens)) return;
       unwrap(native.providerRequestMatches(url, session.resource));
       input.headers.set("Authorization", `Bearer ${session.tokens.accessToken}`);
@@ -538,7 +586,8 @@ export function createDefaultOAuthClientProvider(options) {
           resource = canonicalizeResourceIndicator(input.discovery.resource);
         unwrap(native.providerRequestMatches(url, resource));
         const cached = await loadSession(resource);
-        let rejectedCurrent = cached?.tokens !== undefined;
+        const currentTokens = cached?.tokens ?? (!initialGrantConsumed && initialGrant?.resource === resource ? initialGrant.tokens : undefined);
+        let rejectedCurrent = currentTokens !== undefined;
         let presented = input.presentedTokens;
         if (presented !== undefined) {
           rejectedCurrent = false;
@@ -561,7 +610,7 @@ export function createDefaultOAuthClientProvider(options) {
                 "OAuth rejected-request provenance does not match its authorization header"
               );
             rejectedCurrent = native.rejectedGrantMatches(
-              JSON.stringify({ current: cached?.tokens, rejected: presented })
+              JSON.stringify({ current: currentTokens, rejected: presented })
             );
           }
         }

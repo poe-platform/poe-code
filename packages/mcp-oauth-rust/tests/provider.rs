@@ -247,3 +247,32 @@ fn fresh_redirect_port_aliases_never_change_scheme_host_path_or_query() {
     ));
     assert!(!allowed(true, true, "localhost", "localhost", true, false));
 }
+
+#[test]
+fn imported_grant_expiry_is_anchored_once_and_absolute_expiry_wins() {
+    use mcp_oauth_rust::provider::normalize_imported_tokens;
+    let relative = value(r#"{"accessToken":"t","tokenType":"Bearer","expiresIn":3600}"#);
+    let normalized = normalize_imported_tokens(&relative, 1000.0)
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        normalized.get("expiresAt"),
+        Some(&Value::Number(3_601_000.0))
+    );
+    let absolute =
+        value(r#"{"accessToken":"t","tokenType":"Bearer","expiresIn":3600,"expiresAt":0}"#);
+    assert_eq!(
+        normalize_imported_tokens(&absolute, 1000.0)
+            .unwrap()
+            .unwrap()
+            .get("expiresAt"),
+        Some(&Value::Number(0.0))
+    );
+    for invalid in [
+        r#"{"expiresIn":-1}"#,
+        r#"{"expiresIn":1.5}"#,
+        r#"{"issuedAt":null}"#,
+    ] {
+        assert!(normalize_imported_tokens(&value(invalid), 1000.0).is_err());
+    }
+}

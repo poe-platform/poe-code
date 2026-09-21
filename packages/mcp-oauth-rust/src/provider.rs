@@ -69,6 +69,43 @@ pub fn normalize_tokens(value: &Value) -> Option<Value> {
     }
     Some(Value::Object(fields))
 }
+/// Relative import lifetimes are anchored at the import clock, never at a later request.
+pub fn normalize_imported_tokens(value: &Value, now: f64) -> Result<Option<Value>, String> {
+    let lifetime = match value.get("expiresIn") {
+        None => None,
+        Some(Value::Number(n))
+            if n.is_finite() && n.fract() == 0.0 && *n >= 0.0 && *n <= 9_007_199_254_740_991.0 =>
+        {
+            Some(*n)
+        }
+        _ => return Err("OAuth initial grant has invalid relative expiry".into()),
+    };
+    let issued = match value.get("issuedAt") {
+        None => now,
+        Some(Value::Number(n))
+            if n.is_finite() && n.fract() == 0.0 && n.abs() <= 8_640_000_000_000_000.0 =>
+        {
+            *n
+        }
+        _ => return Err("OAuth initial grant has invalid issuance time".into()),
+    };
+    let expires = match value.get("expiresAt") {
+        Some(expires) if !matches!(expires, Value::Null) => expires.clone(),
+        _ => lifetime.map_or(Value::Null, |lifetime| {
+            Value::Number(issued + lifetime * 1000.0)
+        }),
+    };
+    let Value::Object(fields) = value else {
+        return Ok(None);
+    };
+    let mut fields = fields
+        .iter()
+        .filter(|(key, _)| key != &text("expiresAt"))
+        .cloned()
+        .collect::<Vec<_>>();
+    fields.push(property("expiresAt", expires));
+    normalize_tokens_checked(&Value::Object(fields))
+}
 #[derive(Debug, PartialEq, Eq)]
 pub enum Effect {
     Clock,

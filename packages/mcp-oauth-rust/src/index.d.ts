@@ -90,6 +90,7 @@ export interface DefaultOAuthClientProviderOptions {
   allowInteractive?: boolean;
   sessionLockTimeoutMs?: number;
   persistenceNamespace?: string;
+  initialGrant?: { resource: string; tokens: Omit<StoredOAuthTokens, "expiresAt"> & { expiresAt?: number | null; expiresIn?: number; issuedAt?: number } };
   browser: LoopbackAuthorizationOptions;
   sessionStore?: OAuthSessionStore;
   authStore?: CreateSecretStoreInput;

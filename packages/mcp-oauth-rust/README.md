@@ -38,6 +38,8 @@ listeners and rejects pending waits; close is idempotent and code waits are sing
 Encrypted session and client-registration persistence uses the embedded Rust
 credential store. URI-specific filenames and Keychain accounts match the original
 package, including resource normalization and machine-bound encrypted documents.
+Imported grants retain their original client and resource, anchor relative lifetimes at import,
+and yield to persisted rotations and revocations.
 Optional persistence namespaces isolate profiles sharing a resource or issuer.
 Session transactions use the backing credential lock across independent provider instances.
 Session admission runs in Rust and client registration loads retain all validated metadata.

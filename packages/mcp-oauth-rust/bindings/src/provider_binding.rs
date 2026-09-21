@@ -304,3 +304,10 @@ pub fn rejected_grant_matches(text: Utf16String) -> Result<bool> {
         _ => false,
     })
 }
+
+#[napi]
+pub fn provider_normalize_imported_tokens(text: Utf16String, now: f64) -> Result<NativeJson> {
+    let result = provider::normalize_imported_tokens(&parse(&text)?, now)
+        .map_err(napi::Error::from_reason)?;
+    Ok(NativeJson(result.unwrap_or(Value::Null)))
+}

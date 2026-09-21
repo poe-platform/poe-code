@@ -41,6 +41,7 @@ const verifier = createJwksTokenVerifier({
   - `mode: "dynamic"` with optional `metadata`
   - `mode: "static"` with `clientId`, optional `clientSecret`, optional `metadata`
 - `allowInteractive: false` prevents interactive login while retaining cached tokens and silent refresh
+- `sessionLockTimeoutMs` limits acquisition waits for a session transaction lock (default 30,000 ms; integer from 1 to 2147483647)
 - `initialGrant: { resource, tokens }` optionally imports an existing Bearer grant for one HTTP resource; requires the original client ID
 - `browser.openBrowser(url)` optional
 - `browser.readLine()` optional
@@ -105,6 +106,16 @@ including sessions whose tokens have been cleared; an import cannot revive them.
 Input tokens are copied and invalid expiry values fail before authorization.
 
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.
+
+Providers sharing the same `sessionStore` object serialize the complete session
+read, refresh/authorization and persistence transaction for each resource.
+Waiting requests can cancel or time out independently; they cannot release an
+active owner's lock. Custom stores may implement
+`withLock(resource, operation, { signal, timeoutMs })` to serialize the same
+transaction across store instances or processes. The hook must honor acquisition
+cancellation and keep the lock until the operation settles. The timeout bounds
+acquisition, while token and browser operations retain their own deadlines.
+Cross-process locking for the native secret-store backend is under development.
 
 ## Environment Variables
 

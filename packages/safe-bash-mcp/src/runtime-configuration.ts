@@ -9,6 +9,7 @@ export interface ConfigurationBindingOptions extends ConfigurationOptions {
   readonly maxCredentialBytes?: number;
   readonly oauth?: {
     readonly allowInteractive?: boolean;
+    readonly sessionLockTimeoutMs?: number;
     readonly browser?: Omit<DefaultOAuthClientProviderOptions["browser"], "redirectUri">;
     readonly sessionStore?: (server: RemoteMcpServerConfiguration) => OAuthSessionStore;
     readonly authStore?: DefaultOAuthClientProviderOptions["authStore"];
@@ -81,6 +82,7 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
           ? { mode: "static", clientId: clientId!, clientSecret, metadata: { scope } }
           : { mode: "dynamic", clientId, clientSecret, metadata: { scope } },
         allowInteractive: options.oauth?.allowInteractive ?? false,
+        sessionLockTimeoutMs: options.oauth?.sessionLockTimeoutMs,
         browser: { ...options.oauth?.browser, redirectUri }, authStore: options.oauth?.authStore, now: options.oauth?.now,
         ...(accessToken === undefined ? {} : { initialGrant: { resource: server.url,
           tokens: { accessToken, refreshToken, expiresAt, tokenType: "Bearer" as const, scope } } })

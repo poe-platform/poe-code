@@ -92,6 +92,8 @@ export interface OAuthSessionStore {
   load(resource: string): Promise<StoredOAuthSession | null>;
   save(resource: string, session: StoredOAuthSession): Promise<void>;
   clear(resource: string): Promise<void>;
+  /** Backend-wide lock covering a complete read/redeem/write transaction. */
+  withLock?<T>(resource: string, operation: () => Promise<T>, options: { signal?: AbortSignal; timeoutMs: number }): Promise<T>;
 }
 
 export interface DefaultOAuthClientProviderOptions {
@@ -110,6 +112,8 @@ export interface DefaultOAuthClientProviderOptions {
       };
   /** Disable interactive authorization while allowing cached tokens and silent refresh. */
   allowInteractive?: boolean;
+  /** Maximum wait to acquire a session transaction lock (default 30,000 ms). */
+  sessionLockTimeoutMs?: number;
   /** Import an existing grant for one resource. Persisted sessions take precedence. */
   initialGrant?: {
     resource: string;

@@ -158,8 +158,9 @@ OAuth uses the native provider and defaults to headless operation. Set
 `oauth.allowInteractive: true` and `oauth.browser.openBrowser` to enable login.
 Configured scope and exact redirect values come from environment references or
 their public fallbacks. Supply `oauth.sessionStore(server)` for host-owned
-persistence, or `oauth.authStore` for the native secret-store backend. Existing
-access-token imports require the original client ID; refresh-token/expiry fields
+persistence, or `oauth.authStore` for the native secret-store backend.
+`oauth.sessionLockTimeoutMs` bounds transaction lock acquisition (default 30 s).
+Existing access-token imports require the original client ID; refresh-token/expiry fields
 require an access token. Expiry must be a decimal Unix epoch millisecond value.
 Persisted rotated or cleared grants take precedence over imported environment
 tokens. A fresh import avoids discovery; an expired or explicitly rejected grant

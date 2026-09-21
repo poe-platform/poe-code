@@ -27,6 +27,7 @@ import {
   readOAuthJsonObjectResponse
 } from "./token-endpoint.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
+import { withOAuthSessionTransaction } from "./session-transaction.js";
 
 const MAX_JS_DATE_MS = 8_640_000_000_000_000;
 
@@ -49,8 +50,6 @@ export function createDefaultOAuthClientProvider(
     options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
   const now = options.now ?? Date.now;
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
-  const refreshPromises = new Map<string, Promise<StoredOAuthSession | null>>();
-  const authorizationPromises = new Map<string, Promise<StoredOAuthSession>>();
   if (options.initialGrant !== undefined) {
     let resource: URL;
     try { resource = new URL(options.initialGrant.resource); }
@@ -160,61 +159,63 @@ export function createDefaultOAuthClientProvider(
   ): Promise<StoredOAuthSession | null> {
     signal?.throwIfAborted();
     const canonicalResource = canonicalizeResourceIndicator(resource);
-    let session = await loadSession(canonicalResource);
-    if (session !== null && initialGrant?.resource === canonicalResource) initialGrantConsumed = true;
-    signal?.throwIfAborted();
-    if (discovery !== undefined && getOwnString(
-      discovery.authorizationServerMetadata, "issuer"
-    ) !== discovery.authorizationServer) {
-      throw new Error("OAuth discovery authorization-server issuer mismatch");
-    }
-    if (session !== null && (
-      canonicalizeResourceIndicator(session.resource) !== canonicalResource
-      || getOwnString(session.discovery.authorizationServerMetadata, "issuer") !== session.authorizationServer
-      || (discovery !== undefined && discovery.authorizationServer !== session.authorizationServer)
-    )) {
-      await clearSession(canonicalResource);
-      session = null;
-    }
-    if (session === null && discovery !== undefined && !initialGrantConsumed && initialGrant?.resource === canonicalResource &&
-      initialGrant.tokens !== undefined && initialGrant.client !== null) {
-      assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
-      session = { resource: canonicalResource, authorizationServer: discovery.authorizationServer,
-        client: initialGrant.client, tokens: initialGrant.tokens, discovery: toStoredDiscovery(discovery) };
-      await saveSession(canonicalResource, session);
-      initialGrantConsumed = true;
+    return withOAuthSessionTransaction(sessionStore, canonicalResource, async () => {
+      let session = await loadSession(canonicalResource);
+      if (session !== null && initialGrant?.resource === canonicalResource) initialGrantConsumed = true;
       signal?.throwIfAborted();
-    }
-    if (forceRefresh && rejectedTokens !== undefined && (rejectedTokens === null || session?.tokens === undefined || !sameTokenGrant(session.tokens, rejectedTokens)))
-      forceRefresh = false;
-    const sessionDiscovery = resolveDiscovery(discovery, session);
+      if (discovery !== undefined && getOwnString(
+        discovery.authorizationServerMetadata, "issuer"
+      ) !== discovery.authorizationServer) {
+        throw new Error("OAuth discovery authorization-server issuer mismatch");
+      }
+      if (session !== null && (
+        canonicalizeResourceIndicator(session.resource) !== canonicalResource
+        || getOwnString(session.discovery.authorizationServerMetadata, "issuer") !== session.authorizationServer
+        || (discovery !== undefined && discovery.authorizationServer !== session.authorizationServer)
+      )) {
+        await clearSession(canonicalResource);
+        session = null;
+      }
+      if (session === null && discovery !== undefined && !initialGrantConsumed && initialGrant?.resource === canonicalResource &&
+        initialGrant.tokens !== undefined && initialGrant.client !== null) {
+        assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
+        session = { resource: canonicalResource, authorizationServer: discovery.authorizationServer,
+          client: initialGrant.client, tokens: initialGrant.tokens, discovery: toStoredDiscovery(discovery) };
+        await saveSession(canonicalResource, session);
+        initialGrantConsumed = true;
+        signal?.throwIfAborted();
+      }
+      if (forceRefresh && rejectedTokens !== undefined && (rejectedTokens === null || session?.tokens === undefined || !sameTokenGrant(session.tokens, rejectedTokens)))
+        forceRefresh = false;
+      const sessionDiscovery = resolveDiscovery(discovery, session);
 
-    if (session?.tokens !== undefined && !forceRefresh && !isExpired(session.tokens, now)) {
-      return session;
-    }
-
-    if (
-      session?.tokens?.refreshToken !== undefined &&
-      sessionDiscovery !== undefined &&
-      (forceRefresh || isExpired(session.tokens, now))
-    ) {
-      session = await refreshSession(canonicalResource, session, sessionDiscovery, fetch, signal);
-      if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
+      if (session?.tokens !== undefined && !forceRefresh && !isExpired(session.tokens, now)) {
         return session;
       }
-    }
 
-    if (forceRefresh && session?.tokens !== undefined) {
-      session = clearSessionTokens(session);
-      await saveSession(canonicalResource, session);
-    }
+      if (
+        session?.tokens?.refreshToken !== undefined &&
+        sessionDiscovery !== undefined &&
+        (forceRefresh || isExpired(session.tokens, now))
+      ) {
+        session = await refreshSession(canonicalResource, session, sessionDiscovery, fetch, signal);
+        if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
+          return session;
+        }
+      }
 
-    if (!allowInteractive || sessionDiscovery === undefined) {
-      return session;
-    }
+      if (forceRefresh && session?.tokens !== undefined) {
+        session = clearSessionTokens(session);
+        await saveSession(canonicalResource, session);
+      }
 
-    if (options.allowInteractive === false) throw new Error("OAuth interactive authorization is disabled");
-    return authorizeSession(canonicalResource, session, sessionDiscovery, fetch, signal);
+      if (!allowInteractive || sessionDiscovery === undefined) {
+        return session;
+      }
+
+      if (options.allowInteractive === false) throw new Error("OAuth interactive authorization is disabled");
+      return authorizeSession(canonicalResource, session, sessionDiscovery, fetch, signal);
+    }, { signal, timeoutMs: options.sessionLockTimeoutMs });
   }
 
   async function refreshSession(
@@ -227,82 +228,68 @@ export function createDefaultOAuthClientProvider(
     signal?.throwIfAborted();
     assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
 
-    const inFlight = refreshPromises.get(resource);
-    if (inFlight !== undefined) {
-      return inFlight;
+    if (session.tokens?.refreshToken === undefined) {
+      return session;
     }
 
-    const promise = (async () => {
+    let refreshAttempted = false;
+    let refreshedTokens: StoredOAuthTokens;
+
+    while (true) {
       try {
-        if (session.tokens?.refreshToken === undefined) {
-          return session;
+        refreshedTokens = await refreshAccessToken({
+          tokenEndpoint: requireOwnString(
+            discovery.authorizationServerMetadata,
+            "token_endpoint",
+            "Authorization server metadata"
+          ),
+          clientId: session.client.clientId,
+          clientSecret: session.client.clientSecret,
+          refreshToken: session.tokens.refreshToken,
+          resource,
+          fetch, signal,
+          now
+        });
+        break;
+      } catch (error) {
+        signal?.throwIfAborted();
+        if (error instanceof OAuthError && error.error === "invalid_grant") {
+          const clearedSession = clearSessionTokens(session);
+          await saveSession(resource, clearedSession);
+          return clearedSession;
         }
 
-        let refreshAttempted = false;
-        let refreshedTokens: StoredOAuthTokens;
-
-        while (true) {
-          try {
-            refreshedTokens = await refreshAccessToken({
-              tokenEndpoint: requireOwnString(
-                discovery.authorizationServerMetadata,
-                "token_endpoint",
-                "Authorization server metadata"
-              ),
-              clientId: session.client.clientId,
-              clientSecret: session.client.clientSecret,
-              refreshToken: session.tokens.refreshToken,
-              resource,
-              fetch, signal,
-              now
-            });
-            break;
-          } catch (error) {
-            signal?.throwIfAborted();
-            if (error instanceof OAuthError && error.error === "invalid_grant") {
-              const clearedSession = clearSessionTokens(session);
-              await saveSession(resource, clearedSession);
-              return clearedSession;
-            }
-
-            if (
-              shouldReRegisterStoredDynamicClient(
-                error,
-                await loadRegisteredClient(discovery.authorizationServer),
-                false
-              )
-            ) {
-              await clearRegisteredClient(discovery.authorizationServer);
-              await clearSession(resource);
-              return null;
-            }
-
-            if (!refreshAttempted && isRetryableOAuthError(error)) {
-              refreshAttempted = true;
-              continue;
-            }
-
-            throw error;
-          }
+        if (
+          shouldReRegisterStoredDynamicClient(
+            error,
+            await loadRegisteredClient(discovery.authorizationServer),
+            false
+          )
+        ) {
+          await clearRegisteredClient(discovery.authorizationServer);
+          await clearSession(resource);
+          return null;
         }
 
-        const updatedSession: StoredOAuthSession = {
-          ...session,
-          tokens: {
-            ...refreshedTokens,
-            refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken
-          },
-          discovery: toStoredDiscovery(discovery)
-        };
-        await saveSession(resource, updatedSession);
-        return updatedSession;
-      } finally {
-        refreshPromises.delete(resource);
+        if (!refreshAttempted && isRetryableOAuthError(error)) {
+          refreshAttempted = true;
+          continue;
+        }
+
+        throw error;
       }
-    })();
+    }
 
-    refreshPromises.set(resource, promise);
-    return promise;
+    const updatedSession: StoredOAuthSession = {
+      ...session,
+      tokens: {
+        ...refreshedTokens,
+        refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken
+      },
+      discovery: toStoredDiscovery(discovery)
+    };
+    await saveSession(resource, updatedSession);
+    return updatedSession;
   }
 
   async function authorizeSession(
@@ -313,109 +300,96 @@ export function createDefaultOAuthClientProvider(
     signal?: AbortSignal
   ): Promise<StoredOAuthSession> {
     signal?.throwIfAborted();
-    const inFlight = authorizationPromises.get(resource);
-    if (inFlight !== undefined) {
-      return inFlight;
-    }
+    assertS256PkceSupport(discovery.authorizationServerMetadata);
+    assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
+    let currentSession = existingSession;
+    let transientRetryAttempted = false;
+    let reRegistrationAttempted = false;
 
-    const promise = (async () => {
-      assertS256PkceSupport(discovery.authorizationServerMetadata);
-      assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
-      let currentSession = existingSession;
-      let transientRetryAttempted = false;
-      let reRegistrationAttempted = false;
+    while (true) {
+      const loopback = await createLoopbackAuthorizationSession({
+        openBrowser: options.browser.openBrowser,
+        readLine: options.browser.readLine,
+        createServer: options.browser.createServer,
+        landingPage: options.browser.landingPage,
+        redirectUri: options.browser.redirectUri,
+        signal: options.browser.signal === undefined ? signal : signal === undefined ? options.browser.signal : AbortSignal.any([signal, options.browser.signal]),
+        timeoutMs: options.browser.timeoutMs
+      });
+      let resolvedClient: ResolvedOAuthClient | null = null;
 
-      while (true) {
-        const loopback = await createLoopbackAuthorizationSession({
-          openBrowser: options.browser.openBrowser,
-          readLine: options.browser.readLine,
-          createServer: options.browser.createServer,
-          landingPage: options.browser.landingPage,
-          redirectUri: options.browser.redirectUri,
-          signal: options.browser.signal === undefined ? signal : signal === undefined ? options.browser.signal : AbortSignal.any([signal, options.browser.signal]),
-          timeoutMs: options.browser.timeoutMs
+      try {
+        resolvedClient = await resolveClient(
+          currentSession,
+          discovery,
+          loopback.redirectUri,
+          fetch,
+          signal
+        );
+        const sessionWithoutTokens: StoredOAuthSession = {
+          resource,
+          authorizationServer: discovery.authorizationServer,
+          client: resolvedClient.client,
+          discovery: toStoredDiscovery(discovery)
+        };
+        await saveSession(resource, sessionWithoutTokens);
+
+        const verifier = generateCodeVerifier();
+        const challenge = generateCodeChallenge(verifier);
+        const authorizationUrl = buildAuthorizationUrl({
+          metadata: discovery.authorizationServerMetadata,
+          resource,
+          clientId: resolvedClient.client.clientId,
+          redirectUri: loopback.redirectUri,
+          codeChallenge: challenge,
+          clientMetadata: getClientMetadata(options.client)
         });
-        let resolvedClient: ResolvedOAuthClient | null = null;
+        const code = await loopback.waitForCode(authorizationUrl);
+        const tokens = await exchangeAuthorizationCode({
+          tokenEndpoint: requireOwnString(
+            discovery.authorizationServerMetadata,
+            "token_endpoint",
+            "Authorization server metadata"
+          ),
+          clientId: resolvedClient.client.clientId,
+          clientSecret: resolvedClient.client.clientSecret,
+          code,
+          codeVerifier: verifier,
+          redirectUri: loopback.redirectUri,
+          resource,
+          fetch, signal,
+          now
+        });
 
-        try {
-          resolvedClient = await resolveClient(
-            currentSession,
-            discovery,
-            loopback.redirectUri,
-            fetch,
-            signal
-          );
-          const sessionWithoutTokens: StoredOAuthSession = {
-            resource,
-            authorizationServer: discovery.authorizationServer,
-            client: resolvedClient.client,
-            discovery: toStoredDiscovery(discovery)
-          };
-          await saveSession(resource, sessionWithoutTokens);
+        const session: StoredOAuthSession = {
+          ...sessionWithoutTokens,
+          tokens
+        };
 
-          const verifier = generateCodeVerifier();
-          const challenge = generateCodeChallenge(verifier);
-          const authorizationUrl = buildAuthorizationUrl({
-            metadata: discovery.authorizationServerMetadata,
-            resource,
-            clientId: resolvedClient.client.clientId,
-            redirectUri: loopback.redirectUri,
-            codeChallenge: challenge,
-            clientMetadata: getClientMetadata(options.client)
-          });
-          const code = await loopback.waitForCode(authorizationUrl);
-          const tokens = await exchangeAuthorizationCode({
-            tokenEndpoint: requireOwnString(
-              discovery.authorizationServerMetadata,
-              "token_endpoint",
-              "Authorization server metadata"
-            ),
-            clientId: resolvedClient.client.clientId,
-            clientSecret: resolvedClient.client.clientSecret,
-            code,
-            codeVerifier: verifier,
-            redirectUri: loopback.redirectUri,
-            resource,
-            fetch, signal,
-            now
-          });
-
-          const session: StoredOAuthSession = {
-            ...sessionWithoutTokens,
-            tokens
-          };
-
-          await saveSession(resource, session);
-          return session;
-        } catch (error) {
-          signal?.throwIfAborted();
-          if (shouldReRegisterStoredDynamicClient(error, resolvedClient, reRegistrationAttempted)) {
-            reRegistrationAttempted = true;
-            await clearRegisteredClient(discovery.authorizationServer);
-            await clearSession(resource);
-            currentSession = null;
-            continue;
-          }
-
-          if (!transientRetryAttempted && isRetryableOAuthError(error)) {
-            transientRetryAttempted = true;
-            await clearSession(resource);
-            currentSession = null;
-            continue;
-          }
-
-          throw error;
-        } finally {
-          loopback.close();
+        await saveSession(resource, session);
+        return session;
+      } catch (error) {
+        signal?.throwIfAborted();
+        if (shouldReRegisterStoredDynamicClient(error, resolvedClient, reRegistrationAttempted)) {
+          reRegistrationAttempted = true;
+          await clearRegisteredClient(discovery.authorizationServer);
+          await clearSession(resource);
+          currentSession = null;
+          continue;
         }
-      }
-    })();
 
-    const finalPromise = promise.finally(() => {
-      authorizationPromises.delete(resource);
-    });
-    authorizationPromises.set(resource, finalPromise);
-    return finalPromise;
+        if (!transientRetryAttempted && isRetryableOAuthError(error)) {
+          transientRetryAttempted = true;
+          await clearSession(resource);
+          currentSession = null;
+          continue;
+        }
+
+        throw error;
+      } finally {
+        loopback.close();
+      }
+    }
   }
 
   async function resolveClient(

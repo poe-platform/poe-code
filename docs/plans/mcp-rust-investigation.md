@@ -3129,6 +3129,53 @@ is verified. Additional conservative active segment01:50:55–02:07:03 UTC (968s
 is recorded. Work resumes02:08:44 UTC after the checkpoint gap;24-hour actual
 effort and overall goal remain unfinished.
 
+### Standalone terminal pilot MCP, 2026-09-21 02:23 UTC
+
+`terminal-pilot-mcp-rust` adds the independent application server, original public
+`createTerminalPilotMCPGroup()`/`main()`, a suffixed executable and explicit server
+factory. One napi-rs addon embeds own terminal and stdio bindings; a development
+AST preparation step copies own host adapters/declarations and rewrites relative
+imports. No original SDK, Toolcraft or external implementation package is imported
+at runtime. The command declaration set supplies13 primary/13 legacy aliases;
+Rust compiles and validates wire output schemas and converts exitCode to exit_code.
+Node handles streams, SDK transport effects and runtime cleanup. Rust shutdown
+admission is permanent, while cleanup failure allows a retry.
+
+Missing-package and portable-policy tests were red before implementation. Further
+tests reproduced calls after failed shutdown and null runtime throws; permanent
+admission and numeric error normalization fix these. Original SDK tests also
+validated the required SDK connect adapter and key error message. The latter has
+its own portable red and atomic terminal-pilot-rust fix f55df669e, pushed to main.
+Input validation belongs to the Rust command layer, avoiding a second transport
+schema validator's different diagnostics; this does not disable command validation.
+
+3 Rust cases,8 native/server groups and all9 actual original SDK/CLI cases pass.
+The original architecture-specific runMCP/mock tests are not counted. Exact26-tool
+metadata equality, real PTY calls through both aliases, wire result casing,
+invalid-key pre-effect admission, impossible PID output, retryable cleanup,
+official SDK schema validation and CLI JSON-RPC-only stdout are verified. The
+actual CLI EOF case closes a live sleep process and verifies ESRCH after natural
+server exit. Original CLI symlink/memfs tests pass; help screenshot is inspected.
+Bidirectional original public factory/main and CLI declaration contracts pass,
+without production SDK type imports. Lint/fmt/clippy and maintained explicit
+uncached110-workspace/29-build closure pass. npm ci dry-run passes. Lock changes
+add only this workspace and link; unrelated npm normalization is excluded.
+
+Fresh direct/packed16MiB workers each create16 independent servers, run48 real
+PTY sessions through mixed aliases, retain48 history snapshots and16 closed
+server objects, and confirm calls after shutdown are rejected. All16 packaged
+JavaScript/declaration files pass AST import auditing; one addon and zero npm
+runtime/peer/optional groups pass. Endpoint heap is~8.8/~8.7MB; process RSS includes
+the parent TypeScript auditor and retained native tool declarations, so this is
+not peak/leak acceptance. Closed servers retain tool metadata while referenced.
+Archive/extraction are purged after checks. Evidence out/rust-terminal-pilot-mcp-*.
+
+General terminal/agent performance, remaining provider/runtime/design/schema/task
+packages, complete poe-agent, Python and cross-platform artifacts remain open.
+Release35550571891 has all completed gates successful but unit is still running;
+publication is not verified. Overall goal/24-hour actual effort remain unfinished.
+Active work resumes02:08:44 UTC after the checkpoint gap and continues.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

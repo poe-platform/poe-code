@@ -1,0 +1,10 @@
+[package]
+name = "terminal-pilot-mcp-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }
+terminal-pilot-rust = { path = "../terminal-pilot-rust" }
+toolcraft-schema-rust = { path = "../toolcraft-schema-rust" }

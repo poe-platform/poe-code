@@ -1,0 +1,10 @@
+import * as own from '../dist/index.js';
+import type * as reference from 'terminal-pilot-mcp';
+type OriginalExports=Pick<typeof own,keyof typeof reference>;
+const a:typeof reference=own;
+const b:OriginalExports=null as unknown as typeof reference;
+import type {runCli as originalCli} from '../../terminal-pilot-mcp/src/cli.js';
+import {runCli} from '../dist/cli.js';
+const c:typeof originalCli=runCli;
+const d:typeof runCli=null as unknown as typeof originalCli;
+void [a,b,c,d];

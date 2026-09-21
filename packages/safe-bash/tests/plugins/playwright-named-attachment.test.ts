@@ -148,6 +148,27 @@ test('public attach reuses the owned live lease, selection and state across shel
   assert.equal(f.releases, 1);
 });
 
+test('attachment routes distinct shell calls with a consistent authenticated environment default', async () => {
+  const f = fixture();
+  const env = { PLAYWRIGHT_CLI_SESSION: 'authenticated-agent' };
+  const run = (args: string) => f.shell.exec(`playwright-cli ${args}`, { env });
+  try {
+    const attached = await run('attach saved');
+    assert.equal(attached.exitCode, 0, attached.stderr);
+    assert.equal((await run('goto https://example.test/owner-default')).exitCode, 0);
+    assert.deepEqual(f.navigations, ['selected:https://example.test/owner-default']);
+    assert.deepEqual(f.cli.inspectSessions().map(session => session.name), ['saved']);
+    assert.equal((await run('-s=authenticated-agent goto https://example.test/explicit')).exitCode, 1);
+    assert.equal((await run('-s=saved tab-list')).exitCode, 0);
+    assert.equal((await run('detach')).exitCode, 0);
+    assert.equal(f.releases, 0);
+    assert.equal((await run('goto https://example.test/detached')).exitCode, 1);
+    assert.equal((await run('-s=saved attach saved')).exitCode, 0);
+    assert.equal((await run('close')).exitCode, 0);
+    assert.equal(f.releases, 1);
+  } finally { await f.shell.dispose(); }
+});
+
 test('attachment restores only a committed owned profile and advertises the host capability', async () => {
   const f = fixture();
   try {
@@ -233,7 +254,7 @@ test('close-all clears selection established by an attachment already awaiting r
   } finally { await f.shell.dispose(); }
 });
 
-test('explicit environment session overrides attachment without changing the selected alias', async () => {
+test('changing the environment default bypasses attachment without changing the selected alias', async () => {
   const f = fixture();
   try {
     assert.equal((await f.run('attach saved')).exitCode, 0);
@@ -241,7 +262,9 @@ test('explicit environment session overrides attachment without changing the sel
     assert.equal(explicit.exitCode, 1);
     assert.equal((await f.run('goto https://example.test/after-explicit')).exitCode, 0);
     assert.deepEqual(f.navigations, ['selected:https://example.test/after-explicit']);
-    assert.equal((await f.shell.exec('PLAYWRIGHT_CLI_SESSION=missing playwright-cli attach saved')).exitCode, 1);
+    assert.equal((await f.shell.exec('PLAYWRIGHT_CLI_SESSION=missing playwright-cli attach saved')).exitCode, 0);
+    assert.equal((await f.shell.exec('PLAYWRIGHT_CLI_SESSION=missing playwright-cli tab-list')).exitCode, 0);
+    assert.equal((await f.run('goto https://example.test/old-default')).exitCode, 1);
     assert.equal(f.releases, 0);
   } finally { await f.shell.dispose(); }
 });

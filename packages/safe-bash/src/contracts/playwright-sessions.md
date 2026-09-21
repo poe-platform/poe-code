@@ -109,10 +109,12 @@ a browser. Missing targets fail; attachment never invokes the adapter to open a
 new blank session as a fallback. A reconstructed profile may contain inert blank
 tabs by the existing profile policy and must report `livePageStateLost: true`.
 
-Attachment changes the controller's default selection across shell invocations.
-Explicit `-s=NAME`, `--session=NAME`, or `PLAYWRIGHT_CLI_SESSION` overrides that
-selection for a command. When supplied on `attach`, the explicit session must
-equal the target name; rebinding a lease under a different alias is refused.
+Attachment changes the controller's default selection across shell invocations
+that share the same `PLAYWRIGHT_CLI_SESSION` value (or the implicit `default`).
+The environment default may be an authenticated agent ID different from the
+target name. Changing that environment value bypasses the attachment.
+Explicit `-s=NAME` or `--session=NAME` overrides selection for a command. When
+supplied on `attach`, the explicit session must equal the target name.
 Selection creates no additional session entry or lease owner. Multiple
 attachments to one name share its existing restore/action/close queue, and
 pending restorations count against the session limit before host allocation.

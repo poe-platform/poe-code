@@ -159,7 +159,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   ].filter(name => name !== except)).size;
   const outcomes = new Map<string, PlaywrightOperationOutcome>();
   const explicitlyClosed = new Set<string>();
-  let attachedSession: string | undefined;
+  let attachedSession: { name: string; selection: string } | undefined;
   let suppressUnknownRestores = false;
   const tails = new Map<string, Promise<void>>();
   const work = new Set<Promise<unknown>>();
@@ -510,7 +510,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     } };
     if (lifetime.signal.aborted) throw new Error('Playwright controller is disposed');
     const parsed = parseInvocation(invocation, abilities, options.adapter);
-    if ('session' in parsed && options.namedSessionAttachment && parsed.command !== 'attach' && !parsed.explicitSession && attachedSession !== undefined) parsed.session = attachedSession;
+    const defaultSelection = invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
+    if ('session' in parsed && options.namedSessionAttachment && parsed.command !== 'attach' && !parsed.explicitSession && attachedSession?.selection === defaultSelection) parsed.session = attachedSession.name;
     if (invocation.operationId !== undefined) validatePlaywrightSessionName(invocation.operationId);
     const operationId = invocation.operationId ?? (options.persistence?.recordOperation ? crypto.randomUUID() : undefined);
     invocation.signal.throwIfAborted();
@@ -845,7 +846,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           // Selection owns no lease and does not reset or checkpoint live state.
           await write(parsed.json ? JSON.stringify({ session: name, status: 'attached' }, null, 2) + '\n' : `Browser '${name}' attached.\n`);
           checkSession(session);
-          attachedSession = name;
+          attachedSession = { name, selection: defaultSelection };
           retained = true;
         });
         return;
@@ -854,10 +855,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         if (options.namedSessionAttachment) {
           await enqueue(parsed.session, async () => {
             check();
-            const attached = attachedSession === parsed.session;
+            const attached = attachedSession?.name === parsed.session;
             await write(parsed.json ? JSON.stringify({ session: parsed.session, status: attached ? 'detached' : 'not-attached' }, null, 2) + '\n'
               : `Browser '${parsed.session}' is ${attached ? 'detached' : 'not attached'}.\n`);
-            if (attachedSession === parsed.session) attachedSession = undefined;
+            if (attachedSession?.name === parsed.session) attachedSession = undefined;
           });
           return;
         }
@@ -901,7 +902,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const results = await Promise.allSettled([...new Set([...sessions.keys(), ...tails.keys()])].map(name => enqueue(name, async () => {
           check();
           explicitlyClosed.add(name);
-          if (attachedSession === name) attachedSession = undefined;
+          if (attachedSession?.name === name) attachedSession = undefined;
           const session = sessions.get(name);
           if (session) await retireForCommand(session, parsed.command === 'kill-all');
         })));
@@ -1040,7 +1041,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             const session = sessions.get(parsed.session);
             const wasOpen = session?.state === 'open' || (await savedSessions(local.signal)).some(saved => saved.name === parsed.session);
             explicitlyClosed.add(parsed.session);
-            if (attachedSession === parsed.session) attachedSession = undefined;
+            if (attachedSession?.name === parsed.session) attachedSession = undefined;
             const errors: unknown[] = [];
             try { if (session) await retireForCommand(session); } catch (error) { errors.push(error); }
             try { await options.persistence?.close?.(parsed.session, local.signal); } catch (error) { errors.push(error); }
@@ -1054,7 +1055,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           if (parsed.command === 'delete-data') {
             const session = sessions.get(parsed.session);
             explicitlyClosed.add(parsed.session);
-            if (attachedSession === parsed.session) attachedSession = undefined;
+            if (attachedSession?.name === parsed.session) attachedSession = undefined;
             const errors: unknown[] = [];
             try { if (session && session.state !== 'closed') await release(session); } catch (error) { errors.push(error); }
             try {

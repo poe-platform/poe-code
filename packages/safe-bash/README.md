@@ -298,8 +298,9 @@ repeat effects. Use `recovery: true` to also suppress configuration and provider
 Owner-bound hosts can enable `namedSessionAttachment: true` on
 `createPlaywrightCli({ adapter, persistence, ... })` to support `attach NAME`.
 It selects an existing live session or restores its committed resumable profile
-for subsequent invocations. Explicit `-s=NAME` overrides selection; `detach`
-retains the browser, while `close` retires it. See the
+for subsequent invocations with the same `PLAYWRIGHT_CLI_SESSION` default,
+including an authenticated agent ID different from the target name. Explicit
+`-s=NAME` overrides selection; `detach` retains the browser, while `close` retires it. See the
 [host capability contract](src/contracts/playwright-sessions.md#persistence).
 
 For Cloudflare Workers, start with the exported `cloudflareWorkerLimits` profile

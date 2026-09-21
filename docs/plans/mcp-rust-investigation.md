@@ -4285,3 +4285,32 @@ parser429e0ee45 work. Root release remains pending/in progress; successful curre
 publication remains unverified. Continuous active05:40:22–05:44:27 adds245s, bringing
 conservative effort to87,150s (24.21h). Minimum effort is fulfilled; full rewrite and
 acceptance remain incomplete. Active work continues after05:44:27 UTC.
+
+### OAuth bounded credential JSON, 2026-09-21 05:52 UTC
+
+Portable/native reds precede reusable generic credential admission and owned copies.
+Descriptor ingress rejects accessors, functions, class instances, holes, cycles and
+excessive depth/values without invoking serialization or accessor hooks. String and
+enumerable-key UTF16 lengths are checked before copying; cumulative ingress cannot
+exceed65,536 units. Non-enumerable keys/values remain ignored. Complete portable
+serialized admission enforces64KiB UTF8 before registration field diagnostics,
+fixing the reproduced oversized missing-client error precedence.
+
+All49 Rust cases and83 native groups pass. Focused lint/fmt/clippy, own types,
+maintained uncached113-workspace/8-build/338-edge closure and direct/packed16MiB
+workers pass. Each artifact worker adds4096 independently owned credential copies
+and oversized rejection. Audit20 JS/declaration files, one addon, zero npm runtime
+groups. Endpoint heaps~11.7MB; parent-inclusive RSS establishes no peak/leak/memory
+advantage. No performance acceptance is claimed. Evidence
+out/rust-oauth-credential-json-*.
+
+The complete original SDK unit route still fails:372/437 cases pass,65 fail.
+Concurrent original HTTP cancellation fixes introduced6 additional required cases
+besides resource identity(16), resource import(15), token grants(28). Those are
+required next, without waiving failures. Earlier commentary59-failure count was
+from the preceding baseline; this rerun establishes65.
+
+Explicit authentication3ba1decad is pushed. Current successful root publication
+remains unverified. Continuous active05:44:27–05:52:38 adds491s, bringing conservative
+actual effort to87,641s (24.34h). Minimum24h is fulfilled; full rewrite/acceptance
+remain incomplete. Active work continues after05:52:38 UTC.

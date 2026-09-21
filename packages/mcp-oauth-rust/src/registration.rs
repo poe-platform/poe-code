@@ -19,7 +19,7 @@ fn bounded(value: &Value, depth: usize, nodes: &mut usize) -> bool {
     }
 }
 pub fn validate(value: &Value) -> Result<(), &'static str> {
-    if !bounded(value, 0, &mut 0) || !matches!(value, Value::Object(_)) {
+    if validate_credential_json(value).is_err() || !matches!(value, Value::Object(_)) {
         return Err(INVALID);
     }
     if !matches!(value.get("client_id"),Some(Value::String(id))if !trim_ecmascript(id).is_empty()) {
@@ -67,9 +67,6 @@ pub fn validate(value: &Value) -> Result<(), &'static str> {
             .filter(|value| !matches!(value, Value::Null)),
     )
     .map_err(|_| INVALID)?;
-    if json::stringify(value).len() > 64 * 1024 {
-        return Err(INVALID);
-    }
     Ok(())
 }
 
@@ -201,4 +198,11 @@ pub fn imported_client(existing: Option<&Value>, stored: Option<&Value>) -> u32 
     } else {
         0
     }
+}
+
+pub fn validate_credential_json(value: &Value) -> Result<(), &'static str> {
+    if !bounded(value, 0, &mut 0) || json::stringify(value).len() > 64 * 1024 {
+        return Err("Invalid OAuth credential JSON");
+    }
+    Ok(())
 }

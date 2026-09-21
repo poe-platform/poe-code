@@ -7,8 +7,31 @@ struct Reader<'env> {
     descriptors: Function<'env, Unknown<'env>, Object<'env>>,
     prototype: Unknown<'env>,
     nodes: usize,
+    units: usize,
 }
 impl<'env> Reader<'env> {
+    fn string(&mut self, source: Unknown<'env>) -> Result<Vec<u16>> {
+        let mut length = 0;
+        napi::check_status!(
+            unsafe {
+                napi::sys::napi_get_value_string_utf16(
+                    self.env.raw(),
+                    source.raw(),
+                    std::ptr::null_mut(),
+                    0,
+                    &mut length,
+                )
+            },
+            "Invalid credential string"
+        )?;
+        if length > 65_536 - self.units {
+            return Err(napi::Error::from_reason("Invalid credential string"));
+        }
+        self.units += length;
+        let text: Utf16String = unsafe { source.cast()? };
+        Ok(text.to_vec())
+    }
+
     fn visit(&mut self, source: Unknown<'env>, depth: usize) -> Result<Value> {
         self.nodes += 1;
         if self.nodes > 20_000 || depth > 64 {
@@ -17,10 +40,7 @@ impl<'env> Reader<'env> {
         match source.get_type()? {
             ValueType::Null => Ok(Value::Null),
             ValueType::Boolean => Ok(Value::Bool(unsafe { source.cast()? })),
-            ValueType::String => {
-                let value: Utf16String = unsafe { source.cast()? };
-                Ok(Value::String(value.to_vec()))
-            }
+            ValueType::String => Ok(Value::String(self.string(source)?)),
             ValueType::Number => {
                 let value: f64 = unsafe { source.cast()? };
                 if value.is_finite() {
@@ -71,16 +91,16 @@ impl<'env> Reader<'env> {
                             continue;
                         }
                         let descriptor: Object = descriptors.get_property(key)?;
-                        let key: Utf16String = unsafe { key.cast()? };
                         if !descriptor.get_named_property::<bool>("enumerable")? {
                             continue;
                         }
                         if !descriptor.has_own_property("value")? {
                             return Err(napi::Error::from_reason("Invalid registration"));
                         }
+                        let key = self.string(key)?;
                         let value =
                             self.visit(descriptor.get_named_property("value")?, depth + 1)?;
-                        fields.push((key.to_vec(), value));
+                        fields.push((key, value));
                     }
                     Ok(Value::Object(fields))
                 }
@@ -89,8 +109,7 @@ impl<'env> Reader<'env> {
         }
     }
 }
-#[napi]
-pub fn parse_client_registration(env: Env, source: Unknown<'_>) -> Result<NativeJson> {
+pub(crate) fn read_credential_json(env: Env, source: Unknown<'_>) -> Result<Value> {
     let global = env.get_global()?;
     let object: Object = global.get_named_property_unchecked("Object")?;
     let mut reader = Reader {
@@ -98,8 +117,20 @@ pub fn parse_client_registration(env: Env, source: Unknown<'_>) -> Result<Native
         descriptors: object.get_named_property("getOwnPropertyDescriptors")?,
         prototype: object.get_named_property("prototype")?,
         nodes: 0,
+        units: 0,
     };
-    let value = reader.visit(source, 0)?;
+    reader.visit(source, 0)
+}
+#[napi]
+pub fn copy_credential_json(env: Env, source: Unknown<'_>) -> Result<NativeJson> {
+    let value = read_credential_json(env, source)?;
+    mcp_oauth_rust::registration::validate_credential_json(&value)
+        .map_err(napi::Error::from_reason)?;
+    Ok(NativeJson(value))
+}
+#[napi]
+pub fn parse_client_registration(env: Env, source: Unknown<'_>) -> Result<NativeJson> {
+    let value = read_credential_json(env, source)?;
     let (key, value) = match mcp_oauth_rust::registration::validate(&value) {
         Ok(()) => ("value", value),
         Err(message) => ("error", Value::String(message.encode_utf16().collect())),

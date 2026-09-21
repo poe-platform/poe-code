@@ -3509,3 +3509,36 @@ locally verified; delivery is recorded separately. Root metadata correction
 Release35558479691 is in progress; no successful publication is verified. Full
 spawn/runtime/telemetry/resource/design and poe-agent closure remain unfinished,
 as does the minimum24-hour actual effort. Work continues beyond03:41:16 boundary.
+
+### Poe Agent Rust provider foundation, 2026-09-21 03:57 UTC
+
+New additive private poe-agent-rust exposes independent collectProviders,
+resolveProvider and the provider/name error classes. Rust owns ordered registration,
+collision data, resolution check transitions, UTF-16 diagnostics, ASCII tool-name
+admission and reusable session-id admission. Node keeps providers/callbacks/options
+in the originating isolate, handles support checks and error causes, and preserves
+private metadata and provider identity. There are no provider-name switches.
+Callback selection is generic. One plugin/provider registration supplies its own
+support/createModel behavior. A portable red precedes implementation. Native red
+reproduces callbacks extending the provider list during resolution; dynamic list
+length now supplies each Rust admission check, preserving original iterator behavior.
+
+All3 portable cases,2 native groups and21 complete original provider/name cases
+pass. Native tests preserve method receivers, cyclic opaque options, surrogate
+names/messages, falsy thrown causes and deferred model creation. Supported root
+public APIs have bidirectional TypeScript contracts. Manual development-only
+structural declaration seeding imports no original runtime and shipped types have
+local dependencies only. Maintained unit/types/lint/fmt/clippy/formatting, npm ci
+dry-run and explicit uncached selected113-workspace/28-build/338-edge closure pass.
+Direct/packed16MiB workers each perform8192 collections/resolutions and24576 support
+checks, retain128 provider collections, and validate collisions/falsy causes.
+Recursive artifact import audit covers15 JS/declaration files, one addon and zero
+npm runtime/peer/optional groups. Heap endpoints/parent-inclusive RSS remain bounded
+workload evidence only. Evidence out/rust-poe-agent-providers-*.
+
+This is a provider foundation, not the completed agent rewrite. Agent builders,
+sessions, model/tool iteration, built-in plugins and transcript persistence are
+unfinished and not advertised as implemented. Original production imports and
+release wiring remain unchanged. Converter commit eba871f8e is verified on remote
+main. Publication and overall/minimum-effort completion remain unverified/open.
+Work continues beyond the recorded03:41:16 effort boundary.

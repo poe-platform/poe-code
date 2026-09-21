@@ -131,6 +131,23 @@ describe("generated remote MCP safe-bash commands", () => {
     expect(fixture.fetch).not.toHaveBeenCalled();
   });
 
+  it("exposes only caller-selected tool schemas without ambient catalog discovery", async () => {
+    const fixture = remote();
+    const selected = { ...tool, name: "selected" };
+    const definition = await command(fixture, [selected]);
+    const help = invocation(["--help"]);
+    expect(await definition.execute(help.context)).toEqual({ exitCode: 0 });
+    expect(help.output()).toContain("selected");
+    expect(help.output()).not.toContain("search_items");
+    const excluded = invocation(["search_items", "--query", "hidden"]);
+    expect(await definition.execute(excluded.context)).toEqual({ exitCode: 2 });
+    expect(fixture.fetch).not.toHaveBeenCalled();
+    const call = invocation(["selected", "--query", "visible"]);
+    expect(await definition.execute(call.context)).toEqual({ exitCode: 0 });
+    expect(fixture.requests.some(request => request.method === "tools/list")).toBe(false);
+    expect(fixture.requests.find(request => request.method === "tools/call")?.params?.name).toBe("selected");
+  });
+
   it("fetches absent schemas automatically before generating commands", async () => {
     const fixture = remote();
     const commands = await createRemoteMcpCommands([{ ...server, tools: undefined }], { fetch: fixture.fetch });

@@ -129,6 +129,10 @@ HTTP status when available. Output writes are awaited and cancellation closes
 owned requests. Set `maxOutputBytes` to bound command output (default 16 MiB).
 Output schemas and external schema registrations are captured during generation.
 Registration checks all command conflicts before registering any of them.
+Keep an agent's command surface small by passing only its selected server entries
+and tool schemas. The supplied registry is authoritative; other servers and
+tools are not registered. Use a distinct `auth.persistenceNamespace` per agent
+when credentials also need isolation.
 Save the full response with `catalog search_items --query example > /response.json`.
 Redirection writes to the shell's virtual filesystem and preserves the response.
 

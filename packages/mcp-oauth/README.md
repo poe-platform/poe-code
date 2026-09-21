@@ -91,7 +91,7 @@ later environment changes cannot move a transaction between file and Keychain.
 Fixed redirects support `localhost`, `127.0.0.1`, and `::1` over HTTP. Their
 exact spelling, port, path and query are preserved through registration,
 authorization and code exchange. Credentials, fragments, port zero and reserved
-OAuth callback query parameters are rejected before binding a listener.
+OAuth callback query parameters, including `error_uri`, are rejected before binding a listener.
 `createDefaultOAuthClientProvider` also checks the configured redirect before
 creating the provider. Imported tokens that cannot be sent as HTTP header
 values fail with diagnostics that omit their contents. Omit

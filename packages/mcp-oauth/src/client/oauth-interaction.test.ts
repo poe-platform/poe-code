@@ -282,7 +282,7 @@ it("fails headless unauthorized requests promptly without allocating a callback 
 
 it("rejects unsafe configured redirects before creating a provider or a listener", () => {
   const createServer = vi.fn(() => new Listener() as unknown as http.Server);
-  for (const redirectUri of ["https://remote.example/callback", "http://localhost:0/callback", "http://localhost:39119/callback#fragment"])
+  for (const redirectUri of ["https://remote.example/callback", "http://localhost:0/callback", "http://localhost:39119/callback#fragment", "http://localhost:39119/callback?error_uri=private-fixed-value"])
     expect(() => createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: { redirectUri, createServer } })).toThrow("redirect URI");
   expect(createServer).not.toHaveBeenCalled();
 });

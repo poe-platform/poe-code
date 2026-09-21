@@ -593,3 +593,11 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     nested metadata and four distinct retired sessions. Verify encrypted0600
     records and removed claims, zero consent, inspect the safe summary screenshot
     and purge only owned synthetic evidence.
+
+54. Place each recognized code/state/iss/error/error_description/error_uri in a
+    fixed redirect query. Require standalone/provider/environment/public-fallback
+    preflight rejection with safe diagnostics and zero listener allocation.
+    Complete an actual fixed-query HTTP callback retaining unrelated/repeated
+    extensions, exact redirect/state/005930 and escaped original page; release
+    the listener. Require zero token/persistence/tool traffic, inspect the safe
+    summary screenshot and purge only owned evidence.

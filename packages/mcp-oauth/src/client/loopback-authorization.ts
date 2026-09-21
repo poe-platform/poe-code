@@ -1,6 +1,7 @@
 import http from "node:http";
 import { parseAuthorizationState } from "./authorization-state.js";
 const authorizationErrorBrand = Symbol.for("poe-platform.mcp-oauth.OAuthAuthorizationError");
+const oauthCallbackParameters = ["code", "state", "iss", "error", "error_description", "error_uri"];
 
 export interface OAuthLandingPage {
   title: string;
@@ -95,10 +96,9 @@ export function loopbackTarget(options: LoopbackAuthorizationOptions): { port: n
     let url: URL;
     try { url = new URL(options.redirectUri); }
     catch (cause) { throw new Error("Invalid OAuth loopback redirect URI", { cause }); }
-    const forbiddenQuery = ["code", "state", "error", "error_description", "iss"];
     if (url.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
       || url.username || url.password || url.hash || url.port === "0"
-      || forbiddenQuery.some(name => url.searchParams.has(name))
+      || oauthCallbackParameters.some(name => url.searchParams.has(name))
       || [...options.redirectUri].some(char => char.codePointAt(0)! <= 32)
       || (options.callbackPath !== undefined && options.callbackPath !== url.pathname))
       throw new Error("Invalid OAuth loopback redirect URI");
@@ -220,7 +220,7 @@ function extractCallbackParametersFromInput(input: string): AuthorizationCallbac
 }
 
 function readAuthorizationCallbackParameters(url: URL): AuthorizationCallbackParameters {
-  for (const parameter of ["code", "state", "iss", "error", "error_description", "error_uri"]) {
+  for (const parameter of oauthCallbackParameters) {
     if (url.searchParams.getAll(parameter).length > 1)
       throw new Error(`OAuth callback parameter '${parameter}' must occur only once`);
   }

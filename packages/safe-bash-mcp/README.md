@@ -523,7 +523,8 @@ are snapshotted before discovery, included in the digest, and loaded without
 separate host registrations. Missing references fail generation. An archived
 registry is authoritative: host `commands.schemaValidation.registry` may repeat
 identical archived documents, but additions or changed documents fail before
-credential binding. Custom format functions remain host-supplied through
+credential binding, including when that declared SDK registry option is nonenumerable.
+The selected documents are captured before credential factories run. Custom format functions remain host-supplied through
 `commands.schemaValidation.formats`. Older artifacts without a registry still
 accept a host registry.
 Generation refuses discovery metadata or external documents that echo a known resolved credential, including

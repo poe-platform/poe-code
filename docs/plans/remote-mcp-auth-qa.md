@@ -967,3 +967,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     registry JSON in the successful screenshot; purge owned evidence. Earlier
     written-module/separate-process portability evidence remains independently
     recorded in the artifact QA plan.
+
+84. Recreate an archived external-schema artifact with a nonenumerable declared
+    commands.schemaValidation.registry across actual HTTP/SSE. Conflicting and
+    unarchived documents must each fail before credential factories or network;
+    identical documents must retain offline help and full validated calls. Have
+    the selected credential factory mutate the caller registry after preflight;
+    the original documents remain selected. Reject wrong input before transport
+    and preserve complete output/false/zero/exact005930/nested metadata. Observe
+    session retirement and SSE stream closure independently. Inspect actual
+    help/result/conflict diagnostics in a successful screenshot; purge owned
+    synthetic evidence after recording outcomes.

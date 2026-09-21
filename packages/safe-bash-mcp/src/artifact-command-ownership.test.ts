@@ -99,3 +99,28 @@ it("retains original artifact cancellation when binding replaces its handle", as
   await expect(remoteMcpArtifactPlugin(await artifact(), { binding, commands })).rejects.toBe(reason);
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it.each(["matching", "conflicting", "unarchived"] as const)(
+  "checks a hidden artifact validation registry against %s documents", async scenario => {
+    const uri = "https://schemas.example/query";
+    const document = { type: "object", properties: { query: { type: "string" } }, required: ["query"] };
+    const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{
+      name: "catalog", url: "https://catalog.example/mcp", tools: [{ name: "find", inputSchema: { type: "object", $ref: uri } }]
+    }]).configuration, { schemaRegistry: { [uri]: document } });
+    const registry = scenario === "unarchived" ? { "https://schemas.example/other": document }
+      : { [uri]: scenario === "matching" ? document : { type: "object", additionalProperties: false } };
+    const commands = { schemaValidation: { registry } };
+    Object.defineProperty(commands.schemaValidation, "registry", { enumerable: false });
+    if (scenario !== "matching") {
+      await expect(remoteMcpArtifactPlugin(generated.artifact, { binding: { env: {} }, commands })).rejects.toThrow("registry conflict");
+      return;
+    }
+    const shell = new Shell({ fs: createMemoryFileSystem() });
+    try {
+      shell.use(await remoteMcpArtifactPlugin(generated.artifact, { binding: { env: {} }, commands }));
+      const result = await shell.exec("catalog find --help");
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("--query");
+    } finally { await shell.dispose(); }
+  }
+);

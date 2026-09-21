@@ -178,6 +178,7 @@ export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactP
   const commands = { ...snapshotRemoteMcpSchemaOptions(options.commands ?? {}),
     yes: options.commands?.yes, maxInputBytes: options.commands?.maxInputBytes, maxOutputBytes: options.commands?.maxOutputBytes,
     schemaValidation: { ...options.commands?.schemaValidation,
+      registry: options.commands?.schemaValidation?.registry,
       ...(options.commands?.schemaValidation?.formats === undefined ? {} : { formats: { ...options.commands.schemaValidation.formats } }) } };
   commands.signal?.throwIfAborted();
   const artifact = parseRemoteMcpArtifact(value, options);

@@ -104,6 +104,8 @@ Compile a discovered or supplied tool to parse CLI arguments with its complete
 JSON Schema:
 
 ```ts
+import { compileToolArguments } from "safe-bash-mcp";
+
 const parser = compileToolArguments(schemas[0].tools[0]);
 console.log(parser.parameters); // Exact field names, flags, descriptions and schemas
 const args = parser.parse(["--query", "005930"]);
@@ -379,6 +381,8 @@ imports. Static bearer/header values remain controlled by the host environment.
 Seed credentials obtained by a headless OAuth owner without computing store keys:
 
 ```ts
+import { importRemoteMcpAuthentication } from "safe-bash-mcp";
+
 await importRemoteMcpAuthentication(server, {
   tokens: tokenResponse,
   clientInfo: fullDcrResponse,

@@ -379,8 +379,19 @@ class HeaderFooter {
     });
   }
   private resolve(create = true): ModelRef | null {
-    const store = this.section.store,
+    const store = this.section.store;
+    let owner: HeaderFooter | undefined,
       local = this.local();
+    if (!local) {
+      const sections = refs(store, this.section.ref.part),
+        index = sections.findIndex((ref) => ref.id === this.section.ref.id);
+      for (let previous = index - 1; previous >= 0; previous--) {
+        store.context.budget.charge("work", 1);
+        owner = new HeaderFooter(new Section(store, sections[previous]!), this.variant, this.kind);
+        local = owner.local();
+        if (local) break;
+      }
+    }
     if (local) {
       const r = documentDialects[dialectForNamespace(local.namespace)!].r;
       const id = local.attributes.find(
@@ -397,15 +408,7 @@ class HeaderFooter {
       const part = edge.target_part.partname;
       return store.ref(part, store.xml(part).root);
     }
-    const sections = refs(store, this.section.ref.part),
-      index = sections.findIndex((ref) => ref.id === this.section.ref.id);
-    if (index > 0)
-      return new HeaderFooter(
-        new Section(store, sections[index - 1]!),
-        this.variant,
-        this.kind
-      ).resolve(create);
-    return create ? this.create() : null;
+    return create ? (owner ?? this).create() : null;
   }
   private create(): ModelRef {
     const store = this.section.store;

@@ -66,3 +66,9 @@ const resolveOriginal: typeof resolvePoeCommandExecution = own.resolveSpawnExecu
 const resolveOwn: typeof own.resolveSpawnExecution =
   null as unknown as typeof resolvePoeCommandExecution;
 void [resolveOriginal, resolveOwn];
+
+import type * as OriginalResources from "../../agent-spawn/dist/skill-bridge.js";
+type Resources = Pick<typeof OriginalResources, "bridgeResourcesForRun" | "cleanupResourcesForRun">;
+const resourcesOriginal: Resources = own;
+const resourcesOwn: Pick<typeof own, keyof Resources> = null as unknown as Resources;
+void [resourcesOriginal, resourcesOwn];

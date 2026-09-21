@@ -21,6 +21,8 @@ process-runner-rust={path="../../process-runner-rust"}
 user-error-rust={path="../../user-error-rust"}
 agent-defs-rust={path="../../agent-defs-rust"}
 agent-harness-tools-rust={path="../../agent-harness-tools-rust"}
+agent-skill-config-rust={path="../../agent-skill-config-rust"}
+agent-hook-config-rust={path="../../agent-hook-config-rust"}
 agent-spawn-rust = { path = ".." }
 mcp-protocol-rust = { path = "../../mcp-protocol-rust" }
 mcp-protocol-rust-napi-core = { path = "../../mcp-protocol-rust/bindings/shared" }

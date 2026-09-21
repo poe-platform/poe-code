@@ -36,7 +36,10 @@
     "@poe-code/poe-acp-client-rust": "*",
     "@poe-code/agent-harness-tools-rust": "*",
     "@poe-code/process-runner-rust": "*",
-    "memfs": "4.56.10"
+    "memfs": "4.56.10",
+    "@poe-code/agent-skill-config-rust": "*",
+    "@poe-code/agent-hook-config-rust": "*",
+    "toolcraft-design-rust": "*"
   },
   "files": [
     "dist",

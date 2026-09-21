@@ -5,6 +5,14 @@ use napi_derive::napi;
 #[path = "../../../agent-harness-tools-rust/bindings/src/lib.rs"]
 mod harness;
 pub use harness::*;
+#[path = "../../../agent-hook-config-rust/bindings/src/lib.rs"]
+mod hooks;
+#[path = "../../../agent-skill-config-rust/bindings/src/lib.rs"]
+// The harness already reexports the shared mutation bindings.
+#[allow(unused_imports)]
+mod skills;
+pub use hooks::*;
+pub use skills::*;
 fn parse(source: Utf16String) -> Result<Value> {
     json::parse_utf16(&source, Default::default())
         .map_err(|_| Error::from_reason("Invalid spawn JSON value"))

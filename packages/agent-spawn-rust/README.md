@@ -14,6 +14,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Convert ACP session updates into render events while preserving opaque inputs and plan entries.
 - Capture native OTLP traces, logs and metrics using declarative agent overlays.
 - Resolve host/docker runtime policies and capability checks through an embedded owned SDK.
+- Bridge active skills and hooks for a run, retaining ownership and rollback.
 
 ```typescript
 import { buildSpawnArgs, listSpawnableAgents } from '@poe-code/agent-spawn-rust';
@@ -29,7 +30,7 @@ console.log(launch.binaryName, launch.displayArgs);
 
 An omitted permission mode selects `auto`. Agents without an unattended approval channel reject it; `yolo` requires an explicit request. Large UTF-8 prompts and embedded NULs use stdin where the selected agent supports automatic fallback. Display arguments redact prompt text while execution arguments preserve it.
 
-This private, experimental package currently supplies registry and argument planning. Full agent execution and resource bridges are still being implemented. Runtime configuration and host/docker environment factories are embedded in the package. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
+This private, experimental package currently supplies registry and argument planning. Full agent execution is still being implemented. Runtime configuration and host/docker environment factories are embedded in the package. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
 
 ```typescript
 import { createSpawnRetry } from '@poe-code/agent-spawn-rust';
@@ -116,3 +117,18 @@ Runtime resolution merges user and workspace policies, applies per-call override
 and rejects unsupported detach or workspace-transfer requests. Host and Docker
 policies come from the owned Rust packages; Node performs filesystem and process
 effects. The package ships one addon and local hosts, with no npm runtime dependency.
+
+```typescript
+import { bridgeResourcesForRun, cleanupResourcesForRun } from '@poe-code/agent-spawn-rust';
+
+const resources = bridgeResourcesForRun('codex', process.cwd(), ['claude/review'], {
+  from: 'claude', strategy: 'transform', scope: 'project',
+});
+try { /* run your agent */ }
+finally { cleanupResourcesForRun(resources); }
+```
+
+Resource bridges use the embedded Rust skill and hook policies. They preserve
+existing files and collision warnings, clean up hooks before skills, and roll back
+skills when hook preparation fails. Missing references reject with recovery
+guidance. Repeated cleanup retains ownership and leaves user files intact.

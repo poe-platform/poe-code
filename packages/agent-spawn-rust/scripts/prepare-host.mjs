@@ -64,7 +64,10 @@ function embedHosts(source, target) {
           if (
             ts.isStringLiteral(current) &&
             (current.text.endsWith("/agent-harness-tools-rust.node") ||
-              current.text.endsWith("/process-runner-rust.node"))
+              current.text.endsWith("/process-runner-rust.node") ||
+              current.text.endsWith("/agent-skill-config-rust.node") ||
+              current.text.endsWith("/agent-hook-config-rust.node") ||
+              current.text.endsWith("/toolcraft-design-rust.node"))
           )
             return ts.factory.createStringLiteral(binding);
           return ts.visitEachChild(current, visit, context);
@@ -82,3 +85,9 @@ embedHosts(
   new URL("harness/", dist)
 );
 embedHosts(new URL("../../process-runner-rust/dist/", import.meta.url), new URL("process/", dist));
+embedHosts(
+  new URL("../../agent-skill-config-rust/dist/", import.meta.url),
+  new URL("skills/", dist)
+);
+embedHosts(new URL("../../agent-hook-config-rust/dist/", import.meta.url), new URL("hooks/", dist));
+embedHosts(new URL("../../toolcraft-design-rust/dist/", import.meta.url), new URL("design/", dist));

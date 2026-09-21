@@ -6453,3 +6453,35 @@ latest queued runs cancelled by following pushes. No successful current root
 publication verified. Concurrent changes preserved. Continuous14:09:53–14:16:33
 adds400s,total116128s(32.26h). Minimum fulfilled;full objective incomplete.
 Continue accounting after14:16:33UTC.
+
+### Embedded run resources, 2026-09-21 14:23 UTC
+
+Missing resource coordinator API reproduced before implementation. Embedded owned
+skill,hook and design hosts behind the existing single agent-spawn addon. Existing
+Rust bridge engines retain ownership,collision policy,hook transformation and
+rollback;Node coordinates UUIDs,home-directory effects and owned warning output.
+Resource cleanup orders hooks before skills. No original consumer integration.
+
+Maintained19Rust cases/24native groups/315SDK reference cases in12files and
+bidirectional covered types pass. Native memfs comparisons cover empty no-op
+requests,combined skills/hooks,generated config/exclude bytes,collision warnings,
+missing-reference rejection,repeated cleanup,and hook host-error identity with
+skill rollback then retry. An initial fixture mistook missing refs for warnings;
+current original code confirms strict rejection and it has separate coverage.
+fmt/clippy/shared checks/ESLint pass. Uncached selected117workspaces/38builds/
+368edges passes at concurrency1. Shared mutation reexport suppression is limited
+to the embedded skills module,matching prior harness composition.
+Packed355files/one addon/347audited sources+declarations,zero npm runtime groups and
+external resolution blocked passes. Direct/packed16MiBworkers preload dev-only
+memfs before production resolution blocking,then each complete1024combined
+bridge/cleanup cycles,8192runtime resolutions,16384refusals,1024host opens/closes.
+No filesystem fixtures written. Finite old-generation limits are not total/native
+memory bounds;shared RSS is not isolated. No broad speed claim for composition.
+Evidence out/rust-spawn-resources-*.
+
+Logger501f72418 pushed and exact remote main verified separately. Earlier root
+release35605641955 still unit in_progress;all other validation jobs succeeded.
+No successful current root publication verified. New original OAuth snapshot/
+clock drift independently reproduced safely,not yet repaired. Concurrent changes
+preserved. Continuous14:16:33–14:23:59 adds446s,total116574s(32.38h).
+Minimum fulfilled;full objective incomplete. Continue accounting after14:23:59UTC.

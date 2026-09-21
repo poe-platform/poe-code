@@ -93,3 +93,5 @@ export type { ToolRenderState } from "./render.js";
 export { startNativeOtelCapture } from "./native-otel.js";
 export type { NativeOtelRecord, NativeOtelCapture } from "./native-otel.js";
 export { resolveSpawnExecution, UnsupportedRuntimeCapabilityError } from "./runtime.js";
+export { bridgeResourcesForRun, cleanupResourcesForRun } from "./resources.js";
+export type { HookBridgeOptions, BridgedRunManifest } from "./resources.js";

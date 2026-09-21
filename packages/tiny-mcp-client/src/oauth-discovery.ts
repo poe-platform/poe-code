@@ -316,6 +316,19 @@ function validateCachedDiscovery(value: unknown, resource: string): OAuthDiscove
   });
 }
 
+async function waitForCache<T>(operation: T | Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (signal === undefined) return operation;
+  let abort!: () => void;
+  try {
+    return await new Promise<T>((resolve, reject) => {
+      abort = () => reject(signal.reason);
+      signal.addEventListener("abort", abort, { once: true });
+      Promise.resolve(operation).then(resolve, reject);
+      if (signal.aborted) abort();
+    });
+  } finally { signal.removeEventListener("abort", abort); }
+}
+
 export class OAuthMetadataDiscovery {
   private readonly fetchImpl: OAuthMetadataFetch;
   private readonly cache: OAuthDiscoveryCache | undefined;
@@ -364,7 +377,7 @@ export class OAuthMetadataDiscovery {
       return structuredClone(memoryCachedResult);
     }
 
-    const sharedCachedResult = await this.cache?.get(cacheKey);
+    const sharedCachedResult = await waitForCache(this.cache?.get(cacheKey), signal);
     signal?.throwIfAborted();
     if (
       sharedCachedResult !== null &&
@@ -376,7 +389,7 @@ export class OAuthMetadataDiscovery {
         this.memoryCache.set(cacheKey, structuredClone(result));
         return result;
       } catch {
-        await this.cache?.delete?.(cacheKey);
+        await waitForCache(this.cache?.delete?.(cacheKey), signal);
       }
     }
 
@@ -406,7 +419,7 @@ export class OAuthMetadataDiscovery {
           };
 
           this.memoryCache.set(cacheKey, structuredClone(result));
-          await this.cache?.set(cacheKey, structuredClone(result));
+          await waitForCache(this.cache?.set(cacheKey, structuredClone(result)), signal);
           return result;
         } catch (error) {
           signal?.throwIfAborted();

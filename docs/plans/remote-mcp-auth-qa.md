@@ -444,3 +444,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     method state and original returned metadata. Count exactly three code
     exchanges, four rotating redemptions, one resource request and no unintended
     endpoints/replacement callbacks. Inspect safe summary and purge owned QA.
+
+40. Against actual local OAuth HTTP metadata, gate shared-cache get, invalid
+    entry deletion and successful discovery set. Abort the caller while the host
+    callback waits. Require original cancellation before release, zero additional
+    candidate/retry requests and observed late host rejection without unhandled
+    promises. Only set mode performs two metadata GETs. Mutate its cache-owned
+    input and verify the independent validated memory copy still retains all
+    original metadata/extensions. Separately import through a host atomic hook
+    with an actual50ms request deadline and stalled cache get. Require safe
+    TimeoutError before host release, zero metadata/initialization/tool/token
+    traffic, zero atomic writes and no session-factory queries. Host cache work
+    may finish later; do not claim cancellation of that underlying dependency.
+    Inspect safe summary output and purge owned synthetic evidence.

@@ -384,7 +384,8 @@ Use `mcp import catalog < /credentials.json` or
 `mcp import catalog --file /credentials.json --json` for the same operation.
 Paths belong to the safe-bash virtual filesystem; `--file -` explicitly selects
 stdin. `--json` emits the public import summary. `--timeout-ms` bounds input,
-discovery and persistence (default 30,000 ms). `mcp import --help` shows payload
+discovery and persistence (default 30,000 ms), including stalled host metadata
+cache callbacks. `mcp import --help` shows payload
 and expiry guidance. Management `options.credentialImport` supplies SDK settings
 and otherwise uses the authentication binding's persistence or shell environment.
 `--max-import-bytes <bytes>` overrides the import budget (default 1 MiB),

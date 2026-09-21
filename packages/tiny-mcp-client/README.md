@@ -101,7 +101,7 @@ const transport = new HttpTransport({
 });
 ```
 
-You can also call `discoverOAuthMetadata(resourceUrl, options)` directly, or instantiate `OAuthMetadataDiscovery` with a custom `fetch` implementation and shared cache. Lookup options accept `signal`; cancellation stops metadata fetches and body reads without trying another discovery candidate.
+You can also call `discoverOAuthMetadata(resourceUrl, options)` directly, or instantiate `OAuthMetadataDiscovery` with a custom `fetch` implementation and shared cache. Lookup options accept `signal`; cancellation stops metadata fetches and body reads without trying another discovery candidate. It also settles while shared-cache reads, writes or eviction wait. Host cache work may finish afterward; its late rejection remains observed, and canceled discovery does not start another candidate.
 
 OAuth provider inputs receive the originating request's `signal`, covering header authorization and unauthorized handling. Modern request cancellation stops its OAuth work while leaving other requests usable; transport disposal cancels all pending OAuth operations. The default provider propagates this signal to callback, registration and token work. Custom providers must observe it for their own operations.
 

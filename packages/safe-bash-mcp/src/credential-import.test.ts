@@ -278,3 +278,15 @@ it("captures selected native import persistence paths before the host lifetime c
   expect((await f.stores.sessionStore.load(resource))?.tokens?.accessToken).toBe("private-access");
   await expect(f.fs.stat("/replacement")).rejects.toMatchObject({ code: "ENOENT" });
 });
+
+it("settles an import deadline while its selected OAuth discovery cache read waits", async () => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>(), deadline = new AbortController();
+  const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(deadline.signal), reason = new Error("import discovery deadline");
+  const pending = sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch, requestTimeoutMs: 1000,
+    oauthDiscoveryCache: { get: async () => { entered.resolve(); await release.promise; return null; }, set: async () => {} } }).catch(error => error);
+  try {
+    await entered.promise; deadline.abort(reason);
+    expect(await Promise.race([pending, new Promise(resolve => setImmediate(() => resolve("still waiting for import cache")))])).toBe(reason);
+    expect(f.fetch).not.toHaveBeenCalled(); expect(await f.stores.sessionStore.load(resource)).toBeNull();
+  } finally { release.resolve(); await pending; timeout.mockRestore(); }
+});

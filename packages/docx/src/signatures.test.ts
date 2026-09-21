@@ -87,3 +87,14 @@ it("removes encoded signature part names using admitted OPC identity",async()=>{
  const parts=readPackage(new Uint8Array(fs.readFileSync("/output") as Uint8Array)); assertPackageLinks(parts);
  expect(parts.size).toBe(4);
 });
+
+it("strips the owned signature baseline when caller bytes change during admission",async()=>{
+ const input=await signatureFixture(), fs=Volume.fromJSON({"/output":""});
+ const pending=stripDocumentSignatures(input,{output:"-"},{...textContext,encoding,stdout:{async write(bytes){fs.appendFileSync("/output",bytes);}}});
+ input.fill(0);
+ const data=await pending;
+ expect(data.removedParts).toHaveLength(6);
+ const output=new Uint8Array(fs.readFileSync("/output") as Uint8Array);
+ assertPackageLinks(readPackage(output));
+ await expect(inspectDocumentSignatures(output,{},textContext)).resolves.toMatchObject({items:[],relationships:[],verified:null});
+});

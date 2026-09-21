@@ -23,10 +23,14 @@ export function normalizeTool(tool) {
           typeof result[Symbol.asyncIterator] === "function"
         )
           return result;
+        // A terminal-only invocation adapts promises/errors without emitting tool events.
+        // eslint-disable-next-line require-yield
         return (async function* () {
           return await result;
         })();
       } catch (error) {
+        // A terminal-only invocation adapts promises/errors without emitting tool events.
+        // eslint-disable-next-line require-yield
         return (async function* () {
           throw error;
         })();

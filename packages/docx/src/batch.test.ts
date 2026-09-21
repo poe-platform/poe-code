@@ -20,6 +20,23 @@ const pipeline = [
   { id: "value", operation: "tables.set", arguments: { table: 1, cell: "A1", text: "Harbor count" } },
   { id: "read", operation: "tables.get", arguments: { table: 1 } },
 ];
+it("owns source bytes before asynchronous image acquisition and later staged edits", async () => {
+  const input = await textFixture(paragraph("Coastal report")), sink = capture();
+  const sourceSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", input))].map(value => value.toString(16).padStart(2, "0")).join("");
+  const result = await executeDocumentBatch(input, { version: 1, operations: [
+    { operation: "images.add", arguments: { paragraph: 1, file: { kind: "vfs", path: "/marker.png", capability: "survey" } } },
+    { operation: "text.replace", arguments: { find: "Coastal report", with: "Confirmed report", all: true } },
+  ] }, { output: "-" }, { ...sink.context, binaryResolver: { capability: "survey", async *open() {
+    input.fill(0);
+    yield rasterPng();
+  } } });
+  const bytes = new Uint8Array(sink.volume.readFileSync("/out") as Buffer);
+  expect(result.results.map(item => item.id)).toEqual(["step1", "step2"]);
+  expect(result.results[1]?.locations[0]?.value.sourceSha256).toBe(sourceSha256);
+  expect((await extractDocumentText(bytes, textContext)).text).toContain("Confirmed report");
+  expect((await inspectDocumentImages(bytes, { operation: "images.list" }, textContext)).items).toHaveLength(1);
+  expect(sink.write).toHaveBeenCalledTimes(1);
+});
 async function fieldInput() {
   return textFixture(`<w:p><w:fldSimple w:instr=" MERGEFIELD survey ">${run("Unfilled")}</w:fldSimple></w:p>`);
 }

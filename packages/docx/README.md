@@ -2,6 +2,8 @@
 
 Private ESM workspace for bounded DOCX admission, inspection, editing and
 publication. It does not render Word documents and has no standalone binary.
+Ordered utility batches share CLI/SDK validation, snapshot source bytes before
+asynchronous work, and publish once after all operations succeed.
 
 ```js
 import { parseDocxArguments, getDocxDiscovery } from "docx";

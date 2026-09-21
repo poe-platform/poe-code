@@ -58,6 +58,10 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
   for (const item of batch.operations) if (!documentBatchActions.has(item.operation)) throw new UnsupportedProfileError("This operation is not implemented by the ordered utility batch executor.");
   budget.charge("batchOperations", batch.operations.length);
   if (!batch.operations.length) return { results: [], publication: null };
+  if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
+  budget.check("compressedInput", input.length);
+  budget.charge("retainedBytes", input.length);
+  input = new Uint8Array(input);
   const session = await DocumentSession.open(input, { ...context, ...settings, budget });
   const results: DocumentBatchItemResult[] = [];
   let changed = false;

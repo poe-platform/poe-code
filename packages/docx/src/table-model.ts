@@ -7,6 +7,7 @@ import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { mergedTableGrid, editMergedTable } from "./table-merge.js";
 import { tableRows } from "./table-rows.js";
+import { tableGridCount } from "./table-grid-count.js";
 import { activeModelChildren } from "./model-active-children.js";
 import {
   styleChild as child,
@@ -379,7 +380,7 @@ export class _Cell {
     return this.store.element(this.ref);
   }
   get grid_span(): number {
-    return Number(attr(readProperty(this.store, this.ref, "tcPr", "gridSpan"), "val") ?? 1);
+    return tableGridCount(readProperty(this.store, this.ref, "tcPr", "gridSpan"), 1);
   }
   *iter_inner_content(): Iterable<Paragraph | Table> {
     yield* this.store.blocks(this.ref);
@@ -498,14 +499,10 @@ export class _Row {
     return this.table.row_cells(row);
   }
   get grid_cols_before(): number {
-    return Number(
-      attr(readProperty(this.table.store, this.ref, "trPr", "gridBefore"), "val") ?? 0
-    );
+    return tableGridCount(readProperty(this.table.store, this.ref, "trPr", "gridBefore"), 0);
   }
   get grid_cols_after(): number {
-    return Number(
-      attr(readProperty(this.table.store, this.ref, "trPr", "gridAfter"), "val") ?? 0
-    );
+    return tableGridCount(readProperty(this.table.store, this.ref, "trPr", "gridAfter"), 0);
   }
   get height(): LengthValue | null {
     return storedLength(readProperty(this.table.store, this.ref, "trPr", "trHeight"), "val");

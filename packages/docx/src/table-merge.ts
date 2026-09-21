@@ -5,6 +5,7 @@ import { SelectionError } from "./location-token.js";
 import { InvalidPackageError, type XmlElement } from "./package-xml.js";
 import { runElementOpen } from "./run-properties.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
+import { tableGridCount } from "./table-grid-count.js";
 
 function children(node: XmlElement, name: string): XmlElement[] { return node.children.filter(c => c.namespace === node.namespace && c.localName === name); }
 function one(node: XmlElement, name: string): XmlElement | undefined {
@@ -13,12 +14,6 @@ function one(node: XmlElement, name: string): XmlElement | undefined {
   return found[0];
 }
 function attribute(node: XmlElement, name: string): string | undefined { return node.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value; }
-function count(node: XmlElement | undefined, fallback: number): number {
-  if (!node) return fallback;
-  const value = attribute(node, "val");
-  if (!value || [...value].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(value))) throw new InvalidPackageError("Invalid table grid count.");
-  return Number(value);
-}
 interface PhysicalCell { node: XmlElement; row: number; column: number; span: number; owner: LogicalCell }
 interface LogicalCell { node: XmlElement; row: number; column: number; rowSpan: number; columnSpan: number; physical: PhysicalCell[] }
 
@@ -38,11 +33,11 @@ export function mergedTableGrid(table: XmlElement, budget: DocumentBudget, proje
   let above = new Map<number, LogicalCell>();
   for (const [r, row] of rows.entries()) {
     const props = oneNative(row, "trPr");
-    let cursor = count(props && oneNative(props, "gridBefore"), 0);
-    const after = count(props && oneNative(props, "gridAfter"), 0), next = new Map<number, LogicalCell>();
+    let cursor = tableGridCount(props && oneNative(props, "gridBefore"), 0);
+    const after = tableGridCount(props && oneNative(props, "gridAfter"), 0), next = new Map<number, LogicalCell>();
     physical.push([]); slots.push([]);
     for (const node of nativeChildren(row, "tc")) {
-      const props = oneNative(node, "tcPr"), span = count(props && oneNative(props, "gridSpan"), 1);
+      const props = oneNative(node, "tcPr"), span = tableGridCount(props && oneNative(props, "gridSpan"), 1);
       if (!span || cursor + span > columns.length) throw new InvalidPackageError("Cell exceeds the table grid.");
       if (props && oneNative(props, "hMerge")) throw new UnsupportedEditError("Legacy horizontal merge markers are ambiguous.");
       const merge = props && oneNative(props, "vMerge"), value = merge ? attribute(merge, "val") ?? "continue" : undefined;

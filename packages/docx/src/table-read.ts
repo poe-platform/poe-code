@@ -6,7 +6,7 @@ import { type Location, SelectionError } from "./location-token.js";
 import { pathContains } from "./location-index.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { parseDocumentXml } from "./package-xml.js";
-import { sectionAttribute } from "./section-properties.js";
+import { tableGridCount } from "./table-grid-count.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { tableRows } from "./table-rows.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
@@ -87,8 +87,8 @@ function readTable(document: DocumentLocations, owner: Location, budget: Documen
   const cells = new Map<string, TableDetails["cells"][number]>();
   const omitted = rows.map((row, i) => {
     const props = property(row, "trPr");
-    const before = Number(sectionAttribute(property(props, "gridBefore"), "val") ?? 0);
-    const after = Number(sectionAttribute(property(props, "gridAfter"), "val") ?? 0);
+    const before = tableGridCount(property(props, "gridBefore"), 0);
+    const after = tableGridCount(property(props, "gridAfter"), 0);
     if (![before, after].every(value => Number.isSafeInteger(value) && value >= 0) || before + after > columns)
       throw new InvalidValueError("Invalid omitted table slots.");
     for (let column = before + 1; column <= columns - after; column++) {

@@ -8,6 +8,7 @@ import { InvalidPackageError, isXmlContentType, parseDocumentXml, type XmlElemen
 import { SelectionError, type LocationKind, type LocationPositions } from "./location-token.js";
 import { tableRows } from "./table-rows.js";
 import { collectShapeCarriers, type ShapeCarrier } from "./shape-carriers.js";
+import { tableGridCount } from "./table-grid-count.js";
 
 export type DocumentScope = "body" | "headers" | "footers" | "footnotes" | "endnotes" | "comments" | "text-boxes" | "all-stories";
 export const documentScopes: readonly DocumentScope[] = Object.freeze([
@@ -34,13 +35,6 @@ export function pathContains(parent: readonly number[], child: readonly number[]
 }
 export function addressKey(value: { part: string; story: string; path: readonly number[] }): string {
   return JSON.stringify([value.part, value.story, value.path]);
-}
-function decimal(value: string | undefined, minimum: number): number {
-  if (value === undefined || !value || [...value].some(c => c < "0" || c > "9"))
-    throw new InvalidPackageError("Invalid logical table coordinate.");
-  const n = Number(value);
-  if (!Number.isSafeInteger(n) || n < minimum) throw new InvalidPackageError("Invalid logical table coordinate.");
-  return n;
 }
 export function cellCoordinates(value: string): { row: number; column: number } {
   if (typeof value !== "string" || value.length > 32) throw new InvalidValueError("Expected a logical cell coordinate.");
@@ -443,12 +437,12 @@ export class LocationIndex {
         const props = this.named(tr, "trPr")[0];
         const before = props && this.named(props, "gridBefore")[0];
         const after = props && this.named(props, "gridAfter")[0];
-        let cursor = before ? decimal(this.attr(before, "val"), 0) : 0;
+        let cursor = tableGridCount(before, 0);
         const next = new Map<number, { node: XmlElement; start: number; span: number }>();
         for (const tc of this.named(tr, "tc")) {
           const props = this.named(tc, "tcPr")[0];
           const spanNode = props && this.named(props, "gridSpan")[0];
-          const span = spanNode ? decimal(this.attr(spanNode, "val"), 1) : 1;
+          const span = tableGridCount(spanNode, 1);
           if (cursor + span > columns) throw new InvalidPackageError("Table cell exceeds its logical grid.");
           const merge = props && this.named(props, "vMerge")[0];
           const legacy = props && this.named(props, "hMerge")[0];
@@ -469,7 +463,7 @@ export class LocationIndex {
           }
           cursor += span;
         }
-        if (cursor + (after ? decimal(this.attr(after, "val"), 0) : 0) !== columns)
+        if (cursor + tableGridCount(after, 0) !== columns)
           throw new InvalidPackageError("Table row disagrees with its logical grid.");
         above = next;
       });

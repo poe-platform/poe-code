@@ -263,8 +263,8 @@ impl<'a> Cursor<'a> {
     }
     fn string(&mut self, key: bool) -> Result<Vec<u16>, Error> {
         let quote = self.ch().unwrap();
+        let opening = self.pos;
         self.pos += 1;
-        let mut content_start = self.pos;
         let multiline = self.ch() == Some(quote) && self.source.get(self.pos + 1) == Some(&quote);
         if multiline {
             if key {
@@ -280,12 +280,11 @@ impl<'a> Cursor<'a> {
             } else if self.ch() == Some(13) && self.source.get(self.pos + 1) == Some(&10) {
                 self.pos += 2;
             }
-            content_start = self.pos;
         }
         let mut out = vec![];
         loop {
             let Some(ch) = self.ch() else {
-                return Err(Error::new(self.source, content_start, "unfinished string"));
+                return Err(Error::new(self.source, opening, "unfinished string"));
             };
             if ch == quote
                 && (!multiline
@@ -324,7 +323,7 @@ impl<'a> Cursor<'a> {
             }
             let slash = self.pos - 1;
             let Some(escape) = self.ch() else {
-                return Err(Error::new(self.source, content_start, "unfinished string"));
+                return Err(Error::new(self.source, opening, "unfinished string"));
             };
             if matches!(escape, 32 | 9 | 10 | 13) {
                 let mut newline = false;
@@ -460,17 +459,11 @@ impl<'a> Cursor<'a> {
         }
     }
     fn inline_entry(&mut self, document: &mut Document) -> Result<usize, Error> {
-        if self.ch().is_none() {
-            return Err(self.err("unfinished table encountered"));
-        }
-        if self.ch() == Some(44) {
-            return Err(self.err("expected value, found comma"));
-        }
         let start = self.pos;
         let key = self.key(61)?;
         document
             .peek(&key, 0, Declaration::Dotted)
-            .map_err(|error| Error::new(self.source, start + 1, error.reason(true)))
+            .map_err(|error| Error::new(self.source, start, error.reason(true)))
     }
     fn primitive_value(&mut self, closing: Option<u16>) -> Result<Value, Error> {
         let begin = self.pos;
@@ -498,7 +491,7 @@ impl<'a> Cursor<'a> {
             return Err(Error::new(
                 self.source,
                 begin,
-                "incomplete key-value declaration: no value specified",
+                "incomplete declaration: value expected",
             ));
         }
         primitive(&self.source[begin..end]).map_err(|reason| Error::new(self.source, begin, reason))
@@ -513,18 +506,34 @@ impl<'a> Cursor<'a> {
             }
             let mut value = match self.ch() {
                 Some(34 | 39) => Value::String(self.string(false)?),
+                Some(116 | 102) => {
+                    let begin = self.pos;
+                    let literal: &[u16] = if self.ch() == Some(116) {
+                        &[116, 114, 117, 101]
+                    } else {
+                        &[102, 97, 108, 115, 101]
+                    };
+                    if !self.source[self.pos..].starts_with(literal) {
+                        return Err(Error::new(self.source, begin, "invalid value"));
+                    }
+                    self.pos += literal.len();
+                    Value::Bool(literal.len() == 4)
+                }
                 Some(91) => {
                     self.pos += 1;
+                    if self.pos == self.source.len() {
+                        return Err(self.err("unfinished array encountered"));
+                    }
                     self.skip(true, true)?;
                     if self.ch() == Some(93) {
                         self.pos += 1;
                         Value::Array(vec![])
                     } else {
                         if self.ch().is_none() {
-                            return Err(self.err("unfinished array encountered"));
+                            return Err(self.err("cannot find end of structure"));
                         }
                         if self.ch() == Some(44) {
-                            return Err(self.err("expected value, found comma"));
+                            return Err(self.err("incomplete declaration: value expected"));
                         }
                         frames.push(Frame::Array {
                             items: vec![],
@@ -536,6 +545,9 @@ impl<'a> Cursor<'a> {
                 }
                 Some(123) => {
                     self.pos += 1;
+                    if self.pos == self.source.len() {
+                        return Err(self.err("unfinished table encountered"));
+                    }
                     self.skip(true, true)?;
                     if self.ch() == Some(125) {
                         self.pos += 1;
@@ -551,7 +563,6 @@ impl<'a> Cursor<'a> {
                 _ => self.primitive_value(closing)?,
             };
             loop {
-                let quoted = matches!(&value, Value::String(_));
                 match frames.pop() {
                     None => return Ok(value),
                     Some(Frame::Array { mut items, depth }) => {
@@ -559,17 +570,12 @@ impl<'a> Cursor<'a> {
                         self.skip(true, true)?;
                         if self.ch() == Some(44) {
                             self.pos += 1;
+                            if self.pos == self.source.len() {
+                                return Err(self.err("unfinished array encountered"));
+                            }
                             self.skip(true, true)?;
                         } else if self.ch() != Some(93) {
-                            return Err(self.err(if quoted {
-                                if self.ch().is_none() {
-                                    "unfinished array encountered"
-                                } else {
-                                    "unexpected character encountered"
-                                }
-                            } else {
-                                "expected comma or end of structure"
-                            }));
+                            return Err(self.err("expected comma or end of structure"));
                         }
                         if self.ch() == Some(93) {
                             self.pos += 1;
@@ -577,10 +583,10 @@ impl<'a> Cursor<'a> {
                             continue;
                         }
                         if self.ch().is_none() {
-                            return Err(self.err("unfinished array encountered"));
+                            return Err(self.err("cannot find end of structure"));
                         }
                         if self.ch() == Some(44) {
-                            return Err(self.err("expected value, found comma"));
+                            return Err(self.err("incomplete declaration: value expected"));
                         }
                         request = (depth + 1, Some(93));
                         frames.push(Frame::Array { items, depth });
@@ -594,17 +600,12 @@ impl<'a> Cursor<'a> {
                         self.skip(true, true)?;
                         if self.ch() == Some(44) {
                             self.pos += 1;
+                            if self.pos == self.source.len() {
+                                return Err(self.err("unfinished table encountered"));
+                            }
                             self.skip(true, true)?;
                         } else if self.ch() != Some(125) {
-                            return Err(self.err(if quoted {
-                                if self.ch().is_none() {
-                                    "unfinished table encountered"
-                                } else {
-                                    "unexpected character encountered"
-                                }
-                            } else {
-                                "expected comma or end of structure"
-                            }));
+                            return Err(self.err("expected comma or end of structure"));
                         }
                         if self.ch() == Some(125) {
                             self.pos += 1;

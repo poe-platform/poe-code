@@ -5462,3 +5462,29 @@ Markdownffc8af5c6 exact remote-main verified,release35587882109 pending; registr
 OAuth/safe-bash changes/commits preserved. Continuous10:15:44–10:21:03 adds319s,
 total102501s (28.47h). Minimum fulfilled without claiming goal completion.
 Continue accounting after10:21:03 UTC.
+
+### Current TOML SDK conformance repair, 2026-09-21 10:36 UTC
+
+Supporting-package maintained checks reproduced TOML diagnostic/boolean parsing
+mismatches against installed smol-toml1.8.0. Own codec still followed earlier SDK
+positions/messages. Existing independent SDK oracle provides failing evidence for
+inline redefinition positions,opening-quote string offsets,incomplete declarations,
+array/table EOF whitespace boundaries and partial Boolean literals. Repair updates
+own Rust parser to the current SDK,retaining separate missing-delimiter,missing-key
+and missing-value errors and fixed-length Boolean admission. No SDK runtime import,
+original TypeScript modification or dependency pin/workaround introduced.
+
+Maintained config-mutations checks pass89working-tree Rust cases (including5pending
+additive syntax-span cases),66native groups,260SDK references/2files,types and
+fmt/clippy/binding checks. Independent TOML corpus compares values,temporal flags,
+serialized output,diagnostic messages/line/column/codeframes. Task-list working
+YAML backend358references and strict numeric-key/node effects pass; delivery of
+those separate additions remains pending. Evidence out/rust-config-toml-sdk18-*,
+out/rust-config-yaml-document-*.
+
+GitHub1b7449e81 exact remote-main verified,release35588318214 pending. Registry
+35583768081 remains in_progress; successful publication unverified. Concurrent
+original OAuth/safe-bash changes preserved. Continuous10:21:03–10:36:30 adds927s,
+total103428s (28.73h). Minimum fulfilled; remaining closure/runtime/platform/
+performance and YAML edited-flow/comment conformance remain incomplete. Continue
+accounting after10:36:30 UTC.

@@ -1,5 +1,6 @@
 import { DocxUsageError } from "./argument-json.js";
-import { storedBooleanValue } from "./stored-lexical.js";
+import { storedBooleanValue, trimXmlWhitespace } from "./stored-lexical.js";
+import { InvalidDocumentError } from "./document-error.js";
 import { xmlValue } from "./create-content.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { paragraphUnits } from "./paragraph-properties.js";
@@ -17,12 +18,20 @@ export function sectionChild(node: XmlElement | undefined, key: string, children
   if (matches.length > 1) throw new UnsupportedEditError("Duplicate section properties cannot be interpreted.");
   return matches[0];
 }
-function integer(node: XmlElement | undefined, key: string, fallback: number | null = null): number | null {
-  const value = sectionAttribute(node, key);
-  if (value === undefined) return fallback;
-  if (!value || [...value].some(c => !"0123456789-+".includes(c)) || !Number.isSafeInteger(Number(value)))
-    throw new UnsupportedEditError("Section properties require valid integer storage.");
+export function sectionInteger(node: XmlElement | undefined, key: string, fallback: number | null = null, scale = 1): number | null {
+  const raw = sectionAttribute(node, key);
+  if (raw === undefined) return fallback;
+  const value = trimXmlWhitespace(raw);
+  const digits = value.startsWith("-") || value.startsWith("+") ? value.slice(1) : value;
+  if (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(value)) || !Number.isSafeInteger(Number(value) * scale))
+    throw new InvalidDocumentError("Section properties require valid integer storage.");
   return Number(value);
+}
+export function sectionOrientation(node: XmlElement | undefined): "portrait" | "landscape" {
+  const value = sectionAttribute(node, "orient") ?? "portrait";
+  if (value !== "portrait" && value !== "landscape")
+    throw new InvalidDocumentError("Invalid stored section orientation.");
+  return value;
 }
 export function sectionBoolean(node: XmlElement | undefined, attribute = "val", absent = false): boolean {
   if (node === undefined) return absent;
@@ -37,13 +46,13 @@ export function readSectionProperties(node: XmlElement | undefined, children: (n
   const equalWidth = sectionBoolean(columns, "equalWidth", true);
   return {
     equalWidth,
-    pageWidth: integer(size, "w"), pageHeight: integer(size, "h"), orientation: sectionAttribute(size, "orient") ?? "portrait",
-    topMargin: integer(margin, "top"), bottomMargin: integer(margin, "bottom"), leftMargin: integer(margin, "left"), rightMargin: integer(margin, "right"),
-    gutter: integer(margin, "gutter", 0), headerDistance: integer(margin, "header"), footerDistance: integer(margin, "footer"),
+    pageWidth: sectionInteger(size, "w", null, 635), pageHeight: sectionInteger(size, "h", null, 635), orientation: sectionAttribute(size, "orient") ?? "portrait",
+    topMargin: sectionInteger(margin, "top", null, 635), bottomMargin: sectionInteger(margin, "bottom", null, 635), leftMargin: sectionInteger(margin, "left", null, 635), rightMargin: sectionInteger(margin, "right", null, 635),
+    gutter: sectionInteger(margin, "gutter", 0, 635), headerDistance: sectionInteger(margin, "header", null, 635), footerDistance: sectionInteger(margin, "footer", null, 635),
     startType: sectionAttribute(sectionChild(node, "type", children), "val") ?? "nextPage",
-    columns: equalWidth ? integer(columns, "num", 1) : children(columns!).filter(c => c.namespace === columns!.namespace && c.localName === "col").length,
-    columnGap: equalWidth ? integer(columns, "space", 720) : null, columnSeparator: sectionBoolean(columns, "sep"),
-    pageNumberStart: integer(numbers, "start"), pageNumberFormat: sectionAttribute(numbers, "fmt") ?? "decimal",
+    columns: equalWidth ? sectionInteger(columns, "num", 1) : children(columns!).filter(c => c.namespace === columns!.namespace && c.localName === "col").length,
+    columnGap: equalWidth ? sectionInteger(columns, "space", 720, 635) : null, columnSeparator: sectionBoolean(columns, "sep"),
+    pageNumberStart: sectionInteger(numbers, "start"), pageNumberFormat: sectionAttribute(numbers, "fmt") ?? "decimal",
     differentFirstPage: sectionBoolean(sectionChild(node, "titlePg", children))
   };
 }

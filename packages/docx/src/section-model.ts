@@ -11,6 +11,8 @@ import { findRelationshipPart, retainedRelationshipTargets } from "./relationshi
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import {
   sectionAttribute,
+  sectionInteger,
+  sectionOrientation,
   sectionBoolean,
   sectionChild,
   sectionPropertyOrder,
@@ -120,11 +122,8 @@ export class Section {
     );
   }
   private length(tag: string, attr: string): Length | null {
-    const value = sectionAttribute(sectionChild(this.store.node(this.ref), tag, activeModelChildren(this.store, this.ref.part)), attr);
-    if (value === undefined) return null;
-    if (!Number.isSafeInteger(Number(value)))
-      throw new InvalidValueError("Invalid section length storage.");
-    return Twips(Number(value));
+    const value = sectionInteger(sectionChild(this.store.node(this.ref), tag, activeModelChildren(this.store, this.ref.part)), attr, null, 635);
+    return value === null ? null : Twips(value);
   }
   private set(tag: string, attr: string, value: string | null): void {
     this.store.change(this.ref.part, (xml) => {
@@ -200,7 +199,7 @@ export class Section {
     this.setLength("pgMar", "footer", v);
   }
   get orientation(): DocxEnumValue<"WD_ORIENTATION"> {
-    return sectionAttribute(sectionChild(this.store.node(this.ref), "pgSz", activeModelChildren(this.store, this.ref.part)), "orient") ===
+    return sectionOrientation(sectionChild(this.store.node(this.ref), "pgSz", activeModelChildren(this.store, this.ref.part))) ===
       "landscape"
       ? WD_ORIENT.LANDSCAPE
       : WD_ORIENT.PORTRAIT;

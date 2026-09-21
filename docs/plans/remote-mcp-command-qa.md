@@ -71,3 +71,15 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     tool. Visually inspect help and schema output. Raw --schema must be rejected
     as invalid JSON rather than interpreted as inspection; inline field values
     such as --schema-2=--schema remain literal arguments.
+
+12. For resource access, expose resources/list, resources/templates/list and
+    resources/read on real synthetic HTTP and legacy SSE endpoints, with no
+    tools capability. Through accessRemoteMcpResources and the management
+    `mcp resource` command, preserve one complete list/template page, exact
+    opaque cursors and read results containing both text and base64 blob data
+    with metadata. Send file:///remote URIs to the endpoint and redirect output
+    into the virtual filesystem; no host file reads or synthetic tools belong
+    in this flow. Require no tools/list or tools/call, native connection cleanup,
+    headless OAuth policy and nonzero protocol-failure diagnostics. Test bounded
+    input, complete deadlines and pre-aborted host signals before credential
+    binding. Inspect the resource help/result screenshot and purge own fixtures.

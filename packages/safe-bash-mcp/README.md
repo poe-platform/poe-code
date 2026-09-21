@@ -26,6 +26,7 @@ discovery. Explicit instructions take precedence over discovered guidance.
 | SDK function | Purpose |
 | --- | --- |
 | `fetchRemoteMcpSchema(server, options)` | Resolve one server's tool schemas |
+| `accessRemoteMcpResources(server, request, options)` | List a resource/template page or read complete remote contents |
 | `resolveRemoteMcpSchemas(servers, options)` | Preflight a registry and resolve it in order |
 | `compileToolArguments(tool, options)` | Compile validated argument parsing and deterministic flag metadata |
 | `createRemoteMcpCommands(servers, options)` | Generate safe-bash command definitions |
@@ -130,6 +131,19 @@ Output schemas and external schema registrations are captured during generation.
 Registration checks all command conflicts before registering any of them.
 Save the full response with `catalog search_items --query example > /response.json`.
 Redirection writes to the shell's virtual filesystem and preserves the response.
+
+Use the management command to access resources without tool discovery:
+`mcp resource catalog` lists one resource page,
+`mcp resource catalog --templates` lists URI templates, and
+`mcp resource catalog file:///remote/README.md > /resource.json` reads contents.
+Resource URIs are sent to the remote MCP server; they do not read host files.
+Results preserve text, base64 blobs, metadata and `nextCursor` as JSON. Pass
+`--cursor <nextCursor>` to request another listing page. `mcp resource --help`
+explains the formats; `resources.binding` and `resources.fetch` select explicit
+runtime credentials and a host transport adapter, with the usual headless policy.
+The SDK accepts `{ operation: "list" | "templates", cursor?: string }` or
+`{ operation: "read", uri: string }`. `maxInputBytes` bounds its request JSON
+(default 1 MiB); `requestTimeoutMs` bounds the complete resource operation.
 
 Prepare credential configuration without reading secrets or connecting:
 

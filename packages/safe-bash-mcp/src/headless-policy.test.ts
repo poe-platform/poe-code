@@ -2,15 +2,16 @@ import { expect, it, vi } from "vitest";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 import type { HttpTransportFetch } from "tiny-mcp-client";
-import { bindRemoteMcpConfiguration, createRemoteMcpCommands, fetchRemoteMcpSchema,
+import { accessRemoteMcpResources, bindRemoteMcpConfiguration, createRemoteMcpCommands, createRemoteMcpManagementCommand, fetchRemoteMcpSchema,
   generateRemoteMcpArtifact, initRemoteMcpConfiguration, remoteMcpArtifactPlugin } from "./index.js";
 
-it.each(["discovery", "command", "artifact"] as const)("preserves default headless policy through the real %s path on repeated 401s", async path => {
+it.each(["discovery", "command", "artifact", "resource", "resource-command"] as const)("preserves default headless policy through the real %s path on repeated 401s", async path => {
   const resource = "https://catalog.example/mcp", issuer = "https://auth.example";
   const metadataUrl = "https://catalog.example/.well-known/oauth-protected-resource/mcp";
-  const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource,
-    tools: [{ name: "find", inputSchema: { type: "object" } }], protocolVersion: "2025-03-26",
-    auth: { type: "oauth", clientMode: "static", env: { clientId: "APP_ID" } } }]).configuration;
+  const servers = [{ name: "catalog", url: resource,
+    tools: [{ name: "find", inputSchema: { type: "object" } }], protocolVersion: "2025-03-26" as const,
+    auth: { type: "oauth" as const, clientMode: "static" as const, env: { clientId: "APP_ID" } } }];
+  const configuration = initRemoteMcpConfiguration(servers).configuration;
   const openBrowser = vi.fn(), readLine = vi.fn(), save = vi.fn();
   const binding = { env: { APP_ID: "original-client" }, oauth: { browser: { openBrowser, readLine },
     sessionStore: () => ({ load: async () => null, save, clear: vi.fn() }) } };
@@ -26,17 +27,19 @@ it.each(["discovery", "command", "artifact"] as const)("preserves default headle
     return Response.json({ issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`,
       registration_endpoint: `${issuer}/register`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] });
   });
-  if (path === "discovery") {
+  if (path === "discovery" || path === "resource") {
     const [bound] = bindRemoteMcpConfiguration(configuration, binding);
-    for (let run = 0; run < 2; run++) await expect(fetchRemoteMcpSchema({ ...bound, tools: undefined }, { fetch })).rejects.toThrow("interactive");
+    for (let run = 0; run < 2; run++) await expect(path === "discovery" ? fetchRemoteMcpSchema({ ...bound, tools: undefined }, { fetch })
+      : accessRemoteMcpResources(bound, { operation: "read", uri: "memo://one" }, { fetch })).rejects.toThrow("interactive");
   } else {
-    const commands = path === "command" ? new CommandRegistry(await createRemoteMcpCommands(bindRemoteMcpConfiguration(configuration, binding), { fetch })) : undefined;
+    const commands = path === "command" ? new CommandRegistry(await createRemoteMcpCommands(bindRemoteMcpConfiguration(configuration, binding), { fetch }))
+      : path === "resource-command" ? new CommandRegistry([createRemoteMcpManagementCommand(servers, { resources: { binding, fetch } })]) : undefined;
     const shell = new Shell({ fs: createMemoryFileSystem(), commands });
     try {
       if (path === "artifact") shell.use(await remoteMcpArtifactPlugin((await generateRemoteMcpArtifact(configuration)).artifact, { binding, commands: { fetch } }));
       expect(fetch).not.toHaveBeenCalled();
       for (let run = 0; run < 2; run++) {
-        const result = await shell.exec("catalog find");
+        const result = await shell.exec(path === "resource-command" ? "mcp resource catalog memo://one" : "catalog find");
         expect(result.exitCode).toBe(1);
         expect(result.stdout).toBe("");
         expect(result.stderr).toContain("interactive");

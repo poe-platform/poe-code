@@ -6,6 +6,8 @@ import { generateRemoteMcpArtifact, type ArtifactGenerationOptions } from "./art
 import { authenticateRemoteMcpServer, type RemoteMcpAuthenticationOptions, type RemoteMcpAuthenticationResult } from "./authentication.js";
 import { importRemoteMcpAuthentication, type RemoteMcpCredentialImportOptions, type RemoteMcpCredentialImportResult } from "./credential-import.js";
 import type { ConfigurationBindingOptions } from "./runtime-configuration.js";
+import { bindRemoteMcpConfiguration } from "./runtime-configuration.js";
+import { accessRemoteMcpResources, snapshotRemoteMcpResourceRequest, type RemoteMcpResourceRequest, type RemoteMcpResourceOptions } from "./resources.js";
 import { resetRemoteMcpAuthentication, type RemoteMcpCredentialResetOptions, type RemoteMcpCredentialResetResult } from "./credential-reset.js";
 
 export interface RemoteMcpManagementOptions extends ConfigurationOptions {
@@ -17,6 +19,35 @@ export interface RemoteMcpManagementOptions extends ConfigurationOptions {
   readonly authentication?: Omit<RemoteMcpAuthenticationOptions, "binding"> & { readonly binding?: ConfigurationBindingOptions };
   readonly reset?: RemoteMcpCredentialResetOptions;
   readonly credentialImport?: RemoteMcpCredentialImportOptions;
+  readonly resources?: RemoteMcpResourceOptions & { readonly binding?: ConfigurationBindingOptions };
+}
+
+function resourceArguments(args: readonly string[], maxInputBytes: number): { name: string; request: RemoteMcpResourceRequest } {
+  const positional: string[] = [];
+  let cursor: string | undefined;
+  let templates = false;
+  let literal = false;
+  for (let index = 1; index < args.length; index++) {
+    const arg = args[index];
+    if (!literal && arg === "--") { literal = true; continue; }
+    if (!literal && arg === "--templates") {
+      if (templates) throw new Error("--templates can only be supplied once");
+      templates = true;
+    } else if (!literal && (arg === "--cursor" || arg.startsWith("--cursor="))) {
+      if (cursor !== undefined) throw new Error("--cursor can only be supplied once");
+      cursor = arg === "--cursor" ? args[++index] : arg.slice("--cursor=".length);
+      if (cursor === undefined) throw new Error("--cursor requires a value");
+    } else {
+      if ((!literal && arg.startsWith("-")) || positional.length === 2) throw new Error(`Unknown resource argument '${arg}'`);
+      positional.push(arg);
+    }
+  }
+  const [name, uri] = positional;
+  if (name === undefined) throw new Error("resource requires a server name");
+  if (uri !== undefined && (templates || cursor !== undefined)) throw new Error("Resource reads cannot use --templates or --cursor");
+  const request: RemoteMcpResourceRequest = uri === undefined ? { operation: templates ? "templates" : "list", ...(cursor === undefined ? {} : { cursor }) }
+    : { operation: "read", uri };
+  return { name, request: snapshotRemoteMcpResourceRequest(request, maxInputBytes) };
 }
 
 function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; file?: string } {
@@ -93,6 +124,12 @@ export function createRemoteMcpManagementCommand(
     "recover corrupt native records and withholds stale environment-token imports.",
     "Host-owned persistence requires a host reset hook. Update static bearer/header",
     "values in the host environment. The default lock wait is 30000 milliseconds.", "", "  --help  Show this help.", ""].join("\n");
+  const resourceHelp = [`Usage: ${textLine(shellWord(name))} resource <server> [uri] [--cursor <value>] [--templates]`, "",
+    "Without a URI, list one resource page; --templates lists URI templates.",
+    "With a URI, read remote text/blob contents. URIs are sent to the MCP server.",
+    "Complete results are JSON, including metadata and nextCursor; provide that",
+    "cursor explicitly to request the next page. No tools are discovered or called.",
+    "  --help  Show this help.", ""].join("\n");
   const importHelp = [`Usage: ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
     "Read OAuth credential JSON from stdin (default) or a virtual --file path.",
     "Use --file - to select stdin explicitly.",
@@ -113,7 +150,8 @@ export function createRemoteMcpManagementCommand(
     `       ${textLine(shellWord(name))} generate [--format json|config|module]`,
     `       ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host] [--reset]`,
     `       ${textLine(shellWord(name))} reset <server> [--json]`,
-    `       ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
+    `       ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`,
+    `       ${textLine(shellWord(name))} resource <server> [uri] [--cursor <value>] [--templates]`, "",
     "Prepare configuration and an empty credential environment template for the remote registry.", "",
     "Formats:", "  json    Configuration and environment template together (default).",
     "  config  Versioned server configuration with credential references.", "  env     Empty dotenv entries with credential guidance.", "",
@@ -147,12 +185,20 @@ export function createRemoteMcpManagementCommand(
         let authentication: ReturnType<typeof credentialArguments> | undefined;
         let credentialImport: ReturnType<typeof credentialArguments> | undefined;
         let credentialReset: ReturnType<typeof credentialArguments> | undefined;
+        let resource: ReturnType<typeof resourceArguments> | undefined;
         try {
           const args = argumentText(context, maxInputBytes);
           if (args.length === 2 && args[0] === "auth" && args[1] === "--help") output = authenticationHelp;
           else if (args.length === 2 && args[0] === "import" && args[1] === "--help") output = importHelp;
           else if (args.length === 2 && args[0] === "reset" && args[1] === "--help") output = resetHelp;
+          else if (args.length === 2 && args[0] === "resource" && args[1] === "--help") output = resourceHelp;
           else if (args.length === 0 || (args.length === 1 && args[0] === "--help") || (args.length === 2 && ["init", "generate"].includes(args[0]) && args[1] === "--help")) output = help;
+          else if (args[0] === "resource") {
+            const selected = resourceArguments(args, maxInputBytes);
+            if (!initialization.configuration.servers.some(server => server.name === selected.name)) throw new Error(`Unknown remote MCP server '${selected.name}'`);
+            resource = selected;
+            output = "";
+          }
           else if (args[0] === "auth" || args[0] === "reset" || args[0] === "import") {
             const selected = credentialArguments(args);
             if (!initialization.configuration.servers.some(server => server.name === selected.name)) throw new Error(`Unknown remote MCP server '${selected.name}'`);
@@ -183,6 +229,23 @@ export function createRemoteMcpManagementCommand(
           operation.signal.throwIfAborted();
           await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
           return { exitCode: 2 };
+        }
+        if (resource !== undefined) {
+          const selected = resource;
+          try {
+            const settings = options.resources;
+            const resourceSignal = settings?.signal;
+            const signal = resourceSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resourceSignal]);
+            signal.throwIfAborted();
+            const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
+            const [bound] = bindRemoteMcpConfiguration({ version: 1, servers: [server] }, settings?.binding ?? { env: context.env });
+            const result = await accessRemoteMcpResources(bound, selected.request, { ...settings, maxInputBytes: Math.min(maxInputBytes, settings?.maxInputBytes ?? maxInputBytes), signal });
+            output = `${JSON.stringify(result)}\n`;
+          } catch (error) {
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
         }
         if (credentialImport !== undefined) {
           const selected = credentialImport;

@@ -27,11 +27,11 @@ describe("remote MCP management init command", () => {
     const binding = { env, oauth: { sessionStore } };
     const definition = createRemoteMcpManagementCommand(servers, {
       generation: { binding, schema: { fetch } }, authentication: { binding, fetch },
-      credentialImport: { binding, fetch }, reset: { binding }
+      credentialImport: { binding, fetch }, reset: { binding }, resources: { binding, fetch }
     });
     const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
     try {
-      for (const script of ["mcp", "mcp --help", ...["init", "generate", "auth", "import", "reset"].map(command => `mcp ${command} --help`)]) {
+      for (const script of ["mcp", "mcp --help", ...["init", "generate", "auth", "import", "reset", "resource"].map(command => `mcp ${command} --help`)]) {
         const result = await shell.exec(script);
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain("Usage:");

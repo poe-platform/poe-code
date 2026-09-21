@@ -35,3 +35,15 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
    signatures or generated examples.
 8. Record observations in docs/plans/remote-mcp-safe-bash.md and remove only the
    QA-owned fixtures and generated evidence.
+
+9. For result ownership, run a local synthetic HTTP endpoint with five tools:
+   dual pre-stringified JSON text plus structuredContent; multiple JSON-text
+   blocks plus a structured result array; an isError payload with literal json,
+   data, status, summary, meta and trace fields; non-JSON text plus a plain
+   structured object; and mixed text/resource-text/resource-blob content with
+   metadata. Invoke each through both direct commands and a recreated artifact
+   Shell. Compare stdout bytes with JSON.stringify of the complete expected
+   result plus newline, verify isError returns 1, and require empty stderr and no
+   tools/list. Native JSON-RPC handling unwraps the protocol envelope; the library
+   must never guess that payload json/data/result fields are another envelope.
+   Preserve blob bytes rather than replacing them with rendering placeholders.

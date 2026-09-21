@@ -176,6 +176,19 @@ describe("generated remote MCP safe-bash commands", () => {
     expect(JSON.parse(input.output())).toEqual(result);
   });
 
+  it.each([
+    { content: [{ type: "text", text: '{\n  "entities": [],\n  "relations": []\n}' }], structuredContent: { entities: [], relations: [] } },
+    { content: [{ type: "text", text: '{"id":1}' }, { type: "text", text: '{"id":2}' }], structuredContent: { result: [{ id: 1 }, { id: 2 }] } },
+    { content: [{ type: "text", text: '{"status":"error","summary":"failed","data":{},"meta":{}}' }],
+      structuredContent: { json: { privateWrapperName: true }, data: {}, status: "error", summary: "failed", meta: {}, trace_id: "retained" }, isError: true },
+    { content: [{ type: "text", text: "not JSON; no inspect fallback" }], structuredContent: { status: "ok", summary: "plain object" } }
+  ])("preserves ambiguous text/structured result shapes without wrapper guesses: %j", async result => {
+    const input = invocation(["search_items", "--query", "all"]);
+    expect(await (await command(remote(result))).execute(input.context)).toEqual({ exitCode: result.isError ? 1 : 0 });
+    expect(JSON.parse(input.output())).toEqual(result);
+    expect(input.error()).toBe("");
+  });
+
   it("returns nonzero on tool failure without collapsing the result", async () => {
     const result = { ...success, isError: true, structuredContent: { data: { error: "failed" }, detail: "preserved" } };
     const input = invocation(["search_items", "--query", "failure"]);

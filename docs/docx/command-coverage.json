@@ -2018,7 +2018,8 @@
         "model.XmlElementView.set_attribute.call",
         "model.XmlElementView.insert.call",
         "model.XmlElementView.remove.call",
-        "model.XmlElementView.serialize.call"
+        "model.XmlElementView.serialize.call",
+        "model.text.paragraph.Paragraph.element.get"
       ],
       "tests": ["feature.F04"],
       "implemented": false,
@@ -2366,7 +2367,8 @@
         "mapped.XmlElementView.set_attribute",
         "mapped.XmlElementView.insert",
         "mapped.XmlElementView.remove",
-        "mapped.XmlElementView.serialize"
+        "mapped.XmlElementView.serialize",
+        "docx.text.paragraph.Paragraph.element"
       ],
       "discoveryEvidence": "discovery-coverage.json#/features/F04"
     },
@@ -2375,10 +2377,15 @@
       "name": "Markup compatibility",
       "requiredBehavior": "Handle `mc:Ignorable`, `MustUnderstand`, `ProcessContent` and `AlternateContent` according to a declared understood-namespace profile; preserve unselected branches.",
       "targetLevel": "edit",
-      "operationIds": ["inspect", "validate", "text.replace"],
+      "operationIds": [
+        "inspect",
+        "validate",
+        "text.replace",
+        "model.text.paragraph.Paragraph.element.get"
+      ],
       "tests": ["feature.F05"],
       "implemented": false,
-      "sdkRows": [],
+      "sdkRows": ["docx.text.paragraph.Paragraph.element"],
       "discoveryEvidence": "discovery-coverage.json#/features/F05"
     },
     {
@@ -2465,7 +2472,8 @@
         "model.XmlElementView.set_attribute.call",
         "model.XmlElementView.insert.call",
         "model.XmlElementView.remove.call",
-        "model.XmlElementView.serialize.call"
+        "model.XmlElementView.serialize.call",
+        "model.text.paragraph.Paragraph.element.get"
       ],
       "tests": ["feature.F07"],
       "implemented": false,
@@ -2478,7 +2486,8 @@
         "mapped.XmlElementView.set_attribute",
         "mapped.XmlElementView.insert",
         "mapped.XmlElementView.remove",
-        "mapped.XmlElementView.serialize"
+        "mapped.XmlElementView.serialize",
+        "docx.text.paragraph.Paragraph.element"
       ],
       "discoveryEvidence": "discovery-coverage.json#/features/F07"
     },
@@ -2593,7 +2602,8 @@
         "model.text.run.Font.part.get",
         "model.text.pagebreak.RenderedPageBreak.part.get",
         "model.text.run.Run.element.get",
-        "paragraphs.get"
+        "paragraphs.get",
+        "model.text.paragraph.Paragraph.element.get"
       ],
       "tests": ["feature.F08"],
       "implemented": false,
@@ -2665,7 +2675,8 @@
         "docx.text.run.Font.part",
         "docx.text.pagebreak.RenderedPageBreak.part",
         "docx.text.run._Text",
-        "docx.text.run.Run.element"
+        "docx.text.run.Run.element",
+        "docx.text.paragraph.Paragraph.element"
       ],
       "discoveryEvidence": "discovery-coverage.json#/features/F08"
     },
@@ -5753,7 +5764,16 @@
         "model.enum.section.WD_HEADER_FOOTER_INDEX.fromValue.call",
         "model.enum.section.WD_HEADER_FOOTER_INDEX.members.get",
         "model.enum.section.WD_HEADER_FOOTER_INDEX.Symbol.iterator.call",
-        "paragraphs.set"
+        "paragraphs.set",
+        "styles.defaults.get",
+        "styles.defaults.set",
+        "styles.latent.list",
+        "styles.latent.get",
+        "styles.latent.add",
+        "styles.latent.set",
+        "styles.latent.remove",
+        "styles.latent.defaults.get",
+        "styles.latent.defaults.set"
       ],
       "tests": ["feature.F14"],
       "implemented": false,
@@ -104807,6 +104827,564 @@
         "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
       },
       "discoveryEvidence": "discovery-coverage.json#/operations/footers.remove"
+    },
+    "model.text.paragraph.Paragraph.element.get": {
+      "path": ["batch"],
+      "sdkOperationId": "model.text.paragraph.Paragraph.element.get",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "typed-batch",
+      "inputArity": 1,
+      "commonProfile": "batch",
+      "commonOptions": [
+        "json",
+        "limit",
+        "output",
+        "inPlace",
+        "force",
+        "dryRun",
+        "timestamp",
+        "author"
+      ],
+      "arguments": {
+        "fields": {},
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F04", "F05", "F07", "F08"],
+      "help": ["docx", "help", "--operation", "model.text.paragraph.Paragraph.element.get"],
+      "schema": ["docx", "schema", "--operation", "model.text.paragraph.Paragraph.element.get"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": [
+        "docx",
+        "schema",
+        "--operation",
+        "model.text.paragraph.Paragraph.element.get"
+      ]
+    },
+    "styles.defaults.get": {
+      "path": ["styles", "defaults", "get"],
+      "sdkOperationId": "styles.defaults.get",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "read",
+      "commonOptions": ["json", "limit"],
+      "arguments": {
+        "fields": {},
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.defaults.get"],
+      "schema": ["docx", "schema", "--operation", "styles.defaults.get"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.defaults.get"]
+    },
+    "styles.defaults.set": {
+      "path": ["styles", "defaults", "set"],
+      "sdkOperationId": "styles.defaults.set",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "edit",
+      "commonOptions": ["json", "limit", "output", "inPlace", "force", "dryRun"],
+      "arguments": {
+        "fields": {
+          "bold": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "italic": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "font": {
+            "type": "string | null",
+            "required": false
+          },
+          "size": {
+            "type": "Length (explicit emu/in/cm/mm/pt) | null",
+            "required": false
+          },
+          "color": {
+            "type": "RGB hex | null",
+            "required": false
+          },
+          "outlineLevel": {
+            "type": "integer 0..9 | null",
+            "required": false
+          },
+          "keepWithNext": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "spaceBefore": {
+            "type": "Length (explicit emu/in/cm/mm/pt) | null",
+            "required": false
+          },
+          "spaceAfter": {
+            "type": "Length (explicit emu/in/cm/mm/pt) | null",
+            "required": false
+          },
+          "underline": {
+            "type": "boolean | WD_UNDERLINE | null",
+            "required": false
+          },
+          "strike": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "highlight": {
+            "type": "WD_COLOR_INDEX | null",
+            "required": false
+          },
+          "language": {
+            "type": "string | null",
+            "required": false
+          },
+          "rtl": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "superscript": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "subscript": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "themeColor": {
+            "type": "MSO_THEME_COLOR | null",
+            "required": false
+          },
+          "baseline": {
+            "type": "Baseline | null",
+            "required": false
+          },
+          "ascii": {
+            "type": "string | null",
+            "required": false
+          },
+          "highAnsi": {
+            "type": "string | null",
+            "required": false
+          },
+          "eastAsia": {
+            "type": "string | null",
+            "required": false
+          },
+          "complexScript": {
+            "type": "string | null",
+            "required": false
+          },
+          "asciiTheme": {
+            "type": "ThemeFont | null",
+            "required": false
+          },
+          "highAnsiTheme": {
+            "type": "ThemeFont | null",
+            "required": false
+          },
+          "eastAsiaTheme": {
+            "type": "ThemeFont | null",
+            "required": false
+          },
+          "complexScriptTheme": {
+            "type": "ThemeFont | null",
+            "required": false
+          },
+          "alignment": {
+            "type": "WD_PARAGRAPH_ALIGNMENT | null",
+            "required": false
+          },
+          "leftIndent": {
+            "type": "Length (explicit emu/in/cm/mm/pt) | null",
+            "required": false
+          },
+          "rightIndent": {
+            "type": "Length (explicit emu/in/cm/mm/pt) | null",
+            "required": false
+          },
+          "firstLineIndent": {
+            "type": "Length (explicit emu/in/cm/mm/pt) | null",
+            "required": false
+          },
+          "lineSpacing": {
+            "type": "Length | finite number | null",
+            "required": false
+          },
+          "keepTogether": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "widowControl": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "pageBreakBefore": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "tabStopsJson": {
+            "type": "ReadonlyArray<{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}> | null",
+            "required": false
+          },
+          "bordersJson": {
+            "type": "{top?: Border; bottom?: Border; left?: Border; right?: Border; between?: Border} | null",
+            "required": false
+          },
+          "shadingJson": {
+            "type": "{fill: RGBColor; color?: RGBColor; pattern: ShadingPattern} | null",
+            "required": false
+          },
+          "lineSpacingRule": {
+            "type": "WD_LINE_SPACING | null",
+            "required": false
+          },
+          "tabStopAddJson": {
+            "type": "{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}",
+            "required": false
+          },
+          "tabStopDelete": {
+            "type": "safe integer",
+            "required": false
+          },
+          "tabStopsClear": {
+            "type": "boolean",
+            "required": false
+          },
+          "fontHidden": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "allCaps": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "complexScriptEnabled": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "csBold": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "csItalic": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "doubleStrike": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "emboss": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "imprint": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "math": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "noProof": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "outline": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "shadow": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "smallCaps": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "snapToGrid": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "specVanish": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "webHidden": {
+            "type": "boolean | null",
+            "required": false
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.defaults.set"],
+      "schema": ["docx", "schema", "--operation", "styles.defaults.set"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.defaults.set"]
+    },
+    "styles.latent.list": {
+      "path": ["styles", "latent", "list"],
+      "sdkOperationId": "styles.latent.list",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "read",
+      "commonOptions": ["json", "limit"],
+      "arguments": {
+        "fields": {},
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.latent.list"],
+      "schema": ["docx", "schema", "--operation", "styles.latent.list"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.latent.list"]
+    },
+    "styles.latent.get": {
+      "path": ["styles", "latent", "get"],
+      "sdkOperationId": "styles.latent.get",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "read",
+      "commonOptions": ["json", "limit"],
+      "arguments": {
+        "fields": {
+          "name": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.latent.get"],
+      "schema": ["docx", "schema", "--operation", "styles.latent.get"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.latent.get"]
+    },
+    "styles.latent.add": {
+      "path": ["styles", "latent", "add"],
+      "sdkOperationId": "styles.latent.add",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "edit",
+      "commonOptions": ["json", "limit", "output", "inPlace", "force", "dryRun"],
+      "arguments": {
+        "fields": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "hidden": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "locked": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "quickStyle": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "unhideWhenUsed": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "priority": {
+            "type": "integer 0..99 | null",
+            "required": false
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.latent.add"],
+      "schema": ["docx", "schema", "--operation", "styles.latent.add"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.latent.add"]
+    },
+    "styles.latent.set": {
+      "path": ["styles", "latent", "set"],
+      "sdkOperationId": "styles.latent.set",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "edit",
+      "commonOptions": ["json", "limit", "output", "inPlace", "force", "dryRun"],
+      "arguments": {
+        "fields": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "hidden": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "locked": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "quickStyle": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "unhideWhenUsed": {
+            "type": "boolean | null",
+            "required": false
+          },
+          "priority": {
+            "type": "integer 0..99 | null",
+            "required": false
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.latent.set"],
+      "schema": ["docx", "schema", "--operation", "styles.latent.set"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.latent.set"]
+    },
+    "styles.latent.remove": {
+      "path": ["styles", "latent", "remove"],
+      "sdkOperationId": "styles.latent.remove",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "edit",
+      "commonOptions": ["json", "limit", "output", "inPlace", "force", "dryRun"],
+      "arguments": {
+        "fields": {
+          "name": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.latent.remove"],
+      "schema": ["docx", "schema", "--operation", "styles.latent.remove"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.latent.remove"]
+    },
+    "styles.latent.defaults.get": {
+      "path": ["styles", "latent", "defaults", "get"],
+      "sdkOperationId": "styles.latent.defaults.get",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "read",
+      "commonOptions": ["json", "limit"],
+      "arguments": {
+        "fields": {},
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.latent.defaults.get"],
+      "schema": ["docx", "schema", "--operation", "styles.latent.defaults.get"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.latent.defaults.get"]
+    },
+    "styles.latent.defaults.set": {
+      "path": ["styles", "latent", "defaults", "set"],
+      "sdkOperationId": "styles.latent.defaults.set",
+      "version": 1,
+      "status": "declared-current-runtime; full-behavior-acceptance-pending",
+      "transport": "direct-and-batch",
+      "inputArity": 1,
+      "commonProfile": "edit",
+      "commonOptions": ["json", "limit", "output", "inPlace", "force", "dryRun"],
+      "arguments": {
+        "fields": {
+          "defaultToHidden": {
+            "type": "boolean",
+            "required": false
+          },
+          "defaultToLocked": {
+            "type": "boolean",
+            "required": false
+          },
+          "defaultToQuickStyle": {
+            "type": "boolean",
+            "required": false
+          },
+          "defaultToUnhideWhenUsed": {
+            "type": "boolean",
+            "required": false
+          },
+          "defaultPriority": {
+            "type": "integer 0..99 | null",
+            "required": false
+          },
+          "loadCount": {
+            "type": "nonnegative safe integer | null",
+            "required": false
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "featureIds": ["F14"],
+      "help": ["docx", "help", "--operation", "styles.latent.defaults.set"],
+      "schema": ["docx", "schema", "--operation", "styles.latent.defaults.set"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": [],
+      "qualification": "Built declaration and discovery only; not full public behavioral acceptance.",
+      "evidence": "teardown-verification-20260921.json#/registers",
+      "runtimeSchemaDiscovery": ["docx", "schema", "--operation", "styles.latent.defaults.set"]
     }
   },
   "sdk": [
@@ -132811,6 +133389,32 @@
       "note": "Neutral error class exposed in schema/results, not a callable error constructor operation.",
       "featureIds": ["F31", "F32"],
       "discoveryEvidence": "discovery-coverage.json#/apis/source-error.UnrecognizedImageError"
+    },
+    {
+      "id": "docx.text.paragraph.Paragraph.element",
+      "apiContract": "public-api-map.json#/rows/1337",
+      "disposition": "security-mapped",
+      "signature": "readonly element: XmlElementView",
+      "languageMappings": ["M-VALUES", "M-OWNERSHIP", "M-ERRORS", "M-CLI", "M-VIEWS"],
+      "errorContracts": ["E-TYPE", "E-VALUE", "E-OWNER", "E-STALE", "E-LIMIT"],
+      "tests": ["API-1338"],
+      "operationIds": ["model.text.paragraph.Paragraph.element.get"],
+      "schemaAndHelp": [
+        {
+          "operation": "model.text.paragraph.Paragraph.element.get",
+          "contract": "#/operations/model.text.paragraph.Paragraph.element.get"
+        }
+      ],
+      "implemented": false,
+      "featureIds": ["F04", "F05", "F07", "F08"],
+      "evidence": [
+        {
+          "path": "whole-api-acceptance-20260921.json",
+          "test_file": "../../packages/docx/src/paragraph-element-command.test.ts",
+          "scope": "bounded getter/returned handle and usage boundaries; complete owner/security variants not claimed"
+        }
+      ],
+      "qualification": "Bounded original getter evidence; full owner/security contract pending."
     }
   ],
   "tests": {
@@ -157081,12 +157685,12 @@
   },
   "accounting": {
     "featureCount": 50,
-    "apiRows": 1337,
+    "apiRows": 1338,
     "inventoryRecords": 920,
     "enumValues": 262,
-    "operationCount": 1508,
-    "directOperations": 115,
-    "typedBatchOperations": 1393,
+    "operationCount": 1518,
+    "directOperations": 124,
+    "typedBatchOperations": 1394,
     "implemented": 0,
     "passingTargetTests": 0
   },

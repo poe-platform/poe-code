@@ -1,0 +1,4348 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-21",
+  "status": "bounded-audit-complete; full-product-acceptance-pending",
+  "baseline": {
+    "head": "db83b312824645364725a6603dc85b5742b605bc",
+    "branch": "main",
+    "inheritedPipeline": "preserved; recorded done statuses are not endorsed",
+    "specification": "Proposed; Implemented Through: Not applicable"
+  },
+  "tasks": [
+    {
+      "order": 1,
+      "id": "pin-ooxml-standards",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-standards-audit.md",
+          "hash": "91c99415002b6ea34c072d2d694e08aefbadd2cc",
+          "subject": "docs(docx): pin standards and map feature coverage",
+          "paths": [
+            "docs/docx/standards-audit-evidence.md",
+            "docs/docx/standards-coverage.md",
+            "docs/docx/standards-sources.json",
+            "docs/plans/docx-standards-audit.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/0"
+    },
+    {
+      "order": 2,
+      "id": "reconcile-documented-public-api",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-public-api-reconciliation.md",
+          "hash": "075369b4fc93f7c7e4a66601e33df3e064a4fc49",
+          "subject": "docs(docx): reconcile public API research inventory",
+          "paths": [
+            "docs/docx/upstream-api-audit.md",
+            "docs/docx/upstream-api-inventory.json",
+            "docs/docx/upstream-api-reconciliation.md",
+            "docs/plans/docx-public-api-reconciliation.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/1"
+    },
+    {
+      "order": 3,
+      "id": "define-mirrored-js-api",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-public-api-map.md",
+          "hash": "9069b1432144505a86ee58eb7529320af698b77f",
+          "subject": "docs(docx): define the public API mapping contract",
+          "paths": [
+            "docs/docx/public-api-map-review.md",
+            "docs/docx/public-api-map.json",
+            "docs/plans/docx-public-api-map.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-public-api-reconciliation.md",
+          "hash": "075369b4fc93f7c7e4a66601e33df3e064a4fc49",
+          "subject": "docs(docx): reconcile public API research inventory",
+          "paths": [
+            "docs/docx/upstream-api-audit.md",
+            "docs/docx/upstream-api-inventory.json",
+            "docs/docx/upstream-api-reconciliation.md",
+            "docs/plans/docx-public-api-reconciliation.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/2"
+    },
+    {
+      "order": 4,
+      "id": "map-all-features-to-commands",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-command-coverage.md",
+          "hash": "fba71975dfc2b2ffdd3c6a6d869fa4aaa4250bd5",
+          "subject": "docs(docx): map feature and SDK command coverage",
+          "paths": [
+            "docs/docx/command-coverage-notes.md",
+            "docs/docx/command-coverage.json",
+            "docs/plans/docx-command-coverage.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/3"
+    },
+    {
+      "order": 5,
+      "id": "paired-cli-acceptance",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/4"
+    },
+    {
+      "order": 6,
+      "id": "verify-python-test-baseline",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-test-baseline-verification.md",
+          "hash": "5c53d7c6baab57ef9b49c83758e8f3a78b484e4a",
+          "subject": "docs(docx): verify pinned test baseline",
+          "paths": [
+            "docs/docx/upstream-baseline-verification.json",
+            "docs/docx/upstream-test-audit.md",
+            "docs/plans/docx-test-baseline-verification.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/5"
+    },
+    {
+      "order": 7,
+      "id": "map-all-upstream-tests",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-test-baseline-verification.md",
+          "hash": "5c53d7c6baab57ef9b49c83758e8f3a78b484e4a",
+          "subject": "docs(docx): verify pinned test baseline",
+          "paths": [
+            "docs/docx/upstream-baseline-verification.json",
+            "docs/docx/upstream-test-audit.md",
+            "docs/plans/docx-test-baseline-verification.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-test-case-mapping.md",
+          "hash": "593d25ade84469b9fd6fb30a217234c658ba0f34",
+          "subject": "docs(docx): map every source test variant",
+          "paths": [
+            "docs/docx/test-case-map-notes.md",
+            "docs/docx/test-case-map-verification.json",
+            "docs/docx/test-case-map.json",
+            "docs/docx/test-case-source-evidence.json",
+            "docs/plans/docx-test-case-mapping.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/6"
+    },
+    {
+      "order": 8,
+      "id": "reconcile-upstream-contract",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-test-baseline-verification.md",
+          "hash": "5c53d7c6baab57ef9b49c83758e8f3a78b484e4a",
+          "subject": "docs(docx): verify pinned test baseline",
+          "paths": [
+            "docs/docx/upstream-baseline-verification.json",
+            "docs/docx/upstream-test-audit.md",
+            "docs/plans/docx-test-baseline-verification.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/7"
+    },
+    {
+      "order": 9,
+      "id": "finalize-command-contract",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/8"
+    },
+    {
+      "order": 10,
+      "id": "audit-downloaded-qa-fixtures",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-corpus-audit.md",
+          "hash": "58562ab8028ff01133a3244cd20ea181e99e9fa1",
+          "subject": "docs(docx): audit disposable corpus evidence",
+          "paths": [
+            "docs/docx/corpus-audit-20260914.json",
+            "docs/docx/corpus-manifest.json",
+            "docs/docx/corpus-report.md",
+            "docs/plans/docx-corpus-audit.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/9"
+    },
+    {
+      "order": 11,
+      "id": "fill-corpus-feature-gaps",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-corpus-feature-gaps.md",
+          "hash": "921c8af2b041ec0f7bff88e5c34d37b4a876775c",
+          "subject": "docs(docx): acquire corpus gap evidence",
+          "paths": [
+            "docs/docx/corpus-feature-gaps.json",
+            "docs/docx/corpus-feature-gaps.md",
+            "docs/docx/corpus-manifest.json",
+            "docs/docx/corpus-report.md",
+            "docs/docx/gap-authored-examples.json",
+            "docs/plans/docx-corpus-feature-gaps.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-corpus-audit.md",
+          "hash": "58562ab8028ff01133a3244cd20ea181e99e9fa1",
+          "subject": "docs(docx): audit disposable corpus evidence",
+          "paths": [
+            "docs/docx/corpus-audit-20260914.json",
+            "docs/docx/corpus-manifest.json",
+            "docs/docx/corpus-report.md",
+            "docs/plans/docx-corpus-audit.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-corpus-api-status-reconciliation.md",
+          "hash": "11f6af3702e274ef965bfa07576c116adaf8cc23",
+          "subject": "docs(docx): reconcile API audit mapping status",
+          "paths": [
+            "docs/docx/upstream-api-audit.md",
+            "docs/plans/docx-corpus-api-status-reconciliation.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/10"
+    },
+    {
+      "order": 12,
+      "id": "author-original-unit-fixtures",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-corpus-feature-gaps.md",
+          "hash": "921c8af2b041ec0f7bff88e5c34d37b4a876775c",
+          "subject": "docs(docx): acquire corpus gap evidence",
+          "paths": [
+            "docs/docx/corpus-feature-gaps.json",
+            "docs/docx/corpus-feature-gaps.md",
+            "docs/docx/corpus-manifest.json",
+            "docs/docx/corpus-report.md",
+            "docs/docx/gap-authored-examples.json",
+            "docs/plans/docx-corpus-feature-gaps.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-original-unit-fixtures.md",
+          "hash": "3e44c67c8b74de976661caa10fcdccb0f99952f2",
+          "subject": "test(docx): add original in-memory fixtures",
+          "paths": [
+            "docs/docx/original-fixture-coverage.md",
+            "docs/plans/docx-original-unit-fixtures.md",
+            "packages/docx/THIRD_PARTY_NOTICES.txt",
+            "packages/docx/tests/fixtures/documents.test.ts",
+            "packages/docx/tests/fixtures/documents.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/11"
+    },
+    {
+      "order": 13,
+      "id": "independent-structure-assertions",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-original-unit-fixtures.md",
+          "hash": "3e44c67c8b74de976661caa10fcdccb0f99952f2",
+          "subject": "test(docx): add original in-memory fixtures",
+          "paths": [
+            "docs/docx/original-fixture-coverage.md",
+            "docs/plans/docx-original-unit-fixtures.md",
+            "packages/docx/THIRD_PARTY_NOTICES.txt",
+            "packages/docx/tests/fixtures/documents.test.ts",
+            "packages/docx/tests/fixtures/documents.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-independent-structure-assertions.md",
+          "hash": "e5a76ce45740a1dac884a0c552ad484fbce8ccc7",
+          "subject": "test(docx): check forbidden decoded JSON strings",
+          "paths": [
+            "docs/plans/docx-independent-structure-assertions.md",
+            "packages/docx/tests/assertions.test.ts",
+            "packages/docx/tests/assertions.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/12"
+    },
+    {
+      "order": 14,
+      "id": "fixture-reduction-workflow",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-regression-reduction-qa.md",
+          "hash": "11cc47e6c6dda1367ac93f4f98201387c594eff2",
+          "subject": "docs(docx): define regression reduction QA",
+          "paths": [
+            "docs/docx/regression-reduction-workflow-verification.json",
+            "docs/plans/docx-regression-reduction-qa.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-independent-structure-assertions.md",
+          "hash": "e5a76ce45740a1dac884a0c552ad484fbce8ccc7",
+          "subject": "test(docx): check forbidden decoded JSON strings",
+          "paths": [
+            "docs/plans/docx-independent-structure-assertions.md",
+            "packages/docx/tests/assertions.test.ts",
+            "packages/docx/tests/assertions.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/13"
+    },
+    {
+      "order": 15,
+      "id": "shared-zip-read",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-regression-reduction-qa.md",
+          "hash": "11cc47e6c6dda1367ac93f4f98201387c594eff2",
+          "subject": "docs(docx): define regression reduction QA",
+          "paths": [
+            "docs/docx/regression-reduction-workflow-verification.json",
+            "docs/plans/docx-regression-reduction-qa.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-shared-zip-reader.md",
+          "hash": "28c98be421e6337ef48347d18c5910bc40f5ce51",
+          "subject": "feat(docx): add bounded archive reader",
+          "paths": [
+            "docs/docx/package-readme-draft.md",
+            "docs/plans/docx-shared-zip-reader.md",
+            "package-lock.json",
+            "packages/docx/LICENSE",
+            "packages/docx/package.json",
+            "packages/docx/src/archive.test.ts",
+            "packages/docx/src/archive.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/tests/assertions.test.ts",
+            "packages/docx/tests/assertions.ts",
+            "packages/docx/tests/fixtures/documents.test.ts",
+            "packages/docx/tsconfig.json",
+            "packages/docx/tsconfig.test.json"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/14"
+    },
+    {
+      "order": 16,
+      "id": "shared-zip-write",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-bounded-zip-writer.md",
+          "hash": "c437ce8b6ec7f462cd388c250107e900566d5ed8",
+          "subject": "feat(docx): add deterministic bounded ZIP writing",
+          "paths": [
+            "docs/plans/docx-bounded-zip-writer.md",
+            "packages/docx/src/archive-write.test.ts",
+            "packages/docx/src/archive-write.ts",
+            "packages/docx/src/archive.ts",
+            "packages/docx/src/index.ts",
+            "packages/office-package/src/zip.test.ts",
+            "packages/office-package/src/zip.ts",
+            "packages/safe-bash/tests/commands/zip.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/15"
+    },
+    {
+      "order": 17,
+      "id": "zip64-and-format-admission",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-zip64-format-admission.md",
+          "hash": "3f2b8ed6f7481982f04f577dbce87f76262cdca0",
+          "subject": "feat(docx): add bounded document format admission",
+          "paths": [
+            "docs/plans/docx-typescript-safe-bash.md",
+            "docs/plans/docx-zip64-format-admission.md",
+            "package-lock.json",
+            "package.json",
+            "packages/docx/package.json",
+            "packages/docx/src/admission.test.ts",
+            "packages/docx/src/admission.ts",
+            "packages/docx/src/index.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/16"
+    },
+    {
+      "order": 18,
+      "id": "opc-package-graph",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-zip64-format-admission.md",
+          "hash": "3f2b8ed6f7481982f04f577dbce87f76262cdca0",
+          "subject": "feat(docx): add bounded document format admission",
+          "paths": [
+            "docs/plans/docx-typescript-safe-bash.md",
+            "docs/plans/docx-zip64-format-admission.md",
+            "package-lock.json",
+            "package.json",
+            "packages/docx/package.json",
+            "packages/docx/src/admission.test.ts",
+            "packages/docx/src/admission.ts",
+            "packages/docx/src/index.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-opc-package-graph.md",
+          "hash": "2e76b1127f521519e2a861035e60d55a489f337a",
+          "subject": "fix(docx): preserve empty relationship targets",
+          "paths": [
+            "docs/plans/docx-opc-package-graph.md",
+            "packages/docx/src/package.test.ts",
+            "packages/docx/src/package.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/17"
+    },
+    {
+      "order": 19,
+      "id": "namespace-xml-read",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-namespace-xml-read.md",
+          "hash": "a6ce1ad1a719898230d2cb3adddcf841db1153ae",
+          "subject": "docs(docx): record committed XML validation",
+          "paths": ["docs/plans/docx-namespace-xml-read.md"],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/18"
+    },
+    {
+      "order": 20,
+      "id": "loss-preserving-xml-write",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-namespace-xml-read.md",
+          "hash": "a6ce1ad1a719898230d2cb3adddcf841db1153ae",
+          "subject": "docs(docx): record committed XML validation",
+          "paths": ["docs/plans/docx-namespace-xml-read.md"],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-loss-preserving-xml-write.md",
+          "hash": "c83cfb1fb9d5329f78aeda63b8b6c7b77ba4065c",
+          "subject": "feat(docx): preserve dirty XML and untouched parts",
+          "paths": [
+            "docs/plans/docx-loss-preserving-xml-write.md",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/package-write.ts",
+            "packages/docx/src/package-xml.ts",
+            "packages/docx/src/xml-write.test.ts",
+            "packages/docx/src/xml-write.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-opc-package-graph.md",
+          "hash": "2e76b1127f521519e2a861035e60d55a489f337a",
+          "subject": "fix(docx): preserve empty relationship targets",
+          "paths": [
+            "docs/plans/docx-opc-package-graph.md",
+            "packages/docx/src/package.test.ts",
+            "packages/docx/src/package.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/19"
+    },
+    {
+      "order": 21,
+      "id": "markup-compatibility",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-markup-compatibility.md",
+          "hash": "b7b9633852c857c3b7be73db9dc90ea45322f7ac",
+          "subject": "fix(docx): reject surviving alternate extensions",
+          "paths": [
+            "docs/plans/docx-markup-compatibility.md",
+            "packages/docx/src/compatibility.test.ts",
+            "packages/docx/src/compatibility.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/20"
+    },
+    {
+      "order": 22,
+      "id": "strict-transitional-dialects",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-strict-transitional-dialects.md",
+          "hash": "953e8164530976325622b42f133009a666c29172",
+          "subject": "feat(docx): preserve Strict and Transitional dialects",
+          "paths": [
+            "docs/docx/command-coverage.json",
+            "docs/docx/dialects.md",
+            "docs/plans/docx-strict-transitional-dialects.md",
+            "docs/specs/docx.md",
+            "packages/docx/src/admission.ts",
+            "packages/docx/src/create.ts",
+            "packages/docx/src/dialect.test.ts",
+            "packages/docx/src/dialect.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/xml-write.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/21"
+    },
+    {
+      "order": 23,
+      "id": "package-semantic-validation",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-package-semantic-validation.md",
+          "hash": "efe05d6bb60e72aacb4ccbf59eb2a9c356d2adb3",
+          "subject": "fix(docx): retain dialect diagnostic part",
+          "paths": [
+            "docs/plans/docx-package-semantic-validation.md",
+            "packages/docx/src/dialect.ts",
+            "packages/docx/src/validation.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/22"
+    },
+    {
+      "order": 24,
+      "id": "limits-and-work-accounting",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-invocation-budgets.md",
+          "hash": "d0eaaa6d07e064e2ea9245ca76e0083421ce3383",
+          "subject": "fix(docx): charge unchanged editor copy work",
+          "paths": [
+            "docs/docx/resource-limits.md",
+            "docs/plans/docx-invocation-budgets.md",
+            "packages/docx/src/budget.test.ts",
+            "packages/docx/src/package-write.ts",
+            "packages/docx/src/xml-write.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/23"
+    },
+    {
+      "order": 25,
+      "id": "streams-and-cleanup",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-streams-and-cleanup.md",
+          "hash": "c17083f9a31803aa6bd7e3e7c6c18d540698c5f4",
+          "subject": "feat(docx): add owned stream lifecycle",
+          "paths": [
+            "docs/docx/stream-lifecycle.md",
+            "docs/plans/docx-streams-and-cleanup.md",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/io.test.ts",
+            "packages/docx/src/io.ts",
+            "packages/safe-bash/scripts/integration-inputs.test.mjs",
+            "packages/safe-bash/src/commands/docx/io.ts",
+            "packages/safe-bash/tests/commands/docx/io.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/24"
+    },
+    {
+      "order": 26,
+      "id": "safe-file-publication",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-safe-file-publication.md",
+          "hash": "16b6fdba45f973f6f6d9e21ba9ff5fef2487b77f",
+          "subject": "fix(docx): reject force for binary stdout",
+          "paths": [
+            "docs/docx/file-publication.md",
+            "docs/plans/docx-safe-file-publication.md",
+            "packages/docx/src/publication.test.ts",
+            "packages/docx/src/publication.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/25"
+    },
+    {
+      "order": 27,
+      "id": "document-locations",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-document-locations.md",
+          "hash": "975798579d98a7df62f7b912cd3fb14b441c60ea",
+          "subject": "feat(docx): add revision-bound document locations",
+          "paths": [
+            "docs/docx/document-locations.md",
+            "docs/plans/docx-document-locations.md",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/location-index.ts",
+            "packages/docx/src/location-token.ts",
+            "packages/docx/src/locations.test.ts",
+            "packages/docx/src/locations.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/26"
+    },
+    {
+      "order": 28,
+      "id": "sdk-live-object-model",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-document-locations.md",
+          "hash": "975798579d98a7df62f7b912cd3fb14b441c60ea",
+          "subject": "feat(docx): add revision-bound document locations",
+          "paths": [
+            "docs/docx/document-locations.md",
+            "docs/plans/docx-document-locations.md",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/location-index.ts",
+            "packages/docx/src/location-token.ts",
+            "packages/docx/src/locations.test.ts",
+            "packages/docx/src/locations.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-opc-package-graph.md",
+          "hash": "2e76b1127f521519e2a861035e60d55a489f337a",
+          "subject": "fix(docx): preserve empty relationship targets",
+          "paths": [
+            "docs/plans/docx-opc-package-graph.md",
+            "packages/docx/src/package.test.ts",
+            "packages/docx/src/package.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/27"
+    },
+    {
+      "order": 29,
+      "id": "sdk-collections-values",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/28"
+    },
+    {
+      "order": 30,
+      "id": "sdk-async-capabilities",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/29"
+    },
+    {
+      "order": 31,
+      "id": "sdk-xml-package-views",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-namespace-xml-read.md",
+          "hash": "a6ce1ad1a719898230d2cb3adddcf841db1153ae",
+          "subject": "docs(docx): record committed XML validation",
+          "paths": ["docs/plans/docx-namespace-xml-read.md"],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-opc-package-graph.md",
+          "hash": "2e76b1127f521519e2a861035e60d55a489f337a",
+          "subject": "fix(docx): preserve empty relationship targets",
+          "paths": [
+            "docs/plans/docx-opc-package-graph.md",
+            "packages/docx/src/package.test.ts",
+            "packages/docx/src/package.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/30"
+    },
+    {
+      "order": 32,
+      "id": "command-registration",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-command-registration.md",
+          "hash": "4d2b842e7a7f2fd90505d9cbea2d71a07e79d8e8",
+          "subject": "docs(docx): record committed archive verification",
+          "paths": ["docs/plans/docx-command-registration.md"],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/31"
+    },
+    {
+      "order": 33,
+      "id": "argument-and-json-parsing",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/32"
+    },
+    {
+      "order": 34,
+      "id": "simple-selector-ergonomics",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-simple-selector-ergonomics.md",
+          "hash": "bf13d03d4d14ee6f50b86fc3448e7dda390b68d5",
+          "subject": "fix(docx): accept explicit section unlink selectors",
+          "paths": [
+            "docs/docx/simple-selector-ergonomics.md",
+            "docs/plans/docx-simple-selector-ergonomics.md",
+            "packages/docx/src/simple-selection.test.ts",
+            "packages/docx/src/simple-selection.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/33"
+    },
+    {
+      "order": 35,
+      "id": "help-errors-and-output",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-help-errors-output.md",
+          "hash": "031e43817a549cb616510fc73bbd50ae5a7dc03c",
+          "subject": "docs(docx): record completed verification",
+          "paths": ["docs/plans/docx-help-errors-output.md"],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/34"
+    },
+    {
+      "order": 36,
+      "id": "inspect-and-validate-commands",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/35"
+    },
+    {
+      "order": 37,
+      "id": "story-text-extraction",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/36"
+    },
+    {
+      "order": 38,
+      "id": "xml-part-access",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/37"
+    },
+    {
+      "order": 39,
+      "id": "create-documents-and-templates",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-structured-creation.md",
+          "hash": "ab0b17f16d1f4fba7c631c98785422cca0ba2ef4",
+          "subject": "fix(docx): round style sizes directly from EMUs",
+          "paths": [
+            "docs/plans/docx-structured-creation.md",
+            "packages/docx/src/create-content.ts",
+            "packages/docx/src/create.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/38"
+    },
+    {
+      "order": 40,
+      "id": "run-aware-replacement",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/39"
+    },
+    {
+      "order": 41,
+      "id": "run-formatting",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/40"
+    },
+    {
+      "order": 42,
+      "id": "paragraph-formatting",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/41"
+    },
+    {
+      "order": 43,
+      "id": "styles-and-headings",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/42"
+    },
+    {
+      "order": 44,
+      "id": "sdk-style-and-format-api",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/43"
+    },
+    {
+      "order": 45,
+      "id": "themes-and-font-resources",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-theme-font-resources.md",
+          "hash": "6b9bbcb2e95496f032218dab532c7505e6e119c0",
+          "subject": "feat(docx): inspect and preserve font resources",
+          "paths": [
+            "docs/docx/font-resources.md",
+            "docs/docx/upstream-api-audit.md",
+            "docs/plans/docx-theme-font-resources.md",
+            "docs/specs/docx.md",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.test.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/font-resources.test.ts",
+            "packages/docx/src/font-resources.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/inspection.ts",
+            "packages/docx/src/operation-json-schema.ts",
+            "packages/docx/src/xml-parts.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/44"
+    },
+    {
+      "order": 46,
+      "id": "sections-and-page-settings",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-sections-page-settings.md",
+          "hash": "ccf2181401ae2ccab701de590b199c8ccedae5b2",
+          "subject": "feat(docx): edit section page settings",
+          "paths": [
+            "docs/docx/command-coverage.json",
+            "docs/docx/sections-page-settings.md",
+            "docs/docx/upstream-api-audit.md",
+            "docs/plans/docx-sections-page-settings.md",
+            "docs/specs/docx.md",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.test.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/location-index.ts",
+            "packages/docx/src/location-token.ts",
+            "packages/docx/src/locations.ts",
+            "packages/docx/src/operation-schema-data.ts",
+            "packages/docx/src/operation-types.ts",
+            "packages/docx/src/section-properties.ts",
+            "packages/docx/src/sections-command.ts",
+            "packages/docx/src/sections.test.ts",
+            "packages/docx/src/sections.ts",
+            "packages/safe-bash/scripts/integration-inputs.test.mjs",
+            "packages/safe-bash/tests/commands/docx/sections.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/45"
+    },
+    {
+      "order": 47,
+      "id": "headers-and-footers",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/46"
+    },
+    {
+      "order": 48,
+      "id": "multilevel-numbering",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/47"
+    },
+    {
+      "order": 49,
+      "id": "table-construction",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/48"
+    },
+    {
+      "order": 50,
+      "id": "table-cell-updates",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/49"
+    },
+    {
+      "order": 51,
+      "id": "merged-cell-operations",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-merged-cells-integration-verification.md",
+          "hash": "a11cef28cc798cee5650f8ab314e914bbda2c826",
+          "subject": "test(docx): qualify merged-cell behavior variants",
+          "paths": [
+            "docs/docx/merged-cell-case-verification.json",
+            "docs/plans/docx-merged-cells-integration-verification.md",
+            "docs/plans/docx-merged-cells-verification.md",
+            "packages/docx/src/table-merge-variants.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-merged-cells-verification.md",
+          "hash": "a11cef28cc798cee5650f8ab314e914bbda2c826",
+          "subject": "test(docx): qualify merged-cell behavior variants",
+          "paths": [
+            "docs/docx/merged-cell-case-verification.json",
+            "docs/plans/docx-merged-cells-integration-verification.md",
+            "docs/plans/docx-merged-cells-verification.md",
+            "packages/docx/src/table-merge-variants.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/50"
+    },
+    {
+      "order": 52,
+      "id": "hyperlinks",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/51"
+    },
+    {
+      "order": 53,
+      "id": "bookmarks-and-locations",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/52"
+    },
+    {
+      "order": 54,
+      "id": "field-structure-and-results",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/53"
+    },
+    {
+      "order": 55,
+      "id": "toc-captions-and-crossrefs",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/54"
+    },
+    {
+      "order": 56,
+      "id": "footnotes-and-endnotes",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/55"
+    },
+    {
+      "order": 57,
+      "id": "classic-comments",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/56"
+    },
+    {
+      "order": 58,
+      "id": "sdk-table-section-review-api",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/57"
+    },
+    {
+      "order": 59,
+      "id": "modern-comment-extensions",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/58"
+    },
+    {
+      "order": 60,
+      "id": "revision-read-views",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-revision-read-requalification.md",
+          "hash": "b8f37b569f754a84670e87d030aaf034203ab1ed",
+          "subject": "fix(docx): enforce revision read boundaries",
+          "paths": [
+            "docs/plans/docx-revision-read-requalification.md",
+            "docs/plans/docx-revision-read-views.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "packages/docx/src/revision-markup.ts",
+            "packages/docx/src/revisions.test.ts",
+            "packages/docx/src/revisions.ts",
+            "packages/docx/src/text-replace.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-revision-read-views.md",
+          "hash": "b8f37b569f754a84670e87d030aaf034203ab1ed",
+          "subject": "fix(docx): enforce revision read boundaries",
+          "paths": [
+            "docs/plans/docx-revision-read-requalification.md",
+            "docs/plans/docx-revision-read-views.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "packages/docx/src/revision-markup.ts",
+            "packages/docx/src/revisions.test.ts",
+            "packages/docx/src/revisions.ts",
+            "packages/docx/src/text-replace.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/59"
+    },
+    {
+      "order": 61,
+      "id": "tracked-text-edits",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/60"
+    },
+    {
+      "order": 62,
+      "id": "accept-reject-revisions",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/61"
+    },
+    {
+      "order": 63,
+      "id": "content-control-values",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/62"
+    },
+    {
+      "order": 64,
+      "id": "repeat-controls-and-bindings",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/63"
+    },
+    {
+      "order": 65,
+      "id": "custom-xml-and-glossary",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/64"
+    },
+    {
+      "order": 66,
+      "id": "typed-document-properties",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/65"
+    },
+    {
+      "order": 67,
+      "id": "image-inventory-extraction",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/66"
+    },
+    {
+      "order": 68,
+      "id": "raster-image-insertion",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/67"
+    },
+    {
+      "order": 69,
+      "id": "sdk-image-format-api",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/68"
+    },
+    {
+      "order": 70,
+      "id": "image-occurrence-replacement",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/69"
+    },
+    {
+      "order": 71,
+      "id": "floating-image-layout",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/70"
+    },
+    {
+      "order": 72,
+      "id": "svg-and-image-fallbacks",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/71"
+    },
+    {
+      "order": 73,
+      "id": "shapes-and-text-boxes",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/72"
+    },
+    {
+      "order": 74,
+      "id": "charts-and-workbooks",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/73"
+    },
+    {
+      "order": 75,
+      "id": "smartart-and-diagrams",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/74"
+    },
+    {
+      "order": 76,
+      "id": "omml-equations",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-task76-resumption.md",
+          "hash": "fec7afeb8c93162c6664c1ef81d7c30f2c2887f7",
+          "subject": "feat(docx): add bounded equation operations",
+          "paths": [
+            "docs/docx/omml-resumption-evidence.md",
+            "docs/docx/standards-coverage.md",
+            "docs/plans/docx-task76-resumption.md",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.test.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/equation-fragments.test.ts",
+            "packages/docx/src/equation-fragments.ts",
+            "packages/docx/src/equation-operation-contract.test.ts",
+            "packages/docx/src/equation-properties.test.ts",
+            "packages/docx/src/equation-properties.ts",
+            "packages/docx/src/equations-command.test.ts",
+            "packages/docx/src/equations-command.ts",
+            "packages/docx/src/equations.test.ts",
+            "packages/docx/src/equations.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/inspection.test.ts",
+            "packages/docx/src/inspection.ts",
+            "packages/docx/src/operation-schema-data.ts",
+            "packages/docx/src/operation-types.test.ts",
+            "packages/docx/src/operation-types.ts",
+            "packages/docx/src/paragraph-edit.test.ts",
+            "packages/docx/src/paragraph-edit.ts",
+            "packages/docx/src/xml-parts.test.ts",
+            "packages/docx/src/xml-parts.ts",
+            "packages/docx/src/xml-write.test.ts",
+            "packages/docx/src/xml-write.ts",
+            "packages/docx/tests/fixtures/equations.ts",
+            "packages/safe-bash/scripts/integration-inputs.test.mjs",
+            "packages/safe-bash/tests/commands/docx/equations.test.ts",
+            "scripts/docx-exports.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/75"
+    },
+    {
+      "order": 77,
+      "id": "embedded-objects",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/76"
+    },
+    {
+      "order": 78,
+      "id": "settings-and-protection",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-protected-region-admission.md",
+          "hash": "6a7800f7fa2a0f3002f2868c7fccb1f5c07ca422",
+          "subject": "fix(docx): preserve protected owners during edits",
+          "paths": [
+            "docs/plans/docx-protected-region-admission.md",
+            "packages/docx/src/publication.test.ts",
+            "packages/docx/src/publication.ts",
+            "packages/docx/src/text-replace.test.ts",
+            "packages/docx/src/text-replace.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-settings-protection.md",
+          "hash": "4f1bc1130aa02d8d19e5a25b3a5beaa65e41dc2a",
+          "subject": "fix(docx): reject unsupported affected settings metadata",
+          "paths": [
+            "docs/plans/docx-settings-protection.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "packages/docx/src/settings-model.test.ts",
+            "packages/docx/src/settings-model.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/77"
+    },
+    {
+      "order": 79,
+      "id": "signatures-and-explicit-removal",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/78"
+    },
+    {
+      "order": 80,
+      "id": "range-and-structure-removal",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-range-and-structure-removal.md",
+          "hash": "636c72db59cad47c078b1a091b91b05878d47019",
+          "subject": "feat(docx): add bounded content removal",
+          "paths": [
+            "docs/docx/upstream-api-audit.md",
+            "docs/plans/docx-range-and-structure-removal.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "docs/specs/docx.md",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.test.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/operation-schema-data.ts",
+            "packages/docx/src/operation-types.ts",
+            "packages/docx/src/removal-command.ts",
+            "packages/docx/src/removal.test.ts",
+            "packages/docx/src/removal.ts",
+            "packages/docx/src/simple-selection.ts",
+            "packages/safe-bash/scripts/integration-inputs.test.mjs",
+            "packages/safe-bash/tests/commands/docx/content-removal.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/79"
+    },
+    {
+      "order": 81,
+      "id": "deterministic-dummy-text",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-deterministic-dummy-text.md",
+          "hash": "e52cdfd43a38b3bad7dda2a744944e325192a528",
+          "subject": "feat(docx): add seeded selected dummy text",
+          "paths": [
+            "docs/plans/docx-deterministic-dummy-text.md",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.test.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/dummy-text.test.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/simple-selection.ts",
+            "packages/docx/src/text-replace-command.ts",
+            "packages/docx/src/text-replace.ts",
+            "packages/safe-bash/scripts/integration-inputs.test.mjs",
+            "packages/safe-bash/tests/commands/docx/dummy-text.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/80"
+    },
+    {
+      "order": 82,
+      "id": "explicit-sanitization",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-explicit-sanitization.md",
+          "hash": "35dc8d63b9bdcdaf25d03cc895529668c03066e9",
+          "subject": "fix(docx): sanitize shared object bindings once",
+          "paths": [
+            "docs/plans/docx-explicit-sanitization.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "packages/docx/src/object-sanitization.ts",
+            "packages/docx/src/sanitize.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/81"
+    },
+    {
+      "order": 83,
+      "id": "ordered-batch-operations",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-ordered-batch-operations.md",
+          "hash": "d99734726856b09eec1570149ff60a2f75123402",
+          "subject": "fix(docx): snapshot source bytes for ordered utility batches",
+          "paths": [
+            "docs/plans/docx-ordered-batch-operations.md",
+            "packages/docx/README.md",
+            "packages/docx/src/batch.test.ts",
+            "packages/docx/src/batch.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/82"
+    },
+    {
+      "order": 84,
+      "id": "data-driven-template-expansion",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/83"
+    },
+    {
+      "order": 85,
+      "id": "semantic-document-diff",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-semantic-document-diff.md",
+          "hash": "1ae074b2c1900ae4de39596fe81a29f36464c669",
+          "subject": "feat(docx): add scoped document comparison",
+          "paths": [
+            "docs/docx/upstream-api-audit.md",
+            "docs/plans/docx-semantic-document-diff.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "docs/specs/docx.md",
+            "packages/docx/src/command-selection.ts",
+            "packages/docx/src/diff.test.ts",
+            "packages/docx/src/diff.ts",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.test.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/operation-json-schema.ts",
+            "packages/docx/src/operation-schema-data.ts",
+            "packages/docx/src/operation-types.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/84"
+    },
+    {
+      "order": 86,
+      "id": "safe-docx-extraction",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-safe-extraction.md",
+          "hash": "cf70ed3a44c49418d0a57437c784f7279bbecb38",
+          "subject": "feat(docx): add safe archive extraction",
+          "paths": [
+            "docs/docx/archive-extraction.md",
+            "docs/docx/upstream-api-audit.md",
+            "docs/plans/docx-safe-extraction.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "docs/specs/docx.md",
+            "packages/docx/src/command-option-rules.ts",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.test.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/extract.test.ts",
+            "packages/docx/src/extract.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/operation-schema-data.ts",
+            "packages/docx/src/operation-types.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/85"
+    },
+    {
+      "order": 87,
+      "id": "validated-docx-packing",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-safe-packing.md",
+          "hash": "16baffa4c20229ef4ad00b64eefe5bf745b48bcd",
+          "subject": "feat(docx): add validated inventory packing",
+          "paths": [
+            "docs/docx/archive-extraction.md",
+            "docs/docx/upstream-api-audit.md",
+            "docs/plans/docx-safe-packing.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "docs/specs/docx.md",
+            "packages/docx/src/archive-namespace.ts",
+            "packages/docx/src/create-command.test.ts",
+            "packages/docx/src/discovery-result-schema.ts",
+            "packages/docx/src/discovery.ts",
+            "packages/docx/src/extract.ts",
+            "packages/docx/src/index.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/operation-json-schema.ts",
+            "packages/docx/src/pack-command.ts",
+            "packages/docx/src/pack-inventory-negative-index.test.ts",
+            "packages/docx/src/pack-inventory.ts",
+            "packages/docx/src/pack.test.ts",
+            "packages/docx/src/pack.ts",
+            "packages/safe-bash/tests/commands/docx-registration.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-packing-resumption.md",
+          "hash": "3df29258cf65fb8486d5efd9983d42f907b3f490",
+          "subject": "docs(docx): record packing verification blocker",
+          "paths": ["docs/plans/docx-packing-resumption.md"],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/86"
+    },
+    {
+      "order": 88,
+      "id": "schema-capability-discovery",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-schema-capability-discovery.md",
+          "hash": "e7f1198212abf194a58b2258a11b46dc6d32f79e",
+          "subject": "docs(docx): align capability input contract",
+          "paths": ["docs/plans/docx-schema-capability-discovery.md", "docs/specs/docx.md"],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-discovery-failure-contract.md",
+          "missing": true
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/87"
+    },
+    {
+      "order": 89,
+      "id": "adapt-upstream-opc-xml-images",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-opc-xml-image-adaptation.md",
+          "hash": "8ecdf0e2bdb59fb1ae5be54ea228d792dc513912",
+          "subject": "docs(docx): requalify package XML and image case mappings",
+          "paths": [
+            "docs/docx/opc-xml-image-adaptation.md",
+            "docs/docx/opc-xml-image-case-map.json",
+            "docs/docx/opc-xml-image-reverification-20260921.json",
+            "docs/plans/docx-opc-xml-image-adaptation.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/88"
+    },
+    {
+      "order": 90,
+      "id": "adapt-upstream-text-style-document",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-text-style-document-adaptation.md",
+          "hash": "b3288827342d27d7cf37a6d4ecb3efb1609f5cb0",
+          "subject": "fix(docx): serialize automatic highlight XML correctly",
+          "paths": [
+            "docs/docx/text-style-document-adaptation.json",
+            "docs/plans/docx-text-style-document-adaptation.md",
+            "packages/docx/src/formatting-model.ts",
+            "packages/docx/src/highlight-xml-contract.test.ts",
+            "packages/docx/src/run-properties.test.ts",
+            "packages/docx/src/run-properties.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/89"
+    },
+    {
+      "order": 91,
+      "id": "adapt-upstream-tables-bdd",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-table-bdd-adaptation.md",
+          "hash": "d028856ce0e2eac9935e18abead73dd19a198529",
+          "subject": "docs(docx): reconcile verified table batch status",
+          "paths": [
+            "docs/docx/table-bdd-status-verification-20260921.md",
+            "docs/plans/docx-table-bdd-adaptation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-table-active-grid.md",
+          "hash": "acd0e2e85d8bd3fd7db9d1208f2801a65d2590a5",
+          "subject": "fix(docx): inspect active table grids",
+          "paths": [
+            "docs/docx/table-bdd-evidence/corrected-six-red.log",
+            "docs/docx/table-bdd-evidence/focused-final-green.log",
+            "docs/docx/table-bdd-evidence/guarded-root-lint.log",
+            "docs/docx/table-bdd-evidence/initial-fixture-selection-red.log",
+            "docs/docx/table-bdd-evidence/receipt.json",
+            "docs/docx/table-bdd-evidence/seven-red.log",
+            "docs/docx/table-bdd-evidence/shell-focused.log",
+            "docs/docx/table-bdd-evidence/shell-runner.log",
+            "docs/docx/table-bdd-evidence/shell-typecheck.log",
+            "docs/docx/table-bdd-evidence/workspace-build.log",
+            "docs/docx/table-bdd-evidence/workspace-lint.log",
+            "docs/docx/table-bdd-evidence/workspace-unit.log",
+            "docs/plans/docx-table-active-grid.md",
+            "packages/docx/src/table-active-grid.test.ts",
+            "packages/docx/src/table-read.ts",
+            "packages/safe-bash/tests/commands/docx/tables.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/90"
+    },
+    {
+      "order": 92,
+      "id": "malformed-input-adversarial-review",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-malformed-input-adversarial-review.md",
+          "hash": "16e7a8833b8fdcc867336b58c175ecc57194f815",
+          "subject": "test(docx): cover hostile archive and XML inputs",
+          "paths": [
+            "docs/plans/docx-malformed-input-adversarial-review.md",
+            "packages/docx/src/adversarial-input.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/91"
+    },
+    {
+      "order": 93,
+      "id": "lifecycle-adversarial-review",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-lifecycle-adversarial-verification.md",
+          "hash": "12e525b8a2c6adb6a4a33eba2a4bf2c4d8eae1ea",
+          "subject": "fix(docx): own both diff inputs before awaiting",
+          "paths": [
+            "docs/plans/docx-lifecycle-adversarial-verification.md",
+            "packages/docx/src/diff-input-ownership.test.ts",
+            "packages/docx/src/diff.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/92"
+    },
+    {
+      "order": 94,
+      "id": "large-document-profiles",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-large-document-profiles.md",
+          "hash": "9a0c70dc93da61a588142270280aa9ce7179af02",
+          "subject": "fix(docx): honor trusted processing profiles",
+          "paths": [
+            "docs/plans/docx-large-document-profiles.md",
+            "packages/docx/src/document-write.ts",
+            "packages/docx/src/inspection-command.ts",
+            "packages/docx/src/large-profile.test.ts",
+            "packages/docx/src/publication.ts",
+            "packages/safe-bash/tests/commands/docx-large-profile.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/93"
+    },
+    {
+      "order": 95,
+      "id": "corpus-text-structure-qa",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/94"
+    },
+    {
+      "order": 96,
+      "id": "corpus-image-qa",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/95"
+    },
+    {
+      "order": 97,
+      "id": "independent-ooxml-interoperability",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-independent-ooxml-interoperability.md",
+          "hash": "33da1bd584cd7184cb2cd4ee8b4b25bc449b85f6",
+          "subject": "docs(docx): qualify independent OOXML interoperability",
+          "paths": [
+            "docs/docx/independent-schema-validation-20260921.md",
+            "docs/docx/independent-schema-validation.md",
+            "docs/plans/docx-independent-ooxml-interoperability.md",
+            "docs/plans/docx-typescript-safe-bash.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/96"
+    },
+    {
+      "order": 98,
+      "id": "behavior-and-coverage-audit",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-behavior-coverage-verification.md",
+          "hash": "af2a099fe4d9cfd32af30c15e59fd6a2ba978210",
+          "subject": "docs(docx): record scoped behavior coverage audit",
+          "paths": [
+            "docs/docx/behavior-coverage-audit.json",
+            "docs/plans/docx-behavior-coverage-verification.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/97"
+    },
+    {
+      "order": 99,
+      "id": "public-consumer-and-shell-qa",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-public-consumer-shell-qa.md",
+          "hash": "fd0d9b99bd40601b6ae5e638dbc0b1b4621cadb5",
+          "subject": "test(docx): verify public SDK and shell consumers",
+          "paths": [
+            "docs/plans/docx-public-consumer-shell-qa.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "packages/docx/tests/public-shell.cases.ts",
+            "packages/docx/tests/public-shell.test.ts",
+            "packages/docx/tests/tsconfig.public-consumer.json"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-typecheck-build-closure.md",
+          "hash": "7c991304d0eac919d653d216d8a3799430122b72",
+          "subject": "fix(safe-bash): use guarded builds in typechecks",
+          "paths": [
+            "docs/plans/docx-typecheck-build-closure.md",
+            "packages/safe-bash/scripts/integration-inputs.test.mjs",
+            "packages/safe-bash/scripts/typecheck-inputs.mjs",
+            "packages/safe-bash/scripts/typecheck.mjs"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/98"
+    },
+    {
+      "order": 100,
+      "id": "audit-upstream-test-completeness",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-upstream-test-completeness.md",
+          "hash": "3698ba274281e2c3f6ada4f3f700f4607f256083",
+          "subject": "docs: requalify complete document test accounting",
+          "paths": [
+            "docs/docx/original-test-results-20260921.json",
+            "docs/docx/upstream-test-completeness-20260921.json",
+            "docs/docx/upstream-test-completeness-20260921.md",
+            "docs/docx/upstream-test-completeness.md",
+            "docs/plans/docx-upstream-test-completeness.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/99"
+    },
+    {
+      "order": 101,
+      "id": "cross-format-cli-conformance",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-cross-format-cli-conformance.md",
+          "hash": "8594ead27e74f7223852696a6bd745df7be9a2c2",
+          "subject": "test(office-cli): verify paired public adapter contracts",
+          "paths": [
+            "docs/docx/cross-format-cli-conformance-followup.json",
+            "docs/docx/cross-format-cli-conformance-followup.md",
+            "docs/docx/cross-format-cli-conformance.md",
+            "docs/plans/docx-cross-format-cli-conformance.md",
+            "docs/plans/docx-typescript-safe-bash.md",
+            "packages/docx/tests/cross-format-cli.test.ts"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/100"
+    },
+    {
+      "order": 102,
+      "id": "whole-api-acceptance",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-whole-api-acceptance.md",
+          "hash": "e79ce0251da8d6817eed60a59520916adb0879fb",
+          "subject": "docs(docx): record whole API acceptance blockers",
+          "paths": [
+            "docs/docx/public-api-map-review.md",
+            "docs/docx/public-api-map.json",
+            "docs/docx/whole-api-acceptance.json",
+            "docs/docx/whole-api-acceptance.md",
+            "docs/plans/docx-whole-api-acceptance.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/101"
+    },
+    {
+      "order": 103,
+      "id": "ergonomic-cli-qa",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/102"
+    },
+    {
+      "order": 104,
+      "id": "visual-cli-and-document-qa",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-visual-qa.md",
+          "hash": "eac8e3faf69dde5d77641db2055acbde54d84a51",
+          "subject": "docs(docx): restore visual QA plan and record current execution",
+          "paths": [
+            "docs/docx/visual-qa-20260921.json",
+            "docs/docx/visual-qa-20260921.md",
+            "docs/plans/docx-visual-qa.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/103"
+    },
+    {
+      "order": 105,
+      "id": "cross-workspace-release-readiness",
+      "recordedWorkingStatus": {
+        "implement": "done",
+        "test": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/104"
+    },
+    {
+      "order": 106,
+      "id": "usage-and-support-documentation",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/105"
+    },
+    {
+      "order": 107,
+      "id": "retire-disposable-qa-fixtures",
+      "recordedWorkingStatus": {
+        "implement": "done"
+      },
+      "commits": [
+        {
+          "plan": "docs/plans/docx-contract-reconciliation.md",
+          "hash": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+          "subject": "docs(docx): reconcile proposed public contracts",
+          "paths": [
+            "docs/docx/contract-reconciliation-verification.json",
+            "docs/docx/contract-reconciliation.md",
+            "docs/plans/docx-contract-reconciliation.md",
+            "docs/specs/docx.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        },
+        {
+          "plan": "docs/plans/docx-retire-disposable-qa-fixtures.md",
+          "hash": "a72f2351238772475117acb8fb97eda31eab1f5c",
+          "subject": "docs(docx): retire disposable QA fixtures",
+          "paths": [
+            "docs/docx/corpus-manifest.json",
+            "docs/docx/corpus-retirement.json",
+            "docs/plans/docx-retire-disposable-qa-fixtures.md",
+            "docs/plans/docx-typescript-safe-bash.md"
+          ],
+          "conventional": true,
+          "relevantPlanIncluded": true,
+          "atomicOwnedAcceptance": "requires exact owning-plan acceptance and per-hunk review; path inventory alone is insufficient"
+        }
+      ],
+      "verifiedWholeTaskCompletion": false,
+      "auditedAcceptance": "pending full acceptance and atomic ownership qualification",
+      "historicalEvidence": "teardown-verification-20260916.json#/tasks/106"
+    }
+  ],
+  "taskDelivery": {
+    "taskCount": 107,
+    "candidateCommits": 62,
+    "fullyCertifiedWholeTasks": 0,
+    "reason": "Complete acceptance and per-hunk atomic ownership cannot be established from Conventional subjects and owning-plan paths alone. Existing bounded delivery remains evidence, not a whole-task certificate.",
+    "missingPlanCommits": [
+      {
+        "task": "schema-capability-discovery",
+        "plan": "docs/plans/docx-discovery-failure-contract.md"
+      }
+    ]
+  },
+  "families": [
+    {
+      "id": "F01",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "bounded-opc",
+          "level": "edit",
+          "reason": "Bounded ZIP/OPC read and validated publication; encrypted and multi-disk packages reject. Full schema validation is not provided."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/0"
+    },
+    {
+      "id": "F02",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "original-dialect",
+          "level": "edit",
+          "reason": "Admit Strict and Transitional dialects and edit only supported structures in the original dialect. No implicit conversion or full schema certification."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/1"
+    },
+    {
+      "id": "F03",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "macro-free-kinds",
+          "level": "edit",
+          "reason": "Read and create original DOCX and DOTX packages with explicit kind. Macro-enabled mutations reject; suffixes do not establish package kind."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/2"
+    },
+    {
+      "id": "F04",
+      "level": "preserve",
+      "subsets": [
+        {
+          "name": "opaque-xml-retention",
+          "level": "preserve",
+          "reason": "Namespace-aware bounded edits retain unmodified opaque XML. Recognition does not authorize semantic edits; affected unsupported structures reject."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/3"
+    },
+    {
+      "id": "F05",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "declared-compatibility-profile",
+          "level": "read",
+          "reason": "Bounded logical reads use the declared understood-namespace profile. Unselected alternate branches remain preserved; unknown MustUnderstand requirements and affected unsupported branches reject. No blanket extension support."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/4"
+    },
+    {
+      "id": "F50",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "explicit-inventory-packing",
+          "level": "edit",
+          "reason": "Sorted authenticated VFS records, retained kind/dialect and exact opaque bytes; complete graph validation and one deterministic staged publication. No scanning or ambient files."
+        },
+        {
+          "name": "exclusive-archive-extraction",
+          "level": "read",
+          "reason": "Whole namespace admission, exact all/media-only bytes and optional pretty XML into a new explicit tree; conditional VFS directory/file creation and explicit partial-output consent. No rollback or live-model claim."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/49"
+    },
+    {
+      "id": "F48",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "bounded-comparison",
+          "level": "read",
+          "reason": "Explicit package payload/XML or story text/structure scope. Both inputs share cumulative retention, XML, work and change budgets; no rendering, ID renumbering or host I/O."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/47"
+    },
+    {
+      "id": "F47",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "record-template-filling",
+          "level": "edit",
+          "reason": "Exact tagged body control bindings, typed records and native nested rows/sections; four repeat levels, 1,000 items per region and cumulative budgets. Empty arrays retain reusable cleared prototypes. IDs and occurrence-local relationships remap before one publication; no expressions or host access. Template utility batches and whole model APIs remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/46"
+    },
+    {
+      "id": "F46",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "selective-sanitization",
+          "level": "edit",
+          "reason": "Fixed-order explicit properties/comments/revisions/links/objects actions with exact effects and retained gaps; unsupported affected review/objects reject before publication. No comprehensive privacy or recoverability promise; utility batches remain unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/45"
+    },
+    {
+      "id": "F45",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "seeded-selected-dummy-text",
+          "level": "edit",
+          "reason": "Required seed, paragraph-local original vocabulary, explicit count or whitespace-delimited logical span count; retain formatting and nontext data. Not anonymization; no time, randomness, networking or external generator. Generic utility batches and live owners remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/44"
+    },
+    {
+      "id": "F44",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "bounded-content-removal",
+          "level": "edit",
+          "reason": "Explicit paragraph/run scalar endpoints and marker inclusion; whole paragraphs, runs and tables. Section breaks, required empty paragraphs and all resource graphs survive. Affected annotations, notes, fields, review and graphics reject; no cross-container ranges, resource garbage collection or utility batches."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/43"
+    },
+    {
+      "id": "F43",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "signature-structure-inventory",
+          "level": "read",
+          "reason": "Exact declared OPC origin, relationship and part roles, including external metadata; cryptographic validity is unknown."
+        },
+        {
+          "name": "explicit-signature-removal",
+          "level": "edit",
+          "reason": "Complete safe signature graph and content-type removal with exact reports. Default mutations reject signed input; no regeneration or generic utility batch execution."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/42"
+    },
+    {
+      "id": "F40",
+      "level": "preserve",
+      "subsets": [
+        {
+          "name": "inert-object-inventory-extraction",
+          "level": "read",
+          "reason": "OLE/package relationships, shape-bound previews and shared resources; exact bounded VFS payload extraction. No activation, binary decoding or linked fetch. Macro/protection state remains unknown unless declared; external targets are redacted."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/39"
+    },
+    {
+      "id": "F39",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "physical-equation-inventory",
+          "level": "read",
+          "reason": "Package-global physical outer math units with inert stored/global properties and inactive/opaque preservation."
+        },
+        {
+          "name": "bounded-equation-fragments",
+          "level": "edit",
+          "reason": "Explicit whole-paragraph append or same-root unit replacement using matching-dialect bounded fragments. Full schema, evaluation, conversion, layout, rendering, utility batch execution and live math models remain unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/38"
+    },
+    {
+      "id": "F38",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "physical-diagram-inventory",
+          "level": "read",
+          "reason": "Package-global physical role candidates and native bindings with inert graph closure, including orphan parts. Preserve-only snapshots imply no semantic editing, activation, rendering, external acquisition or live model support."
+        },
+        {
+          "name": "opaque-graphics-preservation",
+          "level": "preserve",
+          "reason": "Eligible unknown graphics and extensions remain separately qualified opaque observations, including inactive alternatives. Unknown-only evidence does not establish a known diagram; utility batch execution remains unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/37"
+    },
+    {
+      "id": "F37",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "physical-chart-part-inventory",
+          "level": "read",
+          "reason": "Package-wide definitions, including unreferenced parts, with ordered plot groups, indexed string/numeric/multilevel caches and inert formula metadata. Cached freshness unknown; no active occurrence, formula engine, workbook validation or rendering claim."
+        },
+        {
+          "name": "opaque-chart-preservation",
+          "level": "preserve",
+          "reason": "Extension/wrong-profile definitions remain explicitly opaque. Workbook/style/color descriptors and physical graph references stay inert; utility batch and live models are unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/36"
+    },
+    {
+      "id": "F36",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "native-shape-inventory",
+          "level": "read",
+          "reason": "Active native, Office and VML shape/group occurrences with hierarchy, stored metadata, text-box story owners and physical section references. No rendering, geometry editing or live drawing models."
+        },
+        {
+          "name": "simple-text-box-assignment",
+          "level": "edit",
+          "reason": "Whole simple admitted ungrouped box text assignment replaces run formatting and retains paragraph properties/geometry. Preserving scoped text editors reuse carrier authority. Nested/grouped, linked, opaque, multiple-body and shared-header edits reject; no implicit shared edits or utility batch execution."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/35"
+    },
+    {
+      "id": "F32",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "inline-png-jpeg-insertion",
+          "level": "edit",
+          "reason": "Original bounded utility insertion of admitted PNG/JPEG bytes into one whole paragraph or admitted body/cell/explicit header/note block container. Native per-axis DPI with independent 72 fallback, explicit physical units, checked contain/cover/stretch and decorative/alt intent. Known suffixes must match bytes; retained exact media and capability publication. Five-format header metadata characterization does not imply insertion of GIF/BMP/TIFF. Floating authoring, SVG without a supplied fallback, pixel decoding, rendering and drawing occurrence models remain unsupported. The separate static SVG/fallback insertion subset is qualified under F35."
+        },
+        {
+          "name": "standalone-image-values",
+          "level": "read",
+          "reason": "Immutable PNG, JPEG, GIF, BMP and TIFF values with bounded headers, effective DPI, native and scaled lengths, owned bytes and compatibility SHA-1. No image-part, shape or collection authority; insertion support remains separate."
+        },
+        {
+          "name": "raster-occurrence-replacement",
+          "level": "edit",
+          "reason": "Direct bounded PNG, JPEG, GIF, BMP and TIFF occurrence replacement clones and rebinds one drawing; explicit shared intent rebinds the resolved resource across physical owners. Default geometry and inactive references remain preserved. Linked/alternate/fallback replacement, utility batch execution and live image-part/drawing/collection models remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/31"
+    },
+    {
+      "id": "F31",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "image-inventory-extraction",
+          "level": "read",
+          "reason": "Bounded selected occurrence/resource inventory and exact original-byte VFS extraction with explicit manifest-inclusive publication intent. Unknown geometry/media stays null or opaque preserve-only; linked resources remain inert. No pixel decoding, DPI/native-size, rendering, live model or full image parity."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/30"
+    },
+    {
+      "id": "F33",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "stored-image-layout",
+          "level": "read",
+          "reason": "Read admitted native extents, crop, rotation, flips, wrap, z-order, separate axis positions and alt/decorative metadata. Unsupported or invalid metadata stays null with warnings; no rendering is inferred."
+        },
+        {
+          "name": "native-picture-layout",
+          "level": "edit",
+          "reason": "Direct bounded edits of coherent existing native picture extents, crop, transform, aspect locks and metadata; admitted anchors support separate axis frames, offsets or alignments, distances, stacking and explicit wrapping polygons. Exact media, relationships and admitted coherent alternate associations are preserved. Inline conversion, rendering, utility batch execution and live drawing/collection models remain unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/32"
+    },
+    {
+      "id": "F34",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "inert-image-alternatives",
+          "level": "read",
+          "reason": "Selected core-v1 carrier references and exact admitted internal alternate/fallback bytes; raw selected VML remains preserve-only. Inactive MCE evidence stays preserved; no Choice activation, unsupported decoding or external acquisition."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/33"
+    },
+    {
+      "id": "F35",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "shared-image-owners",
+          "level": "read",
+          "reason": "Occurrence-local geometry and exact selected-owner references remain distinct from shared byte hashes. Unique groups after selection with first selected representative and no null-hash grouping; Live shared-image models remain pending."
+        },
+        {
+          "name": "explicit-shared-raster-replacement",
+          "level": "edit",
+          "reason": "Explicit direct replacement targets the resolved internal resource across owner-local relationships, preserving geometry and reporting each physical owner. Filename and byte-hash equality never establish shared identity. Utility batch and live model execution remain pending."
+        },
+        {
+          "name": "static-svg-fallback-insertion",
+          "level": "edit",
+          "reason": "Direct inline insertion of bounded static safe SVG XML with explicitly supplied validated PNG, JPEG, GIF, BMP or TIFF fallback. Fallback pixel dimensions and per-axis DPI supply native geometry; original SVG/fallback bytes, distinct media parts and owner-local relationships form one coherent occurrence. No fetching, rasterization, pixel decoding, MCE activation or rendering parity. Floating insertion, SVG/fallback replacement, utility batch execution and live image-part/drawing/collection models remain unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/34"
+    },
+    {
+      "id": "F30",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "typed-document-properties",
+          "level": "edit",
+          "reason": "Read and explicitly set/remove admitted core, extended and custom scalar metadata. Exact qualified or unambiguous stored names; UTC whole-second utility strings and retained custom variants/IDs. Missing-part creation is explicit and collision-safe. Cached, opaque, invalid and ambiguous metadata stays read/preserve-only; unrelated timestamps, counts and XML remain unchanged. No live CoreProperties/model, automatic clocks, recalculation or corpus conformance claim."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/29"
+    },
+    {
+      "id": "F28",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "control-values",
+          "level": "edit",
+          "reason": "Bounded plain/rich scalar text, declared checkbox glyphs, stored choice values, numeric Gregorian dates and existing internal PNG picture replacement. Indexed nested/unsupported controls remain inspected. Locked or bound filling, parent replacement erasing nested controls and unsupported affected structures reject atomically. Declared binding synchronization uses the separate controls bind route. Live model owners and ordered batches remain unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/27"
+    },
+    {
+      "id": "F29",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "native-repetition",
+          "level": "edit",
+          "reason": "Bounded native block and unmerged grid-row repetition from exact scalar records, including empty reusable placeholders. Remap contained IDs, bookmarks, classic comments and admitted inline PNG drawings while retaining shared media. Affected bindings, locks, review, opaque structures and crossing ownership reject. Template apply, live owners and ordered batches remain pending."
+        },
+        {
+          "name": "binding-synchronization",
+          "level": "edit",
+          "reason": "Declared tag keys identify one internal custom XML singleton and all complete scoped recipients, including aliases. Root-inclusive namespace-resolved child paths and explicit string/boolean/integer/double types preserve false, zero and empty values. Unresolved same-store recipients, incomplete scope, ambiguity and locks reject before publication. No binding detachment or resource fetch."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/28"
+    },
+    {
+      "id": "F26",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "revision-decisions",
+          "level": "edit",
+          "reason": "Direct acceptance/rejection of ordinary inline text wrappers and supported exposed-field run/paragraph property history. Scoped ordinal, whole revision token or explicit all; validate every selected candidate before edits, preserving unselected review and required owners. Nested/compound/move/table/section/opaque review and affected field/control/range boundaries reject. Live owners and ordered batches remain unsupported."
+        },
+        {
+          "name": "tracked-text-creation",
+          "level": "edit",
+          "reason": "Explicit-author/time insertion, deletion and literal replacement on admitted scalar text ranges. Preserve original/final/all views and run properties; affected existing review and compound boundaries reject. Acceptance/rejection is a separate bounded subset; live owners and ordered batches remain unsupported."
+        },
+        {
+          "name": "revision-read-views",
+          "level": "read",
+          "reason": "Final/original/all text and run/paragraph property snapshots; IDs, authors and stored timestamps. Ordinary unrelated edits preserve review markup. Tracked creation and acceptance/rejection are separately bounded editing subsets."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/25"
+    },
+    {
+      "id": "F27",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "complex-revision-inventory",
+          "level": "read",
+          "reason": "Move wrappers/range markers and opaque table, section and extension revisions; affected complex edits reject."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/26"
+    },
+    {
+      "id": "F25",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "classic-comments",
+          "level": "edit",
+          "reason": "Explicit author/time and run-boundary body anchors; list/get/set/remove comments, preserving unrelated annotations. Rich block replacement, comment batches and live model owners remain pending."
+        },
+        {
+          "name": "comment-extension-synchronization",
+          "level": "edit",
+          "reason": "Inventories extension parts and IDs; single-paragraph text edits retain thread links and resolution. Removal synchronizes verified IDs and people; surviving replies, opaque affected metadata and unverified structures reject. Thread authoring remains unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/24"
+    },
+    {
+      "id": "F24",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "footnotes-endnotes",
+          "level": "edit",
+          "reason": "Read, insert, edit and remove notes and references with reserved separator preservation, scoped IDs and explicit shared-reference policies. Document and section numbering/restart rules remain intact; storage renumbering does not calculate pagination or displayed numbers. Live document model remains pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/23"
+    },
+    {
+      "id": "F23",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "toc-caption-structures",
+          "level": "edit",
+          "reason": "Bounded TOC levels, inert caption sequences and static labels. Explicit cached text and dirty flags; no layout or sequence evaluation. Existing sequence collisions require explicit reuse."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/22"
+    },
+    {
+      "id": "F22",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "cached-fields",
+          "level": "edit",
+          "reason": "List simple, complex and nested fields; edit supported plain cached results without execution. Preserve instructions, formatting and omitted flags. Create bounded fields and edit typed instructions. Nested-result replacement, shared-story editing and live model remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/21"
+    },
+    {
+      "id": "F21",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "bookmark-ranges",
+          "level": "edit",
+          "reason": "List, create, rename and remove checked ranges; explicit reference policy for internal links and REF/PAGEREF fields. Multi-run paragraph and table-cell boundaries; stale, missing, duplicate and crossing structures checked. Complex reference removal, shared-story edits and general field/model APIs remain unsupported."
+        },
+        {
+          "name": "hyperlinks",
+          "level": "edit",
+          "reason": "Create, list, retarget and unwrap direct paragraph hyperlinks; explicit label deletion. Inert HTTP/HTTPS/mailto and internal anchors, owner-scoped relationship cleanup. Shared story edits and live hyperlink model remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/20"
+    },
+    {
+      "id": "F20",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "logical-grid",
+          "level": "edit",
+          "reason": "Inspect logical owners and spans. Explicit rectangular merges join blocks in row order; split restores existing grid slots with anchor or paragraph distribution. Covered writes require owner intent. Row deletion preserves surviving spans. Omitted/wrapped grids, legacy merges and span insertion/column removal remain unsupported."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/19"
+    },
+    {
+      "id": "F19",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "table-construction",
+          "level": "edit",
+          "reason": "Bounded rectangular grids, nested typed blocks, repeated leading headers, borders/shading, margins and row height/splitting. Selected cell values and table/row/cell formatting, explicit rectangular row/column insertion and deletion. Merged grids support explicit merge/split and row removal; omitted grids remain readable. Span insertion, column removal and live table owners remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/18"
+    },
+    {
+      "id": "F18",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "multilevel-numbering",
+          "level": "edit",
+          "reason": "Bounded list add/set, levels 0-8, scoped IDs and start/restart overrides; resolve paragraph and numbering style links. Preserve mixed levels and unrelated opaque schemes/picture resources. Advanced level-definition setters and live numbering model remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/17"
+    },
+    {
+      "id": "F17",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "header-footer-stories",
+          "level": "edit",
+          "reason": "Noncreating reads of every variant; explicit shared edits, local clone/rebind and removal. Preserve cached fields and outgoing resources; scoped paragraph/text operations reuse story ownership. Whole-story text rejects fields, tables and opaque blocks. Live document model and general image/table editing remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/16"
+    },
+    {
+      "id": "F16",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "section-page-settings",
+          "level": "edit",
+          "reason": "Edit owner-local geometry, columns, section starts, page-number and first-page metadata; append sections and inventory inherited header/footer bindings. Even/odd policy is document-wide and requires explicit all-section scope. No pagination claim."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/15"
+    },
+    {
+      "id": "F41",
+      "level": "preserve",
+      "subsets": [
+        {
+          "name": "package-resource-inventories",
+          "level": "read",
+          "reason": "Package-global customXML and glossary metadata, whole-part locations, ancillary closure and inert external references. Missing or ambiguous metadata remains preserved with bounded warnings; no content dump, import, schema fetch or semantic editing."
+        },
+        {
+          "name": "opaque-package-retention",
+          "level": "preserve",
+          "reason": "Retain unedited ancillary payloads and relationship XML across admitted mutations. Bound raw replacements and unsupported same-store recipients reject rather than detach or partially synchronize."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/40"
+    },
+    {
+      "id": "F42",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "settings-and-protection",
+          "level": "read",
+          "reason": "Package-global stored settings, compatibility, field-update and font embedding flags; credential-free protection state. Only raw boolean field-update intent is editable. Protected packages and changed locked controls reject; unchanged locked owners survive scoped text replacement. Unknown settings remain preserved; no rights bypass, password verification or font installation."
+        },
+        {
+          "name": "theme-and-font-resources",
+          "level": "read",
+          "reason": "Inspect theme colors, major/minor/script fonts, font tables, embedding metadata and reference diagnostics. Preserve embedded bytes and language metadata; embedded font mutation is unsupported. No installation, availability, licensing or rasterization inference."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/41"
+    },
+    {
+      "id": "F15",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "title-and-heading-creation",
+          "level": "edit",
+          "reason": "Level 0 creates Title; levels 1-9 create paragraph headings through creation and paragraph insertion. Deterministic style IDs preserve conflicting user definitions and reuse compatible built-ins. Model methods remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/14"
+    },
+    {
+      "id": "F14",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "style-definitions",
+          "level": "edit",
+          "reason": "Paragraph, character and table styles; defaults, inheritance, linked styles and heading definitions. Latent defaults and individual visibility, priority, locking and gallery metadata are editable. Live style collections, inherited font/paragraph objects, latent entries and owned typed batches are implemented; document content model operations remain pending."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/13"
+    },
+    {
+      "id": "F13",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "paragraph-editing",
+          "level": "edit",
+          "reason": "Direct paragraph properties and whole text; block and inline caret insertion with suffix retention. Explicit breaks, sorted tab stops, border sides and shading; style-owned paragraph model handles are implemented."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/12"
+    },
+    {
+      "id": "F12",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "bounded-ordered-utility-batch",
+          "level": "edit",
+          "reason": "F47: Version 1 ordered typed operations with stable IDs, whole-array syntax admission, staged selections, shared budgets, final validation and one publication. Admitted IDs: fields.add, fields.set, toc.add, toc.set, captions.add, captions.set, paragraphs.add, paragraphs.set, runs.add, tables.add, tables.set, tables.rows.add, tables.rows.remove, tables.columns.add, tables.columns.remove, tables.merge, tables.split, text.replace, lorem.set, runs.set, images.add, images.replace, images.set, properties.set, properties.remove, text.get, fields.list, tables.get, tables.list, images.list, images.get, properties.list, properties.get. Other utility and live model batches remain pending."
+        },
+        {
+          "name": "scoped-direct-run-formatting",
+          "level": "edit",
+          "reason": "Run or paragraph scalar ranges; nullable direct properties, explicit font/theme references and half-point sizes. No style resolution, font loading, whole-text assignment or whole document model execution."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/11"
+    },
+    {
+      "id": "F11",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "structured-creation",
+          "level": "edit",
+          "reason": "DOCX/DOTX, Strict/Transitional; original paragraphs/tables and explicit new-package settings; append-only supplied templates."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/10"
+    },
+    {
+      "id": "F06",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "inventory",
+          "level": "read",
+          "reason": "No rendering, linked-resource access or signature verification."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/5"
+    },
+    {
+      "id": "F49",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "core-v1",
+          "level": "read",
+          "reason": "Partial core-v1 validation only."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/48"
+    },
+    {
+      "id": "F08",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "logical-story-text",
+          "level": "read",
+          "reason": "Explicit story scopes and review views; hidden text included, cached field results only; no drawing/equation text or rendering."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/7"
+    },
+    {
+      "id": "F09",
+      "level": "read",
+      "subsets": [
+        {
+          "name": "logical-unicode",
+          "level": "read",
+          "reason": "Unicode order and direct language/RTL/font properties; no shaping or style cascade."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/8"
+    },
+    {
+      "id": "F07",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "explicit-xml-part",
+          "level": "edit",
+          "reason": "Validated whole-part replacement; immutable opaque content, no protection bypass; raw bytes or bounded display serialization."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/6"
+    },
+    {
+      "id": "F10",
+      "level": "edit",
+      "subsets": [
+        {
+          "name": "literal-paragraph-text",
+          "level": "edit",
+          "reason": "Nonoverlapping original-text matches, run formatting preservation, explicit cardinality and bold/italic overrides; structural barriers, protected and shared parts guarded."
+        }
+      ],
+      "detected": null,
+      "fullFamilyAcceptance": "pending",
+      "commandRegister": "command-coverage.json#/features/9"
+    }
+  ],
+  "upstreamAccounting": {
+    "unitVariants": 1609,
+    "bddIdentities": 650,
+    "total": 2259,
+    "missingCrosswalk": [],
+    "orphanCrosswalk": [],
+    "missingDatedAccounting": [],
+    "orphanDatedAccounting": [],
+    "duplicates": {
+      "inventory": 0,
+      "crosswalk": 0,
+      "dated": 0
+    },
+    "categories": {
+      "named-original-execution-with-bounded-semantic-evidence": 1306,
+      "scoped-association-without-matched-named-execution": 494,
+      "deferred-original-adaptation-no-scoped-association": 459
+    },
+    "excluded": 0,
+    "parityAccepted": 0,
+    "completePerIdentityReceipt": "upstream-test-completeness-20260921.json#/rows",
+    "semanticWitnesses": "test-case-map.json#/rows"
+  },
+  "registers": {
+    "featureCount": 50,
+    "inventoryRecords": 920,
+    "publicRows": 1338,
+    "commandPublicRows": 1338,
+    "operationCount": 1518,
+    "runtimeOperationCount": 1518,
+    "reconciledOperations": [
+      "model.text.paragraph.Paragraph.element.get",
+      "styles.defaults.get",
+      "styles.defaults.set",
+      "styles.latent.list",
+      "styles.latent.get",
+      "styles.latent.add",
+      "styles.latent.set",
+      "styles.latent.remove",
+      "styles.latent.defaults.get",
+      "styles.latent.defaults.set"
+    ],
+    "reconciledPublicRows": ["docx.text.paragraph.Paragraph.element"],
+    "missingPublicRows": [],
+    "missingInventoryRows": [],
+    "missingRuntimeOperations": [],
+    "orphanDocumentaryOperations": [],
+    "missingFeatures": [],
+    "qualification": "Complete documentary joins; full per-member behavior and SDK/CLI acceptance remain pending.",
+    "wholeApiEvidence": "whole-api-acceptance-20260921.json",
+    "pairedCommandEvidence": "office-cli-verification-20260921.json",
+    "pairedCounterpart": "PPTX agent counterparts unrun; no complete paired ergonomic acceptance",
+    "sdkBehavior": "Original model/SDK/CLI getter, nullable reset and thirteen finite workflow cases; exhaustive member and guide variants remain pending"
+  },
+  "identityScan": {
+    "terms": [
+      "python-docx",
+      "python-pptx",
+      "python_docx",
+      "python_pptx",
+      "python-openxml",
+      "Steve Canny",
+      "scanny"
+    ],
+    "roots": [
+      "packages/docx/src",
+      "packages/docx/tests",
+      "packages/office-package/src",
+      "packages/safe-bash/src/commands/docx",
+      "packages/safe-bash/tests/commands/docx",
+      "packages/safe-bash/tests/commands/docx-registration.test.ts",
+      "scripts/docx-exports.test.ts",
+      "src"
+    ],
+    "matches": [],
+    "cli": [
+      {
+        "operation": "help",
+        "matches": []
+      },
+      {
+        "operation": "schema",
+        "matches": []
+      },
+      {
+        "operation": "capabilities",
+        "matches": []
+      },
+      {
+        "operation": "version",
+        "matches": []
+      }
+    ],
+    "qualification": "Named identity scan, not universal originality or legal clearance"
+  },
+  "legal": {
+    "standaloneNoticePresent": true,
+    "researchNoticePresent": true,
+    "substantialCopiedTests": "No implicit exemption; required notices must accompany substantial derived material."
+  },
+  "cleanup": {
+    "sources": [
+      {
+        "path": ".cache/docx-corpus/circular-economy.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/housing-supply-interim.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gst-reforms-interim.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gst-reforms-interim-appendixb.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gst-reforms-interim-appendixc.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gst-reforms-interim-appendixd.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gst-reforms-interim-appendixe.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gst-reforms-interim-sp1.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/ministry-for-the-environment-annual-report-2024-2025.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/our-atmosphere-and-climate-2023.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/scotland-annual-progress-report-2026-template-v1.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/our-future-rm-system-developing-the-npf.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/new-zealands-second-emissions-reduction-plan-discussion-document.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/national-climate-change-risk-assessment-main-report.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/mental-health-review.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/nz-ghg-inventory-2025-vol-1.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/nz-ghg-inventory-2025-vol-2.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/wales-race-equality-response-images.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/wales-citizen-voice-easy-read.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/wa-tracked.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/hk-story.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/un-ar-core.docx",
+        "absent": true
+      },
+      {
+        "path": ".cache/docx-corpus/gap-20260914/review-comments.docx",
+        "absent": true
+      }
+    ],
+    "datedCampaignDirectories": [
+      {
+        "path": "out/docx-usage-20260921",
+        "absent": true
+      },
+      {
+        "path": "out/docx-visual-20260921",
+        "absent": true
+      },
+      {
+        "path": "out/docx-completeness-20260921",
+        "absent": true
+      }
+    ],
+    "deletedInAudit": 0,
+    "unownedFiles": "preserved",
+    "retainedCampaignCleanup": "corpus-structure-qa-20260921.json and corpus-image-qa-20260921.json"
+  },
+  "visual": {
+    "retainedArtifactReinspected": "docs/docx/inline-picture-shell-evidence-20260915/terminal-inspected.png",
+    "observation": "Readable bounded batch JSON and usage diagnostic; no document rendering evidence.",
+    "datedReceipt": "visual-qa-20260921.json",
+    "rootDispatch": "Unknown command: docx; four root captures provide no successful DOCX coverage",
+    "renderer": "Headless export timed out; document layout/RTL/CJK unverified"
+  },
+  "checks": {
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit": 0,
+      "warnings": 1
+    },
+    "unit": {
+      "command": "npm test --workspace=docx -- --no-cache --maxWorkers=2",
+      "exit": 0,
+      "files": 254,
+      "passed": 5198,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 220.09,
+      "logSha256": "5100806f9a083d736b4e07b6891d4491a049ec69428bece4514c7b7c77d6d96c"
+    },
+    "publicTypes": {
+      "command": "npx tsc -p packages/docx/tests/tsconfig.public-consumer.json --noEmit",
+      "exit": 0
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit": 0,
+      "builds": 5,
+      "cache": "SHARED",
+      "cacheHits": 0,
+      "cacheMisses": 2,
+      "logSha256": "2e9367ff321486639d039f93f0d8900a067cb339999fe3840548b8848a5a89fa"
+    },
+    "structuralRegisters": {
+      "status": "passed",
+      "scope": "Fresh built exact operation/public-row joins; added route paths/features and public discovery identity probes"
+    }
+  },
+  "pending": [
+    "Whole API including unsupported NumberingPart.new, structural interface/context drift and all per-row/guide variants",
+    "Complete paired PPTX/DOCX agent ergonomics and every-operation SDK behavior",
+    "Root docx dispatch, renderer fidelity and broad cross-workspace integration gate",
+    "Atomic per-hunk ownership and full acceptance of inherited task done declarations"
+  ],
+  "readme": {
+    "application": "pending explicit permission; draft only",
+    "draft": "docs/docx/package-readme-draft.md"
+  },
+  "delivery": {
+    "local": "audit commit reported after creation",
+    "remoteMain": "not attempted",
+    "release": "not attempted",
+    "pushAuthorized": false
+  },
+  "recentLocalDelivery": [
+    {
+      "hash": "db83b312824645364725a6603dc85b5742b605bc",
+      "subject": "docs(docx): reconcile verified usage and bounded support",
+      "paths": [
+        "docs/docx/acceptance-matrix.md",
+        "docs/docx/package-readme-draft.md",
+        "docs/docx/standards-coverage.md",
+        "docs/docx/usage-contracts.json",
+        "docs/docx/usage-verification.json",
+        "docs/docx/usage.md",
+        "docs/plans/docx-usage-documentation.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "eac8e3faf69dde5d77641db2055acbde54d84a51",
+      "subject": "docs(docx): restore visual QA plan and record current execution",
+      "paths": [
+        "docs/docx/visual-qa-20260921.json",
+        "docs/docx/visual-qa-20260921.md",
+        "docs/plans/docx-visual-qa.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "285a9c8a57a2f2ca593025b5922bc396f4bde387",
+      "subject": "fix(docx): explain image extraction publication consent",
+      "paths": [
+        "docs/docx/office-cli-verification-20260921.json",
+        "docs/docx/office-cli-verification-20260921.md",
+        "docs/plans/office-cli-qa.md",
+        "packages/docx/src/image-extraction-failure-envelope.test.ts",
+        "packages/docx/src/images-command.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "0535eaaf2ad267358d2aae4689eba61fbd64ebcc",
+      "subject": "fix(docx): reconcile image help with supported models and batches",
+      "paths": [
+        "docs/docx/office-cli-qa-20260921.json",
+        "docs/docx/office-cli-qa-20260921.md",
+        "docs/plans/office-cli-qa.md",
+        "packages/docx/src/discovery.ts",
+        "packages/docx/src/image-help-model-guidance.test.ts",
+        "packages/docx/src/image-replacement-operation-contract.test.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "3fc19d4b079fd55f3ffadbe6fe59a41bb5da7694",
+      "subject": "docs(docx): distinguish historical API findings from current verification",
+      "paths": ["docs/docx/whole-api-acceptance.md"],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "06226779ca948a5a634bc6711d2651d09c4e6333",
+      "subject": "docs(docx): reconcile whole public API acceptance evidence",
+      "paths": [
+        "docs/docx/public-api-map-review.md",
+        "docs/docx/public-api-map.json",
+        "docs/docx/whole-api-acceptance-20260921.json",
+        "docs/docx/whole-api-acceptance-20260921.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "aa8c3606702f4e5356b1a537771f32c1c9411c6e",
+      "subject": "fix(docx): expose paragraph XML through typed CLI batches",
+      "paths": [
+        "docs/plans/docx-whole-api-acceptance-20260921.md",
+        "packages/docx/src/discovery-feature-data.ts",
+        "packages/docx/src/operation-schema-data.ts",
+        "packages/docx/src/operation-schema.ts",
+        "packages/docx/src/operation-types.ts",
+        "packages/docx/src/paragraph-element-command.test.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "3698ba274281e2c3f6ada4f3f700f4607f256083",
+      "subject": "docs: requalify complete document test accounting",
+      "paths": [
+        "docs/docx/original-test-results-20260921.json",
+        "docs/docx/upstream-test-completeness-20260921.json",
+        "docs/docx/upstream-test-completeness-20260921.md",
+        "docs/docx/upstream-test-completeness.md",
+        "docs/plans/docx-upstream-test-completeness.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "1663bb66687c407223eb8092167d212b40895a8f",
+      "subject": "docs(docx): qualify current behavior and coverage audit",
+      "paths": [
+        "docs/docx/behavior-coverage-audit.json",
+        "docs/plans/docx-behavior-coverage-verification-20260921.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "33da1bd584cd7184cb2cd4ee8b4b25bc449b85f6",
+      "subject": "docs(docx): qualify independent OOXML interoperability",
+      "paths": [
+        "docs/docx/independent-schema-validation-20260921.md",
+        "docs/docx/independent-schema-validation.md",
+        "docs/plans/docx-independent-ooxml-interoperability.md",
+        "docs/plans/docx-typescript-safe-bash.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "10975e636b85ca5d7db6ad5d2c5a7818590747f3",
+      "subject": "docs: qualify current docx image corpus and visual limits",
+      "paths": [
+        "docs/docx/corpus-image-qa-20260921.json",
+        "docs/docx/corpus-image-qa-20260921.md",
+        "docs/plans/docx-corpus-image-qa.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "12a4cb2db2c4dffccbdc02a12c255402e2bd3915",
+      "subject": "test(docx): qualify pinned corpus structure preservation",
+      "paths": [
+        "docs/docx/corpus-structure-qa-20260921.json",
+        "docs/docx/corpus-structure-qa-20260921.md",
+        "docs/plans/docx-corpus-structure-qa.md",
+        "packages/docx/src/corpus-structure-regression.test.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "a67375a1310920a1b7a16d748e63ac1e04245a40",
+      "subject": "fix(docx): allow nullable paragraph alignment in public types",
+      "paths": [
+        "docs/plans/docx-nullable-alignment-types-verification-20260921.md",
+        "packages/docx/src/operation-types.ts",
+        "packages/docx/src/paragraph-alignment-reset.test.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "fdf323bf9e8e8bbb93bb192c3613c37078e86197",
+      "subject": "docs(docx): repair historical hostile-input review reference",
+      "paths": ["docs/docx/validation-profile.md"],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "d028856ce0e2eac9935e18abead73dd19a198529",
+      "subject": "docs(docx): reconcile verified table batch status",
+      "paths": [
+        "docs/docx/table-bdd-status-verification-20260921.md",
+        "docs/plans/docx-table-bdd-adaptation.md",
+        "docs/specs/docx.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "51deee11dc1c593856d7cd15e4e02ce29de0522c",
+      "subject": "docs(docx): restore table workflow QA and verify case evidence",
+      "paths": [
+        "docs/docx/table-bdd-requalification-20260921.md",
+        "docs/plans/docx-table-bdd-adaptation.md"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "50aa3d86754285126cc161d630919abde928e3d7",
+      "subject": "fix(docx): allow nullable paragraph alignment in typed batches",
+      "paths": [
+        "docs/docx/public-api-map.json",
+        "docs/docx/text-style-document-verification-20260921.json",
+        "docs/plans/docx-text-style-document-verification-20260921.md",
+        "packages/docx/src/operation-schema-data.ts",
+        "packages/docx/src/paragraph-alignment-reset.test.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "0493b20870b41ef6b45da7730e421310df48ee48",
+      "subject": "test(docx): qualify shared header and footer binding boundaries",
+      "paths": [
+        "docs/docx/shared-story-boundaries-20260921.json",
+        "docs/plans/docx-text-style-document-20260921.md",
+        "packages/docx/src/shared-story-boundaries.test.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "5dcff856d6da8253460a2bd4ccc9e0dc748b1a11",
+      "subject": "fix(docx): retain supported run text tokens at edit boundaries",
+      "paths": [
+        "docs/docx/text-token-boundaries-20260921.json",
+        "docs/plans/docx-text-style-document-20260921.md",
+        "packages/docx/src/block-model.ts",
+        "packages/docx/src/cached-break-public-cases.test.ts",
+        "packages/docx/src/review-model.ts",
+        "packages/docx/src/text-token-boundaries.test.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    },
+    {
+      "hash": "1fcb789306806d3e981fbfc0b2bacfd780d05a4b",
+      "subject": "fix(docx): preserve bounded comment ID allocation semantics",
+      "paths": [
+        "docs/docx/text-style-document-20260921.json",
+        "docs/plans/docx-text-style-document-20260921.md",
+        "packages/docx/src/comment-id-allocation.test.ts",
+        "packages/docx/src/comment-id.ts",
+        "packages/docx/src/comments.test.ts",
+        "packages/docx/src/comments.ts",
+        "packages/docx/src/live-collection-protocols.test.ts",
+        "packages/docx/src/review-model.ts"
+      ],
+      "qualification": "Local commit and exact path evidence; no remote/release assertion."
+    }
+  ],
+  "ownedPaths": [
+    "docs/docx/command-coverage.json",
+    "docs/docx/teardown-verification-20260921.json",
+    "docs/docx/teardown-verification-20260921.md",
+    "docs/plans/docx-teardown-verification-20260921.md"
+  ]
+}

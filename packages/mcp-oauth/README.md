@@ -260,7 +260,11 @@ transient retry or restoration of the original grant. Gateway error pages do not
 Native persisted OAuth reads always reject corrupt encrypted documents and
 invalid stored JSON, with diagnostics that omit decrypted contents. They retain
 the existing record for explicit reset rather than interpreting corruption as
-an absent session and reviving an initial grant. Caller file-backend settings
+an absent session and reviving an initial grant. Persisted access tokens that
+cannot be sent as HTTP headers fail with diagnostics that omit token contents;
+the original record remains available for explicit recovery. Token responses are
+checked before activation or persistence. An unusable rotated access token keeps
+refresh intent pending, preventing rotating-token replay. Caller file-backend settings
 cannot disable this policy.
 
 ## Environment Variables

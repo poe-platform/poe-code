@@ -747,11 +747,12 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
     return { ...session, client: { clientId: "" }, tokens: undefined };
   }
 
-  return {
-    ...session,
-    client,
-    tokens: normalizeStoredTokens(getOwnEntry(session, "tokens"))
-  };
+  const tokens = normalizeStoredTokens(getOwnEntry(session, "tokens"));
+  if (tokens !== undefined) {
+    try { new Headers({ Authorization: `Bearer ${tokens.accessToken}` }); }
+    catch { throw new Error("Stored OAuth access token is not a valid HTTP header value"); }
+  }
+  return { ...session, client, tokens };
 }
 
 

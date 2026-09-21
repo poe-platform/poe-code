@@ -154,6 +154,8 @@ async function requestTokens(input: {
     throw new Error("OAuth token response missing access_token");
   }
   const normalizedAccessToken = accessToken.trim();
+  try { new Headers({ Authorization: `Bearer ${normalizedAccessToken}` }); }
+  catch { throw new Error("OAuth token response access_token is not a valid HTTP header value"); }
 
   const tokenType = normalizeBearerTokenType(getOwnEntry(payload, "token_type"));
   if (tokenType === null) {

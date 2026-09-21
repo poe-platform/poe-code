@@ -415,3 +415,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     and no subsequent user callback/HTTP work. The completed identity write is
     retained; do not claim rollback of committed persistence. Inspect safe
     summary output and purge owned evidence.
+
+38. Seed native encrypted sessions with synthetic access tokens containing an
+    interior newline, NUL or character outside header byte representation. Run
+    an actual generated safe-bash command for each. Require nonzero safe header
+    diagnostics without token echoes, zero protected/token HTTP traffic, no
+    initial fallback and the unchanged encrypted record. Next seed expired
+    sessions with valid old grants and return those three invalid access tokens
+    from an actual HTTP token endpoint. Require one redemption per mode, safe
+    command failure, a durable tokenless pending marker retaining the original
+    app/discovery, and recreated callers that perform no replay/fallback. Verify
+    valid punctuation and surrounding trimming still authorize an actual MCP
+    command with complete content/structured values/metadata/exact005930 and
+    one retired session. Inspect the actual safe diagnostic/result and summary
+    screenshot; purge only owned synthetic evidence.

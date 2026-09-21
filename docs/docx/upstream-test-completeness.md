@@ -1,5 +1,10 @@
 # DOCX complete inventory reconciliation
 
+The [2026-09-21 requalification](upstream-test-completeness-20260921.md) records
+fresh maintained original results and current scoped overlays for every pinned
+row. The counts and pending-owner statements below remain the historical
+2026-09-15 snapshot; later evidence supersedes only its explicit bounded scope.
+
 Research date: 2026-09-15. The [row receipt](upstream-test-completeness.json)
 reconciles every pinned unit variant and expanded BDD identity with the historical
 [crosswalk](test-case-map.json), scoped adaptation records and

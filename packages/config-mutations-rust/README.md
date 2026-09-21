@@ -68,7 +68,12 @@ promptly instead of overflowing the original configuration clone.
 Exact YAML SDK warnings/error metadata, all authored complex-key formatting and
 merge-source alias admission are still under conformance review. SDK-specific
 Document/node objects are not serialization inputs. Standalone Rust callers can
-supply Date-key coercion; the Node adapter uses the host time zone.
+supply Date-key coercion; the Node adapter uses the host time zone. The Rust
+`yaml::document::scan` API exposes flat syntax nodes with UTF-16 source offsets,
+collection structure, quote/flow style and schema-aware scalar types. Leaf spans
+include following layout rather than identifying raw token ends. Syntax scanning
+rejects multiple documents, nesting above 512 and more than 1,048,576 nodes;
+full source-preserving editor compatibility remains under review.
 
 The `./execution` API runs directory creation/removal, guarded file removal,
 permission changes, backups, restoration and configuration updates in order.

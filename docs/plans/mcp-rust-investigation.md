@@ -5488,3 +5488,30 @@ original OAuth/safe-bash changes preserved. Continuous10:21:03–10:36:30 adds92
 total103428s (28.73h). Minimum fulfilled; remaining closure/runtime/platform/
 performance and YAML edited-flow/comment conformance remain incomplete. Continue
 accounting after10:36:30 UTC.
+
+### Reusable YAML syntax spans, 2026-09-21 10:37 UTC
+
+Additive config-mutations Rust yaml::document::scan exposes a flat syntax tree,
+UTF16 offsets,mapping/sequence/alias structure,flow/quote style and schema-aware
+non-string scalar values,without changing existing parse/serialize behavior.
+Source offsets count UTF16 units,including unpaired surrogates. Leaves include
+following layout rather than exact raw-token endings. Existing own event scanner
+supplies grammar; schema classification reuses own scalar resolution. Multiple
+documents,depth above512 and more than1048576syntax nodes reject with positioned
+errors. This is reusable syntax infrastructure,not a claim of full SDK CST parity.
+
+Initial missing-module/scalar-field reds precede implementation. An EOF regression
+reproduces discarded final-line collection spans before repair. Six focused Rust
+cases cover comments/flow/aliases/unpaired units/schema key types/EOF and nesting
+budget; full supporting-package checks pass89Rust cases before sixth added span
+case,66native groups,260SDK references/2files,types,fmt/clippy/binding checks.
+Uncached maintained selected closure115workspaces/8builds/350edges passes. README
+states source-span semantics and compatibility bounds. Task-list adapter/backend
+will be delivered separately after final artifact/source preservation checks.
+Evidence out/rust-config-yaml-document-*.
+
+TOML repaira5827f1d7 exact remote-main verified; registry35583768081 still running
+fresh unit/native checks (job106287079554). Successful publication unverified;
+concurrent original changes preserved. Continuous10:36:30–10:37:46 adds76s,
+total103504s (28.75h). Minimum fulfilled; full rewrite acceptance remains incomplete.
+Continue accounting after10:37:46 UTC.

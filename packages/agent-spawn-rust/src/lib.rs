@@ -1,5 +1,6 @@
-//! Independent declarative spawn planning. Process execution follows separately.
+//! Independent declarative spawn planning and execution policies.
 pub mod mcp;
+pub mod parallel;
 pub mod retry;
 use agent_defs_rust::{Definition, Registry};
 use mcp_protocol_rust::{json::Value, strings::trim_ecmascript};

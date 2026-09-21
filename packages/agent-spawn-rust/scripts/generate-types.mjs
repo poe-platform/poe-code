@@ -79,7 +79,7 @@ writeFileSync(
   new URL("src/index.d.ts", root),
   imports +
     index +
-    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\n"
+    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\n"
 );
 
 writeFileSync(
@@ -124,4 +124,18 @@ writeFileSync(
 writeFileSync(
   new URL("src/acp-protocol-types.d.ts", root),
   readFileSync(new URL("../../poe-acp-client-rust/src/types.d.ts", import.meta.url), "utf8")
+);
+
+writeFileSync(
+  new URL("src/parallel.d.ts", root),
+  "import type {SpawnHandle} from './retry.js';\n" +
+    declarations("parallel.d.ts", [
+      "SpawnParallelTuple",
+      "SpawnParallelThunk",
+      "SpawnParallelCall",
+      "SpawnParallelOptions",
+      "SpawnParallelError",
+      "createSpawnParallel"
+    ]) +
+    "\n"
 );

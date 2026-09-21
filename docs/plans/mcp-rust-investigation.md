@@ -3315,7 +3315,7 @@ Evidence out/rust-agent-spawn-*; remaining aggregate/getter/platform/Python and
 full agent acceptance remain open. Latest release35556765333 is pending; no
 publication is verified. The24-hour minimum effort and overall goal remain open.
 
-### Spawn retry implementation, 2026-09-21 03:28 UTC
+### Spawn retry implementation, 2026-09-21
 
 The agent-spawn-rust retry API now owns validation, attempt transitions, stop/check/
 wait decisions, capped exponential backoff and event prefix selection in Rust.
@@ -3347,3 +3347,26 @@ counter plus previously recorded segments and this inherited segment total 78908
 (21.92h); the minimum 24-hour effort and overall rewrite remain unfinished.
 Release 35556922386 for planning commit 753e96c6d remains pending; no publication
 is verified. This retry change is locally verified; delivery is recorded separately.
+
+### Spawn parallel scheduling, 2026-09-21 03:27 UTC
+
+The independent parallel combinator uses Rust to validate concurrency/check policy,
+admit bounded work, record completion/rejection, choose the primary failure and
+select the first failed result in input order. Node effects invoke tuples/thunks,
+drain streams, await results and link AbortSignals, preserving opaque result and
+failure identity. Native status holds no host payloads. Portable red tests precede
+implementation and cover admission limits, duplicate completion, collection and
+peer cleanup after stopping. All 78 original parallel cases run through own
+combinator, using an explicit thunk-only fixture for the original spawn.parallel
+calls. This verifies the combinator, not the unfinished production spawn assembly.
+An additional native identity/listener case verifies both parent and tuple abort
+listeners are removed after success. All 8 portable cases, 6 native groups and
+188 applicable reference tests, bidirectional declarations, maintained lint and
+explicit uncached focused build closure pass. Packed/direct 16MiB workers each
+add 2048 ordered parallel calls to existing planning/retry evidence. Recursive
+import audit covers 29 files, one addon and zero runtime dependency groups. Heap
+endpoints ~12.1MB and parent-inclusive RSS are bounded workload evidence only.
+Evidence out/rust-agent-spawn-parallel-*. Actual command/stream execution and the
+larger closure remain unfinished. Retry commit ab1aa9f03 is verified on remote
+main; its release 35557365606 is queued. Earlier planning release was cancelled.
+No successful publication or overall/minimum-effort completion is claimed.

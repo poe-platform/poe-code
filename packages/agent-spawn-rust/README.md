@@ -7,6 +7,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Serialize JSON, Codex TOML, OpenCode environment and Goose MCP settings.
 - Merge environments with explicit variable deletion.
 - Retry injected spawn handles with capped backoff, cancellation and attempt-tagged events.
+- Run tuples or spawn thunks with bounded concurrency and group cancellation.
 
 ```typescript
 import { buildSpawnArgs, listSpawnableAgents } from '@poe-code/agent-spawn-rust';
@@ -22,7 +23,7 @@ console.log(launch.binaryName, launch.displayArgs);
 
 An omitted permission mode selects `auto`. Agents without an unattended approval channel reject it; `yolo` requires an explicit request. Large UTF-8 prompts and embedded NULs use stdin where the selected agent supports automatic fallback. Display arguments redact prompt text while execution arguments preserve it.
 
-This private, experimental package currently supplies registry and argument planning. Process execution, streaming adapters, parallel runs, telemetry and runtime/resource bridges are still being implemented. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
+This private, experimental package currently supplies registry and argument planning. Process execution, streaming adapters, telemetry and runtime/resource bridges are still being implemented. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
 
 ```typescript
 import { createSpawnRetry } from '@poe-code/agent-spawn-rust';
@@ -34,3 +35,15 @@ const result = await handle.result;
 ```
 
 Supply your own `spawnOnce` function returning an async event stream and a result promise. Retry defaults cover exit codes 1, 124, 125 and 137; a successful result stops immediately. A custom `isRetryable` callback can change that policy. The final result keeps its original identity. Queued unread events remain buffered, so consume the stream during a run.
+
+```typescript
+import { createSpawnParallel } from '@poe-code/agent-spawn-rust';
+
+const parallel = createSpawnParallel(spawnOnce);
+const results = await parallel([
+  ['codex', { prompt: 'Review the API' }],
+  ['codex', { prompt: 'Review the tests' }],
+], { maxConcurrent: 2 });
+```
+
+Parallel results follow input order and event streams are drained. By default, the first failing result aborts active peers and prevents queued work from starting. Set `failFast: false` to collect results including nonzero exit codes, or combine it with `check: true` to throw after collection. `SpawnParallelError` carries the failed index, result and collected results; rejected calls are collected as an `AggregateError` when fail-fast is disabled.

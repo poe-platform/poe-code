@@ -117,3 +117,27 @@ test("retry captures its callback once before asynchronous attempts", async () =
     for await (const ignored of handle.events) void ignored;
   }
 });
+test("parallel preserves payload identity and cleans linked cancellation listeners", async () => {
+  const { getEventListeners } = await import("node:events");
+  for (const implementation of [reference, own]) {
+    const parent = new AbortController(),
+      individual = new AbortController(),
+      payload = {};
+    payload.self = payload;
+    let complete;
+    const parallel = implementation.createSpawnParallel((_service, options) => ({
+      events: { async *[Symbol.asyncIterator]() {} },
+      result: new Promise((resolve) => {
+        complete = () => resolve({ exitCode: 0, payload, signal: options.signal });
+      })
+    }));
+    const result = parallel([["agent", { signal: individual.signal }]], { signal: parent.signal });
+    assert.equal(getEventListeners(parent.signal, "abort").length, 1);
+    assert.equal(getEventListeners(individual.signal, "abort").length, 1);
+    complete();
+    const [value] = await result;
+    assert.equal(value.payload, payload);
+    assert.equal(getEventListeners(parent.signal, "abort").length, 0);
+    assert.equal(getEventListeners(individual.signal, "abort").length, 0);
+  }
+});

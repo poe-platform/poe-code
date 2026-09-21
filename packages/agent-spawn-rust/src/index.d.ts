@@ -76,3 +76,10 @@ export declare function resolveConfig(
 ): ResolvedSpawnConfig;
 export { createSpawnRetry, calculateBackoffMs, defaultIsRetryable } from "./retry.js";
 export type { SpawnRetryOptions, SpawnHandle, SpawnRetryFunction } from "./retry.js";
+export { createSpawnParallel, SpawnParallelError } from "./parallel.js";
+export type {
+  SpawnParallelTuple,
+  SpawnParallelThunk,
+  SpawnParallelCall,
+  SpawnParallelOptions
+} from "./parallel.js";

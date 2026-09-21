@@ -280,3 +280,71 @@ impl NativeSpawnQueue {
         self.state.fail("failure".into());
     }
 }
+
+#[napi]
+pub struct NativeSpawnParallel {
+    state: agent_spawn_rust::parallel::Scheduler,
+}
+#[napi]
+impl NativeSpawnParallel {
+    #[napi(constructor)]
+    pub fn new(count: u32, max: Unknown<'_>, check: Unknown<'_>, fail_fast: bool) -> Result<Self> {
+        // Preserve validation precedence even for empty input.
+        let max = number(max)?;
+        if !max.is_finite() || max.fract() != 0.0 || max < 1.0 {
+            return Err(Error::from_reason(
+                "spawn.parallel maxConcurrent must be an integer greater than or equal to 1.",
+            ));
+        }
+        if check.get_type()? != napi::ValueType::Boolean {
+            return Err(Error::from_reason(
+                "spawn.parallel check must be a boolean.",
+            ));
+        }
+        let check = unsafe { check.cast::<bool>()? };
+        Ok(Self {
+            state: agent_spawn_rust::parallel::Scheduler::new(
+                count as usize,
+                max,
+                check,
+                fail_fast,
+            )
+            .map_err(Error::from_reason)?,
+        })
+    }
+    #[napi(getter)]
+    pub fn workers(&self) -> u32 {
+        self.state.workers() as u32
+    }
+    #[napi]
+    pub fn take(&mut self) -> Option<u32> {
+        self.state.take().map(|index| index as u32)
+    }
+    #[napi]
+    pub fn complete(&mut self, index: u32, exit: Unknown<'_>) -> Result<bool> {
+        self.state
+            .complete(index as usize, number(exit)? == 0.0)
+            .map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn reject(&mut self, index: u32, aborted: bool) -> Result<String> {
+        Ok(match self
+            .state
+            .reject(index as usize, aborted)
+            .map_err(Error::from_reason)?
+        {
+            agent_spawn_rust::parallel::Rejection::Primary => "primary",
+            agent_spawn_rust::parallel::Rejection::Collect => "collect",
+            agent_spawn_rust::parallel::Rejection::Ignore => "ignore",
+        }
+        .into())
+    }
+    #[napi]
+    pub fn stop(&mut self) -> bool {
+        self.state.stop()
+    }
+    #[napi]
+    pub fn first_failed(&self) -> Option<u32> {
+        self.state.first_failed().map(|index| index as u32)
+    }
+}

@@ -30,3 +30,8 @@ type Retry = Pick<
 const c: Retry = own;
 const d: Pick<typeof own, keyof Retry> = null as unknown as Retry;
 void [c, d];
+
+type Parallel = Pick<typeof original, "createSpawnParallel" | "SpawnParallelError">;
+const e: Parallel = own;
+const f: Pick<typeof own, keyof Parallel> = null as unknown as Parallel;
+void [e, f];

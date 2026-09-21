@@ -14,38 +14,16 @@ export function parseOAuthTokenGrant(value, options = {}) {
   } catch {
     throw invalid();
   }
-  const lifetime = grant.lifetime();
-  for (const timestamp of [
-    ...(options.expiresAt == null ? [] : [options.expiresAt]),
-    ...(options.issuedAt === undefined ? [] : [options.issuedAt])
-  ]) {
-    try {
-      native.validateGrantTimestamp(timestamp);
-    } catch {
-      throw invalid();
-    }
-  }
-  let absolute;
+  let lifetime;
   try {
-    absolute = grant.absoluteExpiry();
+    lifetime = grant.prepare(options.expiresAt, options.issuedAt);
   } catch {
     throw invalid();
   }
   const anchor =
-    typeof lifetime === "number" ? (options.issuedAt ?? (options.now ?? Date.now)()) : undefined;
-  let relative;
+    typeof lifetime === "number" ? options.issuedAt ?? (options.now ?? Date.now)() : undefined;
   try {
-    if (typeof lifetime === "number") {
-      native.validateGrantTimestamp(anchor);
-      relative = anchor + lifetime * 1000;
-    }
-    grant.validateRelative(relative);
-  } catch {
-    throw invalid();
-  }
-  const expiresAt = options.expiresAt ?? absolute ?? relative ?? null;
-  try {
-    return { ...grant.fields(), expiresAt };
+    return grant.complete(anchor);
   } catch {
     throw invalid();
   }

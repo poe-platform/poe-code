@@ -14,6 +14,11 @@ pub struct TokenGrant {
 pub struct GrantTiming {
     pub lifetime: Option<f64>,
 }
+pub struct ImportTiming {
+    pub lifetime: Option<f64>,
+    expires_override: Option<f64>,
+    absolute: Option<f64>,
+}
 pub fn valid_timestamp(value: f64) -> bool {
     value.is_finite() && value.fract() == 0.0 && value.abs() <= 8_640_000_000_000_000.0
 }
@@ -62,6 +67,56 @@ impl TokenGrant {
             access,
             refresh,
         })
+    }
+    /// Admit every supplied field before requesting any host clock effect.
+    pub fn prepare_import(
+        &self,
+        expires: Option<&Value>,
+        issued: Option<&Value>,
+    ) -> Result<ImportTiming, &'static str> {
+        let timing = self.timing()?;
+        let expires_override = optional_number(expires, true)?;
+        let issued = optional_number(issued, false)?;
+        if expires_override.is_some_and(|value| !valid_timestamp(value))
+            || issued.is_some_and(|value| !valid_timestamp(value))
+        {
+            return Err(INVALID);
+        }
+        Ok(ImportTiming {
+            lifetime: timing.lifetime,
+            expires_override,
+            absolute: self.absolute_expiry()?,
+        })
+    }
+    /// The host supplies its selected original issuance anchor, without coercion.
+    pub fn complete_import(
+        &self,
+        timing: &ImportTiming,
+        anchor: Option<f64>,
+    ) -> Result<Value, &'static str> {
+        let relative = match timing.lifetime {
+            None => None,
+            Some(seconds) => {
+                let anchor = anchor.ok_or(INVALID)?;
+                if !valid_timestamp(anchor) {
+                    return Err(INVALID);
+                }
+                Some(anchor + seconds * 1000.0)
+            }
+        };
+        self.validate_relative(relative)?;
+        let Value::Object(mut fields) = self.fields()? else {
+            unreachable!()
+        };
+        fields.push((
+            "expiresAt".encode_utf16().collect(),
+            timing
+                .expires_override
+                .or(timing.absolute)
+                .or(relative)
+                .map_or(Value::Null, Value::Number),
+        ));
+        Ok(Value::Object(fields))
     }
     pub fn access(&self) -> &[u16] {
         &self.access

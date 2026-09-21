@@ -6250,3 +6250,30 @@ Release35605641955 pending;earlier35602764806 unit in_progress while all other
 validation jobs succeeded. No successful publication verified. Concurrent changes
 preserved. Continuous13:26:01–13:32:52 adds411s,total113507s(31.53h).
 Minimum fulfilled;full objective incomplete. Continue accounting after13:32:52UTC.
+
+### Raw OAuth grant completion ownership, 2026-09-21 13:38 UTC
+
+Moved expiry precedence, relative arithmetic, anchor validation and final owned
+field completion into the portable Rust TokenGrant core. A timing preflight
+validates every supplied field before the host clock effect; completion preserves
+scope validation afterward. Node retains option snapshots, Fetch Headers and the
+original callback exception. Binding stages combine earlier fine-grained calls;
+existing native methods remain available. Concrete missing-core red precedes code.
+
+Maintained63Rust cases/95native groups/617references40files/types pass;fmt/clippy/
+ESLint pass. Uncached selected117workspaces/8builds/363edges passes. Repacked
+27files/one addon/23audited sources+declarations,zero runtime npm groups and
+external npm resolution blocked passes the same finite broad mock workload.
+Direct/packed16MiBworkers retain11.03/10.90MiBheap and shared RSS176.88/199.75MiB.
+Five alternating warmed4096imports ownwall39.25–42.50ms vs original16.59–18.45ms.
+No meaningful improvement over prior37.88–43.34ms observed;performance acceptance
+remains FAIL. Credential ingress dominates the remaining boundary cost. Retained
+for complete reusable core semantics,not as a demonstrated speed optimization.
+Evidence out/rust-oauth-batched-grant-*.
+
+OTel28e3beee7 pushed and exact remote main verified separately. OAuth release
+35605641955 in_progress(build/audit);no successful publication verified.
+Dashboard layout API absence validated with native reference red,next bounded
+scope. Concurrent edits preserved. Continuous13:32:52–13:38:20 adds328s,
+total113835s(31.62h). Minimum fulfilled;full objective incomplete.
+Continue accounting after13:38:20UTC.

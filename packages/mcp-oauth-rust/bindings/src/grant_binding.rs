@@ -1,10 +1,12 @@
 use super::{convert::NativeJson, registration_binding::read_credential_json};
-use mcp_oauth_rust::grant::{TokenGrant, valid_timestamp};
+use mcp_oauth_rust::grant::{ImportTiming, TokenGrant, valid_timestamp};
+use mcp_protocol_rust::json::Value;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 #[napi]
 pub struct NativeTokenGrant {
     grant: TokenGrant,
+    prepared: Option<ImportTiming>,
 }
 #[napi]
 impl NativeTokenGrant {
@@ -13,7 +15,36 @@ impl NativeTokenGrant {
         let payload = read_credential_json(env, source)?;
         Ok(Self {
             grant: TokenGrant::parse(&payload).map_err(napi::Error::from_reason)?,
+            prepared: None,
         })
+    }
+    #[napi]
+    pub fn prepare(&mut self, expires: Unknown<'_>, issued: Unknown<'_>) -> Result<Option<f64>> {
+        let expires = timestamp_value(expires)?;
+        let issued = timestamp_value(issued)?;
+        let timing = self
+            .grant
+            .prepare_import(expires.as_ref(), issued.as_ref())
+            .map_err(napi::Error::from_reason)?;
+        let lifetime = timing.lifetime;
+        self.prepared = Some(timing);
+        Ok(lifetime)
+    }
+    #[napi]
+    pub fn complete(&self, anchor: Unknown<'_>) -> Result<NativeJson> {
+        let anchor = match anchor.get_type()? {
+            napi::ValueType::Undefined => None,
+            napi::ValueType::Number => Some(unsafe { anchor.cast::<f64>()? }),
+            _ => return Err(napi::Error::from_reason("Invalid OAuth token grant")),
+        };
+        let timing = self
+            .prepared
+            .as_ref()
+            .ok_or_else(|| napi::Error::from_reason("Invalid OAuth token grant"))?;
+        self.grant
+            .complete_import(timing, anchor)
+            .map(NativeJson)
+            .map_err(napi::Error::from_reason)
     }
     #[napi(getter)]
     pub fn access(&self) -> Utf16String {
@@ -60,4 +91,13 @@ pub fn validate_grant_timestamp(value: Unknown<'_>) -> Result<()> {
     } else {
         Err(napi::Error::from_reason("Invalid OAuth token grant"))
     }
+}
+
+fn timestamp_value(value: Unknown<'_>) -> Result<Option<Value>> {
+    Ok(match value.get_type()? {
+        napi::ValueType::Undefined => None,
+        napi::ValueType::Null => Some(Value::Null),
+        napi::ValueType::Number => Some(Value::Number(unsafe { value.cast::<f64>()? })),
+        _ => Some(Value::Bool(false)),
+    })
 }

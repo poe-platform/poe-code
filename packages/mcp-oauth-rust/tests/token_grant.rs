@@ -58,3 +58,37 @@ fn grant_admission_rejects_invalid_secrets_scope_and_oversized_extensions() {
         .is_err()
     );
 }
+#[test]
+fn batched_import_validates_all_timing_before_completing_owned_fields() {
+    let grant = TokenGrant::parse(&input(
+        r#", "expires_in":2,"expires_at":5,"scope":"write read read""#,
+    ))
+    .unwrap();
+    let timing = grant
+        .prepare_import(Some(&Value::Number(9000.0)), Some(&Value::Number(1000.0)))
+        .unwrap();
+    assert_eq!(timing.lifetime, Some(2.0));
+    let output = grant.complete_import(&timing, Some(1000.0)).unwrap();
+    assert_eq!(output.get("expiresAt"), Some(&Value::Number(9000.0)));
+    assert_eq!(
+        output.get("scope"),
+        Some(&Value::String("read write".encode_utf16().collect()))
+    );
+    assert!(
+        grant
+            .complete_import(&timing, Some(-8_640_000_000_001_000.0))
+            .is_err()
+    );
+    assert!(
+        grant
+            .prepare_import(Some(&Value::Bool(true)), None)
+            .is_err()
+    );
+    assert!(grant.prepare_import(None, Some(&Value::Null)).is_err());
+    let invalid = TokenGrant::parse(&input(r#", "expires_at":8640000000001"#)).unwrap();
+    assert!(
+        invalid
+            .prepare_import(Some(&Value::Number(9000.0)), None)
+            .is_err()
+    );
+}

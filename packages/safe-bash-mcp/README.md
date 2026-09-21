@@ -388,7 +388,10 @@ even if initialization is public, and never lists or calls tools. A fresh
 connection verifies newly established access after public initialization.
 The SDK captures option handles, the server identity, nested browser/native
 persistence settings and the selected reset hook before host binding callbacks
-run. Reset uses the same captured server and settings as authentication; the
+run. Explicit browser/reset opt-ins and the URL observer are captured even from
+nonenumerable options, before binding option getters execute. Management captures
+its selected URL observer before binding and preserves that settings receiver.
+Reset uses the same captured server and settings as authentication; the
 original host hook receiver remains live. Replacing a fetch/signal option cannot
 change the in-progress operation;
 the originally selected AbortSignal remains live. Standalone reset follows the

@@ -31,7 +31,9 @@ export async function authenticateRemoteMcpServer(
   value: RemoteMcpServerConfiguration,
   options: RemoteMcpAuthenticationOptions
 ): Promise<RemoteMcpAuthenticationResult> {
-  options = { ...snapshotRemoteMcpSchemaOptions(options), binding: snapshotConfigurationBindingOptions(options.binding) };
+  options = { ...snapshotRemoteMcpSchemaOptions(options), noBrowser: options.noBrowser,
+    reset: options.reset, onAuthorizationUrl: options.onAuthorizationUrl,
+    binding: snapshotConfigurationBindingOptions(options.binding) };
   options.signal?.throwIfAborted();
   const limits = remoteLimits({ ...options, requestTimeoutMs: options.requestTimeoutMs ?? 120_000 });
   if (limits.requestTimeoutMs > 2_147_483_647) throw new Error("Authentication requestTimeoutMs must be a positive supported timer interval");

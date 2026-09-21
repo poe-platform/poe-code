@@ -7,7 +7,9 @@ vi.mock("node:crypto", async importOriginal => {
     queueMicrotask(() => done(null, actual.createHash("shake256", { outputLength: size }).update(password).update(salt).digest()));
   } };
 });
-import { authenticateRemoteMcpServer, generateRemoteMcpArtifact, initRemoteMcpConfiguration } from "./index.js";
+import { authenticateRemoteMcpServer, createRemoteMcpManagementCommand, generateRemoteMcpArtifact, initRemoteMcpConfiguration } from "./index.js";
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 const resource = "https://resource.example/mcp", issuer = "https://auth.example";
 function fixture(publicInitialization = false, scope?: string, clientId = "original") {
   const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26", auth: {
@@ -44,6 +46,61 @@ function fixture(publicInitialization = false, scope?: string, clientId = "origi
     browser: { openBrowser: opener, readLine: () => callback.promise } } };
   return { configuration, binding, fetch, observed, opener, requests };
 }
+it.each(["noBrowser", "reset", "onAuthorizationUrl"] as const)("retains hidden explicit-auth %s", async field => {
+  const f = fixture(), reset = vi.fn(async () => { await f.binding.oauth.sessionStore().clear(); });
+  const binding = { ...f.binding, oauth: { ...f.binding.oauth, reset } };
+  if (field === "reset") await authenticateRemoteMcpServer(f.configuration, { binding, fetch: f.fetch, onAuthorizationUrl: f.observed });
+  const options = { binding, fetch: f.fetch, onAuthorizationUrl: f.observed, noBrowser: field !== "noBrowser", reset: field === "reset" };
+  Object.defineProperty(options, field, { enumerable: false });
+  await authenticateRemoteMcpServer(f.configuration, options);
+  expect(f.observed).toHaveBeenCalledTimes(field === "reset" ? 2 : 1);
+  expect(f.opener).toHaveBeenCalledTimes(field === "noBrowser" ? 1 : 0);
+  expect(reset).toHaveBeenCalledTimes(field === "reset" ? 1 : 0);
+});
+
+it.each(["noBrowser", "reset", "onAuthorizationUrl"] as const)("captures explicit-auth %s before binding option getters execute", async field => {
+  const f = fixture(), reset = vi.fn(async () => { await f.binding.oauth.sessionStore().clear(); });
+  const binding = { ...f.binding, oauth: { ...f.binding.oauth, reset } };
+  if (field === "reset") await authenticateRemoteMcpServer(f.configuration, { binding, fetch: f.fetch, onAuthorizationUrl: f.observed });
+  const options = { binding, fetch: f.fetch, onAuthorizationUrl: f.observed, noBrowser: field !== "noBrowser", reset: field === "reset" };
+  Object.defineProperty(binding.oauth, "sessionStore", { enumerable: false, get() {
+    if (field === "noBrowser") options.noBrowser = true;
+    if (field === "reset") options.reset = false;
+    if (field === "onAuthorizationUrl") options.onAuthorizationUrl = vi.fn(async () => { throw new Error("Replacement authorization observer selected"); });
+    return f.binding.oauth.sessionStore;
+  } });
+  await authenticateRemoteMcpServer(f.configuration, options);
+  expect(f.observed).toHaveBeenCalledTimes(field === "reset" ? 2 : 1);
+  expect(f.opener).toHaveBeenCalledTimes(field === "noBrowser" ? 1 : 0);
+  expect(reset).toHaveBeenCalledTimes(field === "reset" ? 1 : 0);
+});
+
+it("retains management's selected authorization observer before host binding mutates its settings", async () => {
+  const f = fixture(), replacement = vi.fn(async () => { throw new Error("Replacement authorization observer selected"); });
+  const settings = { binding: f.binding, fetch: f.fetch, onAuthorizationUrl: f.observed };
+  const sessionStore = f.binding.oauth.sessionStore;
+  settings.binding = { ...f.binding, oauth: { ...f.binding.oauth, sessionStore: () => { settings.onAuthorizationUrl = replacement; return sessionStore(); } } };
+  const entry = { name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26" as const, auth: { type: "oauth" as const, clientMode: "static" as const, env: { clientId: "ID" }, redirectUri: "http://127.0.0.1:39141/callback" } };
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([createRemoteMcpManagementCommand([entry], { authentication: settings })]) });
+  try { const result = await shell.exec("mcp auth catalog --json"); expect(result.exitCode).toBe(0); expect(f.observed).toHaveBeenCalledOnce(); expect(replacement).not.toHaveBeenCalled(); }
+  finally { await shell.dispose(); }
+});
+
+it("preserves the management authorization observer's original private receiver", async () => {
+  const f = fixture();
+  class Host {
+    #count = 0;
+    binding = f.binding;
+    fetch = f.fetch;
+    async onAuthorizationUrl(request: { authorizationUrl: string; redirectUri: string }) { this.#count++; await f.observed(request); }
+    get count() { return this.#count; }
+  }
+  const host = new Host(), entry = { name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26" as const,
+    auth: { type: "oauth" as const, clientMode: "static" as const, env: { clientId: "ID" }, redirectUri: "http://127.0.0.1:39141/callback" } };
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([createRemoteMcpManagementCommand([entry], { authentication: host })]) });
+  try { expect((await shell.exec("mcp auth catalog --json")).exitCode).toBe(0); expect(host.count).toBe(1); expect(f.observed).toHaveBeenCalledOnce(); }
+  finally { await shell.dispose(); }
+});
 it("explicitly authenticates even with supplied schemas, emits the complete URL and verifies only initialization", async () => {
   const f = fixture();
   expect(await authenticateRemoteMcpServer(f.configuration, { binding: f.binding, fetch: f.fetch, onAuthorizationUrl: f.observed })).toMatchObject({ name: "catalog", url: resource, serverInfo: { name: "synthetic", version: "1" } });

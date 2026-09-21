@@ -931,3 +931,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     summary screenshot. Require24 MCP POSTs/44 requests/four HTTP retirements/four
     server-observed SSE closes. Check encrypted documents before and after reset;
     scan files separately from native lock directories. Purge owned evidence.
+
+81. Supply hidden explicit-auth browser/reset/URL-observer options, and mutate
+    caller opt-ins/observer from binding option getters. Across actual HTTP/SSE,
+    require ten original-app/state/S256 exchanges and ten completed real callbacks
+    retaining fixed redirect queries. Exactly two browser launches/two selected
+    resets occur. Management private observers must retain original settings
+    receivers after session factories replace their methods; require two original
+    private invocations and zero replacements. Complete SDK auth guidance survives;
+    inspect actual management connection-status JSON and successful summary
+    screenshot. Require20 metadata GETs/20 credentialed MCP POSTs/five HTTP
+    retirements/five server-observed SSE closes. Keep direct SDK callback receiver
+    binding host-owned. Purge owned synthetic evidence.

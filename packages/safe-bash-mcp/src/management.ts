@@ -374,6 +374,7 @@ export function createRemoteMcpManagementCommand(
           const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
           const settings = options.authentication;
           const authSignal = settings?.signal;
+          const observer = settings?.onAuthorizationUrl;
           let emittedBytes = 0;
           let emittedUrl = false;
           let outputFailure: unknown;
@@ -392,7 +393,7 @@ export function createRemoteMcpManagementCommand(
                 catch (error) { outputFailure = error; throw error; }
                 emittedBytes += Buffer.byteLength(text, "utf8");
                 emittedUrl = true;
-                await settings?.onAuthorizationUrl?.(request);
+                await observer?.call(settings, request);
               }
             });
           } catch (error) {

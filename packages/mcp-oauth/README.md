@@ -150,6 +150,15 @@ lifetime; the options timestamp wins over response timestamps. The optional
 `now` clock anchors a new import. JSON is bounded to 64 KiB/64 levels; malformed
 credentials, scope, timing, accessors and non-JSON metadata are rejected without
 quoting the input. The parser makes no network or storage requests.
+For named native persistence, `createResourceBoundOAuthStores(authStore,
+namespace, identity).importSession(session, { signal, timeoutMs })` explicitly
+replaces the bound grant and original client in one locked document. It takes
+an owned, bounded session snapshot before waiting; validates resource/issuer
+binding; marks full registrations as caller-owned; and retires previous clients.
+Its durable marker suppresses stale automatic environment imports after tokens
+are cleared. Like reset, explicit import can recover a corrupt old document
+without decrypting it. The default lock wait is 30 seconds. A session must
+contain a complete usable grant and matching validated discovery metadata.
 Pass a complete DCR response as `client.registration` (or validate untrusted JSON
 with `parseOAuthClientRegistration`). Dynamic clients infer their original ID
 and secret from that response and reuse it without registering another app.

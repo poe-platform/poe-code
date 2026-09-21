@@ -1,3 +1,4 @@
+import { copyBoundedOAuthJson } from "./bounded-json.js";
 import type { CreateSecretStoreInput } from "auth-store";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 import { assertPersistenceNamespace, createNamedSecretStore, isStoredOAuthSession, type OAuthClientStore } from "./auth-store-session-store.js";
@@ -17,6 +18,8 @@ export interface ResourceBoundOAuthStores {
   readonly clientStore: OAuthClientStore;
   readonly initialGrantAllowed: boolean;
   /** Retire grants/clients even when their document cannot be decrypted or parsed. */
+  /** Explicitly replace the bound grant and original client in one transaction. */
+  importSession(session: StoredOAuthSession, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
   reset(resource: string, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
 }
 
@@ -33,20 +36,45 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
       try { url = new URL(resource); } catch { throw new Error("OAuth reset resource must be an absolute HTTP URL"); }
       if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash)
         throw new Error("OAuth reset resource must be an HTTP URL without credentials or fragment");
-      const timeoutMs = options.timeoutMs ?? 30_000;
-      if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
-        throw new Error("OAuth reset timeoutMs must be a positive supported timer interval");
-      if (store.withLock === undefined) throw new Error("OAuth resource identity backend must support transaction locks");
-      // Acquire the raw backend lock: the session lock reconciles by strictly
-      // reading the document, which must be bypassed for explicit corruption recovery.
-      await store.withLock(async () => {
-        options.signal?.throwIfAborted();
-        const record: ResourceCredentials = { version: 1, resource: canonicalizeResourceIndicator(url), generation: 1, session: null, clients: {} };
-        await store.set(JSON.stringify(record));
-        result.initialGrantAllowed = false;
-      }, { signal: options.signal, timeoutMs });
+      await replace({ version: 1, resource: canonicalizeResourceIndicator(url), generation: 1, session: null, clients: {} }, options);
+    },
+    async importSession(value: StoredOAuthSession, options: { signal?: AbortSignal; timeoutMs?: number } = {}): Promise<void> {
+      options.signal?.throwIfAborted();
+      const session = copyBoundedOAuthJson(value, "Invalid OAuth import session") as StoredOAuthSession;
+      try {
+        if (!isStoredOAuthSession(session) || session.tokens === undefined || session.refreshState !== undefined)
+          throw new Error("Invalid session");
+        const resource = new URL(session.resource), issuer = new URL(session.authorizationServer);
+        if ([resource, issuer].some(url => !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash) ||
+          session.discovery.authorizationServerMetadata.issuer !== session.authorizationServer ||
+          typeof session.discovery.resourceMetadata.resource !== "string" ||
+          canonicalizeResourceIndicator(session.discovery.resourceMetadata.resource) !== canonicalizeResourceIndicator(resource))
+          throw new Error("Invalid binding");
+        session.client = normalizeStoredOAuthClient(session.client)!;
+        if (session.client.registration !== undefined) session.client.registrationOwnership = "caller";
+        if (session.client.registration?.issuer !== undefined && session.client.registration.issuer !== null &&
+          session.client.registration.issuer !== session.authorizationServer) throw new Error("Invalid registration issuer");
+        new Headers({ Authorization: `Bearer ${session.tokens.accessToken}` });
+        session.resource = canonicalizeResourceIndicator(resource);
+      } catch { throw new Error("Invalid OAuth import session or resource binding"); }
+      await replace({ version: 1, resource: session.resource, generation: 1, session,
+        clients: { [session.authorizationServer]: session.client } }, options);
     }
   };
+  async function replace(record: ResourceCredentials, options: { signal?: AbortSignal; timeoutMs?: number }): Promise<void> {
+    options.signal?.throwIfAborted();
+    const timeoutMs = options.timeoutMs ?? 30_000;
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
+      throw new Error("OAuth replacement timeoutMs must be a positive supported timer interval");
+    if (store.withLock === undefined) throw new Error("OAuth resource identity backend must support transaction locks");
+    // Strict reconciliation reads are bypassed only for explicit replacement,
+    // while the raw stable backend lock still serializes every identity writer.
+    await store.withLock(async () => {
+      options.signal?.throwIfAborted();
+      await store.set(JSON.stringify(record));
+      result.initialGrantAllowed = false;
+    }, { signal: options.signal, timeoutMs });
+  }
   async function read(): Promise<ResourceCredentials | null> {
     const raw = await store.get();
     if (raw === null) return null;

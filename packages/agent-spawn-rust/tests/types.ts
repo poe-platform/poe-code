@@ -113,3 +113,15 @@ void [interactiveA, interactiveB];
 const acpOwn: typeof original.spawnAcp = own.spawnAcp;
 const acpReference: typeof own.spawnAcp = null as unknown as typeof original.spawnAcp;
 void [acpOwn, acpReference];
+
+type Capture = Pick<
+  typeof original,
+  | "sessionCapture"
+  | "sessionMetadataCapture"
+  | "usageCapture"
+  | "getCapturedUsage"
+  | "captureAbortUsage"
+>;
+const captureOwn: Capture = own;
+const captureReference: Pick<typeof own, keyof Capture> = null as unknown as Capture;
+void [captureOwn, captureReference];

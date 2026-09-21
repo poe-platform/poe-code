@@ -12,6 +12,13 @@ export default defineConfig({
       name: "rust-spawn-planning-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (importer === path("../agent-spawn/src/acp/middlewares/middlewares.test.ts")) {
+          if (name === "./session-capture.js") return path("dist/session-capture.js");
+          if (name === "./usage-capture.js") return path("dist/usage-capture.js");
+          if (name === "../middleware.js") return path("dist/stream.js");
+          if (name === "../../adapters/codex.js") return path("dist/adapters.js");
+        }
+
         if (
           importer === path("../agent-spawn/src/native-otel.test.ts") &&
           name === "./native-otel.js"
@@ -115,7 +122,12 @@ export default defineConfig({
       },
       transform(code, id) {
         const acp = path("../agent-spawn/src/acp/acp.test.ts");
-        if (id !== args && id !== acp) return;
+        if (
+          id !== args &&
+          id !== acp &&
+          id !== path("../agent-spawn/src/acp/middlewares/middlewares.test.ts")
+        )
+          return;
         const ast = ts.createSourceFile(id, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
         const transformed = ts.transform(ast, [
           (context) => (node) => {
@@ -131,9 +143,20 @@ export default defineConfig({
                 if (
                   ts.isStringLiteral(title) &&
                   !(
-                    id === args
-                      ? ["buildSpawnArgs", "stripModelNamespace", "spawn"]
-                      : ["acp/readLines", "acp/applyMiddlewares", "acp/spawnStreaming", "spawnAcp"]
+                    id === path("../agent-spawn/src/acp/middlewares/middlewares.test.ts")
+                      ? [
+                          "acp/middlewares/sessionMetadataCapture",
+                          "acp/middlewares/sessionCapture",
+                          "acp/middlewares/usageCapture"
+                        ]
+                      : id === args
+                        ? ["buildSpawnArgs", "stripModelNamespace", "spawn"]
+                        : [
+                            "acp/readLines",
+                            "acp/applyMiddlewares",
+                            "acp/spawnStreaming",
+                            "spawnAcp"
+                          ]
                   ).includes(title.text)
                 )
                   return undefined;
@@ -225,6 +248,7 @@ export default defineConfig({
   test: {
     include: [
       args,
+      path("../agent-spawn/src/acp/middlewares/middlewares.test.ts"),
       path("../agent-spawn/src/spawn-interactive.test.ts"),
       path("../agent-spawn/src/configs/mcp-file.test.ts"),
       configs,

@@ -83,6 +83,36 @@ pub struct Usage {
     optional: [Option<f64>; 2],
 }
 impl Usage {
+    pub fn with_initial(fields: [Option<f64>; 4]) -> Self {
+        Self {
+            totals: [fields[0].unwrap_or(0.0), fields[1].unwrap_or(0.0)],
+            optional: [fields[2], fields[3]],
+        }
+    }
+    pub fn observe_nonnegative(
+        &mut self,
+        fields: [Option<f64>; 4],
+    ) -> mcp_protocol_rust::json::Value {
+        use mcp_protocol_rust::json::Value;
+        let mut changed = vec![];
+        for (index, value) in fields.into_iter().enumerate() {
+            if let Some(value) = value.filter(|value| value.is_finite() && *value >= 0.0) {
+                let updated = if index < 2 {
+                    self.totals[index] += value;
+                    self.totals[index]
+                } else {
+                    let slot = &mut self.optional[index - 2];
+                    *slot = Some(slot.unwrap_or(0.0) + value);
+                    slot.unwrap()
+                };
+                changed.push((
+                    ["inputTokens", "outputTokens", "cachedTokens", "costUsd"][index],
+                    Value::Number(updated),
+                ));
+            }
+        }
+        crate::o(changed)
+    }
     pub fn observe(&mut self, fields: [Option<f64>; 4]) {
         for (index, value) in fields.into_iter().enumerate() {
             if let Some(value) = value.filter(|v| v.is_finite()) {

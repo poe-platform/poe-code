@@ -571,18 +571,29 @@ pub struct NativeSpawnUsage {
 #[napi]
 impl NativeSpawnUsage {
     #[napi(constructor)]
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(initial: Option<Vec<Option<f64>>>) -> Self {
+        Self {
+            state: agent_spawn_rust::stream::Usage::with_initial(usage_fields(
+                initial.unwrap_or_default(),
+            )),
+        }
     }
     #[napi]
     pub fn observe(&mut self, fields: Vec<Option<f64>>) -> NativeJson {
-        let mut input = [None; 4];
-        for (index, value) in fields.into_iter().take(4).enumerate() {
-            input[index] = value;
-        }
-        self.state.observe(input);
+        self.state.observe(usage_fields(fields));
         NativeJson(self.state.value())
     }
+    #[napi]
+    pub fn observe_nonnegative(&mut self, fields: Vec<Option<f64>>) -> NativeJson {
+        NativeJson(self.state.observe_nonnegative(usage_fields(fields)))
+    }
+}
+fn usage_fields(fields: Vec<Option<f64>>) -> [Option<f64>; 4] {
+    let mut result = [None; 4];
+    for (index, value) in fields.into_iter().take(4).enumerate() {
+        result[index] = value;
+    }
+    result
 }
 
 #[napi(object)]
@@ -603,4 +614,26 @@ pub fn spawn_acp_rejection(options: Utf16String) -> Result<NativeJson> {
 #[napi]
 pub fn spawn_acp_exit_code(stop_reason: String) -> u32 {
     agent_spawn_rust::execution::acp_exit_code(&stop_reason)
+}
+
+#[napi]
+#[derive(Default)]
+pub struct NativeSessionCapture {
+    state: agent_spawn_rust::capture::SessionCapture,
+}
+#[napi]
+impl NativeSessionCapture {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn observe(&mut self, event: Utf16String, retain: bool) -> Result<NativeJson> {
+        Ok(NativeJson(self.state.observe(&parse(event)?, retain)))
+    }
+}
+
+#[napi]
+pub fn spawn_capture_message(retain: bool, has_text: bool) -> bool {
+    agent_spawn_rust::capture::message(retain, has_text)
 }

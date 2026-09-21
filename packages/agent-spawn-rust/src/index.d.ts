@@ -106,3 +106,6 @@ export { spawnInteractive } from "./spawn-interactive.js";
 
 export type { SpawnAcpOptions, SpawnAcpResult } from "./spawn-acp.js";
 export { spawnAcp } from "./spawn-acp.js";
+
+export { sessionCapture, sessionMetadataCapture } from "./session-capture.js";
+export { usageCapture, getCapturedUsage, captureAbortUsage } from "./usage-capture.js";

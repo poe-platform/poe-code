@@ -1,5 +1,6 @@
 //! Independent declarative spawn planning and execution policies.
 pub mod adapters;
+pub mod capture;
 pub mod command;
 pub mod execution;
 pub mod mcp;

@@ -45,3 +45,6 @@ export { spawnStreaming } from "./spawn-streaming.js";
 export { spawnInteractive } from "./spawn-interactive.js";
 
 export { spawnAcp } from "./spawn-acp.js";
+
+export { sessionCapture, sessionMetadataCapture } from "./session-capture.js";
+export { usageCapture, getCapturedUsage, captureAbortUsage } from "./usage-capture.js";

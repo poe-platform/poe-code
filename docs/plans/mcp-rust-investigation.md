@@ -6672,3 +6672,28 @@ ACP ff52bcc10 pushed and remote main verified. No successful current root releas
 verified. Foreign changes preserved. Continuous15:22:02–15:41:00 adds1138s,
 total121195s(33.67h), including pending capture work. Minimum fulfilled; full
 objective incomplete. Continue accounting after15:41:00UTC.
+
+### Session and usage capture, 2026-09-21 15:43 UTC
+
+Missing core/SDK capture APIs reproduced before implementation. Rust owns thread
+selection, stable tool slots, typed message admission and nonnegative finite billing
+deltas. Node retains cyclic/private tool input identity, original tool aliases,
+event history, existing usage object identity and AbortError billing attachment.
+Preloaded getter-order regression reproduced, then sequential host observation
+restored earlier context updates before later getters. Metadata capture retains
+only thread identifiers; repeated preloaded event identities avoid double billing.
+No original consumer integration. Maintained30Rust/42native/464reference cases in
+15files and bidirectional types pass. Final lint/scoped ESLint pass; final selected
+uncached38-build closure passes at concurrency1. Viewed out/rust-spawn-capture.png.
+Packed one addon/386audited files/zero npm runtime groups; blocked external imports
+and direct/packed24MiBworkers each complete prior spawn/stream/ACP workloads plus
+256capture contexts. Existing combined16MiBfailure remains open. Limits do not
+bound total/native memory. Typed message ingress avoids per-message JSON; five
+warmed8192-message pairs measure2.17–5.48ms owned vs3.43–4.74ms original. Mixed
+samples establish no superiority; streaming performance acceptance remains FAIL.
+Evidence out/rust-spawn-capture-*.
+
+OAuth e21798cc0 pushed and exact remote main verified; release35620594240 pending.
+No successful current root publication verified. Foreign changes preserved.
+Continuous15:41:00–15:43:00 adds120s,total121315s(33.70h). Minimum fulfilled;
+full objective incomplete. Continue accounting after15:43:00UTC.

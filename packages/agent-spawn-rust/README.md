@@ -202,3 +202,20 @@ session and disposes the client. Middleware keeps its transcript and may replace
 the delivered stream; closing delivery releases unread events. ACP does not
 support runtime overrides. MCP command and environment fields retain hidden own
 properties at the host boundary.
+
+```typescript
+import { sessionCapture, usageCapture, spawnStreaming } from '@poe-code/agent-spawn-rust';
+
+const handle = spawnStreaming({
+  agentId: 'codex', prompt: 'Review this repository',
+  middlewares: [sessionCapture, usageCapture],
+});
+```
+
+Session capture builds message output and stable tool records while preserving
+opaque input values. `sessionMetadataCapture` records thread metadata without
+retaining conversation content. Billing capture filters negative/non-finite
+deltas, avoids counting preloaded event identities twice and attaches observed
+usage to the original cancellation error. Optional cached/cost zeros remain
+present. These capture middlewares wrap the event stream; consume it to observe
+live capture updates.

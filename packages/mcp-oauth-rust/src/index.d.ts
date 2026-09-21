@@ -183,3 +183,16 @@ export declare function readBoundedResponseText(
   readers?: Set<ReadableStreamDefaultReader<Uint8Array>>,
   signal?: AbortSignal
 ): Promise<string>;
+
+export interface OAuthClientRegistration extends Record<string, unknown> {
+  client_id: string;
+  client_secret?: string | null;
+  redirect_uris?: string[] | null;
+  grant_types?: string[] | null;
+  response_types?: string[] | null;
+  contacts?: string[] | null;
+  client_id_issued_at?: number | null;
+  client_secret_expires_at?: number | null;
+  token_endpoint_auth_method?: string | null;
+}
+export declare function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration;

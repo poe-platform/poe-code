@@ -363,3 +363,5 @@ pub fn token_auth_plan(
     }
     Ok(convert::NativeJson(Value::Object(fields)))
 }
+
+pub mod registration_binding;

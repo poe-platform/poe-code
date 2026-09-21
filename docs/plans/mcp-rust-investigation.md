@@ -3748,3 +3748,35 @@ have bounded parser/value interoperability constraints. The full agent/runtime/
 closure, release publication and minimum24-hour effort remain unfinished. Scope
 commit4657d5d53 was pushed; remote verification continues separately. Work
 continues beyond04:18:55 effort boundary.
+
+### OAuth Rust registration admission, 2026-09-21 04:38 UTC
+
+The portable red test preceded the independent full RFC7591 registration parser.
+Rust now validates known nullable metadata, safe nonnegative timestamps, scope
+syntax and JSON extensions, with depth64,20,000-value and64KiB serialized UTF8
+bounds. The native descriptor reader ignores nonenumerable/symbol metadata,
+accepts array subclasses and extra array fields, refuses holes/accessors/nonJSON
+values and never invokes serialization hooks. Diagnostics mask ingress exceptions
+without quoting credentials; missing client IDs retain their specific error.
+Copies retain own __proto__, nulls and lone surrogates without shared ownership.
+
+All34 Rust cases and4 native parser groups pass, with512 generated extension
+records and exact boundary comparisons against the original. Focused lint/fmt/
+clippy/types and uncached113-workspace/8-build/338-edge closure pass. Direct/packed
+16MiB workers each add4096 registration copies to512 callback cycles,8192 scope
+normalizations and768 mocked-fetch token exchanges. Artifact audit covers16 JS/
+declaration files, one addon and zero npm runtime groups. Endpoint heaps~11MB
+and parent-inclusive RSS are bounded workload evidence, not leak/peak or
+performance advantage acceptance. Evidence out/rust-oauth-registration-*.
+
+Complete maintained unit rerun now has57/65 native groups passing;8 provider/
+session failures remain and must be fixed. It stops before original-suite and
+types stages, so no full-unit success is claimed. Parser admission is not yet
+wired into provider persistence. Remote c39e11f1a token-auth delivery is verified.
+Latest release35561487126 is in progress;35561636130 is pending. No publication or
+overall rewrite completion is claimed.
+
+Conservative previously unrecorded active04:18:55–04:31:00 segment adds725s,
+bringing recorded actual effort to82,981s (23.05h). The later checkpoint gap is
+excluded; this continuation is measured from04:34:58 UTC. Minimum24-hour actual
+effort remains unfulfilled.

@@ -137,3 +137,36 @@ fn dynamic_registration_metadata_survives_client_normalization() {
     let normalized = normalize_client(&registered, false).unwrap();
     assert_eq!(normalized.get("registration"), Some(&payload));
 }
+
+#[test]
+fn full_registration_preserves_json_extensions_and_enforces_nullable_metadata() {
+    use mcp_oauth_rust::registration::validate;
+    let valid = value(
+        r#"{"client_id":" registered ","client_secret":"s","redirect_uris":["http://localhost/cb"],"contacts":null,"client_id_issued_at":0,"jwks":{"keys":[]},"provider_metadata":{"enabled":true},"token_endpoint_auth_method":"private_key_jwt"}"#,
+    );
+    assert!(validate(&valid).is_ok());
+    for invalid in [
+        r#"{"client_id":""}"#,
+        r#"{"client_id":"c","redirect_uris":"bad"}"#,
+        r#"{"client_id":"c","contacts":[false]}"#,
+        r#"{"client_id":"c","client_secret_expires_at":-1}"#,
+        r#"{"client_id":"c","scope":"read\twrite"}"#,
+    ] {
+        assert!(validate(&value(invalid)).is_err());
+    }
+    assert_eq!(
+        validate(&value("{}")),
+        Err("OAuth client registration response missing client_id")
+    );
+    let mut huge = valid.clone();
+    if let Value::Object(fields) = &mut huge {
+        fields.push((
+            "large".encode_utf16().collect(),
+            Value::String("😀".repeat(16384).encode_utf16().collect()),
+        ));
+    }
+    assert_eq!(
+        validate(&huge),
+        Err("Invalid OAuth client registration metadata")
+    );
+}

@@ -42,6 +42,11 @@ Session admission runs in Rust and client registration loads retain all validate
 Malformed stored JSON reports an explicit recovery error. The package ships these
 capabilities in its own addon and has no runtime import of `auth-store`.
 
+`parseOAuthClientRegistration` returns an owned copy of full RFC 7591 metadata,
+including provider JSON extensions. It validates known fields without invoking
+accessors or serialization hooks, with a 64 KiB UTF-8 limit, depth 64 and
+20,000 values. Invalid metadata errors never quote credential input.
+
 The default provider supports cached tokens, coalesced refresh/authorization,
 static clients and dynamic registration. Its Rust effect machine owns expiry,
 credential binding, endpoint security, registration plans, PKCE parameters and

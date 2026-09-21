@@ -228,3 +228,29 @@ it("imports a public client with optional null descriptive and secret metadata",
   expect((await f.stores.sessionStore.load(resource))?.client).toMatchObject({ clientId: "original", registration: { client_secret: null, client_name: null }, tokenEndpointAuthMethod: "none" });
   expect((await f.stores.sessionStore.load(resource))?.client.clientSecret).toBeUndefined();
 });
+
+it("retains the selected import signal when its host clock installs a replacement canceled handle", async () => {
+  const f = fixture(), controller = new AbortController();
+  const options = { binding: f.binding, fetch: f.fetch, signal: controller.signal };
+  f.binding.oauth.now = () => { options.signal = AbortSignal.abort(new Error("replacement cancellation")); return 10_000; };
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, options)).resolves.toEqual({ name: "catalog", url: resource, imported: true });
+  expect(f.fetch).toHaveBeenCalledTimes(2);
+  expect((await f.stores.sessionStore.load(resource))?.tokens?.accessToken).toBe("private-access");
+});
+
+it("retains original import cancellation after its host clock replaces the option handle", async () => {
+  const f = fixture(), controller = new AbortController(), reason = new Error("original import cancellation");
+  const options = { binding: f.binding, fetch: f.fetch, signal: controller.signal };
+  f.binding.oauth.now = () => { controller.abort(reason); options.signal = new AbortController().signal; return 10_000; };
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, options)).rejects.toBe(reason);
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(await f.stores.sessionStore.load(resource)).toBeNull();
+});
+
+it("retains the selected import fetch when its host clock replaces the caller option", async () => {
+  const f = fixture(), replacement = vi.fn(async () => { throw new Error("replacement fetch selected"); });
+  const options: { binding: typeof f.binding; fetch: (url: string | URL, init?: RequestInit) => Promise<Response> } = { binding: f.binding, fetch: f.fetch };
+  f.binding.oauth.now = () => { options.fetch = replacement; return 10_000; };
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, options)).resolves.toEqual({ name: "catalog", url: resource, imported: true });
+  expect(f.fetch).toHaveBeenCalledTimes(2); expect(replacement).not.toHaveBeenCalled();
+});

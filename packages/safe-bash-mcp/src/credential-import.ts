@@ -31,6 +31,7 @@ export async function importRemoteMcpAuthentication(
   payload: unknown,
   options: RemoteMcpCredentialImportOptions = {}
 ): Promise<RemoteMcpCredentialImportResult> {
+  options = { ...options };
   options.signal?.throwIfAborted();
   const [server] = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options).servers;
   if (server.auth?.type !== "oauth") throw new Error("Credential import requires managed OAuth");

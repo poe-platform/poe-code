@@ -342,3 +342,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     sessions, no tool/consent/token traffic, inspect safe summary output and purge
     owned synthetic evidence. Preserve existing own timing-field reads; do not
     infer that nonenumerable access credentials were previously accepted.
+
+32. Import a relative raw grant through a host atomic hook and actual local
+    OAuth metadata. In the host clock, replace its caller signal with an
+    unrelated aborted handle, abort the original and replace its handle with a
+    fresh signal, or replace its fetch with a failing dependency. The first and
+    third modes must import the original full app/grant and anchored expiry
+    using the selected original signal/fetch, exactly two metadata GETs each.
+    The second must retain original cancellation identity before any metadata
+    request or persistence. Require two atomic imports, zero host session
+    factory/replacement-fetch queries, zero native fallback and no
+    initialization/tool/token traffic. Inspect safe summary output and purge
+    only owned synthetic evidence.

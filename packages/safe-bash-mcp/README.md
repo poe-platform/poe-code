@@ -391,7 +391,9 @@ collection stops at the smaller of the selected import budget and the host's
 `maxInputBytes` ceiling, before JSON parsing or OAuth discovery. A smaller host
 `credentialImport.maxImportBytes` budget also applies while reading.
 
-The import captures the host atomic import hook or constructs native persistence
+The import captures top-level option handles before host clocks run; its original
+signal and fetch remain selected if the caller replaces their handles. The import
+captures the host atomic import hook or constructs native persistence
 before metadata discovery, preserving the chosen backend and path throughout.
 Changing the hook while discovery waits cannot bypass host-owned persistence.
 No credentials are written until discovery and issuer checks pass.

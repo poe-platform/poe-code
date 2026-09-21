@@ -11,7 +11,7 @@
     "#op-crypto": {
       "workerd": "./src/crypto-browser.ts",
       "browser": "./src/crypto-browser.ts",
-      "default": "./src/crypto-node.ts"
+      "default": "./dist/crypto-node.js"
     }
   },
   "exports": {

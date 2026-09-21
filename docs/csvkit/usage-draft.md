@@ -84,9 +84,11 @@ failure remains observable.
 import { run } from "poe-code/csvkit";
 import type { InvocationContext } from "poe-code/csvkit";
 
-async function selectNames(invocation: InvocationContext): Promise<number> {
-  return run({ command: "csvcut", settings: { columns: "name" } }, invocation);
-}
+// Supplied by your explicitly authorized application host.
+declare const invocation: InvocationContext;
+const status = await run(
+  { command: "csvcut", settings: { columns: "name" } }, invocation
+);
 ```
 
 OwnedArguments receives readonly Uint8Array argv excluding argv[0] and argument

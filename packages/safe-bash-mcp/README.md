@@ -392,8 +392,10 @@ collection stops at the smaller of the selected import budget and the host's
 `credentialImport.maxImportBytes` budget also applies while reading.
 
 The import captures top-level option handles before host clocks run; its original
-signal and fetch remain selected if the caller replaces their handles. The import
-captures the host atomic import hook or constructs native persistence
+signal and fetch remain selected if the caller replaces their handles. Explicit
+client ID, secret and scope values, plus native persistence configuration, are
+captured before that clock. Backend environment resolution still occurs when
+native persistence is constructed. The import captures the host atomic import hook or constructs native persistence
 before metadata discovery, preserving the chosen backend and path throughout.
 Changing the hook while discovery waits cannot bypass host-owned persistence.
 No credentials are written until discovery and issuer checks pass.

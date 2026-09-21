@@ -254,3 +254,27 @@ it("retains the selected import fetch when its host clock replaces the caller op
   await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, options)).resolves.toEqual({ name: "catalog", url: resource, imported: true });
   expect(f.fetch).toHaveBeenCalledTimes(2); expect(replacement).not.toHaveBeenCalled();
 });
+
+it("captures original import client identity before the host clock changes environment credentials", async () => {
+  const f = fixture(), env = { MCP_CATALOG_CLIENT_ID: "original", MCP_CATALOG_CLIENT_SECRET: "private-secret" };
+  f.binding.oauth.now = () => { env.MCP_CATALOG_CLIENT_ID = "replacement"; env.MCP_CATALOG_CLIENT_SECRET = "replacement-secret"; return 10_000; };
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, env }, fetch: f.fetch })).resolves.toEqual({ name: "catalog", url: resource, imported: true });
+  expect((await f.stores.sessionStore.load(resource))?.client).toMatchObject({ clientId: "original", clientSecret: "private-secret", registration: payload.clientInfo });
+});
+
+it("cannot widen the selected import scope through the host lifetime clock", async () => {
+  const f = fixture(), env = { MCP_CATALOG_SCOPE: "read" };
+  f.binding.oauth.now = () => { env.MCP_CATALOG_SCOPE = "write"; return 10_000; };
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, { ...payload, tokens: { ...payload.tokens, scope: "write" } }, {
+    binding: { ...f.binding, env }, fetch: f.fetch
+  })).rejects.toThrow("requested OAuth scope");
+  expect(f.fetch).not.toHaveBeenCalled(); expect(await f.stores.sessionStore.load(resource)).toBeNull();
+});
+
+it("captures selected native import persistence paths before the host lifetime clock runs", async () => {
+  const f = fixture();
+  f.binding.oauth.now = () => { f.authStore.fileStore.filePath = "/replacement/import.enc"; return 10_000; };
+  await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch });
+  expect((await f.stores.sessionStore.load(resource))?.tokens?.accessToken).toBe("private-access");
+  await expect(f.fs.stat("/replacement")).rejects.toMatchObject({ code: "ENOENT" });
+});

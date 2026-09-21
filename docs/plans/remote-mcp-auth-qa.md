@@ -354,3 +354,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     factory/replacement-fetch queries, zero native fallback and no
     initialization/tool/token traffic. Inspect safe summary output and purge
     only owned synthetic evidence.
+
+33. Import raw relative grants against actual local OAuth metadata. Let the
+    lifetime clock change explicit client ID/secret values, widen selected scope
+    from read to write, or redirect native encrypted persistence. Require the
+    original full app/grant and anchored expiry through the host atomic hook;
+    reject the write grant before metadata or persistence; and retain the
+    original native path with no replacement directory or plaintext credentials.
+    Require two validated imports, one pre-network scope rejection, four metadata
+    GETs and no initialization/tool/token traffic. Require no unrelated getter or
+    session-factory queries. Inspect safe summary output and purge owned evidence.
+    This checks configuration ownership, not early backend environment resolution.

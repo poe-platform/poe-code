@@ -1,3 +1,4 @@
+import { snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
 import { createResourceBoundOAuthStores, normalizeOAuthScope, normalizeStoredOAuthClient, parseOAuthClientRegistration, parseOAuthTokenGrant,
   type OAuthTokenGrantImportOptions, type StoredOAuthSession } from "mcp-oauth";
 import { discoverOAuthMetadata } from "tiny-mcp-client";
@@ -57,9 +58,11 @@ export async function importRemoteMcpAuthentication(
     if (!Object.hasOwn(input, "tokens") || Object.keys(input).some(key => !["tokens", "clientInfo", "issuedAt", "issuer"].includes(key)) ||
       (Object.hasOwn(input, "issuer") && (typeof input.issuer !== "string" || input.issuer === ""))) throw new Error("Invalid shape");
   } catch { throw new Error("Invalid OAuth credential import payload"); }
+  const read = credentialEnvironmentReader(binding), refs = server.auth.credentials;
+  for (const reference of [refs.clientId, refs.clientSecret, refs.scope]) read(reference);
+  const authStore = importSession === undefined ? snapshotOAuthPersistenceOptions(oauth?.authStore ?? {}) : undefined;
   const tokens = parseOAuthTokenGrant(input.tokens, { now: oauth?.now, issuedAt: input.issuedAt as OAuthTokenGrantImportOptions["issuedAt"] });
   const registration = Object.hasOwn(input, "clientInfo") ? parseOAuthClientRegistration(input.clientInfo) : undefined;
-  const read = credentialEnvironmentReader(binding), refs = server.auth.credentials;
   const id = read(refs.clientId, server.auth.clientMode === "static")?.trim();
   const secret = read(refs.clientSecret)?.trim();
   if ((id !== undefined && registration !== undefined && id !== registration.client_id.trim()) ||
@@ -75,7 +78,7 @@ export async function importRemoteMcpAuthentication(
   const scope = normalizeOAuthScope(rawScope);
   if (scope !== undefined && tokens.scope !== scope) throw new Error("Imported OAuth grant does not match the requested OAuth scope");
   const nativeStores = importSession === undefined
-    ? createResourceBoundOAuthStores(oauth?.authStore ?? {}, server.auth.persistenceNamespace, server.name) : undefined;
+    ? createResourceBoundOAuthStores(authStore!, server.auth.persistenceNamespace, server.name) : undefined;
   const deadline = AbortSignal.timeout(requestTimeoutMs);
   const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
   const discovery = await discoverOAuthMetadata(server.url, { fetch: options.fetch, cache: options.oauthDiscoveryCache, signal });

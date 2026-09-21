@@ -42,6 +42,10 @@
     "./output": {
       "types": "./dist/output.d.ts",
       "import": "./dist/output.js"
+    },
+    "./process": {
+      "types": "./dist/process.d.ts",
+      "import": "./dist/process.js"
     }
   },
   "files": [

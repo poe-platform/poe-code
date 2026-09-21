@@ -1,6 +1,7 @@
 import type { FileStat, FileSystem } from "./filesystem.js";
 import type { CommandFileSystemRequirement } from "./command-requirements.js";
 import type { ByteSink, ByteSource } from "./io.js";
+import type { ProcessSignals } from "./process.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText, type ShellValue, type ValueAllocation, type ValueReservation } from "./value.js";
 
 export interface CommandArguments {
@@ -181,6 +182,7 @@ export interface CommandInput {
 }
 
 export interface CommandInvokeOptions {
+  readonly processSignals?: ProcessSignals | undefined;
   readonly argumentValues?: CommandArguments;
   readonly signal?: AbortSignal | undefined;
   readonly stdin?: ByteSource;
@@ -203,6 +205,7 @@ export type InvocationCleanup = () => void | Promise<void>;
 export type InternalErrorHandler = (error: unknown) => void | Promise<void>;
 
 export interface CommandContext {
+  readonly processSignals?: ProcessSignals | undefined;
   readonly onInternalError?: InternalErrorHandler | undefined;
   readonly executionScope?: object;
   readonly command: string;

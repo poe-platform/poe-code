@@ -481,6 +481,7 @@ export interface State {
 }
 
 interface IO {
+  readonly processSignals?: CommandContext["processSignals"];
   readonly nameExpansionContext?: "document" | "conditional" | undefined;
   readonly [invocationScope]: InvocationScope;
   readonly [valueScope]?: ValueScope;
@@ -3596,6 +3597,7 @@ export class Runtime {
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
         [invocationScope]: io[invocationScope],
+        ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }),
         ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
         ...(io.execution === undefined ? {} : { execution: io.execution }),
         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
@@ -4724,6 +4726,7 @@ export class Runtime {
     const argumentValues = getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) });
     const selected: CommandContext = {
       ...context, command, args: argumentValues.args, argumentValues, cwd: child.cwd,
+      ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
       env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd },
       stdin: options.stdin ?? context.stdin,
       stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr,
@@ -5115,6 +5118,7 @@ export class Runtime {
     const references = new PipeDescriptorFrame(scope);
     const io = isolateIO({
       ...context,
+      ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
       [invocationScope]: scope,
       stdin: input ?? context.stdin,
       ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),

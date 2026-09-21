@@ -6,3 +6,5 @@ export * from "./output.js";
 export * from "./filesystem.js";
 export * from "./errors.js";
 export * from "./command-requirements.js";
+
+export * from "./process.js";

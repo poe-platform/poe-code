@@ -1,9 +1,32 @@
 import assert from "node:assert/strict";
+import { createProcessSignalChannel } from "safe-bash-contracts/process";
 import { test } from "node:test";
 import { toByteSource, writeText } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 import type { ShellCommandContext } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
+
+test("exec lends process signals to nested invoke and accepts explicit overrides", async () => {
+  const { shell, commands } = setup();
+  const parent = createProcessSignalChannel();
+  const child = createProcessSignalChannel();
+  commands.register({ name: "child-signals", async execute(context) {
+    assert.equal(context.processSignals, child);
+    return { exitCode: 42 };
+  } });
+  commands.register({ name: "inherited-signals", async execute(context) {
+    assert.equal(context.processSignals, parent);
+    return { exitCode: 43 };
+  } });
+  commands.register({ name: "parent-signals", async execute(context) {
+    assert.equal(context.processSignals, parent);
+    assert.equal((await context.invoke!("child-signals", [], { processSignals: child })).exitCode, 42);
+    assert.equal(context.processSignals, parent);
+    return context.invoke!("inherited-signals", []);
+  } });
+  try { assert.equal((await shell.exec("parent-signals", { processSignals: parent })).exitCode, 43); }
+  finally { await shell.dispose(); }
+});
 
 test("invoke preserves literal argv and uses fresh middleware resolution", async () => {
   const { shell, commands, fs } = setup();

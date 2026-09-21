@@ -3,6 +3,7 @@ import type { ShellExtension } from "./extensions.js";
 import type { InternalErrorHandler, CommandArguments } from "../contracts/command.js";
 
 export interface ShellInvokeOptions {
+  readonly processSignals?: CommandContext["processSignals"];
   readonly argumentValues?: CommandArguments;
   readonly signal?: AbortSignal | undefined;
   readonly stdin?: ByteSource;
@@ -56,6 +57,7 @@ export interface ShellOptions {
 }
 
 export interface ShellExecOptions {
+  readonly processSignals?: CommandContext["processSignals"];
   readonly onInternalError?: InternalErrorHandler;
   readonly fs?: FileSystem;
   readonly cwd?: string;

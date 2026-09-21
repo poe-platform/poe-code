@@ -326,7 +326,8 @@ class HeaderFooter {
     )?.value;
     const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
     const edge = graph.relationships(this.section.ref.part).find((edge) => edge.rId === id);
-    if (!edge || edge.is_external) throw new InvalidValueError("Invalid story binding.");
+    if (!edge || edge.is_external || edge.reltype !== r + "/" + this.kind)
+      throw new InvalidValueError("Invalid story binding.");
     // Inactive alternatives still own their stored relationship references.
     const pending = [store.xml(this.section.ref.part).root];
     store.context.budget.charge("retainedBytes", 8);

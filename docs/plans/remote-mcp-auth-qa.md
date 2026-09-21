@@ -676,3 +676,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Require thirteen resource GETs/twenty-nine issuer GETs/eight unauthorized MCP
     requests and zero grants/token/tool/consent. Inspect safe summary screenshot
     and purge only owned evidence.
+
+62. Use invalid host clocks through native SDK, bound generated tools, SDK auth
+    and management auth with both imported and persisted absolute grants. Require
+    forty safe failures before any credential MCP POST/token redemption/store
+    write. Force rejected unknown-lifetime grants with time-limited client secrets
+    through recovery and require five safe failures before submitting secrets.
+    Retain negative valid epoch clocks, unknown-lifetime grants without clock
+    reads, complete schema/guidance/tool JSON/falsey metadata/exact005930 and one
+    silent refresh. Require twenty-four MCP POSTs/eight retired sessions/two
+    rotation writes/zero consent. Inspect summary screenshot and purge only owned
+    synthetic evidence.

@@ -61,12 +61,16 @@ alone do not establish either native error type.
 - `browser.timeoutMs` optional authorization deadline (default 120,000 ms)
 - `sessionStore` optional
 - `authStore` optional `auth-store` backend config for the default session store
-- `now()` optional clock override
+- `now()` optional clock override returning integer Unix epoch milliseconds within the JavaScript Date range
 
 The default provider captures client, interaction, callback, landing-page and
 lock policies when created. Create a new provider to change those settings.
 Selected callbacks, stores, clocks and AbortSignals remain live host dependencies;
 aborting the original signal still cancels authorization.
+An invalid clock fails before attaching or refreshing a grant with a known
+expiry or redeeming a time-limited client secret. Unknown access lifetimes and
+unlimited secret lifetimes do not require a clock read. Valid negative epoch
+times remain supported.
 Native session and client persistence factories also capture file paths, salts,
 Keychain identities, lock locations and selected filesystem/command handles.
 Mutating these settings cannot redirect a later read or write.

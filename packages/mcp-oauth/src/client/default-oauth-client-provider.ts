@@ -69,7 +69,13 @@ export function createDefaultOAuthClientProvider(
   const sessionStore = resourceStores?.sessionStore ?? options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
   const clientStore = resourceStores?.clientStore ??
     (options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
-  const now = options.now ?? Date.now;
+  const clock = options.now ?? Date.now;
+  const now = () => {
+    const timestamp = clock();
+    if (!Number.isSafeInteger(timestamp) || Math.abs(timestamp) > MAX_JS_DATE_MS)
+      throw new Error("OAuth clock must return valid epoch milliseconds");
+    return timestamp;
+  };
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
   if (options.initialGrant !== undefined) {
     let resource: URL;

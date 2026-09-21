@@ -196,7 +196,7 @@ function validateAuthorizationServerMetadata(
 async function readJsonResponse(response: Response, phase: OAuthMetadataError["phase"], signal: AbortSignal): Promise<unknown> {
   const label = phase === "protected-resource" ? "Protected resource metadata" : "Authorization server metadata";
   if (!response.ok) {
-    await response.body?.cancel().catch(() => undefined);
+    void response.body?.cancel().catch(() => undefined);
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
     throw new OAuthMetadataError(phase, `${label} request failed (${statusDescriptor})`, response.status);
   }

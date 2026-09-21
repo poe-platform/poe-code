@@ -622,3 +622,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     token/tool/consent traffic; compile strict Node-only public status use without
     casts/deep imports. Withhold malformed mutated statuses, inspect safe summary
     screenshot and purge only owned evidence.
+
+57. Wrap actual rejected metadata response cleanup with a host-controlled pending
+    promise. Through SDK/generated-command/management-auth routes require HTTP503
+    rejection before cleanup release for late success and late failure; preserve
+    exact caller cancellation triggered during cleanup. Require seven actual
+    metadata GETs, four unauthorized MCP requests, seven immediately initiated
+    body cancellations/server-observed closes and three observed late cleanup
+    rejections. Retain typed SDK status, safe CLI phase/status/empty stdout and
+    zero writes/token/tool/consent/unhandled rejection. Host work may finish later;
+    no interruption claim. Inspect safe summary screenshot and purge only owned
+    synthetic evidence.

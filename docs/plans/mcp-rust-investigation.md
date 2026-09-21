@@ -4438,3 +4438,34 @@ cancelled. No successful current publication verified. Continuous active
 06:03:20–06:05:48 adds148s, bringing conservative actual effort to88,431s (24.56h).
 Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue active work
 after06:05:48 UTC.
+
+### OAuth atomic named-session imports, 2026-09-21 06:08 UTC
+
+Portable/native and all15 original source reds precede Rust import admission,
+resource/issuer/registration binding, caller ownership, canonical resource updates
+and one document replacement. Descriptor ingress and full serialized bounds own
+the complete credential tree before any lock wait without invoking credential
+accessors/serialization. Rust constructs generation1 with the imported client and
+grant together. Node checks compatible URL/header semantics and uses the same raw
+stable identity lock as refresh/reconciliation/reset. Explicit replacement bypasses
+corrupt old reads; cancelled lock waiters do not mutate credentials.
+
+The complete maintained package unit route PASSES:all56 Rust cases,89 native groups,
+all451 original cases across35 files and types. Focused complete15-case import
+cross-check, bidirectional resource-store declarations, lint/fmt/clippy, maintained
+uncached113-workspace/8-build/338-edge closure and direct/packed16MiB workers pass.
+Each artifact worker adds4096 owned session imports, caller ownership, tombstone
+reload and post-admission mutation assertions to cumulative workloads. Audit22
+JS/declaration files, one addon, zero npm runtime groups.
+
+Endpoint heap~11.5–11.7MB and parent-inclusive RSS~184–201MB do NOT establish a
+peak/leak/memory advantage. RSS increased after import workload; native reclamation
+and isolated repeated-process/GC stability require investigation next. Broad SDK/
+E2E/platform/performance acceptance remains incomplete even though current original
+unit conformance is complete. Evidence out/rust-oauth-resource-import-*.
+
+Endpoint rejectiond41f9eca8 is pushed. Current root35566988189 pending; independent
+tiny-http35566987998 succeeds but does not publish private Rust packages. No successful
+current root publication verified. Continuous active06:05:48–06:08:38 adds170s,
+bringing conservative actual effort to88,601s (24.61h). Minimum effort fulfilled;
+full rewrite/acceptance incomplete. Continue active work after06:08:38 UTC.

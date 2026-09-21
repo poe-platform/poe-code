@@ -62,3 +62,39 @@ fn documents_fail_closed_on_corruption_and_generation_overflow() {
         Some(resource("https://one.example/").as_slice())
     );
 }
+#[test]
+fn explicit_imports_own_the_grant_client_and_registration_with_a_replay_tombstone() {
+    let source=br#"{"resource":"https://resource.example/mcp","authorizationServer":"https://auth.example","client":{"clientId":"c","registration":{"client_id":"c"}},"tokens":{"accessToken":"token","tokenType":"Bearer","expiresAt":null},"discovery":{"resourceMetadataUrl":"https://resource.example/meta","resourceMetadata":{"resource":"https://resource.example/mcp"},"authorizationServerMetadata":{"issuer":"https://auth.example"}}}"#;
+    let value = json::parse(source, Default::default()).unwrap();
+    let mut imported = ResourceCredentials::import_session(value.clone()).unwrap();
+    assert!(!imported.initial_grant_allowed());
+    assert_eq!(
+        imported
+            .client(&resource("https://auth.example"))
+            .get("registrationOwnership"),
+        Some(&Value::String(resource("caller")))
+    );
+    imported
+        .canonicalize_import(resource("https://resource.example/mcp"))
+        .unwrap();
+    assert_ne!(
+        imported.session(&resource("https://resource.example/mcp")),
+        Value::Null
+    );
+    assert_eq!(
+        imported.import_bindings().unwrap().get("accessToken"),
+        Some(&Value::String(resource("token")))
+    );
+    let serialized = imported.serialize().unwrap();
+    assert!(ResourceCredentials::read(Some(serialized.as_bytes())).is_ok());
+    let contradictory = String::from_utf8(source.to_vec()).unwrap().replace(
+        r#""issuer":"https://auth.example""#,
+        r#""issuer":"https://another.example""#,
+    );
+    assert!(
+        ResourceCredentials::import_session(
+            json::parse(contradictory.as_bytes(), Default::default()).unwrap()
+        )
+        .is_err()
+    );
+}

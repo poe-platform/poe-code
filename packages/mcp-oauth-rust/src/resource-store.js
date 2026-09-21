@@ -18,17 +18,34 @@ export function createResourceBoundOAuthStores(options, namespace, identity) {
       if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash)
         throw new Error("OAuth reset resource must be an HTTP URL without credentials or fragment");
       const record = native.NativeResourceCredentials.reset(canonicalizeResourceIndicator(url));
-      const timeoutMs = options.timeoutMs ?? 30_000;
-      if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
-        throw new Error("OAuth replacement timeoutMs must be a positive supported timer interval");
-      if (store.withLock === undefined) throw new Error("OAuth resource identity backend must support transaction locks");
-      await store.withLock(async () => {
-        options.signal?.throwIfAborted();
-        await store.set(record.serialize());
-        result.initialGrantAllowed = false;
-      }, { signal: options.signal, timeoutMs });
+      await replace(record, options);
+    },
+    async importSession(value, options = {}) {
+      options.signal?.throwIfAborted();
+      const record = native.NativeResourceCredentials.importSession(value);
+      try {
+        const facts = record.importBindings, resource = new URL(facts.resource), issuer = new URL(facts.issuer);
+        if ([resource, issuer].some(url => !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash) ||
+          canonicalizeResourceIndicator(facts.metadataResource) !== canonicalizeResourceIndicator(resource))
+          throw new Error("Invalid binding");
+        new Headers({ Authorization: `Bearer ${facts.accessToken}` });
+        record.canonicalizeImport(canonicalizeResourceIndicator(resource));
+      } catch { throw new Error("Invalid OAuth import session or resource binding"); }
+      await replace(record, options);
     }
   };
+  async function replace(record, options) {
+    options.signal?.throwIfAborted();
+    const timeoutMs = options.timeoutMs ?? 30_000;
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
+      throw new Error("OAuth replacement timeoutMs must be a positive supported timer interval");
+    if (store.withLock === undefined) throw new Error("OAuth resource identity backend must support transaction locks");
+    await store.withLock(async () => {
+      options.signal?.throwIfAborted();
+      await store.set(record.serialize());
+      result.initialGrantAllowed = false;
+    }, { signal: options.signal, timeoutMs });
+  }
   async function read() {
     const record = new native.NativeResourceCredentials(await store.get());
     if (record.resource == null) return record;

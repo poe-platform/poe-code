@@ -175,4 +175,113 @@ impl ResourceCredentials {
             }),
         }
     }
+    pub fn import_session(mut session: Value) -> Result<Self, &'static str> {
+        crate::registration::validate_credential_json(&session)
+            .map_err(|_| "Invalid OAuth import session")?;
+        const INVALID_IMPORT: &str = "Invalid OAuth import session or resource binding";
+        if !crate::session::validate_session(&session)
+            || session.get("tokens").is_none()
+            || session.get("refreshState").is_some()
+        {
+            return Err(INVALID_IMPORT);
+        }
+        let resource = session.get("resource").cloned().ok_or(INVALID_IMPORT)?;
+        let issuer = session
+            .get("authorizationServer")
+            .cloned()
+            .ok_or(INVALID_IMPORT)?;
+        let metadata = session
+            .get("discovery")
+            .and_then(|value| value.get("authorizationServerMetadata"))
+            .ok_or(INVALID_IMPORT)?;
+        if metadata.get("issuer") != Some(&issuer)
+            || !matches!(
+                session
+                    .get("discovery")
+                    .and_then(|value| value.get("resourceMetadata"))
+                    .and_then(|value| value.get("resource")),
+                Some(Value::String(_))
+            )
+        {
+            return Err(INVALID_IMPORT);
+        }
+        let mut client =
+            crate::registration::normalize_stored(session.get("client").ok_or(INVALID_IMPORT)?)
+                .map_err(|_| INVALID_IMPORT)?
+                .ok_or(INVALID_IMPORT)?;
+        if let Some(registration) = client.get("registration") {
+            if registration
+                .get("issuer")
+                .is_some_and(|value| !matches!(value, Value::Null) && value != &issuer)
+            {
+                return Err(INVALID_IMPORT);
+            }
+            set(
+                &mut client,
+                "registrationOwnership",
+                Value::String("caller".encode_utf16().collect()),
+            )?;
+        }
+        set(&mut session, "client", client.clone())?;
+        let Value::String(resource) = resource else {
+            return Err(INVALID_IMPORT);
+        };
+        let Value::String(issuer) = issuer else {
+            return Err(INVALID_IMPORT);
+        };
+        Ok(Self {
+            document: Some(Document {
+                resource,
+                generation: 1,
+                session,
+                clients: vec![(issuer, client)],
+            }),
+        })
+    }
+    pub fn import_bindings(&self) -> Result<Value, &'static str> {
+        let document = self.document.as_ref().ok_or(INVALID)?;
+        let session = &document.session;
+        let access = session
+            .get("tokens")
+            .and_then(|value| value.get("accessToken"))
+            .ok_or(INVALID)?;
+        let issuer = session.get("authorizationServer").ok_or(INVALID)?;
+        let resource = session
+            .get("discovery")
+            .and_then(|value| value.get("resourceMetadata"))
+            .and_then(|value| value.get("resource"))
+            .ok_or(INVALID)?;
+        Ok(Value::Object(vec![
+            property("resource", Value::String(document.resource.clone())),
+            property("issuer", issuer.clone()),
+            property("metadataResource", resource.clone()),
+            property("accessToken", access.clone()),
+        ]))
+    }
+    pub fn canonicalize_import(&mut self, resource: Vec<u16>) -> Result<(), &'static str> {
+        let document = self.document.as_mut().ok_or(INVALID)?;
+        set(
+            &mut document.session,
+            "resource",
+            Value::String(resource.clone()),
+        )?;
+        document.resource = resource;
+        Ok(())
+    }
+}
+
+fn set(value: &mut Value, key: &str, entry: Value) -> Result<(), &'static str> {
+    let Value::Object(fields) = value else {
+        return Err(INVALID);
+    };
+    if let Some((_, value)) = fields
+        .iter_mut()
+        .rev()
+        .find(|(name, _)| name.iter().copied().eq(key.encode_utf16()))
+    {
+        *value = entry;
+    } else {
+        fields.push(property(key, entry));
+    }
+    Ok(())
 }

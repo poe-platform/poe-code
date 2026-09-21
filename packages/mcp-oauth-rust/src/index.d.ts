@@ -263,6 +263,7 @@ export interface OAuthTokenGrantImportOptions {
 export declare function parseOAuthTokenGrant(value: unknown, options?: OAuthTokenGrantImportOptions): StoredOAuthTokens;
 
 export interface ResourceBoundOAuthStores {
+  importSession(session: StoredOAuthSession, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
   readonly sessionStore: OAuthSessionStore;
   readonly clientStore: {
     load(issuer: string): Promise<StoredOAuthClient | null>;

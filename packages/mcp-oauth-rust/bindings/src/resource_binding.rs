@@ -75,4 +75,25 @@ impl NativeResourceCredentials {
             state: ResourceCredentials::reset(resource.to_vec()),
         }
     }
+    #[napi(factory)]
+    pub fn import_session(env: Env, source: Unknown<'_>) -> Result<Self> {
+        let value = crate::registration_binding::read_credential_json(env, source)
+            .map_err(|_| napi::Error::from_reason("Invalid OAuth import session"))?;
+        ResourceCredentials::import_session(value)
+            .map(|state| Self { state })
+            .map_err(napi::Error::from_reason)
+    }
+    #[napi(getter)]
+    pub fn import_bindings(&self) -> Result<NativeJson> {
+        self.state
+            .import_bindings()
+            .map(NativeJson)
+            .map_err(napi::Error::from_reason)
+    }
+    #[napi]
+    pub fn canonicalize_import(&mut self, resource: Utf16String) -> Result<()> {
+        self.state
+            .canonicalize_import(resource.to_vec())
+            .map_err(napi::Error::from_reason)
+    }
 }

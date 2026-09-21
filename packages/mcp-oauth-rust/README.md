@@ -53,6 +53,10 @@ its URL retires tokens and registrations; reverting the URL keeps old grants
 retired. `createResourceBoundOAuthStores(...).reset(resource)` explicitly replaces
 corrupt credentials with a replay tombstone under the same stable lock. Peeking
 at another URL leaves history untouched.
+`stores.importSession(session)` explicitly replaces a named server’s original
+client and grant together, validates resource/issuer bindings, takes an owned
+snapshot before lock waits and disables stale environment replay. Explicit import
+can recover a corrupt document without decrypting its previous contents.
 Session transactions use the backing credential lock across independent provider instances.
 Session admission runs in Rust and client registration loads retain all validated metadata.
 Malformed stored JSON reports an explicit recovery error. The package ships these
@@ -120,9 +124,9 @@ const accessToken = await verifier.verify({
 
 This package preserves application imports while the additive rewrite is developed.
 Profile persistence, session transactions and
-client/scope/refresh-outcome contracts are being reconciled with the evolving
-original; full provider conformance is currently incomplete. Integration and
-broader performance validation remain separate work.
+client/scope/refresh-outcome contracts are checked against the evolving original
+package’s unit suites. Broader SDK/E2E, platform artifacts, integration, memory and
+performance validation remain separate work.
 
 `fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.
 Cancellation settles even when an injected host fetch ignores its signal; late

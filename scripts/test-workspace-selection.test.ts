@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { SpawnOptions } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { createFsFromVolume, Volume } from "memfs";
@@ -26,6 +27,15 @@ describe("explicit maintained unit selection", () => {
     expect(plan.testStages.map(stage => stage.name)).toEqual(["docx"]);
     expect(plan.buildStages.map(stage => [stage.name, stage.event ?? "build"])).toEqual([["leaf", "build"], ["portable", "build:portable"], ["docx", "build"]]);
     expect(plan.selectedWorkspaces).toEqual(["docx"]);
+  });
+
+  it("rebuilds the actual DOCX public package used by child-process consumer tests", () => {
+    const root = path.resolve(import.meta.dirname, "..");
+    const plan = createWorkspaceTestPlan(root, { workspaces: ["docx"] });
+    expect(plan.buildStages.some(stage => stage.name === "docx")).toBe(true);
+    expect(plan.buildStages.find(stage => stage.name === "@poe-code/safe-fs")?.event).toBe("build:portable");
+    expect(plan.buildStages.map(stage => stage.name)).not.toContain("virtual-bash");
+    expect(plan.buildStages.map(stage => stage.name)).not.toContain("@poe-code/safe-js");
   });
 
   it("keeps the complete suite when selection is omitted", () => {

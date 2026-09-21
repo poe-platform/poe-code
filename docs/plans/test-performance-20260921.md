@@ -36,3 +36,7 @@ Scheduler/ZIP/compression/budget validation: 81 passes. Portable browser bundle 
 ## Shared helper scope follow-up
 
 An isolated root script test edit now schedules root only. Package test helper/fixture changes fall back to all tasks, because tests may import helpers across package ownership boundaries. The prior committed selector returned only root + DOCX for `packages/docx/tests/fixtures/text.ts`; a replay of the prior pure selector reproduced that result. Focused scope/scanner/routing checks pass 28 tests, plus root posttest stress.
+
+## Fresh DOCX public artifacts
+
+`packages/docx/tests/public-shell.test.ts` starts a child process that imports built public packages outside source aliases. Before this follow-up, exact DOCX selection planned no builds. A failing real-repository graph test reproduced the missing DOCX build. `docx#test:unit` now declares its own build prerequisite, retaining the existing portable safe-fs dependency event and five-stage build closure. Scope/build/shared checks pass 72 tests plus root posttest stress.

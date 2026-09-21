@@ -1,6 +1,7 @@
 export {
   createAuthStoreSessionStore,
 } from "./client/auth-store-session-store.js";
+export { parseOAuthClientRegistration } from "./client/client-registration.js";
 export {
   createDefaultOAuthClientProvider,
   createOAuthClientProvider,
@@ -27,6 +28,7 @@ export type {
   DefaultOAuthClientProviderOptions,
   OAuthAuthorizationServerMetadata,
   OAuthClientMetadata,
+  OAuthClientRegistration,
   OAuthClientProvider,
   OAuthClientProviderOptions,
   OAuthDiscoveryResult,
@@ -35,6 +37,7 @@ export type {
   OAuthSessionStore,
   OAuthUnauthorizedChallenge,
   StoredOAuthSession,
+  StoredOAuthClient,
   StoredOAuthTokens,
 } from "./client/types.js";
 export type {

@@ -1,7 +1,8 @@
+import { normalizeStoredOAuthClient } from "./client-registration.js";
 import crypto from "node:crypto";
 import path from "node:path";
 import { createSecretStore, type CreateSecretStoreInput, type SecretStore } from "auth-store";
-import type { OAuthSessionStore, StoredOAuthSession } from "./types.js";
+import type { OAuthSessionStore, StoredOAuthSession, StoredOAuthClient } from "./types.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 
 const DEFAULT_FILE_SALT = "poe-code:mcp-oauth:v1";
@@ -12,10 +13,6 @@ const DEFAULT_CLIENT_FILE_DIRECTORY = ".poe-code/mcp-oauth/clients";
 const DEFAULT_CLIENT_KEYCHAIN_SERVICE = "poe-code-mcp-oauth-clients";
 const MAX_JS_DATE_MS = 8_640_000_000_000_000;
 
-interface StoredOAuthClient {
-  clientId: string;
-  clientSecret?: string;
-}
 
 export interface OAuthClientStore {
   load(issuer: string): Promise<StoredOAuthClient | null>;
@@ -74,18 +71,10 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput, name
       let parsed: unknown;
       try { parsed = JSON.parse(value); }
       catch { throw new Error("Stored OAuth client must be valid JSON; reset the store explicitly to recover"); }
-      const clientId = isObjectRecord(parsed) ? getOwnString(parsed, "clientId") : undefined;
-      if (clientId !== undefined) {
-        const client: Record<string, unknown> = { clientId };
-        if (
-          isObjectRecord(parsed) &&
-          Object.prototype.hasOwnProperty.call(parsed, "clientSecret")
-        ) {
-          client.clientSecret = getOwnEntry(parsed, "clientSecret");
-        }
-
-        return client as unknown as StoredOAuthClient;
-      }
+      // Preserve all registration metadata; provider normalization validates its
+      // identity and schema before it can authorize a request.
+      if (isObjectRecord(parsed) && typeof getOwnEntry(parsed, "clientId") === "string")
+        return parsed as unknown as StoredOAuthClient;
 
       throw new Error("Stored OAuth client must be a JSON object with clientId");
     },
@@ -180,24 +169,12 @@ function isStoredOAuthSession(value: unknown): value is StoredOAuthSession {
   return (
     isNonBlankOwnString(value, "resource") &&
     isNonBlankOwnString(value, "authorizationServer") &&
-    isStoredOAuthClient(getOwnEntry(value, "client")) &&
+    normalizeStoredOAuthClient(getOwnEntry(value, "client")) !== null &&
     isStoredOAuthDiscovery(getOwnEntry(value, "discovery")) &&
     (getOwnEntry(value, "requestedScope") === undefined || isNonBlankOwnString(value, "requestedScope")) &&
     (getOwnEntry(value, "refreshState") === undefined ||
       (getOwnEntry(value, "refreshState") === "pending" && getOwnEntry(value, "tokens") === undefined)) &&
     isStoredOAuthTokensOrMissing(getOwnEntry(value, "tokens"))
-  );
-}
-
-function isStoredOAuthClient(value: unknown): value is StoredOAuthClient {
-  if (!isObjectRecord(value) || !isNonBlankOwnString(value, "clientId")) {
-    return false;
-  }
-
-  const clientSecret = getOwnEntry(value, "clientSecret");
-  return (
-    clientSecret === undefined ||
-    (typeof clientSecret === "string" && clientSecret.trim().length > 0)
   );
 }
 

@@ -1,3 +1,4 @@
+import { normalizeStoredOAuthClient, parseOAuthClientRegistration } from "./client-registration.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { isIP } from "node:net";
 import { fetchMcpResponse } from "../http-fetch.js";
@@ -50,6 +51,7 @@ export function createDefaultOAuthClientProvider(
   assertPersistenceNamespace(options.persistenceNamespace);
   const clientMetadata = getClientMetadata(options.client);
   const requestedScope = clientMetadata?.scope;
+  const configuredClient = normalizeConfiguredClient(options.client);
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
   const clientStore =
     options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
@@ -65,7 +67,7 @@ export function createDefaultOAuthClientProvider(
   const initialGrant = options.initialGrant === undefined ? undefined : {
     resource: canonicalizeResourceIndicator(options.initialGrant.resource),
     tokens: normalizeStoredTokens(options.initialGrant.tokens),
-    client: normalizeConfiguredClient(options.client)
+    client: configuredClient
   };
   if (initialGrant !== undefined && (initialGrant.tokens === undefined || initialGrant.client === null))
     throw new Error("OAuth initial grant requires valid tokens and the original client ID");
@@ -196,8 +198,8 @@ export function createDefaultOAuthClientProvider(
       if (forceRefresh && rejectedTokens !== undefined && (rejectedTokens === null || session?.tokens === undefined || !sameTokenGrant(session.tokens, rejectedTokens)))
         forceRefresh = false;
       const sessionDiscovery = resolveDiscovery(discovery, session);
-      if ((options.client.mode === "static" || initialGrant !== undefined) && session !== null && (session.tokens !== undefined || session.refreshState === "pending")) {
-        const configured = normalizeConfiguredClient(options.client);
+      if ((options.client.mode === "static" || configuredClient?.registration !== undefined || initialGrant !== undefined) && session !== null && (session.tokens !== undefined || session.refreshState === "pending")) {
+        const configured = configuredClient;
         if (configured === null || configured.clientId !== session.client.clientId || configured.clientSecret !== session.client.clientSecret)
           throw new Error("Stored session belongs to a different OAuth client; use separate persistence or explicitly reset it");
       }
@@ -435,9 +437,8 @@ export function createDefaultOAuthClientProvider(
     parentSignal?: AbortSignal
   ): Promise<ResolvedOAuthClient> {
     parentSignal?.throwIfAborted();
-    const configuredClient = normalizeConfiguredClient(options.client);
 
-    if (options.client.mode === "static") {
+    if (options.client.mode === "static" || configuredClient?.registration !== undefined) {
       if (configuredClient === null) {
         throw new Error("OAuth client_id must not be blank");
       }
@@ -513,19 +514,12 @@ export function createDefaultOAuthClientProvider(
       signal
     });
     const payload = await readOAuthJsonObjectResponse(response, signal);
-    const clientId = getOwnString(payload, "client_id");
-
-    if (clientId === undefined || clientId.trim().length === 0) {
-      throw new Error("OAuth client registration response missing client_id");
-    }
-
-    const clientSecret = getOwnString(payload, "client_secret");
+    const registration = parseOAuthClientRegistration(payload);
+    const registeredSecret = getOwnString(registration, "client_secret");
     const registeredClient = {
-      clientId: clientId.trim(),
-      clientSecret:
-        clientSecret !== undefined && clientSecret.trim().length > 0
-          ? clientSecret.trim()
-          : undefined
+      clientId: registration.client_id.trim(),
+      ...(registeredSecret === undefined ? {} : { clientSecret: registeredSecret.trim() }),
+      registration
     };
     await saveRegisteredClient(discovery.authorizationServer, registeredClient);
 
@@ -560,7 +554,7 @@ export function createDefaultOAuthClientProvider(
     }
 
     const client = await clientStore.load(issuer);
-    const normalizedClient = client === null ? null : normalizeStoredClient(client);
+    const normalizedClient = client === null ? null : normalizeStoredOAuthClient(client);
     if (client !== null && normalizedClient === null) {
       await clientStore.clear(issuer);
       return null;
@@ -668,7 +662,7 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
   if (refreshState !== undefined && (refreshState !== "pending" || getOwnEntry(session, "tokens") !== undefined))
     throw new Error("Stored OAuth refresh state is invalid");
 
-  const client = normalizeStoredClient(getOwnEntry(session, "client"));
+  const client = normalizeStoredOAuthClient(getOwnEntry(session, "client"));
   if (client === null) {
     return { ...session, client: { clientId: "" }, tokens: undefined };
   }
@@ -680,29 +674,6 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
   };
 }
 
-function normalizeStoredClient(value: unknown): StoredOAuthSession["client"] | null {
-  if (!isObjectRecord(value)) {
-    return null;
-  }
-
-  const clientId = getOwnString(value, "clientId");
-  if (clientId === undefined || clientId.trim().length === 0) {
-    return null;
-  }
-  const normalizedClientId = clientId.trim();
-
-  const clientSecret = getOwnEntry(value, "clientSecret");
-  if (clientSecret === undefined) {
-    return { clientId: normalizedClientId };
-  }
-
-  if (typeof clientSecret !== "string" || clientSecret.trim().length === 0) {
-    return null;
-  }
-  const normalizedClientSecret = clientSecret.trim();
-
-  return { clientId: normalizedClientId, clientSecret: normalizedClientSecret };
-}
 
 function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
   if (value === undefined || !isObjectRecord(value)) {
@@ -767,13 +738,11 @@ function getClientMetadata(
 function normalizeConfiguredClient(
   client: DefaultOAuthClientProviderOptions["client"]
 ): StoredOAuthSession["client"] | null {
-  const clientId = normalizeOptionalOAuthString(client.clientId);
-  if (clientId === undefined) {
-    return null;
-  }
-
-  const clientSecret = normalizeOptionalOAuthString(client.clientSecret);
-  return clientSecret === undefined ? { clientId } : { clientId, clientSecret };
+  const registration = client.registration === undefined ? undefined : parseOAuthClientRegistration(client.registration);
+  const clientId = normalizeOptionalOAuthString(client.clientId) ?? registration?.client_id.trim();
+  if (clientId === undefined) return null;
+  const clientSecret = normalizeOptionalOAuthString(client.clientSecret) ?? (registration === undefined ? undefined : getOwnString(registration, "client_secret")?.trim());
+  return normalizeStoredOAuthClient({ clientId, clientSecret, registration });
 }
 
 function normalizeOptionalOAuthString(value: string | undefined): string | undefined {

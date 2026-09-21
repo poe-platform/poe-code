@@ -112,6 +112,13 @@ Discovery binds an expired or explicitly rejected grant before silent refresh,
 using the original configured client. Persisted sessions take precedence,
 including sessions whose tokens have been cleared; an import cannot revive them.
 Input tokens are copied and invalid expiry values fail before authorization.
+Pass a complete DCR response as `client.registration` (or validate untrusted JSON
+with `parseOAuthClientRegistration`). Dynamic clients infer their original ID
+and secret from that response and reuse it without registering another app.
+Explicit ID/secret values must agree with the imported response. Sessions and
+native registration stores retain arrays, issuance/expiry timestamps and JSON
+provider metadata. Registration input is copied, bounded to 64 KiB and 64
+levels, and rejects invalid standard field types and non-JSON extensions.
 Static clients and dynamic initial-grant imports require cached grants to match
 the original normalized client ID and secret. A different client configuration
 fails before attaching or refreshing credentials and retains the stored record;

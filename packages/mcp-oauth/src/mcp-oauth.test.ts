@@ -2218,7 +2218,8 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(tokenBody?.get("client_secret")).toBe("dynamic-secret");
     expect(savedSessions[savedSessions.length - 1]?.client).toEqual({
       clientId: "dynamic-client",
-      clientSecret: "dynamic-secret"
+      clientSecret: "dynamic-secret",
+      registration: { client_id: "  dynamic-client  ", client_secret: "  dynamic-secret  " }
     });
   });
 

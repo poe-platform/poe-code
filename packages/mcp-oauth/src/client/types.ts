@@ -73,13 +73,29 @@ export interface StoredOAuthTokens {
   scope?: string;
 }
 
+/** Full RFC 7591 response, including JSON provider extensions. */
+export interface OAuthClientRegistration extends Record<string, unknown> {
+  client_id: string;
+  client_secret?: string | null;
+  redirect_uris?: string[] | null;
+  grant_types?: string[] | null;
+  response_types?: string[] | null;
+  contacts?: string[] | null;
+  client_id_issued_at?: number | null;
+  client_secret_expires_at?: number | null;
+  token_endpoint_auth_method?: string | null;
+}
+
+export interface StoredOAuthClient {
+  clientId: string;
+  clientSecret?: string;
+  registration?: OAuthClientRegistration;
+}
+
 export interface StoredOAuthSession {
   resource: string;
   authorizationServer: string;
-  client: {
-    clientId: string;
-    clientSecret?: string;
-  };
+  client: StoredOAuthClient;
   tokens?: StoredOAuthTokens;
   /** A refresh was begun; its winning response may not have been persisted. */
   refreshState?: "pending";
@@ -107,12 +123,15 @@ export interface DefaultOAuthClientProviderOptions {
         clientId?: string;
         clientSecret?: string;
         metadata?: OAuthClientMetadata;
+        /** Import a complete registration owned by the caller. */
+        registration?: OAuthClientRegistration;
       }
     | {
         mode: "static";
         clientId: string;
         clientSecret?: string;
         metadata?: OAuthClientMetadata;
+        registration?: OAuthClientRegistration;
       };
   /** Disable interactive authorization while allowing cached tokens and silent refresh. */
   allowInteractive?: boolean;

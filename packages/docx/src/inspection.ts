@@ -12,6 +12,7 @@ import { readDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
 import { isXmlContentType, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { compareInventoryNames as compare } from "./pack-inventory.js";
 import { revisionInfo } from "./revision-markup.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { LocationIndex } from "./location-index.js";
@@ -91,7 +92,6 @@ export function selectInspectionLocations(document: DocumentLocations, roots: Re
   return owner ? [owner] : section && (options.scope === undefined || options.scope === "body") ? [section] : document.list("story", query);
 }
 
-const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 function attribute(node: XmlElement, name: string, namespace = ""): string | undefined {
   return node.attributes.find(a => a.localName === name && a.namespace === namespace)?.value;
 }

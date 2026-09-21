@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpCredentialOptions } from "./credential-options.js";
 import { snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
 import { createResourceBoundOAuthStores, normalizeOAuthScope, normalizeStoredOAuthClient, parseOAuthClientRegistration, parseOAuthTokenGrant, waitForOAuthOperation,
   type OAuthTokenGrantImportOptions, type StoredOAuthSession } from "mcp-oauth";
@@ -32,7 +33,7 @@ export async function importRemoteMcpAuthentication(
   payload: unknown,
   options: RemoteMcpCredentialImportOptions = {}
 ): Promise<RemoteMcpCredentialImportResult> {
-  options = { ...options };
+  options = snapshotRemoteMcpCredentialOptions(options);
   options.signal?.throwIfAborted();
   const [server] = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options).servers;
   const { name, url } = server;

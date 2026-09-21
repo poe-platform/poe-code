@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpCredentialOptions } from "./credential-options.js";
 import { createResourceBoundOAuthStores } from "mcp-oauth";
 import { parseRemoteMcpConfiguration, type ConfigurationOptions, type RemoteMcpServerConfiguration } from "./configuration.js";
 import type { ConfigurationBindingOptions } from "./runtime-configuration.js";
@@ -18,7 +19,7 @@ export async function resetRemoteMcpAuthentication(
   value: RemoteMcpServerConfiguration,
   options: RemoteMcpCredentialResetOptions = {}
 ): Promise<RemoteMcpCredentialResetResult> {
-  options = { ...options };
+  options = snapshotRemoteMcpCredentialOptions(options);
   options.signal?.throwIfAborted();
   const [server] = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options).servers;
   const { name, url } = server;

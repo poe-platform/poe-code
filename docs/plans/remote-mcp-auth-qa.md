@@ -917,3 +917,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     and generated help remain offline. Inspect actual guidance/help and successful
     summary screenshot; purge owned evidence. JSON configuration remains subject
     to its separate JSON-only validation contract.
+
+80. Supply hidden reset/import binding/signal/configuration/tool policies and
+    hidden import fetch/cache/deadline/lock/input limits through SDK and management.
+    Across actual HTTP/SSE, require forty cancellation/invalid-policy failures
+    with zero transport or host persistence hooks. Four original private-host
+    imports must atomically retain full app/registration/grant and anchored
+    expiresAt3601000 in encrypted memfs, independently read by fresh native stores.
+    Four selected cache writes/eight metadata GETs occur; subsequent full schema
+    and tool results preserve guidance/two blocks/falsey JSON/nested metadata/
+    exact005930. Four original resets remove grants and suppress stale environment
+    imports. Inspect actual management import/status/error JSON and successful
+    summary screenshot. Require24 MCP POSTs/44 requests/four HTTP retirements/four
+    server-observed SSE closes. Check encrypted documents before and after reset;
+    scan files separately from native lock directories. Purge owned evidence.

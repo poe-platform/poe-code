@@ -392,7 +392,10 @@ run. Reset uses the same captured server and settings as authentication; the
 original host hook receiver remains live. Replacing a fetch/signal option cannot
 change the in-progress operation;
 the originally selected AbortSignal remains live. Standalone reset follows the
-same signal ownership rule.
+same signal ownership rule. Reset and import retain declared binding,
+cancellation, configuration/tool ceilings and operation limits even when supplied
+as nonenumerable SDK options. Import also retains the selected fetch/cache;
+management passes these same policies to the SDK.
 Management `options.authentication` accepts SDK settings and an optional binding;
 without a host binding it uses the command's environment. For names beginning
 with a dash, put options first and use `mcp auth --json -- '-catalog'`.

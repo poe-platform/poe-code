@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpCredentialOptions } from "./credential-options.js";
 import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import { posix } from "node:path";
 import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
@@ -328,7 +329,10 @@ export function createRemoteMcpManagementCommand(
             try { json = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
             catch { throw new Error("OAuth credential input must be valid UTF-8"); }
             result = await importRemoteMcpAuthentication(server, json, {
-              ...options, ...settings, binding: settings?.binding ?? options.authentication?.binding ?? { env: context.env },
+              ...options, ...snapshotRemoteMcpCredentialOptions(settings ?? {}),
+              maxConfigurationBytes: settings?.maxConfigurationBytes ?? options.maxConfigurationBytes,
+              maxTools: settings?.maxTools ?? options.maxTools,
+              binding: settings?.binding ?? options.authentication?.binding ?? { env: context.env },
               fetch: settings?.fetch ?? options.authentication?.fetch,
               requestTimeoutMs,
               timeoutMs: selected.timeoutMs ?? settings?.timeoutMs,
@@ -350,7 +354,10 @@ export function createRemoteMcpManagementCommand(
           let result: RemoteMcpCredentialResetResult;
           try {
             result = await resetRemoteMcpAuthentication(server, {
-              ...options, ...settings, binding: settings?.binding ?? options.authentication?.binding,
+              ...options, ...snapshotRemoteMcpCredentialOptions(settings ?? {}),
+              maxConfigurationBytes: settings?.maxConfigurationBytes ?? options.maxConfigurationBytes,
+              maxTools: settings?.maxTools ?? options.maxTools,
+              binding: settings?.binding ?? options.authentication?.binding,
               timeoutMs: selected.requestTimeoutMs ?? settings?.timeoutMs,
               signal: resetSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resetSignal])
             });

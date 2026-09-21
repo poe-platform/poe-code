@@ -208,3 +208,21 @@ for (const kind of ["archive", "xml"] as const) {
     expect(volume.readFileSync("/part.xml", "utf8")).toBe("<r/>");
   });
 }
+
+it("uses a real Node turn without timer latency and retains typed cancellation", async () => {
+  const timer = vi.spyOn(globalThis, "setTimeout");
+  try {
+    const budget = new DocumentBudget();
+    let settled = false;
+    const pending = budget.checkpoint(4096).then(() => { settled = true; });
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    await pending;
+    expect(timer).not.toHaveBeenCalled();
+    expect(budget.usage.work).toBe(4096);
+    const controller = new AbortController();
+    const cancelled = new DocumentBudget({}, controller.signal).checkpoint(4096);
+    controller.abort();
+    await expect(cancelled).rejects.toMatchObject({ code: "cancelled" });
+  } finally { timer.mockRestore(); }
+});

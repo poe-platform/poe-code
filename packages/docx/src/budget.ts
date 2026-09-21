@@ -1,4 +1,5 @@
 import { CancellationError, InvalidValueError, ResourceLimitError } from "./archive.js";
+import { yieldEventLoop } from "@poe-code/office-package";
 
 import type { DocumentXml } from "./package-xml.js";
 
@@ -61,9 +62,7 @@ export class DocumentBudget {
   #xmlCache: InvocationXmlCache = {};
 
   constructor(host: Partial<DocumentLimits> = {}, signal = new AbortController().signal,
-    yieldTurn: (signal: AbortSignal) => Promise<void> = async () => {
-      await new Promise<void>(resolve => setTimeout(resolve, 0));
-    }) {
+    yieldTurn: (signal: AbortSignal) => Promise<void> = yieldEventLoop) {
     this.limits = settings(host, documentLimitDefaults);
     if (!(signal instanceof AbortSignal) || typeof yieldTurn !== "function")
       throw new InvalidValueError("Expected a cancellation signal and cooperative scheduler.");

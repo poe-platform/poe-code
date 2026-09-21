@@ -14,4 +14,4 @@ export {
   type CompressionCodec,
   type CompressionReader
 } from "./compression.js";
-export { CodecError, type ByteSource, type CodecRuntime } from "./runtime.js";
+export { CodecError, yieldEventLoop, type ByteSource, type CodecRuntime } from "./runtime.js";

@@ -15,10 +15,21 @@ export interface CodecRuntime {
   diagnostic(error: unknown): unknown;
 }
 
+/** Yield a task turn without Node's minimum timer delay; portable hosts use a timer. */
+export function yieldEventLoop(): Promise<void> {
+  return new Promise<void>(resolve => {
+    const immediate = (globalThis as typeof globalThis & {
+      setImmediate?: (callback: () => void) => unknown;
+    }).setImmediate;
+    if (typeof immediate === "function") immediate(resolve);
+    else setTimeout(resolve, 0);
+  });
+}
+
 export const defaultRuntime: CodecRuntime = {
   async yieldTurn(signal) {
     signal.throwIfAborted();
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await yieldEventLoop();
     signal.throwIfAborted();
   },
   async *readBytes(source, signal) {

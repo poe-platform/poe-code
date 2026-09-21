@@ -43,6 +43,7 @@ function nullableInteger(value: unknown): asserts value is number | null {
 
 class StyleStore {
   revision = 0;
+  latentGeneration = 0;
   activePublications = 0;
   readonly tokens: number[];
   readonly latentTokens: number[];
@@ -57,8 +58,10 @@ class StyleStore {
     if (!view) {
       const budget = archiveSettings(this.context).budget;
       let originalChildren: (node: XmlElement) => readonly XmlElement[] = node => node.children;
+      let originalLatentRoot: XmlElement | undefined;
       view = bindXmlElementView({ budget, read: () => this.editor(), resolve, change: action => this.change(xml => {
         originalChildren = activeXmlChildren(xml, budget);
+        originalLatentRoot = child(xml.root, "latentStyles", originalChildren);
         action(xml);
       }),
         ...(removeRoot ? { removeRoot } : {}),
@@ -74,6 +77,10 @@ class StyleStore {
           else this.latentTokens.splice(position, 0, this.nextLatentToken++);
         },
         removed: (parent, node) => {
+          if (node === originalLatentRoot) {
+            this.latentGeneration++;
+            this.latentTokens.splice(0);
+          }
           if (parent?.localName === "styles" && node.localName === "style" && node.namespace === parent.namespace) this.tokens.splice(originalChildren(parent).filter(n => n.localName === "style" && n.namespace === parent.namespace).indexOf(node), 1);
           if (parent?.localName === "latentStyles" && node.localName === "lsdException" && node.namespace === parent.namespace) this.latentTokens.splice(originalChildren(parent).filter(n => n.localName === "lsdException" && n.namespace === parent.namespace).indexOf(node), 1);
         }
@@ -113,8 +120,8 @@ class StyleStore {
     } finally { this.cachedEditor = undefined; }
   }
   checkpoint(): () => void {
-    const tokens = this.tokens.slice(), latentTokens = this.latentTokens.slice(), revision = this.revision, warningCount = this.warnings.length;
-    return () => { this.tokens.splice(0, this.tokens.length, ...tokens); this.latentTokens.splice(0, this.latentTokens.length, ...latentTokens); this.revision = revision; this.warnings.length = warningCount; this.cachedEditor = undefined; };
+    const tokens = this.tokens.slice(), latentTokens = this.latentTokens.slice(), latentGeneration = this.latentGeneration, revision = this.revision, warningCount = this.warnings.length;
+    return () => { this.tokens.splice(0, this.tokens.length, ...tokens); this.latentTokens.splice(0, this.latentTokens.length, ...latentTokens); this.latentGeneration = latentGeneration; this.revision = revision; this.warnings.length = warningCount; this.cachedEditor = undefined; };
   }
   add(markup: string): number {
     this.change(xml => xml.insertChildren(xml.root, markup));
@@ -355,15 +362,27 @@ export class TableStyle extends ParagraphStyle {}
 export { TableStyle as _TableStyle, BaseStyle as _NumberingStyle };
 
 export class LatentStyles implements Iterable<LatentStyle> {
-  constructor(private readonly store: StyleStore) {}
-  private get rawElement(): XmlElement { const node = this.store.readChild(this.store.editor().root, "latentStyles"); if (!node) throw new RangeError("Latent styles are no longer available."); return node; }
-  get element(): XmlElementView { void this.rawElement; return this.store.xmlView("latent-root", xml => { const node = this.store.readChild(xml.root, "latentStyles"); if (!node) throw new StaleHandleError("The XML owner is detached."); return node; }); }
+  private readonly generation: number;
+  constructor(private readonly store: StyleStore) { this.generation = store.latentGeneration; }
+  private get rawElement(): XmlElement {
+    if (this.generation !== this.store.latentGeneration) throw new StaleHandleError("The latent styles handle is no longer valid.");
+    const node = this.store.readChild(this.store.editor().root, "latentStyles");
+    if (!node) throw new StaleHandleError("The latent styles handle is no longer valid.");
+    return node;
+  }
+  get element(): XmlElementView { void this.rawElement; return this.store.xmlView(`latent-root:${this.generation}`, xml => { void this.rawElement; const node = this.store.readChild(xml.root, "latentStyles"); if (!node) throw new StaleHandleError("The XML owner is detached."); return node; }, () => this.removeContainer()); }
+  private removeContainer(): void {
+    void this.rawElement;
+    this.store.change(xml => xml.replaceElement(this.rawElement, ""));
+    this.store.latentGeneration++;
+    this.store.latentTokens.splice(0);
+  }
   xmlView(token: number): XmlElementView { void this.entry(token); return this.store.xmlView(`latent:${token}`, xml => this.node(token, xml), () => this.remove(token)); }
-  get part(): StylesPart { return this.store.part; }
-  equals(other: unknown): boolean { requireComparisonOperand(other); if (other instanceof LatentStyles && other.store === this.store) void other.rawElement; return other instanceof LatentStyles && other.store === this.store; }
-  private info() { const xml = this.store.editor(); return readLatentStyles(xml.root, undefined, activeXmlChildren(xml, archiveSettings(this.store.context).budget))!; }
+  get part(): StylesPart { void this.rawElement; return this.store.part; }
+  equals(other: unknown): boolean { requireComparisonOperand(other); void this.rawElement; if (other instanceof LatentStyles && other.store === this.store) void other.rawElement; return other instanceof LatentStyles && other.store === this.store && other.generation === this.generation; }
+  private info() { void this.rawElement; const xml = this.store.editor(); return readLatentStyles(xml.root, undefined, activeXmlChildren(xml, archiveSettings(this.store.context).budget))!; }
   get length(): number { return this.info().entries.length; }
-  *[Symbol.iterator](): Iterator<LatentStyle> { for (const token of [...this.store.latentTokens]) yield new LatentStyle(this, token); }
+  *[Symbol.iterator](): Iterator<LatentStyle> { void this.rawElement; for (const token of [...this.store.latentTokens]) { void this.rawElement; yield new LatentStyle(this, token); } }
   has(name: string): boolean { if (typeof name !== "string") throw new InputTypeError("Latent styles are keyed by name."); return this.info().entries.some(s => styleStoredName(s.name) === styleStoredName(name)); }
   at(name: string): LatentStyle {
     if (typeof name !== "string") throw new InputTypeError("Latent styles are keyed by name.");
@@ -372,6 +391,7 @@ export class LatentStyles implements Iterable<LatentStyle> {
     return new LatentStyle(this, this.store.latentTokens[index]!);
   }
   add_latent_style(name: string): LatentStyle {
+    void this.rawElement;
     if (typeof name !== "string") throw new InputTypeError("Expected a latent style name.");
     if (!name.length) throw new InvalidValueError("Expected a nonempty latent style name.");
     this.store.change(xml => { const node = this.store.readChild(xml.root, "latentStyles")!; xml.insertChildren(node, `<st:lsdException xmlns:st="${node.namespace}" st:name="${xmlValue(styleStoredName(name))}"/>`); });
@@ -384,6 +404,7 @@ export class LatentStyles implements Iterable<LatentStyle> {
     return entry;
   }
   node(token: number, xml = this.store.editor()): XmlElement {
+    void this.rawElement;
     const children = activeXmlChildren(xml, archiveSettings(this.store.context).budget), root = child(xml.root, "latentStyles", children);
     const index = this.store.latentTokens.indexOf(token), node = root && children(root).filter(n => n.namespace === xml.root.namespace && n.localName === "lsdException")[index];
     if (!node) throw new StaleHandleError("The latent style handle is no longer valid.");
@@ -397,7 +418,7 @@ export class LatentStyles implements Iterable<LatentStyle> {
     this.store.change(xml => { xml.replaceElement(this.node(token, xml), ""); });
     this.store.latentTokens.splice(this.store.latentTokens.indexOf(token), 1);
   }
-  private setDefault(key: string, value: boolean | number | null): void { this.store.change(xml => { editLatentStyles(xml, "styles.latent.defaults.set", { [key]: value }, activeXmlChildren(xml, archiveSettings(this.store.context).budget)); }); }
+  private setDefault(key: string, value: boolean | number | null): void { void this.rawElement; this.store.change(xml => { editLatentStyles(xml, "styles.latent.defaults.set", { [key]: value }, activeXmlChildren(xml, archiveSettings(this.store.context).budget)); }); }
   get default_to_hidden(): boolean { return this.info().defaults.defaultToHidden; }
   set default_to_hidden(value: boolean) { if (typeof value !== "boolean") throw new InputTypeError("Expected a boolean."); this.setDefault("defaultToHidden", value); }
   get default_to_locked(): boolean { return this.info().defaults.defaultToLocked; }

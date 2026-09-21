@@ -13,6 +13,7 @@ import { DocumentPackage } from "./package.js";
 import { isXmlContentType, type XmlElement } from "./package-xml.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { compatibilityContainers } from "./compatibility.js";
+import { trimXmlWhitespace } from "./stored-lexical.js";
 import { assertFormattingHistoryEditable } from "./revision-markup.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
@@ -59,8 +60,9 @@ function inventory(editors: ReadonlyMap<string, DocumentXmlEditor>, budget: Docu
       unsafe ||= word && ["ins", "del", "moveFrom", "moveTo", "sdt", "fldSimple", "hyperlink"].includes(node.localName);
       if (word && ["bookmarkStart", "bookmarkEnd"].includes(node.localName)) {
         const raw = attr(node, "id") ?? "";
-        const valid = raw.length > 0 && [...raw].every(c => c >= "0" && c <= "9") && Number.isSafeInteger(Number(raw));
-        const marker: Marker = { part, path, node, parent, container, order: order++, id: valid ? String(Number(raw)) : raw, name: attr(node, "name") ?? "", issues: [] };
+        const value = trimXmlWhitespace(raw), digits = value[0] === "+" || value[0] === "-" ? value.slice(1) : value;
+        const valid = digits.length > 0 && [...digits].every(c => c >= "0" && c <= "9") && Number.isSafeInteger(Number(value)) && Number(value) >= 0;
+        const marker: Marker = { part, path, node, parent, container, order: order++, id: valid ? String(Number(value)) : raw, name: attr(node, "name") ?? "", issues: [] };
         (node.localName === "bookmarkStart" ? starts : ends).push(marker);
         if (!valid) report(marker, "invalid-id");
         if (unsafe || (fieldDepth.get(container) ?? 0) > 0 || parent.namespace !== node.namespace || parent.localName !== "p" || node.children.length || node.content.some(c => c.kind !== "text" || c.text.trim()) || attr(node, "colFirst") !== undefined || attr(node, "colLast") !== undefined) report(marker, "illegal-boundary");

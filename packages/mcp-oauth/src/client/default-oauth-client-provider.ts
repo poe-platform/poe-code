@@ -16,7 +16,7 @@ import {
   createAuthStoreClientStore,
   createAuthStoreSessionStore
 } from "./auth-store-session-store.js";
-import { createLoopbackAuthorizationSession } from "./loopback-authorization.js";
+import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback-authorization.js";
 import { createAuthorizationState } from "./authorization-state.js";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
 import {
@@ -43,6 +43,7 @@ export function createOAuthClientProvider(
 export function createDefaultOAuthClientProvider(
   options: DefaultOAuthClientProviderOptions
 ): OAuthClientProvider {
+  loopbackTarget(options.browser);
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
   const clientStore =
     options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
@@ -64,6 +65,10 @@ export function createDefaultOAuthClientProvider(
   };
   if (initialGrant !== undefined && (initialGrant.tokens === undefined || initialGrant.client === null))
     throw new Error("OAuth initial grant requires valid tokens and the original client ID");
+  if (initialGrant?.tokens !== undefined) {
+    try { new Headers({ Authorization: `Bearer ${initialGrant.tokens.accessToken}` }); }
+    catch { throw new Error("OAuth initial grant access token is not a valid HTTP header value"); }
+  }
   let initialGrantConsumed = false;
 
   return {

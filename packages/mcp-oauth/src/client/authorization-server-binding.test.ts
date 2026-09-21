@@ -6,7 +6,8 @@ const resource = "https://resource.example.com/mcp";
 const oldIssuer = "https://old-auth.example.com";
 const newIssuer = "https://new-auth.example.com";
 
-vi.mock("./loopback-authorization.js", () => ({
+vi.mock("./loopback-authorization.js", async importOriginal => ({
+  ...await importOriginal<typeof import("./loopback-authorization.js")>(),
   createLoopbackAuthorizationSession: async (options: { openBrowser(url: string): Promise<void> }) => ({
     redirectUri: "http://127.0.0.1:12345/callback",
     waitForCode: async (url: string) => {

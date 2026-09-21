@@ -72,7 +72,7 @@ export async function createLoopbackAuthorizationSession(
   };
 }
 
-function loopbackTarget(options: LoopbackAuthorizationOptions): { port: number; host: string; callbackPath: string } {
+export function loopbackTarget(options: LoopbackAuthorizationOptions): { port: number; host: string; callbackPath: string } {
   if (options.redirectUri !== undefined) {
     let url: URL;
     try { url = new URL(options.redirectUri); }

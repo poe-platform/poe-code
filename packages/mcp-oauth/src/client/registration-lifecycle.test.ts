@@ -6,7 +6,8 @@ import type { OAuthMetadataFetch } from "./types.js";
 const issuer = "https://auth.example";
 const resource = "https://resource.example/mcp";
 const close = vi.hoisted(() => vi.fn());
-vi.mock("./loopback-authorization.js", () => ({
+vi.mock("./loopback-authorization.js", async importOriginal => ({
+  ...await importOriginal<typeof import("./loopback-authorization.js")>(),
   createLoopbackAuthorizationSession: async () => ({ redirectUri: "http://127.0.0.1:12345/callback", waitForCode: async () => "code", close })
 }));
 afterEach(() => { vi.restoreAllMocks(); close.mockClear(); });

@@ -103,3 +103,11 @@ it("requires the original client ID instead of dynamically registering an import
 it.each(["https://user:secret@resource.example/mcp", "https://resource.example/mcp#fragment", "file:///tmp/mcp"])("rejects an invalid initial grant resource", resource => {
   expect(() => createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "app" }, browser: {}, initialGrant: { resource, tokens } })).toThrow("initial grant resource");
 });
+
+it("rejects an imported token that cannot be sent as an HTTP header without quoting it in diagnostics", () => {
+  let error: unknown;
+  try { fixture({ ...tokens, accessToken: "secret-token\nInjected: yep" }); } catch (caught) { error = caught; }
+  expect(error).toBeInstanceOf(Error);
+  expect(String(error)).toContain("initial grant");
+  expect(String(error)).not.toContain("secret-token");
+});

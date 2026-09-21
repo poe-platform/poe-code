@@ -70,7 +70,10 @@ const verifier = createJwksTokenVerifier({
 Fixed redirects support `localhost`, `127.0.0.1`, and `::1` over HTTP. Their
 exact spelling, port, path and query are preserved through registration,
 authorization and code exchange. Credentials, fragments, port zero and reserved
-OAuth callback query parameters are rejected before binding a listener. Omit
+OAuth callback query parameters are rejected before binding a listener.
+`createDefaultOAuthClientProvider` also checks the configured redirect before
+creating the provider. Imported tokens that cannot be sent as HTTP header
+values fail with diagnostics that omit their contents. Omit
 `redirectUri` to allocate a random loopback port. Standalone callback sessions
 accept the same `redirectUri`, `signal` and `timeoutMs` options. Cancellation,
 timeout and explicit close settle pending code waits and release listeners.

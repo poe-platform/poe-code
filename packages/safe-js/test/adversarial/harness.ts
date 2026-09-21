@@ -15,9 +15,16 @@ const MAX_DURATION_MS = 750;
 
 export async function runAdversarialCorpus(): Promise<void> {
   const startedAt = process.threadCpuUsage();
+  // Exercise all deterministic results twice in one realm per execution. Rebuilding
+  // the complete sandbox for each result dominated this corpus's CPU allowance.
   await assertDeterministicCompletion(
-    "return [1, 2, 3].map((value) => value * 2).join(',');",
-    "2,4,6"
+    `const mapped = [1, 2, 3].map((value) => value * 2).join(',');
+const raced = await Promise.race([Promise.resolve('first'), Promise.resolve('second')]);
+let rejectionName;
+try { await Promise.any([Promise.reject('left'), Promise.reject('right')]); }
+catch (error) { rejectionName = error.name; }
+return [mapped, raced, rejectionName].join('|');`,
+    "2,4,6|first|AggregateError"
   );
   assertDocumentedParserFailure("const value = ;");
   await assertSandboxFailure(
@@ -26,7 +33,6 @@ export async function runAdversarialCorpus(): Promise<void> {
     "callDepth"
   );
   assertRegexBudgetFailure();
-  await assertPromiseLifecycle();
   await assertIteratorReentry();
   assertCircularModuleLint();
   await assertUnregisteredModuleCannotExecute();
@@ -123,17 +129,6 @@ function assertRegexBudgetFailure(): void {
       });
     }
   }
-}
-
-async function assertPromiseLifecycle(): Promise<void> {
-  await assertDeterministicCompletion(
-    "return await Promise.race([Promise.resolve('first'), Promise.resolve('second')]);",
-    "first"
-  );
-  await assertDeterministicCompletion(
-    "try { await Promise.any([Promise.reject('left'), Promise.reject('right')]); } catch (error) { return error.name; }",
-    "AggregateError"
-  );
 }
 
 async function assertIteratorReentry(): Promise<void> {

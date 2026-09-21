@@ -14,8 +14,8 @@
     }
   },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && tsc --project tsconfig.build.json",
-    "test:unit": "tsc --project tsconfig.build.json && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.build.json && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/task-list-rust/vitest.reference.config.mjs",
+    "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build && tsc --project tsconfig.build.json",
+    "test:unit": "node scripts/prepare-host.mjs && tsc --project tsconfig.build.json && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.build.json && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/task-list-rust/vitest.reference.config.mjs",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -24,7 +24,8 @@
     "mcp-protocol-rust": "*",
     "typescript": "5.9.3",
     "vitest": "4.1.11",
-    "memfs": "4.56.10"
+    "memfs": "4.56.10",
+    "@poe-code/config-mutations-rust": "*"
   },
   "files": [
     "dist",

@@ -13,6 +13,8 @@ export default defineConfig({
         if (!id.startsWith(path(root)) || !id.endsWith(".test.ts")) return;
         const modules = new Map([
           ["./state.js", "state"],
+          ["../open.js", "open"],
+          ["./markdown-dir.js", "backends/markdown-dir"],
           ["./state-machine.js", "state-machine"],
           ["./types.js", "types"],
           ["../types.js", "types"],
@@ -44,9 +46,12 @@ export default defineConfig({
     }
   ],
   test: {
-    include: ["state.test.ts", "state-machine.test.ts", "backends/utils.test.ts"].map((name) =>
-      path(new URL(name, root))
-    ),
+    include: [
+      "state.test.ts",
+      "state-machine.test.ts",
+      "backends/utils.test.ts",
+      "backends/markdown-dir.test.ts"
+    ].map((name) => path(new URL(name, root))),
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

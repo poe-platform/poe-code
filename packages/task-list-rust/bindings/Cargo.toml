@@ -8,6 +8,7 @@ license="MIT"
 crate-type=["cdylib"]
 [dependencies]
 task-list-rust={path=".."}
+config-mutations-rust-napi-core={path="../../config-mutations-rust/bindings/shared"}
 napi={version="=3.12.6",default-features=false,features=["napi6"]}
 napi-derive="=3.6.7"
 [build-dependencies]

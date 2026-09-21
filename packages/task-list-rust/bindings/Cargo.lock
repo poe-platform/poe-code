@@ -15,6 +15,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
+name = "config-mutations-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "config-mutations-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust-napi-core",
+]
+
+[[package]]
 name = "convert_case"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -131,6 +150,18 @@ checksum = "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60"
 dependencies = [
  "cfg-if",
  "windows-link",
+]
+
+[[package]]
+name = "mcp-protocol-rust"
+version = "0.1.0"
+
+[[package]]
+name = "mcp-protocol-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "napi",
 ]
 
 [[package]]
@@ -275,10 +306,29 @@ version = "0.1.0"
 name = "task-list-rust-node"
 version = "0.1.0"
 dependencies = [
+ "config-mutations-rust-napi-core",
  "napi",
  "napi-build",
  "napi-derive",
  "task-list-rust",
+]
+
+[[package]]
+name = "toolcraft-design-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "toolcraft-design-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust",
 ]
 
 [[package]]

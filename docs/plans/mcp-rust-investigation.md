@@ -5394,3 +5394,36 @@ Checkpoint active interval10:03:10–10:04:20 adds70s; checkpoint pause excluded
 Continuous10:06:15–10:11:13 adds298s,total101911s (28.31h). Minimum fulfilled;
 remaining closure/runtime/performance acceptance incomplete. Continue accounting
 after10:11:13 UTC.
+
+### Task-list Markdown storage, 2026-09-21 10:16 UTC
+
+Owned Markdown backend now uses Rust document framing, ASCII numeric filename
+parsing and existing own YAML parse/serialize in its single addon. Filesystem,
+locking, atomic-write, guard/lifecycle and date/locale effects remain in Node.
+Native scanners preserve UTF16,CRLF,one-blank-line stripping,passthrough bodies,
+legacy numbered-name fallback and ECMAScript decimal order. Initial missing-module
+Rust/native reds precede implementation; reference inspection corrected an overly
+strict filename expectation before delivery. openTaskList currently supports
+Markdown only; YAML-file/GitHub types still rejected,moveTasks/project sync absent.
+
+Maintained9 Rust cases,4 native groups,78 original references/4files,covered public
+types,fmt/clippy,host ESLint and diff pass. Uncached maintained selected closure
+115workspaces/12builds/348edges passes. Packed23JS/declaration files,one addon,
+zero runtime groups/imports. Direct/packed16MiB workers each execute128creates/
+128updates/288event transitions/4096YAML graph roundtrips and reverse ordering,
+with128memfs task files. Final JS heaps14.45/15.40MB; RSS96.1/97.7MB. This worker
+limit bounds V8 old space,not total process/native memory. No general retention,
+platform or stability superiority claim.
+
+Five warmed alternating mocked32task create/plan/update/list/reorder workflows:
+original wall25.95–38.81ms/CPU27.95–82.33ms versus own wall19.30–25.67ms/
+CPU20.98–44.98ms. Both sample metrics improve in every pair,scoped performance
+PASS; this is memfs/local YAML work,not actual disk/network performance or universal
+speed superiority. Evidence out/rust-task-list-markdown-*.
+
+State foundation5d2630f12 exact remote-main verified; release35587421213 pending.
+Registry35583768081 unit still in_progress; successful publication unverified.
+Concurrent original OAuth/safe-bash changes/commits preserved. Continuous
+10:11:13–10:15:44 adds271s,total102182s (28.38h). Minimum fulfilled; full
+closure/runtime/platform/performance acceptance incomplete. Continue accounting
+after10:15:44 UTC.

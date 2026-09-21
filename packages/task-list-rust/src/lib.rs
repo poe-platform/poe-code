@@ -128,3 +128,4 @@ pub fn task_id(value: &[u16]) -> bool {
         && !value.iter().any(|u| *u == 47 || *u == 92)
         && !value.windows(2).any(|p| p == [46, 46])
 }
+pub mod markdown;

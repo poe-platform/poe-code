@@ -311,6 +311,9 @@ attempt. After any URL output, the connection summary goes to stderr; otherwise
 stdout contains `{ name, url, connected: true }`. Summaries omit remote server
 metadata and credentials. Use `--timeout-ms <milliseconds>` or SDK
 `requestTimeoutMs` to bound the complete operation (default 120,000 ms).
+`--max-response-bytes <bytes>` overrides the SDK's `maxResponseBytes` transport
+limit (default 16 MiB), separated or with `=`. Invalid/repeated values fail before
+credential binding. OAuth metadata and token responses keep their own byte limits.
 Authentication verifies initialization, establishes the configured OAuth grant
 even if initialization is public, and never lists or calls tools. A fresh
 connection verifies newly established access after public initialization.

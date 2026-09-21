@@ -4,17 +4,19 @@ import { CommandRegistry, createCommandArguments, toByteSource, type CommandCont
 import { createRemoteMcpManagementCommand } from "./index.js";
 const server = { name: "catalog", url: "https://resource.example/mcp", tools: [], protocolVersion: "2025-03-26" as const,
   auth: { type: "bearer" as const, env: "TOKEN" } };
-function fixture() {
+function fixture(authentication: { maxResponseBytes?: number } = {}) {
   const requests: string[] = [];
   const fetch = vi.fn(async (_url: string | URL, init?: RequestInit) => {
     expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer private-token");
     if (init?.method === "DELETE") return new Response(null, { status: 204 });
+    if (init?.method !== "POST") return new Response(null, { status: 405 });
     const request = JSON.parse(String(init?.body)); requests.push(request.method);
     if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
-    return Response.json({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "private-token", version: "1" } } });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "private-token", version: "1" } } },
+      { headers: { "Mcp-Session-Id": "owned-session" } });
   });
   const shell = new Shell({ fs: createMemoryFileSystem(), env: { TOKEN: "private-token" }, commands: new CommandRegistry([
-    createRemoteMcpManagementCommand([server], { authentication: { fetch } }) ]) });
+    createRemoteMcpManagementCommand([server], { authentication: { fetch, ...authentication } }) ]) });
   return { shell, fetch, requests };
 }
 it("authenticates a named supplied-schema server using shell credential references without listing tools", async () => {
@@ -27,6 +29,40 @@ it("authenticates a named supplied-schema server using shell credential referenc
     expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
   } finally { await f.shell.dispose(); }
 });
+
+it.each(["--max-response-bytes 4096", "--max-response-bytes=4096"])("overrides auth response policy with %s", async flag => {
+  const f = fixture({ maxResponseBytes: 1 });
+  try {
+    const result = await f.shell.exec(`mcp auth catalog --json ${flag}`);
+    expect(result.exitCode).toBe(0); expect(result.stderr).toBe("");
+    expect(JSON.parse(result.stdout)).toEqual({ name: "catalog", url: server.url, connected: true });
+    expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
+    expect(f.fetch.mock.calls.filter(([, init]) => init?.method === "DELETE")).toHaveLength(1);
+  } finally { await f.shell.dispose(); }
+});
+
+it("bounds authentication transport responses and retires the failed session", async () => {
+  const f = fixture();
+  try {
+    const result = await f.shell.exec("mcp auth catalog --max-response-bytes=8");
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("8 bytes"); expect(result.stderr).not.toContain("private-token");
+    expect(f.requests).toEqual(["initialize"]);
+    expect(f.fetch.mock.calls.filter(([, init]) => init?.method === "DELETE")).toHaveLength(1);
+  } finally { await f.shell.dispose(); }
+});
+
+it.each(["--max-response-bytes=0", "--max-response-bytes=1.5", "--max-response-bytes=1 --max-response-bytes=2"])(
+  "rejects invalid auth response policy %s before connecting", async flags => {
+    const f = fixture();
+    try {
+      const result = await f.shell.exec(`mcp auth catalog ${flags}`);
+      expect(result.exitCode).toBe(2); expect(result.stdout).toBe("");
+      expect(result.stderr).toMatch(/positive integer|only be supplied once/);
+      expect(f.fetch).not.toHaveBeenCalled();
+    } finally { await f.shell.dispose(); }
+  }
+);
 
 it("selects a literal leading-dash server name and overrides a host request deadline", async () => {
   const f = fixture();
@@ -59,6 +95,7 @@ it("shows focused auth help before reading credentials or contacting a server", 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toMatch(/^Usage: mcp auth /u);
     expect(result.stdout).toContain("--timeout-ms");
+    expect(result.stdout).toContain("--max-response-bytes");
     expect(result.stdout).toContain("--browser none|host");
     expect(f.fetch).not.toHaveBeenCalled();
   } finally { await f.shell.dispose(); }

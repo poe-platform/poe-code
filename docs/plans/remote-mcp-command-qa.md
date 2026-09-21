@@ -182,3 +182,11 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     diagnostics with empty result stdout. Inspect help and failure screenshots.
     Serialize QA runs sharing a written artifact so each imports its own endpoint.
     Purge only owned fixture files and screenshots.
+
+28. Authentication response policy: use a real bearer-protected local HTTP MCP
+    endpoint whose initialization contains synthetic credential-looking metadata.
+    Override a one-byte host response limit with separated/inline
+    --max-response-bytes=4096, then lower it to eight. Require safe public success
+    summaries, response-byte failure with empty stdout, no tool list/call and
+    three distinct session deletions. Repeated values fail before network/binding.
+    Inspect auth help and failure screenshots and purge only owned evidence.

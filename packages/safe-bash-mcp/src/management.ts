@@ -67,12 +67,13 @@ function resourceArguments(args: readonly string[], maxInputBytes: number): { na
   return { name, request: snapshotRemoteMcpResourceRequest(request, Math.min(maxInputBytes, policy.maxInputBytes ?? maxInputBytes)), ...policy };
 }
 
-function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; file?: string; maxImportBytes?: number; timeoutMs?: number } {
+function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; maxResponseBytes?: number; file?: string; maxImportBytes?: number; timeoutMs?: number } {
   const command = args[0];
   let name: string | undefined;
   let json = false;
   let noBrowser: boolean | undefined;
   let requestTimeoutMs: number | undefined;
+  let maxResponseBytes: number | undefined;
   let reset = false;
   let file: string | undefined;
   let maxImportBytes: number | undefined;
@@ -100,6 +101,9 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
     } else if (command === "import" && (arg === "--lock-timeout-ms" || arg.startsWith("--lock-timeout-ms="))) {
       if (timeoutMs !== undefined) throw new Error("--lock-timeout-ms can only be supplied once");
       timeoutMs = positiveArgument(arg === "--lock-timeout-ms" ? args[++index] : arg.slice("--lock-timeout-ms=".length), "--lock-timeout-ms", 2_147_483_647);
+    } else if (command === "auth" && (arg === "--max-response-bytes" || arg.startsWith("--max-response-bytes="))) {
+      if (maxResponseBytes !== undefined) throw new Error("--max-response-bytes can only be supplied once");
+      maxResponseBytes = positiveArgument(arg === "--max-response-bytes" ? args[++index] : arg.slice("--max-response-bytes=".length), "--max-response-bytes");
     } else if (arg === "--timeout-ms" || arg.startsWith("--timeout-ms=")) {
       if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
       requestTimeoutMs = positiveArgument(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length), "--timeout-ms", 2_147_483_647);
@@ -112,7 +116,7 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
     }
   }
   if (name === undefined) throw new Error(`${command} requires a server name`);
-  return { name, json, reset, noBrowser, requestTimeoutMs, file, maxImportBytes, timeoutMs };
+  return { name, json, reset, noBrowser, requestTimeoutMs, maxResponseBytes, file, maxImportBytes, timeoutMs };
 }
 
 /** Create configuration and artifact commands for a host-owned static remote registry. */
@@ -137,7 +141,9 @@ export function createRemoteMcpManagementCommand(
     "host-configured opener. Cached credentials may connect without another URL.", "",
     "--reset retires saved OAuth tokens and registrations before new consent.",
     "--timeout-ms <milliseconds> bounds the complete authentication operation",
-    "(default 120000). Host callback timeouts may impose a shorter limit."
+    "(default 120000). Host callback timeouts may impose a shorter limit.",
+    "--max-response-bytes <bytes> overrides the transport response limit",
+    "(default 16777216). OAuth metadata/token responses retain their own limits."
   ];
   const authenticationHelp = [authenticationUsage, "", ...authenticationGuidance, "", "  --help  Show this help.", ""].join("\n");
   const resetHelp = [`Usage: ${textLine(shellWord(name))} reset <server> [--json] [--timeout-ms <milliseconds>]`, "",
@@ -370,6 +376,7 @@ export function createRemoteMcpManagementCommand(
               noBrowser: selected.noBrowser ?? settings?.noBrowser ?? true,
               reset: selected.reset || settings?.reset,
               requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
+              maxResponseBytes: selected.maxResponseBytes ?? settings?.maxResponseBytes,
               signal: authSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, authSignal]),
               async onAuthorizationUrl(request) {
                 const text = selected.json ? `${JSON.stringify(request)}\n` : `Authorization URL: ${textLine(request.authorizationUrl)}\nRedirect URI: ${textLine(request.redirectUri)}\n`;

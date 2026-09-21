@@ -1,4 +1,5 @@
 import { synchronizeCommentExtensions, type CommentExtensionInfo } from "./comment-extensions.js";
+import { allocateCommentId } from "./comment-id.js";
 import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { writeArchive } from "./archive-write.js";
@@ -122,8 +123,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     const lastPath = [...before.value.path, p.children.indexOf(last)];
     const compare = (a: readonly number[], b: readonly number[]) => { for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i]! - b[i]!; return a.length - b.length; };
     if (state.records.some(n => n.start?.part === before.value.part && n.end && compare(n.start.path, lastPath) < 0 && compare(firstPath, n.end.path) < 0)) throw new UnsupportedEditError("Comment ranges cannot overlap existing comments.");
-    const used = new Set(state.records.map(n => n.id));
-    let id = 0; while (used.has(id)) { budget.charge("work", 1); id++; }
+    const id = allocateCommentId(state.records.map(n => n.id), budget);
     const patches = new Map([[first, `<cm:commentRangeStart xmlns:cm="${w}" cm:id="${id}"/>` + editor.sourceXml(first)]]);
     patches.set(last, (patches.get(last) ?? editor.sourceXml(last)) + `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${id}"/><cm:r xmlns:cm="${w}"><cm:commentReference cm:id="${id}"/></cm:r>`);
     editor.replaceElement(p, editor.sourceXml(p, patches));

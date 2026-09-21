@@ -9,6 +9,7 @@ import type { XmlElement } from "./package-xml.js";
 import { WD_STYLE_TYPE, type Length } from "./formatting-values.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
+import { allocateCommentId } from "./comment-id.js";
 
 function text(value: unknown): asserts value is string {
   if (typeof value !== "string") throw new InputTypeError("Expected comment text.");
@@ -50,9 +51,7 @@ export class Comments implements Iterable<Comment> {
       const style = styles.has("Comment Text")
         ? styles.at("Comment Text")
         : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
-      const used = new Set(this.nodes.map(id));
-      let next = 0;
-      while (used.has(next)) next++;
+      const next = allocateCommentId(this.nodes.map(id), this.store.context.budget);
       const timestamp = this.store.context.timestamp.toISOString();
       this.store.change(this.ref.part, (xml) => {
         const root = this.store.node(this.ref);

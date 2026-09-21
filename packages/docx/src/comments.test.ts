@@ -45,10 +45,10 @@ it("edits and deletes one of multiple comments while preserving unrelated annota
   const added = await edit(input, "add", { select: await range(input, 0, 9), author: "", timestamp });
   const items = (await read(added)).items;
   expect(items).toHaveLength(2);
-  const changed = await edit(added, "set", { select: items[0]!.location.token, text: "Updated note" });
+  const changed = await edit(added, "set", { select: items.find(item => item.comment_id === 10)!.location.token, text: "Updated note" });
   expect(await xml(changed)).toBe(await xml(added));
   expect(await xml(changed, "word/comments.xml")).toContain(other);
-  const removed = await edit(changed, "remove", { comment: 1 });
+  const removed = await edit(changed, "remove", { comment: 2 });
   expect(await xml(removed)).toBe(await xml(input));
   expect(await xml(removed, "word/comments.xml")).toContain(other);
   expect((await read(removed)).items).toMatchObject([{ comment_id: 9, text: "Unselected note" }]);
@@ -142,7 +142,7 @@ it("preserves modern metadata exactly on reads and rejects its comment mutations
 it("adds disjoint comments in the same paragraph and preserves both references", async () => {
   const input = await textFixture(`<w:p>${markers("Ocean")}${run(" bay")}${run(" shore")}</w:p>`, stories(body()));
   const output = await edit(input, "add", { select: await range(input, 5, 15), author: "Noah", timestamp, text: "Second comment" });
-  expect((await read(output)).items.map(n => n.comment_id)).toEqual([0, 4]);
+  expect((await read(output)).items.map(n => n.comment_id)).toEqual([4, 5]);
   expect(await xml(output)).toContain(markers("Ocean"));
   await expect(docx.editDocumentComments(output, { operation: "comments.add", options: { select: await range(output, 0, 15), author: "", timestamp, dryRun: true } }, editContext)).rejects.toMatchObject({ code: "unsupported-edit" });
 });

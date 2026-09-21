@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-text-style-document",
+  "status": "bounded-comment-id-correction-verified-task-open",
+  "scope": "Comment-ID allocation only; complete task remains open",
+  "source_revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+  "cases": [
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_comments.py",
+        "line": 19,
+        "node_id": "tests/oxml/test_comments.py::DescribeCT_Comments::it_finds_the_next_available_comment_id_to_help[w:comments-0]"
+      },
+      "edge_values": {
+        "cxml": "w:comments",
+        "expected_value": 0
+      },
+      "target": {
+        "path": "packages/docx/src/comment-id-allocation.test.ts",
+        "ids": [],
+        "expected_id": 0
+      },
+      "equivalence": "Exact empty/sparse/sequential/signed-32-bit-maximum boundaries adapted through typed live creation and SDK-backed CLI, not private XML descriptors"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_comments.py",
+        "line": 19,
+        "node_id": "tests/oxml/test_comments.py::DescribeCT_Comments::it_finds_the_next_available_comment_id_to_help[w:comments/(w:comment{w:id=1})-2]"
+      },
+      "edge_values": {
+        "cxml": "w:comments/(w:comment{w:id=1})",
+        "expected_value": 2
+      },
+      "target": {
+        "path": "packages/docx/src/comment-id-allocation.test.ts",
+        "ids": [
+          1
+        ],
+        "expected_id": 2
+      },
+      "equivalence": "Exact empty/sparse/sequential/signed-32-bit-maximum boundaries adapted through typed live creation and SDK-backed CLI, not private XML descriptors"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_comments.py",
+        "line": 19,
+        "node_id": "tests/oxml/test_comments.py::DescribeCT_Comments::it_finds_the_next_available_comment_id_to_help[w:comments/(w:comment{w:id=4},w:comment{w:id=2147483646})-2147483647]"
+      },
+      "edge_values": {
+        "cxml": "w:comments/(w:comment{w:id=4},w:comment{w:id=2147483646})",
+        "expected_value": 2147483647
+      },
+      "target": {
+        "path": "packages/docx/src/comment-id-allocation.test.ts",
+        "ids": [
+          4,
+          2147483646
+        ],
+        "expected_id": 2147483647
+      },
+      "equivalence": "Exact empty/sparse/sequential/signed-32-bit-maximum boundaries adapted through typed live creation and SDK-backed CLI, not private XML descriptors"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_comments.py",
+        "line": 19,
+        "node_id": "tests/oxml/test_comments.py::DescribeCT_Comments::it_finds_the_next_available_comment_id_to_help[w:comments/(w:comment{w:id=1},w:comment{w:id=2147483647})-0]"
+      },
+      "edge_values": {
+        "cxml": "w:comments/(w:comment{w:id=1},w:comment{w:id=2147483647})",
+        "expected_value": 0
+      },
+      "target": {
+        "path": "packages/docx/src/comment-id-allocation.test.ts",
+        "ids": [
+          1,
+          2147483647
+        ],
+        "expected_id": 0
+      },
+      "equivalence": "Exact empty/sparse/sequential/signed-32-bit-maximum boundaries adapted through typed live creation and SDK-backed CLI, not private XML descriptors"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_comments.py",
+        "line": 19,
+        "node_id": "tests/oxml/test_comments.py::DescribeCT_Comments::it_finds_the_next_available_comment_id_to_help[w:comments/(w:comment{w:id=1},w:comment{w:id=2},w:comment{w:id=3})-4]"
+      },
+      "edge_values": {
+        "cxml": "w:comments/(w:comment{w:id=1},w:comment{w:id=2},w:comment{w:id=3})",
+        "expected_value": 4
+      },
+      "target": {
+        "path": "packages/docx/src/comment-id-allocation.test.ts",
+        "ids": [
+          1,
+          2,
+          3
+        ],
+        "expected_id": 4
+      },
+      "equivalence": "Exact empty/sparse/sequential/signed-32-bit-maximum boundaries adapted through typed live creation and SDK-backed CLI, not private XML descriptors"
+    }
+  ],
+  "supplemental_case": {
+    "ids": [
+      0,
+      1,
+      3,
+      2147483647
+    ],
+    "expected_id": 2
+  },
+  "red": {
+    "model": "3 failed, 3 passed: IDs 1, sparse maximum-minus-one, and 1/2/3 allocated 0",
+    "utility": "After model correction, 3 failed, 3 passed: exact new comment XML retained ID 0 instead of 2/2147483647/4"
+  },
+  "green": {
+    "focused": "9 tests passed: 6 original allocation cases with whole exact comment XML and all three marker IDs, plus 3 collection protocol cases."
+  },
+  "api": {
+    "source": "docx.comments.Comments.add_comment",
+    "target": "Comments.add_comment(text = \"\", author = \"\", initials: string | null = \"\"): Comment",
+    "language": "Synchronous admitted creation; get(nonnegative safe integer ID) returns live Comment|null; iteration preserves stored order. Utility list uses sorted stored IDs, one-based CLI --comment selects sorted ordinal. timestamp is a fresh UTC Date from explicit captured context; null initials removes the attribute.",
+    "security": "One package allocator shared by live model and utility; cumulative work charged on every stored ID and fallback candidate. Explicit byte admission/sink publication, memfs input preservation; targets never fetched.",
+    "documentation_drift": "Earlier tests assumed allocation fills the lowest gap unconditionally. Correct to maximum-plus-one up to 2147483647, then lowest unused nonnegative ID. Public spelling and return types unchanged."
+  },
+  "maintained_checks": {
+    "lint": "Passed ESLint and source/test TypeScript checks; one unchanged type-only unused-variable warning",
+    "build": "Passed npm run build:workspaces -- --workspace=docx",
+    "test": "Test Files  248 passed (248)\n      Tests  5168 passed (5168)\n   Duration  201.92s (transform 7.00s, setup 2.14s, import 57.43s, tests 326.96s, environment 12ms)",
+    "initial_test": "npm test --workspace=docx: 5167 passed, one stale sparse-ID gap expectation failed. Corrected expected 100 after stored IDs 0/99; rerun pending."
+  },
+  "remaining": "Complete per-case and per-member reconciliation for all remaining applicable document/text/style/story/comment/settings behavior; no later task started. Historical inventories remain unchanged.",
+  "qa": {
+    "initial_route": "npm run screenshot-poe-code: prerequisite build passed; invocation bash --root rejected unknown option. This screenshot is not successful behavior evidence. Root dev -- bash --help independently reports unknown command bash.",
+    "transcript": "Actual public built engine comments.list returned stored IDs 1 and 2; original in-memory QA input only",
+    "transcript_sha256": "6e7289513f169618a73cbec127e5c6db59675e77bac17f507b3769a0b724ee3b",
+    "fallback": {
+      "command": "npm run screenshot -- --output out/docx-text-style-20260921/comments-transcript.png cat out/docx-text-style-20260921/comments.txt",
+      "sha256": "2b0d91d6d2cfd111391f340b8ac93ea5ed00dcbd0499d9d89b86e5247eb53002",
+      "result": "Inspected readable, unclipped ID 1 retained note and ID 2 new note. Actual built public engine transcript, not root bash integration or document rendering."
+    }
+  },
+  "coverage": {
+    "qualified_source_variants": 5,
+    "new_original_tests": 6,
+    "whole_task": "open",
+    "reference_runtime": "not-run",
+    "corpus": "not-run",
+    "document_renderer": "not-run",
+    "temporary_source_checkout": "unavailable; retained inventory witnesses used"
+  }
+}

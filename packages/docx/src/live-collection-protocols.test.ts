@@ -66,7 +66,7 @@ it("implements section slice and inherited sequence searches over live owners", 
   }
 });
 
-it("keeps sparse comment IDs keyed while creation fills the first unused ID", async () => {
+it("keeps sparse comment IDs keyed while creation follows the highest stored ID", async () => {
   const doc = await document(), comments = doc.comments;
   const zero = comments.add_comment("Low water", "Observer", null);
   const far = comments.add_comment("High water");
@@ -78,10 +78,9 @@ it("keeps sparse comment IDs keyed while creation fills the first unused ID", as
   expect(zero.initials).toBeNull();
   expect(far.initials).toBe("");
   expect([...comments].map(comment => comment.comment_id)).toEqual([0, 99]);
-  expect(comments.add_comment().comment_id).toBe(1);
+  expect(comments.add_comment().comment_id).toBe(100);
   for (const key of [-1, null, false, "0", NaN, Infinity, 0.5]) expect(() => comments.get(key as number)).toThrow(api.InputTypeError);
   expect(Reflect.get(comments, "at")).toBeUndefined();
   expect(Reflect.get(comments, "slice")).toBeUndefined();
   expect(Reflect.get(comments, "paragraphs")).toBeUndefined();
 });
-

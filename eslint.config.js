@@ -288,6 +288,7 @@ function policyConfig(safeBashInputs, compatibility = []) {
       'packages/safe-bash/src/commands/xan',
       ...safeBashInputs.files.map(path => `packages/safe-bash/${path}`),
       ...safeBashInputs.directories.map(path => `packages/safe-bash/${path}/**`),
+      'output/**',
     ],
   },
   {

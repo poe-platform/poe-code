@@ -49,7 +49,7 @@ The built public consumer ran as one selected file after five fresh dependency b
 
 ## Generated output lint
 
-The second full root lint completed its traversal of 16,928 configured files; all 223 rule errors came from generated audit scripts under root `output`, primarily unused probe imports. The generated output directory now shares the global exclusion used for `out`, `dist` and screenshots. Audit artifacts are preserved. A third maintained root lint checks the resulting source selection; no rules were disabled.
+The second full root lint completed its traversal of 16,928 configured files; all 223 rule errors came from generated audit scripts under root `output`, primarily unused probe imports. The generated output directory now shares the global exclusion used for `out`, `dist` and screenshots. Audit artifacts are preserved. The third maintained root lint completes with exit 0 across 16,169 configured/linted files, zero errors and 19 warnings; no rules were disabled.
 
 ## Independent assertion checksums
 

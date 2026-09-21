@@ -114,6 +114,9 @@ You can also call `discoverOAuthMetadata(resourceUrl, options)` directly, or ins
 Resource/issuer binding mismatches and exhausted authorization-server discovery
 expose `OAuthMetadataError.phase` while retaining complete SDK messages.
 Protected-resource metadata HTTP failures also expose their numeric `status`.
+Advertised resource identities reject named and empty fragments before issuer
+discovery; malformed shared-cache identities are evicted. Resource queries and
+percent-escaped hash data remain part of the exact resource identity.
 Rejected metadata bodies start cleanup without delaying failure or caller
 cancellation. Host cleanup may finish later; its rejection remains observed.
 `OAuthMetadataError.is(value)` recognizes separately bundled native copies.

@@ -101,6 +101,9 @@ function validateProtectedResourceMetadata(
   if (typeof value.resource !== "string" || value.resource.length === 0) {
     throw new Error("Protected resource metadata must include a resource string");
   }
+  if (value.resource.includes("#")) {
+    throw new OAuthMetadataError("protected-resource", "Protected resource metadata resource must not include fragment");
+  }
 
   const normalizedResource = canonicalizeResourceIndicator(value.resource);
 

@@ -644,3 +644,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Require ten MCP requests/four valid metadata GETs/two host retries and zero
     persistence/tool/token/consent. Inspect safe summary screenshot and purge
     only owned synthetic evidence.
+
+59. Advertise named/empty fragments on actual protected-resource metadata.
+    Through SDK/generated tools/management auth require typed protected-resource
+    failures, safe CLI phase/empty stdout and zero issuer discovery for all six
+    failures. Evict both malformed shared-cache identities and require fresh
+    complete valid metadata with exact resource query/falsey extensions/005930.
+    Retain percent-escaped hashes in valid path/query components. Require nine
+    protected-resource GETs/three valid issuer GETs/four unauthorized MCP requests
+    and zero credential writes/token/tool/consent. Inspect safe summary screenshot
+    and purge only owned evidence.

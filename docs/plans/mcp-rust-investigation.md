@@ -5773,3 +5773,30 @@ publication unverified. Concurrent OAuth/safe-bash changes preserved. Conservati
 restart11:26:15–11:30:47 adds272s,total106370s (29.55h). Unknown interval after
 11:24:08 and checkpoint pause excluded. Minimum fulfilled;objective incomplete.
 Continue accounting after11:30:47 UTC.
+
+### Stored config JSON crossing, 2026-09-21 11:34 UTC
+
+Stored plain JSON now parses/normalizes in one owned operation,avoiding the
+host parse→record snapshot→native normalization pipeline. Last duplicate keys,
+literal prototype keys,unpaired UTF16,signed zero,overflow numbers and empty-scope
+filtering validated. Changed host parse/enumeration/array intrinsics,callable
+proxies and valid JSON beyond512levels retain the host path;invalid JSON uses
+original native SyntaxError diagnostics/recovery. Missing stored-core red precedes
+implementation. No production integration.
+
+Maintained14Rust cases,10native groups,174original references/7files,types,
+fmt/clippy/ESLint pass. Uncached selected117workspaces/19builds/360edges passes.
+Packed102JS/declarations,one addon,zero runtime groups/imports. Direct/packed
+16MiB workers repeat prior complete workload;heaps11.63/12.00MiB,RSS80.20/82.64MiB,
+35memfs files,no tmp;not native-memory bounds. Five alternating warmed128stored
+reads of64nested values: baseline owned store fromdc70cffbewall11.41–12.16ms/
+CPU11.71–15.14ms,newwall6.39–7.44ms/CPU6.91–12.77ms,wall improves each pair,
+one CPU pair slightly worse. Originalwall2.78–3.53ms/CPU2.78–4.77ms;full scoped
+performance acceptance still FAIL. Service workload remains slower;state pair
+measurements mixed and no general improvement claim. Evidence
+out/rust-poe-config-parse-*.
+
+Servicedc70cffbe verified exactly on remote main;release35594515828 pending,
+publication unverified. Concurrent OAuth/safe-bash work preserved. Continuous
+11:30:47–11:34:58 adds251s,total106621s (29.62h). Objective incomplete.
+Continue accounting after11:34:58 UTC.

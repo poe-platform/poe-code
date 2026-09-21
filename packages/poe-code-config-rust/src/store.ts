@@ -1,3 +1,5 @@
+import {types} from "node:util";
+import {native} from "./native.js";
 import {documentPolicy} from "./document-host.js";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
@@ -116,7 +118,7 @@ async function parseStoredDocument(
   try {
     return {
       content: raw,
-      data: normalizeDocument(JSON.parse(raw))
+      data: parseDocumentData(raw)
     };
   } catch (error) {
     if (error instanceof SyntaxError) {
@@ -131,6 +133,17 @@ async function parseStoredDocument(
     }
     throw error;
   }
+}
+
+const parseIntrinsics=[JSON.parse,Object.entries,Object.keys,Object.defineProperty,Array.isArray] as const;
+const hasNativeParseIntrinsics=parseIntrinsics.every(fn=>!types.isProxy(fn) && Function.prototype.toString.call(fn).includes("[native code]"));
+function parseDocumentData(raw:string):ConfigDocument {
+ if(hasNativeParseIntrinsics && JSON.parse===parseIntrinsics[0] && Object.entries===parseIntrinsics[1] && Object.keys===parseIntrinsics[2] && Object.defineProperty===parseIntrinsics[3] && Array.isArray===parseIntrinsics[4]){
+  const document=native.configParseStored(raw);
+  if(document!==null)return document;
+ }
+ // Preserve native SyntaxError diagnostics, host parse hooks and deep valid JSON.
+ return normalizeDocument(JSON.parse(raw));
 }
 
 function normalizeDocument(value:unknown):ConfigDocument {

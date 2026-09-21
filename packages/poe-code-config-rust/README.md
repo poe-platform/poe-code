@@ -29,6 +29,9 @@ Plain data records use one native document operation with opaque references to
 selected values. Accessors, proxies or changed host intrinsics use the observable
 callback path; neither path clones unchanged branches.
 
+Stored plain JSON parses and normalizes in one native call; deep valid JSON and
+changed host intrinsics retain the observable parser path.
+
 Rust owns scope/document normalization, runtime merge policy and primitive
 coercion. Owned layered-document parsing/resolution is embedded in the same addon.
 Node retains filesystem access, atomic writes/recovery, custom JSON parsers,

@@ -1,6 +1,7 @@
 import type {ConfigDocument} from "./types.js";
 import {createRequire} from "node:module";
 interface ConfigNative {
+ configParseStored(text:string):ConfigDocument|null;
  configServiceFiles(values:string[]):string[];
  configServiceText(value:string):string|null;
  configServiceShape(value:string):boolean;

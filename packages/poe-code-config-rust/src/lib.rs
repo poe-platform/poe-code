@@ -4,3 +4,4 @@ pub mod document;
 pub mod owned;
 pub mod services;
 pub mod state;
+pub mod stored;

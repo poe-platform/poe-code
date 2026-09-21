@@ -314,3 +314,8 @@ pub fn config_service_text(value: Utf16String) -> Option<Utf16String> {
 pub fn config_service_shape(value: Utf16String) -> bool {
     poe_code_config_rust::services::is_api_shape(&value)
 }
+
+#[napi]
+pub fn config_parse_stored(text: Utf16String) -> Option<NativeJson> {
+    poe_code_config_rust::stored::parse(&text).map(NativeJson)
+}

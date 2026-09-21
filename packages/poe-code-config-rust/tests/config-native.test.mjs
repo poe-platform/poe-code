@@ -41,3 +41,23 @@ test("record snapshots promote shared shallow shells when runtime needs deeper m
  const leftRuntime={};Object.defineProperty(leftRuntime,"A",{value:"one"});
  assert.deepEqual(deepMergeDocuments({runtime:{args:leftRuntime}},{runtime:{args:{A:undefined,B:"two"}}}).runtime.args,{A:"one",B:"two"});
 });
+
+test('stored JSON path preserves duplicate keys, signed zero, UTF16 and deep fallbacks',async()=>{
+ const {readDocumentReadonly}=await import('../dist/index.js');
+ const {Volume,createFsFromVolume}=await import('memfs');
+ const fs=createFsFromVolume(Volume.fromJSON({'/config.json':'{"empty":{},"list":[],"core":{"__proto__":1,"a":1,"a":2,"s":"\\ud800","n":-0,"huge":1e400}}'},'/')).promises;
+ const result=await readDocumentReadonly(fs,'/config.json');
+ assert.deepEqual(Object.keys(result),['core']);assert.ok(Object.hasOwn(result.core,'__proto__'));assert.equal(result.core.a,2);assert.equal(result.core.s,'\ud800');assert.ok(Object.is(result.core.n,-0));assert.equal(result.core.huge,Infinity);
+ const deep='{"core":{"value":'+ '['.repeat(600)+'0'+']'.repeat(600)+'}}';await fs.writeFile('/config.json',deep,'utf8');
+ let value=(await readDocumentReadonly(fs,'/config.json')).core.value;for(let n=0;n<600;n++)value=value[0];assert.equal(value,0);
+ await fs.writeFile('/config.json','{bad}','utf8');await assert.rejects(readDocumentReadonly(fs,'/config.json'),SyntaxError);
+});
+test('stored JSON path preserves changed host parse and enumeration hooks',async()=>{
+ const {readDocumentReadonly}=await import('../dist/index.js');
+ const {Volume,createFsFromVolume}=await import('memfs');
+ const fs=createFsFromVolume(Volume.fromJSON({'/config.json':'{"core":{"a":1}}'},'/')).promises;
+ const parse=JSON.parse,entries=Object.entries;let parses=0,enumerations=0;
+ JSON.parse=function(...args){parses++;return parse(...args);};Object.entries=function(...args){enumerations++;return entries(...args);};
+ try{assert.equal((await readDocumentReadonly(fs,'/config.json')).core.a,1);}finally{JSON.parse=parse;Object.entries=entries;}
+ assert.ok(parses>0);assert.ok(enumerations>0);
+});

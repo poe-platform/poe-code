@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { McpError } from "./index.js";
-const { NativeMessageLayer, NativeRetryState } = createRequire(import.meta.url)(
+const { NativeMessageLayer, NativeRetryState, validateRequestTimeout } = createRequire(import.meta.url)(
   "./tiny-mcp-client-rust.node"
 );
 
@@ -65,8 +65,7 @@ export class JsonRpcMessageLayer {
     inputClosedReason,
     maxConcurrentRequests = 128
   ) {
-    if (!Number.isFinite(requestTimeoutMs) || requestTimeoutMs < 0)
-      throw new Error("requestTimeoutMs must be a non-negative finite number");
+    validateRequestTimeout(requestTimeoutMs, "requestTimeoutMs");
     this.#native = new NativeMessageLayer(maxConcurrentRequests);
     this.#input = input;
     this.#output = output;
@@ -99,8 +98,7 @@ export class JsonRpcMessageLayer {
     if (this.#disposed !== undefined) throw this.#disposed;
     const timeoutMs =
       options.timeoutMs === null ? null : (options.timeoutMs ?? this.requestTimeoutMs);
-    if (timeoutMs !== null && (!Number.isFinite(timeoutMs) || timeoutMs < 0))
-      throw new Error("timeoutMs must be a non-negative finite number");
+    if (timeoutMs !== null) validateRequestTimeout(timeoutMs, "timeoutMs");
     const token = this.#native.beginExchange();
     const controller = new AbortController();
     this.#exchanges.set(token, controller);
@@ -116,6 +114,15 @@ export class JsonRpcMessageLayer {
       rejectAbort(controller.signal.reason);
     };
     controller.signal.addEventListener("abort", cancel, { once: true });
+    const timeout = timeoutMs === null ? undefined : setTimeout(() => {
+      let reason = new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`);
+      try {
+        options.onTimeout?.(id);
+      } catch (error) {
+        reason = error;
+      }
+      controller.abort(reason);
+    }, timeoutMs);
     const once = (args) =>
       new Promise((resolve, reject) => {
         try {
@@ -126,21 +133,7 @@ export class JsonRpcMessageLayer {
           options.onRequestId?.(id);
           if (options.signal?.aborted) forward();
           controller.signal.throwIfAborted();
-          const timeout =
-            timeoutMs === null
-              ? undefined
-              : setTimeout(() => {
-                  this.#native.cancelRequest(id);
-                  this.#pending.delete(id);
-                  try {
-                    options.onTimeout?.(id);
-                  } finally {
-                    reject(
-                      new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`)
-                    );
-                  }
-                }, timeoutMs);
-          this.#pending.set(id, { resolve, reject, timeout });
+          this.#pending.set(id, { resolve, reject });
           try {
             this.#output.write(prepared.line);
           } catch (error) {
@@ -188,6 +181,7 @@ export class JsonRpcMessageLayer {
     })();
     if (options.signal?.aborted) forward();
     return Promise.race([work, aborted]).finally(() => {
+      clearTimeout(timeout);
       options.signal?.removeEventListener("abort", forward);
       controller.signal.removeEventListener("abort", cancel);
       this.#exchanges.delete(token);
@@ -201,7 +195,6 @@ export class JsonRpcMessageLayer {
     if (!canceled) return false;
     this.#pending.delete(id);
     if (pending !== undefined) {
-      clearTimeout(pending.timeout);
       pending.reject(reason);
     }
     return true;
@@ -211,7 +204,6 @@ export class JsonRpcMessageLayer {
     this.#disposed = reason;
     for (const controller of this.#exchanges.values()) controller.abort(reason);
     for (const pending of this.#pending.values()) {
-      clearTimeout(pending.timeout);
       pending.reject(reason);
     }
     this.#pending.clear();
@@ -249,7 +241,6 @@ export class JsonRpcMessageLayer {
             const pending = this.#pending.get(event.id);
             this.#pending.delete(event.id);
             if (pending === undefined) continue;
-            clearTimeout(pending.timeout);
             if (Object.hasOwn(event, "result")) pending.resolve(event.result);
             else
               pending.reject(new McpError(event.error.code, event.error.message, event.error.data));

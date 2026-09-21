@@ -5,7 +5,7 @@ import { OAuthMetadataDiscovery, parseBearerWwwAuthenticateHeader } from "./oaut
 import { createOAuthClientProvider } from "./oauth/provider.js";
 import { OAuthError } from "./oauth/tokens.js";
 import { fetchMcpResponse, readBoundedResponseText } from "./oauth/http.js";
-const { NativeHttpTransport, NativeSseParser, httpResponseKind } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
+const { NativeHttpTransport, NativeSseParser, httpResponseKind, validateRequestTimeout } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 
 export class HttpTransportError extends Error {
   constructor(message, status, method, rpcMethod) {
@@ -65,6 +65,7 @@ export class HttpTransport {
     return accepted;
   }
   async completeInitialization(options) {
+    if (options.timeoutMs !== null) validateRequestTimeout(options.timeoutMs, "timeoutMs");
     const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
     const signals = [options.signal, deadline].filter(signal => signal !== undefined);
     const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);

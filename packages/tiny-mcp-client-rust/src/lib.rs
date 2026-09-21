@@ -5,6 +5,7 @@ pub mod http;
 pub mod http_transport;
 pub mod layer;
 pub mod messages;
+pub mod request_policy;
 pub mod retries;
 pub mod sse;
 pub mod stdio;

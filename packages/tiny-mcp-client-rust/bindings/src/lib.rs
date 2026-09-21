@@ -1,5 +1,26 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+#[napi]
+pub fn validate_request_timeout(value: f64, name: String) -> Result<()> {
+    if tiny_mcp_client_rust::request_policy::valid_timeout(value) {
+        Ok(())
+    } else {
+        Err(napi::Error::from_reason(format!(
+            "{name} must be a non-negative finite number no greater than 2147483647"
+        )))
+    }
+}
+
+#[napi]
+pub fn validate_protocol_pin(value: String) -> Result<()> {
+    if tiny_mcp_client_rust::request_policy::valid_protocol_pin(&value) {
+        Ok(())
+    } else {
+        Err(napi::Error::from_reason(
+            "Unsupported protocolVersion; use 2025-03-26 or 2026-07-28",
+        ))
+    }
+}
 pub mod discovery_binding;
 #[path = "../../../mcp-oauth-rust/bindings/src/lib.rs"]
 pub mod embedded_oauth;

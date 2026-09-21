@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { JsonRpcMessageLayer, McpError } from "./index.js";
 import { SubscriptionManager } from "./subscriptions.js";
-const { NativeClient } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
+const { NativeClient, validateProtocolPin } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 function unwrap(value) {
   if (value.error !== undefined) {
     const { code, message } = value.error;
@@ -33,6 +33,11 @@ export class McpClient {
     return this.#core.instructions ?? undefined;
   }
   async connect(transport, options = {}) {
+    if (this.#options.protocolVersion !== undefined) {
+      if (typeof this.#options.protocolVersion !== "string")
+        throw new Error("Unsupported protocolVersion; use 2025-03-26 or 2026-07-28");
+      validateProtocolPin(this.#options.protocolVersion);
+    }
     options.signal?.throwIfAborted();
     const generation = unwrap(this.#core.beginConnect()).generation;
     let layer;
@@ -140,6 +145,7 @@ export class McpClient {
           );
       } catch (error) {
         options.signal?.throwIfAborted();
+        if (this.#options.protocolVersion === "2026-07-28") throw error;
         if (error instanceof McpError && [-32020, -32021, -32022].includes(error.code)) throw error;
       }
       if (discovery !== undefined) {

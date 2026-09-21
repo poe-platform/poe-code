@@ -6,7 +6,6 @@ import * as api from "./index.js";
 import { textContext, textFixture, paragraph } from "../tests/fixtures/text.js";
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
 
-const encode = (value: string) => new TextEncoder().encode(value);
 const foreign = "urn:original:default-carrier";
 const descendants = (node: api.XmlElement): api.XmlElement[] => [node, ...node.children.flatMap(descendants)];
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
@@ -27,11 +26,10 @@ if (carrier !== "direct" || placement === "leaf") it(`${route} ${action} ${prope
   const defaults = wrap(`<w:docDefaults>${wrap(`<w:${container}>${properties}</w:${container}>`, "container")}</w:docDefaults>`, "defaults");
   const raw = `<w:styles xmlns:w="${w}" xmlns:f="${foreign}" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f" mc:ProcessContent="f:pass">${defaults}<w:style w:type="paragraph" w:styleId="Atlas"><w:name w:val="Atlas"/></w:style><!--root--><?audit retain?></w:styles>`;
   const source = spelling === "default" ? raw.split("<w:").join("<").split("</w:").join("</").replace("<styles ", `<styles xmlns="${w}" `) : raw.replace("xmlns:w=", `xmlns:${spelling}=`).split("w:").join(`${spelling}:`);
-  const parts = readPackage(await textFixture(paragraph("Retain 日本 עברית é 🌊"), { styles: {kind: "styles", xml: source}}, strict));
-  if (kind === "dotx") parts.set("[Content_Types].xml", encode(new TextDecoder().decode(parts.get("[Content_Types].xml")!).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
-  const memory = Volume.fromJSON({"/input":"", "/output":""});
-  await api.writeArchive({comment:new Uint8Array(), members:[...parts].map(([name,bytes])=>({name,bytes,directory:false,modified:new Date("2026-01-02T03:04:06Z")}))}, {async write(bytes){memory.appendFileSync("/input",bytes);}}, {order:"input",compression:"store"}, textContext);
-  const input = new Uint8Array(memory.readFileSync("/input") as Buffer);
+  const input = await textFixture(paragraph("Retain 日本 עברית é 🌊"), { styles: {kind: "styles", xml: source}}, strict,
+    { kind, modified: new Date("2026-01-02T03:04:06Z") });
+  const parts = readPackage(input);
+  const memory = Volume.fromJSON({"/input": Buffer.from(input), "/output":""});
   const args = property === "font" ? {font:action === "reset" ? null : action === "patch" ? "Changed Latin" : "Original"} : {leftIndent:action === "reset" ? null : {value:action === "patch" ? 72 : 36, unit:"pt" as const}};
   const batch = {version:1, operations:[{operation:"styles.defaults.set", arguments:args}]};
   const pub = {...textContext, encoding:{order:"input" as const,compression:"store" as const}, stdout:{async write(bytes:Uint8Array){memory.appendFileSync("/output",bytes);}}};

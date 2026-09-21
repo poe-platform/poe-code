@@ -68,3 +68,9 @@ A failing memfs routing case showed that missing or clearly foreign exact files 
 The relationship MCE fixture created a Shell for all 2,808 model/SDK/Shell cases and never disposed it. Shell creation is now lazy, so only the 936 actual Shell cases create one; afterEach drains every created Shell even after a failed assertion. All 2,808 cases still pass with actual Shell execution. Local wall time is 51.64s before / 45.76s after (48.24s / 41.19s test time); concurrent host work limits precision. Full DOCX lint and production/test type checks pass with six existing warnings.
 
 The grouped-beforeAll default-style trial preserved all 3,744 cases but did not improve measured wall time; its authored change was discarded. Fixture serialization is being optimized directly instead, preserving test names and independent executions.
+
+## One-pass fixture serialization
+
+Native DOTX input construction previously wrote a DOCX archive, independently read it, patched its main content type and wrote a second archive. Text fixtures now accept the main package kind and member timestamp up front. Native story fixtures and the 3,744-case default-style matrix use one archive write, preserving previous member order, content types and timestamps. Two red kind tests reproduced the ignored requested template type; eight fixture checks plus 23 independent assertion checks pass. Four fixed pre-change SHA-256 hashes prove exact native template archive identity across strict/transitional and document/header owners. Full DOCX lint/type checks pass.
+
+An interleaved 1,000-fixture comparison in one process, alternating order, confirms identical archives and reports prior/direct times (ms): 1913.63/907.10, 1358.12/766.04, 1223.69/626.01. This removes roughly half the fixture-preparation cost, with no operation-result or task cache. A separate first-run comparison was noisy (920/925 ms) and is not used to claim a gain.

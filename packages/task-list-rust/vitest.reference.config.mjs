@@ -17,6 +17,9 @@ export default defineConfig({
           return;
         const modules = new Map([
           ["./state.js", "state"],
+          ["./schema/store.schema.json", "schema/store.schema.json"],
+          ["./schema/task.schema.json", "schema/task.schema.json"],
+          ["./ids.js", "schema/ids"],
           ["./index.js", "index"],
           ["./move.js", "move"],
           ["./yaml-file.js", "backends/yaml-file"],
@@ -42,9 +45,11 @@ export default defineConfig({
         const result = ts.transform(source, [
           (context) => (root) =>
             ts.visitNode(root, function visit(node) {
+              if (id.endsWith("/schema/ids.test.ts") && ts.isStringLiteral(node) && ["store.schema.json", "task.schema.json"].includes(node.text))
+                return ts.factory.createStringLiteral(new URL("schema/" + node.text, own).href);
               if (ts.isStringLiteral(node) && modules.has(node.text))
                 return ts.factory.createStringLiteral(
-                  path(new URL(modules.get(node.text) + ".js", own))
+                  path(new URL(modules.get(node.text) + (node.text.endsWith(".json") ? "" : ".js"), own))
                 );
               return ts.visitEachChild(node, visit, context);
             })
@@ -58,7 +63,10 @@ export default defineConfig({
     }
   ],
   test: {
+    globals: true,
     include: [
+      "schema.test.ts",
+      "schema/ids.test.ts",
       "state.test.ts",
       "state-machine.test.ts",
       "backends/utils.test.ts",

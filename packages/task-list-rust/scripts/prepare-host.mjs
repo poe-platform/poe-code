@@ -19,3 +19,8 @@ writeFileSync(
     "./task-list-rust.node"
   )
 );
+
+const schema = new URL("schema/", dist);
+mkdirSync(schema, { recursive: true });
+for (const name of ["store.schema.json", "task.schema.json"])
+  copyFileSync(new URL("src/schema/" + name, root), new URL(name, schema));

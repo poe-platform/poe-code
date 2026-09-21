@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+  "title": "Task Store",
+  "description": "YAML multi-list task store.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json"
+    },
+    "kind": {
+      "type": "string",
+      "const": "task-store"
+    },
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "lists": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "./task.schema.json"
+        }
+      }
+    }
+  },
+  "required": ["$schema", "kind", "version", "lists"],
+  "additionalProperties": false
+}

@@ -5580,3 +5580,18 @@ verified. Unrelated auth-store/planning edits preserved. Previously unrecorded
 10:40:33–10:47:36 adds423s; fresh10:50:44–10:51:31 adds47s; checkpoint pause excluded.
 Total104141s (28.93h),minimum fulfilled,objective incomplete. Continue accounting
 after10:51:31 UTC.
+
+### Task-list schema resources, 2026-09-21 10:53 UTC
+
+Added canonical task/store JSON schema resources to owned source and packed dist.
+Missing-resource reference red precedes addition. AST redirects schema imports and
+schema-ID file reads to owned artifacts. All19original test files now covered:
+374cases pass plus16Rust/13native groups,full public types; uncached maintained
+selected115workspace/19build/350edge closure and focused host ESLint pass. Packed
+resources byte-match canonical originals;40JS/declarations,one addon,zero external
+imports/runtime groups. This completes original suite coverage,not all YAML edit
+semantics or full native/platform/performance acceptance.
+
+Migration5dbbfbb77 exact remote-main verified; release35590995162 pending;
+successful publication remains unverified. Continuous10:51:31–10:53:16 adds105s,
+total104246s (28.96h). Continue accounting after10:53:16 UTC.

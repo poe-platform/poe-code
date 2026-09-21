@@ -15,13 +15,14 @@ const metadata = [
 ] as const;
 const context: docx.PublicationContext = { ...textContext, encoding: { order: "input", compression: "store" } };
 const comment = (id: number, pid: string, text: string, author = "Mira") => `<w:comment w:id="${id}" w:author="${author}"><w:p x:paraId="${pid}">${run(text)}</w:p></w:comment>`;
-async function fixture(options: { paragraphId?: string; thread?: string; extra?: string; authors?: string; comments?: string; body?: string } = {}) {
+async function fixture(options: { paragraphId?: string; thread?: string; extra?: string; authors?: string; comments?: string; body?: string; notes?: boolean } = {}) {
   const contents = [options.thread ?? '<m:commentEx m:paraId="000000A1" m:done="1"/><m:commentEx m:paraId="000000B2" m:paraIdParent="000000A1" m:done="0"/>',
     '<m:commentId m:paraId="000000A1" m:durableId="00000011"/><m:commentId m:paraId="000000B2" m:durableId="00000022"/>',
     options.extra ?? '<m:commentExtensible m:durableId="00000011" m:dateUtc="2026-01-02T03:04:05Z"/><m:commentExtensible m:durableId="00000022"/>',
     options.authors ?? '<m:person m:author="Mira"><m:presenceInfo m:providerId="None" m:userId="Mira"/></m:person>'];
   const bytes = await textFixture(options.body ?? paragraph("Coastal survey"), {
     comments: { kind: "comments", xml: `<w:comments xmlns:w="${w}" xmlns:x="${w14}" xmlns:newer="urn:future:annotation" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x newer">${options.comments ?? comment(4, options.paragraphId ?? "000000A1", "Check depth") + comment(9, "000000B2", "Depth confirmed")}</w:comments>` },
+    ...(options.notes ? Object.fromEntries(["footnote", "endnote"].map(kind => [kind + "s", { kind: kind + "s", xml: `<w:${kind}s xmlns:w="${w}"><w:${kind} w:id="7">${paragraph("Stored observation")}</w:${kind}></w:${kind}s>` }])) : {}),
     ...Object.fromEntries(metadata.map(([name, kind, ns, root], i) => [name, { kind, xml: `<m:${root} xmlns:m="${ns}" xmlns:newer="urn:future:annotation">${contents[i]!.split("000000A1").join(options.paragraphId ?? "000000A1")}</m:${root}>` }]))
   });
   const archive = await docx.readArchive(bytes, textContext);
@@ -215,4 +216,22 @@ it("refuses people cleanup when an unknown extension carries an annotation autho
   const output = await command(input, ["comments", "remove", "/input.docx", "--all", "--dry-run", "--json"]);
   expect(output.result.exitCode).toBe(1);
   expect(JSON.parse(new TextDecoder().decode(output.bytes))).toMatchObject({ ok: false, affected: 0, data: null, errors: [{ code: "unsupported-edit" }] });
+});
+
+it.each([
+  ["newer run attribute", "set", comment(9, "000000B2", "Reply").split("<w:r>").join('<w:r newer:checksum="opaque">')],
+  ["newer comment attribute", "remove", comment(9, "000000B2", "Reply").split("<w:comment ").join('<w:comment newer:identity="opaque" ')],
+  ["newer paragraph attribute", "remove", comment(9, "000000B2", "Reply").split("<w:p ").join('<w:p newer:checksum="opaque" ')],
+  ["footnote reference", "set", comment(9, "000000B2", "Reply").split("<w:t>Reply</w:t>").join('<w:footnoteReference w:id="7"/><w:t>Reply</w:t>')],
+  ["endnote reference", "set", comment(9, "000000B2", "Reply").split("<w:t>Reply</w:t>").join('<w:endnoteReference w:id="7"/><w:t>Reply</w:t>')]
+] as const)("refuses discarding affected %s through SDK and CLI", async (_label, action, reply) => {
+  const input = await fixture({ comments: comment(4, "000000A1", "Parent") + reply, notes: true });
+  const volume = Volume.fromJSON({ "/out": "" });
+  for (let i = 0; i < 2; i++) await expect(docx.editDocumentComments(input, {
+    operation: `comments.${action}`, options: { comment: 2, ...(action === "set" ? { text: "Changed" } : {}), output: "-" }
+  } as docx.CommentEditRequest, { ...context, stdout: { async write(b) { volume.appendFileSync("/out", b); } } })).rejects.toMatchObject({ code: "unsupported-edit" });
+  expect(volume.readFileSync("/out").length).toBe(0);
+  const cli = await command(input, ["comments", action, "/input.docx", "--comment", "2", ...(action === "set" ? ["--text", "Changed"] : []), "--dry-run", "--json"]);
+  expect(cli.result.exitCode).toBe(1);
+  expect(JSON.parse(new TextDecoder().decode(cli.bytes))).toMatchObject({ ok: false, affected: 0, data: null, errors: [{ code: "unsupported-edit" }] });
 });

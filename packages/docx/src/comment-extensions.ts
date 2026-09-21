@@ -1,3 +1,4 @@
+import { paragraphReferenceMarkers } from "./paragraph-content.js";
 import { commentExtensionParts } from "./comment-extension-parts.js";
 import type { DocumentBudget } from "./budget.js";
 import type { DocumentPackage } from "./package.js";
@@ -74,7 +75,7 @@ export function synchronizeCommentExtensions(state: State, selected: State["reco
       state.budget.charge("work", 1 + node.attributes.length);
       if (node.attributes.some(a => a.namespace === commentParagraphNamespace &&
         (node.namespace !== state.w || node.localName !== "p" || remove && !["paraId", "textId"].includes(a.localName)))) refuse();
-      if (!remove && node.namespace === state.w && (["footnoteRef", "endnoteRef"].includes(node.localName) ||
+      if (!remove && node.namespace === state.w && (paragraphReferenceMarkers.has(node.localName) ||
         node.localName === "p" && attribute(node, "textId", commentParagraphNamespace) !== undefined)) refuse();
       node.children.forEach(visit);
     };

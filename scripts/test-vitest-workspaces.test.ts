@@ -126,6 +126,15 @@ describe("shared Vitest task selection", () => {
     expect(stages[0].testArguments).toEqual(["--ci-group=cached", "packages/alpha", "packages/beta"]);
   });
 
+  it("shares selected workspace phases and reconstructs their selection in the child", () => {
+    const { fileSystem, plan } = fixture();
+    plan.testStages = plan.testStages.filter(stage => stage.path !== null);
+    const stages = sharedVitestStages({ ...plan, selectedWorkspaces: ["alpha", "beta", "native"] }, fileSystem);
+    expect(stages[0].path).toBeNull();
+    expect(stages[0].phases.map(phase => phase.name)).toEqual(["alpha", "beta"]);
+    expect(stages[0].testArguments).toEqual(["--workspace=alpha", "--workspace=beta", "--workspace=native", "packages/alpha", "packages/beta"]);
+  });
+
   it("requires the declared shared command and supported root selection", () => {
     for (const field of ["test:unit", "test:unit:shared"]) {
       const { fileSystem, plan } = fixture();
@@ -314,6 +323,15 @@ describe("batched shared Vitest execution", () => {
     expect(execution.config.maxWorkers).toBe(2);
     expect(execution.config.isolate).toBe(true);
     expect({ VITEST: process.env.VITEST, NODE_ENV: process.env.NODE_ENV }).toEqual(environment);
+  });
+
+  it("does not discover root ownership when only workspace phases are selected", async () => {
+    const { execution } = contexts();
+    mocks.createVitest.mockReset().mockResolvedValueOnce(execution);
+    await runSharedVitest("/repo", phases.filter(phase => phase.path !== null));
+    expect(mocks.createVitest).toHaveBeenCalledTimes(1);
+    expect(mocks.createVitest.mock.calls[0][1].config).toBe("/repo/vitest.config.ts");
+    expect(execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([alphaFile, betaFile], false);
   });
 
   it("waits for the complete queue before closing the runner", async () => {

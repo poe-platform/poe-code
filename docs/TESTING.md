@@ -5,10 +5,21 @@ Use the smallest command that proves the change.
 ## Unit and Type Checks
 
 ```sh
-npm run test -- <path-or-pattern>
+npm test
+npm test -- --workspace=docx
+npm test -- --workspace=docx --workspace=pptx
+npm test -- --workspace=. -- scripts/build-workspaces.test.ts
 npm run lint
 npm run typecheck
 ```
+
+Use `npm test -- --workspace=<exact-package-name>` for a focused workspace run. The argument after `--` belongs to the maintained runner; `npm test --workspace=docx` instead invokes the workspace's own script. Repeat the runner option to select several workspaces, or use `--workspace=.` for root tests. Selected runs retain declared build dependencies, native npm pre/post hooks, environment scoping and uncached execution. They do not schedule unrelated Safe Bash or SafeJS suites.
+
+Pass test-tool arguments after a second `--`, for example `npm test -- --workspace=docx -- --testNamePattern=bookmarks`. A file filter alone does not select workspace tasks: the default runner forwards it to every declared task. `npm test` remains the complete suite, and its root posttest lint stress check still runs for selected tests.
+
+Preview scheduling with `npm run test:workspaces -- --workspace=docx --dry-run`. Preview output lists planned tasks; it does not report test passes.
+
+Use `npm test -- --changed-since=<commit-or-ref>` to select changed workspaces and their declared transitive consumers, plus root tests. The comparison includes tracked working-tree changes, staged changes and unignored untracked files. For example, `--changed-since=HEAD~1` tests changes since the preceding commit; `--changed-since=HEAD` tests pending changes. Isolated test edits stay in their workspace. Shared configuration, root production code or unknown package ownership selects the full suite. Documentation-only or empty comparisons schedule no unit tasks. This option cannot be combined with exact workspace selection, CI partitions or the Node20 exclusion.
 
 Prefer targeted package tests while iterating. Broaden to root checks when the change crosses package boundaries.
 

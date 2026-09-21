@@ -17,12 +17,12 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   const compatible = plan.testStages.filter(stage => stage.path === null || selections.has(stage.path));
   if (compatible.length < 2) return plan.testStages;
   const root = compatible.find(stage => stage.path === null)
-    ?? (plan.ciGroup ? { ...compatible[0], id: "//#test:unit", name: plan.rootManifest.name, path: null } : undefined);
+    ?? (plan.ciGroup || plan.selectedWorkspaces ? { ...compatible[0], id: "//#test:unit", name: plan.rootManifest.name, path: null } : undefined);
   if (!root) return plan.testStages;
   const shared = {
     ...root,
     event: "test:unit:shared",
-    testArguments: [...(plan.ciGroup ? [`--ci-group=${plan.ciGroup}`] : []), ...(plan.affected ? [`--affected=${plan.affected}`] : []), ...compatible.map(stage => stage.path ?? ".")],
+    testArguments: [...(plan.ciGroup ? [`--ci-group=${plan.ciGroup}`] : []), ...(plan.affected ? [`--affected=${plan.affected}`] : []), ...(plan.selectedWorkspaces ?? []).map(name => `--workspace=${name}`), ...compatible.map(stage => stage.path ?? ".")],
     phases: compatible.map(stage => ({
       name: stage.name,
       path: stage.path,
@@ -48,16 +48,19 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
   try {
     const { createVitest } = await import("vitest/node");
     const { default: ImmediateReporter } = await import("./vitest-immediate-reporter.mjs");
-    const discovery = await createVitest("test", {
-      root, config: path.join(root, "vitest.root.config.ts"), watch: false, reporters: []
-    });
-    contexts.push(discovery);
-    const rootSpecifications = await discovery.globTestSpecifications();
-    const rootFiles = new Set(rootSpecifications.map(specification => specification.moduleId));
-    assert.equal(rootFiles.size, rootSpecifications.length, "Multiple root specifications per file are unsupported");
-    rootSpecifications.length = 0;
-    contexts.pop();
-    await discovery.close();
+    const rootFiles = new Set();
+    if (phases.some(phase => phase.path === null)) {
+      const discovery = await createVitest("test", {
+        root, config: path.join(root, "vitest.root.config.ts"), watch: false, reporters: []
+      });
+      contexts.push(discovery);
+      const rootSpecifications = await discovery.globTestSpecifications();
+      for (const specification of rootSpecifications) rootFiles.add(specification.moduleId);
+      assert.equal(rootFiles.size, rootSpecifications.length, "Multiple root specifications per file are unsupported");
+      rootSpecifications.length = 0;
+      contexts.pop();
+      await discovery.close();
+    }
     const reporter = new ImmediateReporter({ summary: false }, true);
     let context = await createVitest("test", {
       root, config: path.join(root, "vitest.config.ts"), watch: false, reporters: [reporter], ...(process.env.CI ? {} : { maxWorkers: 1 })
@@ -192,10 +195,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const expected = process.argv.slice(2);
     const groupArgument = expected[0]?.startsWith("--ci-group=") ? expected.shift() : undefined;
     const affectedArgument = expected[0]?.startsWith("--affected=") ? expected.shift() : undefined;
-    const plan = createWorkspaceTestPlan(root, { affected: affectedArgument?.slice("--affected=".length), ciGroup: groupArgument?.slice("--ci-group=".length) });
+    const selectionArguments = [];
+    while (expected[0]?.startsWith("--workspace=")) selectionArguments.push(expected.shift());
+    const plan = createWorkspaceTestPlan(root, { affected: affectedArgument?.slice("--affected=".length), ciGroup: groupArgument?.slice("--ci-group=".length), ...(selectionArguments.length ? { workspaces: selectionArguments.map(value => value.slice("--workspace=".length)) } : {}) });
     const shared = sharedVitestStages(plan).find(stage => stage.event === "test:unit:shared");
     assert.ok(shared, "Shared Vitest is not enabled for this workspace configuration");
-    if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...(affectedArgument ? [affectedArgument] : []), ...expected], "Workspace unit selection changed before shared execution");
+    if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...(affectedArgument ? [affectedArgument] : []), ...selectionArguments, ...expected], "Workspace unit selection changed before shared execution");
     const { runVitestBatch } = await import("./run-vitest-batch.mjs");
     await runSharedVitest(root, shared.phases, {
       runBatch: runVitestBatch,

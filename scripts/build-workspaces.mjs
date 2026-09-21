@@ -260,14 +260,65 @@ export function affectedWorkspaceNames(plan, reference, files) {
   return selected;
 }
 
+const isTest = filename => filename.endsWith(".test.ts") || filename.endsWith(".spec.ts")
+  || filename.split("/").some(part => part === "tests" || part === "test");
+
+/** Undefined means shared or unknown inputs require the full maintained suite. */
+export function affectedUnitWorkspaces(plan, changedFiles) {
+  assert.ok(Array.isArray(changedFiles), "Changed files must be an array");
+  const changed = new Set(), propagate = new Set();
+  let root = false;
+  for (const filename of changedFiles) {
+    assert.ok(typeof filename === "string" && filename && !filename.startsWith("/") && !filename.includes("\0")
+      && !filename.includes("\\") && !filename.split("/").some(part => part === ".." || part === "." || !part), "Invalid repository-relative changed path");
+    if (filename.startsWith("docs/") || filename === "README.md") continue;
+    if (filename.startsWith("packages/")) {
+      const workspace = plan.workspaces.find(candidate => filename === candidate.path + "/package.json" || filename.startsWith(candidate.path + "/"));
+      if (!workspace) return undefined;
+      changed.add(workspace.name);
+      if (!isTest(filename)) propagate.add(workspace.name);
+      root = true;
+    } else if (isTest(filename) && filename.startsWith("src/")) root = true;
+    else return undefined;
+  }
+  const queue = [...propagate];
+  for (let index = 0; index < queue.length; index++) {
+    for (const edge of plan.edges) {
+      if (edge.to !== queue[index]) continue;
+      changed.add(edge.from);
+      if (!propagate.has(edge.from)) { propagate.add(edge.from); queue.push(edge.from); }
+    }
+  }
+  return [...(root ? ["."] : []), ...plan.workspaces.filter(workspace => changed.has(workspace.name) && workspace.manifest.scripts?.["test:unit"]).map(workspace => workspace.name)];
+}
+
+/** Compare tracked working-tree content to a commit and include new unignored files. */
+export function changedFilesSince(root, reference, environment = process.env) {
+  assert.ok(typeof reference === "string" && reference && !reference.startsWith("-") && !reference.includes("\0"), "Invalid change comparison reference");
+  const options = { cwd: root, env: environment, encoding: "utf8", timeout: 10000, maxBuffer: 16 * 1024 * 1024 };
+  const commit = execFileSync("git", ["rev-parse", "--verify", "--end-of-options", reference + "^{commit}"], options).trim();
+  const tracked = execFileSync("git", ["diff", "--no-renames", "--name-only", "-z", commit, "--"], options);
+  const untracked = execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z"], options);
+  return [...new Set([...tracked.split("\0"), ...untracked.split("\0")].filter(Boolean))];
+}
+
 export function createWorkspaceTestPlan(rootDirectory, options = {}) {
-  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, affected, affectedFiles } = options;
+  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, workspaces, changedFiles, affected, affectedFiles } = options;
   assert.ok(concurrency === 1 || concurrency === 4, "Unit concurrency must be 1 or 4");
   assert.ok(excludeWorkspace === undefined || excludeWorkspace === "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported");
   assert.ok(Array.isArray(testArguments) && testArguments.every(value => typeof value === "string" && !value.includes("\0")), "Invalid test arguments");
   assert.ok(ciGroup === undefined || ciGroup === "fresh" || ciGroup === "cached", "Invalid CI unit group");
   assert.ok(ciGroup === undefined || (!excludeWorkspace && !testArguments.length), "CI unit groups do not accept exclusions or test arguments");
+  assert.ok(workspaces === undefined || Array.isArray(workspaces) && workspaces.length > 0 && workspaces.every(name => typeof name === "string"), "Unit selection needs exact workspace names");
+  assert.ok(workspaces === undefined || ciGroup === undefined && excludeWorkspace === undefined, "Unit selections do not accept CI partitions or exclusions");
+  assert.ok(changedFiles === undefined || workspaces === undefined && ciGroup === undefined && excludeWorkspace === undefined, "Change selection does not accept workspace selections, CI partitions or exclusions");
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
+  const selectedWorkspaces = changedFiles === undefined ? workspaces === undefined ? undefined : [...new Set(workspaces)] : affectedUnitWorkspaces(plan, changedFiles);
+  for (const name of selectedWorkspaces ?? []) {
+    const selected = name === "." ? plan.rootManifest : plan.workspaces.find(workspace => workspace.name === name)?.manifest;
+    assert.ok(selected, "Unknown literal workspace: " + name);
+    assert.ok(selected.scripts?.["test:unit"], "No declared test:unit: " + name);
+  }
   let cacheable;
   if (ciGroup !== undefined) {
     const policy = readManifest(path.join(plan.root, "scripts"), "ci-unit-cache.json", fileSystem);
@@ -318,6 +369,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     const settings = { ...tasks["test:unit"], ...tasks[id] };
     if (workspace.path === null) assert.ok(!settings.dependsOn?.length, "Root test build dependencies are unsupported");
     if (affectedNames && workspace.path !== null && !affectedNames.has(workspace.name)) continue;
+    if (selectedWorkspaces && !selectedWorkspaces.includes(workspace.path === null ? "." : workspace.name)) continue;
     if (workspace.name === excludeWorkspace && workspace.path !== null) continue;
     if (ciGroup !== undefined && (workspace.name === "@poe-platform/safe-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
     testStages.push({ id, name: workspace.name, path: workspace.path, event: "test:unit" });
@@ -327,7 +379,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     }
   }
   const selected = selectBuildStages(plan, buildRoots);
-  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(affected === undefined ? {} : { affected }), ...(ciGroup === undefined ? {} : { ciGroup }) };
+  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(affected === undefined ? {} : { affected }), ...(ciGroup === undefined ? {} : { ciGroup }), ...(selectedWorkspaces === undefined ? {} : { selectedWorkspaces }) };
 }
 
 function taskEnvironment(environment, stage, unitMode) {
@@ -525,25 +577,27 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
 }
 
 export async function testWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles, workspaces, changedSince, dryRun = false } = options;
   validateEnvironment(environment);
-  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup, affected, affectedFiles });
-  let testStages = plan.testStages;
-  if (plan.rootManifest.scripts["test:unit:shared"]) {
-    const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
-    testStages = sharedVitestStages(plan, fileSystem);
-  }
   const childEnvironment = { ...environment };
   const gitPath = environment.PATH ?? process.env.PATH;
   let localGitVariables = gitLocalVariablesByPath.get(gitPath);
   if (!localGitVariables) localGitVariables = execFileSync("git", ["rev-parse", "--local-env-vars"], {
-    cwd: plan.root,
+    cwd: path.resolve(rootDirectory),
     env: { PATH: gitPath, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
     encoding: "utf8", timeout: 10000, maxBuffer: 65536
   }).trim().split("\n");
   assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
   gitLocalVariablesByPath.set(gitPath, localGitVariables);
   for (const name of localGitVariables) delete childEnvironment[name];
+  const changedFiles = changedSince === undefined ? undefined : changedFilesSince(path.resolve(rootDirectory), changedSince, childEnvironment);
+  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup, workspaces, changedFiles, affected, affectedFiles });
+  if (dryRun) return { dryRun: true, plannedTests: plan.testStages.length, plannedBuilds: plan.buildStages.length, testStages: plan.testStages, buildStages: plan.buildStages.map(stage => ({ name: stage.name, path: stage.path, event: stage.event ?? "build" })), ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }) };
+  let testStages = plan.testStages;
+  if (plan.rootManifest.scripts["test:unit:shared"]) {
+    const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
+    testStages = sharedVitestStages(plan, fileSystem);
+  }
   const caching = cache !== false && ciGroup !== "fresh" && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs));
   childEnvironment.POE_CHECK_CACHE = caching ? "1" : "0";
   let buildCache;
@@ -562,7 +616,7 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   }
   await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments, taskCache: unitCache });
   unitCache?.flush();
-  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: caching ? "SHARED" : "UNCACHED", ...(unitCache ? unitCache.stats : {}), excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless,
+  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: caching ? "SHARED" : "UNCACHED", ...(unitCache ? unitCache.stats : {}), excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless, ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }),
     ...(buildCache ? { ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
 
@@ -607,6 +661,18 @@ export function parseWorkspaceArguments(args) {
       assert.ok(equals >= 0 && !seen.has(name), "Invalid or duplicate affected option");
       seen.add(name); result.affected = argument.slice(equals + 1);
       affectedWorkspaceNames({ workspaces: [], edges: [] }, result.affected, []);
+    } else if (name === "--dry-run") {
+      assert.ok(equals < 0 && !seen.has(name), "Invalid or duplicate dry-run option"); seen.add(name);
+      result.dryRun = true;
+    } else if (name === "--changed-since") {
+      assert.ok(!seen.has(name), "Duplicate runner option"); seen.add(name);
+      const reference = equals < 0 ? undefined : argument.slice(equals + 1);
+      assert.ok(reference && !reference.startsWith("-") && !reference.includes("\0"), "Invalid change comparison reference");
+      result.changedSince = reference;
+    } else if (name === "--workspace") {
+      const workspace = equals < 0 ? undefined : argument.slice(equals + 1);
+      assert.ok(workspace && (workspace === "." || !["*", "?", "[", "]", "{", "}", "\\", "\0", ".."].some(value => workspace.includes(value))), "Invalid literal workspace selector");
+      (result.workspaces ??= []).push(workspace);
     } else if (name === "--concurrency" || name === "--exclude-workspace" || name === "--ci-group") {
       assert.ok(!seen.has(name), "Duplicate runner option"); seen.add(name);
       const value = equals < 0 ? undefined : argument.slice(equals + 1);
@@ -614,12 +680,14 @@ export function parseWorkspaceArguments(args) {
       else if (name === "--ci-group") { assert.ok(value === "fresh" || value === "cached", "Invalid CI unit group"); result.ciGroup = value; }
       else { assert.equal(value, "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported"); result.excludeWorkspace = value; }
     } else {
-      assert.ok(!["--workspace", "--test-unit"].includes(name), "Unsupported unit runner option");
+      assert.ok(name !== "--test-unit", "Unsupported unit runner option");
       result.testArguments.push(...args.slice(index)); break;
     }
   }
   assert.ok(result.affected === undefined || result.ciGroup === undefined, "Affected selection does not accept CI groups");
   assert.ok(result.ciGroup === undefined || (!result.excludeWorkspace && !result.testArguments.length), "CI unit groups do not accept exclusions or test arguments");
+  assert.ok(result.workspaces === undefined || result.ciGroup === undefined && result.excludeWorkspace === undefined, "Unit selections do not accept CI partitions or exclusions");
+  assert.ok(result.changedSince === undefined || result.workspaces === undefined && result.ciGroup === undefined && result.excludeWorkspace === undefined, "Change selection does not accept workspace selections, CI partitions or exclusions");
   return result;
 }
 

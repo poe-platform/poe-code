@@ -51,6 +51,7 @@ export interface CreateSecretStoreInput {
 }
 export interface CreateSecretStoreResult { store: SecretStore; backend: StoreBackend; }
 export declare function createSecretStore(input: CreateSecretStoreInput): CreateSecretStoreResult;
+export declare function resolveSecretStoreBackend(input: CreateSecretStoreInput): StoreBackend;
 export declare function key(providerId: string): string;
 export declare class EncryptedFileStore implements SecretStore {
   withLock<T>(operation: () => Promise<T>, options?: SecretStoreLockOptions): Promise<T>;

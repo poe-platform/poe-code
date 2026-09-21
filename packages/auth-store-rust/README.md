@@ -9,6 +9,7 @@ private additive package has zero external npm runtime dependencies.
 - Credential path checks that refuse symbolic links, and optional errors for invalid encrypted documents.
 - macOS Keychain commands and matching error diagnostics.
 - Serialized legacy migration with rollback when mirrored mutations fail.
+- Resolve the configured backend without constructing a store or reading credentials.
 
 ```ts
 import { createSecretStore } from "auth-store-rust";

@@ -136,25 +136,29 @@ impl KeychainPlan {
         message
     }
 }
-pub fn resolve_backend(
-    configured: Option<&[u16]>,
-    platform: &[u16],
-) -> Result<&'static str, Vec<u16>> {
+pub fn select_backend(configured: Option<&[u16]>) -> Result<&'static str, Vec<u16>> {
     let backend = configured.map(trim_ecmascript);
     if backend.is_none_or(|backend| backend == text("file")) {
         return Ok("file");
     }
     if backend == Some(text("keychain").as_slice()) {
-        if platform == text("darwin") {
-            return Ok("keychain");
-        }
-        let mut message = text("Keychain backend is only supported on macOS. Current platform: ");
-        message.extend(platform);
-        return Err(message);
+        return Ok("keychain");
     }
     let mut message = text("Unsupported auth store backend: ");
     message.extend(backend.unwrap());
     Err(message)
+}
+pub fn resolve_backend(
+    configured: Option<&[u16]>,
+    platform: &[u16],
+) -> Result<&'static str, Vec<u16>> {
+    let backend = select_backend(configured)?;
+    if backend == "keychain" && platform != text("darwin") {
+        let mut message = text("Keychain backend is only supported on macOS. Current platform: ");
+        message.extend(platform);
+        return Err(message);
+    }
+    Ok(backend)
 }
 pub fn validate_defaults(
     directory: &[u16],

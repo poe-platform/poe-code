@@ -1,4 +1,11 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID, scrypt } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+  randomUUID,
+  scrypt
+} from "node:crypto";
 import { promises as defaultFs } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
@@ -16,16 +23,16 @@ export function createCredentialStoreBindings(native) {
     return result.value;
   }
 
-  function createSecretStore(input) {
+  function resolveSecretStoreBackend(input) {
     const variable = input.backendEnvVar ?? "AUTH_BACKEND";
     const ownEnv = (env) =>
       env !== undefined && Object.hasOwn(env, variable) ? env[variable] : undefined;
-    const backend = unwrap(
-      native.resolveBackend(
-        input.backend ?? ownEnv(input.env) ?? ownEnv(process.env),
-        input.platform ?? process.platform
-      )
-    );
+    return unwrap(native.selectBackend(input.backend ?? ownEnv(input.env) ?? ownEnv(process.env)));
+  }
+  function createSecretStore(input) {
+    const backend = resolveSecretStoreBackend(input);
+    const platform = input.platform ?? process.platform;
+    if (backend === "keychain") unwrap(native.resolveBackend(backend, platform));
     const factories = {
       file: () => {
         if (!input.fileStore)
@@ -152,7 +159,10 @@ export function createCredentialStoreBindings(native) {
       }
       const document = native.parseDocument(raw);
       if (document === null) {
-        if (this.#throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
+        if (this.#throwOnInvalidDocument)
+          throw new Error(
+            "Invalid encrypted credential document; reset the store explicitly to recover"
+          );
         return null;
       }
       const key = await this.#getKey();
@@ -161,14 +171,20 @@ export function createCredentialStoreBindings(native) {
           tag = Buffer.from(document.authTag, "base64"),
           ciphertext = Buffer.from(document.ciphertext, "base64");
         if (iv.byteLength !== 12 || tag.byteLength !== 16) {
-          if (this.#throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
+          if (this.#throwOnInvalidDocument)
+            throw new Error(
+              "Invalid encrypted credential document; reset the store explicitly to recover"
+            );
           return null;
         }
         const decipher = createDecipheriv("aes-256-gcm", key, iv);
         decipher.setAuthTag(tag);
         return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
       } catch {
-        if (this.#throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
+        if (this.#throwOnInvalidDocument)
+          throw new Error(
+            "Invalid encrypted credential document; reset the store explicitly to recover"
+          );
         return null;
       }
     }
@@ -233,11 +249,19 @@ export function createCredentialStoreBindings(native) {
       }
       this.#run = input.runCommand ?? runSecurityCommand;
       this.#lockFs = input.lock?.fs ?? defaultFs;
-      this.#lockDirectory = input.lock?.directory ?? path.join(homedir(), ".auth-store", "keychain-locks");
-      this.#lockIdentity = createHash("sha256").update(JSON.stringify([input.service.trim(), input.account.trim()])).digest("hex");
+      this.#lockDirectory =
+        input.lock?.directory ?? path.join(homedir(), ".auth-store", "keychain-locks");
+      this.#lockIdentity = createHash("sha256")
+        .update(JSON.stringify([input.service.trim(), input.account.trim()]))
+        .digest("hex");
     }
     async withLock(operation, options = {}) {
-      return withSecretStoreFileLock(this.#lockFs, path.join(this.#lockDirectory, this.#lockIdentity), operation, options);
+      return withSecretStoreFileLock(
+        this.#lockFs,
+        path.join(this.#lockDirectory, this.#lockIdentity),
+        operation,
+        options
+      );
     }
     async #execute(operation, value) {
       let args;
@@ -374,5 +398,12 @@ export function createCredentialStoreBindings(native) {
       await operation;
     }
   }
-  return { createSecretStore, EncryptedFileStore, KeychainStore, key, MigratingSecretStore };
+  return {
+    createSecretStore,
+    resolveSecretStoreBackend,
+    EncryptedFileStore,
+    KeychainStore,
+    key,
+    MigratingSecretStore
+  };
 }

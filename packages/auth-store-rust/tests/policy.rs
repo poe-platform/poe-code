@@ -97,3 +97,16 @@ fn migration_policy_and_rollback_keep_null_and_empty_credentials_distinct() {
     assert_eq!(steps[1].get("action"), Some(&Value::String(text("set"))));
     assert_eq!(steps[1].get("value"), Some(&Value::String(vec![])));
 }
+
+#[test]
+fn backend_selection_is_independent_of_host_platform() {
+    use auth_store_rust::select_backend;
+    assert_eq!(select_backend(None), Ok("file"));
+    assert_eq!(
+        select_backend(Some(
+            &" \u{feff}keychain ".encode_utf16().collect::<Vec<_>>()
+        )),
+        Ok("keychain")
+    );
+    assert!(select_backend(Some(&"KEYCHAIN".encode_utf16().collect::<Vec<_>>())).is_err());
+}

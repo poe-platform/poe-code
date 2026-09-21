@@ -52,6 +52,13 @@ impl NativeKeychainPlan {
     }
 }
 #[napi]
+pub fn select_backend(configured: Option<Utf16String>) -> convert::NativeJson {
+    envelope(
+        auth_store_rust::select_backend(configured.as_deref())
+            .map(|value| Value::String(value.encode_utf16().collect())),
+    )
+}
+#[napi]
 pub fn resolve_backend(
     configured: Option<Utf16String>,
     platform: Utf16String,

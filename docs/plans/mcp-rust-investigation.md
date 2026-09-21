@@ -6160,3 +6160,29 @@ out/rust-harness-plans-release-failure.log;next scope is validating those OAuth
 failures. No successful publication verified. Concurrent edits preserved.
 Continuous13:01:27–13:06:24 adds297s,total111919s(31.09h). Minimum fulfilled;
 objective incomplete. Continue accounting after13:06:24UTC.
+
+### Auth-store pure backend selection, 2026-09-21 13:16 UTC
+
+Added resolveSecretStoreBackend and its declaration/shared-runtime export. Portable
+Rust separates backend selection from host platform admission;createSecretStore
+continues to reject Keychain creation outside macOS. The pure API does not read
+platform/store configuration or credentials. Missing core red precedes implementation.
+Native tests compare current SDK choices,Unicode trimming,unsupported diagnostics,
+short-circuit getter order and custom environment names. Original SDK is dev-only.
+
+Maintained7Rust cases/20native groups/types,fmt/clippy/ESLint pass. Uncached selected
+117workspaces/5builds/363edges passes. Packed9files/one addon with zero runtime
+npm groups/external npm blocked passes selection and a memfs encrypted-store/lock
+roundtrip.16MiBworker262144selections/128rejections retains4.35MiBheap/52.22MiBRSS.
+Five alternating warmed65536selection pairs:ownwall27.33–29.04ms/CPU26.11–27.06ms,
+originalwall1.27–1.66ms/CPU1.26–2.57ms;performance acceptance FAIL for repeated
+tiny selectors. Normal persistence creation uses selection once;no broader speed
+or memory claim. Evidence out/rust-auth-backend-selector-*.
+
+Harness binary5632de473 exactly verified remote main. OAuth native fixes remove
+known callback/header/API reds,but the full reference route exposed77failures/
+606cases in provider option/request ownership,persistence snapshots,cancellation,
+fragment and clock contracts. Some original source edits are concurrent;they are
+preserved and used only as dev references. OAuth work remains uncommitted/incomplete.
+No successful release verified. Continuous13:06:24–13:16:33 adds609s,total112528s
+(31.26h). Minimum fulfilled;objective incomplete. Continue accounting after13:16:33UTC.

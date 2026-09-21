@@ -144,12 +144,17 @@
     },
     "toolcraft#test:unit": {
       "dependsOn": [
-        "^build"
+        "build"
       ]
     },
     "safe-bash-command-fmt#test:unit": {
       "dependsOn": [
         "^build"
+      ]
+    },
+    "@poe-code/safe-js#test:unit": {
+      "dependsOn": [
+        "build"
       ]
     }
   }

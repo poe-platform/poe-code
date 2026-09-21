@@ -22,3 +22,23 @@ export {
 } from "./config.js";
 
 export { createFileAwarenessTracker, recordToolFileAwareness } from "./file-awareness.js";
+
+export {
+  HookRegistry,
+  AbortError,
+  createSessionStartHookContext,
+  createUserPromptSubmitHookContext,
+  createPreToolUseHookContext,
+  createPostToolUseHookContext,
+  createPreIterationHookContext,
+  createPostIterationHookContext,
+  createPreCompactionHookContext,
+  createPostCompactionHookContext,
+  createNotificationHookContext,
+  createStopHookContext,
+  applyToolCallDecision,
+  applyToolResultDecision,
+  applyInputDecision,
+  applyHookDecision,
+  dispatchHook
+} from "./hooks.js";

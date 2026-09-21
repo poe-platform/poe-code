@@ -75,3 +75,32 @@ void awarenessA;
 void awarenessB;
 void recordA;
 void recordB;
+
+import * as ownHooks from "../dist/hooks.js";
+import * as referenceHooks from "../../poe-agent/dist/runtime/hooks.js";
+const hooksA: Omit<referenceHooks.HookRegistry, "copyFrom"> = new ownHooks.HookRegistry();
+const hooksB: Omit<ownHooks.HookRegistry, "copyFrom"> = new referenceHooks.HookRegistry();
+const createSessionA: typeof referenceHooks.createSessionStartHookContext =
+  ownHooks.createSessionStartHookContext;
+const createSessionB: typeof ownHooks.createSessionStartHookContext =
+  referenceHooks.createSessionStartHookContext;
+const hookDecisionA: typeof referenceHooks.applyHookDecision = ownHooks.applyHookDecision;
+const hookDecisionB: typeof ownHooks.applyHookDecision = referenceHooks.applyHookDecision;
+const hookInputA: typeof referenceHooks.applyInputDecision = ownHooks.applyInputDecision;
+const hookInputB: typeof ownHooks.applyInputDecision = referenceHooks.applyInputDecision;
+const hookCallA: typeof referenceHooks.applyToolCallDecision = ownHooks.applyToolCallDecision;
+const hookCallB: typeof ownHooks.applyToolCallDecision = referenceHooks.applyToolCallDecision;
+const hookResultA: typeof referenceHooks.applyToolResultDecision = ownHooks.applyToolResultDecision;
+const hookResultB: typeof ownHooks.applyToolResultDecision = referenceHooks.applyToolResultDecision;
+void hooksA;
+void hooksB;
+void createSessionA;
+void createSessionB;
+void hookDecisionA;
+void hookDecisionB;
+void hookInputA;
+void hookInputB;
+void hookCallA;
+void hookCallB;
+void hookResultA;
+void hookResultB;

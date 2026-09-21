@@ -246,3 +246,5 @@ pub fn agent_runtime_error(kind: Utf16String, name: Utf16String) -> Utf16String 
 pub mod config_binding;
 
 pub mod file_awareness_binding;
+
+pub mod hooks_binding;

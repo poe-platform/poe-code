@@ -45,3 +45,12 @@ These foundations support the pending agent builder and execution rewrite.
 ordered, deduplicated Rust sets. Snapshots return independent JavaScript Sets.
 `recordToolFileAwareness` recognizes `read_file`, `write_file` and `edit`,
 ignoring missing/blank paths and other tools without changing their arguments.
+
+`HookRegistry` runs all callbacks in registration order and returns the first
+defined decision, including callbacks added during a run. Hook decisions support
+blocking, argument rewrites, result patches, input transforms/handled responses,
+event-specific skipping and abort disposal. Context factories preserve caller
+references. Abort errors retain disposal causes; legacy rejection warns once.
+Rust owns callback ordering and staged decision policy, while Node executes
+callbacks, property effects and disposal. `copyFrom` accepts registries from the
+same implementation, matching the original private-field restriction.

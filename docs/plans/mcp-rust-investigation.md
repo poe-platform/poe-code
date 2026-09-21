@@ -3958,3 +3958,33 @@ Conservative continuous active04:34:58–05:01:42 adds1604s, bringing recorded a
 effort to84,585s (23.50h). Minimum24-hour effort remains unfulfilled by1815s;
 full agent/runtime/closure rewrite and successful root publication remain open.
 Work continues beyond05:01:42 UTC boundary.
+
+### Poe agent Rust hooks and decisions, 2026-09-21 05:08 UTC
+
+Portable/native reds precede own hook callback catalogs, first-defined-decision
+pipelines, staged decision plans and warning state. Rust derives the ten event
+names, retains live registration order, copies catalogs, selects the first defined
+opaque result while running every callback, applies event-specific skip policy and
+short-circuits reject/block/rewrite/replace/input predicates. The staged planner
+preserves repeated property reads, changing getter values and inherited args.
+Host Node retains callback/context/patch identity, WeakMap disposal associations,
+async effects, original context projections, logging and AbortError causes.
+
+All15 Rust cases,22 native groups and102 applicable complete original cases pass.
+Reference selection adds whole HookRegistry, hook context factories and
+applyHookDecision describes; remaining execution describes stay excluded/unaccounted.
+Public registry methods compare types excluding nominal copyFrom, and decision/
+context APIs compare with original declarations. Private-field copies require the
+same implementation, explicitly disclosed. Focused lint/fmt/clippy/formatting and
+uncached113-workspace/28-build/338-edge closure pass. Direct/packed16MiB workers
+each add2048 callbacks and2048 decisions to prior foundation workloads. Artifact
+audit covers30 JS/declaration files, one addon and zero npm runtime groups. Endpoint
+heaps~8.5MB and parent-inclusive RSS are workload observations only. No isolated
+leak/peak or performance advantage acceptance is claimed. Evidence
+out/rust-poe-agent-hooks-*. Hook microbenchmarks are recorded separately.
+
+File-awareness a6401cb12 is pushed and verified on remote main. Root
+release35563113958 is in progress; no successful root publication is claimed.
+Prompt pipelines, RunContext disposal/lifecycle, plugin setup, agent builder and
+execution/runtime/remaining closure are required next. Full goal and minimum
+24-hour effort remain open; work continues from05:01:42 ledger boundary.

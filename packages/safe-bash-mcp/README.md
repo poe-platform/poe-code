@@ -174,7 +174,11 @@ configuration to select a named native credential profile. Different namespaces
 keep separate grants and registrations even at the same URL; omitting one keeps
 the default storage identity. Profiles are public configuration values and do
 not add credential environment variables. Host-owned stores select their own
-profile identities.
+profile identities and implement their own durable URL trust history. Native
+binding additionally uses the configured server name as its logical identity:
+changing its URL retires saved sessions and registrations, and reverting the
+URL does not revive them. A retired identity withholds old environment-token
+imports; authorize it again to establish a new grant.
 Existing access-token imports require the original client ID; refresh-token/expiry fields
 require an access token. `expiresAt` is a decimal Unix epoch millisecond value.
 Optional `expiresIn` references supply lifetime in seconds, anchored once at

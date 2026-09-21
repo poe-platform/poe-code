@@ -155,6 +155,8 @@ export interface DefaultOAuthClientProviderOptions {
   sessionLockTimeoutMs?: number;
   /** Isolate native persisted sessions and registrations for a named profile. */
   persistenceNamespace?: string;
+  /** Native-owned durable logical server identity; changing URL retires its credentials. */
+  resourceIdentity?: string;
   /** Import an existing grant for one resource. Persisted sessions take precedence. */
   initialGrant?: {
     resource: string;

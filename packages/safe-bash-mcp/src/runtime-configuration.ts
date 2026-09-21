@@ -93,6 +93,7 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
         throw new Error(`Imported OAuth grant requires the original client ID in ${refs.clientId.env}`);
       oauthOptions = {
         persistenceNamespace: auth.persistenceNamespace,
+        resourceIdentity: options.oauth?.sessionStore === undefined ? server.name : undefined,
         client: auth.clientMode === "static"
           ? { mode: "static", clientId: clientId!, clientSecret, metadata: { scope }, tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod }
           : { mode: "dynamic", clientId, clientSecret, metadata: { scope }, tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod },

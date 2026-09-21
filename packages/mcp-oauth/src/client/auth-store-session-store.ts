@@ -89,7 +89,7 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput, name
   };
 }
 
-function createNamedSecretStore(
+export function createNamedSecretStore(
   key: string,
   options: CreateSecretStoreInput,
   defaults: { salt: string; directory: string; service: string; accountPrefix: string },
@@ -161,7 +161,7 @@ function getOwnString(record: Record<string, unknown>, key: string): string | un
   return typeof value === "string" ? value : undefined;
 }
 
-function isStoredOAuthSession(value: unknown): value is StoredOAuthSession {
+export function isStoredOAuthSession(value: unknown): value is StoredOAuthSession {
   if (!isObjectRecord(value)) {
     return false;
   }

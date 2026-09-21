@@ -1,3 +1,4 @@
+import { createResourceBoundOAuthStores } from "./resource-bound-store.js";
 import { normalizeStoredOAuthClient, parseOAuthClientRegistration, registrationMatchesRedirect } from "./client-registration.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
@@ -55,9 +56,13 @@ export function createDefaultOAuthClientProvider(
   const configuredClient = normalizeConfiguredClient(options.client);
   const requestedTokenMethod = normalizeOAuthTokenEndpointAuthMethod(options.client.tokenEndpointAuthMethod);
   const configuredTokenMethod = requestedTokenMethod ?? configuredClient?.tokenEndpointAuthMethod;
-  const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
-  const clientStore =
-    options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
+  if (options.resourceIdentity !== undefined && options.sessionStore !== undefined)
+    throw new Error("OAuth resourceIdentity requires native-owned persistence; custom stores own their resource trust policy");
+  const resourceStores = options.resourceIdentity === undefined ? undefined :
+    createResourceBoundOAuthStores(options.authStore ?? {}, options.persistenceNamespace, options.resourceIdentity);
+  const sessionStore = resourceStores?.sessionStore ?? options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
+  const clientStore = resourceStores?.clientStore ??
+    (options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
   const now = options.now ?? Date.now;
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
   if (options.initialGrant !== undefined) {
@@ -173,6 +178,10 @@ export function createDefaultOAuthClientProvider(
     const canonicalResource = canonicalizeResourceIndicator(resource);
     return withOAuthSessionTransaction(sessionStore, canonicalResource, async () => {
       let session = await loadSession(canonicalResource);
+      if (resourceStores !== undefined) {
+        registeredClients.clear();
+        if (!resourceStores.initialGrantAllowed) initialGrantConsumed = true;
+      }
       if (session !== null) assertRegistrationIssuer(session.client, session.authorizationServer);
       if (configuredClient !== null && discovery !== undefined) assertRegistrationIssuer(configuredClient, discovery.authorizationServer);
       if (session !== null && initialGrant?.resource === canonicalResource) initialGrantConsumed = true;

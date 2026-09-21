@@ -39,3 +39,14 @@ inspection.
    retains the original client without binding another listener. Reject the next
    refresh with invalid_grant, permit interaction, and prove exactly one obsolete
    registration replacement followed by a successful callback/code exchange.
+
+8. With built declarative SDK packages, a local synthetic DCR/token endpoint and
+   a native encrypted file store under this QA's out directory, recreate the
+   host in separate processes for each operation. Authenticate URL A, retain its
+   unchanged grant, and prove a different configured name at A has no grant.
+   Change the original name to B, then return to A; neither may use retired
+   credentials. Authenticate B under the same issuer and prove a second DCR
+   registration was required. In a separate profile, import a synthetic grant,
+   change its URL and revert it; the old environment grant must stay withheld.
+   Inspect native files for absence of plaintext synthetic credentials and purge
+   only the QA-owned directory.

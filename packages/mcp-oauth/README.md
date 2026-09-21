@@ -102,6 +102,15 @@ normalized. An imported grant must declare its scope when a scope is configured.
 Authorization records the requested set when the endpoint omits scope, and
 refresh retains the previous granted set. Mismatched responses never activate
 credentials; an unusable refresh response retains the pending refresh record.
+`resourceIdentity` selects a native-owned logical server within its optional
+persistence namespace. One encrypted, locked document owns that identity's
+current resource URL, sessions and registrations. Changing the URL retires its
+credentials permanently; returning to the old URL does not restore them.
+Retired identities also withhold stale initial grants; authorize again or select
+a fresh explicit profile to import a new grant. This option requires native persistence; custom
+session stores own their durable resource trust policy. Without it, the native
+client retains its existing resource-URL cache behavior.
+
 Select a separate persistence namespace for another scope profile. No scope is
 invented when the client does not configure one.
 

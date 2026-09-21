@@ -6277,3 +6277,38 @@ Dashboard layout API absence validated with native reference red,next bounded
 scope. Concurrent edits preserved. Continuous13:32:52–13:38:20 adds328s,
 total113835s(31.62h). Minimum fulfilled;full objective incomplete.
 Continue accounting after13:38:20UTC.
+
+### Portable dashboard geometry, 2026-09-21 13:43 UTC
+
+Added computeDashboardLayout and owned Rect/LayoutOptions/DashboardLayout types.
+Rust owns size normalization,clipping,pane thresholds,footer and compact-summary
+geometry. Node supplies lazy numeric/coercion effects and forms fresh host result
+objects from one compact25-number transfer. Portable callers can use geometry
+without allocation or compute for structured JSON. Missing native API red precedes
+implementation. No existing design/CLI integrations changed.
+
+Maintained13Rust cases/13native groups/types pass. Layout comparisons include4096
+seeded cases,width/height boundaries,fractions,zero/NaN/infinities,large values,
+nullish defaults,coercion/getter order and exception/BigInt behavior. fmt/clippy/
+shared-binding checks/ESLint pass. Uncached selected117workspaces/6builds/363edges
+passes. Manual QA:render wide80x12,compact60x10,tiny20x6 through maintained
+terminal screenshot route,inspect pane/summary/footer placement and clipping.
+Viewed out/rust-design-layout.png;final compact-transfer screenshot has identical
+SHA256 to prior validated image. Tiny terminal correctly has no output rows after
+summary/footer reservation. No screenshot tests added.
+
+Initial16384layouts/pair nested native objects cost88.04–91.67ms vs original
+0.54–3.05ms. Compact numeric transfer lowers own to6.87–9.22ms/CPU7.91–15.42ms,
+original1.17–5.35ms/CPU0.97–10.32ms. Material improvement over initial own path;
+consistent performance acceptance still FAIL. Future renderer should keep
+layout+screen computation together rather than cross for each small calculation.
+Packed9files/one addon/5audited sources+declarations,zero npm runtime groups and
+external resolution blocked passes. Direct/packed16MiBworkers each complete131072
+layouts(half compact),retain4.69MiBheap afterGC;shared RSS193.02/232.09MiB is not
+isolated native memory. Evidence out/rust-design-layout-*.
+
+Grant completionf0c06f6b1 pushed and exact remote main verified separately.
+Release35606937764 pending,OAuth35605641955 in_progress;no successful current
+publication verified. Concurrent edits preserved. Continuous13:38:20–13:43:18
+adds298s,total114133s(31.70h). Minimum fulfilled;full objective incomplete.
+Continue accounting after13:43:18UTC.

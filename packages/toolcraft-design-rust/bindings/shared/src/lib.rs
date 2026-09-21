@@ -238,3 +238,16 @@ pub fn template_render_data(
     }
     Ok(result(value.map(Value::String)))
 }
+
+#[napi]
+pub fn dashboard_layout(
+    width: f64,
+    height: f64,
+    border: f64,
+    footer: f64,
+    right: f64,
+) -> Float64Array {
+    Float64Array::new(
+        toolcraft_design_rust::layout::geometry([width, height, border, footer, right]).to_vec(),
+    )
+}

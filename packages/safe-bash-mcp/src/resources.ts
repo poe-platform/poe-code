@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import type { McpClient } from "tiny-mcp-client";
 import { isJsonValue } from "toolcraft-schema";
 import { commandLimit } from "./commands.js";
@@ -45,7 +46,7 @@ export async function accessRemoteMcpResources(
   const owned = snapshotRemoteMcpServer(connection);
   const deadline = AbortSignal.timeout(limits.requestTimeoutMs);
   const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
-  return withRemoteMcpClient(owned, { ...options, signal }, async client => {
+  return withRemoteMcpClient(owned, { ...snapshotRemoteMcpSchemaOptions(options), signal }, async client => {
     const result = snapshot.operation === "read" ? await client.readResource({ uri: snapshot.uri }, { signal })
       : snapshot.operation === "templates" ? await client.listResourceTemplates(snapshot.cursor === undefined ? {} : { cursor: snapshot.cursor }, { signal })
         : await client.listResources(snapshot.cursor === undefined ? {} : { cursor: snapshot.cursor }, { signal });

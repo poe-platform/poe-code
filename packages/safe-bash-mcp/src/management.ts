@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import { posix } from "node:path";
 import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
 import { argumentText, commandLimit, emit, errorDetails, positiveArgument, shellWord, textLine, validateCommandName } from "./commands.js";
@@ -289,7 +290,7 @@ export function createRemoteMcpManagementCommand(
             signal.throwIfAborted();
             const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
             const [bound] = bindRemoteMcpConfiguration({ version: 1, servers: [server] }, settings?.binding ?? { env: context.env });
-            const result = await accessRemoteMcpResources(bound, selected.request, { ...settings,
+            const result = await accessRemoteMcpResources(bound, selected.request, { ...snapshotRemoteMcpSchemaOptions(settings ?? {}),
               requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
               maxResponseBytes: selected.maxResponseBytes ?? settings?.maxResponseBytes,
               maxInputBytes: Math.min(maxInputBytes, selected.maxInputBytes ?? settings?.maxInputBytes ?? maxInputBytes), signal });
@@ -372,7 +373,7 @@ export function createRemoteMcpManagementCommand(
           let result: RemoteMcpAuthenticationResult;
           try {
             result = await authenticateRemoteMcpServer(server, {
-              ...settings, binding: settings?.binding ?? { env: context.env },
+              ...snapshotRemoteMcpSchemaOptions(settings ?? {}), binding: settings?.binding ?? { env: context.env },
               noBrowser: selected.noBrowser ?? settings?.noBrowser ?? true,
               reset: selected.reset || settings?.reset,
               requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
@@ -407,7 +408,7 @@ export function createRemoteMcpManagementCommand(
               maxConfigurationBytes: generationPolicy.maxConfigurationBytes ?? generation?.maxConfigurationBytes ?? options.maxConfigurationBytes,
               maxArtifactBytes: generationPolicy.maxArtifactBytes ?? generation?.maxArtifactBytes,
               binding: generation?.binding ?? { env: context.env },
-              schema: { ...generation?.schema,
+              schema: { ...snapshotRemoteMcpSchemaOptions(generation?.schema ?? {}),
                 requestTimeoutMs: generationPolicy.requestTimeoutMs ?? generation?.schema?.requestTimeoutMs,
                 maxPages: generationPolicy.maxPages ?? generation?.schema?.maxPages,
                 maxTools: generationPolicy.maxTools ?? generation?.schema?.maxTools,

@@ -189,3 +189,21 @@ it("handles a legacy server-initiated form request over an owned HTTP receive st
     expect(fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
   } finally { await shell.dispose(); }
 });
+
+it.each((["command", "recreation"] as const).flatMap(route => (["onWarning", "onElicitationRequest"] as const).map(field => ({ route, field }))))(
+  "retains hidden $field through $route", async ({ route, field }) => {
+    const f = remote(), onWarning = vi.fn(), handler = vi.fn((): ElicitationResult => ({ action: "accept", content: { project: "005930" } }));
+    const options = { fetch: f.fetch, onWarning, onElicitationRequest: field === "onElicitationRequest" ? handler : undefined };
+    Object.defineProperty(options, field, { enumerable: false });
+    const plugin = route === "recreation" ? await remoteMcpArtifactPlugin((await generateRemoteMcpArtifact(initRemoteMcpConfiguration([server]).configuration)).artifact,
+      { binding: { env: {} }, commands: options }) : undefined;
+    const shell = new Shell({ fs: createMemoryFileSystem(), ...(plugin === undefined ? { commands: new CommandRegistry(await createRemoteMcpCommands([server], options)) } : {}) });
+    try {
+      if (plugin !== undefined) shell.use(plugin); const result = await shell.exec("jobs confirm"); expect(result.exitCode).toBe(0);
+      if (field === "onWarning") { expect(onWarning).toHaveBeenCalledOnce(); expect(handler).not.toHaveBeenCalled();
+        expect(f.requests.at(-1)?.params.inputResponses).toEqual({ question: { action: "decline" } }); }
+      else { expect(handler).toHaveBeenCalledOnce(); expect(onWarning).not.toHaveBeenCalled();
+        expect(f.requests.at(-1)?.params.inputResponses).toEqual({ question: { action: "accept", content: { project: "005930" } } }); }
+    } finally { await shell.dispose(); }
+  }
+);

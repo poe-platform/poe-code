@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import { snapshotOAuthBrowserOptions, snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
 import {
   MCP_PROTOCOL_VERSIONS,
@@ -131,7 +132,7 @@ export async function fetchRemoteMcpSchema(
   server: RemoteMcpServer,
   options: SchemaFetchOptions = {}
 ): Promise<RemoteMcpSchema> {
-  options = { ...options };
+  options = snapshotRemoteMcpSchemaOptions(options);
   options.signal?.throwIfAborted();
   const limits = remoteLimits(options);
   validateServer(server, limits.maxTools);
@@ -187,7 +188,7 @@ export async function resolveRemoteMcpSchemas(
   servers: readonly RemoteMcpServer[],
   options: SchemaFetchOptions = {}
 ): Promise<RemoteMcpSchema[]> {
-  options = { ...options };
+  options = snapshotRemoteMcpSchemaOptions(options);
   preflightRemoteMcpServers(servers, options);
   const snapshots = servers.map(snapshotRemoteMcpServer);
   const schemas: RemoteMcpSchema[] = [];

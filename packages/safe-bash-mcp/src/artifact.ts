@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import { createHash } from "node:crypto";
 import type { OAuthClientProvider } from "mcp-oauth";
 import { compileJsonSchema, formatIssues, isJsonValue, type CompileJsonSchemaOptions } from "toolcraft-schema";
@@ -79,7 +80,7 @@ function validateToolSchemas(tools: readonly Tool[], options: CompileJsonSchemaO
 
 /** Discover only absent schemas and produce deterministic, credential-free artifacts. */
 export async function generateRemoteMcpArtifact(value: unknown, options: ArtifactGenerationOptions = {}): Promise<GeneratedRemoteMcpArtifact> {
-  options = { ...options, ...(options.schema === undefined ? {} : { schema: { ...options.schema } }) };
+  options = { ...options, ...(options.schema === undefined ? {} : { schema: snapshotRemoteMcpSchemaOptions(options.schema) }) };
   const limit = artifactLimit(options);
   options.schema?.signal?.throwIfAborted();
   const schemaRegistry = snapshotRegistry(options.schemaRegistry, limit);
@@ -172,7 +173,7 @@ export function parseRemoteMcpArtifact(value: unknown, options: ArtifactOptions 
 
 /** Prepare an artifact's commands without rediscovery, using explicit runtime credentials. */
 export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactPluginOptions): Promise<Awaited<ReturnType<typeof remoteMcpCommands>>> {
-  const commands = { ...options.commands,
+  const commands = { ...snapshotRemoteMcpSchemaOptions(options.commands ?? {}),
     schemaValidation: { ...options.commands?.schemaValidation,
       ...(options.commands?.schemaValidation?.formats === undefined ? {} : { formats: { ...options.commands.schemaValidation.formats } }) } };
   commands.signal?.throwIfAborted();

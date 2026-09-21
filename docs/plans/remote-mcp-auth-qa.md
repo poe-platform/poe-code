@@ -889,3 +889,19 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     connection-status and safe limit-error JSON in the successful summary
     screenshot. Omit absent tools from JSON initialization inputs. Purge owned
     synthetic evidence after inspection.
+
+78. Supply hidden schema-operation signal/fetch/deadline/response/tool/page options
+    through schema, registry, command, resource, explicit-auth, generation,
+    recreation and management generation/resource/auth routes. Across actual
+    HTTP/SSE, require eighty original-cancellation/invalid-policy failures before
+    transport, twenty enforced one-byte response limits and twenty complete
+    positive operations. Block ambient fetch in the host fixture. Six challenged
+    schema/tool/resource sessions must write only the selected discovery cache.
+    Modern HTTP input-required and legacy SSE elicitation through direct/recreated
+    commands must invoke four original hidden handlers and four hidden warnings,
+    preserving accept/decline and exact005930. Await server-observed SSE closes
+    independently from client completion. Require193 total requests/112 MCP POSTs/
+    twelve metadata GETs/twenty-three HTTP retirements/twenty-seven SSE closes.
+    Inspect actual management status/error JSON and successful summary screenshot;
+    purge owned synthetic evidence. Selected callback identity is preserved;
+    private receiver binding for fetch/warning/input callbacks is host-owned.

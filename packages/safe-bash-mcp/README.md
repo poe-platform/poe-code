@@ -29,7 +29,10 @@ input/output schemas and other metadata. Discovered snapshots also include
 server identity, capabilities and instructions.
 Discovery captures server fields, headers, supplied tools and option handles
 before waiting; registry resolution captures every entry before its first
-connection. Later caller edits cannot rename results, change request headers,
+connection. Declared discovery policies and host fetch, cache, warning, input
+handler and signal handles survive nonenumerable SDK options through commands,
+resources, authentication, artifacts and management operations. Function handles
+retain their identity; hosts bind methods that require a receiver. Later caller edits cannot rename results, change request headers,
 replace the chosen signal, or append servers to the in-progress registry.
 Malformed static headers fail before network requests without reflecting their
 values in SDK diagnostics. Native OAuth metadata binding mismatches and exhausted

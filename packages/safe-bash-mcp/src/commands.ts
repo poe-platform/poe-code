@@ -1,3 +1,4 @@
+import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import {
   collectBytes, commandRuntimeIdentity, createOutputOperation, getCommandArguments,
   type CommandContext, type CommandDefinition, type OutputOperation, type VirtualShellPlugin
@@ -201,7 +202,7 @@ export async function createRemoteMcpCommands(
   const maxOutputBytes = commandLimit(options.maxOutputBytes ?? 16 * 1024 * 1024, "maxOutputBytes");
   for (const server of servers) validateCommandName(server.name);
   const settings = {
-    ...options,
+    ...snapshotRemoteMcpSchemaOptions(options),
     schemaValidation: {
       ...options.schemaValidation,
       ...(options.schemaValidation?.registry === undefined ? {} : { registry: structuredClone(options.schemaValidation.registry) }),

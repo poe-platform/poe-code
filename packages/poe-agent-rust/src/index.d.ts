@@ -12,3 +12,5 @@ export type {
   ProviderStreamEvent
 } from "./plugin-types.js";
 export type { ChatMessage, Tool, ToolResult, ToolResultPart } from "./types.js";
+export { createAgentSessionStore } from "./session-store.js";
+export type { AgentSessionStore, PersistedAgentSession } from "./session-store.js";

@@ -3542,3 +3542,31 @@ unfinished and not advertised as implemented. Original production imports and
 release wiring remain unchanged. Converter commit eba871f8e is verified on remote
 main. Publication and overall/minimum-effort completion remain unverified/open.
 Work continues beyond the recorded03:41:16 effort boundary.
+
+### Poe Agent Rust session storage, 2026-09-21 04:07 UTC
+
+Independent createAgentSessionStore now uses Rust for version1/metadata/message
+and structured text/image/error-part validation. Node supplies injectable/default
+filesystem access, home/path effects and standard save serialization. Portable
+and native reds precede implementation. All4 Rust cases,5 native groups and40
+complete original cases pass, including all19 original session-store cases.
+Native checks preserve extension fields, own __proto__ properties, lone
+surrogates, mkdir-before-stringify order and arbitrary falsy failure reasons.
+Malformed JSON uses host parsing only after Rust syntax rejection to reproduce
+engine diagnostics; bounds rejections never retry unrestricted host parsing.
+The disclosed16MiB/depth128/value262144 parser limits remain interoperability
+limitations. Supported root types, focused unit/lint/fmt/clippy/formatting and
+explicit uncached113-workspace/28-build/338-edge closure pass. Direct/packed
+16MiB workers each complete1024 saves/loads with16 in-memory records and32
+retained sessions alongside8192 provider collections/resolutions and24576
+support checks. Recursive artifact audit covers17 JS/declaration files, one
+addon and zero npm runtime groups. Heap endpoints~7.7/~7.6MB and parent-inclusive
+RSS are bounded workload evidence only. Evidence out/rust-poe-agent-session-*.
+
+Provider commit72325c31e is verified on remote main. Release35558479691 and
+provider release35559290196 remain under monitoring; publication is unverified.
+This storage increment is locally verified; delivery is recorded separately.
+The full agent/runtime/closure rewrite and minimum24-hour effort remain open.
+Conservative active03:41:16–04:01:41 UTC adds1225s; total81347s (22.60h),
+minimum remaining5053s (1h24m13s). The checkpoint gap04:01:41–04:03:46 is
+excluded. Work resumed04:03:46 UTC and continues beyond this boundary.

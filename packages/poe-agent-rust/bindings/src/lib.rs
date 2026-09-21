@@ -97,3 +97,38 @@ pub fn agent_session_valid(id: Unknown<'_>) -> Result<bool> {
 pub fn agent_session_error(id: Utf16String) -> Utf16String {
     poe_agent_rust::session_error(&id).into()
 }
+#[napi]
+pub fn agent_session_decode(source: Utf16String) -> NativeJson {
+    let string = |value: &str| Value::String(value.encode_utf16().collect());
+    let pairs = match poe_agent_rust::session::decode(&source) {
+        Ok(value) => vec![("status", string("ok")), ("value", value)],
+        Err(poe_agent_rust::session::ReadError::Syntax(error)) => {
+            vec![
+                ("status", string("syntax")),
+                ("message", string(&error.to_string())),
+                (
+                    "bounded",
+                    Value::Bool(matches!(
+                        error.kind,
+                        mcp_protocol_rust::json::ErrorKind::ByteLimit
+                            | mcp_protocol_rust::json::ErrorKind::DepthLimit
+                            | mcp_protocol_rust::json::ErrorKind::NodeLimit
+                            | mcp_protocol_rust::json::ErrorKind::InvalidLimits
+                    )),
+                ),
+            ]
+        }
+        Err(poe_agent_rust::session::ReadError::Unsupported(version)) => vec![
+            ("status", string("version")),
+            ("hasVersion", Value::Bool(version.is_some())),
+            ("version", version.unwrap_or(Value::Null)),
+        ],
+        Err(poe_agent_rust::session::ReadError::Invalid) => vec![("status", string("invalid"))],
+    };
+    NativeJson(Value::Object(
+        pairs
+            .into_iter()
+            .map(|(key, value)| (key.encode_utf16().collect(), value))
+            .collect(),
+    ))
+}

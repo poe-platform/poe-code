@@ -12,12 +12,17 @@ export default defineConfig({
       resolveId(name, importer) {
         if (importer === providers && name === "./resolve-provider.js")
           return path("dist/providers.js");
+        if (
+          importer === path("../poe-agent/src/session-store.test.ts") &&
+          name === "./session-store.js"
+        )
+          return path("dist/session-store.js");
         if (importer === names && name === "./tool-names.js") return path("dist/tool-names.js");
       }
     }
   ],
   test: {
-    include: [providers, names],
+    include: [providers, names, path("../poe-agent/src/session-store.test.ts")],
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

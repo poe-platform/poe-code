@@ -7,6 +7,7 @@ type Supported = Pick<
   | "DuplicateProviderNameError"
   | "ProviderResolutionError"
   | "InvalidToolNameError"
+  | "createAgentSessionStore"
 >;
 const a: Supported = own;
 const b: Pick<typeof own, keyof Supported> = null as unknown as Supported;

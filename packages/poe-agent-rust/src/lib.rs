@@ -1,5 +1,6 @@
 //! Independent provider and agent runtime policies; host handles never enter this core.
 use mcp_protocol_rust::strings::trim_ecmascript;
+pub mod session;
 use std::collections::HashMap;
 #[derive(Debug, PartialEq)]
 pub struct Collision {

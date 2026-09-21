@@ -82,5 +82,12 @@ writeFileSync(
 );
 writeFileSync(
   new URL("src/index.d.ts", root),
-  "export {collectProviders,resolveProvider,DuplicateProviderNameError,ProviderResolutionError} from './providers.js';\nexport {InvalidToolNameError} from './tool-names.js';\nexport type {AgentPlugin,Provider,ProviderContext,ProviderStreamEvent} from './plugin-types.js';\nexport type {ChatMessage,Tool,ToolResult,ToolResultPart} from './types.js';\n"
+  "export {collectProviders,resolveProvider,DuplicateProviderNameError,ProviderResolutionError} from './providers.js';\nexport {InvalidToolNameError} from './tool-names.js';\nexport type {AgentPlugin,Provider,ProviderContext,ProviderStreamEvent} from './plugin-types.js';\nexport type {ChatMessage,Tool,ToolResult,ToolResultPart} from './types.js';\nexport {createAgentSessionStore} from './session-store.js';\nexport type {AgentSessionStore,PersistedAgentSession} from './session-store.js';\n"
+);
+
+seed(
+  "session-store.d.ts",
+  "session-store",
+  ["SessionStoreFs", "PersistedAgentSession", "AgentSessionStore", "createAgentSessionStore"],
+  "import type {ChatMessage} from './types.js';"
 );

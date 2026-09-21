@@ -92,6 +92,8 @@ Fixed redirects support `localhost`, `127.0.0.1`, and `::1` over HTTP. Their
 exact spelling, port, path and query are preserved through registration,
 authorization and code exchange. Credentials, fragments, port zero and reserved
 OAuth callback query parameters, including `error_uri`, are rejected before binding a listener.
+Fragment rejection includes a trailing empty `#`. Empty queries and percent-escaped
+hash data remain valid and keep their exact registered spelling.
 `createDefaultOAuthClientProvider` also checks the configured redirect before
 creating the provider. Imported tokens that cannot be sent as HTTP header
 values fail with diagnostics that omit their contents. Omit

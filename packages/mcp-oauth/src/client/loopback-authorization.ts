@@ -97,7 +97,7 @@ export function loopbackTarget(options: LoopbackAuthorizationOptions): { port: n
     try { url = new URL(options.redirectUri); }
     catch (cause) { throw new Error("Invalid OAuth loopback redirect URI", { cause }); }
     if (url.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
-      || url.username || url.password || url.hash || url.port === "0"
+      || url.username || url.password || url.href.includes("#") || url.port === "0"
       || oauthCallbackParameters.some(name => url.searchParams.has(name))
       || [...options.redirectUri].some(char => char.codePointAt(0)! <= 32)
       || (options.callbackPath !== undefined && options.callbackPath !== url.pathname))

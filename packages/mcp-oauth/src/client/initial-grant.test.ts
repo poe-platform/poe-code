@@ -111,3 +111,13 @@ it("rejects an imported token that cannot be sent as an HTTP header without quot
   expect(String(error)).toContain("initial grant");
   expect(String(error)).not.toContain("secret-token");
 });
+
+it("rejects an empty redirect fragment before imported lifetime clocks", () => {
+  const now = vi.fn(() => 1000);
+  expect(() => createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "original-app" },
+    browser: { redirectUri: "http://127.0.0.1:39119/callback#" }, now,
+    initialGrant: { resource: "https://resource.example/mcp", tokens: { accessToken: "original-access", tokenType: "Bearer", expiresIn: 60 } },
+    sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} }
+  })).toThrow(new Error("Invalid OAuth loopback redirect URI"));
+  expect(now).not.toHaveBeenCalled();
+});

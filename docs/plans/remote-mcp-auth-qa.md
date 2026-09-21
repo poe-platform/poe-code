@@ -654,3 +654,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     protected-resource GETs/three valid issuer GETs/four unauthorized MCP requests
     and zero credential writes/token/tool/consent. Inspect safe summary screenshot
     and purge only owned evidence.
+
+60. Use named/empty redirect fragments through standalone sessions, native
+    imported-grant provider construction, environment/public-fallback binding and
+    management auth. Require twelve safe preflight failures with zero listener
+    allocation/native imported-lifetime clocks/network/credential writes. Through
+    actual callbacks retain exact registered empty-query and percent-escaped-hash
+    redirects, original state/exact005930 and unreflected landing pages. Wait
+    separately for host browser-hook completion before counting its response
+    reads; require three released listeners by successful same-port rebinding.
+    Inspect safe summary screenshot and purge only owned synthetic evidence.

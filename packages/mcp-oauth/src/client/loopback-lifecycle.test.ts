@@ -98,7 +98,7 @@ describe("loopback authorization ownership", () => {
     });
 
   it.each(["https://localhost:39119/callback", "http://example.test:39119/callback", "http://127.0.0.2:39119/callback",
-    "http://user:password@localhost:39119/callback", "http://localhost:0/callback", "http://localhost:39119/callback#fragment",
+    "http://user:password@localhost:39119/callback", "http://localhost:0/callback", "http://localhost:39119/callback#fragment", "http://localhost:39119/callback#",
     "http://localhost:39119/callback?state=spoofed", "http://localhost:39119/callback?error_uri=private-fixed-value"])("rejects unsafe fixed redirect %s before creating a listener", async redirectUri => {
       const createServer = vi.fn(() => new Listener().asServer());
       await expect(createLoopbackAuthorizationSession({ redirectUri, createServer })).rejects.toThrow("redirect");

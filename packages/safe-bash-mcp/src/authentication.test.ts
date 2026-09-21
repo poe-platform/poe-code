@@ -1,4 +1,12 @@
 import { expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+
+vi.mock("node:crypto", async importOriginal => {
+  const actual = await importOriginal<typeof import("node:crypto")>();
+  return { ...actual, scrypt(password: string, salt: string, size: number, done: (error: Error | null, key: Buffer) => void) {
+    queueMicrotask(() => done(null, actual.createHash("shake256", { outputLength: size }).update(password).update(salt).digest()));
+  } };
+});
 import { authenticateRemoteMcpServer, generateRemoteMcpArtifact, initRemoteMcpConfiguration } from "./index.js";
 const resource = "https://resource.example/mcp", issuer = "https://auth.example";
 function fixture(publicInitialization = false, scope?: string, clientId = "original") {
@@ -283,4 +291,41 @@ it.each([400, 403, 500])("preserves post-consent HTTP %s failures without a misl
   expect(f.opener).not.toHaveBeenCalled();
   expect(fetch.mock.calls.filter(([url]) => String(url) === resource).every(([, init]) => init?.method === "POST")).toBe(true);
   expect((await f.binding.oauth.sessionStore().load())?.tokens?.accessToken).toBe("private-access");
+});
+
+it("resets the captured server identity when the host store callback mutates the caller registry", async () => {
+  const f = fixture(), configuration = { ...f.configuration }, reset = vi.fn(async (_server: import("./configuration.js").RemoteMcpServerConfiguration) => {});
+  const sessionStore = () => { configuration.name = "other"; configuration.url = "https://other.example/mcp"; return f.binding.oauth.sessionStore(); };
+  await authenticateRemoteMcpServer(configuration, { binding: { ...f.binding, oauth: { ...f.binding.oauth, sessionStore, reset } }, fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true });
+  expect(reset.mock.calls[0]?.[0]).toMatchObject({ name: "catalog", url: resource });
+  expect(f.observed).toHaveBeenCalledOnce();
+});
+
+it.each(["replace", "remove"] as const)("retains the selected host reset when its store callback tries to %s it", async mutation => {
+  const f = fixture(), reset = vi.fn(async () => {}), replacement = vi.fn(async () => { throw new Error("replacement reset invoked"); });
+  const oauth = { ...f.binding.oauth, reset: reset as typeof reset | undefined, sessionStore: () => {
+    oauth.reset = mutation === "replace" ? replacement : undefined; return f.binding.oauth.sessionStore();
+  } };
+  await expect(authenticateRemoteMcpServer(f.configuration, { binding: { ...f.binding, oauth }, fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true })).resolves.toMatchObject({ name: "catalog", url: resource });
+  expect(reset).toHaveBeenCalledOnce(); expect(replacement).not.toHaveBeenCalled();
+});
+
+it("resets the same native record selected for authentication before its lifetime clock changes the path", async () => {
+  const f = fixture(), fs = createFsFromVolume(new Volume()).promises;
+  const authStore = { backend: "file" as const, fileStore: { fs, filePath: "/original/auth.enc", salt: "fixture", getMachineIdentity: () => ({ hostname: "host", username: "user" }) } };
+  await authenticateRemoteMcpServer(f.configuration, { binding: { env: { ...f.binding.env, MCP_CATALOG_ACCESS_TOKEN: "private-access", MCP_CATALOG_EXPIRES_IN: "60" },
+    oauth: { authStore, browser: f.binding.oauth.browser, now: () => { authStore.fileStore.filePath = "/replacement/auth.enc"; return 1000; } } },
+    fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true });
+  expect(f.observed).toHaveBeenCalledOnce();
+  expect((await fs.readdir("/original")).some(name => name.endsWith(".enc"))).toBe(true);
+  await expect(fs.stat("/replacement")).rejects.toMatchObject({ code: "ENOENT" });
+});
+
+it("retains the original host reset receiver with live method state", async () => {
+  const f = fixture();
+  const oauth = { ...f.binding.oauth, calls: 0,
+    reset: vi.fn(async function(this: { calls: number }) { expect(this.calls).toBe(2); this.calls++; }),
+    sessionStore: () => { oauth.calls = 2; return f.binding.oauth.sessionStore(); } };
+  await authenticateRemoteMcpServer(f.configuration, { binding: { ...f.binding, oauth }, fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true });
+  expect(oauth.calls).toBe(3); expect(oauth.reset).toHaveBeenCalledOnce();
 });

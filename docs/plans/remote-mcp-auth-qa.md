@@ -378,3 +378,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     nested metadata and exact005930 without consent/token/metadata traffic.
     This synthetic adapter checks host integration, not the OS Keychain itself.
     Inspect safe summary output and purge owned evidence.
+
+35. Explicitly authenticate with reset against actual local HTTP OAuth. Let the
+    host session-store factory change the caller server name/URL, replace the
+    selected reset hook or remove it. Require the original catalog identity and
+    reset hook exactly once, its original receiver and updated host method state,
+    fresh consent and the complete initialized summary. For native persistence,
+    use a fresh relative environment grant whose clock redirects the caller file
+    path. Reset must address the same original record as authentication, suppress
+    that stale grant and complete new consent into the original encrypted file.
+    Verify full new grant/expiry, no replacement directory/plaintext credentials,
+    actual state/S256/loopback delivery, four exchanges/four retired sessions and
+    no tool/resource/DCR calls. Inspect safe summary output and purge owned QA.

@@ -342,8 +342,11 @@ credential binding. OAuth metadata and token responses keep their own byte limit
 Authentication verifies initialization, establishes the configured OAuth grant
 even if initialization is public, and never lists or calls tools. A fresh
 connection verifies newly established access after public initialization.
-The SDK captures option handles and browser policy before waiting for reset or
-consent. Replacing a fetch/signal option cannot change the in-progress operation;
+The SDK captures option handles, the server identity, nested browser/native
+persistence settings and the selected reset hook before host binding callbacks
+run. Reset uses the same captured server and settings as authentication; the
+original host hook receiver remains live. Replacing a fetch/signal option cannot
+change the in-progress operation;
 the originally selected AbortSignal remains live. Standalone reset follows the
 same signal ownership rule.
 Management `options.authentication` accepts SDK settings and an optional binding;

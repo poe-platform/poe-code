@@ -63,6 +63,45 @@ async function command(fixture = remote(), tools: readonly Tool[] = [tool]): Pro
 }
 
 describe("generated remote MCP safe-bash commands", () => {
+  it("prints only the exact selected tool metadata offline and snapshots it before caller mutation", async () => {
+    const fixture = remote();
+    const selected: Tool = { ...tool, name: "API-post-page.detail", annotations: { readOnlyHint: true },
+      outputSchema: { type: "object", properties: { id: { type: "string" } } } };
+    const expected = structuredClone(selected);
+    const definition = await command(fixture, [selected, { ...tool, name: "API-post-page" }]);
+    selected.annotations!.readOnlyHint = false;
+    const input = invocation(["API-post-page.detail", "--schema"]);
+    expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+    expect(JSON.parse(input.output())).toEqual(expected);
+    expect(input.error()).toBe("");
+    expect(fixture.fetch).not.toHaveBeenCalled();
+  });
+
+  it("inspects a literal dash-prefixed tool without calling it", async () => {
+    const fixture = remote();
+    const selected = { ...tool, name: "--schema" };
+    const input = invocation(["--", "--schema", "--schema"]);
+    expect(await (await command(fixture, [selected])).execute(input.context)).toEqual({ exitCode: 0 });
+    expect(JSON.parse(input.output())).toEqual(selected);
+    expect(fixture.fetch).not.toHaveBeenCalled();
+  });
+
+  it("does not interpret a raw value equal to --schema as inspection", async () => {
+    const fixture = remote();
+    const input = invocation(["search_items", "--raw", "--schema"]);
+    expect(await (await command(fixture)).execute(input.context)).toEqual({ exitCode: 2 });
+    expect(input.output()).toBe("");
+    expect(fixture.fetch).not.toHaveBeenCalled();
+  });
+
+  it("keeps a schema field independently invokable through its collision-safe flag", async () => {
+    const fixture = remote();
+    const selected: Tool = { name: "configure", inputSchema: { type: "object", properties: { schema: { type: "string" } }, required: ["schema"] } };
+    const input = invocation(["configure", "--schema-2=--schema"]);
+    expect(await (await command(fixture, [selected])).execute(input.context)).toEqual({ exitCode: 0 });
+    expect(fixture.requests.find(request => request.method === "tools/call")?.params?.arguments).toEqual({ schema: "--schema" });
+  });
+
   it("surfaces discovered server instructions in server and tool help without reconnecting", async () => {
     const fixture = remote();
     const [definition] = await createRemoteMcpCommands([{ ...server, tools: undefined }], { fetch: fixture.fetch });

@@ -74,7 +74,7 @@ timestamps. Numbers, booleans, null, nested objects, unions and typed arrays are
 validated before a call. Use `--flag value`, `--flag=value`, `field=value`,
 `field:value`, or `field:=<json>` for an explicitly typed JSON value. Flags are
 stable across schema key order and remain distinct when names collide with each
-other or with `raw`, `yes` and `help`.
+other or with `raw`, `yes`, `help` and `schema`.
 
 Array values accept JSON arrays, repeated flags and JSON item sequences such as
 `{"x":1,"y":2},{"x":3,"y":4}`. Bare string elements remain literal, including
@@ -107,6 +107,8 @@ try {
 
 Each server name becomes a command; exact tool names become subcommands.
 `catalog --help` lists tools, and `catalog search_items --help` shows arguments.
+`catalog search_items --schema` prints the complete selected tool metadata as
+JSON, including input/output schemas and annotations, without invoking it.
 Help uses supplied or discovered schemas without connecting again. Tool and
 server help retain multiline server instructions with terminal
 control characters escaped. Artifact loading preserves archived instructions.

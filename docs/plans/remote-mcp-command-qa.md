@@ -61,3 +61,13 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     inspect the management-command error/exit-status screenshot. Do not infer
     vendor-specific transport modes from hostnames or retry authentication errors
     with legacy SSE.
+
+11. Generate a dependency-free ESM artifact with two tools sharing a dashed
+    name prefix and one exact dotted name. Include a required field named schema,
+    annotations and an output schema. Write the module, change the native host's
+    working directory, import it and recreate a Shell. Inspect server/tool help
+    and `<server> <exact-tool> --schema`; require complete selected Tool JSON,
+    the distinct --schema-2 field flag, no network calls and exit 2 for a missing
+    tool. Visually inspect help and schema output. Raw --schema must be rejected
+    as invalid JSON rather than interpreted as inspection; inline field values
+    such as --schema-2=--schema remain literal arguments.

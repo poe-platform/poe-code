@@ -96,7 +96,7 @@ export function compileToolArguments(tool: Tool, options: CompileJsonSchemaOptio
   const properties = projectJsonSchemaProperties(schema, snapshotOptions);
   const names = new Map(properties.map(property => [property.name, property]));
   const natural = new Set(properties.map(property => flagStem(property.name)));
-  const used = new Set(["raw", "yes", "help"]);
+  const used = new Set(["raw", "yes", "help", "schema"]);
   const flags = new Map<string, JsonSchemaProperty>();
   const parameters = properties.map(property => {
     const stem = flagStem(property.name);

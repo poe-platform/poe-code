@@ -8,6 +8,20 @@ const tool: Tool = { name: "search_items", inputSchema: { type: "object", proper
   outputSchema: { type: "object", properties: { query: { type: "string" } } }, annotations: { readOnlyHint: true } };
 const server = { name: "catalog", url: "https://catalog.example/mcp", protocolVersion: "2025-03-26" as const };
 
+it("prints a complete selected tool schema from a recreated artifact without discovery", async () => {
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration);
+  const fetch = vi.fn<HttpTransportFetch>();
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  try {
+    await shell.use(await remoteMcpArtifactPlugin(generated.json, { binding: { env: {} }, commands: { fetch } }));
+    const result = await shell.exec("catalog search_items --schema");
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual(tool);
+    expect(result.stderr).toBe("");
+    expect(fetch).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+
 it("keeps an explicit empty registry authoritative despite unrelated environment configuration", async () => {
   const readAmbient = vi.fn(() => { throw new Error("unrelated environment must remain unread"); });
   const env = Object.defineProperties({}, Object.fromEntries([

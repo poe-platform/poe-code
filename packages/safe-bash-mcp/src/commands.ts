@@ -50,7 +50,7 @@ function toolHelp(name: string, parser: ToolArgumentParser, description?: string
   for (const parameter of parser.parameters)
     lines.push(`  ${parameter.flag} <value>${parameter.required ? " (required)" : ""}${parameter.description ? `  ${textLine(parameter.description)}` : ""}`);
   lines.push("", "  --raw <json>  Provide a complete JSON object; use - to read stdin.",
-    "  --yes         Accept schema defaults.", "  --help        Show tool help.",
+    "  --yes         Accept schema defaults.", "  --help        Show tool help.", "  --schema      Print complete tool metadata as JSON without calling it.",
     "", "Arrays accept JSON arrays, repeated flags or JSON item sequences.");
   return `${lines.join("\n")}\n`;
 }
@@ -61,12 +61,14 @@ interface PreparedTool {
   readonly output?: CompiledJsonSchema;
 }
 
-function wantsToolHelp(args: readonly string[]): boolean {
+function toolInspection(args: readonly string[]): "help" | "schema" | undefined {
+  let inspection: "schema" | undefined;
   for (let index = 0; index < args.length; index++) {
     if (args[index] === "--raw") { index++; continue; }
-    if (args[index] === "--help") return true;
+    if (args[index] === "--help") return "help";
+    if (args[index] === "--schema") inspection = "schema";
   }
-  return false;
+  return inspection;
 }
 
 const publicOAuthErrorCodes = new Set([
@@ -165,7 +167,7 @@ export async function createRemoteMcpCommands(
     }]));
     const summary = [`Usage: ${textLine(shellWord(server.name))} <tool> [arguments]`, "", ...instructionLines(schema.instructions), "Tools:",
       ...[...tools.values()].map(({ tool }) => `  ${textLine(shellWord(tool.name))}${tool.description ? `  ${textLine(tool.description)}` : ""}`),
-      ...(tools.size === 0 ? ["  No tools advertised."] : []), "", `Run ${textLine(shellWord(server.name))} <tool> --help for arguments.`].join("\n") + "\n";
+      ...(tools.size === 0 ? ["  No tools advertised."] : []), "", `Run ${textLine(shellWord(server.name))} <tool> --help for arguments or --schema for JSON metadata.`].join("\n") + "\n";
     return {
       name: server.name,
       description: `Remote MCP tools for ${server.name}`,
@@ -190,8 +192,10 @@ export async function createRemoteMcpCommands(
               if (!selected) throw new Error(`Unknown MCP tool '${name ?? ""}'`);
               entry = selected;
               const inputs = args.slice(literal ? 2 : 1);
-              if (wantsToolHelp(inputs)) {
-                help = toolHelp(server.name, entry.parser, entry.tool.description, schema.instructions);
+              const inspection = toolInspection(inputs);
+              if (inspection !== undefined) {
+                help = inspection === "help" ? toolHelp(server.name, entry.parser, entry.tool.description, schema.instructions)
+                  : `${JSON.stringify(entry.tool)}\n`;
               } else argumentsValue = entry.parser.parse(await stdinArguments(context, inputs, operation.signal, maxInputBytes), {
                 yes: settings.yes, maxInputBytes
               });

@@ -2900,6 +2900,82 @@ incomplete general SVG/shaping and pixel differences. Full malformed/getter,
 cross-platform/aggregate/performance acceptance and the poe-agent closure remain
 unfinished. This package delivery does not complete the overall rewrite goal.
 
+### Terminal-pilot primitives and POSIX transport delivery (2026-09-21 UTC)
+
+`terminal-pilot-rust` adds own persistent terminal buffers, frozen screen
+snapshots, key encoding and ANSI stripping through a single addon. Rust retains
+UTF-16 cells/parser chunks/split surrogates, SGR, cursor/tab/scroll/alternate-screen,
+origin/insert/wrap, DEC charsets and portable graphemes. Official Unicode 17
+emoji/mark tables support selector/keycap emoji and Indic conjunct widths.
+Node supplies public cell views and frozen metadata; returned cell arrays are
+snapshots and external mutation cannot modify Rust state. Geometry/CSI/grapheme/
+repeat budgets explicitly differ from unbounded pathological SDK behavior.
+
+Core/addon absence reds precede implementation. SDK comparisons expose selector/
+keycap and repeat widths, then an additional chunked Indic conjunct red. Own
+Unicode tables and mark-aware width calculation resolve those concrete failures.
+All198 applicable SDK cases pass (163 control/buffer/screen cases plus35 grapheme
+cases), four native display groups, six Rust tests and strict public contracts.
+SDK Pilot/Session/public-full-entry tests are omitted, not passes. Buffer's SDK
+private fields make nominal class assignment incompatible; mapped public
+structural contracts are checked bidirectionally. Root is still incomplete.
+Fmt/clippy for both crates and explicit uncached25-workspace build pass:
+108 workspaces/317 edges. A separate explicit uncached nine-workspace terminal
+MCP build also passes after compression refinement. Earlier default build reports
+used shared cache policy with zero hits at initial runs; final routes explicitly
+use --no-cache to establish uncached execution.
+
+Own macOS/Linux POSIX transport adopts std File descriptors, uses platform
+openpty/setsid/controlling-TTY/ioctl calls, bounded nonblocking queued input,
+read/resize/signal/exit, and asynchronous finalizer reaping. Platform C calls are
+isolated; pre-exec uses only async-signal-safe calls. A live/unreaped session
+leader pins the process-group ID before finalizer group cleanup. Six native
+groups include two actual macOS PTY checks for controlling terminal, dimensions,
+input/output, resize, SIGTERM and exit7. A separate --expose-gc check terminates
+and reaps all32 owned sleep processes. Linux ABI/link support is implemented but
+not runtime-verified; Windows and other Unix platforms remain unsupported.
+
+Direct and fresh packed16MiB workers each complete4,096 buffers/screen snapshots,
+40,960 mode/style/parser chunks and exact text/hidden-cell metadata checks.
+External production imports are blocked, shipped JS/declarations pass AST audit,
+archive has one addon and zero runtime/peer/optional npm groups. An evidence
+script's literal CRLF initially became invalid worker source, then a normalized
+LF gave an invalid cursor expectation. Escaping controls and restoring CRLF fixed
+that script; no buffer defect was demonstrated by those two evidence errors.
+The inspected terminal core PNG shows readable title/styles/borders/accent,
+with missing emoji glyphs visible in the underlying renderer. Full image shaping
+acceptance is not achieved. Own packed artifacts are purged after checks.
+
+Selected repeated-buffer memory gate initially fails: native final RSS586.94MB
+versus201.33MB, despite faster native buffers. External-memory hints alone still
+leave RSS578.21/193.28MB. Pointer-sized empty-cell slots plus dynamic buffer
+accounting and immutable screen accounting address the native allocation cost.
+Final32,768 further buffers: native RSS113.08→138.90MB (late batches level off),
+SDK189.53→195.41MB; heap3.65→2.87/5.15→4.23MB, buffers10.48/16.62KB.
+Native16.1–19.4µs/buffer, SDK53.8–61.2µs in the selected warmed workload. The
+bounded memory gate passes; no broad memory/performance acceptance implied.
+The larger terminal capture after compression now measures11.1–11.3ms versus
+28.4–29.9ms SDK, PNG84,988/55,316 bytes; final RSS92.09/638.65MB across512 further
+captures. These workloads have the documented pixel/size differences.
+Evidence out/rust-terminal-pilot-* and out/rust-terminal-png-*.
+
+CI35549525659 setup fails because an exact dev SDK1.26 pin lacks its nested
+lock entry. Reproduced with npm ci --dry-run. Commit ae6be112d aligns the two own
+fixture/terminal MCP dev pins to the already-tested locked SDK1.29. Both focused
+unit/lint routes pass, and a manifest-only snapshot of tracked remote scope
+passes npm ci --dry-run without the unrelated in-progress pilot workspace.
+Root lock changes are limited to those two pin values. Subsequent full current
+workspace dry-run also includes pilot's own lock/link entries. Release35546033810
+validation/release job succeeds, but its log explicitly declines publication
+because main is behind remote; no actual new publication verified.
+
+Public PTY sessions, TerminalSession/Pilot orchestration, CLI/commands, pilot MCP,
+Python bindings, full malformed/getter/width/cross-platform acceptance and agent
+closure remain unfinished. This is an atomic primitives/transport delivery, not
+completion of terminal-pilot or the overall goal. Conservative active segment
+23:54:31–01:20:00 UTC is recorded. No24-hour effort or goal completion claimed;
+work continues beyond this boundary and the frozen blocked counter stays unchanged.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

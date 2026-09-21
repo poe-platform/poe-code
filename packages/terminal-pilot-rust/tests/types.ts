@@ -1,0 +1,12 @@
+import * as own from '../dist/index.js';
+import * as reference from 'terminal-pilot';
+const stripA:typeof reference.stripAnsi=own.stripAnsi;
+const stripB:typeof own.stripAnsi=reference.stripAnsi;
+const keyA:typeof reference.keyToSequence=own.keyToSequence;
+const keyB:typeof own.keyToSequence=reference.keyToSequence;
+const screenA:typeof reference.TerminalScreen=own.TerminalScreen;
+const screenB:typeof own.TerminalScreen=reference.TerminalScreen;
+type BufferContract=Pick<reference.TerminalBuffer,keyof reference.TerminalBuffer>;
+const bufferA:BufferContract=new own.TerminalBuffer(8,3);
+const bufferB:own.TerminalBuffer=null as unknown as BufferContract;
+void [stripA,stripB,keyA,keyB,screenA,screenB,bufferA,bufferB];

@@ -2778,7 +2778,15 @@ Evidence under `out/rust-mcp-oauth-fixture-*`. Bounded real listener/token timin
 initially overlap (native 4.0–5.5ms, SDK 4.8–5.5ms); after 1024 further rounds, sampled
 heap 9.88/12.10MB and buffers 76KB each, but RSS 286/213MB. Concurrent sampling and
 allocator/GC effects prevent a general speed or memory claim. Extended retention
-checks remain in progress. Aggregate/malformed/getter/cross-platform/performance
+checks now complete another 8192 actual listener/token rounds per implementation.
+Native final sampled heap 17.48MB, SDK 19.92MB; buffers 76.15KB each, RSS
+114.08/120.21MB. Final batches level off near those heaps, while initial RSS
+388/256MB later decreases sharply. One-second OS process samples confirm active
+HTTP/V8 work rather than an idle wait, with peak physical footprints about545MB
+for both processes. Timings vary and sampling overlaps; these bounded outcomes do
+not establish general throughput or retention acceptance. No dangling listeners
+or verification failures observed through all 8192 further rounds.
+Aggregate/malformed/getter/cross-platform/performance
 acceptance, terminal renderers and the poe-agent closure remain unfinished.
 
 Conservative resumed effort segment 23:10:05–23:49:57 UTC is recorded; compaction

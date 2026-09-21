@@ -321,6 +321,7 @@ version = "0.1.0"
 name = "task-list-rust-node"
 version = "0.1.0"
 dependencies = [
+ "config-mutations-rust",
  "config-mutations-rust-napi-core",
  "mcp-protocol-rust",
  "mcp-protocol-rust-napi-core",

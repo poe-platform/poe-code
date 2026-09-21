@@ -5515,3 +5515,40 @@ fresh unit/native checks (job106287079554). Successful publication unverified;
 concurrent original changes preserved. Continuous10:36:30–10:37:46 adds76s,
 total103504s (28.75h). Minimum fulfilled; full rewrite acceptance remains incomplete.
 Continue accounting after10:37:46 UTC.
+
+### Task-list YAML backend, 2026-09-21 10:40 UTC
+
+Owned YAML backend now supports create/update/fire/delete/move/reorder/list transfer
+with std-only Rust value composition and source spans in the same addon. Host
+Document/YAMLMap adapter retains unchanged block entries,attached/inline comments,
+single/double quote styles for single-line strings,custom indentation and scalar
+mapping key types. SDK numeric-key/string-path distinctions retained. Host owns
+filesystem,callbacks,locks and atomic writes. Rendering uses source slices rather
+than wholesale replacement of unchanged blocks. Initial missing native/backend
+reds,empty-map conformance failures,quote/key effects and EOF regression precede
+repairs. A memfs test verifies flow-map comment rejection occurs before writes.
+
+Bounds are explicit: complex mapping keys and full SDK alias/formatting edits
+remain under review; changed flow maps normalize and edits to flow maps containing
+# reject. Root no-integration constraint preserved. Migration still absent; do
+not describe task-list as a complete replacement or completely native backend.
+
+Maintained12 task-list Rust cases,12native groups,358full original references/
+16files,covered bidirectional APIs/types,fmt/clippy/hostESLint/diff pass; reusable
+source module additionally6focused Rust cases. Uncached maintained selected
+closure115workspaces/19builds/350edges passes. Packed38JS/declaration files,one
+addon,zero runtime groups/imports. Direct/packed16MiB workers each complete64creates/
+64updates/80transitions/reorder/2048comment-preserving edits,one memfs store file;
+final JS heaps11.44/14.61MB,RSS93.2/96.4MB. V8 limit is not a total memory limit;
+full native allocation/platform/stability acceptance remains incomplete.
+
+Five alternating warmed32task YAML memfs create/plan/update/list/reorder samples:
+originalwall108.62–134.47ms/CPU119.36–169.13ms versus ownwall75.32–80.76ms/
+CPU78.24–92.18ms,better in each pair,scoped performance PASS. No actual disk/network
+or universal Rust superiority claim. Evidence out/rust-task-list-yaml-*.
+
+Syntax77318eb79 exact remote-main verified; successful publication remains
+unverified. Concurrent original changes preserved. Continuous10:37:46–10:40:33
+adds167s,total103671s (28.80h). Minimum fulfilled; remaining full closure/runtime/
+platform/performance/edited-YAML acceptance remains incomplete. Continue accounting
+after10:40:33 UTC.

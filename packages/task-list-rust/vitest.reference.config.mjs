@@ -10,14 +10,20 @@ export default defineConfig({
       name: "own-task-state-reference",
       enforce: "pre",
       transform(code, id) {
-        if (!id.startsWith(path(root)) || (!id.endsWith(".test.ts") && !id.endsWith(".spec.ts")))
+        if (
+          !id.startsWith(path(root)) ||
+          (!id.endsWith(".test.ts") && !id.endsWith(".spec.ts") && !id.endsWith("test-helpers.ts"))
+        )
           return;
         const modules = new Map([
           ["./state.js", "state"],
+          ["./yaml-file.js", "backends/yaml-file"],
+          ["./open.js", "open"],
           ["./gh-issues.js", "backends/gh-issues"],
           ["./gh-issues-client.js", "backends/gh-issues-client"],
           ["./gh-issues-sync.js", "backends/gh-issues-sync"],
           ["../open.js", "open"],
+          ["../state.js", "state"],
           ["./markdown-dir.js", "backends/markdown-dir"],
           ["./state-machine.js", "state-machine"],
           ["./types.js", "types"],
@@ -55,6 +61,11 @@ export default defineConfig({
       "state-machine.test.ts",
       "backends/utils.test.ts",
       "backends/markdown-dir.test.ts",
+      "backends/yaml-file.test.ts",
+      "open-task-list.test.ts",
+      "tasks.fire.test.ts",
+      "backends/lock-concurrency.test.ts",
+      "backends/conformance.test.ts",
       "backends/gh-issues.test.ts",
       "backends/gh-issues-client.test.ts",
       "backends/gh-issues-sync.test.ts",

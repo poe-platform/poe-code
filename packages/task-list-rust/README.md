@@ -10,6 +10,7 @@ additive implementation.
 - Rust transition validation and shortest event-path discovery.
 - TypeScript error classes and task interfaces matching the existing package.
 - Markdown storage with atomic writes, locks, ordering, archive and passthrough frontmatter.
+- YAML stores with source spans, retained block comments, quote styles and task ordering.
 - GitHub issue/project storage, canonical issue identities, label states and project sync.
 
 ```typescript
@@ -44,10 +45,17 @@ Rust validates issue/repository identities and parses GraphQL JSON, with a maxim
 JSON nesting depth of 512. Network calls, project orchestration and callbacks remain
 in Node. Native identity parsing retains UTF-16 strings and safe integer boundaries.
 
-This private package currently covers Markdown/GitHub storage, project sync, states,
-errors, interfaces and file-operation helpers. YAML-file storage and migration are
-still being implemented; YAML-file is currently rejected by openTaskList.
-It is not yet a complete replacement for task-list.
+YAML storage retains unchanged block entries, comments attached to moved tasks,
+inline comments and existing single/double quote styles for single-line strings.
+Schema-aware scalar mapping keys retain their type. Syntax scanning uses the same
+512-depth limit and permits at most 1,048,576 nodes. Edits to flow mappings that
+contain `#` are rejected before file writes; other changed flow mappings are
+normalized. Complex mapping keys and complete SDK formatting/alias-edit parity
+remain under review.
+
+This private package currently covers all three storage backends, project sync,
+states, errors, interfaces and file-operation helpers. Migration is still being
+implemented. It is not yet a complete replacement for task-list.
 No npm runtime dependencies or changes to existing consumers are introduced.
 Current native artifact validation covers macOS arm64; other platforms and Python
 bindings remain pending. Native crossings do not imply faster small operations.

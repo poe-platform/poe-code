@@ -80,3 +80,80 @@ mod runner;
 pub use runner::*;
 #[napi]
 pub const USER_ERROR_NAME: &str = user_error_rust::USER_ERROR_NAME;
+#[napi]
+pub fn task_yaml_spans(
+    source: Utf16String,
+) -> napi::Result<mcp_protocol_rust_napi_core::convert::NativeJson> {
+    use config_mutations_rust::yaml::document::Kind;
+    use mcp_protocol_rust::json::Value;
+    let document = config_mutations_rust::yaml::document::scan(&source)
+        .map_err(|e| napi::Error::from_reason(e.to_string()))?;
+    let field = |key: &str, value: Value| (key.encode_utf16().collect(), value);
+    let nodes = document
+        .nodes
+        .into_iter()
+        .map(|node| {
+            let scalar = node
+                .scalar
+                .map(|value| {
+                    let date_ids = if matches!(value, config_mutations_rust::value::Value::Date(_))
+                    {
+                        vec![0]
+                    } else {
+                        vec![]
+                    };
+                    let symbol_ids =
+                        if matches!(value, config_mutations_rust::value::Value::Symbol(_)) {
+                            vec![0]
+                        } else {
+                            vec![]
+                        };
+                    config_mutations_rust_napi_core::parsed_yaml_snapshot(
+                        config_mutations_rust::yaml::Parsed {
+                            value,
+                            date_ids,
+                            symbol_ids,
+                        },
+                    )
+                    .0
+                })
+                .unwrap_or(Value::Null);
+            Value::Object(vec![
+                field("scalar", scalar),
+                field(
+                    "kind",
+                    Value::String(
+                        match node.kind {
+                            Kind::Scalar => "scalar",
+                            Kind::Mapping => "mapping",
+                            Kind::Sequence => "sequence",
+                            Kind::Alias => "alias",
+                        }
+                        .encode_utf16()
+                        .collect(),
+                    ),
+                ),
+                field("start", Value::Number(node.start as f64)),
+                field("end", Value::Number(node.end as f64)),
+                field("text", Value::String(node.text)),
+                field("quoted", Value::Bool(node.quoted)),
+                field("flow", Value::Bool(node.flow)),
+                field(
+                    "children",
+                    Value::Array(
+                        node.children
+                            .into_iter()
+                            .map(|i| Value::Number(i as f64))
+                            .collect(),
+                    ),
+                ),
+            ])
+        })
+        .collect();
+    Ok(mcp_protocol_rust_napi_core::convert::NativeJson(
+        Value::Object(vec![
+            field("root", Value::Number(document.root as f64)),
+            field("nodes", Value::Array(nodes)),
+        ]),
+    ))
+}

@@ -1,23 +1,26 @@
+import * as fsPromises from "node:fs/promises";
 import { ghIssuesBackend } from "./backends/gh-issues.js";
 import { resolveAuth, resolveEndpoint } from "./backends/gh-issues-client.js";
-import * as fsPromises from "node:fs/promises";
 import { markdownDirBackend } from "./backends/markdown-dir.js";
+import { yamlFileBackend } from "./backends/yaml-file.js";
 import { validateMachine } from "./state-machine.js";
 import { resolveStateMachine } from "./state.js";
 import type {
   BackendFactory,
   BackendDeps,
-  OpenMarkdownDirOptions,
   OpenGhIssuesOptions,
+  OpenMarkdownDirOptions,
   OpenTaskListOptions,
+  OpenYamlFileOptions,
   TaskList,
   TaskListFs
 } from "./types.js";
 
-type FileBackendOptions = OpenMarkdownDirOptions;
+type FileBackendOptions = OpenMarkdownDirOptions | OpenYamlFileOptions;
 
 export const backendFactories: Record<FileBackendOptions["type"], BackendFactory> = {
-  "markdown-dir": markdownDirBackend
+  "markdown-dir": markdownDirBackend,
+  "yaml-file": yamlFileBackend
 };
 
 function createDefaultFs(): TaskListFs {
@@ -28,6 +31,7 @@ export async function openTaskList(options: OpenTaskListOptions): Promise<TaskLi
   const type = getOwnProperty(options, "type");
   switch (type) {
     case "markdown-dir":
+    case "yaml-file":
       return openFileBackend(options as FileBackendOptions);
     case "gh-issues":
       return openGhIssuesBackend(options as OpenGhIssuesOptions);

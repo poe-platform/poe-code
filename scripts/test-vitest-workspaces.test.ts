@@ -135,6 +135,14 @@ describe("shared Vitest task selection", () => {
     expect(stages[0].testArguments).toEqual(["--workspace=alpha", "--workspace=beta", "--workspace=native", "packages/alpha", "packages/beta"]);
   });
 
+  it("shares one hook-free workspace when exact files are selected", () => {
+    const { fileSystem, plan } = fixture();
+    plan.testStages = [plan.testStages[1]];
+    const stages = sharedVitestStages({ ...plan, selectedWorkspaces: ["alpha"], testFiles: ["packages/alpha/src/unit.test.ts"] }, fileSystem);
+    expect(stages[0].event).toBe("test:unit:shared");
+    expect(stages[0].testArguments).toEqual(["--workspace=alpha", "--test-file=packages/alpha/src/unit.test.ts", "packages/alpha"]);
+  });
+
   it("requires the declared shared command and supported root selection", () => {
     for (const field of ["test:unit", "test:unit:shared"]) {
       const { fileSystem, plan } = fixture();
@@ -332,6 +340,22 @@ describe("batched shared Vitest execution", () => {
     expect(mocks.createVitest).toHaveBeenCalledTimes(1);
     expect(mocks.createVitest.mock.calls[0][1].config).toBe("/repo/vitest.config.ts");
     expect(execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([alphaFile, betaFile], false);
+  });
+
+  it("restricts focused test files to the selected workspace's actual ownership", async () => {
+    const { execution } = contexts();
+    mocks.createVitest.mockReset().mockResolvedValueOnce(execution);
+    const other = { moduleId: "/repo/packages/alpha/src/other.test.ts" };
+    execution.globTestSpecifications.mockImplementation(async () => [alphaFile, other]);
+    await runSharedVitest("/repo", [phases[1]], { testFiles: ["packages/alpha/src/unit.test.ts"] });
+    expect(execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([alphaFile], false);
+  });
+
+  it("rejects focused files outside selected ownership before running tests", async () => {
+    const { execution } = contexts();
+    mocks.createVitest.mockReset().mockResolvedValueOnce(execution);
+    await expect(runSharedVitest("/repo", [phases[1]], { testFiles: ["packages/beta/src/unit.test.ts"] })).rejects.toThrow();
+    expect(execution.runTestSpecifications).not.toHaveBeenCalled();
   });
 
   it("waits for the complete queue before closing the runner", async () => {

@@ -81,6 +81,17 @@ describe("explicit maintained unit selection", () => {
     expect(parseWorkspaceArguments(["--test-unit", "--workspace=docx", "--dry-run"]).dryRun).toBe(true);
   });
 
+  it("parses exact focused files without broadening native workspace filters", () => {
+    expect(parseWorkspaceArguments(["--test-unit", "--workspace=docx", "--test-file=packages/docx/src/fields.test.ts"]))
+      .toMatchObject({ workspaces: ["docx"], testFiles: ["packages/docx/src/fields.test.ts"] });
+    for (const file of ["../outside.test.ts", "/absolute.test.ts", "packages/*/test.ts", "bad\\path.test.ts"]) {
+      expect(() => parseWorkspaceArguments(["--test-unit", "--workspace=docx", "--test-file=" + file])).toThrow();
+    }
+    for (const options of [{ testFiles: ["packages/docx/src/fields.test.ts"] }, { workspaces: ["docx", "safe-js"], testFiles: ["packages/docx/src/fields.test.ts"] }]) {
+      expect(() => createWorkspaceTestPlan("/repo", { ...fixture(), ...options })).toThrow();
+    }
+  });
+
   it("uses native npm lifecycles, forwards filters and keeps caller environment unchanged", async () => {
     const host = Object.assign(new EventEmitter(), { platform: "linux", execPath: "/node", kill: vi.fn() });
     const spawn = vi.fn((_command: string, _args: string[], _options: SpawnOptions) => {

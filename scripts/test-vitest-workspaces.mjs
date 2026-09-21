@@ -15,14 +15,14 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   const selections = new Map(workspaceUnitSelections(plan.root, fileSystem)
     .filter(selection => !selection.hasHooks && !selection.requiresNativePool).map(selection => [selection.path, selection]));
   const compatible = plan.testStages.filter(stage => stage.path === null || selections.has(stage.path));
-  if (compatible.length < 2) return plan.testStages;
+  if (compatible.length < (plan.testFiles ? 1 : 2)) return plan.testStages;
   const root = compatible.find(stage => stage.path === null)
     ?? (plan.ciGroup || plan.selectedWorkspaces ? { ...compatible[0], id: "//#test:unit", name: plan.rootManifest.name, path: null } : undefined);
   if (!root) return plan.testStages;
   const shared = {
     ...root,
     event: "test:unit:shared",
-    testArguments: [...(plan.ciGroup ? [`--ci-group=${plan.ciGroup}`] : []), ...(plan.affected ? [`--affected=${plan.affected}`] : []), ...(plan.selectedWorkspaces ?? []).map(name => `--workspace=${name}`), ...compatible.map(stage => stage.path ?? ".")],
+    testArguments: [...(plan.ciGroup ? [`--ci-group=${plan.ciGroup}`] : []), ...(plan.affected ? [`--affected=${plan.affected}`] : []), ...(plan.selectedWorkspaces ?? []).map(name => `--workspace=${name}`), ...(plan.testFiles ?? []).map(filename => `--test-file=${filename}`), ...compatible.map(stage => stage.path ?? ".")],
     phases: compatible.map(stage => ({
       name: stage.name,
       path: stage.path,
@@ -34,7 +34,7 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   return [shared, ...plan.testStages.filter(stage => !compatible.includes(stage))];
 }
 
-export async function runSharedVitest(root, phases, { cacheStore, fingerprints, cache = false, cacheFiles, batchSize = 100, runBatch } = {}) {
+export async function runSharedVitest(root, phases, { cacheStore, fingerprints, cache = false, cacheFiles, batchSize = 100, runBatch, testFiles } = {}) {
   assert.ok(Number.isSafeInteger(batchSize) && batchSize > 0, "Invalid Vitest batch size");
   const environment = { TEST: process.env.TEST, VITEST: process.env.VITEST, NODE_ENV: process.env.NODE_ENV };
   const contexts = [];
@@ -75,6 +75,7 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
     assert.equal(byPath.size, specifications.length, "Multiple shared specifications per file are unsupported");
     for (const filename of rootFiles) assert.ok(byPath.has(filename), `Root test file absent from shared configuration: ${filename}`);
     const scheduled = new Set();
+    const requested = testFiles && new Set(testFiles.map(filename => path.resolve(root, filename)));
     const groups = [];
     const { createCheckCache, createTaskFingerprints, taskCacheKey } = await import("./check-cache.mjs");
     if (cache && !cacheStore) {
@@ -88,9 +89,10 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
       cacheStats.fingerprintMs = Math.round(performance.now() - started);
     }
     for (const phase of phases) {
-      const selected = phase.path === null
+      const owned = phase.path === null
         ? [...rootFiles].map(filename => byPath.get(filename))
         : await context.globTestSpecifications(phase.selectors);
+      const selected = requested ? owned.filter(specification => requested.has(specification.moduleId)) : owned;
       assert.ok(selected.length || phase.passWithNoTests, `No test files: ${phase.name}`);
       for (const specification of selected) {
         assert.ok(!scheduled.has(specification.moduleId), `Unit test ownership overlap: ${specification.moduleId}`);
@@ -104,6 +106,7 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
       if (key) cacheStats[cached ? "cacheHits" : "cacheMisses"]++;
       groups.push({ phase, specifications: selected.map(specification => ({ moduleId: specification.moduleId })), key, files, cached });
     }
+    for (const filename of requested ?? []) assert.ok(scheduled.has(filename), `Test file is outside selected unit ownership: ${filename}`);
     byPath.clear();
     specifications.length = 0;
     await context.standalone();
@@ -197,13 +200,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const affectedArgument = expected[0]?.startsWith("--affected=") ? expected.shift() : undefined;
     const selectionArguments = [];
     while (expected[0]?.startsWith("--workspace=")) selectionArguments.push(expected.shift());
-    const plan = createWorkspaceTestPlan(root, { affected: affectedArgument?.slice("--affected=".length), ciGroup: groupArgument?.slice("--ci-group=".length), ...(selectionArguments.length ? { workspaces: selectionArguments.map(value => value.slice("--workspace=".length)) } : {}) });
+    const fileArguments = [];
+    while (expected[0]?.startsWith("--test-file=")) fileArguments.push(expected.shift());
+    const plan = createWorkspaceTestPlan(root, { affected: affectedArgument?.slice("--affected=".length), ciGroup: groupArgument?.slice("--ci-group=".length), ...(selectionArguments.length ? { workspaces: selectionArguments.map(value => value.slice("--workspace=".length)) } : {}), ...(fileArguments.length ? { testFiles: fileArguments.map(value => value.slice("--test-file=".length)) } : {}) });
     const shared = sharedVitestStages(plan).find(stage => stage.event === "test:unit:shared");
     assert.ok(shared, "Shared Vitest is not enabled for this workspace configuration");
-    if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...(affectedArgument ? [affectedArgument] : []), ...selectionArguments, ...expected], "Workspace unit selection changed before shared execution");
+    if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...(affectedArgument ? [affectedArgument] : []), ...selectionArguments, ...fileArguments, ...expected], "Workspace unit selection changed before shared execution");
     const { runVitestBatch } = await import("./run-vitest-batch.mjs");
     await runSharedVitest(root, shared.phases, {
-      runBatch: runVitestBatch,
+      runBatch: runVitestBatch, testFiles: plan.testFiles,
       cache: process.env.POE_CHECK_CACHE !== "0" && plan.ciGroup !== "fresh" && process.env.TURBO_FORCE !== "true"
         && (process.env.POE_SNAPSHOT_MODE ?? "playback") === "playback" && (process.env.POE_SNAPSHOT_MISS ?? "error") === "error"
     });

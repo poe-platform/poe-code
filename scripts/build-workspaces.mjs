@@ -303,7 +303,7 @@ export function changedFilesSince(root, reference, environment = process.env) {
 }
 
 export function createWorkspaceTestPlan(rootDirectory, options = {}) {
-  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, workspaces, changedFiles, affected, affectedFiles } = options;
+  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, workspaces, changedFiles, affected, affectedFiles, testFiles } = options;
   assert.ok(concurrency === 1 || concurrency === 4, "Unit concurrency must be 1 or 4");
   assert.ok(excludeWorkspace === undefined || excludeWorkspace === "@poe-platform/safe-bash", "Only the Node20 @poe-platform/safe-bash exclusion is supported");
   assert.ok(Array.isArray(testArguments) && testArguments.every(value => typeof value === "string" && !value.includes("\0")), "Invalid test arguments");
@@ -314,6 +314,8 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
   assert.ok(changedFiles === undefined || workspaces === undefined && ciGroup === undefined && excludeWorkspace === undefined, "Change selection does not accept workspace selections, CI partitions or exclusions");
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
   const selectedWorkspaces = changedFiles === undefined ? workspaces === undefined ? undefined : [...new Set(workspaces)] : affectedUnitWorkspaces(plan, changedFiles);
+  assert.ok(testFiles === undefined || Array.isArray(testFiles) && testFiles.length > 0 && workspaces !== undefined && selectedWorkspaces.length === 1 && !testArguments.length, "Focused files require one exact workspace and no native test arguments");
+  for (const filename of testFiles ?? []) assert.ok(typeof filename === "string" && filename && !path.isAbsolute(filename) && !filename.split("/").some(part => part === ".." || part === "." || !part) && !["*", "?", "[", "]", "{", "}", "\\", "\0"].some(value => filename.includes(value)), "Invalid exact test file");
   for (const name of selectedWorkspaces ?? []) {
     const selected = name === "." ? plan.rootManifest : plan.workspaces.find(workspace => workspace.name === name)?.manifest;
     assert.ok(selected, "Unknown literal workspace: " + name);
@@ -379,7 +381,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     }
   }
   const selected = selectBuildStages(plan, buildRoots);
-  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(affected === undefined ? {} : { affected }), ...(ciGroup === undefined ? {} : { ciGroup }), ...(selectedWorkspaces === undefined ? {} : { selectedWorkspaces }) };
+  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(testFiles === undefined ? {} : { testFiles: [...new Set(testFiles)] }), ...(affected === undefined ? {} : { affected }), ...(ciGroup === undefined ? {} : { ciGroup }), ...(selectedWorkspaces === undefined ? {} : { selectedWorkspaces }) };
 }
 
 function taskEnvironment(environment, stage, unitMode) {
@@ -577,7 +579,7 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
 }
 
 export async function testWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles, workspaces, changedSince, dryRun = false } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup, cache, cacheStore, cacheFiles, affected, affectedFiles, workspaces, changedSince, dryRun = false, testFiles } = options;
   validateEnvironment(environment);
   const childEnvironment = { ...environment };
   const gitPath = environment.PATH ?? process.env.PATH;
@@ -591,13 +593,14 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   gitLocalVariablesByPath.set(gitPath, localGitVariables);
   for (const name of localGitVariables) delete childEnvironment[name];
   const changedFiles = changedSince === undefined ? undefined : changedFilesSince(path.resolve(rootDirectory), changedSince, childEnvironment);
-  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup, workspaces, changedFiles, affected, affectedFiles });
-  if (dryRun) return { dryRun: true, plannedTests: plan.testStages.length, plannedBuilds: plan.buildStages.length, testStages: plan.testStages, buildStages: plan.buildStages.map(stage => ({ name: stage.name, path: stage.path, event: stage.event ?? "build" })), ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }) };
+  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup, workspaces, changedFiles, affected, affectedFiles, testFiles });
   let testStages = plan.testStages;
   if (plan.rootManifest.scripts["test:unit:shared"]) {
     const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
     testStages = sharedVitestStages(plan, fileSystem);
   }
+  assert.ok(testFiles === undefined || testStages.length === 1 && testStages[0].event === "test:unit:shared", "Focused files require the maintained hook-free shared Vitest route");
+  if (dryRun) return { dryRun: true, plannedTests: plan.testStages.length, plannedBuilds: plan.buildStages.length, testStages: plan.testStages, buildStages: plan.buildStages.map(stage => ({ name: stage.name, path: stage.path, event: stage.event ?? "build" })), ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }), ...(testFiles === undefined ? {} : { testFiles: plan.testFiles }) };
   const caching = cache !== false && ciGroup !== "fresh" && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs));
   childEnvironment.POE_CHECK_CACHE = caching ? "1" : "0";
   let buildCache;
@@ -616,7 +619,7 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   }
   await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments, taskCache: unitCache });
   unitCache?.flush();
-  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: caching ? "SHARED" : "UNCACHED", ...(unitCache ? unitCache.stats : {}), excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless, ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }),
+  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: caching ? "SHARED" : "UNCACHED", ...(unitCache ? unitCache.stats : {}), excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless, ...(testFiles === undefined ? {} : { testFiles: plan.testFiles }), ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }),
     ...(buildCache ? { ...buildCache.stats, executionMs: Math.round(performance.now() - started) } : {}) };
 }
 
@@ -661,6 +664,10 @@ export function parseWorkspaceArguments(args) {
       assert.ok(equals >= 0 && !seen.has(name), "Invalid or duplicate affected option");
       seen.add(name); result.affected = argument.slice(equals + 1);
       affectedWorkspaceNames({ workspaces: [], edges: [] }, result.affected, []);
+    } else if (name === "--test-file") {
+      const filename = equals < 0 ? undefined : argument.slice(equals + 1);
+      assert.ok(filename && !path.isAbsolute(filename) && !filename.split("/").some(part => part === ".." || part === "." || !part) && !["*", "?", "[", "]", "{", "}", "\\", "\0"].some(value => filename.includes(value)), "Invalid exact test file");
+      (result.testFiles ??= []).push(filename);
     } else if (name === "--dry-run") {
       assert.ok(equals < 0 && !seen.has(name), "Invalid or duplicate dry-run option"); seen.add(name);
       result.dryRun = true;

@@ -82,6 +82,19 @@ describe("native workspace routing with shared Vitest", () => {
     for (const call of start.mock.calls.slice(1)) expect(call[1].slice(-3)).toEqual(["--", "--reporter=json", "literal filter"]);
   });
 
+  for (const hook of ["pretest:unit", "posttest:unit", "native-pool"]) {
+    it(`rejects focused files without bypassing ${hook}`, async () => {
+      const { fileSystem, start, options } = fixture();
+      fileSystem.writeFileSync("/repo/packages/alpha/package.json", JSON.stringify({ name: "alpha", scripts: {
+        "test:unit": "cd ../.. && vitest run packages/alpha/src" + (hook === "native-pool" ? " --pool=forks" : ""),
+        ...(hook === "native-pool" ? {} : { [hook]: "required-hook" })
+      } }));
+      await expect(testWorkspaces("/repo", { ...options, workspaces: ["alpha"], testFiles: ["packages/alpha/src/unit.test.ts"] }))
+        .rejects.toThrow("hook-free shared Vitest route");
+      expect(start).not.toHaveBeenCalled();
+    });
+  }
+
   it("stops before native tests when the shared process fails", async () => {
     const { host, start, options } = fixture("test:unit:shared");
     await expect(testWorkspaces("/repo", options)).rejects.toMatchObject({ exitCode: 7 });

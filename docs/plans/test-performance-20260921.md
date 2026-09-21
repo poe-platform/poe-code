@@ -40,3 +40,13 @@ An isolated root script test edit now schedules root only. Package test helper/f
 ## Fresh DOCX public artifacts
 
 `packages/docx/tests/public-shell.test.ts` starts a child process that imports built public packages outside source aliases. Before this follow-up, exact DOCX selection planned no builds. A failing real-repository graph test reproduced the missing DOCX build. `docx#test:unit` now declares its own build prerequisite, retaining the existing portable safe-fs dependency event and five-stage build closure. Scope/build/shared checks pass 72 tests plus root posttest stress.
+
+## Exact files
+
+Native DOCX commands include `packages/docx`; adding a file as another positional filter still selects the whole package because Vitest combines those filters as alternatives. `--test-file=<repository-relative-path>` now selects exact owned files through the maintained shared route. One exact workspace is required; native hooks/custom pools/extra native arguments are rejected before builds rather than bypassed. Every requested file must belong to the selected unit task. Default and change-based runs remain complete within their selected tasks.
+
+The built public consumer ran as one selected file after five fresh dependency builds and passed in 1.27 seconds (the child checks ten public cases). The equivalent 472 regression cases are also being exercised through the new maintained root route.
+
+## Generated output lint
+
+The second full root lint completed its traversal of 16,928 configured files; all 223 rule errors came from generated audit scripts under root `output`, primarily unused probe imports. The generated output directory now shares the global exclusion used for `out`, `dist` and screenshots. Audit artifacts are preserved. A third maintained root lint checks the resulting source selection; no rules were disabled.

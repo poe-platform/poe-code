@@ -50,7 +50,8 @@ lists.add/set with scoped numbering graphs, nested levels, style-link resolution
 and isolated start/restart overrides. Its exact language/security and drift table
 retains every public NumberingPart and `_NumberingStyle` obligation, including
 inherited members and returned collections. Advanced level-definition setters
-and live numbering owners remain pending; this utility evidence does not promote
+and live numbering construction remain pending; existing live numbering reads
+have separate evidence in `numbering-model-workflow.test.ts`. This utility evidence does not promote
 the historical model inventory to complete coverage.
 
 The [table construction milestone](../plans/docx-table-construction.md) implements

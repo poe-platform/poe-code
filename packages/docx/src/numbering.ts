@@ -118,6 +118,13 @@ export class NumberingGraph {
     const link = numberingAttribute(numberingChild(definition, "numStyleLink"));
     let inherited: ResolvedNumbering | undefined;
     if (link !== undefined) {
+      for (const node of definition.children) {
+        this.budget.charge("work", 1);
+        if (node.namespace !== definition.namespace || !["nsid", "multiLevelType", "tmpl", "name", "styleLink", "numStyleLink"].includes(node.localName))
+          throw new UnsupportedEditError("Unsupported linked numbering definition cannot be edited.");
+        numberingChild(definition, node.localName);
+        this.scalar(node, ["val"]);
+      }
       const style = this.style(link, "numbering");
       const reference = numberingChild(numberingChild(numberingChild(style, "pPr"), "numPr"), "numId");
       inherited = this.resolve(integer(numberingAttribute(reference)), seen);
@@ -131,6 +138,8 @@ export class NumberingGraph {
       if (node.namespace !== definition.namespace) throw new UnsupportedEditError("Extended numbering definitions cannot be edited.");
       if (node.localName !== "lvl") {
         if (!["nsid", "multiLevelType", "tmpl", "name", "styleLink"].includes(node.localName)) throw new UnsupportedEditError("Unsupported numbering definition cannot be edited.");
+        numberingChild(definition, node.localName);
+        this.scalar(node, ["val"]);
         continue;
       }
       const index = integer(numberingAttribute(node, "ilvl"), 8);
@@ -171,6 +180,10 @@ export class NumberingGraph {
   private attributes(node: XmlElement, allowed: readonly string[]): void {
     if (node.attributes.some(a => a.namespace !== "http://www.w3.org/2000/xmlns/" && (a.namespace !== node.namespace || !allowed.includes(a.localName)))) throw new UnsupportedEditError("Unverified numbering attributes cannot be interpreted.");
   }
+  private scalar(node: XmlElement, allowed: readonly string[]): void {
+    this.attributes(node, allowed);
+    if (node.children.length || node.text.trim()) throw new UnsupportedEditError("Extended numbering properties cannot be interpreted.");
+  }
   validateLevel(node: XmlElement, index: number): void {
     this.attributes(node, ["ilvl", "tentative"]);
     if (integer(numberingAttribute(node, "ilvl"), 8) !== index) throw new UnsupportedEditError("Override level differs from its owner.");
@@ -179,7 +192,7 @@ export class NumberingGraph {
     for (const child of node.children) {
       if (child.namespace !== node.namespace || !["start", "numFmt", "lvlRestart", "pStyle", "isLgl", "suff", "lvlText", "lvlJc", "pPr", "rPr"].includes(child.localName)) throw new UnsupportedEditError("Picture bullets and extended numbering remain opaque.");
       numberingChild(node, child.localName);
-      if (!["pPr", "rPr"].includes(child.localName)) this.attributes(child, child.localName === "lvlText" ? ["val", "null"] : ["val"]);
+      if (!["pPr", "rPr"].includes(child.localName)) this.scalar(child, child.localName === "lvlText" ? ["val", "null"] : ["val"]);
     }
     const start = numberingChild(node, "start");
     if (start) integer(numberingAttribute(start));

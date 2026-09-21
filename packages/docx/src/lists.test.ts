@@ -254,6 +254,34 @@ it("rejects unverified numbering attributes instead of guessing their counter se
   await expect(edit(input, "lists.set", { paragraph: 1, restart: true }).then(() => undefined)).rejects.toMatchObject({ code: "unsupported-edit" });
 });
 
+it.each(["numFmt", "lvlRestart", "lvlText"])("preserves opaque %s children and rejects affected numbering edits", async property => {
+  const values: Record<string, string> = { numFmt: "decimal", lvlRestart: "0", lvlText: "%1." };
+  const scalar = `<w:${property} w:val="${values[property]}"><q:policy xmlns:q="urn:counter-policy"/></w:${property}>`;
+  const opaqueLevel = property === "lvlRestart" ? level(0).replace('</w:lvl>', scalar + '</w:lvl>') : level(0).replace(`<w:${property} w:val="${values[property]}"/>`, scalar);
+  const opaque = abstract(0, opaqueLevel) + instance(4, 0);
+  const input = await fixture(item("Opaque") + item("Ordinary", 8), opaque + abstract(1) + instance(8, 1));
+  const unrelated = await edit(input, "lists.set", { paragraph: 2, restart: true, start: 2 });
+  expect(new TextDecoder().decode(unrelated.archive.members.find(m => m.name === "word/numbering.xml")!.bytes)).toContain(opaque);
+  expect(attr(binding(unrelated, unrelated.body.children[0]!).num, "numId")).toBe("4");
+  expect(attr(child(binding(unrelated, unrelated.body.children[1]!).override, "startOverride"))).toBe("2");
+  await expect(edit(input, "lists.set", { paragraph: 1, restart: true })).rejects.toMatchObject({ code: "unsupported-edit" });
+  await expect(edit(input, "lists.add", { paragraph: 1, kind: "decimal" })).rejects.toMatchObject({ code: "unsupported-edit" });
+});
+
+it.each([
+  '<q:policy xmlns:q="urn:counter-policy"/>',
+  '<w:numStyleLink w:val="Linked"><q:policy xmlns:q="urn:counter-policy"/></w:numStyleLink>'
+])("rejects opaque linked definitions without discarding their semantics: case %#", async extension => {
+  const styles = '<w:style w:type="numbering" w:styleId="Linked"><w:name w:val="Linked"/><w:pPr><w:numPr><w:numId w:val="8"/></w:numPr></w:pPr></w:style>';
+  const link = extension.startsWith('<w:numStyleLink') ? extension : '<w:numStyleLink w:val="Linked"/>' + extension;
+  const opaque = abstract(0, '', link) + instance(4, 0);
+  const input = await fixture(item("Linked") + item("Ordinary", 8), opaque + abstract(1) + instance(8, 1), styles);
+  const unrelated = await edit(input, "lists.set", { paragraph: 2, restart: true, start: 2 });
+  expect(new TextDecoder().decode(unrelated.archive.members.find(m => m.name === "word/numbering.xml")!.bytes)).toContain(opaque);
+  expect(attr(child(binding(unrelated, unrelated.body.children[1]!).override, "startOverride"))).toBe("2");
+  await expect(edit(input, "lists.set", { paragraph: 1, restart: true })).rejects.toMatchObject({ code: "unsupported-edit" });
+});
+
 it.each([
   '<w:startOverride xmlns:q="urn:counter-policy" w:val="9" q:restart="always"/>',
   '<w:startOverride w:val="9"><q:counter xmlns:q="urn:counter-policy"/></w:startOverride>'

@@ -505,7 +505,8 @@ export class McpClient {
           this.options.onElicitationRequest!(params as ElicitationParams, context)
         );
       }
-      messageLayer.sendNotification("notifications/initialized");
+      if (transport.completeInitialization === undefined) messageLayer.sendNotification("notifications/initialized");
+      else await transport.completeInitialization({ signal: options.signal, timeoutMs: this.options.requestTimeoutMs ?? 30_000 });
       this.currentState = "ready";
 
       return initializeResult;
@@ -1104,6 +1105,8 @@ export interface McpTransport {
   closed: Promise<McpTransportClosedEvent>;
   dispose(reason?: Error): void;
   filterTools?(tools: Tool[], reset?: boolean): Tool[];
+  /** Complete a legacy initialization handshake before the client reports ready. */
+  completeInitialization?(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void>;
 }
 
 export interface InMemoryServerTransport {
@@ -2511,7 +2514,7 @@ export type HttpTransportFetch = (
 ) => Promise<Response>;
 
 export class HttpTransportError extends Error {
-  constructor(message: string, readonly status: number, readonly method: "GET" | "POST" | "DELETE") {
+  constructor(message: string, readonly status: number, readonly method: "GET" | "POST" | "DELETE", readonly rpcMethod?: string) {
     super(message);
     this.name = "HttpTransportError";
   }
@@ -2743,6 +2746,22 @@ export class HttpTransport implements McpTransport {
     });
   }
 
+  async completeInitialization(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void> {
+    const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
+    const signals = [options.signal, deadline].filter((signal): signal is AbortSignal => signal !== undefined);
+    const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);
+    signal.throwIfAborted();
+    try {
+      await this.sendPost(serializeJsonRpcMessage({ jsonrpc: "2.0", method: "notifications/initialized" }), signal);
+      signal.throwIfAborted();
+      if (this.disposed) throw (await this.closed).reason;
+    } catch (error) {
+      if (error instanceof HttpTransportError)
+        throw new HttpTransportError(error.message, error.status, error.method, "notifications/initialized");
+      throw error;
+    }
+  }
+
   filterTools(tools: Tool[], reset = true): Tool[] {
     if (reset) this.toolParameterHeaders.clear();
     const accepted: Tool[] = [];
@@ -2876,7 +2895,8 @@ export class HttpTransport implements McpTransport {
     }
   }
 
-  private async sendPost(line: string): Promise<void> {
+  private async sendPost(line: string, signal?: AbortSignal): Promise<void> {
+    signal?.throwIfAborted();
     const parsed = parseJsonRpcMessage(line);
     const message =
       parsed.type === "request" || parsed.type === "notification" ? parsed.message : undefined;
@@ -2899,7 +2919,10 @@ export class HttpTransport implements McpTransport {
         this.modernRequests.get(requestId)?.abort();
       return;
     }
-    const controller = modern && parsed.type === "request" ? new AbortController() : undefined;
+    const controller = (modern && parsed.type === "request") || signal !== undefined ? new AbortController() : undefined;
+    const aborted = () => controller?.abort(signal?.reason);
+    signal?.addEventListener("abort", aborted, { once: true });
+    if (signal?.aborted) aborted();
     const id = parsed.type === "request" ? parsed.message.id : undefined;
     if (controller !== undefined && id !== undefined) this.modernRequests.set(id, controller);
     try {
@@ -2949,6 +2972,7 @@ export class HttpTransport implements McpTransport {
     } catch (error) {
       if (!controller?.signal.aborted) throw error;
     } finally {
+      signal?.removeEventListener("abort", aborted);
       if (id !== undefined && this.modernRequests.get(id) === controller)
         this.modernRequests.delete(id);
     }

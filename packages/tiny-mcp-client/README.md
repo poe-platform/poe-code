@@ -37,7 +37,10 @@ by the server. Announced endpoints must remain on the original origin without
 embedded credentials or fragments; endpoint changes close the connection.
 Both transports accept the same headers, OAuth provider and response limits.
 HTTP failures expose `HttpTransportError.status` and `.method`, so callers can
-make transport decisions without parsing error messages.
+make transport decisions without parsing error messages. Legacy HTTP/SSE
+`connect()` also waits for the initialized notification POST to complete before
+reporting ready. Completion failures reject the connection and expose
+`rpcMethod: "notifications/initialized"`; they are not setup transport mismatches.
 
 ## OAuth HTTP support
 

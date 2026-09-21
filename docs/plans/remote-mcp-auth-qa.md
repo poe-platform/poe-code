@@ -50,3 +50,11 @@ inspection.
    change its URL and revert it; the old environment grant must stay withheld.
    Inspect native files for absence of plaintext synthetic credentials and purge
    only the QA-owned directory.
+
+9. With built native client packages and a real local HTTP MCP endpoint, connect
+   using the legacy protocol and immediately close. Prove the endpoint received
+   initialize then notifications/initialized before connect returned. Reject the
+   initialized POST with HTTP 403 and verify connect rejects with that status
+   and rpcMethod provenance. The same 404/405 completion failure must not select
+   another transport. Stalled completion must respect caller cancellation and
+   the configured request deadline.

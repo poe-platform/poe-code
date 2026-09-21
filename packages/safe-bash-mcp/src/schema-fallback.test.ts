@@ -91,3 +91,16 @@ it("cancels an in-flight setup request without attempting fallback", async () =>
   expect(fetch).toHaveBeenCalledOnce();
   expect(fetch.mock.calls[0][1]?.signal?.aborted).toBe(true);
 });
+
+it.each([404, 405])("does not switch to SSE when initialization completion fails with POST %s", async status => {
+  const fetch = vi.fn<HttpTransportFetch>(async (_url, init) => {
+    if (init?.method !== "POST") return new Response(null, { status: 503 });
+    const request = JSON.parse(String(init.body));
+    if (request.method === "notifications/initialized") return new Response(null, { status });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: {
+      protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "synthetic", version: "1" }
+    } });
+  });
+  await expect(fetchRemoteMcpSchema(server, { fetch })).rejects.toMatchObject({ status, rpcMethod: "notifications/initialized" });
+  expect(fetch.mock.calls.every(([, init]) => init?.method === "POST")).toBe(true);
+});

@@ -43,6 +43,7 @@ export async function withRemoteMcpClient<T>(
       options.signal?.throwIfAborted();
       if (server.transport !== undefined || mode !== "streamable-http" ||
           !(primaryError instanceof HttpTransportError) || primaryError.method !== "POST" ||
+          (primaryError.rpcMethod !== undefined && primaryError.rpcMethod !== "initialize" && primaryError.rpcMethod !== "server/discover") ||
           (primaryError.status !== 404 && primaryError.status !== 405)) throw primaryError;
       await client.close();
       transport.dispose();

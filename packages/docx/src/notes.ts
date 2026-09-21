@@ -9,6 +9,7 @@ import { openNotes, noteAttribute, type NoteKind, type NoteRecord, type NoteRefe
 import type { DocxOperationArguments } from "./operation-types.js";
 import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
 import { relativePartTarget } from "./part-uri.js";
+import { revisionInfo } from "./revision-markup.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { resolveDocxSelection } from "./simple-selection.js";
@@ -162,7 +163,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
         if (refs.some(ref => !ref.safe)) throw new UnsupportedEditError("Selected note references include unsupported or inactive content.");
         for (const ref of refs) { ref.editor.replaceElement(ref.node, ""); removedRefs.add(ref); }
         // Annotation-bearing content is retained for independent bookmark/review ownership.
-        const annotation = (node: typeof note.node): boolean => { budget.charge("work", 1); return node.namespace === w && ["bookmarkStart", "commentRangeStart", "commentReference", "permStart"].includes(node.localName) || node.children.some(annotation); };
+        const annotation = (node: typeof note.node): boolean => { budget.charge("work", 1); return revisionInfo(node) !== undefined || node.namespace === w && ["bookmarkStart", "commentRangeStart", "commentReference", "permStart"].includes(node.localName) || node.children.some(annotation); };
         const removeBody = note.references.every(ref => removedRefs.has(ref)) && !annotation(note.node);
         if (removeBody) note.editor.replaceElement(note.node, "");
         if (!refs.length && !removeBody) { if (!options.allowEmpty) throw new SelectionError("missing-selection"); continue; }

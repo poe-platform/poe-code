@@ -204,6 +204,21 @@ it("uses admitted option values across asynchronous acquisition", async () => {
   expect((await inspect(new Uint8Array(volume.readFileSync("/output") as Buffer))).items[0]!.text).toBe("Admitted");
 });
 
+it.each(["footnote", "endnote"])("retains %s bodies with independent review history", async kind => {
+  for (const content of [
+    '<w:ins w:id="14" w:author="Editor" w:date="2026-01-01T00:00:00Z">' + run("Recorded addition") + '</w:ins>',
+    '<w:del w:id="15" w:author="Editor" w:date="2026-01-01T00:00:00Z"><w:r><w:delText>Recorded removal</w:delText></w:r></w:del>'
+  ]) {
+    const body = `<w:${kind} w:id="2"><w:p>${run("Owned record")}${content}</w:p></w:${kind}>`;
+    const input = await textFixture(`<w:p>${ref(2, kind)}</w:p>`, { [kind + "s"]: story(separators(kind) + body, kind) });
+    const removed = await edit(input, "notes.remove", { kind, note: 1 });
+    expect(removed.xml(`word/${kind}s.xml`)).toContain(body);
+    expect((await inspect(removed.bytes)).items[0]!.references).toEqual([]);
+    expect(removed.data.changes[0]!.after).not.toBeNull();
+    expect(removed.xml(`word/${kind}s.xml`)).toContain(separators(kind));
+  }
+});
+
 it("rejects whole-note assignment when a hyperlink owns the note marker", async () => {
   const content = '<w:footnote w:id="2"><w:p><w:hyperlink w:anchor="Target"><w:r><w:footnoteRef/></w:r></w:hyperlink>' + run("Linked marker") + '</w:p></w:footnote>';
   const input = await textFixture(`<w:p>${ref(2)}</w:p>`, { footnotes: story(separators() + content) });

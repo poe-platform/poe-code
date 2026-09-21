@@ -429,3 +429,18 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     command with complete content/structured values/metadata/exact005930 and
     one retired session. Inspect the actual safe diagnostic/result and summary
     screenshot; purge only owned synthetic evidence.
+
+39. Use native providers against actual local HTTP token/resource endpoints and
+    state/S256/loopback consent. Mutate caller metadata from the browser opener
+    and from the provenance store read; require original authorize/token endpoints
+    and complete nested public extensions through three code exchanges. Mutate
+    presented refresh-token values, rejected Authorization headers, challenge
+    error and caller fetch handles during host reads; each must still refresh the
+    original current grant exactly once. Replace the authorizeRequest target
+    Headers handle while persistence waits; require credentials on the original
+    target and complete actual HTTP result/metadata/exact005930. Replace explicit
+    authentication's discover method from the first read and mutate its returned
+    metadata from the next read. Require the original callback/receiver with live
+    method state and original returned metadata. Count exactly three code
+    exchanges, four rotating redemptions, one resource request and no unintended
+    endpoints/replacement callbacks. Inspect safe summary and purge owned QA.

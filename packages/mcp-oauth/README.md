@@ -94,6 +94,13 @@ accept the same `redirectUri`, `signal` and `timeoutMs` options. Cancellation,
 timeout and explicit close settle pending code waits and release listeners.
 Always close a successful standalone session in `finally`.
 
+Native provider calls capture request option handles before host work. Unauthorized
+handling also owns complete discovery metadata, presented grant values, rejected
+request headers and the selected challenge error before reading persistence.
+A browser callback cannot redirect a later code exchange by changing caller
+metadata. Explicit authentication owns metadata when lazy discovery returns;
+the selected discovery method retains its original receiver and live host state.
+
 Provider request inputs accept an optional `signal`. It reaches callback waits,
 registration, token requests and bounded token-body reads. Cancellation retains
 its original reason and does not retry authorization. Native provider calls

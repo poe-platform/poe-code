@@ -95,6 +95,7 @@ export function createDefaultOAuthClientProvider(
 
   return {
     async authenticate(input): Promise<StoredOAuthTokens | void> {
+      input = { ...input, ...(input.discover === undefined ? {} : { discover: input.discover.bind(input) }) };
       input.signal?.throwIfAborted();
       assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
       const resource = canonicalizeResourceIndicator(input.requestUrl);
@@ -103,7 +104,7 @@ export function createDefaultOAuthClientProvider(
       if (session === null && !initialGrantConsumed && initialGrant?.resource === resource &&
         initialGrant.tokens !== undefined && !isExpired(initialGrant.tokens, now)) return { ...initialGrant.tokens };
       if (input.discover === undefined) return;
-      const discovery = await waitForOAuthOperation(input.discover(), input.signal);
+      const discovery = structuredClone(await waitForOAuthOperation(input.discover(), input.signal));
       input.signal?.throwIfAborted();
       assertRequestMatchesResource(resource, canonicalizeResourceIndicator(discovery.resource));
       session = await ensureAuthorizedSession(resource, discovery, input.fetch, true, false, input.signal);
@@ -112,6 +113,7 @@ export function createDefaultOAuthClientProvider(
     },
 
     async authorizeRequest(input): Promise<StoredOAuthTokens | void> {
+      input = { ...input };
       assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false, false, input.signal);
@@ -137,8 +139,16 @@ export function createDefaultOAuthClientProvider(
     },
 
     async handleUnauthorized(input) {
+      input = { ...input };
       try {
         input.signal?.throwIfAborted();
+        const presented = input.presentedTokens == null ? input.presentedTokens : normalizeStoredTokens(input.presentedTokens);
+        if (input.presentedTokens != null && presented === undefined)
+          throw new Error("OAuth rejected-request provenance does not match its authorization header");
+        const challengeError = input.challenge?.params.error;
+        input = { ...input, discovery: structuredClone(input.discovery),
+          ...(input.requestHeaders === undefined ? {} : { requestHeaders: new Headers(input.requestHeaders) }),
+          ...(presented === undefined ? {} : { presentedTokens: presented }) };
         assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
         const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
         const resource = canonicalizeResourceIndicator(input.discovery.resource);
@@ -150,16 +160,15 @@ export function createDefaultOAuthClientProvider(
         if (input.presentedTokens !== undefined) {
           rejectedCurrentGrant = false;
           if (input.presentedTokens !== null) {
-            const presented = normalizeStoredTokens(input.presentedTokens);
+            const presented = input.presentedTokens;
             const header = input.requestHeaders?.get("Authorization") ?? "";
             const separator = header.indexOf(" ");
-            if (presented === undefined || header.slice(0, separator).toLowerCase() !== "bearer" || header.slice(separator + 1).trim() !== presented.accessToken)
+            if (header.slice(0, separator).toLowerCase() !== "bearer" || header.slice(separator + 1).trim() !== presented.accessToken)
               throw new Error("OAuth rejected-request provenance does not match its authorization header");
             presentedTokens = presented;
             rejectedCurrentGrant = currentTokens !== undefined && sameTokenGrant(currentTokens, presented);
           }
         }
-        const challengeError = input.challenge?.params.error;
         const forceRefresh = rejectedCurrentGrant && (challengeError === "invalid_token" || (input.presentedTokens !== undefined && challengeError === undefined));
         const session = await ensureAuthorizedSession(
           resource,

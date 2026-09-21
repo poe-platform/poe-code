@@ -143,3 +143,29 @@ and that unsupported split policies are refused. Keep the enforcement refusal
 for workspace-write. Use a compatible host for that profile, or launch a new
 read-only session with the documented compatibility flags for read-only work.
 No additional runtime change is justified by this repeated report.
+
+## Repeated occurrence (issue 143)
+
+On 2026-09-21, the default API command executor in the existing checkout failed
+before launching either the skill-file read or the repository inspection with
+`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`. Direct Codex CLI
+0.155.1 probes reproduced the default read-only failure. The read-only Landlock
+probe printed `/home/kjopek/project/poe-code` and read the Codex spawn configuration.
+A write to `/tmp/poe-issue143-denied` raised `PermissionError` and left no file;
+creating an IPv4 stream socket also raised `PermissionError`. The maintained
+agent-spawn workspace test route passed all 675 tests.
+
+The workspace-write Landlock probe refused the runtime-enforced permission
+profile with the same incompatibility error recorded above. The API executor
+and file patch tool belong to the enclosing Codex session, not Poe Code's
+launcher. Repository changes cannot switch that live session's backend. No
+additional runtime fix is validated; the root README now explicitly distinguishes
+read-only commands from a read-only permission policy.
+
+For read-only work on this host, verify the documented Landlock probe and start
+a new read-only session with the compatibility flags. For workspace edits, move
+the session to a host supporting bubblewrap and the selected permission policy;
+keep filesystem restrictions and command approvals enabled. Do not apply the
+read-only compatibility flags to the managed workspace-write profile or bypass
+the sandbox as a fallback. The official OpenAI enforcement documentation linked
+above confirms that unsupported policies must be refused.

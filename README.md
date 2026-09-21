@@ -80,6 +80,8 @@ Only `--mode yolo` skips the agent's permission prompts, so keep it out of untru
 Codex `read` mode uses its Landlock compatibility sandbox on Linux to retain file and
 network restrictions on hosts that reject bubblewrap loopback setup. Streamed Codex
 sandbox initialization failures report compatibility guidance in the CLI and SDK.
+Workspace-write policies require a host that can enforce their sandbox; read-only
+commands do not change an existing session’s permission policy.
 
 #### Spawn against a GitHub repository
 
@@ -233,10 +235,10 @@ Returns `{ stdout, stderr, exitCode }`.
 Same as `spawn()`, but renders the ACP event stream to stdout with colored, formatted output — matching the CLI's visual style.
 
 ```typescript
-import { spawn } from "poe-code"
+import { spawn } from "poe-code";
 
-const result = await spawn.pretty("codex", "Fix the bug in auth.ts")
-console.log(result.exitCode)
+const result = await spawn.pretty("codex", "Fix the bug in auth.ts");
+console.log(result.exitCode);
 ```
 
 Returns `Promise<{ stdout, stderr, exitCode }>`.
@@ -309,7 +311,6 @@ links corpus results, runtime coverage, transport restrictions and release
 receipts. An aborted corpus, unsupported required modes and remaining failures
 prevent a full-conformance claim. Published predecessor versions do not establish
 delivery of the current checkout.
-
 
 ### Update Poe Code
 

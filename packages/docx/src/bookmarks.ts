@@ -48,29 +48,46 @@ function inventory(editors: ReadonlyMap<string, DocumentXmlEditor>, budget: Docu
     const containers = new Set(editor.compatibility[compatibilityContainers]);
     let order = 0;
     const fieldDepth = new Map<XmlElement, number>();
-    const visit = (node: XmlElement, parent: XmlElement, path: readonly number[], container: XmlElement, unsafe: boolean) => {
+    const path: number[] = [];
+    const frames = [{ node: editor.root, parent: editor.root, container: editor.root, unsafe: false, position: -1 }];
+    while (frames.length) {
+      const frame = frames.at(-1)!;
+      if (frame.position >= 0) {
+        if (frame.position === frame.node.children.length) {
+          frames.pop();
+          if (frames.length) path.pop();
+        } else {
+          const index = frame.position++;
+          budget.charge("retainedBytes", 64);
+          path.push(index);
+          frames.push({ node: frame.node.children[index]!, parent: containers.has(frame.node) ? frame.parent : frame.node, container: frame.container, unsafe: frame.unsafe, position: -1 });
+        }
+        continue;
+      }
+      const { node, parent } = frame;
+      frame.position = 0;
       budget.charge("work", 1);
       const word = dialectForNamespace(node.namespace) !== undefined;
-      if (word && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "tc", "txbxContent"].includes(node.localName)) container = node;
+      if (word && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "tc", "txbxContent"].includes(node.localName)) frame.container = node;
+      const container = frame.container;
       if (word && node.localName === "fldChar") {
         const depth = fieldDepth.get(container) ?? 0;
         if (attr(node, "fldCharType") === "begin") fieldDepth.set(container, depth + 1);
         else if (attr(node, "fldCharType") === "end") fieldDepth.set(container, Math.max(0, depth - 1));
       }
-      unsafe ||= word && ["ins", "del", "moveFrom", "moveTo", "sdt", "fldSimple", "hyperlink"].includes(node.localName);
+      frame.unsafe ||= word && ["ins", "del", "moveFrom", "moveTo", "sdt", "fldSimple", "hyperlink"].includes(node.localName);
       if (word && ["bookmarkStart", "bookmarkEnd"].includes(node.localName)) {
         const raw = attr(node, "id") ?? "";
         const value = trimXmlWhitespace(raw), digits = value[0] === "+" || value[0] === "-" ? value.slice(1) : value;
         const valid = digits.length > 0 && [...digits].every(c => c >= "0" && c <= "9") && Number.isSafeInteger(Number(value)) && Number(value) >= 0;
-        const marker: Marker = { part, path, node, parent, container, order: order++, id: valid ? String(Number(value)) : raw, name: attr(node, "name") ?? "", issues: [] };
+        budget.charge("retainedBytes", 128 + path.length * 8);
+        const marker: Marker = { part, path: [...path], node, parent, container, order: order++, id: valid ? String(Number(value)) : raw, name: attr(node, "name") ?? "", issues: [] };
         (node.localName === "bookmarkStart" ? starts : ends).push(marker);
         if (!valid) report(marker, "invalid-id");
-        if (unsafe || (fieldDepth.get(container) ?? 0) > 0 || parent.namespace !== node.namespace || parent.localName !== "p" || node.children.length || node.content.some(c => c.kind !== "text" || c.text.trim()) || attr(node, "colFirst") !== undefined || attr(node, "colLast") !== undefined) report(marker, "illegal-boundary");
+        if (frame.unsafe || (fieldDepth.get(container) ?? 0) > 0 || parent.namespace !== node.namespace || parent.localName !== "p" || node.children.length || node.content.some(c => c.kind !== "text" || c.text.trim()) || attr(node, "colFirst") !== undefined || attr(node, "colLast") !== undefined) report(marker, "illegal-boundary");
         if (node.localName === "bookmarkStart" && !validName(marker.name)) report(marker, "invalid-name");
       }
-      node.children.forEach((child, index) => visit(child, containers.has(node) ? parent : node, [...path, index], container, unsafe));
-    };
-    visit(editor.root, editor.root, [], editor.root, false);
+    }
   }
   const startsById = new Map<string, Marker[]>(), endsById = new Map<string, Marker[]>(), names = new Map<string, Marker[]>();
   for (const marker of starts) { startsById.set(marker.id, [...startsById.get(marker.id) ?? [], marker]); names.set(marker.name, [...names.get(marker.name) ?? [], marker]); }

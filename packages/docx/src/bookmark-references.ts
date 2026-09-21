@@ -100,7 +100,27 @@ export function updateBookmarkReferences(
     let fields: Field[] = [];
     let deletedTail = "";
     const attribute = (node: XmlElement, localName: string) => node.attributes.find(item => item.namespace === node.namespace && item.localName === localName);
-    const visit = (node: XmlElement, parent?: XmlElement, mathContext: "outside" | "unit" | "opaque" = "outside"): void => {
+    type MathContext = "outside" | "unit" | "opaque";
+    const traversal: { node: XmlElement; parent?: XmlElement; mathContext: MathContext; position: number; outerFields?: Field[]; outerDeletedTail?: string }[] = [{ node: root, mathContext: "outside", position: -1 }];
+    while (traversal.length) {
+      const frame = traversal.at(-1)!;
+      if (frame.position >= 0) {
+        if (frame.position === frame.node.children.length) {
+          if (frame.outerFields) {
+            if (fields.length) unsafe("A complex field crosses a story boundary or is missing its end.");
+            fields = frame.outerFields;
+            deletedTail = frame.outerDeletedTail!;
+          }
+          traversal.pop();
+        } else {
+          budget.charge("retainedBytes", 64);
+          traversal.push({ node: frame.node.children[frame.position++]!, parent: frame.node, mathContext: frame.mathContext, position: -1 });
+        }
+        continue;
+      }
+      const { node, parent } = frame;
+      let mathContext = frame.mathContext;
+      frame.position = 0;
       budget.charge("work", 1);
       const dialect = dialectForNamespace(node.namespace);
       const word = dialect !== undefined && node.namespace === documentDialects[dialect].w;
@@ -108,9 +128,8 @@ export function updateBookmarkReferences(
       if (mathContext === "outside" && (role === "story" || role === "glossary") && node.namespace === math && ["oMath", "oMathPara"].includes(node.localName)) mathContext = "unit";
       const literalMathText = mathContext === "unit" && node.namespace === math && node.localName === "t" && parent?.namespace === math && parent.localName === "r" && node.children.length === 0;
       const story = word && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName);
-      const outerFields = fields;
-      const outerDeletedTail = deletedTail;
-      if (story) { fields = []; deletedTail = ""; }
+      frame.mathContext = mathContext;
+      if (story) { frame.outerFields = fields; frame.outerDeletedTail = deletedTail; fields = []; deletedTail = ""; }
       for (const item of node.attributes) {
         budget.charge("work", item.value.length);
         if (item.namespace === "http://www.w3.org/2000/xmlns/") continue;
@@ -198,34 +217,29 @@ export function updateBookmarkReferences(
           }
         }
       }
-      for (const child of node.children) visit(child, node, mathContext);
-      if (story) {
-        if (fields.length) unsafe("A complex field crosses a story boundary or is missing its end.");
-        fields = outerFields;
-        deletedTail = outerDeletedTail;
-      }
-    };
-    visit(editor.root);
+    }
     if (fields.length) unsafe("A complex field is missing its end.");
     if (remove.size) {
-      const rebuild = (node: XmlElement, insideRemoval: boolean): string | undefined => {
+      const rebuild: { node: XmlElement; insideRemoval: boolean; position: number; replacements: Map<XmlElement, string> }[] = [{ node: root, insideRemoval: false, position: 0, replacements: new Map() }];
+      while (rebuild.length) {
+        const frame = rebuild.at(-1)!, { node, insideRemoval, replacements } = frame;
+        if (frame.position < node.children.length) {
+          budget.charge("retainedBytes", 64);
+          rebuild.push({ node: node.children[frame.position++]!, insideRemoval: insideRemoval || remove.has(node), position: 0, replacements: new Map() });
+          continue;
+        }
         budget.charge("work", 1);
         const unwrap = remove.has(node);
         if (unwrap && node.attributes.some(item => item.namespace === "http://www.w3.org/2000/xmlns/" ||
           item.namespace === "http://www.w3.org/XML/1998/namespace"))
           unsafe("Reference removal cannot discard namespace bindings or inherited XML attributes.");
-        const replacements = new Map<XmlElement, string>();
-        for (const child of node.children) {
-          const replacement = rebuild(child, insideRemoval || unwrap);
-          if (replacement !== undefined) replacements.set(child, replacement);
-        }
-        if (!unwrap && !replacements.size) return undefined;
+        rebuild.pop();
+        if (!unwrap && !replacements.size) continue;
         const xml = editor.sourceXml(node, replacements, unwrap);
-        if (insideRemoval) return xml;
-        changes.push(() => editor.replaceElement(node, xml));
-        return undefined;
-      };
-      rebuild(editor.root, false);
+        budget.charge("retainedBytes", xml.length * 2);
+        if (insideRemoval) rebuild.at(-1)!.replacements.set(node, xml);
+        else changes.push(() => editor.replaceElement(node, xml));
+      }
     }
   }
   for (const change of changes) change();

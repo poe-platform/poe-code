@@ -3,10 +3,23 @@ use napi_derive::napi;
 use poe_agent_rust::transcript::{self, Event, Kind, Node};
 pub(crate) fn encode(env: Env, node: Node<napi::sys::napi_value>) -> Result<napi::sys::napi_value> {
     match node {
+        Node::Undefined => unsafe { Undefined::to_napi_value(env.raw(), ()) },
         Node::Bool(value) => unsafe { bool::to_napi_value(env.raw(), value) },
         Node::Opaque(value) => Ok(value),
         Node::String(value) => unsafe { String::to_napi_value(env.raw(), value.to_owned()) },
+        Node::Utf16(value) => unsafe { Utf16String::to_napi_value(env.raw(), value.into()) },
         Node::Number(value) => unsafe { f64::to_napi_value(env.raw(), value) },
+        Node::Array(values) => {
+            let array = env.create_array(values.len() as u32)?;
+            let mut object = Object::from_raw(env.raw(), array.raw());
+            for (index, node) in values.into_iter().enumerate() {
+                let value = unsafe { Unknown::from_raw_unchecked(env.raw(), encode(env, node)?) };
+                object.define_properties(&[Property::new()
+                    .with_utf8_name(&index.to_string())?
+                    .with_value(&value)])?;
+            }
+            Ok(object.raw())
+        }
         Node::Object(fields) => {
             let mut object = Object::new(&env)?;
             let descriptors = fields

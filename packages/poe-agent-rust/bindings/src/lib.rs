@@ -261,6 +261,8 @@ pub mod transcript_binding;
 
 pub mod plugin_setup_binding;
 
+pub mod model_stream_binding;
+
 #[path = "../../../tiny-mcp-client-rust/bindings/src/lib.rs"]
 pub mod embedded_client;
 pub use embedded_client::NativeHttpResponseMessages;

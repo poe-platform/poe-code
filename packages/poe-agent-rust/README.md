@@ -101,3 +101,11 @@ one JSON line per update, creates the directory once and rejects symlink paths.
 Serialization hooks and filesystem failures preserve their original causes; a
 failed append or serialization permits a later write. Closing has no persistent
 file handle to release and permits subsequent writes.
+
+The runtime's model-stream collector assembles text, signed thinking, opaque
+reasoning payloads and interleaved tool calls in Rust. It keeps exact raw argument
+strings, emits an early intent once valid JSON arrives and preserves final usage
+and stop snapshots. Superseded snapshots and parsed early-intent payloads release
+their GC roots during collection. Node supplies async iteration, JSON parsing and
+callbacks. The collector is a prerequisite for the pending execution loop;
+current per-event napi benchmarks are slower than the TypeScript collector.

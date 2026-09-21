@@ -4647,3 +4647,38 @@ so no successful current publication is verified. Root35568021206 failed before
 the embedding correction. Continuous active06:31:25–06:44:57 adds812s, bringing
 conservative effort to90,780s (25.22h). Minimum fulfilled; full rewrite/acceptance
 incomplete. Continue active work after06:44:57 UTC.
+
+### Poe agent model stream assembly, 2026-09-21 07:03 UTC
+
+Portable and native differential reds precede Rust-owned UTF16 text/thinking,
+pending tool-use identity/arguments, ordered completion/error outcomes and final
+usage/stop assembly. Opaque values stay in a Node GC arena; Rust output templates
+preserve identity, undefined own fields and nonfinite numeric payloads. Node uses
+standard async iteration and JSON.parse. Direct raw napi emitter invocation preserves
+primitive thrown causes; the initial typed Function call failed on null/false/0.
+Emitter getters execute at the original stage, retaining direct-text options
+receiver versus partial-intent undefined receiver. A liveness red proves overwritten
+usage/stop roots accumulated; retiring snapshots and successful parsed intent roots
+with reusable arena slots repairs this. Incomplete null intents retain zero roots.
+
+Maintained checks pass28 Rust cases,44 native groups,156 applicable complete original
+reference cases/10 files, types and fmt/clippy. Seeded64 interleaved128-event streams
+execute the current original private collector transpiled in memory. Uncached closure
+passes113 workspaces/36 builds/339 edges. Direct/packed16MiB workers each run512
+collections,65,536 replaced snapshots,512 incomplete intents and primitive-cause
+checks with external runtime imports blocked. Cumulative plugin/MCP workers pass;
+recursive artifact audit covers78 JS/declaration files,one addon,zero runtime groups.
+Evidence out/rust-poe-agent-model-stream-*.
+
+Five alternating warmed128-collection/32,768-event samples measure text TS2.61–3.11ms
+versus Rust29.95–31.54ms; usage TS2.51–2.89ms versus Rust41.50–44.61ms. Both speed gates
+FAIL. Isolated16MiB old-space workload runs16,384 collections,2,097,152 replaced usage
+snapshots and524,288 incomplete intents. Four forced collections/yields per2048 batch
+keep post-GC heap4.01→4.03MB; RSS57.2→72.1MB does not establish flat resident memory
+or superiority. Full execution/closure/platform/performance acceptance incomplete.
+
+Plugin setup60ba94ca3 push completed with remote inclusion verified. Root35569873132
+remains pending;35568626036 is in_progress; no current successful root publication
+verified. Continuous active06:44:57–07:03:11 adds1094s, bringing conservative effort
+to91,874s (25.52h). Minimum fulfilled; full rewrite remains incomplete. Continue
+after07:03:11 UTC.

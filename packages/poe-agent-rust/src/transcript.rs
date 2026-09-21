@@ -27,11 +27,38 @@ where
 }
 #[derive(Debug, PartialEq)]
 pub enum Node<T> {
+    Undefined,
     Bool(bool),
     String(&'static str),
+    Utf16(Vec<u16>),
     Number(f64),
     Opaque(T),
     Object(Vec<(&'static str, Node<T>)>),
+    Array(Vec<Node<T>>),
+}
+impl<T> Node<T> {
+    pub fn try_map<U, E>(self, mapper: &mut impl FnMut(T) -> Result<U, E>) -> Result<Node<U>, E> {
+        Ok(match self {
+            Self::Undefined => Node::Undefined,
+            Self::Bool(value) => Node::Bool(value),
+            Self::String(value) => Node::String(value),
+            Self::Utf16(value) => Node::Utf16(value),
+            Self::Number(value) => Node::Number(value),
+            Self::Opaque(value) => Node::Opaque(mapper(value)?),
+            Self::Array(values) => Node::Array(
+                values
+                    .into_iter()
+                    .map(|value| value.try_map(mapper))
+                    .collect::<Result<_, _>>()?,
+            ),
+            Self::Object(fields) => Node::Object(
+                fields
+                    .into_iter()
+                    .map(|(key, value)| Ok((key, value.try_map(mapper)?)))
+                    .collect::<Result<_, E>>()?,
+            ),
+        })
+    }
 }
 pub enum Event<T> {
     Ignore,

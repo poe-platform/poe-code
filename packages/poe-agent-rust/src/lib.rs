@@ -150,3 +150,5 @@ pub mod session_tree;
 pub mod transcript;
 
 pub mod plugin_setup;
+
+pub mod model_stream;

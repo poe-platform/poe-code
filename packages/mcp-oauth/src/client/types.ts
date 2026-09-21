@@ -141,6 +141,7 @@ export interface OAuthSessionStore {
   withLock?<T>(resource: string, operation: () => Promise<T>, options: { signal?: AbortSignal; timeoutMs: number }): Promise<T>;
 }
 
+/** Configuration values are captured at creation; selected host dependencies remain live. */
 export interface DefaultOAuthClientProviderOptions {
   client:
     | {

@@ -49,7 +49,12 @@ export function createOAuthClientProvider(
 export function createDefaultOAuthClientProvider(
   options: DefaultOAuthClientProviderOptions
 ): OAuthClientProvider {
-  loopbackTarget(options.browser);
+  const browser = { ...options.browser,
+    ...(options.browser.landingPage === undefined ? {} : { landingPage: { ...options.browser.landingPage } }) };
+  const clientMode = options.client.mode;
+  const interactiveEnabled = options.allowInteractive !== false;
+  const sessionLockTimeoutMs = options.sessionLockTimeoutMs;
+  loopbackTarget(browser);
   assertPersistenceNamespace(options.persistenceNamespace);
   const clientMetadata = getClientMetadata(options.client);
   const requestedScope = clientMetadata?.scope;
@@ -229,7 +234,7 @@ export function createDefaultOAuthClientProvider(
       if (forceRefresh && rejectedTokens !== undefined && (rejectedTokens === null || session?.tokens === undefined || !sameTokenGrant(session.tokens, rejectedTokens)))
         forceRefresh = false;
       const sessionDiscovery = resolveDiscovery(discovery, session);
-      if ((options.client.mode === "static" || configuredClient !== null || initialGrant !== undefined) && session !== null && (session.tokens !== undefined || session.refreshState === "pending")) {
+      if ((clientMode === "static" || configuredClient !== null || initialGrant !== undefined) && session !== null && (session.tokens !== undefined || session.refreshState === "pending")) {
         const configured = configuredClient;
         if (configured === null || configured.clientId !== session.client.clientId || configured.clientSecret !== session.client.clientSecret)
           throw new Error("Stored session belongs to a different OAuth client; use separate persistence or explicitly reset it");
@@ -241,7 +246,7 @@ export function createDefaultOAuthClientProvider(
         throw new Error("Stored session does not match the requested OAuth token endpoint authentication; select separate persistence or reset it");
 
       if (session?.refreshState === "pending") {
-        if (!allowInteractive || options.allowInteractive === false || sessionDiscovery === undefined)
+        if (!allowInteractive || !interactiveEnabled || sessionDiscovery === undefined)
           throw new Error("OAuth refresh outcome is unknown; authorize again before using this resource");
         return authorizeSession(canonicalResource, clearSessionTokens(session), sessionDiscovery, fetch, signal);
       }
@@ -256,7 +261,7 @@ export function createDefaultOAuthClientProvider(
         (forceRefresh || isExpired(session.tokens, now))
       ) {
         if (hasExpiredClientSecret(session.client, now)) {
-          if (!allowInteractive || options.allowInteractive === false || options.client.mode === "static" || configuredClient?.registration !== undefined)
+          if (!allowInteractive || !interactiveEnabled || clientMode === "static" || configuredClient?.registration !== undefined)
             throw new Error("OAuth client secret has expired; authorize again or update the imported registration");
           return authorizeSession(canonicalResource, clearSessionTokens(session), sessionDiscovery, fetch, signal);
         }
@@ -275,9 +280,9 @@ export function createDefaultOAuthClientProvider(
         return session;
       }
 
-      if (options.allowInteractive === false) throw new Error("OAuth interactive authorization is disabled");
+      if (!interactiveEnabled) throw new Error("OAuth interactive authorization is disabled");
       return authorizeSession(canonicalResource, session, sessionDiscovery, fetch, signal);
-    }, { signal, timeoutMs: options.sessionLockTimeoutMs });
+    }, { signal, timeoutMs: sessionLockTimeoutMs });
   }
 
   async function refreshSession(
@@ -383,13 +388,8 @@ export function createDefaultOAuthClientProvider(
 
     while (true) {
       const loopback = await createLoopbackAuthorizationSession({
-        openBrowser: options.browser.openBrowser,
-        readLine: options.browser.readLine,
-        createServer: options.browser.createServer,
-        landingPage: options.browser.landingPage,
-        redirectUri: options.browser.redirectUri,
-        signal: options.browser.signal === undefined ? signal : signal === undefined ? options.browser.signal : AbortSignal.any([signal, options.browser.signal]),
-        timeoutMs: options.browser.timeoutMs
+        ...browser,
+        signal: browser.signal === undefined ? signal : signal === undefined ? browser.signal : AbortSignal.any([signal, browser.signal])
       });
       let resolvedClient: ResolvedOAuthClient | null = null;
 
@@ -481,7 +481,7 @@ export function createDefaultOAuthClientProvider(
   ): Promise<ResolvedOAuthClient> {
     parentSignal?.throwIfAborted();
 
-    if (options.client.mode === "static" || configuredClient?.registration !== undefined) {
+    if (clientMode === "static" || configuredClient?.registration !== undefined) {
       if (configuredClient === null) {
         throw new Error("OAuth client_id must not be blank");
       }

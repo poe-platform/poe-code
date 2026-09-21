@@ -167,3 +167,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     an explicit app must still reuse its saved native client. Inspect the safe CLI
     diagnostic screenshot, check encrypted files for plaintext synthetic tokens,
     record results and purge only this QA's fixture directory under out.
+
+18. Create native default providers with dynamic and static apps against a real
+    local OAuth issuer. After creation, change the caller's client mode,
+    interactive policy, lock deadline, callback URI, browser opener, signal,
+    authorization deadline and nested landing-page strings. Complete an actual
+    HTTP state/S256/loopback callback using the selected original opener and
+    require the original page text. Dynamic mode must register once; static mode
+    must never register and must exchange using its original app ID. Reuse the
+    grant silently without further network or browser requests. Separately prove
+    a headless provider cannot be enabled by caller mutation and the originally
+    selected AbortSignal still cancels after its option handle is replaced. Use
+    explicit in-memory session stores; inspect safe summary output visually and
+    purge only this QA's synthetic directory and screenshot after recording.

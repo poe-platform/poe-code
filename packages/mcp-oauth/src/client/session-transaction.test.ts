@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { setImmediate } from "node:timers/promises";
 import { createDefaultOAuthClientProvider } from "./default-oauth-client-provider.js";
-import type { OAuthSessionStore, StoredOAuthSession } from "./types.js";
+import type { DefaultOAuthClientProviderOptions, OAuthSessionStore, StoredOAuthSession } from "./types.js";
 
 const resource = "https://resource.example/mcp";
 const issuer = "https://auth.example";
@@ -101,4 +101,21 @@ it.each([0, -1, NaN, Infinity, Number.MAX_SAFE_INTEGER])("rejects an invalid or 
   f.finish.resolve();
   await expect(f.authorize(f.provider(timeout))).rejects.toThrow("sessionLockTimeoutMs");
   expect(f.fetch).not.toHaveBeenCalled();
+});
+
+it("captures lock policy while retaining the host backend lock dependency", async () => {
+  const f = fixture();
+  const options: DefaultOAuthClientProviderOptions = { client: { mode: "static", clientId: "client" },
+    allowInteractive: false, browser: {}, sessionStore: f.store, sessionLockTimeoutMs: 1000 };
+  const provider = createDefaultOAuthClientProvider(options);
+  options.sessionLockTimeoutMs = 0;
+  const withLock = vi.fn(async (_key, operation, lock) => {
+    expect(lock.timeoutMs).toBeGreaterThan(0);
+    expect(lock.timeoutMs).toBeLessThanOrEqual(1000);
+    return operation();
+  });
+  f.store.withLock = withLock;
+  f.finish.resolve();
+  expect(await f.authorize(provider)).toBe("Bearer winner");
+  expect(withLock).toHaveBeenCalledOnce();
 });

@@ -57,6 +57,11 @@ const verifier = createJwksTokenVerifier({
 - `authStore` optional `auth-store` backend config for the default session store
 - `now()` optional clock override
 
+The default provider captures client, interaction, callback, landing-page and
+lock policies when created. Create a new provider to change those settings.
+Selected callbacks, stores, clocks and AbortSignals remain live host dependencies;
+aborting the original signal still cancels authorization.
+
 `createJwksTokenVerifier(options)` accepts:
 
 | Option                   | Type                | Default        | Description                                                                              |

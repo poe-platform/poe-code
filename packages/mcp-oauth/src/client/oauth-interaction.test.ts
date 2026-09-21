@@ -2,7 +2,7 @@ import http from "node:http";
 import { EventEmitter } from "node:events";
 import { expect, it, vi } from "vitest";
 import { createDefaultOAuthClientProvider } from "./default-oauth-client-provider.js";
-import type { OAuthDiscoveryResult, StoredOAuthSession } from "./types.js";
+import type { DefaultOAuthClientProviderOptions, OAuthDiscoveryResult, StoredOAuthSession } from "./types.js";
 
 const resource = "https://resource.example/mcp";
 const issuer = "https://auth.example";
@@ -20,7 +20,7 @@ class Listener extends EventEmitter {
   close() { return this; }
 }
 
-function interaction(settings: { allowInteractive?: boolean; redirectUri?: string; scope?: string } = {}) {
+function interaction(settings: { allowInteractive?: boolean; redirectUri?: string; scope?: string; signal?: AbortSignal; client?: DefaultOAuthClientProviderOptions["client"] } = {}) {
   let authorization!: URL;
   let callback = Promise.withResolvers<string>();
   let session: StoredOAuthSession | null = null;
@@ -37,12 +37,13 @@ function interaction(settings: { allowInteractive?: boolean; redirectUri?: strin
     ? { client_id: "registered-client", redirect_uris: JSON.parse(String(_init?.body)).redirect_uris }
     : { access_token: "token", token_type: "Bearer", expires_in: 3600 }));
   const metadata = { scope: settings.scope };
-  const provider = createDefaultOAuthClientProvider({
-    client: { mode: "dynamic", metadata }, allowInteractive: settings.allowInteractive,
-    browser: { openBrowser, readLine: () => callback.promise, createServer, redirectUri: settings.redirectUri },
+  const options: DefaultOAuthClientProviderOptions = {
+    client: settings.client ?? { mode: "dynamic", metadata }, allowInteractive: settings.allowInteractive,
+    browser: { openBrowser, readLine: () => callback.promise, createServer, redirectUri: settings.redirectUri, signal: settings.signal },
     sessionStore: { load: async () => session, save: async (_key, value) => { session = value; }, clear: async () => { session = null; } }
-  });
-  return { provider, fetch, createServer, openBrowser, metadata, session: () => session,
+  };
+  const provider = createDefaultOAuthClientProvider(options);
+  return { provider, options, fetch, createServer, openBrowser, metadata, session: () => session,
     authorize: async () => { const headers = new Headers(); await provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch }); return headers; },
     seed: (value: StoredOAuthSession) => { session = value; }, authorization: () => authorization, run: () => provider.handleUnauthorized({
     requestUrl: new URL(resource), response: new Response(null, { status: 401 }), challenge: null, discovery, fetch
@@ -171,6 +172,97 @@ it("captures configured scope before caller metadata can change", async () => {
   expect(await fixture.run()).toEqual({ action: "retry" });
   expect(fixture.authorization().searchParams.get("scope")).toBe("read");
   expect(JSON.parse(String(fixture.fetch.mock.calls[0]?.[1]?.body)).scope).toBe("read");
+});
+
+it("keeps a provider headless when caller options later enable interaction", async () => {
+  const f = interaction({ allowInteractive: false });
+  f.options.allowInteractive = true;
+  expect(await f.run()).toMatchObject({ action: "fail", error: { message: expect.stringContaining("interactive") } });
+  expect(f.createServer).not.toHaveBeenCalled();
+  expect(f.openBrowser).not.toHaveBeenCalled();
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+
+it("keeps the original interactive policy when caller options later disable it", async () => {
+  const f = interaction();
+  f.options.allowInteractive = false;
+  expect(await f.run()).toEqual({ action: "retry" });
+  expect(f.openBrowser).toHaveBeenCalledOnce();
+});
+
+it("keeps an explicitly static app out of DCR after caller mode mutation", async () => {
+  const f = interaction({ client: { mode: "static", clientId: "original-static" } });
+  f.options.client.mode = "dynamic";
+  expect(await f.run()).toEqual({ action: "retry" });
+  expect(f.fetch).toHaveBeenCalledOnce();
+  expect(f.fetch.mock.calls[0]?.[0]).toBe(`${issuer}/token`);
+  expect(new URLSearchParams(String(f.fetch.mock.calls[0]?.[1]?.body)).get("client_id")).toBe("original-static");
+  expect(f.authorization().searchParams.get("client_id")).toBe("original-static");
+});
+
+it("keeps native registration available after caller replaces dynamic app options", async () => {
+  const f = interaction();
+  f.options.client = { mode: "static", clientId: "replacement-app" };
+  expect(await f.run()).toEqual({ action: "retry" });
+  expect(f.fetch).toHaveBeenCalledTimes(2);
+  expect(f.authorization().searchParams.get("client_id")).toBe("registered-client");
+});
+
+it("keeps the original callback and browser dependencies after caller replacement", async () => {
+  const redirectUri = "http://localhost:39119/original-callback?app=one";
+  const f = interaction({ redirectUri });
+  const replacement = vi.fn(async () => { throw new Error("replacement dependency invoked"); });
+  f.options.browser.redirectUri = "http://localhost:39120/replacement-callback";
+  f.options.browser.openBrowser = replacement;
+  f.options.browser.readLine = replacement;
+  f.options.browser.createServer = () => { throw new Error("replacement listener invoked"); };
+  expect(await f.run()).toEqual({ action: "retry" });
+  expect(f.createServer).toHaveBeenCalledOnce();
+  expect(f.openBrowser).toHaveBeenCalledOnce();
+  expect(replacement).not.toHaveBeenCalled();
+  expect(f.authorization().searchParams.get("redirect_uri")).toBe(redirectUri);
+  expect(JSON.parse(String(f.fetch.mock.calls[0]?.[1]?.body)).redirect_uris).toEqual([redirectUri]);
+  expect(new URLSearchParams(String(f.fetch.mock.calls[1]?.[1]?.body)).get("redirect_uri")).toBe(redirectUri);
+});
+
+it.each(["signal", "timeout"])("does not acquire a replacement browser %s policy", async policy => {
+  const f = interaction();
+  if (policy === "signal") f.options.browser.signal = AbortSignal.abort(new Error("replacement cancellation"));
+  else f.options.browser.timeoutMs = 0;
+  expect(await f.run()).toEqual({ action: "retry" });
+  expect(f.openBrowser).toHaveBeenCalledOnce();
+});
+
+it("captures landing-page values while the original browser callback stays executable", async () => {
+  const listener = new Listener();
+  const landingPage = { title: "Original title", body: "Original body" };
+  const end = vi.fn();
+  const fetch = vi.fn(async () => Response.json({ access_token: "token", token_type: "Bearer" }));
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" },
+    sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} },
+    browser: { landingPage, createServer: () => listener as unknown as http.Server, openBrowser: async url => {
+      const authorization = new URL(url), callback = new URL(authorization.searchParams.get("redirect_uri")!);
+      callback.searchParams.set("state", authorization.searchParams.get("state")!);
+      callback.searchParams.set("code", "code");
+      listener.emit("request", { url: callback.pathname + callback.search }, { writeHead: vi.fn(), end });
+    } } });
+  landingPage.title = "Replacement title";
+  landingPage.body = "Replacement body";
+  expect(await provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+    challenge: null, discovery, fetch })).toEqual({ action: "retry" });
+  expect(end).toHaveBeenCalledWith(expect.stringContaining("Original title"));
+  expect(end).toHaveBeenCalledWith(expect.stringContaining("Original body"));
+  expect(end.mock.calls[0]?.[0]).not.toContain("Replacement");
+});
+
+it("retains live cancellation from the original browser signal after caller replacement", async () => {
+  const controller = new AbortController(), reason = new Error("original browser cancellation");
+  const f = interaction({ signal: controller.signal });
+  f.options.browser.signal = new AbortController().signal;
+  controller.abort(reason);
+  expect(await f.run()).toEqual({ action: "fail", error: reason });
+  expect(f.createServer).not.toHaveBeenCalled();
+  expect(f.fetch).not.toHaveBeenCalled();
 });
 
 it("does not invent a requested scope from server-advertised permissions", async () => {

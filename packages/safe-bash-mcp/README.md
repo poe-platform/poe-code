@@ -255,7 +255,8 @@ const commands = await createRemoteMcpCommands(runtimeServers);
 Binding reads only own data properties of the supplied environment; it never
 falls back to `process.env`. Required missing variables fail before provider
 setup, and empty optional values use public fallbacks or remain absent. Values
-are captured independently from later environment changes. Credential inputs
+for every explicit registry reference are captured before host clocks run,
+independently from later environment changes. Credential inputs
 have a 1 MiB combined byte limit (`maxCredentialBytes`); shared references count
 once. Binding produces runtime credentials separately from the configuration
 used in artifacts. Do not serialize runtime server entries as configuration.

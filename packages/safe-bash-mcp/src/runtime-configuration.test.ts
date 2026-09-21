@@ -303,3 +303,14 @@ it("retains the host session factory selected before the imported-grant clock ca
   expect(headers.get("Authorization")).toBe("Bearer clock-grant");
   expect(store.load).toHaveBeenCalled();
 });
+
+it.each(["bearer", "header"])("captures later %s environment values before the imported-grant host clock runs", mode => {
+  const config = initRemoteMcpConfiguration([{ ...server, auth: oauth }, { ...server, name: "second", url: "https://second.example/mcp",
+    ...(mode === "bearer" ? { auth: { type: "bearer" as const, env: "SECOND_CREDENTIAL" } } : { headers: { "X-Key": { env: "SECOND_CREDENTIAL" } } }) }]).configuration;
+  const env = { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "catalog-grant", MCP_CATALOG_EXPIRES_IN: "60", SECOND_CREDENTIAL: "original-second-credential" };
+  const now = vi.fn(() => { env.SECOND_CREDENTIAL = "replacement-second-credential"; return 1000; });
+  const bound = bindRemoteMcpConfiguration(config, { env, oauth: { now, sessionStore: () => memoryStore() } });
+  expect(now).toHaveBeenCalledOnce();
+  expect(new Headers(bound[1].headers).get(mode === "bearer" ? "Authorization" : "X-Key"))
+    .toBe(`${mode === "bearer" ? "Bearer " : ""}original-second-credential`);
+});

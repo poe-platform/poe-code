@@ -30,6 +30,12 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
   options = { ...options, ...(options.oauth === undefined ? {} : { oauth: { ...options.oauth } }) };
   const configuration = parseRemoteMcpConfiguration(value, options);
   const read = credentialEnvironmentReader(options);
+  // Capture only this registry's references before invoking any host clock.
+  for (const server of configuration.servers) {
+    for (const reference of Object.values(server.headers ?? {})) read(reference);
+    if (server.auth?.type === "bearer") read(server.auth.token);
+    else if (server.auth?.type === "oauth") for (const reference of Object.values(server.auth.credentials)) read(reference);
+  }
   const publicValue = (reference: PublicEnvironmentReference): string | undefined => read(reference) ?? reference.fallback;
   const readTiming = (reference: EnvironmentReference | undefined): number | undefined => {
     if (reference === undefined) return undefined;

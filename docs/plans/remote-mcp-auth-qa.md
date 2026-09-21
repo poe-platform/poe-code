@@ -305,3 +305,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     nonenumerable environment accessor must remain unread. Require three
     listings, three distinct retired sessions and no tool, consent or token
     traffic. Inspect safe summary output and purge owned synthetic evidence.
+
+29. Bind a supplied-schema OAuth server with a relative imported lifetime,
+    followed by a bearer-authenticated server or a server with an API-key header.
+    Let the first server's host clock mutate the environment reference used by
+    the second. Require original registry values to have been captured before
+    that callback, using a128-byte combined credential budget and no unrelated
+    accessor reads. Generate commands offline, then invoke all four commands
+    across the two modes against actual HTTP. Require original grants/headers,
+    complete results/exact005930, four distinct retired sessions, no tools/list
+    and no consent/token traffic. Inspect safe summary output and purge owned
+    synthetic evidence.

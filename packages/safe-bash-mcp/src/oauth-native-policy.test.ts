@@ -78,3 +78,30 @@ it.each((["schema", "command", "resource"] as const).flatMap(route => fields.map
     if (field === "persistenceNamespace" || field === "resourceIdentity") expect(fetch).not.toHaveBeenCalled();
   }
 );
+
+it.each(["schema", "command", "resource"] as const)("retains a private native option clock receiver through facade %s", async route => {
+  class Host {
+    #timestamp = 1000;
+    client = { mode: "static" as const, clientId: "original" }; browser = {}; allowInteractive = false;
+    sessionStore = { load: async () => null, save: async () => {}, clear: async () => {} };
+    initialGrant = { resource: url, tokens: { accessToken: "original-grant", tokenType: "Bearer", expiresAt: 3000 } };
+    now() { return this.#timestamp; }
+  }
+  const fetch = vi.fn(async (_target: string | URL, init?: RequestInit) => {
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer original-grant");
+    if (init?.method === "GET") return new Response(null, { status: 405 });
+    const rpc = JSON.parse(String(init?.body)); if (rpc.method === "notifications/initialized") return new Response(null, { status: 202 });
+    return Response.json({ jsonrpc: "2.0", id: rpc.id, result: rpc.method === "initialize"
+      ? { protocolVersion: "2025-03-26", capabilities: { tools: {}, resources: {} }, serverInfo: { name: "synthetic", version: "1" } }
+      : rpc.method === "tools/list" ? { tools: [tool] } : rpc.method === "tools/call" ? { content: [{ type: "text", text: "complete" }] }
+      : { contents: [{ uri: "memo://005930", text: "complete" }] } });
+  });
+  const server = { name: "catalog", url, protocolVersion: "2025-03-26" as const, oauth: new Host() };
+  if (route === "command") {
+    const commands = await createRemoteMcpCommands([{ ...server, tools: [tool] }], { fetch }); expect(fetch).not.toHaveBeenCalled();
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+    try { expect((await shell.exec("catalog echo")).exitCode).toBe(0); } finally { await shell.dispose(); }
+  } else if (route === "schema") await fetchRemoteMcpSchema(server, { fetch });
+  else await accessRemoteMcpResources(server, { operation: "read", uri: "memo://005930" }, { fetch });
+  expect(fetch).toHaveBeenCalled();
+});

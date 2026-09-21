@@ -39,6 +39,7 @@ export async function importRemoteMcpAuthentication(
   if (server.auth?.type !== "oauth") throw new Error("Credential import requires managed OAuth");
   const binding = options.binding ?? { env: {} }, oauth = binding.oauth;
   const importSession = oauth?.importSession;
+  const now = oauth?.now?.bind(oauth);
   if (oauth?.sessionStore !== undefined && importSession === undefined)
     throw new Error("Host-owned OAuth persistence requires an explicit atomic import hook");
   const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? 30_000;
@@ -62,7 +63,7 @@ export async function importRemoteMcpAuthentication(
   const read = credentialEnvironmentReader(binding), refs = server.auth.credentials;
   for (const reference of [refs.clientId, refs.clientSecret, refs.scope]) read(reference);
   const authStore = importSession === undefined ? snapshotOAuthPersistenceOptions(oauth?.authStore ?? {}) : undefined;
-  const tokens = parseOAuthTokenGrant(input.tokens, { now: oauth?.now, issuedAt: input.issuedAt as OAuthTokenGrantImportOptions["issuedAt"] });
+  const tokens = parseOAuthTokenGrant(input.tokens, { now, issuedAt: input.issuedAt as OAuthTokenGrantImportOptions["issuedAt"] });
   const registration = Object.hasOwn(input, "clientInfo") ? parseOAuthClientRegistration(input.clientInfo) : undefined;
   const id = read(refs.clientId, server.auth.clientMode === "static")?.trim();
   const secret = read(refs.clientSecret)?.trim();

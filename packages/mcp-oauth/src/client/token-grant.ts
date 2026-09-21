@@ -12,7 +12,7 @@ export interface OAuthTokenGrantImportOptions {
 
 /** Validate a raw RFC token response and anchor its lifetime once for persistence. */
 export function parseOAuthTokenGrant(value: unknown, options: OAuthTokenGrantImportOptions = {}): StoredOAuthTokens {
-  options = { ...options };
+  options = { ...options, expiresAt: options.expiresAt, issuedAt: options.issuedAt, now: options.now?.bind(options) };
   const invalid = () => new Error("Invalid OAuth token grant");
   const result = copyBoundedOAuthJson(value, "Invalid OAuth token grant");
   if (typeof result !== "object" || result === null || Array.isArray(result)) throw invalid();

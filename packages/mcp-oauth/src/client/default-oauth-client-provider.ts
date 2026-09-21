@@ -1,3 +1,4 @@
+import { snapshotOAuthPersistenceOptions } from "./persistence-options.js";
 import { createResourceBoundOAuthStores } from "./resource-bound-store.js";
 import { normalizeStoredOAuthClient, parseOAuthClientRegistration, registrationMatchesRedirect } from "./client-registration.js";
 import { normalizeOAuthScope } from "./scope.js";
@@ -50,6 +51,7 @@ export function createOAuthClientProvider(
 export function createDefaultOAuthClientProvider(
   options: DefaultOAuthClientProviderOptions
 ): OAuthClientProvider {
+  const clock = options.now?.bind(options) ?? Date.now;
   const browser = snapshotLoopbackAuthorizationOptions(options.browser);
   const clientMode = options.client.mode;
   const interactiveEnabled = options.allowInteractive !== false;
@@ -61,14 +63,12 @@ export function createDefaultOAuthClientProvider(
   const configuredClient = normalizeConfiguredClient(options.client);
   const requestedTokenMethod = normalizeOAuthTokenEndpointAuthMethod(options.client.tokenEndpointAuthMethod);
   const configuredTokenMethod = requestedTokenMethod ?? configuredClient?.tokenEndpointAuthMethod;
-  if (options.resourceIdentity !== undefined && options.sessionStore !== undefined)
+  const resourceIdentity = options.resourceIdentity, persistenceNamespace = options.persistenceNamespace, selectedSessionStore = options.sessionStore;
+  const suppliedGrant = options.initialGrant;
+  const capturedGrant = suppliedGrant === undefined ? undefined : { resource: suppliedGrant.resource, tokens: snapshotInitialGrantTokens(suppliedGrant.tokens) };
+  const authStore = options.authStore === undefined ? undefined : snapshotOAuthPersistenceOptions(options.authStore);
+  if (resourceIdentity !== undefined && selectedSessionStore !== undefined)
     throw new Error("OAuth resourceIdentity requires native-owned persistence; custom stores own their resource trust policy");
-  const resourceStores = options.resourceIdentity === undefined ? undefined :
-    createResourceBoundOAuthStores(options.authStore ?? {}, options.persistenceNamespace, options.resourceIdentity);
-  const sessionStore = resourceStores?.sessionStore ?? options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
-  const clientStore = resourceStores?.clientStore ??
-    (options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
-  const clock = options.now ?? Date.now;
   const now = () => {
     const timestamp = clock();
     if (!Number.isSafeInteger(timestamp) || Math.abs(timestamp) > MAX_JS_DATE_MS)
@@ -76,16 +76,21 @@ export function createDefaultOAuthClientProvider(
     return timestamp;
   };
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
-  if (options.initialGrant !== undefined) {
+  const resourceStores = resourceIdentity === undefined ? undefined :
+    createResourceBoundOAuthStores(authStore ?? {}, persistenceNamespace, resourceIdentity);
+  const sessionStore = resourceStores?.sessionStore ?? selectedSessionStore ?? createAuthStoreSessionStore(authStore, persistenceNamespace);
+  const clientStore = resourceStores?.clientStore ??
+    (authStore === undefined ? null : createAuthStoreClientStore(authStore, persistenceNamespace));
+  if (capturedGrant !== undefined) {
     let resource: URL;
-    try { resource = new URL(options.initialGrant.resource); }
+    try { resource = new URL(capturedGrant.resource); }
     catch { throw new Error("OAuth initial grant resource must be an absolute HTTP URL"); }
     if ((resource.protocol !== "http:" && resource.protocol !== "https:") || resource.username || resource.password || resource.href.includes("#"))
       throw new Error("OAuth initial grant resource must be an HTTP URL without credentials or fragments");
   }
-  const initialGrant = options.initialGrant === undefined ? undefined : {
-    resource: canonicalizeResourceIndicator(options.initialGrant.resource),
-    tokens: normalizeImportedTokens(options.initialGrant.tokens, now),
+  const initialGrant = capturedGrant === undefined ? undefined : {
+    resource: canonicalizeResourceIndicator(capturedGrant.resource),
+    tokens: normalizeImportedTokens(capturedGrant.tokens, now),
     client: configuredClient
   };
   if (initialGrant !== undefined && (initialGrant.tokens === undefined || initialGrant.client === null))
@@ -754,6 +759,12 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
   return { ...session, discovery, client, tokens };
 }
 
+
+function snapshotInitialGrantTokens(value: unknown): unknown {
+  if (!isObjectRecord(value)) return value;
+  const expiresAt = getOwnEntry(value, "expiresAt"), expiresIn = getOwnEntry(value, "expiresIn"), issuedAt = getOwnEntry(value, "issuedAt");
+  return { ...value, expiresAt, expiresIn, issuedAt };
+}
 
 function normalizeImportedTokens(value: unknown, now: () => number): StoredOAuthTokens | undefined {
   if (!isObjectRecord(value)) return undefined;

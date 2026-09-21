@@ -66,6 +66,9 @@ alone do not establish either native error type.
 
 The default provider captures client, interaction, callback, landing-page and
 lock policies when created. Create a new provider to change those settings.
+Initial grants and the selected clock are captured before native persistence
+callbacks. Clock methods retain their original host receiver and private class
+state; later clock state still determines whether a grant has expired.
 Selected callbacks, stores, clocks and AbortSignals remain live host dependencies;
 aborting the original signal still cancels authorization.
 An invalid clock fails before attaching or refreshing a grant with a known
@@ -214,7 +217,9 @@ also be valid epoch milliseconds; adding the lifetime cannot make an invalid
 issuance clock acceptable. This applies to raw-grant parsing and token responses.
 For a raw OAuth response, `parseOAuthTokenGrant(response, { issuedAt, expiresAt })`
 returns normalized `StoredOAuthTokens`. Timing options are captured before the
-host clock runs, so it cannot bypass their earlier validation. The parser accepts
+host clock runs, so it cannot bypass their earlier validation. Declared timing
+options retain nonenumerable values, and a selected clock method retains its
+original host receiver. The parser accepts
 `access_token`, `refresh_token`,
 `token_type`, `scope`, `expires_in` (seconds), `expires_at` (epoch seconds), and
 `expiresAt` (epoch milliseconds). Numeric absolute expiry wins over relative

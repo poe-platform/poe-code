@@ -322,7 +322,8 @@ and `issuedAt` values through schema/command/resource snapshots. Their absence
 must not replace an authoritative expiry with a new or unknown lifetime.
 Interaction, lock, namespace and resource-identity policies also survive these
 snapshots, alongside the selected live clock and session-store handles,
-regardless of property enumerability.
+regardless of property enumerability. Selected clock methods retain their
+original host receiver, including private class state.
 Browser snapshots also retain the selected opener, input reader, listener
 factory, redirect, cancellation signal and authorization deadline.
 The selected host methods retain their original receiver and live host state,
@@ -431,7 +432,8 @@ collection stops at the smaller of the selected import budget and the host's
 `credentialImport.maxImportBytes` budget also applies while reading.
 
 The import captures top-level option handles before host clocks run; its original
-signal and fetch remain selected if the caller replaces their handles. Explicit
+signal and fetch remain selected if the caller replaces their handles. Its
+selected clock keeps the original OAuth host receiver and private state. Explicit
 client ID, secret and scope values, plus native persistence configuration, are
 captured before that clock. Backend environment resolution still occurs when
 native persistence is constructed. The import captures the host atomic import hook or constructs native persistence

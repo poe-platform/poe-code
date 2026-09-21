@@ -342,3 +342,11 @@ it("observes a host atomic import rejection after caller cancellation without re
     expect(f.fetch).toHaveBeenCalledTimes(2);
   } finally { completion.resolve(); await pending; process.off("unhandledRejection", unhandled); }
 });
+
+it("retains the original private host receiver for an SDK import clock", async () => {
+  const f = fixture();
+  class Host { #timestamp = 1000; authStore = f.authStore; now() { return this.#timestamp; } }
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { env: {}, oauth: new Host() }, fetch: f.fetch }))
+    .resolves.toEqual({ name: "catalog", url: resource, imported: true });
+  expect((await f.stores.sessionStore.load(resource))?.tokens?.expiresAt).toBe(3_601_000);
+});

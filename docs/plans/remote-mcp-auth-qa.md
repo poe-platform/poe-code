@@ -844,3 +844,20 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     identity callbacks/60 random callbacks/72 home callbacks/364 synthetic
     Keychain invocations. Compile the public native snapshot helper in a strict
     Node-only consumer, inspect the successful screenshot and purge owned evidence.
+
+75. Give raw native imports hidden timing policies: require three invalid timing
+    options to reject, both hidden zero timestamps to remain authoritative, and
+    zero clock reads for an unknown lifetime. Across actual HTTP/SSE discovery,
+    generated-tool and resource routes, mutate the native provider's initial
+    grant/clock through persistence callbacks or imported-field copying. Preserve
+    original grants and selected clocks; select the backend before relative
+    clock execution. Require twenty-four isolated mutations including six backend
+    environment replacements. Use private clock classes through both native
+    provider references and direct facade options; twelve fresh sessions attach
+    the original grant and twelve later sessions withhold it after live expiry.
+    SDK and management imports must commit four original-clock relative grants
+    with expiresAt2000 and complete subsequent calls. Retain applicable guidance,
+    falsey JSON, nested metadata, exact005930 and text+blob resources. Require156
+    MCP POSTs/eight metadata GETs/twenty-six HTTP retirements/twenty-six SSE closes
+    and zero consent/token traffic. Virtual management payload files contain bytes.
+    Inspect the successful summary screenshot and purge owned evidence.

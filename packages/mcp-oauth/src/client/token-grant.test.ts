@@ -71,3 +71,19 @@ it.each([undefined, null])("rejects a host clock's nonnumeric relative anchor: %
   expect(() => parseOAuthTokenGrant({ ...raw, expires_in: 1 }, { now: () => timestamp as unknown as number }))
     .toThrow(new Error("Invalid OAuth token grant"));
 });
+
+it.each(["expiresAt", "issuedAt", "now"] as const)("validates hidden native import timing option %s", field => {
+  const options = { expiresAt: field === "expiresAt" ? Infinity : undefined, issuedAt: field === "issuedAt" ? Infinity : undefined,
+    now: () => field === "now" ? NaN : 1000 };
+  Object.defineProperty(options, field, { enumerable: false });
+  expect(() => parseOAuthTokenGrant({ ...raw, expires_in: 1 }, options)).toThrow("Invalid OAuth token grant");
+});
+it.each(["expiresAt", "issuedAt"] as const)("retains valid hidden zero %s", field => {
+  const options = { [field]: 0, now: () => 1000 };
+  Object.defineProperty(options, field, { enumerable: false });
+  expect(parseOAuthTokenGrant({ ...raw, expires_in: 1 }, options).expiresAt).toBe(field === "expiresAt" ? 0 : 1000);
+});
+it("retains the original private receiver for a native import clock", () => {
+  class Host { #timestamp = 1000; now() { return this.#timestamp; } }
+  expect(parseOAuthTokenGrant({ ...raw, expires_in: 1 }, new Host()).expiresAt).toBe(2000);
+});

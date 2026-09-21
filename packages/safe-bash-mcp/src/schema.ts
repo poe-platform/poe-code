@@ -113,7 +113,7 @@ function snapshotOAuthOptions(oauth: NonNullable<RemoteMcpServer["oauth"]>): Non
     persistenceNamespace: oauth.persistenceNamespace,
     resourceIdentity: oauth.resourceIdentity,
     sessionStore: oauth.sessionStore,
-    now: oauth.now,
+    now: oauth.now?.bind(oauth),
     client: Object.assign({ ...oauth.client }, { mode: oauth.client.mode, clientId: oauth.client.clientId,
       clientSecret: oauth.client.clientSecret, tokenEndpointAuthMethod: oauth.client.tokenEndpointAuthMethod,
       ...(oauth.client.metadata === undefined ? {} : { metadata: { ...oauth.client.metadata,

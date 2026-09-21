@@ -164,3 +164,18 @@ it("does not materialize nested heading styles for an explicitly allowed empty s
   expect(result).toMatchObject({ changed: false, changes: [] });
   expect(readPackage(new Uint8Array(volume.readFileSync("/out") as Buffer))).toEqual(readPackage(input));
 });
+
+it.each([true, false])("partitions indivisible grid widths and subtracts cell margins for nested autofit %s", async autofit => {
+  const twip = (value: number) => ({ value, unit: "twip" as const });
+  const section = '<w:sectPr><!--retain section--><w:pgSz w:w="8000" w:h="12000"/><w:pgMar w:left="1000" w:right="1000"/></w:sectPr>';
+  const out = await add(paragraph("Keep 海🌊") + section, { rows: 1, cols: 3, content: { version: 1, blocks: [{ kind: "table", width: twip(101), autofit, rows: [[{ margins: { left: twip(1), right: twip(2) }, blocks: [{ kind: "table", autofit, rows: [[{ blocks: [] }, { blocks: [] }]] }] }, { blocks: [] }, { blocks: [] }]] }] } });
+  expect(out.xml).toContain(section);
+  const outer = child(out.body, "tbl"), cells = children(child(outer, "tr"), "tc");
+  expect(children(child(outer, "tblGrid")).map(n => attr(n, "w"))).toEqual(["34", "34", "33"]);
+  expect(cells.map(cell => attr(child(child(cell, "tcPr"), "tcW"), "w"))).toEqual(["34", "34", "33"]);
+  const inner = child(cells[0]!, "tbl");
+  expect(children(child(inner, "tblGrid")).map(n => attr(n, "w"))).toEqual(["16", "15"]);
+  expect(attr(child(child(inner, "tblPr"), "tblW"), "w")).toBe("31");
+  for (const table of [outer, inner]) expect(attr(child(child(table, "tblPr"), "tblLayout"), "type")).toBe(autofit ? "autofit" : "fixed");
+  for (const cell of cells) expect(children(cell).at(-1)?.name.endsWith("}p")).toBe(true);
+});

@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "task": "behavior-and-coverage-audit",
   "status": "partial-evidence-with-blocking-gaps",
+  "verificationRecords": [
+    {
+      "date": "2026-09-21",
+      "record": "../plans/docx-behavior-coverage-verification-20260921.md",
+      "status": "partial-evidence-with-blocking-gaps",
+      "historicalEvidenceRule": "The candidate, catalog, hashes, checks and coverage below describe the earlier snapshot; the dated record contains current scoped verification without replacing historical evidence."
+    }
+  ],
   "candidate": "Live main worktree with preexisting uncommitted packing/discovery changes; no committed or published qualification.",
   "evidenceRules": [
     "Test titles and operation literals are static crosslinks, not proof of every parameterized variant.",

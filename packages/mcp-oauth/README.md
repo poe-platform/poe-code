@@ -142,6 +142,14 @@ Discovery binds an expired or explicitly rejected grant before silent refresh,
 using the original configured client. Persisted sessions take precedence,
 including sessions whose tokens have been cleared; an import cannot revive them.
 Input tokens are copied and invalid expiry values fail before authorization.
+For a raw OAuth response, `parseOAuthTokenGrant(response, { issuedAt, expiresAt })`
+returns normalized `StoredOAuthTokens`. It accepts `access_token`, `refresh_token`,
+`token_type`, `scope`, `expires_in` (seconds), `expires_at` (epoch seconds), and
+`expiresAt` (epoch milliseconds). Numeric absolute expiry wins over relative
+lifetime; the options timestamp wins over response timestamps. The optional
+`now` clock anchors a new import. JSON is bounded to 64 KiB/64 levels; malformed
+credentials, scope, timing, accessors and non-JSON metadata are rejected without
+quoting the input. The parser makes no network or storage requests.
 Pass a complete DCR response as `client.registration` (or validate untrusted JSON
 with `parseOAuthClientRegistration`). Dynamic clients infer their original ID
 and secret from that response and reuse it without registering another app.

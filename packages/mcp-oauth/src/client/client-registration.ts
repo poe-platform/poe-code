@@ -1,3 +1,4 @@
+import { copyBoundedOAuthJson } from "./bounded-json.js";
 import type { OAuthClientRegistration, StoredOAuthClient } from "./types.js";
 import { loopbackTarget } from "./loopback-authorization.js";
 import { normalizeOAuthScope } from "./scope.js";
@@ -6,32 +7,7 @@ import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 /** Validate and copy a bounded JSON DCR response without quoting credential input. */
 export function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration {
   const invalid = () => new Error("Invalid OAuth client registration metadata");
-  let nodes = 0;
-  function copy(input: unknown, depth: number): unknown {
-    if (++nodes > 20_000 || depth > 64) throw invalid();
-    if (input === null || typeof input === "boolean" || typeof input === "string") return input;
-    if (typeof input === "number" && Number.isFinite(input)) return input;
-    if (typeof input !== "object" || input === null) throw invalid();
-    const descriptors = Object.getOwnPropertyDescriptors(input);
-    if (Array.isArray(input)) {
-      const length = descriptors.length?.value as number;
-      if (length > 20_000) throw invalid();
-      const result: unknown[] = [];
-      for (let index = 0; index < length; index++) {
-        const descriptor = descriptors[String(index)];
-        if (descriptor === undefined || !Object.hasOwn(descriptor, "value")) throw invalid();
-        result.push(copy(descriptor.value, depth + 1));
-      }
-      return result;
-    }
-    if (Object.getPrototypeOf(input) !== Object.prototype && Object.getPrototypeOf(input) !== null) throw invalid();
-    return Object.fromEntries(Object.entries(descriptors).filter(([, descriptor]) => descriptor.enumerable).map(([key, descriptor]) => {
-      if (!Object.hasOwn(descriptor, "value")) throw invalid();
-      return [key, copy(descriptor.value, depth + 1)];
-    }));
-  }
-  let result: unknown;
-  try { result = copy(value, 0); } catch { throw invalid(); }
+  const result = copyBoundedOAuthJson(value, "Invalid OAuth client registration metadata");
   if (typeof result !== "object" || result === null || Array.isArray(result)) throw invalid();
   const record = result as Record<string, unknown>;
   if (!Object.hasOwn(record, "client_id") || typeof record.client_id !== "string" || record.client_id.trim() === "")
@@ -50,7 +26,6 @@ export function parseOAuthClientRegistration(value: unknown): OAuthClientRegistr
     if (Object.hasOwn(record, key) && entry !== null && (typeof entry !== "number" || !Number.isSafeInteger(entry) || entry < 0)) throw invalid();
   }
   try { normalizeOAuthScope(Object.hasOwn(record, "scope") && record.scope !== null ? record.scope : undefined); } catch { throw invalid(); }
-  if (Buffer.byteLength(JSON.stringify(record), "utf8") > 64 * 1024) throw invalid();
   return record as OAuthClientRegistration;
 }
 

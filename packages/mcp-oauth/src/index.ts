@@ -1,3 +1,5 @@
+export { parseOAuthTokenGrant } from "./client/token-grant.js";
+export type { OAuthTokenGrantImportOptions } from "./client/token-grant.js";
 export {
   createAuthStoreSessionStore,
 } from "./client/auth-store-session-store.js";

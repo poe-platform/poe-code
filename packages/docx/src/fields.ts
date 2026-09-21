@@ -134,7 +134,13 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
       }
       field.text.forEach((node, i) => {
         const value = i === 0 ? options.result! : "";
-        if (node.localName !== "t" || [...value].some(c => "\t\r\n".includes(c))) { editor.replaceElement(node, textMarkup(node, value)); return; }
+        if (node.localName !== "t") {
+          // Native controls carry no displayed inner text; keep their lexical
+          // whitespace, comments and processing instructions beside the cache.
+          editor.replaceElement(node, textMarkup(node, value) + (node.content.length ? editor.sourceXml(node, new Map(), true) : ""));
+          return;
+        }
+        if ([...value].some(c => "\t\r\n".includes(c))) { editor.replaceElement(node, textMarkup(node, value)); return; }
         const space = node.attributes.find(a => a.namespace === "http://www.w3.org/XML/1998/namespace" && a.localName === "space");
         if (value.trim() !== value && space && space.value !== "preserve") editor.setAttribute(node, "xml:space", "preserve");
         const content = node.content.filter(n => n.kind === "text" || n.kind === "cdata");

@@ -158,11 +158,8 @@ function waitForAuthorizationCode(
       if (url.pathname !== callbackPath) {
         res.writeHead(404); res.end("Not found"); return;
       }
-      const callbackParameters = {
-        code: url.searchParams.get("code"), error: url.searchParams.get("error"),
-        errorDescription: url.searchParams.get("error_description"), state: url.searchParams.get("state"), iss: url.searchParams.get("iss")
-      };
       try {
+        const callbackParameters = readAuthorizationCallbackParameters(url);
         validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
         if (callbackParameters.error !== null)
           throw new OAuthAuthorizationError(callbackParameters.error, callbackParameters.errorDescription ?? callbackParameters.error);
@@ -197,7 +194,8 @@ function waitForAuthorizationCode(
 }
 
 export function extractCodeFromInput(input: string): string | null {
-  return extractCallbackParametersFromInput(input)?.code ?? null;
+  try { return extractCallbackParametersFromInput(input)?.code ?? null; }
+  catch { return null; }
 }
 
 function extractCallbackParametersFromInput(input: string): AuthorizationCallbackParameters | null {
@@ -206,15 +204,9 @@ function extractCallbackParametersFromInput(input: string): AuthorizationCallbac
     return null;
   }
 
+  let url: URL;
   try {
-    const url = new URL(trimmed);
-    return {
-      code: url.searchParams.get("code"),
-      error: url.searchParams.get("error"),
-      errorDescription: url.searchParams.get("error_description"),
-      state: url.searchParams.get("state"),
-      iss: url.searchParams.get("iss")
-    };
+    url = new URL(trimmed);
   } catch {
     return {
       code: trimmed,
@@ -224,6 +216,16 @@ function extractCallbackParametersFromInput(input: string): AuthorizationCallbac
       iss: null
     };
   }
+  return readAuthorizationCallbackParameters(url);
+}
+
+function readAuthorizationCallbackParameters(url: URL): AuthorizationCallbackParameters {
+  for (const parameter of ["code", "state", "iss", "error", "error_description", "error_uri"]) {
+    if (url.searchParams.getAll(parameter).length > 1)
+      throw new Error(`OAuth callback parameter '${parameter}' must occur only once`);
+  }
+  return { code: url.searchParams.get("code"), error: url.searchParams.get("error"),
+    errorDescription: url.searchParams.get("error_description"), state: url.searchParams.get("state"), iss: url.searchParams.get("iss") };
 }
 
 interface AuthorizationCallbackParameters {

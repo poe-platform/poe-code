@@ -553,3 +553,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     exact005930, one original manual input and original cancellation before
     listener bind. Require every listener released; inspect safe summary output
     and purge only owned synthetic evidence.
+
+50. Through actual native SDK HTTP callbacks and manual management consent,
+    repeat code/state/iss/error/error_description/error_uri with reflected second
+    values. Require twelve safe duplicate failures before token exchange, original
+    tokenless app records, released listeners, twenty-four metadata GETs/twelve
+    unauthorized resource requests and zero token/tool exchanges. Actual HTTP
+    error bodies retain plain UTF-8/nosniff without reflected values. Reject
+    identical repeated state too; retain valid repeated unknown extensions and
+    exact005930. Code extraction returns null for recognized ambiguity. Inspect
+    actual safe CLI diagnostic screenshot and purge only owned synthetic evidence.

@@ -102,7 +102,10 @@ original signals and selected callback receivers/live method state remain active
 timeout and explicit close settle pending code waits and release listeners.
 Always close a standalone session in `finally`. Failed callback responses declare
 plain UTF-8 text with content sniffing disabled; provider markup remains literal
-text. Successful landing pages remain HTML with escaped custom title/body.
+text. Successful landing pages remain HTML with escaped custom title/body. Recognized
+OAuth callback parameters must occur only once in HTTP callbacks or pasted URLs;
+duplicates fail without reflecting values and code extraction returns null.
+Unrecognized extension parameters remain ignored, including repeated fields.
 
 Native provider calls capture request option handles before host work. Unauthorized
 handling also owns complete discovery metadata, presented grant values, rejected

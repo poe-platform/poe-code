@@ -18,9 +18,10 @@ describe("remote MCP initialization and declarative configuration", () => {
       clientId: { env: "MCP_CATALOG_CLIENT_ID" }, clientSecret: { env: "MCP_CATALOG_CLIENT_SECRET" },
       scope: { env: "MCP_CATALOG_SCOPE" }, redirectUri: { env: "MCP_CATALOG_REDIRECT_URI" },
       accessToken: { env: "MCP_CATALOG_ACCESS_TOKEN" }, refreshToken: { env: "MCP_CATALOG_REFRESH_TOKEN" },
-      expiresAt: { env: "MCP_CATALOG_EXPIRES_AT" }
+      expiresAt: { env: "MCP_CATALOG_EXPIRES_AT" }, expiresIn: { env: "MCP_CATALOG_EXPIRES_IN" },
+      issuedAt: { env: "MCP_CATALOG_ISSUED_AT" }
     } });
-    for (const suffix of ["CLIENT_ID", "CLIENT_SECRET", "SCOPE", "REDIRECT_URI", "ACCESS_TOKEN", "REFRESH_TOKEN", "EXPIRES_AT"])
+    for (const suffix of ["CLIENT_ID", "CLIENT_SECRET", "SCOPE", "REDIRECT_URI", "ACCESS_TOKEN", "REFRESH_TOKEN", "EXPIRES_AT", "EXPIRES_IN", "ISSUED_AT"])
       expect(result.envTemplate).toContain(`MCP_CATALOG_${suffix}=\n`);
     expect(result.envTemplate).toContain("Unix epoch milliseconds");
     expect(result.envTemplate).toContain("registered callback");

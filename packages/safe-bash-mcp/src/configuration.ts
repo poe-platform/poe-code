@@ -15,6 +15,8 @@ export interface OAuthCredentialReferences {
   readonly accessToken: EnvironmentReference;
   readonly refreshToken: EnvironmentReference;
   readonly expiresAt: EnvironmentReference;
+  readonly expiresIn?: EnvironmentReference;
+  readonly issuedAt?: EnvironmentReference;
 }
 export type RemoteMcpAuthenticationConfiguration =
   | { readonly type: "bearer"; readonly token: EnvironmentReference }
@@ -53,7 +55,9 @@ const credentialFields = {
   redirectUri: { suffix: "REDIRECT_URI", description: "Exact registered callback URL; overrides the public fallback. Empty uses a random loopback port." },
   accessToken: { suffix: "ACCESS_TOKEN", description: "OAuth access token, if importing an existing grant." },
   refreshToken: { suffix: "REFRESH_TOKEN", description: "OAuth refresh token, if importing an existing grant." },
-  expiresAt: { suffix: "EXPIRES_AT", description: "Access-token expiry in Unix epoch milliseconds; leave empty if unknown." }
+  expiresAt: { suffix: "EXPIRES_AT", description: "Access-token expiry in Unix epoch milliseconds; overrides relative lifetime. Leave empty if unknown." },
+  expiresIn: { suffix: "EXPIRES_IN", description: "Optional access-token lifetime in seconds; means remaining lifetime at import unless ISSUED_AT is supplied.", optional: true },
+  issuedAt: { suffix: "ISSUED_AT", description: "Optional original issuance time in Unix epoch milliseconds for a delayed relative-lifetime import.", optional: true }
 } as const;
 const referenceSchema = { type: "object", properties: { env: { type: "string" } }, required: ["env"], additionalProperties: false };
 const publicReferenceSchema = { ...referenceSchema, properties: { ...referenceSchema.properties, fallback: { type: "string" } } };
@@ -72,7 +76,7 @@ function authenticationSchema(bearer: unknown, oauth: unknown) {
 const finalServerSchema = { type: "object", properties: { ...commonServerProperties, auth: authenticationSchema(
   { type: "object", properties: { type: { const: "bearer" }, token: referenceSchema }, required: ["type", "token"], additionalProperties: false },
   { ...oauthShape, properties: { ...oauthShape.properties, credentials: { type: "object", properties: oauthCredentialSchemas,
-    required: Object.keys(credentialFields), additionalProperties: false } }, required: [...oauthShape.required, "credentials"] }
+    required: Object.entries(credentialFields).filter(([, field]) => !("optional" in field)).map(([key]) => key), additionalProperties: false } }, required: [...oauthShape.required, "credentials"] }
 ) }, required: ["name", "url"], additionalProperties: false };
 const configurationValidator = compileJsonSchema({ type: "object", properties: { version: { const: 1 }, servers: { type: "array", items: finalServerSchema } },
   required: ["version", "servers"], additionalProperties: false });

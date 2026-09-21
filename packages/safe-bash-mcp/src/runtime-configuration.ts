@@ -43,6 +43,15 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
     return value;
   };
   const publicValue = (reference: PublicEnvironmentReference): string | undefined => read(reference) ?? reference.fallback;
+  const readTiming = (reference: EnvironmentReference | undefined): number | undefined => {
+    if (reference === undefined) return undefined;
+    const value = read(reference);
+    if (value === undefined) return undefined;
+    const number = Number(value);
+    if (value.length === 0 || [...value].some(char => char < "0" || char > "9") || !Number.isSafeInteger(number) || number > 8_640_000_000_000_000)
+      throw new Error(`Invalid OAuth timing value in ${reference.env}`);
+    return number;
+  };
   // Complete value preflight before creating providers or asking the host for stores.
   const prepared = configuration.servers.map(configuration => {
     const { headers: references, auth, ...server } = configuration;
@@ -62,19 +71,18 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
       const redirectUri = publicValue(refs.redirectUri);
       const accessToken = read(refs.accessToken);
       const refreshToken = read(refs.refreshToken);
-      const expiry = read(refs.expiresAt);
+      const expiry = readTiming(refs.expiresAt);
+      const lifetime = readTiming(refs.expiresIn);
+      const issuedAt = readTiming(refs.issuedAt);
       if (scope !== undefined && [...scope].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) > 126 || char === '"' || char === "\\"))
         throw new Error(`Invalid OAuth scope in ${refs.scope.env}`);
-      if (accessToken === undefined && (refreshToken !== undefined || expiry !== undefined))
+      if (accessToken === undefined && (refreshToken !== undefined || expiry !== undefined || lifetime !== undefined || issuedAt !== undefined))
         throw new Error("Imported OAuth refresh token or expiry requires an access token");
-      let expiresAt: number | null = null;
-      if (expiry !== undefined) {
-        if (![...expiry].every(char => char >= "0" && char <= "9") || expiry.length === 0)
-          throw new Error(`Invalid Unix epoch millisecond expiry in ${refs.expiresAt.env}`);
-        expiresAt = Number(expiry);
-        if (!Number.isSafeInteger(expiresAt) || expiresAt > 8_640_000_000_000_000)
-          throw new Error(`Invalid Unix epoch millisecond expiry in ${refs.expiresAt.env}`);
-      }
+      if (issuedAt !== undefined && lifetime === undefined)
+        throw new Error("Imported OAuth issuance time requires a relative lifetime");
+      const expiresAt = expiry ?? (lifetime === undefined ? null : (issuedAt ?? (options.oauth?.now ?? Date.now)()) + lifetime * 1000);
+      if (expiresAt !== null && (!Number.isSafeInteger(expiresAt) || Math.abs(expiresAt) > 8_640_000_000_000_000))
+        throw new Error(`Invalid OAuth relative expiry in ${refs.expiresIn?.env ?? refs.expiresAt.env}`);
       if (accessToken !== undefined && (clientId === undefined || clientId.trim() === ""))
         throw new Error(`Imported OAuth grant requires the original client ID in ${refs.clientId.env}`);
       oauthOptions = {

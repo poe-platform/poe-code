@@ -22,3 +22,11 @@ inspection.
    snapshot. No live external server or production secret store is contacted.
 5. Record results in the authoritative remote MCP progress ledger. Remove only
    this QA's evidence directory.
+
+6. For relative-lifetime imports, render and inspect init env and management help.
+   Check optional empty EXPIRES_IN/ISSUED_AT entries and seconds/milliseconds
+   guidance. Bind fresh remaining lifetime, delayed original issuance and an
+   authoritative absolute expiry using the built SDK; advance the host clock
+   after binding and verify expiry does not move. Authorization must not redeem
+   a fresh grant. Generate a supplied-schema artifact and check credentials do
+   not appear in JSON/module/configuration output.

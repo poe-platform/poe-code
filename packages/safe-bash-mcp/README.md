@@ -176,7 +176,12 @@ the default storage identity. Profiles are public configuration values and do
 not add credential environment variables. Host-owned stores select their own
 profile identities.
 Existing access-token imports require the original client ID; refresh-token/expiry fields
-require an access token. Expiry must be a decimal Unix epoch millisecond value.
+require an access token. `expiresAt` is a decimal Unix epoch millisecond value.
+Optional `expiresIn` references supply lifetime in seconds, anchored once at
+binding. For a delayed import, supply its original epoch millisecond `issuedAt`
+or real absolute expiry; absolute expiry takes precedence. Without issuance
+time, a relative lifetime means remaining lifetime at binding. Init emits empty
+`EXPIRES_IN` and `ISSUED_AT` entries; older configs without them remain valid.
 Persisted rotated or cleared grants take precedence over imported environment
 tokens. A fresh import avoids discovery; an expired or explicitly rejected grant
 binds validated discovery before refreshing with its original client.

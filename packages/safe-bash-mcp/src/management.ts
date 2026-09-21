@@ -31,6 +31,8 @@ export function createRemoteMcpManagementCommand(
     "  config  Versioned server configuration with credential references.", "  env     Empty dotenv entries with credential guidance.", "",
     "OAuth entries include app/client ID, client secret, scopes, exact registered",
     "redirect URI, access token, refresh token and expiry in Unix epoch milliseconds.",
+    "Optional relative lifetime uses seconds; original issuance time uses epoch",
+    "milliseconds for delayed imports. Absolute expiry takes precedence.",
     "Public scope/redirect fallbacks are stored in configuration. Secrets remain",
     "empty in the template; initialization does not read credentials or connect.", "",
     "Generate resolves absent schemas and emits a reproducible artifact. Supplied",

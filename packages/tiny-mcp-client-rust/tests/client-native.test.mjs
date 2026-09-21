@@ -5,6 +5,28 @@ import * as reference from "tiny-mcp-client";
 import { createServer as createRustServer } from "../../tiny-stdio-mcp-server-rust/dist/index.js";
 import { createServer as createReferenceServer } from "tiny-stdio-mcp-server";
 
+for (const field of ["signal", "progressToken"]) test(`client call options preserve hidden ${field}`, async () => {
+  const pair = native.createInMemoryTransportPair();
+  const server = new reference.JsonRpcMessageLayer(pair.serverTransport.readable, pair.serverTransport.writable);
+  const calls = [];
+  server.onRequest("initialize", () => ({ protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "hidden-options", version: "1" } }));
+  server.onRequest("tools/call", params => { calls.push(params); return { content: [{ type: "text", text: "complete" }] }; });
+  const client = new native.McpClient({ protocolVersion: "2025-03-26", clientInfo: { name: "hidden-options", version: "1" } });
+  const reason = new Error("selected cancellation");
+  const options = Object.defineProperty({}, field, { value: field === "signal" ? AbortSignal.abort(reason) : "selected-progress" });
+  try {
+    await client.connect(pair.clientTransport);
+    const pending = client.callTool({ name: "echo", arguments: { exact: "005930" } }, options);
+    if (field === "signal") {
+      await assert.rejects(pending, error => error === reason);
+      assert.deepEqual(calls, []);
+    } else {
+      await pending;
+      assert.deepEqual(calls, [{ name: "echo", arguments: { exact: "005930" }, _meta: { progressToken: "selected-progress" } }]);
+    }
+  } finally { await client.close(); server.dispose(); pair.clientTransport.dispose(); }
+});
+
 test("McpClient discovers or initializes both server implementations and invokes public tool/prompt/resource APIs", async () => {
   for (const factory of [native, reference])
     for (const serverFactory of [createRustServer, createReferenceServer])

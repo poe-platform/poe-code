@@ -218,7 +218,7 @@ export class McpClient {
     };
   }
   async callTool(params, options = {}) {
-    options = { ...options };
+    options = { signal: options.signal, progressToken: options.progressToken };
     unwrap(this.#core.checkCapability("tools"));
     options.signal?.throwIfAborted();
     const layer = this.#layer;

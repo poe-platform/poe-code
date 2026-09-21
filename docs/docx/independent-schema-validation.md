@@ -1,5 +1,9 @@
 # Independent schema validation profile
 
+The [2026-09-21 rerun](independent-schema-validation-20260921.md) records fresh
+pin verification, original schema cases and selected corpus edits. The historical
+profile and results below remain unchanged; the linked execution plan is restored.
+
 This is the bounded `independent-ooxml-interoperability` research receipt.
 [Execution plan](../plans/docx-independent-ooxml-interoperability.md),
 [exact pins](../../packages/docx/tests/schema-pins.json) and

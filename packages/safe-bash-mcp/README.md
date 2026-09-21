@@ -54,6 +54,11 @@ connections close on success, failure and cancellation. Network, authentication,
 rate-limit and server errors retain their original cause. If automatic SSE
 fallback also fails, the error retains both failures.
 
+Each operation owns its HTTP/SSE connection; canceling one operation leaves
+parallel operations connected. Calls do not share a persistent MCP transport
+session. Keep long-running jobs and their state on the remote server, and use
+job identifiers or resources to retrieve their results in later calls.
+
 For HTTP stack compatibility, pass the host's `HttpTransportFetch` through
 `options.fetch`. For example, a host can supply an HTTP/1.1 implementation or
 use separate connection pools for long-lived SSE and ordinary requests. The

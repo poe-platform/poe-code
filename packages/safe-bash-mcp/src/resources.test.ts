@@ -116,6 +116,45 @@ it("returns native protocol diagnostics on stderr with a nonzero management stat
     expect(JSON.parse(result.stderr)).toMatchObject({ error: { code: -32001, data: { uri: "memo://one" } } });
   } finally { await shell.dispose(); }
 });
+it("closes only its owned session when a parallel resource operation is canceled", async () => {
+  const active = new Set<string>(), deleted: string[] = [];
+  const operations = new Map<string, { session: string; finish: () => void }>();
+  let notifyStarted!: () => void;
+  const started = new Promise<void>(resolve => { notifyStarted = resolve; });
+  let sessionNumber = 0;
+  const fetch: HttpTransportFetch = async (_url, init) => {
+    const session = new Headers(init?.headers).get("Mcp-Session-Id")!;
+    if (init?.method === "DELETE") {
+      expect(active.delete(session)).toBe(true); deleted.push(session);
+      return new Response(null, { status: 204 });
+    }
+    if (init?.method !== "POST") return new Response(null, { status: 405 });
+    const request = JSON.parse(String(init.body));
+    if (request.method === "initialize") {
+      const ownSession = `resource-${++sessionNumber}`; active.add(ownSession);
+      return Response.json({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: "2025-03-26", capabilities: { resources: {} }, serverInfo: { name: "docs", version: "1" } } }, { headers: { "Mcp-Session-Id": ownSession } });
+    }
+    expect(active.has(session)).toBe(true);
+    if (request.method.startsWith("notifications/")) return new Response(null, { status: 202 });
+    expect(request.method).toBe("resources/read");
+    return new Promise((resolve, reject) => {
+      operations.set(request.params.uri, { session, finish: () => resolve(Response.json({ jsonrpc: "2.0", id: request.id, result: { contents: [{ uri: request.params.uri, text: "completed" }] } })) });
+      init.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true });
+      if (operations.size === 2) notifyStarted();
+    });
+  };
+  const controller = new AbortController(), reason = new Error("cancel one lease");
+  const canceled = accessRemoteMcpResources(server, { operation: "read", uri: "memo://canceled" }, { fetch, signal: controller.signal }).catch(error => error);
+  const retained = accessRemoteMcpResources(server, { operation: "read", uri: "memo://retained" }, { fetch }).catch(error => error);
+  await Promise.race([started, canceled.then(value => { throw value; }), retained.then(value => { throw value; })]);
+  controller.abort(reason);
+  expect(await canceled).toBe(reason);
+  expect(deleted).toEqual([operations.get("memo://canceled")!.session]);
+  expect(active.has(operations.get("memo://retained")!.session)).toBe(true);
+  operations.get("memo://retained")!.finish();
+  expect(await retained).toEqual({ contents: [{ uri: "memo://retained", text: "completed" }] });
+  expect(active.size).toBe(0); expect(deleted).toHaveLength(2);
+});
 it("routes resource list/read/templates through management SDK parity and virtual redirection", async () => {
   const f = remote(), fs = createMemoryFileSystem();
   const definition = createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch } });

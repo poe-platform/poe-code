@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createMemoryFileSystem, FsError, type FileDescriptor, type FileSystem, type FsOptions } from "poe-code/safe-fs";
+import { createMemoryFileSystem, FsError, type FileDescriptor, type FileSystem, type FsOptions } from "@poe-code/safe-fs";
 import type { InvocationCleanup } from "../../src/contracts/command.js";
 import { bindFileOutputBudget, writeFileOutputCounted, type CountedFileWrite } from "../../src/contracts/filesystem-output.js";
 import { openCommandFile } from "../../src/contracts/filesystem-descriptor.js";

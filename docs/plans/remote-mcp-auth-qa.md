@@ -988,3 +988,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     contents, metadata and exact005930 without tools/list or consent. Independently
     await retired HTTP sessions/closed SSE streams; inspect actual result/limit
     diagnostics in a successful screenshot and purge owned evidence.
+
+86. Exercise built public native named-store reset/import/transaction and file/
+    Keychain lock adapters with nonenumerable cancellation and acquisition limits.
+    Reject six excessive native/backend ceilings before callbacks. Pause active
+    lock/path work, abort each original signal, and require six exact cancellation
+    identities with zero operation callbacks. Recreate encrypted native readers;
+    original grant/client and suppression markers remain unchanged. Check that
+    backend zero-budget immediate acquisition remains valid. Then establish real
+    HTTP/SSE access using the retained grant without consent/rotation/discovery;
+    preserve complete output and independently observe session/stream cleanup.
+    Inspect actual status/output evidence in a successful screenshot; purge owned
+    instrumentation and logs after recording verification.

@@ -35,7 +35,8 @@ instances and processes serialize the same encrypted file or Keychain
 service/account; unrelated identities proceed independently. The default
 acquisition timeout is 30 seconds. Cancellation during acquisition does not
 release the active owner's lock. Each acquisition retains its original signal
-and timeout before path checks wait; replacing the caller's option handles cannot
+and timeout before path checks wait, including nonenumerable declared options;
+replacing the caller's option handles cannot
 bypass original cancellation or introduce another signal's cancellation. Individual `get`, `set` and `delete` calls do
 not implicitly acquire it.
 

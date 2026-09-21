@@ -111,6 +111,39 @@ it.each([0, -1, 1.5, Infinity, 2_147_483_648])("rejects unsupported import lock 
   expect(await f.stores.sessionStore.load(resource)).toBeNull();
 });
 
+it.each(["reset", "import", "transaction"] as const)("retains a hidden native %s lock ceiling", async kind => {
+  const f = fixture(); await f.stores.importSession(grant());
+  const options = { timeoutMs: 2_147_483_648 };
+  Object.defineProperty(options, "timeoutMs", { enumerable: false });
+  const operation = vi.fn(async () => "must remain uncalled");
+  const run = kind === "reset" ? f.stores.reset(resource, options) : kind === "import" ? f.stores.importSession(grant(), options)
+    : f.stores.sessionStore.withLock!(resource, operation, options);
+  await expect(run).rejects.toThrow(/timeout|lock/i);
+  expect(operation).not.toHaveBeenCalled();
+  expect(await f.stores.sessionStore.load(resource)).toEqual(grant());
+});
+
+it.each(["reset", "import", "transaction"] as const)("retains live hidden native %s cancellation while queued", async kind => {
+  const f = fixture(); await f.stores.importSession(grant());
+  const entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const owner = f.stores.sessionStore.withLock!(resource, async () => { entered.resolve(); await release.promise; }, { timeoutMs: 1000 });
+  await entered.promise;
+  const controller = new AbortController(), reason = new Error("original hidden native cancellation");
+  const options = { signal: controller.signal, timeoutMs: 1000 };
+  Object.defineProperty(options, "signal", { enumerable: false });
+  const operation = vi.fn(async () => "must remain uncalled");
+  const run = kind === "reset" ? f.stores.reset(resource, options) : kind === "import" ? f.stores.importSession(grant(), options)
+    : f.stores.sessionStore.withLock!(resource, operation, options);
+  const observed = run.catch(error => error);
+  controller.abort(reason);
+  try {
+    release.resolve(); await owner;
+    expect(await observed).toBe(reason);
+    expect(operation).not.toHaveBeenCalled();
+    expect(await f.stores.sessionStore.load(resource)).toEqual(grant());
+  } finally { release.resolve(); await Promise.allSettled([owner, observed]); }
+});
+
 it.each(["reset", "import", "transaction"] as const)("retains the original %s signal through native lock callback checks", async kind => {
   const f = fixture(); await f.stores.importSession(grant());
   const entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();

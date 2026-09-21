@@ -11,6 +11,34 @@ function fixture() {
   return { fs, store };
 }
 
+it.each(["file", "keychain", "raw"] as const)("retains a hidden %s acquisition timeout", async kind => {
+  const f = fixture(), operation = vi.fn(async () => "must remain uncalled");
+  const options = { timeoutMs: 2_147_483_648 };
+  Object.defineProperty(options, "timeoutMs", { enumerable: false });
+  const store = kind === "file" ? f.store() : new KeychainStore({ service: "service", account: "account", lock: { fs: f.fs, directory: "/home/test/keychain-locks" } });
+  const run = kind === "raw" ? withSecretStoreFileLock(f.fs, "/home/test/raw-lock", operation, options) : store.withLock(operation, options);
+  await expect(run).rejects.toThrow("lock timeout"); expect(operation).not.toHaveBeenCalled();
+});
+
+it.each(["file", "keychain", "raw"] as const)("retains hidden %s cancellation through an initial path wait", async kind => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  let waiting = true;
+  const fs = { ...f.fs, lstat: async (...args: Parameters<typeof f.fs.lstat>) => {
+    if (waiting) { waiting = false; entered.resolve(); await resume.promise; }
+    return f.fs.lstat(...args);
+  } };
+  const controller = new AbortController(), reason = new Error("original hidden acquisition cancellation");
+  const options = { signal: controller.signal }, operation = vi.fn(async () => "must remain uncalled");
+  Object.defineProperty(options, "signal", { enumerable: false });
+  const store = kind === "file" ? new EncryptedFileStore({ fs, filePath: "/home/test/credential.enc", salt: "fixture" })
+    : new KeychainStore({ service: "service", account: "account", lock: { fs, directory: "/home/test/keychain-locks" } });
+  const observed = (kind === "raw" ? withSecretStoreFileLock(fs, "/home/test/raw-lock", operation, options) : store.withLock(operation, options)).catch(error => error);
+  try {
+    await entered.promise; controller.abort(reason); resume.resolve();
+    expect(await observed).toBe(reason); expect(operation).not.toHaveBeenCalled();
+  } finally { resume.resolve(); await observed; }
+});
+
 it("preserves a publication file it did not create when exclusive creation fails", async () => {
   const f = fixture();
   let existing = "";

@@ -28,7 +28,9 @@
     "terminal-png-rust": "*",
     "terminal-pilot": "*",
     "typescript": "5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "terminal-pilot-mcp": "*",
+    "toolcraft-schema-rust": "*"
   },
   "files": [
     "dist",

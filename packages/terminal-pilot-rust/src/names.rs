@@ -1,5 +1,5 @@
 //! Named terminal runtime admission and lookup. Promise/session handles stay with the host.
-fn blank(text: &[u16]) -> bool {
+pub(crate) fn blank(text: &[u16]) -> bool {
     text.iter().all(|c|matches!(*c,9..=13|32|0xa0|0x1680|0x2000..=0x200a|0x2028|0x2029|0x202f|0x205f|0x3000|0xfeff))
 }
 pub fn command(text: &[u16]) -> Result<(), String> {

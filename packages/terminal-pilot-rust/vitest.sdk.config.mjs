@@ -3,19 +3,25 @@ import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const root=new URL('./',import.meta.url),path=name=>fileURLToPath(new URL(name,root));
 const sources=['terminal-pilot-core','terminal-buffer-graphemes','terminal-session'].map(n=>path('../terminal-pilot/src/'+n+'.test.ts'));
+sources.push(path('../terminal-pilot/src/commands/commands.test.ts'));
 const imports=new Set(['./index.js','./ansi.js','./keys.js','./terminal-buffer.js','./terminal-screen.js','./terminal-pilot.js','./terminal-session.js']);
-const omitted=new Set(['ignores a missing node-pty spawn-helper','does not ignore spawn-helper chmod errors with inherited missing-file codes']);
+const omitted=new Set(['ignores a missing node-pty spawn-helper','does not ignore spawn-helper chmod errors with inherited missing-file codes','exports the full terminal-pilot command group','prevents consumers from removing built-in commands','captures a session screen as a non-empty PNG']);
 export default defineConfig({
  plugins:[{
   name:'portable-terminal-pilot-reference',enforce:'pre',
-  resolveId(name,importer){if(sources.includes(importer)&&imports.has(name))return path('dist/index.js');},
+  resolveId(name,importer){if(importer===sources[3]&&['./index.js','./runtime.js'].includes(name))return path('dist/commands.js');if(sources.includes(importer)&&imports.has(name))return path('dist/index.js');},
   transform(code,id){
    if(!sources.includes(id))return;
    const ast=ts.createSourceFile(id,code,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
    const result=ts.transform(ast,[context=>{
     const visit=node=>{
+     if(id===sources[3]&&ts.isImportDeclaration(node)&&ts.isStringLiteral(node.moduleSpecifier)&&node.moduleSpecifier.text==='./index.js'&&node.importClause?.namedBindings&&ts.isNamedImports(node.importClause.namedBindings)){
+      const elements=node.importClause.namedBindings.elements.filter(e=>!['install','uninstall','screenshot'].includes(e.name.text));
+      return ts.factory.updateImportDeclaration(node,node.modifiers,ts.factory.updateImportClause(node.importClause,node.importClause.isTypeOnly,node.importClause.name,ts.factory.updateNamedImports(node.importClause.namedBindings,elements)),node.moduleSpecifier,node.attributes);
+     }
      if(ts.isExpressionStatement(node)&&ts.isCallExpression(node.expression)){
       const call=node.expression,first=call.arguments[0];
+      if(id===sources[3]&&ts.isIdentifier(call.expression)&&call.expression.text==='describe'&&first&&ts.isStringLiteral(first)&&first.text==='terminal-pilot install/uninstall commands')return undefined;
       if(ts.isIdentifier(call.expression)&&call.expression.text==='it'&&first&&ts.isStringLiteral(first)&&omitted.has(first.text))return undefined;
       if(ts.isPropertyAccessExpression(call.expression)&&call.expression.expression.getText(ast)==='vi'&&call.expression.name.text==='mock'&&first&&ts.isStringLiteral(first)){
        if(first.text==='node:fs')return undefined;

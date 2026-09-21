@@ -421,6 +421,52 @@ fn names_outcome(result: std::result::Result<Value, String>) -> NativeJson {
         )])
     }))
 }
+fn command_outcome(
+    result: std::result::Result<Value, terminal_pilot_rust::command::Fault>,
+) -> NativeJson {
+    NativeJson(result.unwrap_or_else(|fault| {
+        object(vec![
+            (
+                "fault",
+                Value::String(fault.message.encode_utf16().collect()),
+            ),
+            ("code", Value::Number(f64::from(fault.code))),
+        ])
+    }))
+}
+#[napi]
+pub fn terminal_command_definitions() -> NativeJson {
+    NativeJson(Value::Array(terminal_pilot_rust::command::definitions()))
+}
+#[napi]
+pub fn terminal_command_tools() -> NativeJson {
+    NativeJson(Value::Array(terminal_pilot_rust::command::tools()))
+}
+#[napi]
+pub fn terminal_command_prepare(env: Env, name: String, params: Unknown<'_>) -> Result<NativeJson> {
+    use mcp_protocol_rust_napi_core::json_input::{self, Mode};
+    let value = json_input::read(&env, params, Mode::Json)?.unwrap_or(Value::Null);
+    Ok(command_outcome(terminal_pilot_rust::command::prepare(
+        &name, &value,
+    )))
+}
+#[napi]
+pub fn terminal_command_finish(
+    env: Env,
+    name: String,
+    payload: Unknown<'_>,
+    casing: bool,
+) -> Result<NativeJson> {
+    use mcp_protocol_rust_napi_core::json_input::{self, Mode};
+    let value = json_input::read(&env, payload, Mode::Json)?.unwrap_or(Value::Null);
+    Ok(command_outcome(terminal_pilot_rust::command::finish(
+        &name, &value, casing,
+    )))
+}
+#[napi]
+pub fn terminal_command_returns_value(name: String) -> bool {
+    terminal_pilot_rust::command::returns_value(&name)
+}
 #[napi(custom_finalize)]
 pub struct NativeTerminalNames {
     inner: terminal_pilot_rust::names::Names,

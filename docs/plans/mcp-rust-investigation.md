@@ -3092,6 +3092,43 @@ Conservative active segment01:24:12–01:50:55 UTC is recorded (1,603s); the ear
 checkpoint gap and unrecorded01:20–01:24 minutes are excluded. Full24-hour actual
 effort remains unfulfilled. Work continues after this boundary.
 
+### Terminal automation commands, 2026-09-21 02:11 UTC
+
+The additive `terminal-pilot-rust/commands` subpath now provides all13 automation
+command descriptors. Rust owns declarations, closed schemas, cached validation,
+effect planning and typed result policies; Node executes terminal effects and
+ECMAScript regular expressions. The manually generated declaration seed is a
+development reference, with no original SDK/Toolcraft production imports. Own
+`toolcraft-schema-rust` is a Rust path dependency and an npm development reference.
+
+Portable command tests were red before implementation.15 Rust cases,14 native
+groups and263 Vitest cases pass (251 applicable original SDK cases plus12 own).
+The native comparisons include exact equality of all26 MCP wire definitions,
+all13 automation commands on own real PTYs, getter rejection without evaluating
+the getter or resolving a session, and impossible PID output code-32603. Original
+16-command inventory, screenshot and installation tests are excluded honestly.
+Bidirectional compile contracts now cover every13 individual automation command,
+plus the public runtime and Toolcraft base group. A synchronous original handler
+required the declaration's `TResult | Promise<TResult>` union; no-return command
+results are `undefined`, and the command key schema accepts strings before runtime
+validation. Full16-command group inference compatibility remains unfinished.
+
+Focused maintained unit/lint and explicit uncached109-workspace build closure
+pass. Fresh direct/packed16MiB workers each run32 real command-controlled PTYs,
+retain32 snapshots and close all runtime state. AST auditing covers8 packaged
+JavaScript/declaration files; one addon and zero npm runtime/peer/optional
+dependency groups pass. Endpoint memory is observational: the parent loads the
+TypeScript auditor, so worker RSS includes its process and is not isolated memory
+acceptance. Artifacts are purged after checks. Evidence out/rust-terminal-pilot-
+commands-*.
+
+Session creation performance, screenshot/installer/CLI, pilot MCP, cross-platform
+artifacts, Python and full agent closure remain unfinished. SDK-pin release
+35550571891 has build/audit/Bash success but unit is still running; no publication
+is verified. Additional conservative active segment01:50:55–02:07:03 UTC (968s)
+is recorded. Work resumes02:08:44 UTC after the checkpoint gap;24-hour actual
+effort and overall goal remain unfinished.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

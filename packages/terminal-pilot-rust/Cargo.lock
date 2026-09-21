@@ -12,10 +12,18 @@ version = "0.1.0"
 dependencies = [
  "mcp-protocol-rust",
  "terminal-png-rust",
+ "toolcraft-schema-rust",
 ]
 
 [[package]]
 name = "terminal-png-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "toolcraft-schema-rust"
 version = "0.1.0"
 dependencies = [
  "mcp-protocol-rust",

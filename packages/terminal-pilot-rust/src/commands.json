@@ -1,0 +1,710 @@
+{
+  "commands": [
+    {
+      "kind": "command",
+      "name": "create-session",
+      "description": "Spawn an interactive CLI in a PTY",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [
+        "command",
+        "args"
+      ],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "command": {
+            "kind": "string",
+            "description": "Command to execute",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "args": {
+            "kind": "optional",
+            "inner": {
+              "kind": "array",
+              "item": {
+                "kind": "string"
+              },
+              "description": "Command arguments"
+            }
+          },
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "cwd": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "description": "Working directory"
+            }
+          },
+          "cols": {
+            "kind": "optional",
+            "inner": {
+              "kind": "number",
+              "description": "Terminal width in columns",
+              "jsonType": "integer",
+              "minimum": 1
+            }
+          },
+          "rows": {
+            "kind": "optional",
+            "inner": {
+              "kind": "number",
+              "description": "Terminal height in rows",
+              "jsonType": "integer",
+              "minimum": 1
+            }
+          },
+          "observe": {
+            "kind": "optional",
+            "inner": {
+              "kind": "boolean",
+              "description": "Mirror PTY output to stderr"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "session": {
+            "kind": "string"
+          },
+          "pid": {
+            "kind": "number",
+            "jsonType": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "name": "fill",
+      "description": "Write text to an active terminal session all at once (replaces \\n with \\r)",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [
+        "text"
+      ],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "text": {
+            "kind": "string",
+            "description": "Text to write to the session"
+          },
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {}
+      }
+    },
+    {
+      "kind": "command",
+      "name": "type",
+      "description": "Write text to an active terminal session character-by-character with delay",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [
+        "text"
+      ],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "text": {
+            "kind": "string",
+            "description": "Text to write to the session"
+          },
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {}
+      }
+    },
+    {
+      "kind": "command",
+      "name": "press-key",
+      "description": "Send a named key press to an active terminal session",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [
+        "key"
+      ],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "key": {
+            "kind": "string",
+            "description": "Named key to press",
+            "pattern": "^(?:[Ee][Nn][Tt][Ee][Rr]|[Tt][Aa][Bb]|[Ee][Ss][Cc][Aa][Pp][Ee]|[Bb][Aa][Cc][Kk][Ss][Pp][Aa][Cc][Ee]|[Dd][Ee][Ll][Ee][Tt][Ee]|[Aa][Rr][Rr][Oo][Ww][Uu][Pp]|[Aa][Rr][Rr][Oo][Ww][Dd][Oo][Ww][Nn]|[Aa][Rr][Rr][Oo][Ww][Rr][Ii][Gg][Hh][Tt]|[Aa][Rr][Rr][Oo][Ww][Ll][Ee][Ff][Tt]|[Hh][Oo][Mm][Ee]|[Ee][Nn][Dd]|[Pp][Aa][Gg][Ee][Uu][Pp]|[Pp][Aa][Gg][Ee][Dd][Oo][Ww][Nn]|[Ss][Pp][Aa][Cc][Ee]|.|[Cc][Oo][Nn][Tt][Rr][Oo][Ll]\\+[A-Za-z]|[Aa][Ll][Tt]\\+.+)$"
+          },
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {}
+      }
+    },
+    {
+      "kind": "command",
+      "name": "send-signal",
+      "description": "Send a process signal to an active terminal session",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [
+        "signal"
+      ],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "signal": {
+            "kind": "string",
+            "description": "Signal to send to the session process"
+          },
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {}
+      }
+    },
+    {
+      "kind": "command",
+      "name": "wait-for",
+      "description": "Wait for terminal output to match a pattern",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [
+        "pattern"
+      ],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "pattern": {
+            "kind": "string",
+            "description": "Regular expression pattern to wait for",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "timeout": {
+            "kind": "optional",
+            "inner": {
+              "kind": "number",
+              "short": "t",
+              "description": "Maximum wait time in milliseconds",
+              "minimum": 0
+            }
+          },
+          "scope": {
+            "kind": "optional",
+            "inner": {
+              "kind": "enum",
+              "values": [
+                "history",
+                "screen"
+              ],
+              "description": "Search all captured output or only the current visible screen"
+            }
+          },
+          "literal": {
+            "kind": "optional",
+            "inner": {
+              "kind": "boolean",
+              "short": "l",
+              "description": "When true, treat pattern as a literal string instead of a regex"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "matched": {
+            "kind": "boolean"
+          },
+          "line": {
+            "kind": "string"
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "name": "wait-for-exit",
+      "description": "Wait for a terminal session process to finish",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "timeout": {
+            "kind": "optional",
+            "inner": {
+              "kind": "number",
+              "short": "t",
+              "description": "Maximum wait time in milliseconds",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "exitCode": {
+            "kind": "number",
+            "jsonType": "integer",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "name": "read-screen",
+      "description": "Read the current visible terminal screen",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "lines": {
+            "kind": "array",
+            "item": {
+              "kind": "string"
+            }
+          },
+          "cursor": {
+            "kind": "object",
+            "shape": {
+              "row": {
+                "kind": "number",
+                "jsonType": "integer",
+                "minimum": 0
+              },
+              "col": {
+                "kind": "number",
+                "jsonType": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "size": {
+            "kind": "object",
+            "shape": {
+              "rows": {
+                "kind": "number",
+                "jsonType": "integer",
+                "minimum": 1
+              },
+              "cols": {
+                "kind": "number",
+                "jsonType": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "exitCode": {
+            "kind": "number",
+            "jsonType": "integer",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "name": "read-history",
+      "description": "Read terminal output history",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "last": {
+            "kind": "optional",
+            "inner": {
+              "kind": "number",
+              "short": "n",
+              "description": "Return only the last N lines",
+              "jsonType": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "lines": {
+            "kind": "array",
+            "item": {
+              "kind": "string"
+            }
+          },
+          "exitCode": {
+            "kind": "number",
+            "jsonType": "integer",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "name": "resize",
+      "description": "Resize an active terminal session",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "cols": {
+            "kind": "number",
+            "description": "Terminal width in columns",
+            "jsonType": "integer",
+            "minimum": 1
+          },
+          "rows": {
+            "kind": "number",
+            "description": "Terminal height in rows",
+            "jsonType": "integer",
+            "minimum": 1
+          },
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {}
+      }
+    },
+    {
+      "kind": "command",
+      "name": "close-session",
+      "description": "Close an active terminal session",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "exitCode": {
+            "kind": "number",
+            "jsonType": "integer",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "name": "get-session",
+      "description": "Get session metadata (name, pid, command, exitCode)",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [],
+      "params": {
+        "kind": "object",
+        "shape": {
+          "session": {
+            "kind": "optional",
+            "inner": {
+              "kind": "string",
+              "short": "s",
+              "description": "Session name",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          }
+        }
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "session": {
+            "kind": "string"
+          },
+          "pid": {
+            "kind": "number",
+            "jsonType": "integer",
+            "minimum": 1
+          },
+          "command": {
+            "kind": "string"
+          },
+          "exitCode": {
+            "kind": "number",
+            "jsonType": "integer",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "name": "list-sessions",
+      "description": "List active terminal sessions",
+      "hidden": false,
+      "examples": [],
+      "aliases": [],
+      "positional": [],
+      "params": {
+        "kind": "object",
+        "shape": {}
+      },
+      "secrets": {},
+      "scope": [
+        "cli",
+        "mcp",
+        "sdk"
+      ],
+      "confirm": false,
+      "mcpResultSchema": {
+        "kind": "object",
+        "shape": {
+          "sessions": {
+            "kind": "array",
+            "item": {
+              "kind": "object",
+              "shape": {
+                "session": {
+                  "kind": "string"
+                },
+                "command": {
+                  "kind": "string"
+                },
+                "pid": {
+                  "kind": "number",
+                  "jsonType": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

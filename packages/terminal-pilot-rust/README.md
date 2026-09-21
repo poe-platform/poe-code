@@ -12,6 +12,7 @@ with portable Unicode state and no npm runtime dependencies.
 | Automate a real PTY with input, waits, history, snapshots and signals | `TerminalSession` |
 | Track independent sessions and shut them down with retryable escalation | `TerminalPilot` |
 | Reserve public names, resolve sessions and coordinate runtime shutdown | `createTerminalPilotRuntime` from `terminal-pilot-rust/commands` |
+| Create, fill, type, press keys, signal, wait, read, resize and close sessions | 13 automation commands from `terminal-pilot-rust/commands` |
 
 ```typescript
 import { TerminalBuffer } from 'terminal-pilot-rust';
@@ -62,7 +63,30 @@ closure. Reservations prevent duplicate names while creation is pending. Runtime
 shutdown waits for pending creation and blocks new admission, with retry after
 failed shutdown or launch.
 
-This private additive rewrite's CLI, command definitions, MCP integration
+```typescript
+import { createSession, waitFor, createTerminalPilotRuntime } from 'terminal-pilot-rust/commands';
+
+const terminalPilotRuntime = createTerminalPilotRuntime();
+try {
+  await createSession.handler({
+    terminalPilotRuntime,
+    params: { command: '/bin/sh', args: ['-c', 'printf ready'], session: 'example' }
+  });
+  console.log(await waitFor.handler({
+    terminalPilotRuntime,
+    params: { pattern: 'ready', literal: true, session: 'example' }
+  }));
+} finally {
+  await terminalPilotRuntime.close();
+}
+```
+
+Rust validates command inputs before terminal effects and validates structured
+results before returning them. Command descriptors support the existing Toolcraft
+surface without importing Toolcraft at runtime. Screenshot and installation
+commands remain unfinished.
+
+This private additive rewrite's CLI, MCP integration
 and Python bindings are unfinished. Existing imports remain unchanged. Nominal
 TypeScript classes with private SDK fields require a public structural contract
 when exchanging implementations. General Unicode width parity and cross-platform

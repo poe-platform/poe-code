@@ -537,3 +537,15 @@ pub fn normalize_tokens_checked(value: &Value) -> Result<Option<Value>, String> 
     }
     Ok(normalize_tokens(value))
 }
+
+pub fn same_token_grant(left: &Value, right: &Value) -> bool {
+    [
+        "accessToken",
+        "refreshToken",
+        "tokenType",
+        "expiresAt",
+        "scope",
+    ]
+    .iter()
+    .all(|key| left.get(key) == right.get(key))
+}

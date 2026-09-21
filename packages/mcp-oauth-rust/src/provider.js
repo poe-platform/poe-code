@@ -206,7 +206,7 @@ export function createDefaultOAuthClientProvider(options) {
           authorizationServerMetadata: stored.authorizationServerMetadata
         };
   }
-  async function ensure(resource, discovery, fetch, interactive, force = false, signal) {
+  async function ensure(resource, discovery, fetch, interactive, force = false, signal, rejectedTokens) {
     resource = canonicalizeResourceIndicator(resource);
     return withOAuthSessionTransaction(sessionStore, resource, async () => {
       let session = await loadSession(resource);
@@ -239,6 +239,7 @@ export function createDefaultOAuthClientProvider(options) {
         await sessionStore.clear(resource);
         session = null;
       }
+      if (force && rejectedTokens !== undefined && !native.rejectedGrantMatches(JSON.stringify({ current: session?.tokens, rejected: rejectedTokens }))) force = false;
       const resolved = discoveryFor(discovery, session);
       if (session?.refreshState === "pending") {
         if (!interactive || options.allowInteractive === false || resolved === undefined)
@@ -492,16 +493,31 @@ export function createDefaultOAuthClientProvider(options) {
         const url = canonicalizeResourceIndicator(input.requestUrl),
           resource = canonicalizeResourceIndicator(input.discovery.resource);
         unwrap(native.providerRequestMatches(url, resource));
-        const force =
-          (await loadSession(resource))?.tokens !== undefined &&
-          input.challenge?.params.error === "invalid_token";
+        const cached = await loadSession(resource);
+        let rejectedCurrent = cached?.tokens !== undefined;
+        let presented = input.presentedTokens;
+        if (presented !== undefined) {
+          rejectedCurrent = false;
+          if (presented !== null) {
+            try { presented = native.providerNormalizeTokens(JSON.stringify(project(presented, TOKENS))); }
+            catch (error) { throw new Error(error.message); }
+            const header = input.requestHeaders?.get("Authorization") ?? "";
+            const separator = header.indexOf(" ");
+            if (presented === null || header.slice(0, separator).toLowerCase() !== "bearer" || header.slice(separator + 1).trim() !== presented.accessToken)
+              throw new Error("OAuth rejected-request provenance does not match its authorization header");
+            rejectedCurrent = native.rejectedGrantMatches(JSON.stringify({ current: cached?.tokens, rejected: presented }));
+          }
+        }
+        const challenge = input.challenge?.params.error;
+        const force = rejectedCurrent && (challenge === "invalid_token" || (input.presentedTokens !== undefined && challenge === undefined));
         const session = await ensure(
           resource,
           { ...input.discovery, resource },
           input.fetch,
           true,
           force,
-          input.signal
+          input.signal,
+          presented
         );
         return session?.tokens?.accessToken === undefined
           ? { action: "fail" }

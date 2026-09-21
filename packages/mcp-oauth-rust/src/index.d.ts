@@ -68,6 +68,8 @@ export interface OAuthClientProvider {
     response: Response;
     challenge: OAuthUnauthorizedChallenge | null;
     discovery: OAuthDiscoveryResult;
+    requestHeaders?: Headers;
+    presentedTokens?: StoredOAuthTokens | null;
     fetch: OAuthMetadataFetch;
     signal?: AbortSignal;
   }):

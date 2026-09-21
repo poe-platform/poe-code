@@ -201,3 +201,18 @@ fn stored_registration_requires_matching_identity_and_authentication() {
         Ok(None)
     );
 }
+
+#[test]
+fn rejected_grants_match_rotated_refresh_tokens_and_full_provenance() {
+    use mcp_oauth_rust::provider::same_token_grant;
+    let current = value(
+        r#"{"accessToken":"a","refreshToken":"r","tokenType":"Bearer","expiresAt":100,"scope":"read"}"#,
+    );
+    assert!(same_token_grant(&current, &current));
+    for rejected in [
+        r#"{"accessToken":"a","refreshToken":"old","tokenType":"Bearer","expiresAt":100,"scope":"read"}"#,
+        r#"{"accessToken":"a","refreshToken":"r","tokenType":"Bearer","expiresAt":100,"scope":"write"}"#,
+    ] {
+        assert!(!same_token_grant(&current, &value(rejected)));
+    }
+}

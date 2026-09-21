@@ -287,3 +287,20 @@ impl NativeProviderClientCache {
         self.state.borrow_mut().remove(issuer.as_ref());
     }
 }
+
+#[napi]
+pub fn provider_normalize_tokens(text: Utf16String) -> Result<NativeJson> {
+    let tokens =
+        provider::normalize_tokens_checked(&parse(&text)?).map_err(napi::Error::from_reason)?;
+    Ok(NativeJson(tokens.unwrap_or(Value::Null)))
+}
+#[napi]
+pub fn rejected_grant_matches(text: Utf16String) -> Result<bool> {
+    let input = parse(&text)?;
+    Ok(match (input.get("current"), input.get("rejected")) {
+        (Some(current @ Value::Object(_)), Some(rejected @ Value::Object(_))) => {
+            provider::same_token_grant(current, rejected)
+        }
+        _ => false,
+    })
+}

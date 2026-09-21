@@ -49,3 +49,6 @@ export { spawnAcp } from "./spawn-acp.js";
 export { sessionCapture, sessionMetadataCapture } from "./session-capture.js";
 export { usageCapture, getCapturedUsage, captureAbortUsage } from "./usage-capture.js";
 export { spawnLog } from "./spawn-log.js";
+
+export { listSpawnLogs, findLatestLog, pickRandomLog } from "./log-catalog.js";
+export { getDefaultSpawnLogDir } from "./spawn-log-path.js";

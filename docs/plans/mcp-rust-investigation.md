@@ -6928,3 +6928,33 @@ ACPcf154ff60 pushed and exact remote main verified before later foreign delivery
 No current successful root publication verified. Foreign changes preserved.
 Continuous16:38:00–16:44:00 adds360s,total124975s(34.72h). Minimum fulfilled;
 full objective incomplete. Continue accounting after16:44:00UTC.
+
+### Owned spawn-log discovery and selection, 2026-09-21 16:49 UTC
+
+Missing core/public catalog APIs reproduced before implementation. Rust owns
+UTF-16 filename decomposition, strict calendar validation, UTC epoch computation,
+limit normalization, stable descending filename order and latest timestamp choice.
+Node owns directory handles, existing containment/symlink guards, Date objects,
+randomness and original options getter observations. A private limit getter oracle
+failed on a double read, then passes after capturing its original-receiver value
+once. Public listSpawnLogs/findLatestLog/pickRandomLog/getDefaultSpawnLogDir added.
+Reading/replay/rendering remain absent. Maintained37Rust/46native groups/562
+reference cases16files and bidirectional catalog signatures pass in a final
+sequential run after the selected uncached38-build closure at concurrency1.
+Final maintained/scoped lint passes. Viewed out/rust-spawn-log-catalog.png.
+
+Packed one addon/404audited files/zero npm runtime groups. Direct/packed blocked-
+external24MiBworkers each complete previous spawn/stream/ACP/capture/log/summary
+workloads plus256catalog listing/latest/random cycles in memfs. Final JS heap
+11.83–11.97MiB; combined16MiBacceptance failure remains open. Limits do not bound
+total/native memory. No comparative-performance or memory-superiority claim.
+Evidence out/rust-spawn-log-catalog-*. No original consumer integration.
+
+Reference routing local4df6c8bd5 initially rejected on push after foreign main
+advanced. Rebased only that commit in detached out/rust-main-delivery, pushed
+2fabf6c19 and exact remote main verified. Main synchronized with a protected
+two-tree update that preserved dirty foreign paths; no foreign stash/revert.
+Earlier premature rebase during checkout hit its active index lock; waited for
+checkout completion, then successful rebase. No current successful root publication
+verified. Continuous16:44:00–16:49:00 adds300s,total125275s(34.80h). Minimum
+fulfilled; full objective incomplete. Continue accounting after16:49:00UTC.

@@ -527,3 +527,5 @@ fn stdin_mode<'a>(config: &'a Value, options: &Value) -> Option<&'a Value> {
         None
     }
 }
+
+pub mod log_catalog;

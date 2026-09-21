@@ -694,3 +694,51 @@ impl NativeSessionCapture {
 pub fn spawn_capture_message(retain: bool, has_text: bool) -> bool {
     agent_spawn_rust::capture::message(retain, has_text)
 }
+
+#[napi(object)]
+pub struct SpawnLogMetadata {
+    pub parsed: bool,
+    pub agent: Option<Utf16String>,
+    pub timestamp: Option<f64>,
+}
+#[napi]
+pub fn spawn_log_catalog_metadata(filename: Utf16String) -> SpawnLogMetadata {
+    let metadata = agent_spawn_rust::log_catalog::parse_filename(&filename);
+    SpawnLogMetadata {
+        parsed: metadata.parsed,
+        agent: metadata.agent.map(Into::into),
+        timestamp: metadata.timestamp.map(|value| value as f64),
+    }
+}
+#[napi]
+pub fn spawn_log_catalog_limit(limit: f64) -> f64 {
+    agent_spawn_rust::log_catalog::normalize_limit(limit)
+}
+#[napi]
+pub fn spawn_log_catalog_sort(names: Vec<Utf16String>) -> Vec<u32> {
+    agent_spawn_rust::log_catalog::sorted_indices(
+        &names
+            .into_iter()
+            .map(|name| name.to_vec())
+            .collect::<Vec<_>>(),
+    )
+}
+#[napi]
+pub fn spawn_log_catalog_latest(
+    names: Vec<Utf16String>,
+    timestamps: Vec<f64>,
+) -> Result<Option<u32>> {
+    if names.len() != timestamps.len() {
+        return Err(Error::from_reason("Spawn log catalog lengths differ"));
+    }
+    Ok(agent_spawn_rust::log_catalog::latest(
+        &names
+            .into_iter()
+            .map(|name| name.to_vec())
+            .collect::<Vec<_>>(),
+        &timestamps
+            .into_iter()
+            .map(|stamp| stamp.is_finite().then_some(stamp as i64))
+            .collect::<Vec<_>>(),
+    ))
+}

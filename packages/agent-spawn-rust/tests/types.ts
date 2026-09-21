@@ -128,8 +128,16 @@ void [captureOwn, captureReference];
 const logOwn: typeof original.spawnLog = own.spawnLog;
 const logReference: typeof own.spawnLog = null as unknown as typeof original.spawnLog;
 void [logOwn, logReference];
-import {summarizeToolAction as ownSummary} from "../dist/tool-summary.js";
-import type {summarizeToolAction as referenceSummary} from "../../agent-spawn/dist/acp/tool-summary.js";
-const summaryOwn:typeof referenceSummary=ownSummary;
-const summaryReference:typeof ownSummary=null as unknown as typeof referenceSummary;
-void[summaryOwn,summaryReference];
+import { summarizeToolAction as ownSummary } from "../dist/tool-summary.js";
+import type { summarizeToolAction as referenceSummary } from "../../agent-spawn/dist/acp/tool-summary.js";
+const summaryOwn: typeof referenceSummary = ownSummary;
+const summaryReference: typeof ownSummary = null as unknown as typeof referenceSummary;
+void [summaryOwn, summaryReference];
+
+type LogCatalog = Pick<
+  typeof original,
+  "listSpawnLogs" | "findLatestLog" | "pickRandomLog" | "getDefaultSpawnLogDir"
+>;
+const logCatalogOwn: LogCatalog = own;
+const logCatalogReference: Pick<typeof own, keyof LogCatalog> = null as unknown as LogCatalog;
+void [logCatalogOwn, logCatalogReference];

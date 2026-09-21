@@ -226,3 +226,16 @@ and tool content by default and always removes raw protocol metadata. Set
 `logPath`, `logDir` or a safe `logFileName`; default logs stay under your Poe state
 directory. Partial append failures roll back to the last complete UTF-8 record
 and report `logError` while event delivery continues.
+
+Find saved agent runs without scanning their contents:
+
+```ts
+import { listSpawnLogs, findLatestLog, pickRandomLog } from '@poe-code/agent-spawn-rust';
+
+const recent = await listSpawnLogs({ agent: 'codex', limit: 20 });
+const latest = await findLatestLog('codex');
+const sample = await pickRandomLog('codex');
+```
+
+The catalog checks the default log directory for symbolic links, sorts filenames
+and derives validated UTC timestamps. Reading and replaying logs remain unavailable.

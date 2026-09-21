@@ -1,0 +1,5384 @@
+[
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(1900,3,1)",
+    "native": "61",
+    "actual": {
+      "kind": "number",
+      "value": 61
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(1900,2,29)",
+    "native": "61",
+    "actual": {
+      "kind": "number",
+      "value": 61
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(2024,1,1)",
+    "native": "45292",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EDATE(DATE(2024,1,31),1)",
+    "native": "45351",
+    "actual": {
+      "kind": "number",
+      "value": 45351
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EOMONTH(DATE(2024,2,1))",
+    "native": "45351",
+    "actual": {
+      "kind": "number",
+      "value": 45351
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATEDIF(DATE(2023,1,31),DATE(2023,3,1),\"m\")",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS(DATE(1900,3,1),DATE(1900,2,28))",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7))",
+    "native": "5",
+    "actual": {
+      "kind": "number",
+      "value": 5
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,5),1)",
+    "native": "45299",
+    "actual": {
+      "kind": "number",
+      "value": 45299
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TIME(25,0,0)",
+    "native": "0.041666666666666664",
+    "actual": {
+      "kind": "number",
+      "value": 0.041666666666666664
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODF.TIME(-1,0,0)",
+    "native": "-0.041666666666666664",
+    "actual": {
+      "kind": "number",
+      "value": -0.041666666666666664
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOWEEKNUM(DATE(2021,1,1))",
+    "native": "53",
+    "actual": {
+      "kind": "number",
+      "value": 53
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EASTERSUNDAY(2024)",
+    "native": "45382",
+    "actual": {
+      "kind": "number",
+      "value": 45382
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_YEAR(2024,1,1)",
+    "native": "5784",
+    "actual": {
+      "kind": "number",
+      "value": 5784
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PV(0,10,-100)",
+    "native": "1000",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FV(0,10,-100)",
+    "native": "1000",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PMT(0,10,1000)",
+    "native": "-100",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;110})",
+    "native": "0.09999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RATE(1,0,-100,110)",
+    "native": "0.09999999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"c\",100,100,1,0.05,0.2,0.05)",
+    "native": "10.450583572185565",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(1904,1,1)",
+    "native": "1462",
+    "actual": {
+      "kind": "number",
+      "value": 1462
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINT(DATE(2024,1,1),DATE(2024,7,1),DATE(2024,4,1),.1,1000,2,0)",
+    "native": "25",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=AMORLINC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,3)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=AMORDEGRC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,0)",
+    "native": "188",
+    "actual": {
+      "kind": "number",
+      "value": 188
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICEMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,.1,0)",
+    "native": "99.76190476190476",
+    "actual": {
+      "kind": "number",
+      "value": 99.76190476190476
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELDMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,100,0)",
+    "native": "0.09523809523809534",
+    "actual": {
+      "kind": "number",
+      "value": 0.09523809523809534
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDLPRICE(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDLYIELD(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "native": "0.1",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDFPRICE(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "native": "99.99999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDFYIELD(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "native": "0.0999999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(DATE(2021,1,1))",
+    "native": "2020",
+    "actual": {
+      "kind": "number",
+      "value": 2020
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(DATE(2018,12,31))",
+    "native": "2019",
+    "actual": {
+      "kind": "number",
+      "value": 2019
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(DATE(2024,6,1))",
+    "native": "2024",
+    "actual": {
+      "kind": "number",
+      "value": 2024
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),99)",
+    "native": "31",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),-1)",
+    "native": "31",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),2)",
+    "native": "30",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,1,30),DATE(2024,2,29),2)",
+    "native": "30",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{-1},{1;1;1;1;1;1;1})",
+    "native": "0",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1),0,{-1},{1;1;1;1;1;1;1})",
+    "native": "45292",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(60)",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,1,11)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,10,3)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,11,2)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,4,23)",
+    "native": "\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,3,11)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,7,7)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAY(DATE(2024,1,1)+1-0.25/86400)",
+    "native": "2",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATEVALUE(DATE(2024,1,1)+1-0.25/86400)",
+    "native": "45293",
+    "actual": {
+      "kind": "number",
+      "value": 45293
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1)+1-0.25/86400,0)",
+    "native": "45293",
+    "actual": {
+      "kind": "number",
+      "value": 45293
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1)+1-0.25/86400,DATE(2024,1,2))",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(-0.5)",
+    "native": "12",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MINUTE(-0.5+1/1440)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SECOND(-0.5+1/86400)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_JULIAN(0,0,0)",
+    "native": "1721028",
+    "actual": {
+      "kind": "number",
+      "value": 1721028
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(0,1,{0},{1})",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1),1073741824,{0},{1})",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{0},{1;1;1;1;1;1;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1),1,{0},{1;1;1;1;1;1;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=UNIX2DATE(1704067200)",
+    "native": "45292",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2UNIX(DATE(2024,1,1))",
+    "native": "1704067200",
+    "actual": {
+      "kind": "number",
+      "value": 1704067200
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=UNIX2DATE(0.0005)",
+    "native": "25569.000000005788",
+    "actual": {
+      "kind": "number",
+      "value": 25569.000000005788
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEARFRAC(DATE(2024,1,30),DATE(2024,3,31),5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FV(-2,2,0,100)",
+    "native": "-100",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PMT(.1,2,100,0,2)",
+    "native": "-52.38095238095237",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PMT(.1,2,100,0,-.5)",
+    "native": "-52.38095238095237",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SYD(100,0,2,4)",
+    "native": "-33.333333333333336",
+    "actual": {
+      "kind": "number",
+      "value": -33.333333333333336
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;200100},2000)",
+    "native": "2000",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RATE(1,0,-100,200100)",
+    "native": "2000",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;50})",
+    "native": "-0.5",
+    "actual": {
+      "kind": "number",
+      "value": -0.5
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;200100})",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RRI(0,100,110)",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RRI(1,0,110)",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RATE(1,0,-100,100,0,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,-.1,100,2,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISPMT(.1,1.9,3.9,100)",
+    "native": "-6.666666666666666",
+    "actual": {
+      "kind": "number",
+      "value": -6.666666666666668
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DDB(100,0,4,1.5)",
+    "native": "35.35533905932738",
+    "actual": {
+      "kind": "number",
+      "value": 35.35533905932738
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DDB(100,0,4,.5)",
+    "native": "50",
+    "actual": {
+      "kind": "number",
+      "value": 50
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DB(100,0,2,1,24)",
+    "native": "200",
+    "actual": {
+      "kind": "number",
+      "value": 200
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DB(100,0,2,0)",
+    "native": "0",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,0)",
+    "native": "7.777777777777778",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,4)",
+    "native": "7.777777777777778",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(DATE(2024,2,29),DATE(2024,3,31),.1,1000,0)",
+    "native": "8.61111111111111",
+    "actual": {
+      "kind": "number",
+      "value": 8.61111111111111
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICEDISC(DATE(2024,1,31),DATE(2024,2,29),.1,100,0)",
+    "native": "99.22222222222223",
+    "actual": {
+      "kind": "number",
+      "value": 99.22222222222223
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MDURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "native": "0.9523809523809523",
+    "actual": {
+      "kind": "number",
+      "value": 0.9523809523809523
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MIRR({-100;110},.1,.1)",
+    "native": "0.09999999999999964",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999964
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=XNPV(.1,{-100;110},{1;366})",
+    "native": "-1.4210854715202004E-14",
+    "actual": {
+      "kind": "number",
+      "value": -1.4210854715202004e-14
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=XIRR({-100;110},{1;366})",
+    "native": "0.09999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EURO(\"DEM\")",
+    "native": "1.95583",
+    "actual": {
+      "kind": "number",
+      "value": 1.95583
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DOLLARDE(1.02,16)",
+    "native": "1.125",
+    "actual": {
+      "kind": "number",
+      "value": 1.125
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DOLLARFR(-1.125,16)",
+    "native": "-1.02",
+    "actual": {
+      "kind": "number",
+      "value": -1.02
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EFFECT(.1,2)",
+    "native": "0.10250000000000001",
+    "actual": {
+      "kind": "number",
+      "value": 0.10250000000000001
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NOMINAL(.1025,2)",
+    "native": "0.09999999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=G_DURATION(.1,100,110)",
+    "native": "1.0000000000000007",
+    "actual": {
+      "kind": "number",
+      "value": 1.0000000000000007
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NPV(.1,110,TRUE)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=INTRATE(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "native": "0.1",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RECEIVED(DATE(2024,1,1),DATE(2025,1,1),100,.1,0)",
+    "native": "111.11111111111111",
+    "actual": {
+      "kind": "number",
+      "value": 111.11111111111111
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DISC(DATE(2024,1,1),DATE(2025,1,1),90,100,0)",
+    "native": "0.1",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELDDISC(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "native": "0.10000000000000009",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TBILLPRICE(1,181,.1)",
+    "native": "95",
+    "actual": {
+      "kind": "number",
+      "value": 95
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TBILLYIELD(1,181,95)",
+    "native": "0.10526315789473684",
+    "actual": {
+      "kind": "number",
+      "value": 0.10526315789473684
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TBILLEQ(1,181,.1)",
+    "native": "0.1067251461988304",
+    "actual": {
+      "kind": "number",
+      "value": 0.1067251461988304
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPNUM(DATE(2024,4,1),DATE(2025,1,1),2)",
+    "native": "2",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYBS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "90",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "180",
+    "actual": {
+      "kind": "number",
+      "value": 180
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYSNC(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "90",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPPCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "45292",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPNCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "45474",
+    "actual": {
+      "kind": "number",
+      "value": 45474
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,4,0,4)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SLN(100,0,4)",
+    "native": "25",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RRI(1,100,110)",
+    "native": "0.10000000000000009",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EUROCONVERT(1,\"DEM\",\"EUR\",FALSE)",
+    "native": "0.51",
+    "actual": {
+      "kind": "number",
+      "value": 0.51
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SLN(100,0,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISPMT(.1,0,3,100)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DDB(100,0,4,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DB(0,0,4,1)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(1,2,.1,1000,5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(1,2,.1,1000,-.5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYS(1,366,2,-.5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELDDISC(1,366,-1,100,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MIRR({-100;110},.1,-2)",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FVSCHEDULE(100,{.1;\"bad\"})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;200;-100})",
+    "native": "5.907981582180289E-09",
+    "actual": {
+      "kind": "number",
+      "value": 5.907981582180289e-09
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,4,3,4,2,.5)",
+    "native": "12.5",
+    "actual": {
+      "kind": "number",
+      "value": 12.5
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,4,1.5,3.5,2,TRUE)",
+    "native": "28.125",
+    "actual": {
+      "kind": "number",
+      "value": 28.125
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,10,5,2.5,4.5,1)",
+    "native": "35",
+    "actual": {
+      "kind": "number",
+      "value": 35
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,0,0,0)",
+    "native": "0",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,20000,0,10001,2,TRUE)",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FV(.5,10,0,1)",
+    "native": "-57.6650390625",
+    "actual": {
+      "kind": "number",
+      "value": -57.6650390625
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IPMT(.1,1,2,100)",
+    "native": "-10",
+    "actual": {
+      "kind": "number",
+      "value": -10
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PPMT(.1,1,2,100)",
+    "native": "-47.61904761904761",
+    "actual": {
+      "kind": "number",
+      "value": -47.61904761904761
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUMIPMT(.1,2,100,1,2,0)",
+    "native": "-15.238095238095234",
+    "actual": {
+      "kind": "number",
+      "value": -15.23809523809524
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUMPRINC(.1,2,100,1,2,0)",
+    "native": "-100.00000000000003",
+    "actual": {
+      "kind": "number",
+      "value": -99.99999999999999
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUMIPMT(.1,2,100,1,2,1)",
+    "native": "-4.761904761904762",
+    "actual": {
+      "kind": "number",
+      "value": -4.761904761904763
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NPER(.1,-100 * 1.21 / 2.1,100)",
+    "native": "1.9999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 1.9999999999999998
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELD(DATE(2024,7,1),DATE(2025,1,1),.1,110,100,2,0)",
+    "native": "-0.09090909090909098",
+    "actual": {
+      "kind": "number",
+      "value": -0.09090909090909098
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2024,1,1),.1,.1,100,2,0)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELD(DATE(2024,1,1),DATE(2025,1,1),.1,100,100,2,0)",
+    "native": "0.09999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EUROCONVERT(-1.005,\"EUR\",\"EUR\",FALSE)",
+    "native": "-1.01",
+    "actual": {
+      "kind": "number",
+      "value": -1.01
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EUROCONVERT(-1.0005,\"EUR\",\"EUR\",TRUE,3)",
+    "native": "-1.001",
+    "actual": {
+      "kind": "number",
+      "value": -1.001
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=AMORDEGRC(-10,DATE(2024,1,1),DATE(2025,1,1),0,0,.1,0)",
+    "native": "-2",
+    "actual": {
+      "kind": "number",
+      "value": -2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-1;TRUE})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FVSCHEDULE(100,{.1;TRUE})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MIRR({-100;TRUE},.1,.1)",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=XNPV(.1,{-100;TRUE},{1;366})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FVSCHEDULE(100,{.1;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,7,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "native": "105",
+    "actual": {
+      "kind": "number",
+      "value": 105
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.03)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.03)",
+    "native": "0.586851146134764",
+    "actual": {
+      "kind": "number",
+      "value": 0.586851146134764
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_RHO(\"c\",100,100,1,.05,.2,.03)",
+    "native": "49.45810910532236",
+    "actual": {
+      "kind": "number",
+      "value": 49.45810910532236
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_THETA(\"c\",100,100,1,.05,.2,.03)",
+    "native": "-5.089318913998333",
+    "actual": {
+      "kind": "number",
+      "value": -5.0893189139983335
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.03)",
+    "native": "0.018950578755008714",
+    "actual": {
+      "kind": "number",
+      "value": 0.018950578755008718
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.03)",
+    "native": "37.90115751001743",
+    "actual": {
+      "kind": "number",
+      "value": 37.901157510017434
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_CARRYCOST(\"c\",100,100,1,.05,.2,.03)",
+    "native": "58.685114613476394",
+    "actual": {
+      "kind": "number",
+      "value": 58.685114613476394
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUM_BIV_NORM_DIST(.2,.3,.5)",
+    "native": "0.43688917987362585",
+    "actual": {
+      "kind": "number",
+      "value": 0.43688917987362585
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_GARMAN_KOHLHAGEN(\"c\",100,100,1,.05,.02,.2)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FRENCH(\"c\",100,100,.8,1,.05,.2,.03)",
+    "native": "8.427393891848233",
+    "actual": {
+      "kind": "number",
+      "value": 8.427393891848233
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1,.2)",
+    "native": "10.41716547024085",
+    "actual": {
+      "kind": "number",
+      "value": 10.417165470240846
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,.1)",
+    "native": "8.348939840201675",
+    "actual": {
+      "kind": "number",
+      "value": 8.348939840201675
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BJER_STENS(\"c\",100,100,1,.05,.2,.03)",
+    "native": "9.227005508552383",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508552367
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_MILTERSEN_SCHWARTZ(\"c\",.95,100,100,.5,1,.2,.1,.1,.2,.1,.1,.5,.5)",
+    "native": "5.610778432447092",
+    "actual": {
+      "kind": "number",
+      "value": 5.610778432447091
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BAW_AMER(\"c\",100,100,1,.05,.2,.03)",
+    "native": "9.227555802623748",
+    "actual": {
+      "kind": "number",
+      "value": 9.227555802623748
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_RGW(100,100,.5,1,.05,3,.2)",
+    "native": "8.514104824319844",
+    "actual": {
+      "kind": "number",
+      "value": 8.514104824319844
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FORWARD_START(\"c\",100,1,.5,1,.05,.2,.03)",
+    "native": "6.2448731365128145",
+    "actual": {
+      "kind": "number",
+      "value": 6.244873136512819
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,.1,.05,.03,.2)",
+    "native": "0.4396344416865478",
+    "actual": {
+      "kind": "number",
+      "value": 0.4396344416865478
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_SIMPLE_CHOOSER(100,100,.5,1,.05,.03,.2)",
+    "native": "13.344280448069227",
+    "actual": {
+      "kind": "number",
+      "value": 13.34428044806922
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_COMPLEX_CHOOSER(100,100,100,.25,1,1,.05,.03,.2)",
+    "native": "11.801429205461341",
+    "actual": {
+      "kind": "number",
+      "value": 11.801429205461332
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_ON_OPTIONS(\"cc\",100,100,5,.5,1,.05,.03,.2)",
+    "native": "5.511638296903571",
+    "actual": {
+      "kind": "number",
+      "value": 5.511638296903568
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EXTENDIBLE_WRITER(\"c\",100,100,105,.5,1,.05,.03,.2)",
+    "native": "56.070378219549234",
+    "actual": {
+      "kind": "number",
+      "value": 56.07037821954924
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_2_ASSET_CORRELATION(\"c\",100,100,100,100,1,.03,.03,.05,.2,.2,.5)",
+    "native": "7.096334364854347",
+    "actual": {
+      "kind": "number",
+      "value": 7.09633436485435
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EURO_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "native": "8.266327791618496",
+    "actual": {
+      "kind": "number",
+      "value": 8.266327791618494
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_AMER_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "native": "8.266378724639583",
+    "actual": {
+      "kind": "number",
+      "value": 8.266378724639608
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.2,.5)",
+    "native": "9.826787796317303",
+    "actual": {
+      "kind": "number",
+      "value": 9.826787796317308
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2)",
+    "native": "17.98696654912109",
+    "actual": {
+      "kind": "number",
+      "value": 17.98696654912108
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2)",
+    "native": "19.624426428795637",
+    "actual": {
+      "kind": "number",
+      "value": 19.624426428795637
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2,.03)",
+    "native": "9.130449517016778",
+    "actual": {
+      "kind": "number",
+      "value": 9.130449517016777
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.05)",
+    "native": "10.450583572185565",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"p\",100,100,1,.05,.2,.05)",
+    "native": "5.573526022256973",
+    "actual": {
+      "kind": "number",
+      "value": 5.573526022256971
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.05)",
+    "native": "0.6368306511756191",
+    "actual": {
+      "kind": "number",
+      "value": 0.6368306511756191
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.05)",
+    "native": "0.018762017345846895",
+    "actual": {
+      "kind": "number",
+      "value": 0.018762017345846895
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.05)",
+    "native": "37.52403469169379",
+    "actual": {
+      "kind": "number",
+      "value": 37.52403469169379
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FRENCH(\"c\",100,100,1,1,.05,.2,.03)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,0)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BAW_AMER",
+    "native": "#NAME?",
+    "actual": {
+      "kind": "error",
+      "value": "#NAME?"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": false,
+    "verificationClassification": "non-call-parser-control"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BJER_STENS",
+    "native": "#NAME?",
+    "actual": {
+      "kind": "error",
+      "value": "#NAME?"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": false,
+    "verificationClassification": "non-call-parser-control"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",1000,100,100,1,.05,.2)",
+    "native": "7.575188125571481",
+    "actual": {
+      "kind": "number",
+      "value": 7.575188125571488
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",100,100,100,1,.05,.2)",
+    "native": "7.5581635403361584",
+    "actual": {
+      "kind": "number",
+      "value": 7.5581635403361584
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,0,.05,.03,.2)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUM_BIV_NORM_DIST((LN(100/105)+(.03+.2^2/2))/(.2),-((.03+.2^2/2)*.5/(.2*SQRT(.5))),-SQRT(.5))",
+    "native": "0.5933532382196917",
+    "actual": {
+      "kind": "number",
+      "value": 0.5933532382196918
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2)",
+    "native": "7.4829976004619185",
+    "actual": {
+      "kind": "number",
+      "value": 7.482997600461917
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(1900,3,1)",
+    "native": "-1401",
+    "actual": {
+      "kind": "number",
+      "value": -1401
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(1900,2,29)",
+    "native": "-1401",
+    "actual": {
+      "kind": "number",
+      "value": -1401
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(2024,1,1)",
+    "native": "43830",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EDATE(DATE(2024,1,31),1)",
+    "native": "43889",
+    "actual": {
+      "kind": "number",
+      "value": 43889
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EOMONTH(DATE(2024,2,1))",
+    "native": "43889",
+    "actual": {
+      "kind": "number",
+      "value": 43889
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATEDIF(DATE(2023,1,31),DATE(2023,3,1),\"m\")",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS(DATE(1900,3,1),DATE(1900,2,28))",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7))",
+    "native": "5",
+    "actual": {
+      "kind": "number",
+      "value": 5
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,5),1)",
+    "native": "43837",
+    "actual": {
+      "kind": "number",
+      "value": 43837
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TIME(25,0,0)",
+    "native": "0.041666666666666664",
+    "actual": {
+      "kind": "number",
+      "value": 0.041666666666666664
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODF.TIME(-1,0,0)",
+    "native": "-0.041666666666666664",
+    "actual": {
+      "kind": "number",
+      "value": -0.041666666666666664
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOWEEKNUM(DATE(2021,1,1))",
+    "native": "53",
+    "actual": {
+      "kind": "number",
+      "value": 53
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EASTERSUNDAY(2024)",
+    "native": "43920",
+    "actual": {
+      "kind": "number",
+      "value": 43920
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_YEAR(2024,1,1)",
+    "native": "5784",
+    "actual": {
+      "kind": "number",
+      "value": 5784
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PV(0,10,-100)",
+    "native": "1000",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FV(0,10,-100)",
+    "native": "1000",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PMT(0,10,1000)",
+    "native": "-100",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;110})",
+    "native": "0.09999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RATE(1,0,-100,110)",
+    "native": "0.09999999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"c\",100,100,1,0.05,0.2,0.05)",
+    "native": "10.450583572185565",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(1904,1,1)",
+    "native": "0",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINT(DATE(2024,1,1),DATE(2024,7,1),DATE(2024,4,1),.1,1000,2,0)",
+    "native": "25",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=AMORLINC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,3)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=AMORDEGRC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,0)",
+    "native": "188",
+    "actual": {
+      "kind": "number",
+      "value": 188
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICEMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,.1,0)",
+    "native": "99.76190476190476",
+    "actual": {
+      "kind": "number",
+      "value": 99.76190476190476
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELDMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,100,0)",
+    "native": "0.09523809523809534",
+    "actual": {
+      "kind": "number",
+      "value": 0.09523809523809534
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDLPRICE(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDLYIELD(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "native": "0.1",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDFPRICE(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "native": "99.99999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDFYIELD(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "native": "0.0999999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(DATE(2021,1,1))",
+    "native": "2020",
+    "actual": {
+      "kind": "number",
+      "value": 2020
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(DATE(2018,12,31))",
+    "native": "2019",
+    "actual": {
+      "kind": "number",
+      "value": 2019
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(DATE(2024,6,1))",
+    "native": "2024",
+    "actual": {
+      "kind": "number",
+      "value": 2024
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),99)",
+    "native": "31",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),-1)",
+    "native": "31",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),2)",
+    "native": "30",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,1,30),DATE(2024,2,29),2)",
+    "native": "30",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{-1},{1;1;1;1;1;1;1})",
+    "native": "0",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1),0,{-1},{1;1;1;1;1;1;1})",
+    "native": "43830",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(60)",
+    "native": "1904",
+    "actual": {
+      "kind": "number",
+      "value": 1904
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,1,11)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,10,3)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,11,2)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,4,23)",
+    "native": "\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,3,11)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,7,7)",
+    "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAY(DATE(2024,1,1)+1-0.25/86400)",
+    "native": "2",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATEVALUE(DATE(2024,1,1)+1-0.25/86400)",
+    "native": "43831",
+    "actual": {
+      "kind": "number",
+      "value": 43831
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1)+1-0.25/86400,0)",
+    "native": "43831",
+    "actual": {
+      "kind": "number",
+      "value": 43831
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1)+1-0.25/86400,DATE(2024,1,2))",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(-0.5)",
+    "native": "12",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MINUTE(-0.5+1/1440)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SECOND(-0.5+1/86400)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_JULIAN(0,0,0)",
+    "native": "1721028",
+    "actual": {
+      "kind": "number",
+      "value": 1721028
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(0,1,{0},{1})",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1),1073741824,{0},{1})",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{0},{1;1;1;1;1;1;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1),1,{0},{1;1;1;1;1;1;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=UNIX2DATE(1704067200)",
+    "native": "43830",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2UNIX(DATE(2024,1,1))",
+    "native": "1704067200",
+    "actual": {
+      "kind": "number",
+      "value": 1704067200
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=UNIX2DATE(0.0005)",
+    "native": "24107.000000005788",
+    "actual": {
+      "kind": "number",
+      "value": 24107.000000005788
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEARFRAC(DATE(2024,1,30),DATE(2024,3,31),5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FV(-2,2,0,100)",
+    "native": "-100",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PMT(.1,2,100,0,2)",
+    "native": "-52.38095238095237",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PMT(.1,2,100,0,-.5)",
+    "native": "-52.38095238095237",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SYD(100,0,2,4)",
+    "native": "-33.333333333333336",
+    "actual": {
+      "kind": "number",
+      "value": -33.333333333333336
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;200100},2000)",
+    "native": "2000",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RATE(1,0,-100,200100)",
+    "native": "2000",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;50})",
+    "native": "-0.5",
+    "actual": {
+      "kind": "number",
+      "value": -0.5
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;200100})",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RRI(0,100,110)",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RRI(1,0,110)",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RATE(1,0,-100,100,0,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,-.1,100,2,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISPMT(.1,1.9,3.9,100)",
+    "native": "-6.666666666666666",
+    "actual": {
+      "kind": "number",
+      "value": -6.666666666666668
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DDB(100,0,4,1.5)",
+    "native": "35.35533905932738",
+    "actual": {
+      "kind": "number",
+      "value": 35.35533905932738
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DDB(100,0,4,.5)",
+    "native": "50",
+    "actual": {
+      "kind": "number",
+      "value": 50
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DB(100,0,2,1,24)",
+    "native": "200",
+    "actual": {
+      "kind": "number",
+      "value": 200
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DB(100,0,2,0)",
+    "native": "0",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,0)",
+    "native": "7.777777777777778",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,4)",
+    "native": "7.777777777777778",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(DATE(2024,2,29),DATE(2024,3,31),.1,1000,0)",
+    "native": "8.61111111111111",
+    "actual": {
+      "kind": "number",
+      "value": 8.61111111111111
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICEDISC(DATE(2024,1,31),DATE(2024,2,29),.1,100,0)",
+    "native": "99.22222222222223",
+    "actual": {
+      "kind": "number",
+      "value": 99.22222222222223
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MDURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "native": "0.9523809523809523",
+    "actual": {
+      "kind": "number",
+      "value": 0.9523809523809523
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MIRR({-100;110},.1,.1)",
+    "native": "0.09999999999999964",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999964
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=XNPV(.1,{-100;110},{1;366})",
+    "native": "-1.4210854715202004E-14",
+    "actual": {
+      "kind": "number",
+      "value": -1.4210854715202004e-14
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=XIRR({-100;110},{1;366})",
+    "native": "0.09999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EURO(\"DEM\")",
+    "native": "1.95583",
+    "actual": {
+      "kind": "number",
+      "value": 1.95583
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DOLLARDE(1.02,16)",
+    "native": "1.125",
+    "actual": {
+      "kind": "number",
+      "value": 1.125
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DOLLARFR(-1.125,16)",
+    "native": "-1.02",
+    "actual": {
+      "kind": "number",
+      "value": -1.02
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EFFECT(.1,2)",
+    "native": "0.10250000000000001",
+    "actual": {
+      "kind": "number",
+      "value": 0.10250000000000001
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NOMINAL(.1025,2)",
+    "native": "0.09999999999999999",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=G_DURATION(.1,100,110)",
+    "native": "1.0000000000000007",
+    "actual": {
+      "kind": "number",
+      "value": 1.0000000000000007
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NPV(.1,110,TRUE)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=INTRATE(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "native": "0.1",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RECEIVED(DATE(2024,1,1),DATE(2025,1,1),100,.1,0)",
+    "native": "111.11111111111111",
+    "actual": {
+      "kind": "number",
+      "value": 111.11111111111111
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DISC(DATE(2024,1,1),DATE(2025,1,1),90,100,0)",
+    "native": "0.1",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELDDISC(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "native": "0.10000000000000009",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TBILLPRICE(1,181,.1)",
+    "native": "95",
+    "actual": {
+      "kind": "number",
+      "value": 95
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TBILLYIELD(1,181,95)",
+    "native": "0.10526315789473684",
+    "actual": {
+      "kind": "number",
+      "value": 0.10526315789473684
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TBILLEQ(1,181,.1)",
+    "native": "0.1067251461988304",
+    "actual": {
+      "kind": "number",
+      "value": 0.1067251461988304
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPNUM(DATE(2024,4,1),DATE(2025,1,1),2)",
+    "native": "2",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYBS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "90",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "180",
+    "actual": {
+      "kind": "number",
+      "value": 180
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYSNC(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "90",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPPCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "43830",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPNCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "native": "44012",
+    "actual": {
+      "kind": "number",
+      "value": 44012
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,4,0,4)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SLN(100,0,4)",
+    "native": "25",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RRI(1,100,110)",
+    "native": "0.10000000000000009",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EUROCONVERT(1,\"DEM\",\"EUR\",FALSE)",
+    "native": "0.51",
+    "actual": {
+      "kind": "number",
+      "value": 0.51
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SLN(100,0,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISPMT(.1,0,3,100)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DDB(100,0,4,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DB(0,0,4,1)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(1,2,.1,1000,5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(1,2,.1,1000,-.5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYS(1,366,2,-.5)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELDDISC(1,366,-1,100,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MIRR({-100;110},.1,-2)",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FVSCHEDULE(100,{.1;\"bad\"})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;200;-100})",
+    "native": "5.907981582180289E-09",
+    "actual": {
+      "kind": "number",
+      "value": 5.907981582180289e-09
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,4,3,4,2,.5)",
+    "native": "12.5",
+    "actual": {
+      "kind": "number",
+      "value": 12.5
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,4,1.5,3.5,2,TRUE)",
+    "native": "28.125",
+    "actual": {
+      "kind": "number",
+      "value": 28.125
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,10,5,2.5,4.5,1)",
+    "native": "35",
+    "actual": {
+      "kind": "number",
+      "value": 35
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,0,0,0)",
+    "native": "0",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,20000,0,10001,2,TRUE)",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FV(.5,10,0,1)",
+    "native": "-57.6650390625",
+    "actual": {
+      "kind": "number",
+      "value": -57.6650390625
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IPMT(.1,1,2,100)",
+    "native": "-10",
+    "actual": {
+      "kind": "number",
+      "value": -10
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PPMT(.1,1,2,100)",
+    "native": "-47.61904761904761",
+    "actual": {
+      "kind": "number",
+      "value": -47.61904761904761
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUMIPMT(.1,2,100,1,2,0)",
+    "native": "-15.238095238095234",
+    "actual": {
+      "kind": "number",
+      "value": -15.23809523809524
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUMPRINC(.1,2,100,1,2,0)",
+    "native": "-100.00000000000003",
+    "actual": {
+      "kind": "number",
+      "value": -99.99999999999999
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUMIPMT(.1,2,100,1,2,1)",
+    "native": "-4.761904761904762",
+    "actual": {
+      "kind": "number",
+      "value": -4.761904761904763
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NPER(.1,-100 * 1.21 / 2.1,100)",
+    "native": "1.9999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 1.9999999999999998
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELD(DATE(2024,7,1),DATE(2025,1,1),.1,110,100,2,0)",
+    "native": "-0.09090909090909098",
+    "actual": {
+      "kind": "number",
+      "value": -0.09090909090909098
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2024,1,1),.1,.1,100,2,0)",
+    "native": "100",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELD(DATE(2024,1,1),DATE(2025,1,1),.1,100,100,2,0)",
+    "native": "0.09999999999999998",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EUROCONVERT(-1.005,\"EUR\",\"EUR\",FALSE)",
+    "native": "-1.01",
+    "actual": {
+      "kind": "number",
+      "value": -1.01
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EUROCONVERT(-1.0005,\"EUR\",\"EUR\",TRUE,3)",
+    "native": "-1.001",
+    "actual": {
+      "kind": "number",
+      "value": -1.001
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=AMORDEGRC(-10,DATE(2024,1,1),DATE(2025,1,1),0,0,.1,0)",
+    "native": "-2",
+    "actual": {
+      "kind": "number",
+      "value": -2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-1;TRUE})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FVSCHEDULE(100,{.1;TRUE})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MIRR({-100;TRUE},.1,.1)",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=XNPV(.1,{-100;TRUE},{1;366})",
+    "native": "#VALUE!",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FVSCHEDULE(100,{.1;#DIV/0!})",
+    "native": "#DIV/0!",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,7,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "native": "105",
+    "actual": {
+      "kind": "number",
+      "value": 105
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.03)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.03)",
+    "native": "0.586851146134764",
+    "actual": {
+      "kind": "number",
+      "value": 0.586851146134764
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_RHO(\"c\",100,100,1,.05,.2,.03)",
+    "native": "49.45810910532236",
+    "actual": {
+      "kind": "number",
+      "value": 49.45810910532236
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_THETA(\"c\",100,100,1,.05,.2,.03)",
+    "native": "-5.089318913998333",
+    "actual": {
+      "kind": "number",
+      "value": -5.0893189139983335
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.03)",
+    "native": "0.018950578755008714",
+    "actual": {
+      "kind": "number",
+      "value": 0.018950578755008718
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.03)",
+    "native": "37.90115751001743",
+    "actual": {
+      "kind": "number",
+      "value": 37.901157510017434
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_CARRYCOST(\"c\",100,100,1,.05,.2,.03)",
+    "native": "58.685114613476394",
+    "actual": {
+      "kind": "number",
+      "value": 58.685114613476394
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUM_BIV_NORM_DIST(.2,.3,.5)",
+    "native": "0.43688917987362585",
+    "actual": {
+      "kind": "number",
+      "value": 0.43688917987362585
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_GARMAN_KOHLHAGEN(\"c\",100,100,1,.05,.02,.2)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FRENCH(\"c\",100,100,.8,1,.05,.2,.03)",
+    "native": "8.427393891848233",
+    "actual": {
+      "kind": "number",
+      "value": 8.427393891848233
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1,.2)",
+    "native": "10.41716547024085",
+    "actual": {
+      "kind": "number",
+      "value": 10.417165470240846
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,.1)",
+    "native": "8.348939840201675",
+    "actual": {
+      "kind": "number",
+      "value": 8.348939840201675
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BJER_STENS(\"c\",100,100,1,.05,.2,.03)",
+    "native": "9.227005508552383",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508552367
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_MILTERSEN_SCHWARTZ(\"c\",.95,100,100,.5,1,.2,.1,.1,.2,.1,.1,.5,.5)",
+    "native": "5.610778432447092",
+    "actual": {
+      "kind": "number",
+      "value": 5.610778432447091
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BAW_AMER(\"c\",100,100,1,.05,.2,.03)",
+    "native": "9.227555802623748",
+    "actual": {
+      "kind": "number",
+      "value": 9.227555802623748
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_RGW(100,100,.5,1,.05,3,.2)",
+    "native": "8.514104824319844",
+    "actual": {
+      "kind": "number",
+      "value": 8.514104824319844
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FORWARD_START(\"c\",100,1,.5,1,.05,.2,.03)",
+    "native": "6.2448731365128145",
+    "actual": {
+      "kind": "number",
+      "value": 6.244873136512819
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,.1,.05,.03,.2)",
+    "native": "0.4396344416865478",
+    "actual": {
+      "kind": "number",
+      "value": 0.4396344416865478
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_SIMPLE_CHOOSER(100,100,.5,1,.05,.03,.2)",
+    "native": "13.344280448069227",
+    "actual": {
+      "kind": "number",
+      "value": 13.34428044806922
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_COMPLEX_CHOOSER(100,100,100,.25,1,1,.05,.03,.2)",
+    "native": "11.801429205461341",
+    "actual": {
+      "kind": "number",
+      "value": 11.801429205461332
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_ON_OPTIONS(\"cc\",100,100,5,.5,1,.05,.03,.2)",
+    "native": "5.511638296903571",
+    "actual": {
+      "kind": "number",
+      "value": 5.511638296903568
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EXTENDIBLE_WRITER(\"c\",100,100,105,.5,1,.05,.03,.2)",
+    "native": "56.070378219549234",
+    "actual": {
+      "kind": "number",
+      "value": 56.07037821954924
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_2_ASSET_CORRELATION(\"c\",100,100,100,100,1,.03,.03,.05,.2,.2,.5)",
+    "native": "7.096334364854347",
+    "actual": {
+      "kind": "number",
+      "value": 7.09633436485435
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EURO_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "native": "8.266327791618496",
+    "actual": {
+      "kind": "number",
+      "value": 8.266327791618494
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_AMER_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "native": "8.266378724639583",
+    "actual": {
+      "kind": "number",
+      "value": 8.266378724639608
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.2,.5)",
+    "native": "9.826787796317303",
+    "actual": {
+      "kind": "number",
+      "value": 9.826787796317308
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2)",
+    "native": "17.98696654912109",
+    "actual": {
+      "kind": "number",
+      "value": 17.98696654912108
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2)",
+    "native": "19.624426428795637",
+    "actual": {
+      "kind": "number",
+      "value": 19.624426428795637
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2,.03)",
+    "native": "9.130449517016778",
+    "actual": {
+      "kind": "number",
+      "value": 9.130449517016777
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.05)",
+    "native": "10.450583572185565",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"p\",100,100,1,.05,.2,.05)",
+    "native": "5.573526022256973",
+    "actual": {
+      "kind": "number",
+      "value": 5.573526022256971
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.05)",
+    "native": "0.6368306511756191",
+    "actual": {
+      "kind": "number",
+      "value": 0.6368306511756191
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.05)",
+    "native": "0.018762017345846895",
+    "actual": {
+      "kind": "number",
+      "value": 0.018762017345846895
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.05)",
+    "native": "37.52403469169379",
+    "actual": {
+      "kind": "number",
+      "value": 37.52403469169379
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FRENCH(\"c\",100,100,1,1,.05,.2,.03)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,0)",
+    "native": "9.227005508154036",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BAW_AMER",
+    "native": "#NAME?",
+    "actual": {
+      "kind": "error",
+      "value": "#NAME?"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": false,
+    "verificationClassification": "non-call-parser-control"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BJER_STENS",
+    "native": "#NAME?",
+    "actual": {
+      "kind": "error",
+      "value": "#NAME?"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": false,
+    "verificationClassification": "non-call-parser-control"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",1000,100,100,1,.05,.2)",
+    "native": "7.575188125571481",
+    "actual": {
+      "kind": "number",
+      "value": 7.575188125571488
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",100,100,100,1,.05,.2)",
+    "native": "7.5581635403361584",
+    "actual": {
+      "kind": "number",
+      "value": 7.5581635403361584
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,0,.05,.03,.2)",
+    "native": "#NUM!",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUM_BIV_NORM_DIST((LN(100/105)+(.03+.2^2/2))/(.2),-((.03+.2^2/2)*.5/(.2*SQRT(.5))),-SQRT(.5))",
+    "native": "0.5933532382196917",
+    "actual": {
+      "kind": "number",
+      "value": 0.5933532382196918
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2)",
+    "native": "7.4829976004619185",
+    "actual": {
+      "kind": "number",
+      "value": 7.482997600461917
+    },
+    "exact": false,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ASCENSIONTHURSDAY(2024)",
+    "native": "45421",
+    "actual": {
+      "kind": "number",
+      "value": 45421
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ASHWEDNESDAY(2024)",
+    "native": "45336",
+    "actual": {
+      "kind": "number",
+      "value": 45336
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PENTECOSTSUNDAY(2024)",
+    "native": "45431",
+    "actual": {
+      "kind": "number",
+      "value": 45431
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=GOODFRIDAY(2024)",
+    "native": "45380",
+    "actual": {
+      "kind": "number",
+      "value": 45380
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MONTH(45292)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TIMEVALUE(\"12:30:00\")",
+    "native": "0.5208333333333334",
+    "actual": {
+      "kind": "number",
+      "value": 0.5208333333333334
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WEEKDAY(45292)",
+    "native": "2",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(45292)",
+    "native": "2024",
+    "actual": {
+      "kind": "number",
+      "value": 2024
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WEEKNUM(45292)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE(2024,1,1)",
+    "native": "20 Tebet 5784",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_MONTH(2024,1,1)",
+    "native": "3",
+    "actual": {
+      "kind": "number",
+      "value": 3
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_DAY(2024,1,1)",
+    "native": "20",
+    "actual": {
+      "kind": "number",
+      "value": 20
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2HDATE(45292)",
+    "native": "20 Tebet 5784",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2HDATE_HEB(45292)",
+    "native": "\u05db\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3",
+    "actual": {
+      "kind": "string",
+      "value": "\u05db\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2JULIAN(45292)",
+    "native": "2460311",
+    "actual": {
+      "kind": "number",
+      "value": 2460311
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ASCENSIONTHURSDAY(2024)",
+    "native": "43959",
+    "actual": {
+      "kind": "number",
+      "value": 43959
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ASHWEDNESDAY(2024)",
+    "native": "43874",
+    "actual": {
+      "kind": "number",
+      "value": 43874
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PENTECOSTSUNDAY(2024)",
+    "native": "43969",
+    "actual": {
+      "kind": "number",
+      "value": 43969
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=GOODFRIDAY(2024)",
+    "native": "43918",
+    "actual": {
+      "kind": "number",
+      "value": 43918
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MONTH(45292)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TIMEVALUE(\"12:30:00\")",
+    "native": "0.5208333333333334",
+    "actual": {
+      "kind": "number",
+      "value": 0.5208333333333334
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WEEKDAY(45292)",
+    "native": "1",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(45292)",
+    "native": "2028",
+    "actual": {
+      "kind": "number",
+      "value": 2028
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WEEKNUM(45292)",
+    "native": "2",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE(2024,1,1)",
+    "native": "20 Tebet 5784",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_MONTH(2024,1,1)",
+    "native": "3",
+    "actual": {
+      "kind": "number",
+      "value": 3
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_DAY(2024,1,1)",
+    "native": "20",
+    "actual": {
+      "kind": "number",
+      "value": 20
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2HDATE(45292)",
+    "native": "3 Tebet 5788",
+    "actual": {
+      "kind": "string",
+      "value": "3 Tebet 5788"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2HDATE_HEB(45292)",
+    "native": "\u05d2\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d7",
+    "actual": {
+      "kind": "string",
+      "value": "\u05d2\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d7"
+    },
+    "exact": true,
+    "tolerance": false,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2JULIAN(45292)",
+    "native": "2461773",
+    "actual": {
+      "kind": "number",
+      "value": 2461773
+    },
+    "exact": true,
+    "tolerance": true,
+    "countedInFunctionCoverage": true,
+    "verificationClassification": "function-differential"
+  }
+]

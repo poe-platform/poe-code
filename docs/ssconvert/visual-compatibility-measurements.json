@@ -1,0 +1,710 @@
+{
+  "task": "visual-compatibility-qa",
+  "date": "2026-09-21",
+  "status": "partial-coverage-with-mismatches",
+  "freshNativeOracle": false,
+  "qaRenderer": "PyMuPDF 1.26.5, isolated QA capability",
+  "cliComparison": [
+    {
+      "name": "help",
+      "nativeArgv": ["/opt/ssconvert-reference/bin/ssconvert", "-h"],
+      "nativeStatus": 0,
+      "channels": {
+        "stdout": {
+          "exactEqual": false,
+          "programNameNormalizedEqual": true,
+          "currentSha256": "3eb2274e6af304e1cfaddcb0f07ad83d1f08daa97936c20717b2da2541b2d3cf",
+          "nativeSha256": "9297397732456b25c576fb80f35b3f33793ed8298601ae1c34c55697667fc7f8"
+        },
+        "stderr": {
+          "exactEqual": true,
+          "programNameNormalizedEqual": true,
+          "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "nativeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "name": "importers",
+      "nativeArgv": ["/opt/ssconvert-reference/bin/ssconvert", "--list-importers"],
+      "nativeStatus": 0,
+      "channels": {
+        "stdout": {
+          "exactEqual": true,
+          "programNameNormalizedEqual": true,
+          "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "nativeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "exactEqual": false,
+          "programNameNormalizedEqual": false,
+          "currentSha256": "a16a766e6d60f3ea90cd4fa15ec13de7036556698ae07713ad0cec482e7dafab",
+          "nativeSha256": "dcaa69cd660a55e877eaa2b0e71b783ba75574e8254b8b292c2996b91b5fb8a9"
+        }
+      }
+    },
+    {
+      "name": "exporters",
+      "nativeArgv": ["/opt/ssconvert-reference/bin/ssconvert", "--list-exporters"],
+      "nativeStatus": 0,
+      "channels": {
+        "stdout": {
+          "exactEqual": true,
+          "programNameNormalizedEqual": true,
+          "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "nativeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "exactEqual": false,
+          "programNameNormalizedEqual": false,
+          "currentSha256": "86e89e25af29c83271689f65a3b2b09d43f13a93eefb7483130b28e2d01430c2",
+          "nativeSha256": "1928fafda783da6b198ff0286733e66dd1de8586990d0abe3cc360bb9d72408a"
+        }
+      }
+    }
+  ],
+  "pdfMeasurements": [
+    {
+      "case": "workbook",
+      "kind": "current",
+      "file": "out/ssconvert-visual-compatibility-qa/workbook.pdf",
+      "sha256": "1f085f0c0ba2b08fdf58cd5ae2c430e7cbd76d0de83d1334b4569a65e3f4a1e8",
+      "pages": [
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["JetBrainsMono-Regular-249"],
+          "textLines": [
+            "One",
+            "Page 1",
+            "One row 0",
+            "One row 1",
+            "One row 2",
+            "One row 3",
+            "One row 4",
+            "One row 5",
+            "One row 6",
+            "One row 7",
+            "One row 8",
+            "One row 9",
+            "One row 10",
+            "One row 11",
+            "One row 12",
+            "One row 13",
+            "One row 14",
+            "One row 15",
+            "One row 16",
+            "One row 17",
+            "One row 18",
+            "One row 19",
+            "One row 20",
+            "One row 21",
+            "One row 22",
+            "One row 23",
+            "One row 24",
+            "One row 25",
+            "One row 26",
+            "One row 27",
+            "One row 28",
+            "One row 29",
+            "One row 30",
+            "One row 31",
+            "One row 32",
+            "One row 33",
+            "One row 34",
+            "One row 35",
+            "One row 36",
+            "One row 37",
+            "One row 38",
+            "One row 39",
+            "One row 40",
+            "One row 41",
+            "One row 42",
+            "One row 43",
+            "One row 44",
+            "One row 45",
+            "One row 46"
+          ]
+        },
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["JetBrainsMono-Regular-249"],
+          "textLines": [
+            "One",
+            "Page 2",
+            "One row 47",
+            "One row 48",
+            "One row 49",
+            "One row 50",
+            "One row 51",
+            "One row 52",
+            "One row 53",
+            "One row 54",
+            "One row 55",
+            "One row 56",
+            "One row 57",
+            "One row 58",
+            "One row 59",
+            "One row 60",
+            "One row 61",
+            "One row 62",
+            "One row 63",
+            "One row 64",
+            "One row 65",
+            "One row 66",
+            "One row 67",
+            "One row 68",
+            "One row 69",
+            "One row 70",
+            "One row 71",
+            "One row 72",
+            "One row 73",
+            "One row 74",
+            "One row 75",
+            "One row 76",
+            "One row 77",
+            "One row 78",
+            "One row 79",
+            "One row 80",
+            "One row 81",
+            "One row 82",
+            "One row 83",
+            "One row 84",
+            "One row 85",
+            "One row 86",
+            "One row 87",
+            "One row 88",
+            "One row 89"
+          ]
+        },
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["JetBrainsMono-Regular-249"],
+          "textLines": [
+            "Two",
+            "Page 3",
+            "Two row 0",
+            "Two row 1",
+            "Two row 2",
+            "Two row 3",
+            "Two row 4",
+            "Two row 5",
+            "Two row 6",
+            "Two row 7",
+            "Two row 8",
+            "Two row 9",
+            "Two row 10",
+            "Two row 11",
+            "Two row 12",
+            "Two row 13",
+            "Two row 14",
+            "Two row 15",
+            "Two row 16",
+            "Two row 17",
+            "Two row 18",
+            "Two row 19",
+            "Two row 20",
+            "Two row 21",
+            "Two row 22",
+            "Two row 23",
+            "Two row 24",
+            "Two row 25",
+            "Two row 26",
+            "Two row 27",
+            "Two row 28",
+            "Two row 29",
+            "Two row 30",
+            "Two row 31",
+            "Two row 32",
+            "Two row 33",
+            "Two row 34",
+            "Two row 35",
+            "Two row 36",
+            "Two row 37",
+            "Two row 38",
+            "Two row 39",
+            "Two row 40",
+            "Two row 41",
+            "Two row 42",
+            "Two row 43",
+            "Two row 44",
+            "Two row 45",
+            "Two row 46"
+          ]
+        },
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["JetBrainsMono-Regular-249"],
+          "textLines": [
+            "Two",
+            "Page 4",
+            "Two row 47",
+            "Two row 48",
+            "Two row 49",
+            "Two row 50",
+            "Two row 51",
+            "Two row 52",
+            "Two row 53",
+            "Two row 54",
+            "Two row 55",
+            "Two row 56",
+            "Two row 57",
+            "Two row 58",
+            "Two row 59",
+            "Two row 60",
+            "Two row 61",
+            "Two row 62",
+            "Two row 63",
+            "Two row 64",
+            "Two row 65",
+            "Two row 66",
+            "Two row 67",
+            "Two row 68",
+            "Two row 69",
+            "Two row 70",
+            "Two row 71",
+            "Two row 72",
+            "Two row 73",
+            "Two row 74",
+            "Two row 75",
+            "Two row 76",
+            "Two row 77",
+            "Two row 78",
+            "Two row 79",
+            "Two row 80",
+            "Two row 81",
+            "Two row 82",
+            "Two row 83",
+            "Two row 84",
+            "Two row 85",
+            "Two row 86",
+            "Two row 87",
+            "Two row 88",
+            "Two row 89"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "workbook",
+      "kind": "native",
+      "file": "out/ssconvert-pdf/native/workbook.pdf",
+      "sha256": "c3b52dd0dcc1eeb0ad50fd8a8b9c06e83d5ffa9c3a2165fdaae0f9f528dfbdf6",
+      "pages": [
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["IZFANO+DejaVuSans", "WNGDVS+DejaVuSans"],
+          "textLines": [
+            "One",
+            "Page 1",
+            "One row 0",
+            "One row 1",
+            "One row 2",
+            "One row 3",
+            "One row 4",
+            "One row 5",
+            "One row 6",
+            "One row 7",
+            "One row 8",
+            "One row 9",
+            "One row 10",
+            "One row 11",
+            "One row 12",
+            "One row 13",
+            "One row 14",
+            "One row 15",
+            "One row 16",
+            "One row 17",
+            "One row 18",
+            "One row 19",
+            "One row 20",
+            "One row 21",
+            "One row 22",
+            "One row 23",
+            "One row 24",
+            "One row 25",
+            "One row 26",
+            "One row 27",
+            "One row 28",
+            "One row 29",
+            "One row 30",
+            "One row 31",
+            "One row 32",
+            "One row 33",
+            "One row 34",
+            "One row 35",
+            "One row 36",
+            "One row 37",
+            "One row 38",
+            "One row 39",
+            "One row 40",
+            "One row 41",
+            "One row 42",
+            "One row 43",
+            "One row 44",
+            "One row 45",
+            "One row 46"
+          ]
+        },
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["IZFANO+DejaVuSans", "WNGDVS+DejaVuSans"],
+          "textLines": [
+            "One",
+            "Page 2",
+            "One row 47",
+            "One row 48",
+            "One row 49",
+            "One row 50",
+            "One row 51",
+            "One row 52",
+            "One row 53",
+            "One row 54",
+            "One row 55",
+            "One row 56",
+            "One row 57",
+            "One row 58",
+            "One row 59",
+            "One row 60",
+            "One row 61",
+            "One row 62",
+            "One row 63",
+            "One row 64",
+            "One row 65",
+            "One row 66",
+            "One row 67",
+            "One row 68",
+            "One row 69",
+            "One row 70",
+            "One row 71",
+            "One row 72",
+            "One row 73",
+            "One row 74",
+            "One row 75",
+            "One row 76",
+            "One row 77",
+            "One row 78",
+            "One row 79",
+            "One row 80",
+            "One row 81",
+            "One row 82",
+            "One row 83",
+            "One row 84",
+            "One row 85",
+            "One row 86",
+            "One row 87",
+            "One row 88",
+            "One row 89"
+          ]
+        },
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["IZFANO+DejaVuSans", "WNGDVS+DejaVuSans"],
+          "textLines": [
+            "Two",
+            "Page 3",
+            "Two row 0",
+            "Two row 1",
+            "Two row 2",
+            "Two row 3",
+            "Two row 4",
+            "Two row 5",
+            "Two row 6",
+            "Two row 7",
+            "Two row 8",
+            "Two row 9",
+            "Two row 10",
+            "Two row 11",
+            "Two row 12",
+            "Two row 13",
+            "Two row 14",
+            "Two row 15",
+            "Two row 16",
+            "Two row 17",
+            "Two row 18",
+            "Two row 19",
+            "Two row 20",
+            "Two row 21",
+            "Two row 22",
+            "Two row 23",
+            "Two row 24",
+            "Two row 25",
+            "Two row 26",
+            "Two row 27",
+            "Two row 28",
+            "Two row 29",
+            "Two row 30",
+            "Two row 31",
+            "Two row 32",
+            "Two row 33",
+            "Two row 34",
+            "Two row 35",
+            "Two row 36",
+            "Two row 37",
+            "Two row 38",
+            "Two row 39",
+            "Two row 40",
+            "Two row 41",
+            "Two row 42",
+            "Two row 43",
+            "Two row 44",
+            "Two row 45",
+            "Two row 46"
+          ]
+        },
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": ["IZFANO+DejaVuSans", "WNGDVS+DejaVuSans"],
+          "textLines": [
+            "Two",
+            "Page 4",
+            "Two row 47",
+            "Two row 48",
+            "Two row 49",
+            "Two row 50",
+            "Two row 51",
+            "Two row 52",
+            "Two row 53",
+            "Two row 54",
+            "Two row 55",
+            "Two row 56",
+            "Two row 57",
+            "Two row 58",
+            "Two row 59",
+            "Two row 60",
+            "Two row 61",
+            "Two row 62",
+            "Two row 63",
+            "Two row 64",
+            "Two row 65",
+            "Two row 66",
+            "Two row 67",
+            "Two row 68",
+            "Two row 69",
+            "Two row 70",
+            "Two row 71",
+            "Two row 72",
+            "Two row 73",
+            "Two row 74",
+            "Two row 75",
+            "Two row 76",
+            "Two row 77",
+            "Two row 78",
+            "Two row 79",
+            "Two row 80",
+            "Two row 81",
+            "Two row 82",
+            "Two row 83",
+            "Two row 84",
+            "Two row 85",
+            "Two row 86",
+            "Two row 87",
+            "Two row 88",
+            "Two row 89"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "painted",
+      "kind": "current",
+      "file": "out/ssconvert-visual-compatibility-qa/painted.pdf",
+      "sha256": "3cbd63194732891a76427e5187c0b9e01567255985e1eee61f924a393fe46e86",
+      "pages": [
+        {
+          "size": [123.0, 35.0],
+          "fontNames": [],
+          "textLines": []
+        }
+      ]
+    },
+    {
+      "case": "painted",
+      "kind": "native",
+      "file": "out/ssconvert-pdf/native/painted.pdf",
+      "sha256": "a9d179a11fac9116b8ef75da66ccd4e70cfa5bde985e60cf52ef5eb348d875f1",
+      "pages": [
+        {
+          "size": [595.2755737304688, 841.8897705078125],
+          "fontNames": [],
+          "textLines": []
+        }
+      ]
+    },
+    {
+      "case": "original",
+      "kind": "current",
+      "file": "out/ssconvert-visual-compatibility-qa/original.pdf",
+      "sha256": "03c9f7ed581ef8d9fc0ce5428e369c0cd52d38a0149b243f92c1aa67d23f3d8d",
+      "pages": [
+        {
+          "size": [71.0, 35.0],
+          "fontNames": [],
+          "textLines": []
+        }
+      ]
+    }
+  ],
+  "ownedEvidence": [
+    {
+      "name": "errors.stderr",
+      "bytes": 112,
+      "sha256": "4aa3cd944d2c986c6e44d7c54075e80bf700a29435c40192ad7aa9360d1ab555"
+    },
+    {
+      "name": "errors.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "exporters.stderr",
+      "bytes": 1775,
+      "sha256": "86e89e25af29c83271689f65a3b2b09d43f13a93eefb7483130b28e2d01430c2"
+    },
+    {
+      "name": "exporters.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "graph.png",
+      "bytes": 18932,
+      "sha256": "923837abef3d32e828b5e913272b0d8b642d8daee4200253dab0a721f086ce3d",
+      "pixelSize": [98, 48]
+    },
+    {
+      "name": "help.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help.stdout",
+      "bytes": 1475,
+      "sha256": "3eb2274e6af304e1cfaddcb0f07ad83d1f08daa97936c20717b2da2541b2d3cf"
+    },
+    {
+      "name": "importers.stderr",
+      "bytes": 1277,
+      "sha256": "a16a766e6d60f3ea90cd4fa15ec13de7036556698ae07713ad0cec482e7dafab"
+    },
+    {
+      "name": "importers.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "missing.stderr",
+      "bytes": 43,
+      "sha256": "6936c1791a4a24cfbf13da9b7856fe9f7ca1f32a3abce175e0be750e12614a9b"
+    },
+    {
+      "name": "missing.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "original-current-0.png",
+      "bytes": 146,
+      "sha256": "2fa9967763c60f425e64bc3fd44066e9789f46dddc1e409c763d4b7937455070",
+      "pixelSize": [71, 35]
+    },
+    {
+      "name": "original.pdf",
+      "bytes": 553,
+      "sha256": "03c9f7ed581ef8d9fc0ce5428e369c0cd52d38a0149b243f92c1aa67d23f3d8d"
+    },
+    {
+      "name": "painted-current-0.png",
+      "bytes": 192,
+      "sha256": "8e744396c2a09bc7e15ba8ec3f78c733f58def5a52711abce2576236b40dc29b",
+      "pixelSize": [123, 35]
+    },
+    {
+      "name": "painted-native-0.png",
+      "bytes": 3436,
+      "sha256": "e17ccb08e8c68689fd6662c339bfde0aea7819387792a7e4f440685513f4101f",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "painted-native-fit.png",
+      "bytes": 3436,
+      "sha256": "e17ccb08e8c68689fd6662c339bfde0aea7819387792a7e4f440685513f4101f",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "painted.pdf",
+      "bytes": 777,
+      "sha256": "3cbd63194732891a76427e5187c0b9e01567255985e1eee61f924a393fe46e86"
+    },
+    {
+      "name": "terminal-channels.png",
+      "bytes": 1569299,
+      "sha256": "7aa7c79c2f7259e9f85b39b920475d81a93ea070f625ff6f20cf9c1461402190",
+      "pixelSize": [3942, 6852]
+    },
+    {
+      "name": "terminal-ordered.png",
+      "bytes": 1654539,
+      "sha256": "bb69cc679386a53374cbfadbd1c12e16b9a667e5cab6b6c1deb3884a9562c628",
+      "pixelSize": [4030, 7658]
+    },
+    {
+      "name": "terminal.png",
+      "bytes": 1617941,
+      "sha256": "d524e8a5372da0c18b2d6c8392745fc5c868f731a419425d52656ab4ce557dd1",
+      "pixelSize": [4030, 6583]
+    },
+    {
+      "name": "workbook-current-0.png",
+      "bytes": 11874,
+      "sha256": "6de9ff6333d0bc42e21e2d1338c3ce75a4dad9492aa36569b7599f3e8a20f4e0",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook-current-1.png",
+      "bytes": 11476,
+      "sha256": "a30fae9d6aa44af5a44b20d91c58aea66f94b3c2b1a93d25d03656cacada251c",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook-current-2.png",
+      "bytes": 11814,
+      "sha256": "569327c21479b271c3f910945b69cbf90dbb9e9ca4121b83ab400001d8ec6cd4",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook-current-3.png",
+      "bytes": 11340,
+      "sha256": "b5a7a4de902720f84873b7b4735404f7ff4253d7cc71c8e302b1b33ed9be878e",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook-native-0.png",
+      "bytes": 19719,
+      "sha256": "452cdbb1d3dd7d47453c256111fc8024383f9255318c051072373beb984336a4",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook-native-1.png",
+      "bytes": 19223,
+      "sha256": "300a1943eff185f4ae9a7fdb48af416ae94e4a3360a68a7922cd948919d78d2b",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook-native-2.png",
+      "bytes": 18725,
+      "sha256": "5bb4fbd93d2c0b4accc0911c9b4c742cc701fab565562baf110767217b9d1292",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook-native-3.png",
+      "bytes": 18345,
+      "sha256": "051b45b5b52c6fe7daae52c686f2f83c26b89122bdc3c8171f1469e87980d4df",
+      "pixelSize": [596, 842]
+    },
+    {
+      "name": "workbook.pdf",
+      "bytes": 19021,
+      "sha256": "1f085f0c0ba2b08fdf58cd5ae2c430e7cbd76d0de83d1334b4569a65e3f4a1e8"
+    }
+  ]
+}

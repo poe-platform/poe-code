@@ -1,0 +1,718 @@
+{
+  "nativeSeed": "statistics-original-seed",
+  "productInjectedGenerator": {
+    "algorithm": "LCG32 a=1664525 c=1013904223 m=2^32",
+    "seed": 17
+  },
+  "nativeSameSeedExactReplay": true,
+  "productSameSeedExactReplay": true,
+  "nativeOriginalSequence": [
+    {
+      "kind": "number",
+      "value": 0.6298051244781421
+    },
+    {
+      "kind": "number",
+      "value": 1
+    },
+    {
+      "kind": "number",
+      "value": 0.2098778552160521
+    },
+    {
+      "kind": "number",
+      "value": 2
+    },
+    {
+      "kind": "number",
+      "value": 3
+    },
+    {
+      "kind": "number",
+      "value": -2.141827160475694
+    },
+    {
+      "kind": "number",
+      "value": 10.883035476662323
+    },
+    {
+      "kind": "number",
+      "value": 2
+    },
+    {
+      "kind": "number",
+      "value": 3.2227800487131684
+    },
+    {
+      "kind": "number",
+      "value": 1.5150828865488208
+    },
+    {
+      "kind": "number",
+      "value": 1.334761091563845
+    },
+    {
+      "kind": "number",
+      "value": 4.267155440491622
+    },
+    {
+      "kind": "number",
+      "value": -3.0157440047185755
+    },
+    {
+      "kind": "number",
+      "value": 2.8244644529026495
+    },
+    {
+      "kind": "number",
+      "value": 1
+    },
+    {
+      "kind": "number",
+      "value": -0.0490787474640636
+    },
+    {
+      "kind": "number",
+      "value": 0
+    },
+    {
+      "kind": "number",
+      "value": 3.1946758007265332
+    },
+    {
+      "kind": "number",
+      "value": -2.1985515206471735
+    },
+    {
+      "kind": "number",
+      "value": -3.2458588108877398
+    },
+    {
+      "kind": "number",
+      "value": 1
+    },
+    {
+      "kind": "number",
+      "value": -3.752691390522654
+    },
+    {
+      "kind": "number",
+      "value": 86.24350267271738
+    },
+    {
+      "kind": "number",
+      "value": 4
+    },
+    {
+      "kind": "number",
+      "value": 2.609228946746277
+    },
+    {
+      "kind": "number",
+      "value": 3
+    },
+    {
+      "kind": "number",
+      "value": 1.7233173365783112
+    },
+    {
+      "kind": "number",
+      "value": 4.533756796974114
+    },
+    {
+      "kind": "number",
+      "value": 4.688549956165691
+    },
+    {
+      "kind": "number",
+      "value": 1.8078269840858856
+    },
+    {
+      "kind": "number",
+      "value": 0.8607545272805701
+    },
+    {
+      "kind": "number",
+      "value": 5.270661441057128
+    },
+    {
+      "kind": "number",
+      "value": 1.68853502345931
+    }
+  ],
+  "productOriginalSequence": [
+    {
+      "kind": "number",
+      "value": 0.24265636410564184
+    },
+    {
+      "kind": "number",
+      "value": 0
+    },
+    {
+      "kind": "number",
+      "value": 0.5181995998300464
+    },
+    {
+      "kind": "number",
+      "value": 3
+    },
+    {
+      "kind": "number",
+      "value": 3
+    },
+    {
+      "kind": "number",
+      "value": 0.06323942649243253
+    },
+    {
+      "kind": "number",
+      "value": 2.0898996260536107
+    },
+    {
+      "kind": "number",
+      "value": 8
+    },
+    {
+      "kind": "number",
+      "value": 1.649386005555301
+    },
+    {
+      "kind": "number",
+      "value": -0.9739691099929207
+    },
+    {
+      "kind": "number",
+      "value": 1.5721687810365232
+    },
+    {
+      "kind": "number",
+      "value": 10.759812645053328
+    },
+    {
+      "kind": "number",
+      "value": 5.328536503618469
+    },
+    {
+      "kind": "number",
+      "value": 2.650278858790132
+    },
+    {
+      "kind": "number",
+      "value": 0
+    },
+    {
+      "kind": "number",
+      "value": 0.2654298279248436
+    },
+    {
+      "kind": "number",
+      "value": 0
+    },
+    {
+      "kind": "number",
+      "value": -0.20355819655692575
+    },
+    {
+      "kind": "number",
+      "value": -0.23614964878101527
+    },
+    {
+      "kind": "number",
+      "value": 1.3854937687486881
+    },
+    {
+      "kind": "number",
+      "value": 1
+    },
+    {
+      "kind": "number",
+      "value": -1.9150371241524695
+    },
+    {
+      "kind": "number",
+      "value": 2.1562248432736566
+    },
+    {
+      "kind": "number",
+      "value": 8
+    },
+    {
+      "kind": "number",
+      "value": 5.620971574331701
+    },
+    {
+      "kind": "number",
+      "value": 2
+    },
+    {
+      "kind": "number",
+      "value": 2.229496573930534
+    },
+    {
+      "kind": "number",
+      "value": 4.488568729323905
+    },
+    {
+      "kind": "number",
+      "value": 8.843744264858241
+    },
+    {
+      "kind": "number",
+      "value": 0.3340985682630151
+    },
+    {
+      "kind": "number",
+      "value": 0.2317745134566129
+    },
+    {
+      "kind": "number",
+      "value": 5.219779870007187
+    },
+    {
+      "kind": "number",
+      "value": 2.2284341568092656
+    }
+  ],
+  "exactSeedSequenceClaim": false,
+  "distributionMethod": "Two-sample empirical CDF supremum (ties advanced together), conservative DKW union bound at family-wise alpha .01 across33 distributions; sample quality control only, not algorithm/seed/accuracy parity.",
+  "sampleCountPerFunction": 1000,
+  "draws": 76413,
+  "cases": [
+    {
+      "formula": "=RAND()",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.041000000000000036,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "ff2c0e5dafb574655516fa79a20b14e97a7e2d4a7455f3d39d67a33d551af400",
+      "productSha256": "a9edc5d410615138ae6c9a2dc5dd2bb46deba4701cb9076f4aa5be82f5c2f9d4"
+    },
+    {
+      "formula": "=RANDBERNOULLI(0.4)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.015000000000000013,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 499,
+      "nativeSha256": "4e5d20bf6634533f5d493dc2d3d7295d2e9edaef8411137b00ca49f04c054196",
+      "productSha256": "d3b6ce7a1b38b1f80bd6939f926d02d5653cdcf6d43e98d4a53ca6fb969b6e0e"
+    },
+    {
+      "formula": "=RANDBETA(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.02400000000000002,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "ff155d366e058e049101e8e7bf04c17bb177a31297ae527b52996cf5edcb8504",
+      "productSha256": "05a4cc3c34e573467be07647916b10a49e630b51d1f7f97be116be86f48b435c"
+    },
+    {
+      "formula": "=RANDBETWEEN(2,8)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.02699999999999997,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 139,
+      "nativeSha256": "ffd878945b07ab612e80def8a4ba941cfc331c4f9584c9f7d4bfcd9b4d087e37",
+      "productSha256": "be009911cadb8c5a4a123eaa69ed2ab231356e9f11bff48ca1e712267da97b8f"
+    },
+    {
+      "formula": "=RANDBINOM(0.4,8)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.019000000000000017,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 203,
+      "nativeSha256": "2dc8d2a16c26eea3827739beb0c347ab8f7e3eed0eeef23e89d7d03cb780efa8",
+      "productSha256": "22bc1ec72440488b9785f8895244fae3cdbd50da06acbf38ef9892f1f485382e"
+    },
+    {
+      "formula": "=RANDCAUCHY(2)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.048000000000000015,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "2383014b6102d283af88b4d264beb559ced0fc3f55f486f64e60abcd1df07037",
+      "productSha256": "84e7528accfb3102dc130bd397049fe435d73617bf63dd3cb6767bf60f5fb312"
+    },
+    {
+      "formula": "=RANDCHISQ(4)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.05600000000000005,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "dba21172de0fe60cb81f5491752cf4ca6588830689b1c9d16b65b4f0fdba755a",
+      "productSha256": "74dd8f9ae8be8a9e83a086b0051670fd42493ce14e6be9ab8f6d10e559b1de87"
+    },
+    {
+      "formula": "=RANDDISCRETE({2;4;8},{0.2;0.3;0.5})",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.039000000000000035,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 372,
+      "nativeSha256": "98e55485c2b5811a6ed7c63a129a20394bb19aa856cefd4d712d9dd41c14f83b",
+      "productSha256": "ff9a08fbfb9ec4170842a25c00d749dd2b8984d4cd974b6d9a8a403e7e70d020"
+    },
+    {
+      "formula": "=RANDEXP(2)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.02400000000000002,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "c615d2474c9d506984342111b0d69814ada653a667a8d4c1fd58c58f68bd7123",
+      "productSha256": "f3b22c69775d374efe0c5970bb3af6fff08218fab8b734f5f9a8963bb3ffb15f"
+    },
+    {
+      "formula": "=RANDEXPPOW(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.061,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "47992c0112f2f6130f355289f12596b63cee06005bdd45c56314d9ec1e3fad43",
+      "productSha256": "ad0399bf8d8d8698144674b520d71a9a1734688395ddc4a6b24b3c237a76ca64"
+    },
+    {
+      "formula": "=RANDFDIST(4,6)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.04800000000000004,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "79fd335f650be2301dc5dc8fdc31549cf4a7e4e2ccdef0b72916a1a49d59efb6",
+      "productSha256": "8fbf0afda92f3291b3cd6e917c029ec11152dad9aec2adf8ac49ab643fb978d9"
+    },
+    {
+      "formula": "=RANDGAMMA(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.03699999999999992,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "5531fff8cfd7ff3f24d0b8149bcaeeed506b29407feadfe1df45e6c1a9ee2b18",
+      "productSha256": "d121bce32faf360e0c0e50c44f9c7d190c0856b7da51a2058598a342275bb284"
+    },
+    {
+      "formula": "=RANDNORM(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.03300000000000003,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "9f31e8410a1319ea7c7a73b6eb37658899c194595edd7c7671a3a29c3ba76194",
+      "productSha256": "68693e985252d456d64ff3ea9efb97db10366e74c23cfb1c1cfb7c918d2912d6"
+    },
+    {
+      "formula": "=RANDNORMTAIL(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.03299999999999992,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "fc9bd638bd6a82141e9691de5ec42f89ec73141d0e566a920a8c317831fa7e00",
+      "productSha256": "8826cc7c179cd99268c39b25ac458dbcbd84cba113afcc0ba28bac9e74a13e17"
+    },
+    {
+      "formula": "=RANDGEOM(0.4)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.016000000000000014,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 252,
+      "nativeSha256": "ea36b97c36d6d6f23476f75d50e8217c4e115e1d5b076179e20ef6824c303b12",
+      "productSha256": "7e1f9a9931cadb87277c3624aee9985aa147fa873ea24a5e6e23dd7ca09d3ba7"
+    },
+    {
+      "formula": "=RANDGUMBEL(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.030999999999999972,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "5f1d2a9edf094bfd77c5c5c9ead35ffdd2ee536e7d674f5ca46ffe32a45b1b42",
+      "productSha256": "b57c82e0b2562f44c29a0f4cbf60e4fd6483f9d6c122b260d4ebb2c24abc3c63"
+    },
+    {
+      "formula": "=RANDHYPERG(4,6,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.031000000000000028,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 387,
+      "nativeSha256": "e5def9f72f3b1ef52a4e67658c773efb3915bcb373eb46f35d0a0c3979df37f6",
+      "productSha256": "101ee92da5b056c2901a52d3bb898c363556ee3b1b27d24fd4260fa572af25b3"
+    },
+    {
+      "formula": "=RANDLANDAU()",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.04200000000000001,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "321d7794d0cb0772a3e2e6867d087bd2984ba2ee0ed9cf3a7075ff32908341ca",
+      "productSha256": "8a7ea35549971bb3d634dc99fc6e33eb1f7914e43e6d739624ef076867ac0982"
+    },
+    {
+      "formula": "=RANDLAPLACE(2)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.05700000000000005,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "33fc13e847ecea47bbf00d2a49affb39e9fd0db9255531c87e181b7ac86d02e7",
+      "productSha256": "b1b54ae313bac091512fbae36584aac5899526b18a0786a4c7082adecf003e0b"
+    },
+    {
+      "formula": "=RANDLEVY(2,1.5,0.3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.04799999999999999,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "81cde24691f5ed5efdec02bc6e1c85571e5d2f712ca123520991c209872c2557",
+      "productSha256": "7b15dafaf53136d08bcbb79da2e43d24213ae0ac5e2c606205daa67e7837e12c"
+    },
+    {
+      "formula": "=RANDLOG(0.4)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.009000000000000008,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 635,
+      "nativeSha256": "b0fc5976fc96550cafc9c1eb665986875a6d1695b3bcac378667d8302754aad8",
+      "productSha256": "b44d8118d3ca7560f1cc8addfcc41d6677fac90575dcdb71e4be10c983279699"
+    },
+    {
+      "formula": "=RANDLOGISTIC(2)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.03300000000000003,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "dc96d07a650d23a988bb974be845d832152b1d5698a6f1ab26836d512803e2e9",
+      "productSha256": "c0aa92fe604f0f908a6b648861dd06df2a02b3b4331add303bd0796c52ea312a"
+    },
+    {
+      "formula": "=RANDLOGNORM(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.055999999999999966,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "e6be0306b24a8b89f496bd244c9121e7190ff9bf586526e6308ae106ff30834a",
+      "productSha256": "94955ac11b82e51eb20f8ddea96d3eec992564b96d435e2aa270595d596c782d"
+    },
+    {
+      "formula": "=RANDNEGBINOM(0.4,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.017000000000000015,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 108,
+      "nativeSha256": "9f6b08f5774890a938680da92bb857a25957ad6d7666a5612705e5941724527a",
+      "productSha256": "d603d25a400398e6c211a047b7c0604d6d7b180487ebc362ea7a425343d052cf"
+    },
+    {
+      "formula": "=RANDPARETO(3,2)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.031,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "8871379a3b70d44cd1a0ee098d5ac0cf609c84584249a2487cdee394b697b158",
+      "productSha256": "d65444cd81c63eefb9e9321589a1a10f174596b6730eed77720dc6e9cebfde63"
+    },
+    {
+      "formula": "=RANDPOISSON(3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.02400000000000002,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 169,
+      "nativeSha256": "fb2ad3b2dee765978e44633943e3916eba5cfbd1dbe7aaeda0b7feead38094de",
+      "productSha256": "60cf04f45ecd1eb4ffe54f64ddedc94835818f3bb3bd576d9b44e3ee327d02bb"
+    },
+    {
+      "formula": "=RANDRAYLEIGH(2)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.034999999999999976,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "38e183cbc20d8883a74553aadf5125347d114d187d20404c17eed7e222d91fcf",
+      "productSha256": "7b371c29027f5fed2c5ea052b88a5f36f424766b0c7ae9bfe3f71be1719fc10a"
+    },
+    {
+      "formula": "=RANDRAYLEIGHTAIL(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.035,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "1ca57d295e8a94fa69d3da7eebdf91fd2657aaaba75765d50caece455e9f520a",
+      "productSha256": "826c1948d5d6fa53dbc06ee4bbedaf11f9e036ad1136caaef2680e0dd012982f"
+    },
+    {
+      "formula": "=RANDSNORM(2,3,4)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.036000000000000004,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "0088df6c407a85b1607c3cc62f5e9d4cb79e2983c947b8298f2a867030c6636b",
+      "productSha256": "bf900d83ba284e35258b3b43849362d7f26b9214050f96bc2bdcffab5556b155"
+    },
+    {
+      "formula": "=RANDSTDIST(4,2)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.05299999999999999,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "2c21293bdfc220dbef8739d6cd65d64279e2d9dd978380669ca8af6318daf48b",
+      "productSha256": "3e43b8849883a35b481a9a67967f4eec7c96df510dd18cbd299da15195ff033f"
+    },
+    {
+      "formula": "=RANDTDIST(4)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.045999999999999985,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "364a97f5096dfe69d8bb5b343e6675cb1a9aadff4fedbe465073c9d945b74813",
+      "productSha256": "dae6278c51d367958cb270d836fe805f07897f944eb7367dc7fd2cbaa95466e0"
+    },
+    {
+      "formula": "=RANDUNIFORM(2,8)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.05300000000000005,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "933093d052b5ef2bf4b420ca4dbee9e5fdb1a964c14ba3b7e2e36cb0c8886659",
+      "productSha256": "d48e6676bff837313df00c0ae3e66db59e09cc3e7586d33a4424d941c89ec851"
+    },
+    {
+      "formula": "=RANDWEIBULL(2,3)",
+      "nativeSamples": 1000,
+      "productSamples": 1000,
+      "nativeErrors": [],
+      "productErrors": [],
+      "ks": 0.05999999999999994,
+      "threshold": 0.09378072791365248,
+      "finiteSampleDistributionControl": true,
+      "exactStreamMatches": 0,
+      "nativeSha256": "4fe6f4432a4ff429f4c718346b2ff5c87884508c31b0fee44b77156559725f2f",
+      "productSha256": "dd7965c922af765ae12a0624cf86805ceefef76dbf3c831911a9edecb8ee365b"
+    }
+  ],
+  "summary": {
+    "controls": 33,
+    "withinBound": 33,
+    "outsideBound": 0
+  },
+  "upstreamRandomSuitesPassClaim": false
+}

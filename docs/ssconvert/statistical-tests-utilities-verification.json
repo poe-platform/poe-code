@@ -1,0 +1,590 @@
+{
+  "reference": {
+    "version": "Gnumeric 1.12.61",
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "profile": "docs/ssconvert/analysis-tool-profile.json",
+    "image": "sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a",
+    "verifiedBindings": 74,
+    "verifiedDependencyVersionPairs": 523,
+    "sourceAudit": {
+      "referenceProfile": "docs/ssconvert/analysis-tool-profile.json",
+      "oracleBindings": {
+        "count": 74,
+        "status": 0,
+        "stdout": "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert: OK\n/out/ssconvert-statistics-oracle/gnumeric-1.12.61/src/ssconvert.c: OK\n/out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so: OK\n/out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10: OK\n/lib/aarch64-linux-gnu/libgsf-1.so.114: OK\n/lib/aarch64-linux-gnu/libgtk-3.so.0: OK\n/lib/aarch64-linux-gnu/libgobject-2.0.so.0: OK\n/lib/aarch64-linux-gnu/libglib-2.0.so.0: OK\n/lib/aarch64-linux-gnu/libc.so.6: OK\n/lib/aarch64-linux-gnu/libxml2.so.2: OK\n/lib/aarch64-linux-gnu/libgmodule-2.0.so.0: OK\n/lib/aarch64-linux-gnu/libgdk-3.so.0: OK\n/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0: OK\n/lib/aarch64-linux-gnu/libpango-1.0.so.0: OK\n/lib/aarch64-linux-gnu/libatk-1.0.so.0: OK\n/lib/aarch64-linux-gnu/libcairo.so.2: OK\n/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0: OK\n/lib/aarch64-linux-gnu/libgio-2.0.so.0: OK\n/lib/aarch64-linux-gnu/libm.so.6: OK\n/lib/aarch64-linux-gnu/libxslt.so.1: OK\n/lib/aarch64-linux-gnu/librsvg-2.so.2: OK\n/lib/aarch64-linux-gnu/libz.so.1: OK\n/lib/aarch64-linux-gnu/libbz2.so.1.0: OK\n/lib/ld-linux-aarch64.so.1: OK\n/lib/aarch64-linux-gnu/libharfbuzz.so.0: OK\n/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0: OK\n/lib/aarch64-linux-gnu/libfontconfig.so.1: OK\n/lib/aarch64-linux-gnu/libfribidi.so.0: OK\n/lib/aarch64-linux-gnu/libcairo-gobject.so.2: OK\n/lib/aarch64-linux-gnu/libepoxy.so.0: OK\n/lib/aarch64-linux-gnu/libXi.so.6: OK\n/lib/aarch64-linux-gnu/libX11.so.6: OK\n/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0: OK\n/lib/aarch64-linux-gnu/libcloudproviders.so.0: OK\n/lib/aarch64-linux-gnu/libXfixes.so.3: OK\n/lib/aarch64-linux-gnu/libffi.so.8: OK\n/lib/aarch64-linux-gnu/libatomic.so.1: OK\n/lib/aarch64-linux-gnu/libpcre2-8.so.0: OK\n/lib/aarch64-linux-gnu/liblzma.so.5: OK\n/lib/aarch64-linux-gnu/libxkbcommon.so.0: OK\n/lib/aarch64-linux-gnu/libwayland-client.so.0: OK\n/lib/aarch64-linux-gnu/libwayland-cursor.so.0: OK\n/lib/aarch64-linux-gnu/libwayland-egl.so.1: OK\n/lib/aarch64-linux-gnu/libXext.so.6: OK\n/lib/aarch64-linux-gnu/libXcursor.so.1: OK\n/lib/aarch64-linux-gnu/libXdamage.so.1: OK\n/lib/aarch64-linux-gnu/libXcomposite.so.1: OK\n/lib/aarch64-linux-gnu/libXrandr.so.2: OK\n/lib/aarch64-linux-gnu/libXinerama.so.1: OK\n/lib/aarch64-linux-gnu/libthai.so.0: OK\n/lib/aarch64-linux-gnu/libpng16.so.16: OK\n/lib/aarch64-linux-gnu/libfreetype.so.6: OK\n/lib/aarch64-linux-gnu/libXrender.so.1: OK\n/lib/aarch64-linux-gnu/libxcb.so.1: OK\n/lib/aarch64-linux-gnu/libxcb-render.so.0: OK\n/lib/aarch64-linux-gnu/libxcb-shm.so.0: OK\n/lib/aarch64-linux-gnu/libpixman-1.so.0: OK\n/lib/aarch64-linux-gnu/libjpeg.so.62: OK\n/lib/aarch64-linux-gnu/libmount.so.1: OK\n/lib/aarch64-linux-gnu/libselinux.so.1: OK\n/lib/aarch64-linux-gnu/libgcc_s.so.1: OK\n/lib/aarch64-linux-gnu/libdav1d.so.7: OK\n/lib/aarch64-linux-gnu/libgraphite2.so.3: OK\n/lib/aarch64-linux-gnu/libexpat.so.1: OK\n/lib/aarch64-linux-gnu/libatspi.so.0: OK\n/lib/aarch64-linux-gnu/libdbus-1.so.3: OK\n/lib/aarch64-linux-gnu/libdatrie.so.1: OK\n/lib/aarch64-linux-gnu/libbrotlidec.so.1: OK\n/lib/aarch64-linux-gnu/libXau.so.6: OK\n/lib/aarch64-linux-gnu/libXdmcp.so.6: OK\n/lib/aarch64-linux-gnu/libblkid.so.1: OK\n/lib/aarch64-linux-gnu/libsystemd.so.0: OK\n/lib/aarch64-linux-gnu/libbrotlicommon.so.1: OK\n/lib/aarch64-linux-gnu/libcap.so.2: OK\n",
+        "stderr": ""
+      },
+      "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+      "sourceMembers": [
+        {
+          "path": "src/ssconvert.c",
+          "sha256": "0d600c72a05645e6940730bf6e733636ec25f814c20a218cb5e5255da5b198df",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-chi-squared.c",
+          "sha256": "67aca30a8f15ba90f0316f1e52144bc0580d367e23678edfa51ba6414f8d99f9",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-sign-test.c",
+          "sha256": "1975f37302ca3508d2443b50e974f9e3526da9b7e844feaeac0b8e4e4bb31f25",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-one-mean-test.c",
+          "sha256": "de3cc5f3475235c52d83735ebb3a12e0d8e07c20b5a08880aaebab041a4f00d2",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-signed-rank-test.c",
+          "sha256": "1c21f73feb6884bbea9459b7cd52b64d6944c13f01e1afc058c31ac685884802",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-wilcoxon-mann-whitney.c",
+          "sha256": "b225bd93e5798cd542ccde9544908440d8f51728c7fa4579c0640b6ba60bf9a8",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-ftest.c",
+          "sha256": "d86900308472354bc3997b5c6b0dceba1e44fc8722a6e24b970d8cfc01e07af2",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-ttest.c",
+          "sha256": "56cb41a9fc7c5556124ff2e545e7118cf4565c0140e6c35972fb39fe1f6701b7",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-ztest.c",
+          "sha256": "63da2f363d964ecb47f973a80dcc079b709a49e985a4a45f17e62c3d97b33a89",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/analysis-kaplan-meier.c",
+          "sha256": "702b4ee5e8a058745669ad65a7a12cefff301dc3c883f3db503556b81df203f2",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/filter.c",
+          "sha256": "3fbdd8bb988dd13f147a8b578fee2125458067daee70f526665fca2db2d2e683",
+          "matchesArchive": true
+        },
+        {
+          "path": "src/tools/fill-series.c",
+          "sha256": "17c0c87216fa95032c75fd7522a5592223f6b25ebd2d9db487431eada41fff00",
+          "matchesArchive": true
+        }
+      ]
+    }
+  },
+  "candidateSha256": {
+    "packages/ssconvert/src/formulas/functions/types.ts": "748993a21a12325a2046b3436d6e93ece03e90ca2a905aab55f65dba0c706e79",
+    "packages/ssconvert/src/analysis/run.ts": "dcfd78156fde6997195fb21c9a9f0fbe9d7b08a807c72fc5f6b32fc834010982",
+    "packages/ssconvert/src/analysis/statistical.ts": "9dcfd33fce4d58049713c838194ffd873508b029533b55586b1eb926bbada103",
+    "packages/ssconvert/src/analysis/utilities.ts": "a1940964b148cbb5b0bd4e0dc4c41927459e76c75eb8a2947b3a8ac7af4bd100",
+    "packages/ssconvert/src/analysis/protocol.ts": "43e3a0352889b983d3ae099ebcd9e56be054d58b39ce5ac64522c3af44b4c71a",
+    "packages/ssconvert/src/analysis/tests-utilities.test.ts": "f063e58d683313f9f356b4b51428f060bcc95e5a77f853d0ed11cb7e3a5f0e68",
+    "packages/ssconvert/src/analysis/tests-utilities-independent.test.ts": "4cfa103c8cdaf7ae9258564d11f008804524483b7e791825901f73544b57c324",
+    "packages/ssconvert/src/analysis/inventory.test.ts": "f861660298350dca40d8228653861a26329befbdac5a66d3511d5de033b6f9b7",
+    "packages/ssconvert/src/formulas/functions/common.ts": "e1650e3ca65aec51dd27cac3c9f52873b3c5531f903d9e20f76a8f0bf9b31596",
+    "packages/ssconvert/src/formulas/functions/database.ts": "27fc8a827385570688853a306d61c16c6dfda5e9aa3fc67321b61f8b6071d38f",
+    "packages/ssconvert/src/formulas/evaluator.ts": "3ce5a98642077d616caa07b5d2050b292ecb64bbe71c70902d24ebe470c8a201",
+    "packages/ssconvert/src/formulas/functions/registry.ts": "8a59f0ec0007985fcb83224afecdbf4dc89d6783b43a595e97ea2f0d43d7c9ff",
+    "packages/safe-bash/tests/commands/ssconvert.test.ts": "f76420fbb84429086cc0f6bbc71246475a78f77d41093698b2f4f7cfc0e5cf1d"
+  },
+  "defaultCases": [
+    {
+      "tool": "chi-squared-test",
+      "materialized": false,
+      "nativeCoordinates": 9,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "chi-squared-test",
+      "materialized": true,
+      "nativeCoordinates": 9,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "sign-test",
+      "materialized": false,
+      "nativeCoordinates": 24,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "sign-test",
+      "materialized": true,
+      "nativeCoordinates": 24,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "sign-test-two-samples",
+      "materialized": false,
+      "nativeCoordinates": 18,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "sign-test-two-samples",
+      "materialized": true,
+      "nativeCoordinates": 18,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "one-mean-test",
+      "materialized": false,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "one-mean-test",
+      "materialized": true,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "wilcoxon-signed-rank-test",
+      "materialized": false,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "wilcoxon-signed-rank-test",
+      "materialized": true,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "wilcoxon-signed-rank-test-two-samples",
+      "materialized": false,
+      "nativeCoordinates": 24,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "wilcoxon-signed-rank-test-two-samples",
+      "materialized": true,
+      "nativeCoordinates": 24,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "wilcoxon-mann-whitney",
+      "materialized": false,
+      "nativeCoordinates": 24,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": "Leaking string [Lookup] with ref_count=2.\nLeaking string [gnumeric-1.12.61-functions] with ref_count=25.\n"
+    },
+    {
+      "tool": "wilcoxon-mann-whitney",
+      "materialized": true,
+      "nativeCoordinates": 24,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": "Leaking string [Lookup] with ref_count=2.\nLeaking string [gnumeric-1.12.61-functions] with ref_count=25.\n"
+    },
+    {
+      "tool": "f-test",
+      "materialized": false,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "f-test",
+      "materialized": true,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "t-test-paired",
+      "materialized": false,
+      "nativeCoordinates": 32,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "t-test-paired",
+      "materialized": true,
+      "nativeCoordinates": 32,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "t-test-equal-variances",
+      "materialized": false,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "t-test-equal-variances",
+      "materialized": true,
+      "nativeCoordinates": 30,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "t-test-unequal-variances",
+      "materialized": false,
+      "nativeCoordinates": 28,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "t-test-unequal-variances",
+      "materialized": true,
+      "nativeCoordinates": 28,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "kaplan-meier",
+      "materialized": false,
+      "nativeCoordinates": 21,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "kaplan-meier",
+      "materialized": true,
+      "nativeCoordinates": 21,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "z-test",
+      "materialized": false,
+      "nativeCoordinates": 26,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "z-test",
+      "materialized": true,
+      "nativeCoordinates": 26,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "advanced-filter",
+      "materialized": false,
+      "nativeCoordinates": 9,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "advanced-filter",
+      "materialized": true,
+      "nativeCoordinates": 9,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "fill-series",
+      "materialized": false,
+      "nativeCoordinates": 4,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    },
+    {
+      "tool": "fill-series",
+      "materialized": true,
+      "nativeCoordinates": 4,
+      "formulaValueDifferences": [],
+      "status": 0,
+      "nativeStdout": "",
+      "nativeStderr": ""
+    }
+  ],
+  "variantCases": [
+    {
+      "name": "growth",
+      "toolTest": [
+        "fill-series",
+        "type:growth",
+        "start-value:2",
+        "step-value:2",
+        "stop-value:16",
+        "formulas:no"
+      ],
+      "coordinates": 4,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "implicit-step",
+      "toolTest": [
+        "fill-series",
+        "start-value:3",
+        "stop-value:20",
+        "formulas:no"
+      ],
+      "coordinates": 1,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "step-override",
+      "toolTest": [
+        "fill-series",
+        "start-value:3",
+        "step-value:2",
+        "stop-value:20",
+        "is-step-set:no",
+        "formulas:no"
+      ],
+      "coordinates": 1,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "date-day",
+      "toolTest": [
+        "fill-series",
+        "type:date",
+        "start-value:45292",
+        "step-value:1",
+        "stop-value:45294",
+        "formulas:no"
+      ],
+      "coordinates": 3,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "date-weekday",
+      "toolTest": [
+        "fill-series",
+        "type:date",
+        "date-unit:weekday",
+        "start-value:45296",
+        "step-value:2",
+        "stop-value:45306",
+        "formulas:no"
+      ],
+      "coordinates": 9,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "date-month",
+      "toolTest": [
+        "fill-series",
+        "type:date",
+        "date-unit:month",
+        "start-value:45322",
+        "step-value:1",
+        "stop-value:45413",
+        "formulas:no"
+      ],
+      "coordinates": 5,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "date-year",
+      "toolTest": [
+        "fill-series",
+        "type:date",
+        "date-unit:year",
+        "start-value:45351",
+        "step-value:1",
+        "stop-value:46081",
+        "formulas:no"
+      ],
+      "coordinates": 2,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "survival-censor",
+      "toolTest": [
+        "kaplan-meier",
+        "x:$A$1:$A$4",
+        "y:$B$1:$B$4",
+        "censored:yes",
+        "censor-mark:1",
+        "censor-mark-to:2",
+        "std-err:yes",
+        "median:yes",
+        "logrank-test:yes",
+        "formulas:no"
+      ],
+      "coordinates": 40,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "filter-no-match",
+      "toolTest": [
+        "advanced-filter",
+        "x:$A$1:$B$4",
+        "y:$D$1:$D$2",
+        "formulas:no"
+      ],
+      "coordinates": 6,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "filter-invalid",
+      "toolTest": [
+        "advanced-filter",
+        "x:$A$1:$B$4",
+        "y:$D$1:$D$2",
+        "formulas:no"
+      ],
+      "coordinates": 6,
+      "nativeStatus": 0,
+      "productStatus": 0,
+      "outputPresent": true,
+      "differences": []
+    },
+    {
+      "name": "chi-shape-failure",
+      "toolTest": [
+        "chi-squared-test",
+        "data:A1:A4",
+        "formulas:no"
+      ],
+      "coordinates": 0,
+      "nativeStatus": 1,
+      "productStatus": 1,
+      "outputPresent": false,
+      "differences": []
+    }
+  ],
+  "comparison": {
+    "cases": 41,
+    "coordinates": 755,
+    "numericTolerance": "absolute/relative 1e-12",
+    "formulaValueDifferences": 0,
+    "scope": "Native generated coordinates; empty native strings may correspond to absent product cells. Full workbook identity is not qualified."
+  },
+  "checks": {
+    "ssconvertUncachedBuildClosure": 4,
+    "safeBashUncachedBuildClosure": 18,
+    "ssconvertLint": "passed",
+    "ssconvertFullUnitSuite": {
+      "files": 299,
+      "passed": 6124,
+      "failed": 0
+    },
+    "safeBashSsconvertIntegration": {
+      "passed": 98,
+      "failed": 0,
+      "skipped": 0
+    },
+    "independentAgentReview": "completed with strict regressions; 14 additional warning serialization cases and four native alpha ties",
+    "screenshots": "all 15 generated CSV outputs inspected",
+    "safeBashTypecheck": {
+      "exitCode": 2,
+      "failure": "Public SafeFS must preserve shared SafeJS runtime identity: undefined vs ./packages/safe-js/dist/safe-fs.js",
+      "compilationStarted": false
+    }
+  },
+  "remainingMismatches": [
+    "Two default Mann-Whitney native captures emit process-shutdown Leaking string diagnostics; JavaScript emits none."
+  ],
+  "unqualified": [
+    "Active plugins and inherited HOME/XDG configuration were not independently re-inventoried; captured reference plugin profile reused.",
+    "Complete blank/style-region geometry; custom graph/font/theme/geometry/pixel exports; all exporter profiles.",
+    "Browser/workerd realm execution, full repository checks and packed consumers.",
+    "Blank criteria headers, extreme invalid date serials, zero-step non-day dates and native integer overflow/undefined/crash paths.",
+    "Explicit sheet spans, clipping/resource extremes, all alpha/missing/group combinations and exhaustive behavior of the other 16 tools."
+  ],
+  "delivery": {
+    "commits": 0,
+    "pushed": false,
+    "published": false,
+    "readmesEdited": false
+  }
+}

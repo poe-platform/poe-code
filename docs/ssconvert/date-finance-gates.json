@@ -1,0 +1,143 @@
+{
+  "checks": {
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "exitCode": 0,
+      "cache": "explicit --no-cache",
+      "outputSha256": "024948762405938de3660cd5d1cc534bc29f9901861c8144052bf989233d2edf",
+      "outputTail": [
+        "",
+        "",
+        "> @poe-platform/safe-bash@0.0.0 build",
+        "> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs",
+        "",
+        "",
+        "> @poe-platform/safe-bash@0.0.0 postbuild",
+        "> node scripts/build-optional-cli.mjs",
+        "",
+        "{\"workspaces\":85,\"builds\":18,\"edges\":235,\"layers\":10,\"noBuild\":[],\"manifestless\":[\"packages/braintrust\",\"packages/safe-bash-optional\"]}"
+      ],
+      "maintainedClosureBuilds": 18
+    },
+    "test": {
+      "command": "npm test --workspace=@poe-code/ssconvert -- --no-cache",
+      "exitCode": 0,
+      "cache": "explicit --no-cache",
+      "outputSha256": "1568dc954c9ee419a2e04b614eb9f4a09e58f7f7291eb39ab84944121c1e287b",
+      "outputTail": [
+        " \u2713 packages/ssconvert/src/formulas/roman-functions.test.ts (6 tests) 8ms",
+        " \u2713 packages/ssconvert/src/formulas/numeric-native-writer.test.ts (7 tests) 5ms",
+        " \u2713 packages/ssconvert/src/formulas/functions/captured-trigonometry.test.ts (3 tests) 3ms",
+        " \u2713 packages/ssconvert/src/io/names.test.ts (1 test) 2ms",
+        "",
+        " Test Files  109 passed (109)",
+        "      Tests  2781 passed (2781)",
+        "   Start at  22:50:45",
+        "   Duration  8.37s (transform 1.21s, setup 1.11s, import 5.88s, tests 2.04s, environment 6ms)",
+        ""
+      ],
+      "files": 109,
+      "passed": 2781,
+      "failed": 0
+    },
+    "lint": {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "cache": "fresh direct check",
+      "outputSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "outputTail": [
+        "",
+        "> @poe-code/ssconvert@0.0.1 lint",
+        "> node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json",
+        ""
+      ]
+    },
+    "virtualCommandIntegration": {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "exitCode": 0,
+      "cache": "fresh direct check",
+      "outputSha256": "e35e16a3587f7d1963b887e4aa8a933868c69ab2d277f3f51a6828a89597ab9f",
+      "outputTail": [
+        "  ...",
+        "1..35",
+        "# tests 35",
+        "# suites 0",
+        "# pass 35",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 1104.546959"
+      ],
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0
+    },
+    "integrationLint": {
+      "command": "npx eslint packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "exitCode": 0,
+      "cache": "fresh direct check",
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "outputTail": []
+    }
+  },
+  "exactParityClaim": false,
+  "unsupportedOrUnmeasuredArePasses": false,
+  "commit": "none",
+  "push": "none",
+  "release": "none",
+  "screenshot": {
+    "viewed": true,
+    "sha256": "d1c4fabe3bcac24d5a23803e952334eafdac0b0fb0818e7aa8d491ffd658fe1e",
+    "scope": "virtual command original injected-codec fixture, 1904 date system, C locale, America/New_York timezone",
+    "limitation": "Hebrew font unavailable in screenshot renderer; no glyph rendering pass claimed"
+  },
+  "failFirstEvidence": {
+    "ssconvert-date-finance-red.log": {
+      "sha256": "bde6b75f79d12cb33d2af9bb73860f7d57598ccd05b51f30962201a4b801a4bb",
+      "outputTail": [
+        "    297|         if (!context.clock) throw new SsconvertError(\"capability-denie\u2026",
+        "    298|         if (context.environment.timezone !== \"UTC\") throw new Ssconver\u2026",
+        "       |                                                           ^",
+        "    299|         const now = context.clock.now(); tick();",
+        "    300|         const serial = now / 86400000 + (book.dateSystem === \"1904\" ? \u2026",
+        " \u276f calculate packages/ssconvert/src/formulas/evaluator.ts:431:31",
+        " \u276f recalculateWorkbook packages/ssconvert/src/formulas/evaluator.ts:459:68",
+        " \u276f calculate packages/ssconvert/src/formulas/date-finance-functions.test.ts:14:10",
+        " \u276f packages/ssconvert/src/formulas/date-finance-functions.test.ts:36:10",
+        "",
+        "\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[23/25]\u23af",
+        "",
+        "",
+        " Test Files  1 failed (1)",
+        "      Tests  25 failed (25)",
+        "   Start at  22:20:39",
+        "   Duration  434ms (transform 249ms, setup 35ms, import 259ms, tests 15ms, environment 0ms)",
+        ""
+      ]
+    },
+    "ssconvert-date-finance-conversion-red.log": {
+      "sha256": "7023d6075a033375191a2dd5eecda8d3732eacbb44787205b70a30265d74a2d6",
+      "outputTail": [
+        "Received: \"=OPT_BS(\"c\",100,100,1,0.05,0.2)\"",
+        "",
+        " \u276f packages/ssconvert/src/formulas/date-finance-conversion.test.ts:19:75",
+        "     17| ])(\"retains calendar/finance expressions across grammars: %s\", (source\u2026",
+        "     18|   const parsed = parseExpression(source, { position }); if (!parsed.ok\u2026",
+        "     19|   expect(serializeExpression(parsed.document, excelGrammar, false, tru\u2026",
+        "       |                                                                           ^",
+        "     20|   expect(serializeExpression(parsed.document, odfGrammar, false, true)\u2026",
+        "     21|   for (const [expression, grammar] of [[excel, excelGrammar], [odf, od\u2026",
+        "",
+        "\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[7/7]\u23af",
+        "",
+        "",
+        " Test Files  1 failed (1)",
+        "      Tests  7 failed | 2 passed (9)",
+        "   Start at  22:33:57",
+        "   Duration  438ms (transform 283ms, setup 36ms, import 301ms, tests 13ms, environment 0ms)",
+        ""
+      ]
+    }
+  }
+}

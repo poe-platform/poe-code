@@ -1,0 +1,78 @@
+{
+  "classification": "scoped-unit-deadline-repair-evidence-not-native-full-parity",
+  "trigger": {
+    "formula": "=R.QTUKEY(-1000,3,10,1,TRUE,TRUE)",
+    "reportedFullPackageFailure": "Existing 5000ms unit deadline exceeded under a full package run; timeout preserved.",
+    "isolatedBaselineCapture": "out/gnumeric-xml-codecs/statistics-timeout-reproduction.log",
+    "isolatedBaselineMilliseconds": 4611,
+    "nativeGolden": 7.186959238596909e-108,
+    "unchangedRelativeTolerance": 2e-14
+  },
+  "repair": {
+    "source": "packages/ssconvert/src/formulas/functions/numeric-arithmetic.ts",
+    "sourceSha256": "f222df962ce910644e5f3d960e7f9dfb93153df6e2d2b4a7d1903d3536378460",
+    "test": "packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts",
+    "testSha256": "57e5aa291a33b9f8cb8a35f31849a40d15fadaeed94fd2ac6d1d7f498f704718",
+    "changes": [
+      "Finite zero multiplicand uses product plus addend, preserving signed-zero addition.",
+      "Finite nonzero multiplicands with zero addend use one correctly rounded multiplication, preserving negative zero after underflow.",
+      "Finite nonzero FMA decomposition reuses one private 8-byte DataView instead of allocating on each call."
+    ],
+    "ownership": "Scratch remains unexported and private to each module evaluation/realm. The finite number-only branch has no await, yield or host callback; each DataView read copies bits to immutable bigint before the next component writes. Calls with non-number/nonfinite values return through existing early branches before using scratch. No producer bytes or invocation-owned mutable buffers are retained.",
+    "budgets": "No host.tick calls, quadrature cache policies, cache capacities, cancellation checks or numeric iteration bounds changed."
+  },
+  "validation": {
+    "inMemoryCandidateDifferential": {
+      "cases": 4096,
+      "comparison": "Object.is against original arithmetic for a Cartesian set covering signed zeros, subnormal values, overflow, NaN, infinities and cancellation-sensitive factors; all equal.",
+      "classification": "Preimplementation temporary in-memory measurement; not a copied implementation in maintained tests."
+    },
+    "beforeInMemoryProfile": {
+      "fmaCalls": 3455066,
+      "zeroMultiplicandOpportunities": 305454,
+      "zeroAddendOpportunities": 9941,
+      "ticks": 557149
+    },
+    "measuredCandidates": [
+      {
+        "candidate": "zero fast paths only",
+        "baselineMilliseconds": 2848.167625,
+        "candidateMilliseconds": 2416.394584,
+        "sameResultAndTicks": true
+      },
+      {
+        "candidate": "private scratch reuse only",
+        "baselineMilliseconds": 3159.9115,
+        "candidateMilliseconds": 2667.2184580000003,
+        "sameResultAndTicks": true
+      }
+    ],
+    "afterRealModuleInverse": {
+      "result": 7.186959238596907e-108,
+      "ticks": 557149,
+      "milliseconds": 2253.342,
+      "assertions": "Exact 557149 tick count and existing native-golden relative bound both verified."
+    },
+    "focusedRuntime": {
+      "files": [
+        "packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts",
+        "packages/ssconvert/src/formulas/statistics-independent-review.test.ts",
+        "packages/ssconvert/src/codecs/gnumeric.test.ts",
+        "packages/ssconvert/src/codecs/gnumeric-independent.test.ts"
+      ],
+      "passedAssertions": 112,
+      "failedAssertions": 0,
+      "statisticsAssertions": 52,
+      "arithmeticAssertions": 11,
+      "codecAssertions": 49,
+      "slowFormulaMilliseconds": 1744,
+      "warmedCacheWorkAndCancellationAssertions": "Existing statistics work/cancellation guard cases passed unchanged."
+    }
+  },
+  "limits": [
+    "Before/after timing samples were taken with varying concurrent workspace activity; they are evidence of reduced work/allocation, not a controlled benchmark or a guaranteed deadline on every host.",
+    "Existing assertions and timeout limits were neither weakened nor increased. No wall-clock unit assertion was added.",
+    "A FIFO quadrature-cache experiment showed no reduction in FMA calls or ticks and was rejected without product changes.",
+    "Root retains full maintained package lint/test/build and final delivery ownership. This scoped cohort does not certify complete Gnumeric codec parity."
+  ]
+}

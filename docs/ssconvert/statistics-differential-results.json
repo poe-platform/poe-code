@@ -1,0 +1,3037 @@
+{
+  "cases": [
+    {
+      "name": "PROBBLOCK",
+      "formula": "=PROBBLOCK(24,30)",
+      "expected": {
+        "kind": "number",
+        "value": 0.0401206865794176
+      },
+      "excelFormula": "_xlfngnumeric.PROBBLOCK(24,30)",
+      "actual": {
+        "kind": "number",
+        "value": 0.0401206865794176
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "OFFTRAF",
+      "formula": "=OFFTRAF(24,30)",
+      "expected": {
+        "kind": "number",
+        "value": 25.52669303238881
+      },
+      "excelFormula": "_xlfngnumeric.OFFTRAF(24,30)",
+      "actual": {
+        "kind": "number",
+        "value": 25.526693032388813
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 3.552713678800501e-15
+    },
+    {
+      "name": "DIMCIRC",
+      "formula": "=DIMCIRC(24,.01)",
+      "expected": {
+        "kind": "number",
+        "value": 35
+      },
+      "excelFormula": "_xlfngnumeric.DIMCIRC(24,0.01)",
+      "actual": {
+        "kind": "number",
+        "value": 35
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "OFFCAP",
+      "formula": "=OFFCAP(30,.01)",
+      "expected": {
+        "kind": "number",
+        "value": 20.337285728095317
+      },
+      "excelFormula": "_xlfngnumeric.OFFCAP(30,0.01)",
+      "actual": {
+        "kind": "number",
+        "value": 20.337285728095317
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(0.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 1.764
+      },
+      "excelFormula": "_xlfngnumeric.R.DBETA(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 1.7640000000000025
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.4424906541753444e-15
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(2,8,0.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.29647547999999985
+      },
+      "excelFormula": "_xlfngnumeric.R.DBINOM(2,8,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2964754799999996
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(2,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.12732395447351627
+      },
+      "excelFormula": "_xlfngnumeric.R.DCAUCHY(2,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.1273239544735163
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "R.DCHISQ",
+      "formula": "=R.DCHISQ(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.20755374871029736
+      },
+      "excelFormula": "_xlfngnumeric.R.DCHISQ(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.20755374871029839
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.0269562977782698e-15
+    },
+    {
+      "name": "R.DEXP",
+      "formula": "=R.DEXP(2,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.18393972058572117
+      },
+      "excelFormula": "_xlfngnumeric.R.DEXP(2,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.18393972058572114
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(2,3,5)",
+      "expected": {
+        "kind": "number",
+        "value": 0.14289639090753162
+      },
+      "excelFormula": "_xlfngnumeric.R.DF(2,3,5)",
+      "actual": {
+        "kind": "number",
+        "value": 0.14289639090753306
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.4432899320127035e-15
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(2,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.11409269311835378
+      },
+      "excelFormula": "_xlfngnumeric.R.DGAMMA(2,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.1140926931183538
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.3877787807814457e-17
+    },
+    {
+      "name": "R.DGEOM",
+      "formula": "=R.DGEOM(2,0.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.147
+      },
+      "excelFormula": "_xlfngnumeric.R.DGEOM(2,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0.147
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(2,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.16535214944520904
+      },
+      "excelFormula": "_xlfngnumeric.R.DGUMBEL(2,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.16535214944520904
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(2,7,5,4)",
+      "expected": {
+        "kind": "number",
+        "value": 0.4242424242424242
+      },
+      "excelFormula": "_xlfngnumeric.R.DHYPER(2,7,5,4)",
+      "actual": {
+        "kind": "number",
+        "value": 0.42424242424242453
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 3.3306690738754696e-16
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(2,0.5,0.7)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2743150688969158
+      },
+      "excelFormula": "_xlfngnumeric.R.DLNORM(2,0.5,0.69999999999999996)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2743150688969158
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(2,3,0.4)",
+      "expected": {
+        "kind": "number",
+        "value": 0.13824
+      },
+      "excelFormula": "_xlfngnumeric.R.DNBINOM(2,3,0.40000000000000002)",
+      "actual": {
+        "kind": "number",
+        "value": 0.13823999999999997
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(2,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.17603266338214976
+      },
+      "excelFormula": "_xlfngnumeric.R.DNORM(2,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.17603266338214973
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "R.DPOIS",
+      "formula": "=R.DPOIS(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.22404180765538775
+      },
+      "excelFormula": "_xlfngnumeric.R.DPOIS(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.22404180765538728
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 4.718447854656915e-16
+    },
+    {
+      "name": "R.DRAYLEIGH",
+      "formula": "=R.DRAYLEIGH(2,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.30326532985631677
+      },
+      "excelFormula": "_xlfngnumeric.R.DRAYLEIGH(2,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3032653298563167
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 5.551115123125783e-17
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(2,1,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2434399573736822
+      },
+      "excelFormula": "_xlfngnumeric.R.DSNORM(2,1,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.24343995737368215
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 5.551115123125783e-17
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(2,5,1)",
+      "expected": {
+        "kind": "number",
+        "value": 0.12018340878699782
+      },
+      "excelFormula": "_xlfngnumeric.R.DST(2,5,1)",
+      "actual": {
+        "kind": "number",
+        "value": 0.12018340878699829
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 4.718447854656915e-16
+    },
+    {
+      "name": "R.DT",
+      "formula": "=R.DT(2,5)",
+      "expected": {
+        "kind": "number",
+        "value": 0.06509031032621647
+      },
+      "excelFormula": "_xlfngnumeric.R.DT(2,5)",
+      "actual": {
+        "kind": "number",
+        "value": 0.06509031032621672
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.498001805406602e-16
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(2,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.28496906152442425
+      },
+      "excelFormula": "_xlfngnumeric.R.DWEIBULL(2,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2849690615244242
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 5.551115123125783e-17
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.34830000000000005
+      },
+      "excelFormula": "_xlfngnumeric.R.PBETA(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3483000000000004
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 3.3306690738754696e-16
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(2,8,0.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.5517738099999996
+      },
+      "excelFormula": "_xlfngnumeric.R.PBINOM(2,8,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0.5517738100000011
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.5543122344752192e-15
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(2,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6475836176504333
+      },
+      "excelFormula": "_xlfngnumeric.R.PCAUCHY(2,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6475836176504333
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.4275932955291213
+      },
+      "excelFormula": "_xlfngnumeric.R.PCHISQ(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.4275932955291224
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.1102230246251565e-15
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(2,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6321205588285577
+      },
+      "excelFormula": "_xlfngnumeric.R.PEXP(2,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6321205588285577
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(2,3,5)",
+      "expected": {
+        "kind": "number",
+        "value": 0.7673760819999215
+      },
+      "excelFormula": "_xlfngnumeric.R.PF(2,3,5)",
+      "actual": {
+        "kind": "number",
+        "value": 0.7673760819999191
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.3314683517128287e-15
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(2,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.1443048016123466
+      },
+      "excelFormula": "_xlfngnumeric.R.PGAMMA(2,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.14430480161234657
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(2,0.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6569999999999999
+      },
+      "excelFormula": "_xlfngnumeric.R.PGEOM(2,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6569999999999999
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(2,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.545239211892605
+      },
+      "excelFormula": "_xlfngnumeric.R.PGUMBEL(2,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.545239211892605
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(2,7,5,4)",
+      "expected": {
+        "kind": "number",
+        "value": 0.5757575757575757
+      },
+      "excelFormula": "_xlfngnumeric.R.PHYPER(2,7,5,4)",
+      "actual": {
+        "kind": "number",
+        "value": 0.5757575757575766
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 8.881784197001252e-16
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(2,0.5,0.7)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6086969888484494
+      },
+      "excelFormula": "_xlfngnumeric.R.PLNORM(2,0.5,0.69999999999999996)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6086969888484494
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(2,3,0.4)",
+      "expected": {
+        "kind": "number",
+        "value": 0.3174400000000001
+      },
+      "excelFormula": "_xlfngnumeric.R.PNBINOM(2,3,0.40000000000000002)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3174399999999999
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(2,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.691462461274013
+      },
+      "excelFormula": "_xlfngnumeric.R.PNORM(2,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.691462461274013
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.42319008112684353
+      },
+      "excelFormula": "_xlfngnumeric.R.PPOIS(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.423190081126845
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.4432899320127035e-15
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(2,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.3934693402873665
+      },
+      "excelFormula": "_xlfngnumeric.R.PRAYLEIGH(2,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3934693402873666
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 5.551115123125783e-17
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(2,1,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.478120335351116
+      },
+      "excelFormula": "_xlfngnumeric.R.PSNORM(2,1,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.478120335351116
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(2,5,1)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9038096648044902
+      },
+      "excelFormula": "_xlfngnumeric.R.PST(2,5,1)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9038096648044909
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 6.661338147750939e-16
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(2,5)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9490302605850708
+      },
+      "excelFormula": "_xlfngnumeric.R.PT(2,5)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9490302605850708
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(2,3,10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6294553249645048
+      },
+      "excelFormula": "_xlfngnumeric.R.PTUKEY(2,3,10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6294553249645051
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(2,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.3588196115700454
+      },
+      "excelFormula": "_xlfngnumeric.R.PWEIBULL(2,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3588196115700454
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2723839420751053
+      },
+      "excelFormula": "_xlfn.BETA.INV(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2723839420751051
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0.3,8,0.3)",
+      "expected": {
+        "kind": "number",
+        "value": 2
+      },
+      "excelFormula": "_xlfn.BINOM.INV(8,0.29999999999999999,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 2
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0.3,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": -0.4530850560107218
+      },
+      "excelFormula": "_xlfngnumeric.R.QCAUCHY(0.29999999999999999,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": -0.453085056010722
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0.3,3)",
+      "expected": {
+        "kind": "number",
+        "value": 1.4236522430352796
+      },
+      "excelFormula": "_xlfn.CHISQ.INV(0.29999999999999999,3)",
+      "actual": {
+        "kind": "number",
+        "value": 1.4236522430352725
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 7.105427357601002e-15
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0.3,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.7133498878774647
+      },
+      "excelFormula": "_xlfngnumeric.R.QEXP(0.29999999999999999,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.7133498878774646
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.1102230246251565e-16
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0.3,3,5)",
+      "expected": {
+        "kind": "number",
+        "value": 0.4973624578265948
+      },
+      "excelFormula": "_xlfn.F.INV(0.29999999999999999,3,5)",
+      "actual": {
+        "kind": "number",
+        "value": 0.4973624578265896
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 5.162537064506978e-15
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 3.2920476321104744
+      },
+      "excelFormula": "_xlfn.GAMMA.INV(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 3.2920476321104744
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0.3,0.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0
+      },
+      "excelFormula": "_xlfngnumeric.R.QGEOM(0.29999999999999999,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0.3,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6287464822752685
+      },
+      "excelFormula": "_xlfngnumeric.R.QGUMBEL(0.29999999999999999,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6287464822752685
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,7,5,4)",
+      "expected": {
+        "kind": "number",
+        "value": 2
+      },
+      "excelFormula": "_xlfngnumeric.R.QHYPER(0.29999999999999999,7,5,4)",
+      "actual": {
+        "kind": "number",
+        "value": 2
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0.3,0.5,0.7)",
+      "expected": {
+        "kind": "number",
+        "value": 1.1421582120704674
+      },
+      "excelFormula": "_xlfn.LOGNORM.INV(0.29999999999999999,0.5,0.69999999999999996)",
+      "actual": {
+        "kind": "number",
+        "value": 1.1421582120704674
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0.3,3,0.4)",
+      "expected": {
+        "kind": "number",
+        "value": 2
+      },
+      "excelFormula": "_xlfngnumeric.R.QNBINOM(0.29999999999999999,3,0.40000000000000002)",
+      "actual": {
+        "kind": "number",
+        "value": 2
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0.3,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": -0.048801025416081556
+      },
+      "excelFormula": "_xlfn.NORM.INV(0.29999999999999999,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": -0.048801025416081556
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0.3,3)",
+      "expected": {
+        "kind": "number",
+        "value": 2
+      },
+      "excelFormula": "_xlfngnumeric.R.QPOIS(0.29999999999999999,3)",
+      "actual": {
+        "kind": "number",
+        "value": 2
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0.3,2)",
+      "expected": {
+        "kind": "number",
+        "value": 1.689200861801183
+      },
+      "excelFormula": "_xlfngnumeric.R.QRAYLEIGH(0.29999999999999999,2)",
+      "actual": {
+        "kind": "number",
+        "value": 1.6892008618011827
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,1,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 1.2398188835518273
+      },
+      "excelFormula": "_xlfngnumeric.R.QSNORM(0.29999999999999999,1,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 1.2398188835518273
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0.3,5,1)",
+      "expected": {
+        "kind": "number",
+        "value": 0.12554920189593807
+      },
+      "excelFormula": "_xlfngnumeric.R.QST(0.29999999999999999,5,1)",
+      "actual": {
+        "kind": "number",
+        "value": 0.1255492018959381
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0.3,5)",
+      "expected": {
+        "kind": "number",
+        "value": -0.5594296444693608
+      },
+      "excelFormula": "_xlfn.T.INV(0.29999999999999999,5)",
+      "actual": {
+        "kind": "number",
+        "value": -0.5594296444693576
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 3.219646771412954e-15
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0.3,3,10)",
+      "expected": {
+        "kind": "number",
+        "value": 1.1589854329626577
+      },
+      "excelFormula": "_xlfngnumeric.R.QTUKEY(0.29999999999999999,3,10)",
+      "actual": {
+        "kind": "number",
+        "value": 1.1589854329626579
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 1.7916680762486648
+      },
+      "excelFormula": "_xlfngnumeric.R.QWEIBULL(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 1.7916680762486643
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 4.440892098500626e-16
+    },
+    {
+      "name": "ADTEST",
+      "formula": "=ADTEST(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9177231332567096
+      },
+      "excelFormula": "_xlfngnumeric.ADTEST(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9177231332567095
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.1102230246251565e-16
+    },
+    {
+      "name": "AVEDEV",
+      "formula": "=AVEDEV(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 4.5
+      },
+      "excelFormula": "AVEDEV(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 4.5
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "AVERAGE",
+      "formula": "=AVERAGE(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 8.3
+      },
+      "excelFormula": "AVERAGE(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 8.3
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "AVERAGEA",
+      "formula": "=AVERAGEA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 8.3
+      },
+      "excelFormula": "AVERAGEA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 8.3
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "BERNOULLI",
+      "formula": "=BERNOULLI(1,.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.3
+      },
+      "excelFormula": "BERNOULLI(1,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.34830000000000005
+      },
+      "excelFormula": "BETADIST(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3483000000000004
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 3.3306690738754696e-16
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(.3,2,3,FALSE)",
+      "expected": {
+        "kind": "number",
+        "value": 1.764
+      },
+      "excelFormula": "BETA.DIST(0.29999999999999999,2,3,FALSE)",
+      "actual": {
+        "kind": "number",
+        "value": 1.7640000000000025
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.4424906541753444e-15
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2723839420751053
+      },
+      "excelFormula": "_xlfn.BETA.INV(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2723839420751051
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(8,.3,2,4)",
+      "expected": {
+        "kind": "number",
+        "value": 0.68673402
+      },
+      "excelFormula": "_xlfngnumeric.BINOM.DIST.RANGE(8,0.29999999999999999,2,4)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6867340199999981
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.887379141862766e-15
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(2,8,.3,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.5517738099999996
+      },
+      "excelFormula": "_xlfn.BINOM.DIST(2,8,0.29999999999999999,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.5517738100000011
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.5543122344752192e-15
+    },
+    {
+      "name": "CAUCHY",
+      "formula": "=CAUCHY(2,1,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.14758361765043326
+      },
+      "excelFormula": "CAUCHY(2,1,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.14758361765043326
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "CHIDIST",
+      "formula": "=CHIDIST(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.5724067044708787
+      },
+      "excelFormula": "_xlfn.CHISQ.DIST.RT(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.5724067044708776
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.1102230246251565e-15
+    },
+    {
+      "name": "CHIINV",
+      "formula": "=CHIINV(.3,3)",
+      "expected": {
+        "kind": "number",
+        "value": 3.6648707831703176
+      },
+      "excelFormula": "_xlfn.CHISQ.INV.RT(0.29999999999999999,3)",
+      "actual": {
+        "kind": "number",
+        "value": 3.6648707831702882
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.930988785010413e-14
+    },
+    {
+      "name": "CHITEST",
+      "formula": "=CHITEST(A1:A10,B1:B10)",
+      "expected": {
+        "kind": "number",
+        "value": 1.489715260979914e-7
+      },
+      "excelFormula": "_xlfn.CHISQ.TEST(A1:A10,B1:B10)",
+      "actual": {
+        "kind": "number",
+        "value": 1.4897152609799157e-7
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.5881867761018131e-22
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(.05,2,10)",
+      "expected": {
+        "kind": "number",
+        "value": 1.2395900646091231
+      },
+      "excelFormula": "_xlfn.CONFIDENCE.NORM(0.050000000000000003,2,10)",
+      "actual": {
+        "kind": "number",
+        "value": 1.239590064609123
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(.05,2,10)",
+      "expected": {
+        "kind": "number",
+        "value": 1.4307138119413303
+      },
+      "excelFormula": "CONFIDENCE.T(0.050000000000000003,2,10)",
+      "actual": {
+        "kind": "number",
+        "value": 1.43071381194133
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "CORREL",
+      "formula": "=CORREL(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999998
+      },
+      "excelFormula": "CORREL(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9999999999999998
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "COUNT",
+      "formula": "=COUNT(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 10
+      },
+      "excelFormula": "COUNT(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 10
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "COUNTA",
+      "formula": "=COUNTA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 10
+      },
+      "excelFormula": "COUNTA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 10
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "COVAR",
+      "formula": "=COVAR(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 28.009999999999998
+      },
+      "excelFormula": "_xlfn.COVARIANCE.P(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 28.01
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 3.552713678800501e-15
+    },
+    {
+      "name": "COVARIANCE.S",
+      "formula": "=COVARIANCE.S(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 31.12222222222222
+      },
+      "excelFormula": "COVARIANCE.S(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 31.122222222222224
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 3.552713678800501e-15
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(8,.3,.5)",
+      "expected": {
+        "kind": "number",
+        "value": 2
+      },
+      "excelFormula": "CRITBINOM(8,0.29999999999999999,0.5)",
+      "actual": {
+        "kind": "number",
+        "value": 2
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "CRONBACH",
+      "formula": "=CRONBACH(A1:A10,B1:B10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.8888888888888888
+      },
+      "excelFormula": "_xlfngnumeric.CRONBACH(A1:A10,B1:B10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.8888888888888888
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "CVMTEST",
+      "formula": "=CVMTEST(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9474253177130056
+      },
+      "excelFormula": "_xlfngnumeric.CVMTEST(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9474253177130056
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "DEVSQ",
+      "formula": "=DEVSQ(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 280.1
+      },
+      "excelFormula": "DEVSQ(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 280.1
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "EXPONDIST",
+      "formula": "=EXPONDIST(2,.5,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6321205588285577
+      },
+      "excelFormula": "_xlfn.EXPON.DIST(2,0.5,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6321205588285577
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(2,3,1.5)",
+      "expected": {
+        "kind": "number",
+        "value": 0.1071232015839876
+      },
+      "excelFormula": "_xlfngnumeric.EXPPOWDIST(2,3,1.5)",
+      "actual": {
+        "kind": "number",
+        "value": 0.10712320158398758
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.3877787807814457e-17
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(2,3,5)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2326239180000785
+      },
+      "excelFormula": "_xlfn.F.DIST.RT(2,3,5)",
+      "actual": {
+        "kind": "number",
+        "value": 0.23262391800008084
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.3314683517128287e-15
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(.3,3,5)",
+      "expected": {
+        "kind": "number",
+        "value": 1.6045308429008158
+      },
+      "excelFormula": "_xlfn.F.INV.RT(0.29999999999999999,3,5)",
+      "actual": {
+        "kind": "number",
+        "value": 1.6045308429008318
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.5987211554602254e-14
+    },
+    {
+      "name": "FISHER",
+      "formula": "=FISHER(.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.30951960420311175
+      },
+      "excelFormula": "FISHER(0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0.30951960420311175
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "FISHERINV",
+      "formula": "=FISHERINV(.3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2913126124515909
+      },
+      "excelFormula": "FISHERINV(0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2913126124515909
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "FORECAST",
+      "formula": "=FORECAST(20,B1:B10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 41
+      },
+      "excelFormula": "_xlfn.FORECAST.LINEAR(20,B1:B10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 41
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "FREQUENCY",
+      "formula": "=FREQUENCY(A1:A10,{5;10})",
+      "expected": {
+        "kind": "number",
+        "value": 4
+      },
+      "excelFormula": "FREQUENCY(A1:A10,{5;10})",
+      "actual": {
+        "kind": "number",
+        "value": 4
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "FTEST",
+      "formula": "=FTEST(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 1
+      },
+      "excelFormula": "_xlfn.F.TEST(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9999999999999954
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 4.551914400963142e-15
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(2,2,3,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.1443048016123466
+      },
+      "excelFormula": "_xlfn.GAMMA.DIST(2,2,3,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.14430480161234657
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(.3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 3.2920476321104744
+      },
+      "excelFormula": "_xlfn.GAMMA.INV(0.29999999999999999,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 3.2920476321104744
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "GEOMDIST",
+      "formula": "=GEOMDIST(2,.3,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6569999999999999
+      },
+      "excelFormula": "_xlfngnumeric.GEOMDIST(2,0.29999999999999999,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6569999999999999
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "GEOMEAN",
+      "formula": "=GEOMEAN(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 6.182933209444036
+      },
+      "excelFormula": "GEOMEAN(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 6.182933209444037
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 8.881784197001252e-16
+    },
+    {
+      "name": "GROWTH",
+      "formula": "=GROWTH(D1:D10,A1:A10,{20;21})",
+      "expected": {
+        "kind": "number",
+        "value": 1349.2963862598713
+      },
+      "excelFormula": "GROWTH(D1:D10,A1:A10,{20;21})",
+      "actual": {
+        "kind": "number",
+        "value": 1349.2963862598724
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.1368683772161603e-12
+    },
+    {
+      "name": "HARMEAN",
+      "formula": "=HARMEAN(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 3.98481973434535
+      },
+      "excelFormula": "HARMEAN(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 3.984819734345351
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 8.881784197001252e-16
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(2,4,7,12,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.5757575757575757
+      },
+      "excelFormula": "_xlfn.HYPGEOM.DIST(2,4,7,12,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.5757575757575766
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 8.881784197001252e-16
+    },
+    {
+      "name": "INTERCEPT",
+      "formula": "=INTERCEPT(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": -1.870947913170458e-31
+      },
+      "excelFormula": "INTERCEPT(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0
+      },
+      "equal": false,
+      "withinTolerance": false,
+      "structural": true,
+      "absoluteError": 1.870947913170458e-31
+    },
+    {
+      "name": "KURT",
+      "formula": "=KURT(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": -0.7469468741600733
+      },
+      "excelFormula": "KURT(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": -0.7469468741600731
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.220446049250313e-16
+    },
+    {
+      "name": "KURTP",
+      "formula": "=KURTP(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": -0.9679699490198401
+      },
+      "excelFormula": "_xlfngnumeric.KURTP(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": -0.9679699490198406
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 4.440892098500626e-16
+    },
+    {
+      "name": "LANDAU",
+      "formula": "=LANDAU(2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.10491298949080555
+      },
+      "excelFormula": "_xlfngnumeric.LANDAU(2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.10491298949080555
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "LAPLACE",
+      "formula": "=LAPLACE(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.08556951983876533
+      },
+      "excelFormula": "_xlfngnumeric.LAPLACE(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.08556951983876533
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "LARGE",
+      "formula": "=LARGE(A1:A10,3)",
+      "expected": {
+        "kind": "number",
+        "value": 12
+      },
+      "excelFormula": "LARGE(A1:A10,3)",
+      "actual": {
+        "kind": "number",
+        "value": 12
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "LEVERAGE",
+      "formula": "=LEVERAGE(A1:B10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2902534808996787
+      },
+      "excelFormula": "_xlfngnumeric.LEVERAGE(A1:B10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2902534808996784
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-16
+    },
+    {
+      "name": "LINEST",
+      "formula": "=LINEST(B1:B10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 2
+      },
+      "excelFormula": "LINEST(B1:B10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 2
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "LKSTEST",
+      "formula": "=LKSTEST(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9386132348001471
+      },
+      "excelFormula": "_xlfngnumeric.LKSTEST(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9386132348001466
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 5.551115123125783e-16
+    },
+    {
+      "name": "LOGEST",
+      "formula": "=LOGEST(D1:D10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 1.35607469174001
+      },
+      "excelFormula": "LOGEST(D1:D10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 1.35607469174001
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "LOGFIT",
+      "formula": "=LOGFIT(B1:B10,A1:A10)",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "excelFormula": "_xlfngnumeric.LOGFIT(B1:B10,A1:A10)",
+      "actual": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": null
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(.3,.5,.7)",
+      "expected": {
+        "kind": "number",
+        "value": 1.1421582120704674
+      },
+      "excelFormula": "_xlfn.LOGNORM.INV(0.29999999999999999,0.5,0.69999999999999996)",
+      "actual": {
+        "kind": "number",
+        "value": 1.1421582120704674
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "LOGISTIC",
+      "formula": "=LOGISTIC(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.0747191299670762
+      },
+      "excelFormula": "_xlfngnumeric.LOGISTIC(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.07471912996707619
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.3877787807814457e-17
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(2,.5,.7)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6086969888484494
+      },
+      "excelFormula": "LOGNORMDIST(2,0.5,0.69999999999999996)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6086969888484494
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "LOGREG",
+      "formula": "=LOGREG(B1:B10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 11.252446006280502
+      },
+      "excelFormula": "_xlfngnumeric.LOGREG(B1:B10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 11.252446006280502
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "MAX",
+      "formula": "=MAX(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 18
+      },
+      "excelFormula": "MAX(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 18
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "MAXA",
+      "formula": "=MAXA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 18
+      },
+      "excelFormula": "MAXA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 18
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "MEDIAN",
+      "formula": "=MEDIAN(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 8
+      },
+      "excelFormula": "MEDIAN(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 8
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "MIN",
+      "formula": "=MIN(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 1
+      },
+      "excelFormula": "MIN(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 1
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "MINA",
+      "formula": "=MINA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 1
+      },
+      "excelFormula": "MINA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 1
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "MODE",
+      "formula": "=MODE(1,1,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 1
+      },
+      "excelFormula": "_xlfn.MODE.SNGL(1,1,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 1
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "MODE.MULT",
+      "formula": "=MODE.MULT(1,1,2,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 1
+      },
+      "excelFormula": "MODE.MULT(1,1,2,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 1
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(2,3,.4)",
+      "expected": {
+        "kind": "number",
+        "value": 0.13824
+      },
+      "excelFormula": "NEGBINOMDIST(2,3,0.40000000000000002)",
+      "actual": {
+        "kind": "number",
+        "value": 0.13823999999999997
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(2,1,2,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.691462461274013
+      },
+      "excelFormula": "_xlfn.NORM.DIST(2,1,2,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.691462461274013
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(.3,1,2)",
+      "expected": {
+        "kind": "number",
+        "value": -0.048801025416081556
+      },
+      "excelFormula": "_xlfn.NORM.INV(0.29999999999999999,1,2)",
+      "actual": {
+        "kind": "number",
+        "value": -0.048801025416081556
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "NORMSDIST",
+      "formula": "=NORMSDIST(2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9772498680518208
+      },
+      "excelFormula": "NORMSDIST(2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9772498680518208
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "SNORM.DIST.RANGE",
+      "formula": "=SNORM.DIST.RANGE(8,9)",
+      "expected": {
+        "kind": "number",
+        "value": 6.219831985865831e-16
+      },
+      "excelFormula": "_xlfngnumeric.SNORM.DIST.RANGE(8,9)",
+      "actual": {
+        "kind": "number",
+        "value": 6.219831985865831e-16
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "NORMSINV",
+      "formula": "=NORMSINV(.3)",
+      "expected": {
+        "kind": "number",
+        "value": -0.5244005127080408
+      },
+      "excelFormula": "_xlfn.NORM.S.INV(0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": -0.5244005127080408
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "OWENT",
+      "formula": "=OWENT(1,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.0784681869930841
+      },
+      "excelFormula": "_xlfngnumeric.OWENT(1,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.0784681869930841
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(4,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.28125000000000006
+      },
+      "excelFormula": "_xlfngnumeric.PARETO(4,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.28125
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 5.551115123125783e-17
+    },
+    {
+      "name": "PEARSON",
+      "formula": "=PEARSON(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999998
+      },
+      "excelFormula": "PEARSON(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9999999999999998
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PERCENTILE",
+      "formula": "=PERCENTILE(A1:A10,.3)",
+      "expected": {
+        "kind": "number",
+        "value": 4.699999999999999
+      },
+      "excelFormula": "_xlfn.PERCENTILE.INC(A1:A10,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 4.699999999999999
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PERCENTILE.EXC",
+      "formula": "=PERCENTILE.EXC(A1:A10,.3)",
+      "expected": {
+        "kind": "number",
+        "value": 4.3
+      },
+      "excelFormula": "PERCENTILE.EXC(A1:A10,0.29999999999999999)",
+      "actual": {
+        "kind": "number",
+        "value": 4.3
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PERCENTRANK",
+      "formula": "=PERCENTRANK(A1:A10,8)",
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      },
+      "excelFormula": "_xlfn.PERCENTRANK.INC(A1:A10,8)",
+      "actual": {
+        "kind": "number",
+        "value": 0.5
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PERCENTRANK.EXC",
+      "formula": "=PERCENTRANK.EXC(A1:A10,8)",
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      },
+      "excelFormula": "PERCENTRANK.EXC(A1:A10,8)",
+      "actual": {
+        "kind": "number",
+        "value": 0.5
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PERMUT",
+      "formula": "=PERMUT(8,3)",
+      "expected": {
+        "kind": "number",
+        "value": 336
+      },
+      "excelFormula": "PERMUT(8,3)",
+      "actual": {
+        "kind": "number",
+        "value": 336
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PERMUTATIONA",
+      "formula": "=PERMUTATIONA(8,3)",
+      "expected": {
+        "kind": "number",
+        "value": 512
+      },
+      "excelFormula": "PERMUTATIONA(8,3)",
+      "actual": {
+        "kind": "number",
+        "value": 512
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "POISSON",
+      "formula": "=POISSON(2,3,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.42319008112684353
+      },
+      "excelFormula": "_xlfn.POISSON.DIST(2,3,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.423190081126845
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.4432899320127035e-15
+    },
+    {
+      "name": "PROB",
+      "formula": "=PROB(A1:A10,{.1;.1;.1;.1;.1;.1;.1;.1;.1;.1},2,10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.6
+      },
+      "excelFormula": "PROB(A1:A10,{0.10000000000000001;0.10000000000000001;0.10000000000000001;0.10000000000000001;0.10000000000000001;0.10000000000000001;0.10000000000000001;0.10000000000000001;0.10000000000000001;0.10000000000000001},2,10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.6000000000000001
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.1102230246251565e-16
+    },
+    {
+      "name": "QUARTILE",
+      "formula": "=QUARTILE(A1:A10,1)",
+      "expected": {
+        "kind": "number",
+        "value": 4.25
+      },
+      "excelFormula": "_xlfn.QUARTILE.INC(A1:A10,1)",
+      "actual": {
+        "kind": "number",
+        "value": 4.25
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "QUARTILE.EXC",
+      "formula": "=QUARTILE.EXC(A1:A10,1)",
+      "expected": {
+        "kind": "number",
+        "value": 3.5
+      },
+      "excelFormula": "QUARTILE.EXC(A1:A10,1)",
+      "actual": {
+        "kind": "number",
+        "value": 3.5
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "RANK",
+      "formula": "=RANK(8,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 6
+      },
+      "excelFormula": "_xlfn.RANK.EQ(8,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 6
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "RANK.AVG",
+      "formula": "=RANK.AVG(8,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 6
+      },
+      "excelFormula": "RANK.AVG(8,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 6
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "RAYLEIGH",
+      "formula": "=RAYLEIGH(2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.17794164509262403
+      },
+      "excelFormula": "_xlfngnumeric.RAYLEIGH(2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.17794164509262406
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 2.7755575615628914e-17
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(3,2,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.2524883761323221
+      },
+      "excelFormula": "_xlfngnumeric.RAYLEIGHTAIL(3,2,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.2524883761323221
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "RSQ",
+      "formula": "=RSQ(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999996
+      },
+      "excelFormula": "RSQ(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 1
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 4.440892098500626e-16
+    },
+    {
+      "name": "SFTEST",
+      "formula": "=SFTEST(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.9517023473718703
+      },
+      "excelFormula": "_xlfngnumeric.SFTEST(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.9517023473718703
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "SKEW",
+      "formula": "=SKEW(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.41008519877685556
+      },
+      "excelFormula": "SKEW(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.41008519877685573
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.6653345369377348e-16
+    },
+    {
+      "name": "SKEWP",
+      "formula": "=SKEWP(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.3458142034287359
+      },
+      "excelFormula": "_xlfn.SKEW.P(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.34581420342873603
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.1102230246251565e-16
+    },
+    {
+      "name": "SLOPE",
+      "formula": "=SLOPE(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 1
+      },
+      "excelFormula": "SLOPE(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 1
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "SMALL",
+      "formula": "=SMALL(A1:A10,3)",
+      "expected": {
+        "kind": "number",
+        "value": 4
+      },
+      "excelFormula": "SMALL(A1:A10,3)",
+      "actual": {
+        "kind": "number",
+        "value": 4
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "SSMEDIAN",
+      "formula": "=SSMEDIAN(A1:A10,1)",
+      "expected": {
+        "kind": "number",
+        "value": 8
+      },
+      "excelFormula": "_xlfngnumeric.SSMEDIAN(A1:A10,1)",
+      "actual": {
+        "kind": "number",
+        "value": 8
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(2,1,3)",
+      "expected": {
+        "kind": "number",
+        "value": 0.3333333333333333
+      },
+      "excelFormula": "STANDARDIZE(2,1,3)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3333333333333333
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "STDEV",
+      "formula": "=STDEV(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 5.578729445153459
+      },
+      "excelFormula": "_xlfn.STDEV.S(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 5.578729445153459
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "STDEVA",
+      "formula": "=STDEVA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 5.578729445153459
+      },
+      "excelFormula": "STDEVA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 5.578729445153459
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "STDEVP",
+      "formula": "=STDEVP(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 5.292447448959697
+      },
+      "excelFormula": "_xlfn.STDEV.P(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 5.292447448959697
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "STDEVPA",
+      "formula": "=STDEVPA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 5.292447448959697
+      },
+      "excelFormula": "STDEVPA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 5.292447448959697
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "STEYX",
+      "formula": "=STEYX(A1:A10,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 2.091783358105259e-31
+      },
+      "excelFormula": "STEYX(A1:A10,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0
+      },
+      "equal": false,
+      "withinTolerance": false,
+      "structural": true,
+      "absoluteError": 2.091783358105259e-31
+    },
+    {
+      "name": "SUBTOTAL",
+      "formula": "=SUBTOTAL(9,A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 83
+      },
+      "excelFormula": "SUBTOTAL(9,A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 83
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(2,5,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.10193947882985839
+      },
+      "excelFormula": "TDIST(2,5,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.10193947882985839
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "TINV",
+      "formula": "=TINV(.3,5)",
+      "expected": {
+        "kind": "number",
+        "value": 1.1557673428942932
+      },
+      "excelFormula": "_xlfn.T.INV.2T(0.29999999999999999,5)",
+      "actual": {
+        "kind": "number",
+        "value": 1.1557673428942832
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 9.992007221626409e-15
+    },
+    {
+      "name": "TREND",
+      "formula": "=TREND(B1:B10,A1:A10,{20;21})",
+      "expected": {
+        "kind": "number",
+        "value": 41
+      },
+      "excelFormula": "TREND(B1:B10,A1:A10,{20;21})",
+      "actual": {
+        "kind": "number",
+        "value": 41
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "TRIMMEAN",
+      "formula": "=TRIMMEAN(A1:A10,.2)",
+      "expected": {
+        "kind": "number",
+        "value": 8
+      },
+      "excelFormula": "TRIMMEAN(A1:A10,0.20000000000000001)",
+      "actual": {
+        "kind": "number",
+        "value": 8
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "TTEST",
+      "formula": "=TTEST(A1:A10,B1:B10,2,2)",
+      "expected": {
+        "kind": "number",
+        "value": 0.029915679649855066
+      },
+      "excelFormula": "_xlfn.T.TEST(A1:A10,B1:B10,2,2)",
+      "actual": {
+        "kind": "number",
+        "value": 0.029915679649855056
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 1.0408340855860843e-17
+    },
+    {
+      "name": "VAR",
+      "formula": "=VAR(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 31.122222222222224
+      },
+      "excelFormula": "_xlfn.VAR.S(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 31.122222222222224
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "VARA",
+      "formula": "=VARA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 31.122222222222224
+      },
+      "excelFormula": "VARA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 31.122222222222224
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "VARP",
+      "formula": "=VARP(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 28.01
+      },
+      "excelFormula": "_xlfn.VAR.P(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 28.01
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "VARPA",
+      "formula": "=VARPA(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 28.01
+      },
+      "excelFormula": "VARPA(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 28.01
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(2,2,3,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.3588196115700454
+      },
+      "excelFormula": "_xlfn.WEIBULL.DIST(2,2,3,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 0.3588196115700454
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "ZTEST",
+      "formula": "=ZTEST(A1:A10,8)",
+      "expected": {
+        "kind": "number",
+        "value": 0.4324839726763935
+      },
+      "excelFormula": "_xlfn.Z.TEST(A1:A10,8)",
+      "actual": {
+        "kind": "number",
+        "value": 0.4324839726763935
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "INTERPOLATION",
+      "formula": "=INTERPOLATION(A1:A10,B1:B10,8)",
+      "expected": {
+        "kind": "number",
+        "value": 17
+      },
+      "excelFormula": "INTERPOLATION(A1:A10,B1:B10,8)",
+      "actual": {
+        "kind": "number",
+        "value": 17
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "PERIODOGRAM",
+      "formula": "=PERIODOGRAM(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 5.1875
+      },
+      "excelFormula": "PERIODOGRAM(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 5.1875
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "FOURIER",
+      "formula": "=FOURIER(A1:A10,FALSE,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": 5.1875
+      },
+      "excelFormula": "FOURIER(A1:A10,FALSE,TRUE)",
+      "actual": {
+        "kind": "number",
+        "value": 5.1875
+      },
+      "equal": true,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 0
+    },
+    {
+      "name": "HPFILTER",
+      "formula": "=HPFILTER(A1:A10)",
+      "expected": {
+        "kind": "number",
+        "value": 0.10224842649912232
+      },
+      "excelFormula": "HPFILTER(A1:A10)",
+      "actual": {
+        "kind": "number",
+        "value": 0.10224842649991661
+      },
+      "equal": false,
+      "withinTolerance": true,
+      "structural": true,
+      "absoluteError": 7.942951851802604e-13
+    }
+  ],
+  "summary": {
+    "total": 178,
+    "exactCaseEquality": 100,
+    "toleranceCaseEquality": 176,
+    "mismatches": 2
+  },
+  "exactWholeDomainParityClaim": false
+}

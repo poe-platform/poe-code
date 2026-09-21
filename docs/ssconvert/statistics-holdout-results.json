@@ -1,0 +1,69 @@
+{
+  "cases": [
+    {
+      "formula": "=R.PSNORM(-10,1,0,1,TRUE,FALSE)",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      },
+      "actual": {
+        "kind": "number",
+        "value": 0
+      },
+      "exact": true
+    },
+    {
+      "formula": "=R.PSNORM(-10,1,0,1,TRUE,TRUE)",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "actual": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exact": true
+    },
+    {
+      "formula": "=R.PST(-20,10,3,TRUE,FALSE)",
+      "expected": {
+        "kind": "number",
+        "value": 9.172350379227368e-16
+      },
+      "actual": {
+        "kind": "number",
+        "value": 9.172350379227368e-16
+      },
+      "exact": true
+    },
+    {
+      "formula": "=R.PNORM(40,0,1,FALSE,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": -804.6084420137538
+      },
+      "actual": {
+        "kind": "number",
+        "value": -804.6084420137538
+      },
+      "exact": true
+    },
+    {
+      "formula": "=R.QNORM(-1000,0,1,TRUE,TRUE)",
+      "expected": {
+        "kind": "number",
+        "value": -44.615747731966614
+      },
+      "actual": {
+        "kind": "number",
+        "value": -44.615747731966614
+      },
+      "exact": true
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "exact": 5
+  },
+  "wholeDomainParityClaim": false
+}

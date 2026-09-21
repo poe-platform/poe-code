@@ -1,0 +1,302 @@
+{
+  "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "sourceSha256": {
+    "packages/ssconvert/src/codecs/gnumeric.ts": "9134a34368942d127c4ee75111dcb3ff3814e771cbdbc81bb0380c6cb1059bc4",
+    "packages/ssconvert/src/codecs/gnumeric-schema.ts": "c31b55cb17e67e1496ffbeb3d1ce48cf87c3dae3a468d0c92f1dce7168bc4de4",
+    "packages/ssconvert/src/codecs/gnumeric-number.ts": "1d934c7f2ea2c654a3cf71cbd665ef6d8617e06b807c72faf21b173e69a92d99",
+    "packages/ssconvert/src/codecs/gnumeric.test.ts": "ee09c05bd22013fdaabbbb03d0eb50e2880096cfb8dbccd9a1c85a60e609925e",
+    "packages/ssconvert/src/codecs/gnumeric-independent.test.ts": "be3b2747a6b4509e2d06c54d0e775f26213b00d01dfc83dc324dcc6c7a263fbb",
+    "packages/ssconvert/src/codecs/providers/xml.ts": "19d1f04fa382554e1dedbfc3d232433bb80dca3a7fdb213ba2048b609647f32f",
+    "packages/safe-bash/tests/commands/ssconvert.test.ts": "e190b94d55c610b2941aedc17c5de31ac12eeeb102b0e506a02c1e097884e547",
+    "packages/ssconvert/src/formulas/functions/numeric-arithmetic.ts": "f222df962ce910644e5f3d960e7f9dfb93153df6e2d2b4a7d1903d3536378460",
+    "packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts": "57e5aa291a33b9f8cb8a35f31849a40d15fadaeed94fd2ac6d1d7f498f704718"
+  },
+  "checks": [
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert --no-cache",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test --workspace=@poe-code/ssconvert -- --no-cache",
+      "exitCode": 0,
+      "filesPassed": 143,
+      "testsPassed": 3961
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0
+    },
+    {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts packages/safe-bash/tests/commands/ssconvert-encoding.test.ts packages/safe-bash/tests/commands/ssconvert-text.test.ts",
+      "exitCode": 0,
+      "testsPassed": 49
+    },
+    {
+      "command": "node --test packages/safe-bash/scripts/integration-inputs.test.mjs",
+      "exitCode": 0,
+      "testsPassed": 120
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test -- --no-cache",
+      "exitCode": 0,
+      "lifecycle": "Declared workspace builds and native npm pre/unit/post hooks completed; root posttest test:stress:lint passed 2 tests."
+    }
+  ],
+  "screenshot": "Actual virtual ssconvert --list-exporters captured through maintained screenshot command and inspected; both Gnumeric exporter descriptions visible.",
+  "independentReview": "Independent stress/fix agent reviewed final cleanup, namespace, date, and Zoom precision repairs; final focused codec suites pass 50/50. Final Zoom review made no edits.",
+  "limits": "Scope-qualified verification only. See gnumeric-xml-verification.md for remaining mismatches. No unsupported/unmeasured case counted as a pass.",
+  "delivery": {
+    "localCommit": false,
+    "pushed": false,
+    "published": false
+  },
+  "validatedTestTimeoutRepair": {
+    "evidence": "gnumeric-unit-timeout-repair.json",
+    "change": "Realm-private scratch storage and exact zero fast paths eliminate numeric primitive allocations without changing exact results or work ticks. No timeout or assertion changed."
+  },
+  "rootProgress": {
+    "status": "completed exit 0 including root posttest",
+    "safeBash": {
+      "discoveredActiveFiles": 1337,
+      "reportedTests": 44930,
+      "passed": 44097,
+      "failed": 0,
+      "skipped": 831,
+      "todo": 2,
+      "cancelled": 0
+    },
+    "optionalComparator": "just-bash plugin-diff-patch-roundtrip unavailable/pending; not counted as a pass",
+    "safeJS": {
+      "filesPassed": 1467,
+      "filesSkipped": 3,
+      "testsPassed": 31121,
+      "testsSkipped": 48
+    },
+    "safePython": {
+      "filesPassed": 1153,
+      "testsPassed": 84610
+    }
+  },
+  "maintainedRootRunnerReceipt": {
+    "workspaces": 85,
+    "builds": 33,
+    "tests": 53,
+    "concurrency": 1,
+    "cache": "UNCACHED",
+    "excluded": [],
+    "noTest": [
+      {
+        "name": "@poe-code/agent-defs",
+        "path": "packages/agent-defs",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/agent-eval",
+        "path": "packages/agent-eval",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/agent-human-in-loop",
+        "path": "packages/agent-human-in-loop",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/agent-mcp-config",
+        "path": "packages/agent-mcp-config",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/agent-skill-config",
+        "path": "packages/agent-skill-config",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "auth-store",
+        "path": "packages/auth-store",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/cached-resource",
+        "path": "packages/cached-resource",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/config-extends",
+        "path": "packages/config-extends",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/config-mutations",
+        "path": "packages/config-mutations",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/e2e-test-runner",
+        "path": "packages/e2e-test-runner",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "mcp-oauth",
+        "path": "packages/mcp-oauth",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/pipeline",
+        "path": "packages/pipeline",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/plan-browser",
+        "path": "packages/plan-browser",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/poe-acp-client",
+        "path": "packages/poe-acp-client",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/poe-agent",
+        "path": "packages/poe-agent",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/poe-code-config",
+        "path": "packages/poe-code-config",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "poe-oauth",
+        "path": "packages/poe-oauth",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/providers",
+        "path": "packages/providers",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/safe-fs",
+        "path": "packages/safe-fs",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/terminal-name",
+        "path": "packages/terminal-name",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "terminal-pilot-mcp",
+        "path": "packages/terminal-pilot-mcp",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "terminal-png",
+        "path": "packages/terminal-png",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "terminal-png-mcp",
+        "path": "packages/terminal-png-mcp",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "tiny-http-mcp-oauth-test-server",
+        "path": "packages/tiny-http-mcp-oauth-test-server",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "tiny-http-mcp-server",
+        "path": "packages/tiny-http-mcp-server",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "tiny-mcp-client",
+        "path": "packages/tiny-mcp-client",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "tiny-oauth-test-server",
+        "path": "packages/tiny-oauth-test-server",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "tiny-stdio-mcp-server",
+        "path": "packages/tiny-stdio-mcp-server",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "tiny-stdio-mcp-test-server",
+        "path": "packages/tiny-stdio-mcp-test-server",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "tokenfill",
+        "path": "packages/tokenfill",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "toolcraft-design",
+        "path": "packages/toolcraft-design",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/user-error",
+        "path": "packages/user-error",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      },
+      {
+        "name": "@poe-code/worktree",
+        "path": "packages/worktree",
+        "status": "NO_DECLARED_TEST_NOT_A_PASS"
+      }
+    ],
+    "noBuild": [],
+    "manifestless": [
+      "packages/braintrust",
+      "packages/safe-bash-optional"
+    ]
+  },
+  "verificationOrder": "Broad run overlapped final repairs. Final scoped uncached package build/test, lint and rebuilt public-engine integration cover the final source hashes; the broad run also completed ssconvert 143 files/3961 tests after those repairs.",
+  "logReceipts": {
+    "final-current-build.log": {
+      "sha256": "ab82ac5582c3262bded867843f6e917f21132b8aa9ec58377fa5a60751ed3d03",
+      "bytes": 624,
+      "exitCode": 0
+    },
+    "final-current-test.log": {
+      "sha256": "310122ea2b219e22d363493ae98d9245debef13e6470156ec333e84587f21791",
+      "bytes": 11730,
+      "exitCode": 0
+    },
+    "final-current-lint.log": {
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "bytes": 132,
+      "exitCode": 0
+    },
+    "final-current-integration.log": {
+      "sha256": "07a6d75770cd5290b43a1d53cdc486a2c01556ed4bf722950e69eac5bdf4464a",
+      "bytes": 11426,
+      "exitCode": 0
+    },
+    "final-current-cross-build.log": {
+      "sha256": "6a3c60aaffddca3ed500353ef629f5cc87459f35e91d73250f8ed944fb4680dd",
+      "bytes": 2354,
+      "exitCode": 0
+    },
+    "final-root-test.log": {
+      "sha256": "568e3227db58eeb7f92c574f8ee9c6a0ae788b636f6aaac609b39b53b62c585b",
+      "bytes": 1000808,
+      "exitCode": 0
+    }
+  },
+  "scratchCleanup": "Task-owned out/gnumeric-xml-codecs and out/gnumeric-xml-independent removed after reduction into maintained evidence. Existing source archives, dependency sources, oracle binaries and container preserved."
+}

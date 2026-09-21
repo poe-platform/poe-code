@@ -1,0 +1,636 @@
+{
+  "kind": "ssconvert-format-provider-coverage",
+  "target": "Gnumeric 1.12.61",
+  "sourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "referenceProfile": "reference-profile.json",
+  "referenceProfileSha256": "111b2a50a5df70f73734f536660a74317a193ff8c026823156918fcfc6402fdc",
+  "status": "registry logic verified; full format parity blocked",
+  "installedBuiltinServices": 0,
+  "fullParityComplete": false,
+  "services": [
+    {
+      "id": "Gnumeric_Excel:excel",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:excel_biff7",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:excel_biff8",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:excel_dsf",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:excel_enc",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:excel_xml",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:xlsx",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:xlsx",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_Excel:xlsx2",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_GnomeGlossary:po",
+      "direction": "write",
+      "source": "plugins/gnome-glossary/plugin.xml.in",
+      "referenceAvailability": "disabled-or-unavailable-by-build",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_OpenCalc:odf",
+      "direction": "write",
+      "source": "plugins/openoffice/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_OpenCalc:openoffice",
+      "direction": "read",
+      "source": "plugins/openoffice/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_OpenCalc:openoffice",
+      "direction": "write",
+      "source": "plugins/openoffice/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_QPro:qpro",
+      "direction": "read",
+      "source": "plugins/qpro/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_XmlIO:sax",
+      "direction": "read",
+      "source": "src/xml-sax-read.c:3901",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_XmlIO:sax",
+      "direction": "write",
+      "source": "src/xml-sax-write.c",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_XmlIO:sax:0",
+      "direction": "write",
+      "source": "src/xml-sax-write.c",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_applix:applix",
+      "direction": "read",
+      "source": "plugins/applix/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_dif:dif",
+      "direction": "read",
+      "source": "plugins/dif/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_dif:dif",
+      "direction": "write",
+      "source": "plugins/dif/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_glpk:glpk",
+      "direction": "write",
+      "source": "plugins/glpk/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:html",
+      "direction": "read",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:html32",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:html40",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:html40frag",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:latex",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:latex_table",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:latex_table_visible",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:roff",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:xhtml",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_html:xhtml_range",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_lotus:lotus",
+      "direction": "read",
+      "source": "plugins/lotus-123/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_lpsolve:lpsolve",
+      "direction": "write",
+      "source": "plugins/lpsolve/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_mps:mps",
+      "direction": "read",
+      "source": "plugins/mps/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_oleo:oleo",
+      "direction": "read",
+      "source": "plugins/oleo/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_paradox:paradox",
+      "direction": "read",
+      "source": "plugins/paradox/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_paradox:paradox",
+      "direction": "write",
+      "source": "plugins/paradox/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_pdf:pdf_assistant",
+      "direction": "write",
+      "source": "src/print-info.c:1074",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_plan_perfect:pln",
+      "direction": "read",
+      "source": "plugins/plan-perfect/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_psiconv:psiconv",
+      "direction": "read",
+      "source": "plugins/psiconv/plugin.xml.in",
+      "referenceAvailability": "disabled-or-unavailable-by-build",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_sc:sc",
+      "direction": "read",
+      "source": "plugins/sc/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_stf:stf_assistant",
+      "direction": "read",
+      "source": "src/stf.c",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_stf:stf_assistant",
+      "direction": "write",
+      "source": "src/stf-export.c:774",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_stf:stf_csv",
+      "direction": "write",
+      "source": "src/stf.c",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_stf:stf_csvtab",
+      "direction": "read",
+      "source": "src/stf.c",
+      "referenceAvailability": "registered-core",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_sylk:sylk",
+      "direction": "read",
+      "source": "plugins/sylk/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_sylk:sylk",
+      "direction": "write",
+      "source": "plugins/sylk/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    },
+    {
+      "id": "Gnumeric_xbase:xbase",
+      "direction": "read",
+      "source": "plugins/xbase/plugin.xml.in",
+      "referenceAvailability": "activated-primary",
+      "installed": false,
+      "implementation": "unimplemented",
+      "formatQualification": "not-measured",
+      "blockers": [
+        "B-product-not-implemented",
+        "B-format-record-semantics"
+      ]
+    }
+  ]
+}

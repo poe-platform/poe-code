@@ -1,0 +1,2183 @@
+{
+  "id": "date-finance-gnumeric-1.12.61-20260919",
+  "version": "1.12.61",
+  "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "gofficeVersion": "0.10.61",
+  "gofficeArchiveSha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15",
+  "platform": "Debian trixie arm64 isolated Docker oracle",
+  "configure": [
+    "--disable-introspection",
+    "--disable-component",
+    "--without-python"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "GSETTINGS_BACKEND": "memory",
+    "GSETTINGS_SCHEMA_DIR": "/out/prefix/share/glib-2.0/schemas",
+    "HOME": "/out/qa-home",
+    "XDG_CONFIG_HOME": "/out/qa-config",
+    "XDG_DATA_HOME": "/out/qa-data",
+    "XDG_CACHE_HOME": "/out/qa-cache",
+    "LD_LIBRARY_PATH": "/out/prefix/lib"
+  },
+  "versionCommand": "/out/prefix/bin/ssconvert --version",
+  "versionOutput": "ssconvert version 1.12.61",
+  "capturedRuntime": [
+    "c4a0bb36004f427e69625691bb3b9886a976cd38c38a528ad9db5ed03289e72a  /out/prefix/bin/ssconvert",
+    "\tlinux-vdso.so.1 (0x0000f8a8fdd3f000)",
+    "\tlibspreadsheet-1.12.61.so => /out/prefix/lib/libspreadsheet-1.12.61.so (0x0000f8a8fd780000)",
+    "\tlibgoffice-0.10.so.10 => /out/prefix/lib/libgoffice-0.10.so.10 (0x0000f8a8fd590000)",
+    "\tlibgsf-1.so.114 => /lib/aarch64-linux-gnu/libgsf-1.so.114 (0x0000f8a8fd520000)",
+    "\tlibgtk-3.so.0 => /lib/aarch64-linux-gnu/libgtk-3.so.0 (0x0000f8a8fccc0000)",
+    "\tlibgobject-2.0.so.0 => /lib/aarch64-linux-gnu/libgobject-2.0.so.0 (0x0000f8a8fcc30000)",
+    "\tlibglib-2.0.so.0 => /lib/aarch64-linux-gnu/libglib-2.0.so.0 (0x0000f8a8fcaa0000)",
+    "\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000f8a8fc8e0000)",
+    "\tlibxml2.so.2 => /lib/aarch64-linux-gnu/libxml2.so.2 (0x0000f8a8fc710000)",
+    "\tlibgmodule-2.0.so.0 => /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 (0x0000f8a8fc6e0000)",
+    "\tlibgdk-3.so.0 => /lib/aarch64-linux-gnu/libgdk-3.so.0 (0x0000f8a8fc5b0000)",
+    "\tlibpangocairo-1.0.so.0 => /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0 (0x0000f8a8fc580000)",
+    "\tlibpango-1.0.so.0 => /lib/aarch64-linux-gnu/libpango-1.0.so.0 (0x0000f8a8fc4f0000)",
+    "\tlibatk-1.0.so.0 => /lib/aarch64-linux-gnu/libatk-1.0.so.0 (0x0000f8a8fc4a0000)",
+    "\tlibcairo.so.2 => /lib/aarch64-linux-gnu/libcairo.so.2 (0x0000f8a8fc340000)",
+    "\tlibgdk_pixbuf-2.0.so.0 => /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x0000f8a8fc2f0000)",
+    "\tlibgio-2.0.so.0 => /lib/aarch64-linux-gnu/libgio-2.0.so.0 (0x0000f8a8fc0c0000)",
+    "\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000f8a8fc010000)",
+    "\tlibxslt.so.1 => /lib/aarch64-linux-gnu/libxslt.so.1 (0x0000f8a8fbfb0000)",
+    "\tlibrsvg-2.so.2 => /lib/aarch64-linux-gnu/librsvg-2.so.2 (0x0000f8a8fba40000)",
+    "\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000f8a8fba00000)",
+    "\tlibbz2.so.1.0 => /lib/aarch64-linux-gnu/libbz2.so.1.0 (0x0000f8a8fb9d0000)",
+    "\t/lib/ld-linux-aarch64.so.1 (0x0000f8a8fdcf0000)",
+    "\tlibharfbuzz.so.0 => /lib/aarch64-linux-gnu/libharfbuzz.so.0 (0x0000f8a8fb870000)",
+    "\tlibpangoft2-1.0.so.0 => /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0 (0x0000f8a8fb830000)",
+    "\tlibfontconfig.so.1 => /lib/aarch64-linux-gnu/libfontconfig.so.1 (0x0000f8a8fb7c0000)",
+    "\tlibfribidi.so.0 => /lib/aarch64-linux-gnu/libfribidi.so.0 (0x0000f8a8fb780000)",
+    "\tlibcairo-gobject.so.2 => /lib/aarch64-linux-gnu/libcairo-gobject.so.2 (0x0000f8a8fb750000)",
+    "\tlibepoxy.so.0 => /lib/aarch64-linux-gnu/libepoxy.so.0 (0x0000f8a8fb5e0000)",
+    "\tlibXi.so.6 => /lib/aarch64-linux-gnu/libXi.so.6 (0x0000f8a8fb5b0000)",
+    "\tlibX11.so.6 => /lib/aarch64-linux-gnu/libX11.so.6 (0x0000f8a8fb440000)",
+    "\tlibatk-bridge-2.0.so.0 => /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0 (0x0000f8a8fb3e0000)",
+    "\tlibcloudproviders.so.0 => /lib/aarch64-linux-gnu/libcloudproviders.so.0 (0x0000f8a8fb3a0000)",
+    "\tlibXfixes.so.3 => /lib/aarch64-linux-gnu/libXfixes.so.3 (0x0000f8a8fb370000)",
+    "\tlibffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000f8a8fb340000)",
+    "\tlibatomic.so.1 => /lib/aarch64-linux-gnu/libatomic.so.1 (0x0000f8a8fb310000)",
+    "\tlibpcre2-8.so.0 => /lib/aarch64-linux-gnu/libpcre2-8.so.0 (0x0000f8a8fb250000)",
+    "\tliblzma.so.5 => /lib/aarch64-linux-gnu/liblzma.so.5 (0x0000f8a8fb200000)",
+    "\tlibxkbcommon.so.0 => /lib/aarch64-linux-gnu/libxkbcommon.so.0 (0x0000f8a8fb190000)",
+    "\tlibwayland-client.so.0 => /lib/aarch64-linux-gnu/libwayland-client.so.0 (0x0000f8a8fb160000)",
+    "\tlibwayland-cursor.so.0 => /lib/aarch64-linux-gnu/libwayland-cursor.so.0 (0x0000f8a8fb130000)",
+    "\tlibwayland-egl.so.1 => /lib/aarch64-linux-gnu/libwayland-egl.so.1 (0x0000f8a8fb100000)",
+    "\tlibXext.so.6 => /lib/aarch64-linux-gnu/libXext.so.6 (0x0000f8a8fb0c0000)",
+    "\tlibXcursor.so.1 => /lib/aarch64-linux-gnu/libXcursor.so.1 (0x0000f8a8fb090000)",
+    "\tlibXdamage.so.1 => /lib/aarch64-linux-gnu/libXdamage.so.1 (0x0000f8a8fb060000)",
+    "\tlibXcomposite.so.1 => /lib/aarch64-linux-gnu/libXcomposite.so.1 (0x0000f8a8fb030000)",
+    "\tlibXrandr.so.2 => /lib/aarch64-linux-gnu/libXrandr.so.2 (0x0000f8a8fb000000)",
+    "\tlibXinerama.so.1 => /lib/aarch64-linux-gnu/libXinerama.so.1 (0x0000f8a8fafd0000)",
+    "\tlibthai.so.0 => /lib/aarch64-linux-gnu/libthai.so.0 (0x0000f8a8fafa0000)",
+    "\tlibpng16.so.16 => /lib/aarch64-linux-gnu/libpng16.so.16 (0x0000f8a8faf40000)",
+    "\tlibfreetype.so.6 => /lib/aarch64-linux-gnu/libfreetype.so.6 (0x0000f8a8fae60000)",
+    "\tlibXrender.so.1 => /lib/aarch64-linux-gnu/libXrender.so.1 (0x0000f8a8fae30000)",
+    "\tlibxcb.so.1 => /lib/aarch64-linux-gnu/libxcb.so.1 (0x0000f8a8fade0000)",
+    "\tlibxcb-render.so.0 => /lib/aarch64-linux-gnu/libxcb-render.so.0 (0x0000f8a8fadb0000)",
+    "\tlibxcb-shm.so.0 => /lib/aarch64-linux-gnu/libxcb-shm.so.0 (0x0000f8a8fad80000)",
+    "\tlibpixman-1.so.0 => /lib/aarch64-linux-gnu/libpixman-1.so.0 (0x0000f8a8facd0000)",
+    "\tlibjpeg.so.62 => /lib/aarch64-linux-gnu/libjpeg.so.62 (0x0000f8a8fac50000)",
+    "\tlibmount.so.1 => /lib/aarch64-linux-gnu/libmount.so.1 (0x0000f8a8fabb0000)",
+    "\tlibselinux.so.1 => /lib/aarch64-linux-gnu/libselinux.so.1 (0x0000f8a8fab50000)",
+    "\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000f8a8fab10000)",
+    "\tlibdav1d.so.7 => /lib/aarch64-linux-gnu/libdav1d.so.7 (0x0000f8a8faa10000)",
+    "\tlibgraphite2.so.3 => /lib/aarch64-linux-gnu/libgraphite2.so.3 (0x0000f8a8fa9d0000)",
+    "\tlibexpat.so.1 => /lib/aarch64-linux-gnu/libexpat.so.1 (0x0000f8a8fa980000)",
+    "\tlibatspi.so.0 => /lib/aarch64-linux-gnu/libatspi.so.0 (0x0000f8a8fa920000)",
+    "\tlibdbus-1.so.3 => /lib/aarch64-linux-gnu/libdbus-1.so.3 (0x0000f8a8fa8a0000)",
+    "\tlibdatrie.so.1 => /lib/aarch64-linux-gnu/libdatrie.so.1 (0x0000f8a8fa870000)",
+    "\tlibbrotlidec.so.1 => /lib/aarch64-linux-gnu/libbrotlidec.so.1 (0x0000f8a8fa840000)",
+    "\tlibXau.so.6 => /lib/aarch64-linux-gnu/libXau.so.6 (0x0000f8a8fa810000)",
+    "\tlibXdmcp.so.6 => /lib/aarch64-linux-gnu/libXdmcp.so.6 (0x0000f8a8fa7e0000)",
+    "\tlibblkid.so.1 => /lib/aarch64-linux-gnu/libblkid.so.1 (0x0000f8a8fa760000)",
+    "\tlibsystemd.so.0 => /lib/aarch64-linux-gnu/libsystemd.so.0 (0x0000f8a8fa630000)",
+    "\tlibbrotlicommon.so.1 => /lib/aarch64-linux-gnu/libbrotlicommon.so.1 (0x0000f8a8fa5f0000)",
+    "\tlibcap.so.2 => /lib/aarch64-linux-gnu/libcap.so.2 (0x0000f8a8fa5c0000)",
+    "libc6:arm64\t2.41-12+deb13u4",
+    "libglib2.0-0t64:arm64\t2.84.4-3~deb13u5",
+    "libgmp10:arm64\t2:6.3.0+dfsg-3",
+    "libgsf-1-114:arm64\t1.14.53-1",
+    "libxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3",
+    "tzdata\t2026c-0+deb13u1",
+    "LANG=",
+    "LANGUAGE=",
+    "LC_CTYPE=\"POSIX\"",
+    "LC_NUMERIC=\"POSIX\"",
+    "LC_TIME=\"POSIX\"",
+    "LC_COLLATE=\"POSIX\"",
+    "LC_MONETARY=\"POSIX\"",
+    "LC_MESSAGES=\"POSIX\"",
+    "LC_PAPER=\"POSIX\"",
+    "LC_NAME=\"POSIX\"",
+    "LC_ADDRESS=\"POSIX\"",
+    "LC_TELEPHONE=\"POSIX\"",
+    "LC_MEASUREMENT=\"POSIX\"",
+    "LC_IDENTIFICATION=\"POSIX\"",
+    "LC_ALL=",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/html/html.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/html/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/oleo/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/excel/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/sylk/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/applix/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/sc/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/glpk/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/mps/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/qpro/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/xbase/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/lotus/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/uihello/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/uihello/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/dif/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/sample_datasource/sample_datasource.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+    "/out/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml"
+  ],
+  "pluginFileIdentities": [
+    "1715d90ff85cd9683898572be94eb6c36d9fd67c411d34c203df3a4645e47fd0  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+    "a5574fbeca4886d4b2d1833c87d426ecbbe0dcfb3cd3aa4889f05ec26a1131a3  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml",
+    "799f0044211a3d8df6cf07b9adad338dd99c08914b5b7c281fece321dce9d557  /out/prefix/lib/gnumeric/1.12.61/plugins/html/html.so",
+    "0e24fe00f38781cdb1a63056cd382747edcd41c8decb7b355cb8ac8485de31cd  /out/prefix/lib/gnumeric/1.12.61/plugins/html/plugin.xml",
+    "2d6989c1e09ae726c09ed877a157fa3f9b9d3e4016055ee4c5e7ce01346f0989  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+    "9871ad45a606d789ea8a88c8ebf0f3c24c8ad36a48085c0d3640855537d593d1  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml",
+    "6d1cdaacdafe3ba221c4bbe975874ca211e8ebaf62538dfd5577e6941a4cf016  /out/prefix/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+    "04785baf2b561c260c0b5d6b86f0f3ce372d4e52446fba12aabe723a8b61862f  /out/prefix/lib/gnumeric/1.12.61/plugins/oleo/plugin.xml",
+    "c4bb05caa9406c40fb7fde6073f8d17c0a995825469d3f3a99185e08bb58b39d  /out/prefix/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+    "725750f75463e7e23bcef0d258e6d608f8acb3b40420dd34c41c5aabc3d6c0ac  /out/prefix/lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml",
+    "7dc837042c75bbf5735fb4899236aa7754c72af9509d3df0554a3cf4acf9ee40  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+    "1bc6f5cf11d2ff63acf624460e792028348a3b779bd9d912f05c3cf3f2b536c3  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml",
+    "973594cf8b3df224ecc4c7657d2b2aa6efa0a2f6a4b584abf5a695ba7b3b346b  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+    "5389636fe217178ea53c2f786576f03171f7272cda505116d1ff120353557712  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml",
+    "fe9c3a7f92dcf6728cdb0140328901fb5f7a03e919815dfb2d457ffcd62d3522  /out/prefix/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+    "e8e43964a2956c5c2d671aa84f529142868fc6a8a4bf4e959f3cc1562a7a73c8  /out/prefix/lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml",
+    "7fad57a314ddc20824f0622b2b08673a24d143346f88474541062988594d3bab  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+    "ebe04a5845a58a9b5838d81974053e79ffb9ef22f505827d3673a9606dee66e5  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml",
+    "13c24384f4934e92836e7579700f4abe4f37b647a8f7e06d87518ccaf7772983  /out/prefix/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+    "04af00f442424ae635c43d758c9da5a9cef93731015519e5a01c0da7a635aff2  /out/prefix/lib/gnumeric/1.12.61/plugins/excel/plugin.xml",
+    "748948fe3b6bc1d9267681cc9c3c572b542b775d5dbfd4b25996b02f2cbd0ac2  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+    "8bb27356e050e4ac7598412725bc400431ce3e6c7a481e55e6ebbf8bc351b959  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml",
+    "5919c74ce34da28e6ba9e0c0123c454900c8b40b45814d3e0f8943a77eaf3b0f  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+    "4c576c6678566525258e4ed3102db586429e9e4b178b3c14ef3ab62be773b3bf  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml",
+    "98895caf8d4acd08a90bdd4dc4d6f4d91783227fbdd3f39e778dcca26377eb79  /out/prefix/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+    "5b0dff2a02ef7efa50773c1c775766c9cb9c8ae8a70645a9fe1c7b1cf8aa3c54  /out/prefix/lib/gnumeric/1.12.61/plugins/sylk/plugin.xml",
+    "6d35f6abb0886d915ba6e4b7cfc17e23678804e82cbb92018b277d12321c686a  /out/prefix/lib/gnumeric/1.12.61/plugins/applix/plugin.xml",
+    "ea285ef253f6e13b8d2b98323fb8afdbe32790eb5bcec540138e6f208097b1f9  /out/prefix/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+    "84f2df3fc53c23cfb118047357c1b3cce1829e4eff49793ddcd1f01347b4dbf6  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+    "7ebcf83d399b971cfa949a512515f149707e66fd70e63a977035766d56f16e44  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml",
+    "f4d3fc37f9709fc774408dc48fadfdda1efef947fefb52e1d72f772111f6fc5d  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+    "4540ff972f2b5c35e1c709ca522bb385333d1fb9832ebcb9a355c87000075978  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml",
+    "17d35815c9ff6b165f8ff47433501c021dcf7eca4ebb48a56859c2d554569085  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+    "73f79393f3e38c493080afe204a0bea3b8ee936d6342aa680800f6dfc5b507a6  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml",
+    "ac9c8c8ca7b20045cd6e297b985f47ed0109468752357adf99e81275c3e6674c  /out/prefix/lib/gnumeric/1.12.61/plugins/sc/plugin.xml",
+    "0e9338fb305d41110905601503a97133ab7cc7f8779a4a5fd4d418c38d007a7e  /out/prefix/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+    "52ff2d50c0d5f54dff5c5ee2689a3d692db29291f10c9fee5541153feebbc2d4  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+    "971a835f16d9c26130875f07b1eece000a3405ac05244305f0472bff4823430c  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml",
+    "d0d14ce7619755b64907a791e3993f58e73e447b68cdfc4cc7c967c961df65b3  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+    "d06c9e7d9aec1849fa9ea5d9bd267f4af20f227a98c708dc57ed3b63f17f93cc  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml",
+    "a265f657899b927966602c45626ae5a9f0c245125b40f22b0a0d56faa0273b39  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+    "a17f4faa5ccea0be71c413b1ab15617ab935a0492bc79c376aadc611c978fb46  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml",
+    "193cd8a0933bcea30280407ceece354119fe2c1fe77d170db6756e4009ef6afb  /out/prefix/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+    "f9ff2f40013f2ba14c5f2cf363591508fed7c681ac4e7b426f889e754fa37ea6  /out/prefix/lib/gnumeric/1.12.61/plugins/glpk/plugin.xml",
+    "acc569133d989535940a385ab9443b5716dba964a8765deedcfbf7a3cd3ab1a5  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+    "b26fadcf27e9783fa243775f74851730675703f8a25fa1c3c16cd775803505d3  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml",
+    "f814c66b353a36bbaebdfa680e22c08c4c513ebe8f98a4b13b98af2d97b7f3eb  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+    "b1efca176c3e4acb7988b62619d942b345dc4651441e45d8faad2db52f22d351  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml",
+    "5a9588d94270235dc91b8b59be6d0a2f368dece06c59326c32f6ef4d37a5f370  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+    "512e2debdc09f8ab5adaab5c7f99b5c414a31d7b4285dfe81c5b7b382c7a5093  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml",
+    "0e01ec9fcba5e29dfa39c3d06bde3819202232670d78b8742ff24b39e0a73453  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+    "98edcc7806bf6e51ad0a27ca299b207750ecfd2367460ef13dc42a3ab8c83bda  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml",
+    "682eccb480939e52da38c0cc87ce12c97aca02ba35a595ef90bc95763f6d5033  /out/prefix/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+    "b4af2d3924241b0e15ad39afb433cf802135d92a6c8b5bde328e409cf4814f9d  /out/prefix/lib/gnumeric/1.12.61/plugins/mps/plugin.xml",
+    "ccd52b8e8037856a154f21e29e4b194bf4c89a9343cb48b18adf9874a45814ec  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+    "4377e08837429c637fd528229634443a84d1e1b1ff442e942a427d44026b9f8d  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml",
+    "4cd71207b32a710a98f3a630759647651af1fee29d3595ee11814ca125027779  /out/prefix/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+    "2ad3b9c8436d47d497fe8394626a19efb085f53afaa420637ec758401039a9f3  /out/prefix/lib/gnumeric/1.12.61/plugins/qpro/plugin.xml",
+    "0e5c33a6eab3202b8b81efdc80f3f22c9d35491051e88b0a2995617a36a079a7  /out/prefix/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+    "77dee717114afeecce37ea4d348fff0c2ffe230b345607e0e10819578ec6780a  /out/prefix/lib/gnumeric/1.12.61/plugins/xbase/plugin.xml",
+    "83ee11ce13bd9b81933889ff4982bd929adb93e876fdcada424223b7d4923c57  /out/prefix/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+    "a38de08bb20b878d566708a305d242ff898b8df6fbfd467af43362d46cd38f5b  /out/prefix/lib/gnumeric/1.12.61/plugins/lotus/plugin.xml",
+    "b87b5e6d37ef64305ae83146d7a93550d32a54ba874a5a4420e065e053425b05  /out/prefix/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+    "261ac77c377ed815456a8f6934cc12a9a6edca868e08cfe331a17fdadce73c0f  /out/prefix/lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml",
+    "e483f5eacc4fc07a0bb79c648e89924fa3dc8271deedb1ca688ce155c66e9ce1  /out/prefix/lib/gnumeric/1.12.61/plugins/uihello/plugin.so",
+    "54f9eb2f628c6d4d069a89426ad5e9b9e4229340d0a9dc628e63f991befb6a37  /out/prefix/lib/gnumeric/1.12.61/plugins/uihello/plugin.xml",
+    "15e7c043be1d05876a12c2f8f1a6d7ac4c621576641ce518ee7c2c431afed65c  /out/prefix/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+    "c4df295133bbea7ec076e0334c7c8578258e34e1ccbd492eaa52ab21bd3553d6  /out/prefix/lib/gnumeric/1.12.61/plugins/dif/plugin.xml",
+    "d7e3598df852b77b9c1105d3429bfbb4a08e26ba4b621472ee6afdcc1be129e6  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+    "9dc90aaf8202a8dae7000c7a740df897f7cf477932652bb14c60d86515d34606  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml",
+    "9312162d04ba17629c7dfa150599110acf275df942d59541737dc01319468692  /out/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+    "48a4d9c2142d9eb0bf8ecf0136841e9e500cf5c0bd88471e1802159232f1a0f3  /out/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml",
+    "6bb8e1f947bd0c6f33ebd9b77f205b1c61d1ad9e416fc5d79faf7ad0c8f6646a  /out/prefix/lib/gnumeric/1.12.61/plugins/sample_datasource/sample_datasource.so",
+    "82285e2a1f04ca5e9ff50b3c534710fd3de52faad19ad1bb2fdf65adfafbd2ac  /out/prefix/lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml",
+    "7a088b1de9700f5f173082a70f6eff022d9be2ef68c3101c84ceb9d967f0bc73  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+    "e9802b5951b077a533f7c90ae6feae5b2a22aa38191911a04b58c45bbdbfa634  /out/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml"
+  ],
+  "authenticatedPrimaryMembers": [
+    {
+      "path": "plugins/fn-date/plugin.xml.in",
+      "sha256": "c21945ede56ed93262dce3aa53e24d6ad7c9ec9980478228fb7942c163b51f28",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-date/functions.c",
+      "sha256": "c2ccd42b5f0571834a760402dc281937a19ce97765163805dc53a4ecebdb74f1",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-financial/plugin.xml.in",
+      "sha256": "606ea8e196e77134d6e02fbd50e9596b73286de6adeca52663efc18d7d063850",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-financial/functions.c",
+      "sha256": "c4fcab0daf39e4e5cbae450d195f04eb958e66f7b3dba5dee1ea0abb06d2729c",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-derivatives/plugin.xml.in",
+      "sha256": "85b42acbfa4dfd767c0c35baf3af5b7b7c8c4d592a21561a1ad5bbdc58817b5b",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-derivatives/options.c",
+      "sha256": "ab75e1aec3be55194e0298272efa6d08be492506a63cb7f737d42c3370fab83b",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-christian-date/plugin.xml.in",
+      "sha256": "6ab44494bed2c069da996647478168cebcd8e7117fc4e00edbfa4592553177f6",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-christian-date/functions.c",
+      "sha256": "1d21b4c28d438de2df5c239b4f82a011504618c3ed7422eff36a68d7d025a0fa",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-hebrew-date/plugin.xml.in",
+      "sha256": "3306338bf2fc631989c49a8f6bce533c0e901c4ce95706540740d6047193ffb3",
+      "extractedBytesMatchArchive": true
+    },
+    {
+      "path": "plugins/fn-hebrew-date/functions.c",
+      "sha256": "a0de2862a32e2d0069aa67c2bc2668d9e015997f9793c3d0a673bce17b00cf1c",
+      "extractedBytesMatchArchive": true
+    }
+  ],
+  "activationEvidence": "All five plugin function groups evaluated by --recalc in captured differential corpus, exit0 and empty stderr. Explicit activation table also preserved in reference-profile.json.",
+  "nativeOracleIsProductDependency": false,
+  "compilerContractionEvidence": [
+    "0000000000008590 <irr_npv_df>:",
+    "    8590:\t1e6e101e \tfmov\td30, #1.000000000000000000e+00",
+    "    8594:\ta9bf7bfd \tstp\tx29, x30, [sp, #-16]!",
+    "    8598:\t2f00e41f \tmovi\td31, #0x0",
+    "    859c:\t1e7e2800 \tfadd\td0, d0, d30",
+    "    85a0:\t910003fd \tmov\tx29, sp",
+    "    85a4:\tb9400023 \tldr\tw3, [x1]",
+    "    85a8:\tf9400424 \tldr\tx4, [x1, #8]",
+    "    85ac:\t1e601bc0 \tfdiv\td0, d30, d0",
+    "    85b0:\t7100047f \tcmp\tw3, #0x1",
+    "    85b4:\t5400018d \tb.le\t85e4 <irr_npv_df+0x54>",
+    "    85b8:\td2800021 \tmov\tx1, #0x1                   \t// #1",
+    "    85bc:\td503201f \tnop",
+    "    85c0:\t4b0103e2 \tneg\tw2, w1",
+    "    85c4:\tfc61789c \tldr\td28, [x4, x1, lsl #3]",
+    "    85c8:\t91000421 \tadd\tx1, x1, #0x1",
+    "    85cc:\t1e62005d \tscvtf\td29, w2",
+    "    85d0:\t1e7c0bbc \tfmul\td28, d29, d28",
+    "    85d4:\t1f5e7f9f \tfmadd\td31, d28, d30, d31",
+    "    85d8:\t1e600bde \tfmul\td30, d30, d0",
+    "    85dc:\t6b01007f \tcmp\tw3, w1",
+    "    85e0:\t54ffff0c \tb.gt\t85c0 <irr_npv_df+0x30>",
+    "    85e4:\t1e6043e0 \tfmov\td0, d31",
+    "    85e8:\tfd00001f \tstr\td31, [x0]",
+    "    85ec:\t97fff911 \tbl\t6a30 <go_finite@plt>",
+    "    85f0:\t7100001f \tcmp\tw0, #0x0",
+    "    85f4:\t1a9f17e0 \tcset\tw0, eq\t// eq = none",
+    "    85f8:\ta8c17bfd \tldp\tx29, x30, [sp], #16",
+    "    85fc:\td65f03c0 \tret",
+    "",
+    "0000000000008600 <irr_npv>:",
+    "    8600:\t1e6e101e \tfmov\td30, #1.000000000000000000e+00",
+    "    8604:\ta9bf7bfd \tstp\tx29, x30, [sp, #-16]!",
+    "    8608:\t2f00e41f \tmovi\td31, #0x0",
+    "    860c:\t1e7e2800 \tfadd\td0, d0, d30",
+    "    8610:\t910003fd \tmov\tx29, sp",
+    "    8614:\tb9400022 \tldr\tw2, [x1]",
+    "    8618:\tf9400421 \tldr\tx1, [x1, #8]",
+    "    861c:\t1e601bc0 \tfdiv\td0, d30, d0",
+    "    8620:\t7100005f \tcmp\tw2, #0x0",
+    "    8624:\t540000ed \tb.le\t8640 <irr_npv+0x40>",
+    "    8628:\t8b224c22 \tadd\tx2, x1, w2, uxtw #3",
+    "    862c:\tfc40843d \tldr\td29, [x1], #8",
+    "    8630:\t1f5e7fbf \tfmadd\td31, d29, d30, d31",
+    "    8634:\t1e600bde \tfmul\td30, d30, d0",
+    "    8638:\teb02003f \tcmp\tx1, x2",
+    "    863c:\t54ffff81 \tb.ne\t862c <irr_npv+0x2c>  // b.any",
+    "    8640:\t1e6043e0 \tfmov\td0, d31",
+    "    8644:\tfd00001f \tstr\td31, [x0]",
+    "    8648:\t97fff8fa \tbl\t6a30 <go_finite@plt>",
+    "    864c:\t7100001f \tcmp\tw0, #0x0",
+    "    8650:\t1a9f17e0 \tcset\tw0, eq\t// eq = none",
+    "    8654:\ta8c17bfd \tldp\tx29, x30, [sp], #16",
+    "    8658:\td65f03c0 \tret",
+    "    865c:\td503201f \tnop",
+    ""
+  ],
+  "observedCompilerPolicy": "aarch64 irr_npv and irr_npv_df use fmadd for cashflow accumulation; product uses existing correctly rounded binary64 fusedMultiplyAdd.",
+  "nativeDifferentialRuns": [
+    {
+      "dateSystem": "1900",
+      "status": 0,
+      "stdout": "61\n61\n45292\n45351\n45351\n1\n1\n5\n45299\n0.041666666666666664\n-0.041666666666666664\n53\n45382\n5784\n1000\n1000\n-100\n0.09999999999999998\n0.09999999999999999\n10.450583572185565\n1462\n25\n100\n188\n99.76190476190476\n0.09523809523809534\n100\n0.1\n99.99999999999999\n0.0999999999999999\n2020\n2019\n2024\n31\n31\n30\n30\n0\n45292\n#VALUE!\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4\"\n\"\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n2\n45293\n45293\n1\n12\n1\n1\n1721028\n#NUM!\n#NUM!\n#DIV/0!\n#DIV/0!\n45292\n1704067200\n25569.000000005788\n#NUM!\n-100\n-52.38095238095237\n-52.38095238095237\n-33.333333333333336\n2000\n2000\n-0.5\n#NUM!\n#DIV/0!\n#DIV/0!\n#NUM!\n#NUM!\n-6.666666666666666\n35.35533905932738\n50\n200\n0\n7.777777777777778\n7.777777777777778\n8.61111111111111\n99.22222222222223\n1\n0.9523809523809523\n0.09999999999999964\n-1.4210854715202004E-14\n0.09999999999999998\n1.95583\n1.125\n-1.02\n0.10250000000000001\n0.09999999999999999\n1.0000000000000007\n100\n0.1\n111.11111111111111\n0.1\n0.10000000000000009\n95\n0.10526315789473684\n0.1067251461988304\n2\n90\n180\n90\n45292\n45474\n100\n25\n0.10000000000000009\n0.51\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#DIV/0!\n#VALUE!\n5.907981582180289E-09\n12.5\n28.125\n35\n0\n#VALUE!\n-57.6650390625\n-10\n-47.61904761904761\n-15.238095238095234\n-100.00000000000003\n-4.761904761904762\n1.9999999999999998\n-0.09090909090909098\n100\n0.09999999999999998\n-1.01\n-1.001\n-2\n#NUM!\n#VALUE!\n#VALUE!\n#VALUE!\n#VALUE!\n#DIV/0!\n#DIV/0!\n105\n9.227005508154036\n0.586851146134764\n49.45810910532236\n-5.089318913998333\n0.018950578755008714\n37.90115751001743\n58.685114613476394\n0.43688917987362585\n9.227005508154036\n8.427393891848233\n10.41716547024085\n8.348939840201675\n9.227005508552383\n5.610778432447092\n9.227555802623748\n8.514104824319844\n6.2448731365128145\n0.4396344416865478\n13.344280448069227\n11.801429205461341\n5.511638296903571\n56.070378219549234\n7.096334364854347\n8.266327791618496\n8.266378724639583\n9.826787796317303\n17.98696654912109\n19.624426428795637\n9.130449517016778\n10.450583572185565\n5.573526022256973\n0.6368306511756191\n0.018762017345846895\n37.52403469169379\n9.227005508154036\n9.227005508154036\n#NAME?\n#NAME?\n7.575188125571481\n7.5581635403361584\n#NUM!\n0.5933532382196917\n7.4829976004619185\n",
+      "stderr": "",
+      "cases": [
+        {
+          "formula": "=DATE(1900,3,1)",
+          "native": "61"
+        },
+        {
+          "formula": "=DATE(1900,2,29)",
+          "native": "61"
+        },
+        {
+          "formula": "=DATE(2024,1,1)",
+          "native": "45292"
+        },
+        {
+          "formula": "=EDATE(DATE(2024,1,31),1)",
+          "native": "45351"
+        },
+        {
+          "formula": "=EOMONTH(DATE(2024,2,1))",
+          "native": "45351"
+        },
+        {
+          "formula": "=DATEDIF(DATE(2023,1,31),DATE(2023,3,1),\"m\")",
+          "native": "1"
+        },
+        {
+          "formula": "=DAYS(DATE(1900,3,1),DATE(1900,2,28))",
+          "native": "1"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7))",
+          "native": "5"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,5),1)",
+          "native": "45299"
+        },
+        {
+          "formula": "=TIME(25,0,0)",
+          "native": "0.041666666666666664"
+        },
+        {
+          "formula": "=ODF.TIME(-1,0,0)",
+          "native": "-0.041666666666666664"
+        },
+        {
+          "formula": "=ISOWEEKNUM(DATE(2021,1,1))",
+          "native": "53"
+        },
+        {
+          "formula": "=EASTERSUNDAY(2024)",
+          "native": "45382"
+        },
+        {
+          "formula": "=HDATE_YEAR(2024,1,1)",
+          "native": "5784"
+        },
+        {
+          "formula": "=PV(0,10,-100)",
+          "native": "1000"
+        },
+        {
+          "formula": "=FV(0,10,-100)",
+          "native": "1000"
+        },
+        {
+          "formula": "=PMT(0,10,1000)",
+          "native": "-100"
+        },
+        {
+          "formula": "=IRR({-100;110})",
+          "native": "0.09999999999999998"
+        },
+        {
+          "formula": "=RATE(1,0,-100,110)",
+          "native": "0.09999999999999999"
+        },
+        {
+          "formula": "=OPT_BS(\"c\",100,100,1,0.05,0.2,0.05)",
+          "native": "10.450583572185565"
+        },
+        {
+          "formula": "=DATE(1904,1,1)",
+          "native": "1462"
+        },
+        {
+          "formula": "=ACCRINT(DATE(2024,1,1),DATE(2024,7,1),DATE(2024,4,1),.1,1000,2,0)",
+          "native": "25"
+        },
+        {
+          "formula": "=AMORLINC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,3)",
+          "native": "100"
+        },
+        {
+          "formula": "=AMORDEGRC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,0)",
+          "native": "188"
+        },
+        {
+          "formula": "=PRICEMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,.1,0)",
+          "native": "99.76190476190476"
+        },
+        {
+          "formula": "=YIELDMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,100,0)",
+          "native": "0.09523809523809534"
+        },
+        {
+          "formula": "=ODDLPRICE(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+          "native": "100"
+        },
+        {
+          "formula": "=ODDLYIELD(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+          "native": "0.1"
+        },
+        {
+          "formula": "=ODDFPRICE(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+          "native": "99.99999999999999"
+        },
+        {
+          "formula": "=ODDFYIELD(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+          "native": "0.0999999999999999"
+        },
+        {
+          "formula": "=ISOYEAR(DATE(2021,1,1))",
+          "native": "2020"
+        },
+        {
+          "formula": "=ISOYEAR(DATE(2018,12,31))",
+          "native": "2019"
+        },
+        {
+          "formula": "=ISOYEAR(DATE(2024,6,1))",
+          "native": "2024"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),99)",
+          "native": "31"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),-1)",
+          "native": "31"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),2)",
+          "native": "30"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,1,30),DATE(2024,2,29),2)",
+          "native": "30"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{-1},{1;1;1;1;1;1;1})",
+          "native": "0"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1),0,{-1},{1;1;1;1;1;1;1})",
+          "native": "45292"
+        },
+        {
+          "formula": "=ISOYEAR(60)",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,1,11)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,10,3)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,11,2)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,4,23)",
+          "native": "\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,3,11)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,7,7)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=DAY(DATE(2024,1,1)+1-0.25/86400)",
+          "native": "2"
+        },
+        {
+          "formula": "=DATEVALUE(DATE(2024,1,1)+1-0.25/86400)",
+          "native": "45293"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1)+1-0.25/86400,0)",
+          "native": "45293"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1)+1-0.25/86400,DATE(2024,1,2))",
+          "native": "1"
+        },
+        {
+          "formula": "=HOUR(-0.5)",
+          "native": "12"
+        },
+        {
+          "formula": "=MINUTE(-0.5+1/1440)",
+          "native": "1"
+        },
+        {
+          "formula": "=SECOND(-0.5+1/86400)",
+          "native": "1"
+        },
+        {
+          "formula": "=HDATE_JULIAN(0,0,0)",
+          "native": "1721028"
+        },
+        {
+          "formula": "=NETWORKDAYS(0,1,{0},{1})",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1),1073741824,{0},{1})",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{0},{1;1;1;1;1;1;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1),1,{0},{1;1;1;1;1;1;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=UNIX2DATE(1704067200)",
+          "native": "45292"
+        },
+        {
+          "formula": "=DATE2UNIX(DATE(2024,1,1))",
+          "native": "1704067200"
+        },
+        {
+          "formula": "=UNIX2DATE(0.0005)",
+          "native": "25569.000000005788"
+        },
+        {
+          "formula": "=YEARFRAC(DATE(2024,1,30),DATE(2024,3,31),5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=FV(-2,2,0,100)",
+          "native": "-100"
+        },
+        {
+          "formula": "=PMT(.1,2,100,0,2)",
+          "native": "-52.38095238095237"
+        },
+        {
+          "formula": "=PMT(.1,2,100,0,-.5)",
+          "native": "-52.38095238095237"
+        },
+        {
+          "formula": "=SYD(100,0,2,4)",
+          "native": "-33.333333333333336"
+        },
+        {
+          "formula": "=IRR({-100;200100},2000)",
+          "native": "2000"
+        },
+        {
+          "formula": "=RATE(1,0,-100,200100)",
+          "native": "2000"
+        },
+        {
+          "formula": "=IRR({-100;50})",
+          "native": "-0.5"
+        },
+        {
+          "formula": "=IRR({-100;200100})",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=RRI(0,100,110)",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=RRI(1,0,110)",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=RATE(1,0,-100,100,0,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,-.1,100,2,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ISPMT(.1,1.9,3.9,100)",
+          "native": "-6.666666666666666"
+        },
+        {
+          "formula": "=DDB(100,0,4,1.5)",
+          "native": "35.35533905932738"
+        },
+        {
+          "formula": "=DDB(100,0,4,.5)",
+          "native": "50"
+        },
+        {
+          "formula": "=DB(100,0,2,1,24)",
+          "native": "200"
+        },
+        {
+          "formula": "=DB(100,0,2,0)",
+          "native": "0"
+        },
+        {
+          "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,0)",
+          "native": "7.777777777777778"
+        },
+        {
+          "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,4)",
+          "native": "7.777777777777778"
+        },
+        {
+          "formula": "=ACCRINTM(DATE(2024,2,29),DATE(2024,3,31),.1,1000,0)",
+          "native": "8.61111111111111"
+        },
+        {
+          "formula": "=PRICEDISC(DATE(2024,1,31),DATE(2024,2,29),.1,100,0)",
+          "native": "99.22222222222223"
+        },
+        {
+          "formula": "=DURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+          "native": "1"
+        },
+        {
+          "formula": "=MDURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+          "native": "0.9523809523809523"
+        },
+        {
+          "formula": "=MIRR({-100;110},.1,.1)",
+          "native": "0.09999999999999964"
+        },
+        {
+          "formula": "=XNPV(.1,{-100;110},{1;366})",
+          "native": "-1.4210854715202004E-14"
+        },
+        {
+          "formula": "=XIRR({-100;110},{1;366})",
+          "native": "0.09999999999999998"
+        },
+        {
+          "formula": "=EURO(\"DEM\")",
+          "native": "1.95583"
+        },
+        {
+          "formula": "=DOLLARDE(1.02,16)",
+          "native": "1.125"
+        },
+        {
+          "formula": "=DOLLARFR(-1.125,16)",
+          "native": "-1.02"
+        },
+        {
+          "formula": "=EFFECT(.1,2)",
+          "native": "0.10250000000000001"
+        },
+        {
+          "formula": "=NOMINAL(.1025,2)",
+          "native": "0.09999999999999999"
+        },
+        {
+          "formula": "=G_DURATION(.1,100,110)",
+          "native": "1.0000000000000007"
+        },
+        {
+          "formula": "=NPV(.1,110,TRUE)",
+          "native": "100"
+        },
+        {
+          "formula": "=INTRATE(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+          "native": "0.1"
+        },
+        {
+          "formula": "=RECEIVED(DATE(2024,1,1),DATE(2025,1,1),100,.1,0)",
+          "native": "111.11111111111111"
+        },
+        {
+          "formula": "=DISC(DATE(2024,1,1),DATE(2025,1,1),90,100,0)",
+          "native": "0.1"
+        },
+        {
+          "formula": "=YIELDDISC(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+          "native": "0.10000000000000009"
+        },
+        {
+          "formula": "=TBILLPRICE(1,181,.1)",
+          "native": "95"
+        },
+        {
+          "formula": "=TBILLYIELD(1,181,95)",
+          "native": "0.10526315789473684"
+        },
+        {
+          "formula": "=TBILLEQ(1,181,.1)",
+          "native": "0.1067251461988304"
+        },
+        {
+          "formula": "=COUPNUM(DATE(2024,4,1),DATE(2025,1,1),2)",
+          "native": "2"
+        },
+        {
+          "formula": "=COUPDAYBS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "90"
+        },
+        {
+          "formula": "=COUPDAYS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "180"
+        },
+        {
+          "formula": "=COUPDAYSNC(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "90"
+        },
+        {
+          "formula": "=COUPPCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "45292"
+        },
+        {
+          "formula": "=COUPNCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "45474"
+        },
+        {
+          "formula": "=VDB(100,0,4,0,4)",
+          "native": "100"
+        },
+        {
+          "formula": "=SLN(100,0,4)",
+          "native": "25"
+        },
+        {
+          "formula": "=RRI(1,100,110)",
+          "native": "0.10000000000000009"
+        },
+        {
+          "formula": "=EUROCONVERT(1,\"DEM\",\"EUR\",FALSE)",
+          "native": "0.51"
+        },
+        {
+          "formula": "=SLN(100,0,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ISPMT(.1,0,3,100)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=DDB(100,0,4,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=DB(0,0,4,1)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ACCRINTM(1,2,.1,1000,5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ACCRINTM(1,2,.1,1000,-.5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=COUPDAYS(1,366,2,-.5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=YIELDDISC(1,366,-1,100,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=MIRR({-100;110},.1,-2)",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=FVSCHEDULE(100,{.1;\"bad\"})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=IRR({-100;200;-100})",
+          "native": "5.907981582180289E-09"
+        },
+        {
+          "formula": "=VDB(100,0,4,3,4,2,.5)",
+          "native": "12.5"
+        },
+        {
+          "formula": "=VDB(100,0,4,1.5,3.5,2,TRUE)",
+          "native": "28.125"
+        },
+        {
+          "formula": "=VDB(100,10,5,2.5,4.5,1)",
+          "native": "35"
+        },
+        {
+          "formula": "=VDB(100,0,0,0,0)",
+          "native": "0"
+        },
+        {
+          "formula": "=VDB(100,0,20000,0,10001,2,TRUE)",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=FV(.5,10,0,1)",
+          "native": "-57.6650390625"
+        },
+        {
+          "formula": "=IPMT(.1,1,2,100)",
+          "native": "-10"
+        },
+        {
+          "formula": "=PPMT(.1,1,2,100)",
+          "native": "-47.61904761904761"
+        },
+        {
+          "formula": "=CUMIPMT(.1,2,100,1,2,0)",
+          "native": "-15.238095238095234"
+        },
+        {
+          "formula": "=CUMPRINC(.1,2,100,1,2,0)",
+          "native": "-100.00000000000003"
+        },
+        {
+          "formula": "=CUMIPMT(.1,2,100,1,2,1)",
+          "native": "-4.761904761904762"
+        },
+        {
+          "formula": "=NPER(.1,-100 * 1.21 / 2.1,100)",
+          "native": "1.9999999999999998"
+        },
+        {
+          "formula": "=YIELD(DATE(2024,7,1),DATE(2025,1,1),.1,110,100,2,0)",
+          "native": "-0.09090909090909098"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,1,1),DATE(2024,1,1),.1,.1,100,2,0)",
+          "native": "100"
+        },
+        {
+          "formula": "=YIELD(DATE(2024,1,1),DATE(2025,1,1),.1,100,100,2,0)",
+          "native": "0.09999999999999998"
+        },
+        {
+          "formula": "=EUROCONVERT(-1.005,\"EUR\",\"EUR\",FALSE)",
+          "native": "-1.01"
+        },
+        {
+          "formula": "=EUROCONVERT(-1.0005,\"EUR\",\"EUR\",TRUE,3)",
+          "native": "-1.001"
+        },
+        {
+          "formula": "=AMORDEGRC(-10,DATE(2024,1,1),DATE(2025,1,1),0,0,.1,0)",
+          "native": "-2"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,0,100,2,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=IRR({-1;TRUE})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=FVSCHEDULE(100,{.1;TRUE})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=MIRR({-100;TRUE},.1,.1)",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=XNPV(.1,{-100;TRUE},{1;366})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=IRR({-100;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=FVSCHEDULE(100,{.1;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,7,1),DATE(2025,1,1),.1,0,100,2,0)",
+          "native": "105"
+        },
+        {
+          "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.03)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.03)",
+          "native": "0.586851146134764"
+        },
+        {
+          "formula": "=OPT_BS_RHO(\"c\",100,100,1,.05,.2,.03)",
+          "native": "49.45810910532236"
+        },
+        {
+          "formula": "=OPT_BS_THETA(\"c\",100,100,1,.05,.2,.03)",
+          "native": "-5.089318913998333"
+        },
+        {
+          "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.03)",
+          "native": "0.018950578755008714"
+        },
+        {
+          "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.03)",
+          "native": "37.90115751001743"
+        },
+        {
+          "formula": "=OPT_BS_CARRYCOST(\"c\",100,100,1,.05,.2,.03)",
+          "native": "58.685114613476394"
+        },
+        {
+          "formula": "=CUM_BIV_NORM_DIST(.2,.3,.5)",
+          "native": "0.43688917987362585"
+        },
+        {
+          "formula": "=OPT_GARMAN_KOHLHAGEN(\"c\",100,100,1,.05,.02,.2)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_FRENCH(\"c\",100,100,.8,1,.05,.2,.03)",
+          "native": "8.427393891848233"
+        },
+        {
+          "formula": "=OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1,.2)",
+          "native": "10.41716547024085"
+        },
+        {
+          "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,.1)",
+          "native": "8.348939840201675"
+        },
+        {
+          "formula": "=OPT_BJER_STENS(\"c\",100,100,1,.05,.2,.03)",
+          "native": "9.227005508552383"
+        },
+        {
+          "formula": "=OPT_MILTERSEN_SCHWARTZ(\"c\",.95,100,100,.5,1,.2,.1,.1,.2,.1,.1,.5,.5)",
+          "native": "5.610778432447092"
+        },
+        {
+          "formula": "=OPT_BAW_AMER(\"c\",100,100,1,.05,.2,.03)",
+          "native": "9.227555802623748"
+        },
+        {
+          "formula": "=OPT_RGW(100,100,.5,1,.05,3,.2)",
+          "native": "8.514104824319844"
+        },
+        {
+          "formula": "=OPT_FORWARD_START(\"c\",100,1,.5,1,.05,.2,.03)",
+          "native": "6.2448731365128145"
+        },
+        {
+          "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,.1,.05,.03,.2)",
+          "native": "0.4396344416865478"
+        },
+        {
+          "formula": "=OPT_SIMPLE_CHOOSER(100,100,.5,1,.05,.03,.2)",
+          "native": "13.344280448069227"
+        },
+        {
+          "formula": "=OPT_COMPLEX_CHOOSER(100,100,100,.25,1,1,.05,.03,.2)",
+          "native": "11.801429205461341"
+        },
+        {
+          "formula": "=OPT_ON_OPTIONS(\"cc\",100,100,5,.5,1,.05,.03,.2)",
+          "native": "5.511638296903571"
+        },
+        {
+          "formula": "=OPT_EXTENDIBLE_WRITER(\"c\",100,100,105,.5,1,.05,.03,.2)",
+          "native": "56.070378219549234"
+        },
+        {
+          "formula": "=OPT_2_ASSET_CORRELATION(\"c\",100,100,100,100,1,.03,.03,.05,.2,.2,.5)",
+          "native": "7.096334364854347"
+        },
+        {
+          "formula": "=OPT_EURO_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+          "native": "8.266327791618496"
+        },
+        {
+          "formula": "=OPT_AMER_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+          "native": "8.266378724639583"
+        },
+        {
+          "formula": "=OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.2,.5)",
+          "native": "9.826787796317303"
+        },
+        {
+          "formula": "=OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2)",
+          "native": "17.98696654912109"
+        },
+        {
+          "formula": "=OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2)",
+          "native": "19.624426428795637"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2,.03)",
+          "native": "9.130449517016778"
+        },
+        {
+          "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.05)",
+          "native": "10.450583572185565"
+        },
+        {
+          "formula": "=OPT_BS(\"p\",100,100,1,.05,.2,.05)",
+          "native": "5.573526022256973"
+        },
+        {
+          "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.05)",
+          "native": "0.6368306511756191"
+        },
+        {
+          "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.05)",
+          "native": "0.018762017345846895"
+        },
+        {
+          "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.05)",
+          "native": "37.52403469169379"
+        },
+        {
+          "formula": "=OPT_FRENCH(\"c\",100,100,1,1,.05,.2,.03)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,0)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_BAW_AMER",
+          "native": "#NAME?"
+        },
+        {
+          "formula": "=OPT_BJER_STENS",
+          "native": "#NAME?"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",1000,100,100,1,.05,.2)",
+          "native": "7.575188125571481"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",100,100,100,1,.05,.2)",
+          "native": "7.5581635403361584"
+        },
+        {
+          "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,0,.05,.03,.2)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=CUM_BIV_NORM_DIST((LN(100/105)+(.03+.2^2/2))/(.2),-((.03+.2^2/2)*.5/(.2*SQRT(.5))),-SQRT(.5))",
+          "native": "0.5933532382196917"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2)",
+          "native": "7.4829976004619185"
+        }
+      ]
+    },
+    {
+      "dateSystem": "1904",
+      "status": 0,
+      "stdout": "-1401\n-1401\n43830\n43889\n43889\n1\n1\n5\n43837\n0.041666666666666664\n-0.041666666666666664\n53\n43920\n5784\n1000\n1000\n-100\n0.09999999999999998\n0.09999999999999999\n10.450583572185565\n0\n25\n100\n188\n99.76190476190476\n0.09523809523809534\n100\n0.1\n99.99999999999999\n0.0999999999999999\n2020\n2019\n2024\n31\n31\n30\n30\n0\n43830\n1904\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4\"\n\"\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n\"\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n2\n43831\n43831\n1\n12\n1\n1\n1721028\n#NUM!\n#NUM!\n#DIV/0!\n#DIV/0!\n43830\n1704067200\n24107.000000005788\n#NUM!\n-100\n-52.38095238095237\n-52.38095238095237\n-33.333333333333336\n2000\n2000\n-0.5\n#NUM!\n#DIV/0!\n#DIV/0!\n#NUM!\n#NUM!\n-6.666666666666666\n35.35533905932738\n50\n200\n0\n7.777777777777778\n7.777777777777778\n8.61111111111111\n99.22222222222223\n1\n0.9523809523809523\n0.09999999999999964\n-1.4210854715202004E-14\n0.09999999999999998\n1.95583\n1.125\n-1.02\n0.10250000000000001\n0.09999999999999999\n1.0000000000000007\n100\n0.1\n111.11111111111111\n0.1\n0.10000000000000009\n95\n0.10526315789473684\n0.1067251461988304\n2\n90\n180\n90\n43830\n44012\n100\n25\n0.10000000000000009\n0.51\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#NUM!\n#DIV/0!\n#VALUE!\n5.907981582180289E-09\n12.5\n28.125\n35\n0\n#VALUE!\n-57.6650390625\n-10\n-47.61904761904761\n-15.238095238095234\n-100.00000000000003\n-4.761904761904762\n1.9999999999999998\n-0.09090909090909098\n100\n0.09999999999999998\n-1.01\n-1.001\n-2\n#NUM!\n#VALUE!\n#VALUE!\n#VALUE!\n#VALUE!\n#DIV/0!\n#DIV/0!\n105\n9.227005508154036\n0.586851146134764\n49.45810910532236\n-5.089318913998333\n0.018950578755008714\n37.90115751001743\n58.685114613476394\n0.43688917987362585\n9.227005508154036\n8.427393891848233\n10.41716547024085\n8.348939840201675\n9.227005508552383\n5.610778432447092\n9.227555802623748\n8.514104824319844\n6.2448731365128145\n0.4396344416865478\n13.344280448069227\n11.801429205461341\n5.511638296903571\n56.070378219549234\n7.096334364854347\n8.266327791618496\n8.266378724639583\n9.826787796317303\n17.98696654912109\n19.624426428795637\n9.130449517016778\n10.450583572185565\n5.573526022256973\n0.6368306511756191\n0.018762017345846895\n37.52403469169379\n9.227005508154036\n9.227005508154036\n#NAME?\n#NAME?\n7.575188125571481\n7.5581635403361584\n#NUM!\n0.5933532382196917\n7.4829976004619185\n",
+      "stderr": "",
+      "cases": [
+        {
+          "formula": "=DATE(1900,3,1)",
+          "native": "-1401"
+        },
+        {
+          "formula": "=DATE(1900,2,29)",
+          "native": "-1401"
+        },
+        {
+          "formula": "=DATE(2024,1,1)",
+          "native": "43830"
+        },
+        {
+          "formula": "=EDATE(DATE(2024,1,31),1)",
+          "native": "43889"
+        },
+        {
+          "formula": "=EOMONTH(DATE(2024,2,1))",
+          "native": "43889"
+        },
+        {
+          "formula": "=DATEDIF(DATE(2023,1,31),DATE(2023,3,1),\"m\")",
+          "native": "1"
+        },
+        {
+          "formula": "=DAYS(DATE(1900,3,1),DATE(1900,2,28))",
+          "native": "1"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7))",
+          "native": "5"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,5),1)",
+          "native": "43837"
+        },
+        {
+          "formula": "=TIME(25,0,0)",
+          "native": "0.041666666666666664"
+        },
+        {
+          "formula": "=ODF.TIME(-1,0,0)",
+          "native": "-0.041666666666666664"
+        },
+        {
+          "formula": "=ISOWEEKNUM(DATE(2021,1,1))",
+          "native": "53"
+        },
+        {
+          "formula": "=EASTERSUNDAY(2024)",
+          "native": "43920"
+        },
+        {
+          "formula": "=HDATE_YEAR(2024,1,1)",
+          "native": "5784"
+        },
+        {
+          "formula": "=PV(0,10,-100)",
+          "native": "1000"
+        },
+        {
+          "formula": "=FV(0,10,-100)",
+          "native": "1000"
+        },
+        {
+          "formula": "=PMT(0,10,1000)",
+          "native": "-100"
+        },
+        {
+          "formula": "=IRR({-100;110})",
+          "native": "0.09999999999999998"
+        },
+        {
+          "formula": "=RATE(1,0,-100,110)",
+          "native": "0.09999999999999999"
+        },
+        {
+          "formula": "=OPT_BS(\"c\",100,100,1,0.05,0.2,0.05)",
+          "native": "10.450583572185565"
+        },
+        {
+          "formula": "=DATE(1904,1,1)",
+          "native": "0"
+        },
+        {
+          "formula": "=ACCRINT(DATE(2024,1,1),DATE(2024,7,1),DATE(2024,4,1),.1,1000,2,0)",
+          "native": "25"
+        },
+        {
+          "formula": "=AMORLINC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,3)",
+          "native": "100"
+        },
+        {
+          "formula": "=AMORDEGRC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,0)",
+          "native": "188"
+        },
+        {
+          "formula": "=PRICEMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,.1,0)",
+          "native": "99.76190476190476"
+        },
+        {
+          "formula": "=YIELDMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,100,0)",
+          "native": "0.09523809523809534"
+        },
+        {
+          "formula": "=ODDLPRICE(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+          "native": "100"
+        },
+        {
+          "formula": "=ODDLYIELD(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+          "native": "0.1"
+        },
+        {
+          "formula": "=ODDFPRICE(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+          "native": "99.99999999999999"
+        },
+        {
+          "formula": "=ODDFYIELD(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+          "native": "0.0999999999999999"
+        },
+        {
+          "formula": "=ISOYEAR(DATE(2021,1,1))",
+          "native": "2020"
+        },
+        {
+          "formula": "=ISOYEAR(DATE(2018,12,31))",
+          "native": "2019"
+        },
+        {
+          "formula": "=ISOYEAR(DATE(2024,6,1))",
+          "native": "2024"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),99)",
+          "native": "31"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),-1)",
+          "native": "31"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),2)",
+          "native": "30"
+        },
+        {
+          "formula": "=DAYS360(DATE(2024,1,30),DATE(2024,2,29),2)",
+          "native": "30"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{-1},{1;1;1;1;1;1;1})",
+          "native": "0"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1),0,{-1},{1;1;1;1;1;1;1})",
+          "native": "43830"
+        },
+        {
+          "formula": "=ISOYEAR(60)",
+          "native": "1904"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,1,11)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05e9\u05c1\u05b0\u05d1\u05c7\u05d8 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,10,3)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05b4\u05e9\u05c1\u05b0\u05e8\u05b5\u05d9 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,11,2)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d7\u05b6\u05e9\u05c1\u05b0\u05d5\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d4"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,4,23)",
+          "native": "\u05d8\u05f4\u05d5 \u05d1\u05bc\u05b0\u05e0\u05b4\u05d9\u05e1\u05c7\u05df \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,3,11)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05d0\u05b7\u05d3\u05c7\u05e8 \u05d1\u05f3 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=HDATE_HEB(2024,7,7)",
+          "native": "\u05d0\u05f3 \u05d1\u05bc\u05b0\u05ea\u05bc\u05c7\u05de\u05d5\u05bc\u05d6 \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=DAY(DATE(2024,1,1)+1-0.25/86400)",
+          "native": "2"
+        },
+        {
+          "formula": "=DATEVALUE(DATE(2024,1,1)+1-0.25/86400)",
+          "native": "43831"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1)+1-0.25/86400,0)",
+          "native": "43831"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1)+1-0.25/86400,DATE(2024,1,2))",
+          "native": "1"
+        },
+        {
+          "formula": "=HOUR(-0.5)",
+          "native": "12"
+        },
+        {
+          "formula": "=MINUTE(-0.5+1/1440)",
+          "native": "1"
+        },
+        {
+          "formula": "=SECOND(-0.5+1/86400)",
+          "native": "1"
+        },
+        {
+          "formula": "=HDATE_JULIAN(0,0,0)",
+          "native": "1721028"
+        },
+        {
+          "formula": "=NETWORKDAYS(0,1,{0},{1})",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1),1073741824,{0},{1})",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{0},{1;1;1;1;1;1;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=WORKDAY(DATE(2024,1,1),1,{0},{1;1;1;1;1;1;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=UNIX2DATE(1704067200)",
+          "native": "43830"
+        },
+        {
+          "formula": "=DATE2UNIX(DATE(2024,1,1))",
+          "native": "1704067200"
+        },
+        {
+          "formula": "=UNIX2DATE(0.0005)",
+          "native": "24107.000000005788"
+        },
+        {
+          "formula": "=YEARFRAC(DATE(2024,1,30),DATE(2024,3,31),5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=FV(-2,2,0,100)",
+          "native": "-100"
+        },
+        {
+          "formula": "=PMT(.1,2,100,0,2)",
+          "native": "-52.38095238095237"
+        },
+        {
+          "formula": "=PMT(.1,2,100,0,-.5)",
+          "native": "-52.38095238095237"
+        },
+        {
+          "formula": "=SYD(100,0,2,4)",
+          "native": "-33.333333333333336"
+        },
+        {
+          "formula": "=IRR({-100;200100},2000)",
+          "native": "2000"
+        },
+        {
+          "formula": "=RATE(1,0,-100,200100)",
+          "native": "2000"
+        },
+        {
+          "formula": "=IRR({-100;50})",
+          "native": "-0.5"
+        },
+        {
+          "formula": "=IRR({-100;200100})",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=RRI(0,100,110)",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=RRI(1,0,110)",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=RATE(1,0,-100,100,0,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,-.1,100,2,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ISPMT(.1,1.9,3.9,100)",
+          "native": "-6.666666666666666"
+        },
+        {
+          "formula": "=DDB(100,0,4,1.5)",
+          "native": "35.35533905932738"
+        },
+        {
+          "formula": "=DDB(100,0,4,.5)",
+          "native": "50"
+        },
+        {
+          "formula": "=DB(100,0,2,1,24)",
+          "native": "200"
+        },
+        {
+          "formula": "=DB(100,0,2,0)",
+          "native": "0"
+        },
+        {
+          "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,0)",
+          "native": "7.777777777777778"
+        },
+        {
+          "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,4)",
+          "native": "7.777777777777778"
+        },
+        {
+          "formula": "=ACCRINTM(DATE(2024,2,29),DATE(2024,3,31),.1,1000,0)",
+          "native": "8.61111111111111"
+        },
+        {
+          "formula": "=PRICEDISC(DATE(2024,1,31),DATE(2024,2,29),.1,100,0)",
+          "native": "99.22222222222223"
+        },
+        {
+          "formula": "=DURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+          "native": "1"
+        },
+        {
+          "formula": "=MDURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+          "native": "0.9523809523809523"
+        },
+        {
+          "formula": "=MIRR({-100;110},.1,.1)",
+          "native": "0.09999999999999964"
+        },
+        {
+          "formula": "=XNPV(.1,{-100;110},{1;366})",
+          "native": "-1.4210854715202004E-14"
+        },
+        {
+          "formula": "=XIRR({-100;110},{1;366})",
+          "native": "0.09999999999999998"
+        },
+        {
+          "formula": "=EURO(\"DEM\")",
+          "native": "1.95583"
+        },
+        {
+          "formula": "=DOLLARDE(1.02,16)",
+          "native": "1.125"
+        },
+        {
+          "formula": "=DOLLARFR(-1.125,16)",
+          "native": "-1.02"
+        },
+        {
+          "formula": "=EFFECT(.1,2)",
+          "native": "0.10250000000000001"
+        },
+        {
+          "formula": "=NOMINAL(.1025,2)",
+          "native": "0.09999999999999999"
+        },
+        {
+          "formula": "=G_DURATION(.1,100,110)",
+          "native": "1.0000000000000007"
+        },
+        {
+          "formula": "=NPV(.1,110,TRUE)",
+          "native": "100"
+        },
+        {
+          "formula": "=INTRATE(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+          "native": "0.1"
+        },
+        {
+          "formula": "=RECEIVED(DATE(2024,1,1),DATE(2025,1,1),100,.1,0)",
+          "native": "111.11111111111111"
+        },
+        {
+          "formula": "=DISC(DATE(2024,1,1),DATE(2025,1,1),90,100,0)",
+          "native": "0.1"
+        },
+        {
+          "formula": "=YIELDDISC(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+          "native": "0.10000000000000009"
+        },
+        {
+          "formula": "=TBILLPRICE(1,181,.1)",
+          "native": "95"
+        },
+        {
+          "formula": "=TBILLYIELD(1,181,95)",
+          "native": "0.10526315789473684"
+        },
+        {
+          "formula": "=TBILLEQ(1,181,.1)",
+          "native": "0.1067251461988304"
+        },
+        {
+          "formula": "=COUPNUM(DATE(2024,4,1),DATE(2025,1,1),2)",
+          "native": "2"
+        },
+        {
+          "formula": "=COUPDAYBS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "90"
+        },
+        {
+          "formula": "=COUPDAYS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "180"
+        },
+        {
+          "formula": "=COUPDAYSNC(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "90"
+        },
+        {
+          "formula": "=COUPPCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "43830"
+        },
+        {
+          "formula": "=COUPNCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+          "native": "44012"
+        },
+        {
+          "formula": "=VDB(100,0,4,0,4)",
+          "native": "100"
+        },
+        {
+          "formula": "=SLN(100,0,4)",
+          "native": "25"
+        },
+        {
+          "formula": "=RRI(1,100,110)",
+          "native": "0.10000000000000009"
+        },
+        {
+          "formula": "=EUROCONVERT(1,\"DEM\",\"EUR\",FALSE)",
+          "native": "0.51"
+        },
+        {
+          "formula": "=SLN(100,0,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ISPMT(.1,0,3,100)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=DDB(100,0,4,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=DB(0,0,4,1)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ACCRINTM(1,2,.1,1000,5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=ACCRINTM(1,2,.1,1000,-.5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=COUPDAYS(1,366,2,-.5)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=YIELDDISC(1,366,-1,100,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=MIRR({-100;110},.1,-2)",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=FVSCHEDULE(100,{.1;\"bad\"})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=IRR({-100;200;-100})",
+          "native": "5.907981582180289E-09"
+        },
+        {
+          "formula": "=VDB(100,0,4,3,4,2,.5)",
+          "native": "12.5"
+        },
+        {
+          "formula": "=VDB(100,0,4,1.5,3.5,2,TRUE)",
+          "native": "28.125"
+        },
+        {
+          "formula": "=VDB(100,10,5,2.5,4.5,1)",
+          "native": "35"
+        },
+        {
+          "formula": "=VDB(100,0,0,0,0)",
+          "native": "0"
+        },
+        {
+          "formula": "=VDB(100,0,20000,0,10001,2,TRUE)",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=FV(.5,10,0,1)",
+          "native": "-57.6650390625"
+        },
+        {
+          "formula": "=IPMT(.1,1,2,100)",
+          "native": "-10"
+        },
+        {
+          "formula": "=PPMT(.1,1,2,100)",
+          "native": "-47.61904761904761"
+        },
+        {
+          "formula": "=CUMIPMT(.1,2,100,1,2,0)",
+          "native": "-15.238095238095234"
+        },
+        {
+          "formula": "=CUMPRINC(.1,2,100,1,2,0)",
+          "native": "-100.00000000000003"
+        },
+        {
+          "formula": "=CUMIPMT(.1,2,100,1,2,1)",
+          "native": "-4.761904761904762"
+        },
+        {
+          "formula": "=NPER(.1,-100 * 1.21 / 2.1,100)",
+          "native": "1.9999999999999998"
+        },
+        {
+          "formula": "=YIELD(DATE(2024,7,1),DATE(2025,1,1),.1,110,100,2,0)",
+          "native": "-0.09090909090909098"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,1,1),DATE(2024,1,1),.1,.1,100,2,0)",
+          "native": "100"
+        },
+        {
+          "formula": "=YIELD(DATE(2024,1,1),DATE(2025,1,1),.1,100,100,2,0)",
+          "native": "0.09999999999999998"
+        },
+        {
+          "formula": "=EUROCONVERT(-1.005,\"EUR\",\"EUR\",FALSE)",
+          "native": "-1.01"
+        },
+        {
+          "formula": "=EUROCONVERT(-1.0005,\"EUR\",\"EUR\",TRUE,3)",
+          "native": "-1.001"
+        },
+        {
+          "formula": "=AMORDEGRC(-10,DATE(2024,1,1),DATE(2025,1,1),0,0,.1,0)",
+          "native": "-2"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,0,100,2,0)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=IRR({-1;TRUE})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=FVSCHEDULE(100,{.1;TRUE})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=MIRR({-100;TRUE},.1,.1)",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=XNPV(.1,{-100;TRUE},{1;366})",
+          "native": "#VALUE!"
+        },
+        {
+          "formula": "=IRR({-100;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=FVSCHEDULE(100,{.1;#DIV/0!})",
+          "native": "#DIV/0!"
+        },
+        {
+          "formula": "=PRICE(DATE(2024,7,1),DATE(2025,1,1),.1,0,100,2,0)",
+          "native": "105"
+        },
+        {
+          "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.03)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.03)",
+          "native": "0.586851146134764"
+        },
+        {
+          "formula": "=OPT_BS_RHO(\"c\",100,100,1,.05,.2,.03)",
+          "native": "49.45810910532236"
+        },
+        {
+          "formula": "=OPT_BS_THETA(\"c\",100,100,1,.05,.2,.03)",
+          "native": "-5.089318913998333"
+        },
+        {
+          "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.03)",
+          "native": "0.018950578755008714"
+        },
+        {
+          "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.03)",
+          "native": "37.90115751001743"
+        },
+        {
+          "formula": "=OPT_BS_CARRYCOST(\"c\",100,100,1,.05,.2,.03)",
+          "native": "58.685114613476394"
+        },
+        {
+          "formula": "=CUM_BIV_NORM_DIST(.2,.3,.5)",
+          "native": "0.43688917987362585"
+        },
+        {
+          "formula": "=OPT_GARMAN_KOHLHAGEN(\"c\",100,100,1,.05,.02,.2)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_FRENCH(\"c\",100,100,.8,1,.05,.2,.03)",
+          "native": "8.427393891848233"
+        },
+        {
+          "formula": "=OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1,.2)",
+          "native": "10.41716547024085"
+        },
+        {
+          "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,.1)",
+          "native": "8.348939840201675"
+        },
+        {
+          "formula": "=OPT_BJER_STENS(\"c\",100,100,1,.05,.2,.03)",
+          "native": "9.227005508552383"
+        },
+        {
+          "formula": "=OPT_MILTERSEN_SCHWARTZ(\"c\",.95,100,100,.5,1,.2,.1,.1,.2,.1,.1,.5,.5)",
+          "native": "5.610778432447092"
+        },
+        {
+          "formula": "=OPT_BAW_AMER(\"c\",100,100,1,.05,.2,.03)",
+          "native": "9.227555802623748"
+        },
+        {
+          "formula": "=OPT_RGW(100,100,.5,1,.05,3,.2)",
+          "native": "8.514104824319844"
+        },
+        {
+          "formula": "=OPT_FORWARD_START(\"c\",100,1,.5,1,.05,.2,.03)",
+          "native": "6.2448731365128145"
+        },
+        {
+          "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,.1,.05,.03,.2)",
+          "native": "0.4396344416865478"
+        },
+        {
+          "formula": "=OPT_SIMPLE_CHOOSER(100,100,.5,1,.05,.03,.2)",
+          "native": "13.344280448069227"
+        },
+        {
+          "formula": "=OPT_COMPLEX_CHOOSER(100,100,100,.25,1,1,.05,.03,.2)",
+          "native": "11.801429205461341"
+        },
+        {
+          "formula": "=OPT_ON_OPTIONS(\"cc\",100,100,5,.5,1,.05,.03,.2)",
+          "native": "5.511638296903571"
+        },
+        {
+          "formula": "=OPT_EXTENDIBLE_WRITER(\"c\",100,100,105,.5,1,.05,.03,.2)",
+          "native": "56.070378219549234"
+        },
+        {
+          "formula": "=OPT_2_ASSET_CORRELATION(\"c\",100,100,100,100,1,.03,.03,.05,.2,.2,.5)",
+          "native": "7.096334364854347"
+        },
+        {
+          "formula": "=OPT_EURO_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+          "native": "8.266327791618496"
+        },
+        {
+          "formula": "=OPT_AMER_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+          "native": "8.266378724639583"
+        },
+        {
+          "formula": "=OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.2,.5)",
+          "native": "9.826787796317303"
+        },
+        {
+          "formula": "=OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2)",
+          "native": "17.98696654912109"
+        },
+        {
+          "formula": "=OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2)",
+          "native": "19.624426428795637"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2,.03)",
+          "native": "9.130449517016778"
+        },
+        {
+          "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.05)",
+          "native": "10.450583572185565"
+        },
+        {
+          "formula": "=OPT_BS(\"p\",100,100,1,.05,.2,.05)",
+          "native": "5.573526022256973"
+        },
+        {
+          "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.05)",
+          "native": "0.6368306511756191"
+        },
+        {
+          "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.05)",
+          "native": "0.018762017345846895"
+        },
+        {
+          "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.05)",
+          "native": "37.52403469169379"
+        },
+        {
+          "formula": "=OPT_FRENCH(\"c\",100,100,1,1,.05,.2,.03)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,0)",
+          "native": "9.227005508154036"
+        },
+        {
+          "formula": "=OPT_BAW_AMER",
+          "native": "#NAME?"
+        },
+        {
+          "formula": "=OPT_BJER_STENS",
+          "native": "#NAME?"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",1000,100,100,1,.05,.2)",
+          "native": "7.575188125571481"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",100,100,100,1,.05,.2)",
+          "native": "7.5581635403361584"
+        },
+        {
+          "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,0,.05,.03,.2)",
+          "native": "#NUM!"
+        },
+        {
+          "formula": "=CUM_BIV_NORM_DIST((LN(100/105)+(.03+.2^2/2))/(.2),-((.03+.2^2/2)*.5/(.2*SQRT(.5))),-SQRT(.5))",
+          "native": "0.5933532382196917"
+        },
+        {
+          "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2)",
+          "native": "7.4829976004619185"
+        }
+      ]
+    }
+  ],
+  "linkedLibrarySha256": {
+    "/out/prefix/lib/libspreadsheet-1.12.61.so": "f6f41b1321c8e852ade29ad41096af786b5939aac0eda745f532de136d4f073e",
+    "/out/prefix/lib/libgoffice-0.10.so.10": "43b3bf1bdfab16ae5515b6674420e1727deb592b16fbc159fe5cf94976384ed5",
+    "/lib/aarch64-linux-gnu/libgsf-1.so.114": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28",
+    "/lib/aarch64-linux-gnu/libgtk-3.so.0": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4",
+    "/lib/aarch64-linux-gnu/libgobject-2.0.so.0": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f",
+    "/lib/aarch64-linux-gnu/libglib-2.0.so.0": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1",
+    "/lib/aarch64-linux-gnu/libc.so.6": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13",
+    "/lib/aarch64-linux-gnu/libxml2.so.2": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d",
+    "/lib/aarch64-linux-gnu/libgmodule-2.0.so.0": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08",
+    "/lib/aarch64-linux-gnu/libgdk-3.so.0": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0",
+    "/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5",
+    "/lib/aarch64-linux-gnu/libpango-1.0.so.0": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233",
+    "/lib/aarch64-linux-gnu/libatk-1.0.so.0": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5",
+    "/lib/aarch64-linux-gnu/libcairo.so.2": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6",
+    "/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c",
+    "/lib/aarch64-linux-gnu/libgio-2.0.so.0": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77",
+    "/lib/aarch64-linux-gnu/libm.so.6": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+    "/lib/aarch64-linux-gnu/libxslt.so.1": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042",
+    "/lib/aarch64-linux-gnu/librsvg-2.so.2": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7",
+    "/lib/aarch64-linux-gnu/libz.so.1": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65",
+    "/lib/aarch64-linux-gnu/libbz2.so.1.0": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46",
+    "/lib/ld-linux-aarch64.so.1": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6",
+    "/lib/aarch64-linux-gnu/libharfbuzz.so.0": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c",
+    "/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2",
+    "/lib/aarch64-linux-gnu/libfontconfig.so.1": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad",
+    "/lib/aarch64-linux-gnu/libfribidi.so.0": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720",
+    "/lib/aarch64-linux-gnu/libcairo-gobject.so.2": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13",
+    "/lib/aarch64-linux-gnu/libepoxy.so.0": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e",
+    "/lib/aarch64-linux-gnu/libXi.so.6": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761",
+    "/lib/aarch64-linux-gnu/libX11.so.6": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0",
+    "/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3",
+    "/lib/aarch64-linux-gnu/libcloudproviders.so.0": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c",
+    "/lib/aarch64-linux-gnu/libXfixes.so.3": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5",
+    "/lib/aarch64-linux-gnu/libffi.so.8": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490",
+    "/lib/aarch64-linux-gnu/libatomic.so.1": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e",
+    "/lib/aarch64-linux-gnu/libpcre2-8.so.0": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75",
+    "/lib/aarch64-linux-gnu/liblzma.so.5": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84",
+    "/lib/aarch64-linux-gnu/libxkbcommon.so.0": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380",
+    "/lib/aarch64-linux-gnu/libwayland-client.so.0": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670",
+    "/lib/aarch64-linux-gnu/libwayland-cursor.so.0": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43",
+    "/lib/aarch64-linux-gnu/libwayland-egl.so.1": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c",
+    "/lib/aarch64-linux-gnu/libXext.so.6": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651",
+    "/lib/aarch64-linux-gnu/libXcursor.so.1": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43",
+    "/lib/aarch64-linux-gnu/libXdamage.so.1": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e",
+    "/lib/aarch64-linux-gnu/libXcomposite.so.1": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48",
+    "/lib/aarch64-linux-gnu/libXrandr.so.2": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2",
+    "/lib/aarch64-linux-gnu/libXinerama.so.1": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6",
+    "/lib/aarch64-linux-gnu/libthai.so.0": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7",
+    "/lib/aarch64-linux-gnu/libpng16.so.16": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e",
+    "/lib/aarch64-linux-gnu/libfreetype.so.6": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e",
+    "/lib/aarch64-linux-gnu/libXrender.so.1": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102",
+    "/lib/aarch64-linux-gnu/libxcb.so.1": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210",
+    "/lib/aarch64-linux-gnu/libxcb-render.so.0": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0",
+    "/lib/aarch64-linux-gnu/libxcb-shm.so.0": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0",
+    "/lib/aarch64-linux-gnu/libpixman-1.so.0": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197",
+    "/lib/aarch64-linux-gnu/libjpeg.so.62": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87",
+    "/lib/aarch64-linux-gnu/libmount.so.1": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538",
+    "/lib/aarch64-linux-gnu/libselinux.so.1": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952",
+    "/lib/aarch64-linux-gnu/libgcc_s.so.1": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0",
+    "/lib/aarch64-linux-gnu/libdav1d.so.7": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b",
+    "/lib/aarch64-linux-gnu/libgraphite2.so.3": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402",
+    "/lib/aarch64-linux-gnu/libexpat.so.1": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48",
+    "/lib/aarch64-linux-gnu/libatspi.so.0": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52",
+    "/lib/aarch64-linux-gnu/libdbus-1.so.3": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af",
+    "/lib/aarch64-linux-gnu/libdatrie.so.1": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45",
+    "/lib/aarch64-linux-gnu/libbrotlidec.so.1": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e",
+    "/lib/aarch64-linux-gnu/libXau.so.6": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26",
+    "/lib/aarch64-linux-gnu/libXdmcp.so.6": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298",
+    "/lib/aarch64-linux-gnu/libblkid.so.1": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741",
+    "/lib/aarch64-linux-gnu/libsystemd.so.0": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f",
+    "/lib/aarch64-linux-gnu/libbrotlicommon.so.1": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e",
+    "/lib/aarch64-linux-gnu/libcap.so.2": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec"
+  },
+  "supplementalNativeDifferentialRuns": [
+    {
+      "dateSystem": "1900",
+      "status": 0,
+      "stdout": "45421\n45336\n45431\n45380\n1\n0.5208333333333334\n2\n2024\n1\n\"20 Tebet 5784\"\n3\n20\n\"20 Tebet 5784\"\n\"\u05db\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3\"\n2460311\n",
+      "stderr": "",
+      "cases": [
+        {
+          "formula": "=ASCENSIONTHURSDAY(2024)",
+          "native": "45421"
+        },
+        {
+          "formula": "=ASHWEDNESDAY(2024)",
+          "native": "45336"
+        },
+        {
+          "formula": "=PENTECOSTSUNDAY(2024)",
+          "native": "45431"
+        },
+        {
+          "formula": "=GOODFRIDAY(2024)",
+          "native": "45380"
+        },
+        {
+          "formula": "=MONTH(45292)",
+          "native": "1"
+        },
+        {
+          "formula": "=TIMEVALUE(\"12:30:00\")",
+          "native": "0.5208333333333334"
+        },
+        {
+          "formula": "=WEEKDAY(45292)",
+          "native": "2"
+        },
+        {
+          "formula": "=YEAR(45292)",
+          "native": "2024"
+        },
+        {
+          "formula": "=WEEKNUM(45292)",
+          "native": "1"
+        },
+        {
+          "formula": "=HDATE(2024,1,1)",
+          "native": "20 Tebet 5784"
+        },
+        {
+          "formula": "=HDATE_MONTH(2024,1,1)",
+          "native": "3"
+        },
+        {
+          "formula": "=HDATE_DAY(2024,1,1)",
+          "native": "20"
+        },
+        {
+          "formula": "=DATE2HDATE(45292)",
+          "native": "20 Tebet 5784"
+        },
+        {
+          "formula": "=DATE2HDATE_HEB(45292)",
+          "native": "\u05db\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d3"
+        },
+        {
+          "formula": "=DATE2JULIAN(45292)",
+          "native": "2460311"
+        }
+      ]
+    },
+    {
+      "dateSystem": "1904",
+      "status": 0,
+      "stdout": "43959\n43874\n43969\n43918\n1\n0.5208333333333334\n1\n2028\n2\n\"20 Tebet 5784\"\n3\n20\n\"3 Tebet 5788\"\n\"\u05d2\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d7\"\n2461773\n",
+      "stderr": "",
+      "cases": [
+        {
+          "formula": "=ASCENSIONTHURSDAY(2024)",
+          "native": "43959"
+        },
+        {
+          "formula": "=ASHWEDNESDAY(2024)",
+          "native": "43874"
+        },
+        {
+          "formula": "=PENTECOSTSUNDAY(2024)",
+          "native": "43969"
+        },
+        {
+          "formula": "=GOODFRIDAY(2024)",
+          "native": "43918"
+        },
+        {
+          "formula": "=MONTH(45292)",
+          "native": "1"
+        },
+        {
+          "formula": "=TIMEVALUE(\"12:30:00\")",
+          "native": "0.5208333333333334"
+        },
+        {
+          "formula": "=WEEKDAY(45292)",
+          "native": "1"
+        },
+        {
+          "formula": "=YEAR(45292)",
+          "native": "2028"
+        },
+        {
+          "formula": "=WEEKNUM(45292)",
+          "native": "2"
+        },
+        {
+          "formula": "=HDATE(2024,1,1)",
+          "native": "20 Tebet 5784"
+        },
+        {
+          "formula": "=HDATE_MONTH(2024,1,1)",
+          "native": "3"
+        },
+        {
+          "formula": "=HDATE_DAY(2024,1,1)",
+          "native": "20"
+        },
+        {
+          "formula": "=DATE2HDATE(45292)",
+          "native": "3 Tebet 5788"
+        },
+        {
+          "formula": "=DATE2HDATE_HEB(45292)",
+          "native": "\u05d2\u05f3 \u05d1\u05bc\u05b0\u05d8\u05b5\u05d1\u05b5\u05ea \u05d4\u05ea\u05e9\u05e4\u05f4\u05d7"
+        },
+        {
+          "formula": "=DATE2JULIAN(45292)",
+          "native": "2461773"
+        }
+      ]
+    }
+  ],
+  "invocationLocaleTimezoneAndCompiler": [
+    "LANG=C",
+    "LANGUAGE=",
+    "LC_CTYPE=\"C\"",
+    "LC_NUMERIC=\"C\"",
+    "LC_TIME=\"C\"",
+    "LC_COLLATE=\"C\"",
+    "LC_MONETARY=\"C\"",
+    "LC_MESSAGES=\"C\"",
+    "LC_PAPER=\"C\"",
+    "LC_NAME=\"C\"",
+    "LC_ADDRESS=\"C\"",
+    "LC_TELEPHONE=\"C\"",
+    "LC_MEASUREMENT=\"C\"",
+    "LC_IDENTIFICATION=\"C\"",
+    "LC_ALL=C",
+    "UTC",
+    "cc (Debian 14.2.0-19) 14.2.0",
+    "aarch64"
+  ],
+  "capturedRuntimeNote": "ldd/dpkg default process profile; invocation locale overrides recorded separately and apply to every native differential run.",
+  "authenticatedSupplementaryPrimaryMembers": {
+    "src/mathfunc.c": "4f91ff6c32b3b4dbe31e2c3fcb718aa85ba84c149205383c995c4a7be8ed5d50",
+    "src/tools/goal-seek.c": "9a12458c9fa52d92fa2ca2536a7d76589bc857d10407aa232cfe0f7606c2245a",
+    "plugins/fn-financial/sc-fin.c": "c9e37280eb6f94adba569bf1253aaef20656fb65ead0f938f27c5bf0521ad7c2"
+  }
+}

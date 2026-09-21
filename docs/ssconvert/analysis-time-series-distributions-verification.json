@@ -1,0 +1,2352 @@
+{
+  "task": "analysis-time-series-distributions",
+  "date": "2026-09-21",
+  "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "profile": {
+    "bindings": 74,
+    "mismatches": [],
+    "dependencies": 523,
+    "dependencyDifferences": [],
+    "source": [
+      {
+        "path": "src/tools/analysis-tools.c",
+        "sha256": "13722e08af30e56cc0c4dd9397853b49a850516b821f8c6e43985dd5b284a90b",
+        "matchesExtracted": true
+      },
+      {
+        "path": "src/tools/analysis-exp-smoothing.c",
+        "sha256": "4db5bbf42ad34bc0ff94ddf9c95a79187a183d639c4a0ffd20a3ec5a7175edc3",
+        "matchesExtracted": true
+      },
+      {
+        "path": "src/tools/analysis-frequency.c",
+        "sha256": "fb2b91e0c1857ed04569ec0623bb81d3a3759992e8bfd9e4fd7335f14c8d5c61",
+        "matchesExtracted": true
+      },
+      {
+        "path": "src/tools/analysis-histogram.c",
+        "sha256": "1a8ebfe2198f3613aa69cb725d847cbba50e31a5e95d93517a783cf6639fb92b",
+        "matchesExtracted": true
+      },
+      {
+        "path": "src/tools/analysis-normality.c",
+        "sha256": "09813792939ef61835941b4b06c17bf21b96058ea52dd530c4bc784a7f76e0f1",
+        "matchesExtracted": true
+      },
+      {
+        "path": "src/tools/analysis-auto-expression.c",
+        "sha256": "f94c9339d49e31d4472f07f7c8f2f57065c41fc06535488b8783f6ce7e03b883",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7202-moving-average.pl",
+        "sha256": "75125bd2e49b1ffe1496a1446388e2f602166419bfd93ad1447f459b0cecf036",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7206-exponential-smoothing.pl",
+        "sha256": "b8a4350e4eba5be4a7c0f3379631340b469b69edc706d9e2a9eae4c8552b9140",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7207-histogram.pl",
+        "sha256": "228adf5c019ba58a9a4c455e5a5112a340fbfd8cdce9c2febdf6844a76ff61bc",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7208-frequency-tables.pl",
+        "sha256": "99d616eb7fdca81dad053c61304ad6d44b2d81d417bd79a81e4d51612bc03bc7",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7209-fourier-analysis.pl",
+        "sha256": "a37a602a4dc95083d2506865854311cfee30397ed85bf519bd5f189abcf9d53a",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7210-sampling.pl",
+        "sha256": "9b4f4c64137448a3280d325c15b917ece25ee4057a56c6aed0bb89021f2e0f96",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7211-ranking.pl",
+        "sha256": "30b9de00957ef9e82ef0602a836bace9f7833844218fbf49d816870a00128e99",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7213-auto-expression.pl",
+        "sha256": "0f88cd991e65bd69e1a525f26b03d735d55a69a0602bf80e564bec658ac14122",
+        "matchesExtracted": true
+      },
+      {
+        "path": "test/t7214-normality-test.pl",
+        "sha256": "2021a4f30c3fc2ae7d9a4df8ecfe348e1089bf3899d0e79bce9f5cd8179e5676",
+        "matchesExtracted": true
+      }
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "GSETTINGS_BACKEND": "memory",
+      "HOME": "/out/analysis-tool-protocol/home",
+      "XDG_CONFIG_HOME": "/out/analysis-tool-protocol/config",
+      "XDG_DATA_HOME": "/out/analysis-tool-protocol/data",
+      "XDG_CACHE_HOME": "/out/analysis-tool-protocol/cache",
+      "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share"
+    },
+    "plugins": "Retained captured profile; not freshly enumerated"
+  },
+  "properties": {
+    "moving-average": {
+      "input": "data",
+      "outputName": "Moving Average",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "interval",
+          "type": "int",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "default": 1
+        },
+        {
+          "name": "std-error-flag",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        {
+          "name": "df",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "default": 0
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "default": 0
+        },
+        {
+          "name": "show-graph",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "ma-type",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0
+        }
+      ]
+    },
+    "exponential-smoothing": {
+      "input": "data",
+      "outputName": "Exponential Smoothing",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "damp-fact",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        {
+          "name": "g-damp-fact",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        {
+          "name": "s-damp-fact",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        {
+          "name": "s-period",
+          "type": "int",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "default": 1
+        },
+        {
+          "name": "std-error-flag",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        {
+          "name": "df",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "default": 0
+        },
+        {
+          "name": "show-graph",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "es-type",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0
+        }
+      ]
+    },
+    "histogram": {
+      "input": "data",
+      "outputName": "Histogram",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "predetermined",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "bin-type",
+          "type": "int",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 0
+        },
+        {
+          "name": "max-given",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "min-given",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "max",
+          "type": "double",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "default": 0
+        },
+        {
+          "name": "min",
+          "type": "double",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "default": 0
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "default": 1
+        },
+        {
+          "name": "percentage",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "cumulative",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "only-numbers",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "chart",
+          "type": "enum",
+          "default": 0,
+          "enum": {
+            "none": 0,
+            "histogram": 1,
+            "bar": 2,
+            "column": 3
+          },
+          "enumType": "gnm_hist_tool_chart_t"
+        }
+      ]
+    },
+    "frequency-tables": {
+      "input": "data",
+      "outputName": "Frequency Table",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "predetermined",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "max",
+          "type": "double",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "default": 0
+        },
+        {
+          "name": "min",
+          "type": "double",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "default": 0
+        },
+        {
+          "name": "n",
+          "type": "int",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "default": 1
+        },
+        {
+          "name": "percentage",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "exact",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "chart",
+          "type": "enum",
+          "default": 0,
+          "enum": {
+            "none": 0,
+            "bar": 1,
+            "column": 2
+          },
+          "enumType": "gnm_freq_tool_chart_t"
+        }
+      ]
+    },
+    "fourier-analysis": {
+      "input": "data",
+      "outputName": "Fourier Series",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "inverse",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    "sampling": {
+      "input": "data",
+      "outputName": "Sampling",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "periodic",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "row-major",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "offset",
+          "type": "uint",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "default": 0
+        },
+        {
+          "name": "size",
+          "type": "uint",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "default": 0
+        },
+        {
+          "name": "period",
+          "type": "uint",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "default": 0
+        },
+        {
+          "name": "number",
+          "type": "uint",
+          "minimum": 0,
+          "maximum": 4294967295,
+          "default": 0
+        }
+      ]
+    },
+    "ranking": {
+      "input": "data",
+      "outputName": "Ranks",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "av-ties",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    "normality-test": {
+      "input": "data",
+      "outputName": "Normality Test",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "alpha",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.05
+        },
+        {
+          "name": "type",
+          "type": "enum",
+          "default": 0,
+          "enum": {
+            "andersondarling": 0,
+            "cramervonmises": 1,
+            "lilliefors": 2,
+            "shapirofrancia": 3
+          },
+          "enumType": "gnm_normality_test_type_t"
+        },
+        {
+          "name": "graph",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    "auto-expression": {
+      "input": "data",
+      "outputName": "Auto Expression",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "enumType": "gnm_tool_group_by_t"
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "below",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "function",
+          "type": "string",
+          "default": null
+        }
+      ]
+    }
+  },
+  "candidate": [
+    {
+      "path": "packages/ssconvert/src/analysis/run.ts",
+      "sha256": "cffc41220b993fd9afaf5c7f7e10134334c99ab0c50ad6c193115e18569a13f3"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/statistical.ts",
+      "sha256": "00fc2e31e073aa8dac09e37e32b13768d89b0e4adaface6873a74752799a79da"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/distributions.test.ts",
+      "sha256": "08d4c4c9549ee953ddc371297430d80af0cb3bde4e11c2de68d111e787caa2c9"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/distributions-independent-stress.test.ts",
+      "sha256": "f6bc256275067e0a5de244b727b4f932f64c69c0526d686f6ce8abef4819dea4"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/runner-independent-stress.test.ts",
+      "sha256": "2166d643cbea309e2c0ac33ba9ac32db85723b5896514bca641d5a9355f7fc96"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "sha256": "e1ccb6d046500ff95611a044afb828814719b226f0ee92c220829232d1f0d833"
+    }
+  ],
+  "formulaAndValueInvocations": [
+    {
+      "i": 0,
+      "tool": "moving-average",
+      "p": [
+        "interval:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 1,
+      "tool": "moving-average",
+      "p": [
+        "ma-type:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 2,
+      "tool": "moving-average",
+      "p": [
+        "interval:3",
+        "ma-type:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 3,
+      "tool": "moving-average",
+      "p": [
+        "interval:3",
+        "ma-type:4"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "Leaking expression at 0xbb10db8d10b8: 1.\nLeaking expression at 0xbb10db8d10d8: 3.\nLeaking expression at 0xbb10db8d10f8: 0.\nLeaking expression at 0xbb10db8d1118: 5.\nLeaking expression at 0xbb10db8d1138: '?'!$A$1:$A$8.\nLeaking expression at 0xbb10db8d1158: offset('?'!$A$1:$A$8,5,0,3,1).\nLeaking expression at 0xbb10db8d1178: average(offset('?'!$A$1:$A$8,5,0,3,1)).\nLeaking expression at 0xbb10db8d1af8: 1.\nLeaking expression at 0xbb10db8d1b18: 3.\nLeaking expression at 0xbb10db8d1b38: 0.\nLeaking expression at 0xbb10db8d1b58: 5.\nLeaking expression at 0xbb10db8d1b78: '?'!$B$1:$B$8.\nLeaking expression at 0xbb10db8d1b98: offset('?'!$B$1:$B$8,5,0,3,1).\nLeaking expression at 0xbb10db8d1bb8: average(offset('?'!$B$1:$B$8,5,0,3,1)).\n\n** (ssconvert:87326): WARNING **: 12:30:35.335: Leaked 14 nodes from expression pool for small nodes.\nLeaking 10 values.\nLeaking string [Statistics] with ref_count=2.\nLeaking string [Lookup] with ref_count=2.\nLeaking string [gnumeric-1.12.61-functions] with ref_count=136.\n",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 4,
+      "tool": "moving-average",
+      "p": [
+        "interval:2",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 5,
+      "tool": "exponential-smoothing",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 6,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:1",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 7,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:2",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 8,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:3",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 9,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:4",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 10,
+      "tool": "histogram",
+      "p": [
+        "n:4"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 11,
+      "tool": "histogram",
+      "p": [
+        "n:4",
+        "bin-type:7",
+        "percentage:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 12,
+      "tool": "histogram",
+      "p": [
+        "n:4",
+        "cumulative:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 13,
+      "tool": "frequency-tables",
+      "p": [
+        "n:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 14,
+      "tool": "fourier-analysis",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 15,
+      "tool": "fourier-analysis",
+      "p": [
+        "inverse:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 16,
+      "tool": "sampling",
+      "p": [
+        "periodic:yes",
+        "period:2",
+        "number:3",
+        "size:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 17,
+      "tool": "ranking",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 18,
+      "tool": "ranking",
+      "p": [
+        "av-ties:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 19,
+      "tool": "normality-test",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 20,
+      "tool": "normality-test",
+      "p": [
+        "type:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 21,
+      "tool": "normality-test",
+      "p": [
+        "type:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 22,
+      "tool": "normality-test",
+      "p": [
+        "type:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 23,
+      "tool": "auto-expression",
+      "p": [
+        "function:SUM",
+        "multiple:yes",
+        "below:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 0,
+      "tool": "moving-average",
+      "p": [
+        "interval:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 1,
+      "tool": "moving-average",
+      "p": [
+        "ma-type:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 2,
+      "tool": "moving-average",
+      "p": [
+        "interval:3",
+        "ma-type:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 3,
+      "tool": "moving-average",
+      "p": [
+        "interval:3",
+        "ma-type:4"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "Leaking expression at 0xc4be5d8e68d8: 1.\nLeaking expression at 0xc4be5d8e68f8: 3.\nLeaking expression at 0xc4be5d8e6918: 0.\nLeaking expression at 0xc4be5d8e6938: 5.\nLeaking expression at 0xc4be5d8e6958: '?'!$A$1:$A$8.\nLeaking expression at 0xc4be5d8e6978: offset('?'!$A$1:$A$8,5,0,3,1).\nLeaking expression at 0xc4be5d8e6998: average(offset('?'!$A$1:$A$8,5,0,3,1)).\nLeaking expression at 0xc4be5d8e7318: 1.\nLeaking expression at 0xc4be5d8e7338: 3.\nLeaking expression at 0xc4be5d8e7358: 0.\nLeaking expression at 0xc4be5d8e7378: 5.\nLeaking expression at 0xc4be5d8e7398: '?'!$B$1:$B$8.\nLeaking expression at 0xc4be5d8e73b8: offset('?'!$B$1:$B$8,5,0,3,1).\nLeaking expression at 0xc4be5d8e73d8: average(offset('?'!$B$1:$B$8,5,0,3,1)).\n\n** (ssconvert:87488): WARNING **: 12:31:08.348: Leaked 14 nodes from expression pool for small nodes.\nLeaking 10 values.\nLeaking string [Statistics] with ref_count=2.\nLeaking string [Lookup] with ref_count=2.\nLeaking string [gnumeric-1.12.61-functions] with ref_count=136.\n",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 4,
+      "tool": "moving-average",
+      "p": [
+        "interval:2",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 5,
+      "tool": "exponential-smoothing",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 6,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:1",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 7,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:2",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 8,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:3",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 9,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:4",
+        "s-period:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 10,
+      "tool": "histogram",
+      "p": [
+        "n:4"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 11,
+      "tool": "histogram",
+      "p": [
+        "n:4",
+        "bin-type:7",
+        "percentage:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 12,
+      "tool": "histogram",
+      "p": [
+        "n:4",
+        "cumulative:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 13,
+      "tool": "frequency-tables",
+      "p": [
+        "n:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 14,
+      "tool": "fourier-analysis",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 15,
+      "tool": "fourier-analysis",
+      "p": [
+        "inverse:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 16,
+      "tool": "sampling",
+      "p": [
+        "periodic:yes",
+        "period:2",
+        "number:3",
+        "size:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 17,
+      "tool": "ranking",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 18,
+      "tool": "ranking",
+      "p": [
+        "av-ties:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 19,
+      "tool": "normality-test",
+      "p": [],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 20,
+      "tool": "normality-test",
+      "p": [
+        "type:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 21,
+      "tool": "normality-test",
+      "p": [
+        "type:2"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 22,
+      "tool": "normality-test",
+      "p": [
+        "type:3"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 23,
+      "tool": "auto-expression",
+      "p": [
+        "function:SUM",
+        "multiple:yes",
+        "below:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "phase": "formulas",
+      "i": 0,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 1,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 2,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 3,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 4,
+      "tool": "moving-average",
+      "comparedCells": 36,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 5,
+      "tool": "exponential-smoothing",
+      "comparedCells": 20,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 6,
+      "tool": "exponential-smoothing",
+      "comparedCells": 22,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 7,
+      "tool": "exponential-smoothing",
+      "comparedCells": 41,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 8,
+      "tool": "exponential-smoothing",
+      "comparedCells": 95,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 9,
+      "tool": "exponential-smoothing",
+      "comparedCells": 95,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 10,
+      "tool": "histogram",
+      "comparedCells": 16,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 11,
+      "tool": "histogram",
+      "comparedCells": 24,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 12,
+      "tool": "histogram",
+      "comparedCells": 13,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 13,
+      "tool": "frequency-tables",
+      "comparedCells": 10,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 14,
+      "tool": "fourier-analysis",
+      "comparedCells": 9,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 15,
+      "tool": "fourier-analysis",
+      "comparedCells": 9,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 16,
+      "tool": "sampling",
+      "comparedCells": 24,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 17,
+      "tool": "ranking",
+      "comparedCells": 45,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 18,
+      "tool": "ranking",
+      "comparedCells": 45,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 19,
+      "tool": "normality-test",
+      "comparedCells": 14,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 20,
+      "tool": "normality-test",
+      "comparedCells": 14,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 21,
+      "tool": "normality-test",
+      "comparedCells": 14,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 22,
+      "tool": "normality-test",
+      "comparedCells": 14,
+      "diff": []
+    },
+    {
+      "phase": "formulas",
+      "i": 23,
+      "tool": "auto-expression",
+      "comparedCells": 3,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 0,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 1,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 2,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 3,
+      "tool": "moving-average",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 4,
+      "tool": "moving-average",
+      "comparedCells": 36,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 5,
+      "tool": "exponential-smoothing",
+      "comparedCells": 20,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 6,
+      "tool": "exponential-smoothing",
+      "comparedCells": 22,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 7,
+      "tool": "exponential-smoothing",
+      "comparedCells": 41,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 8,
+      "tool": "exponential-smoothing",
+      "comparedCells": 95,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 9,
+      "tool": "exponential-smoothing",
+      "comparedCells": 95,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 10,
+      "tool": "histogram",
+      "comparedCells": 16,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 11,
+      "tool": "histogram",
+      "comparedCells": 24,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 12,
+      "tool": "histogram",
+      "comparedCells": 13,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 13,
+      "tool": "frequency-tables",
+      "comparedCells": 10,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 14,
+      "tool": "fourier-analysis",
+      "comparedCells": 39,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 15,
+      "tool": "fourier-analysis",
+      "comparedCells": 39,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 16,
+      "tool": "sampling",
+      "comparedCells": 24,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 17,
+      "tool": "ranking",
+      "comparedCells": 73,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 18,
+      "tool": "ranking",
+      "comparedCells": 73,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 19,
+      "tool": "normality-test",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 20,
+      "tool": "normality-test",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 21,
+      "tool": "normality-test",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 22,
+      "tool": "normality-test",
+      "comparedCells": 18,
+      "diff": []
+    },
+    {
+      "phase": "values-",
+      "i": 23,
+      "tool": "auto-expression",
+      "comparedCells": 3,
+      "diff": []
+    }
+  ],
+  "standardErrorInvocations": [
+    {
+      "i": 0,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:0",
+        "s-period:2",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 1,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:1",
+        "s-period:2",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 2,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:2",
+        "s-period:2",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 3,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:3",
+        "s-period:2",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 4,
+      "tool": "exponential-smoothing",
+      "p": [
+        "es-type:4",
+        "s-period:2",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 5,
+      "tool": "moving-average",
+      "p": [
+        "ma-type:1",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 6,
+      "tool": "moving-average",
+      "p": [
+        "ma-type:2",
+        "interval:3",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 7,
+      "tool": "moving-average",
+      "p": [
+        "ma-type:4",
+        "interval:3",
+        "std-error-flag:1"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "Leaking expression at 0xb6d33bc43ad8: 1.\nLeaking expression at 0xb6d33bc43af8: 3.\nLeaking expression at 0xb6d33bc43b18: 0.\nLeaking expression at 0xb6d33bc43b38: 5.\nLeaking expression at 0xb6d33bc43b58: '?'!$A$1:$A$8.\nLeaking expression at 0xb6d33bc43b78: offset('?'!$A$1:$A$8,5,0,3,1).\nLeaking expression at 0xb6d33bc43b98: average(offset('?'!$A$1:$A$8,5,0,3,1)).\nLeaking expression at 0xb6d33bc44bf8: 1.\nLeaking expression at 0xb6d33bc44c18: 3.\nLeaking expression at 0xb6d33bc44c38: 0.\nLeaking expression at 0xb6d33bc44c58: 5.\nLeaking expression at 0xb6d33bc44c78: '?'!$B$1:$B$8.\nLeaking expression at 0xb6d33bc44c98: offset('?'!$B$1:$B$8,5,0,3,1).\nLeaking expression at 0xb6d33bc44cb8: average(offset('?'!$B$1:$B$8,5,0,3,1)).\n\n** (ssconvert:87913): WARNING **: 12:36:30.894: Leaked 14 nodes from expression pool for small nodes.\nLeaking 10 values.\nLeaking string [Statistics] with ref_count=2.\nLeaking string [Lookup] with ref_count=2.\nLeaking string [gnumeric-1.12.61-functions] with ref_count=136.\n",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    }
+  ],
+  "standardErrorComparisons": [
+    {
+      "i": 0,
+      "tool": "exponential-smoothing",
+      "comparedCells": 38,
+      "diff": []
+    },
+    {
+      "i": 1,
+      "tool": "exponential-smoothing",
+      "comparedCells": 42,
+      "diff": []
+    },
+    {
+      "i": 2,
+      "tool": "exponential-smoothing",
+      "comparedCells": 61,
+      "diff": []
+    },
+    {
+      "i": 3,
+      "tool": "exponential-smoothing",
+      "comparedCells": 113,
+      "diff": []
+    },
+    {
+      "i": 4,
+      "tool": "exponential-smoothing",
+      "comparedCells": 113,
+      "diff": []
+    },
+    {
+      "i": 5,
+      "tool": "moving-average",
+      "comparedCells": 36,
+      "diff": []
+    },
+    {
+      "i": 6,
+      "tool": "moving-average",
+      "comparedCells": 36,
+      "diff": []
+    },
+    {
+      "i": 7,
+      "tool": "moving-average",
+      "comparedCells": 36,
+      "diff": []
+    }
+  ],
+  "additionalInvocations": [
+    {
+      "i": 0,
+      "tool": "sampling",
+      "p": [
+        "size:2000",
+        "number:1",
+        "formulas:no"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 1,
+      "tool": "histogram",
+      "p": [
+        "n:4",
+        "chart:histogram"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 1,
+        "stderr": "Unsupported ssconvert feature: histogram bins or chart\n"
+      }
+    },
+    {
+      "i": 2,
+      "tool": "frequency-tables",
+      "p": [
+        "n:3",
+        "chart:bar"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 1,
+        "stderr": "Unsupported ssconvert feature: frequency bins or chart\n"
+      }
+    },
+    {
+      "i": 3,
+      "tool": "moving-average",
+      "p": [
+        "show-graph:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 1,
+        "stderr": "Unsupported ssconvert feature: moving-average variant\n"
+      }
+    },
+    {
+      "i": 4,
+      "tool": "exponential-smoothing",
+      "p": [
+        "show-graph:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 1,
+        "stderr": "Unsupported ssconvert feature: exponential smoothing variant\n"
+      }
+    },
+    {
+      "i": 5,
+      "tool": "normality-test",
+      "p": [
+        "graph:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 1,
+        "stderr": "Unsupported ssconvert feature: normality graph\n"
+      }
+    },
+    {
+      "i": 6,
+      "tool": "histogram",
+      "p": [
+        "predetermined:yes"
+      ],
+      "native": {
+        "status": 139,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 1,
+        "stderr": "Unsupported ssconvert feature: histogram bins or chart\n"
+      }
+    },
+    {
+      "i": 7,
+      "tool": "frequency-tables",
+      "p": [
+        "predetermined:yes"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": {
+          "bytes": 1059313,
+          "sha256": "3dfa335ef50f641e4c682d63d638c9e3c108b62af02b7a986f08dc5ee4ce18ee",
+          "prefix": "\n** (ssconvert:87774): CRITICAL **: 12:34:09.486: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.489: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.489: gnm_expr_new_constant: assertion 'v != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.489: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.489: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.496: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.496: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.496: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.496: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.496: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.496: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87774): CRITICAL **: 12:34:09.496",
+          "complete": false
+        },
+        "stdout": ""
+      },
+      "product": {
+        "status": 1,
+        "stderr": "Unsupported ssconvert feature: frequency bins or chart\n"
+      },
+      "qualification": "Capture output cap; status is not a qualified native completion"
+    },
+    {
+      "i": 8,
+      "tool": "histogram",
+      "p": [
+        "n:0"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "\n(ssconvert:87781): GLib-GObject-CRITICAL **: 12:34:09.979: value \"0\" of type 'gint' is invalid or out of range for property 'n' of type 'gint'\n",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": "value \"0\" of type 'gint' is invalid or out of range for property 'n' of type 'gint'\n"
+      }
+    },
+    {
+      "i": 9,
+      "tool": "exponential-smoothing",
+      "p": [
+        "damp-fact:bad"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 10,
+      "tool": "sampling",
+      "p": [
+        "size:2",
+        "number:2",
+        "periodic:yes",
+        "period:0"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "i": 11,
+      "tool": "moving-average",
+      "p": [
+        "ma-type:3",
+        "interval:15",
+        "offset:7"
+      ],
+      "native": {
+        "status": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "product": {
+        "status": 0,
+        "stderr": ""
+      }
+    }
+  ],
+  "predeterminedFrequencyCapture": {
+    "status": null,
+    "signal": "SIGPIPE",
+    "error": {
+      "name": "Error",
+      "code": "ENOBUFS",
+      "message": "spawnSync docker ENOBUFS"
+    },
+    "stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "prefix": ""
+    },
+    "stderr": {
+      "bytes": 1050566,
+      "sha256": "ea1aa043e5858045dbbb1dd8cb0c9b3a483bed9144439f18db69fbefa9763a66",
+      "prefix": "\n** (ssconvert:87919): CRITICAL **: 12:42:42.637: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.639: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.639: gnm_expr_new_constant: assertion 'v != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.639: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.639: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.641: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.641: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.641: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.641: gnm_expr_copy: assertion 'expr != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.641: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.641: link_unlink_expr_dep: assertion 'tree != NULL' failed\n\n** (ssconvert:87919): CRITICAL **: 12:42:42.641"
+    }
+  },
+  "stochastic": [
+    {
+      "column": "0",
+      "draws": 2000,
+      "counts": {
+        "2": 266,
+        "4": 213,
+        "5": 241,
+        "6": 234,
+        "7": 264,
+        "8": 255,
+        "9": 273,
+        "11": 254
+      },
+      "chiSquareAgainstUniform": 10.911999999999999,
+      "secondCounts": {
+        "2": 238,
+        "4": 255,
+        "5": 259,
+        "6": 253,
+        "7": 268,
+        "8": 259,
+        "9": 232,
+        "11": 236
+      },
+      "secondChiSquareAgainstUniform": 4.736,
+      "countsDifferBetweenRuns": true
+    },
+    {
+      "column": "1",
+      "draws": 2000,
+      "counts": {
+        "3": 255,
+        "6": 252,
+        "8": 251,
+        "9": 237,
+        "11": 212,
+        "12": 269,
+        "14": 259,
+        "17": 265
+      },
+      "chiSquareAgainstUniform": 9.24,
+      "secondCounts": {
+        "3": 262,
+        "6": 261,
+        "8": 239,
+        "9": 240,
+        "11": 248,
+        "12": 263,
+        "14": 241,
+        "17": 246
+      },
+      "secondChiSquareAgainstUniform": 3.024,
+      "countsDifferBetweenRuns": true
+    }
+  ],
+  "screenshot": {
+    "sha256": "d466655718d6f802583523fc8ba74e07029566589053ef6f783df1670d02f3a7",
+    "tools": [
+      "moving-average",
+      "exponential-smoothing",
+      "histogram",
+      "frequency-tables",
+      "fourier-analysis",
+      "sampling",
+      "ranking",
+      "normality-test",
+      "auto-expression"
+    ],
+    "visuallyInspected": true
+  },
+  "remaining": [
+    "Chart objects: native exit0, product exit1 unsupported for five measured switches",
+    "Predetermined bins: histogram native139; frequency cap ENOBUFS SIGPIPE with no measured completed exit; product unsupported exit1",
+    "Raw invalid-property GLib diagnostic bytes differ",
+    "Full comments/style regions/array clipping/exporter propagation not qualified",
+    "Range lists, sheet spans, all label/grouping/error/extreme/period combinations and Spencer long-window numerical/reference cases not qualified",
+    "Arbitrary host realms, packed/browser consumers and stochastic cancellation timing not qualified",
+    "Native structural-edit differential and row/column insertion/deletion remain unmeasured; SDK input edit/rename/reorder verified for nine tools"
+  ],
+  "checks": {
+    "independentAnalysis": "137 tests in 9 files passed; focused lint passed",
+    "integration": "Final compiled candidate: 98 passed, no skips; shared SDK/virtual-command bytes, memfs effects, checkpoint/replay namespace assertions",
+    "build": "Final uncached safe-bash declared closure passed18 builds and native postbuild; includes ssconvert four-build dependency closure",
+    "lint": "Passed final workspace ESLint and production/test TypeScript after reference-update additions",
+    "unit": "Passed complete fresh workspace: 6013 tests in 296 files, maxWorkers=1 after builds completed; subsequent focused distributions file passed 28 cases including 9 new live-reference edit/rename/reorder cases",
+    "safeBashTypecheck": "Exit2 before compilation: Public SafeFS must preserve shared SafeJS runtime identity; actual undefined, expected ./packages/safe-js/dist/safe-fs.js",
+    "rootChecks": "Root-wide lint/test and packed/browser consumer gates not run",
+    "referenceUpdates": "All nine tools preserve live SDK references after input value edits, input-sheet rename and sheet reorder; native structural edits and row/column insertion/deletion remain unmeasured"
+  },
+  "executionLogBindings": [
+    {
+      "path": "out/ssconvert-distributions/unit.log",
+      "sha256": "96055f1fe115cf29a71c983553976819c09582083ec35265db0729b8dae9f128",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/unit-final.log",
+      "sha256": "412c14e35151335741224f9414d362ca417f09e91ac884fda34874885c8b2b2b",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/unit-serial.log",
+      "sha256": "1f285a50d5a2cf2da0218c684de1dd5219ff7b9a931f3bd762a01dbbf33f6427",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/unit-qualified.log",
+      "sha256": "a0dd23f4bb7d7cac51eebd976d1af07e2f0a25d270ae1c39482f3e1ad85d5508",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/holdouts.log",
+      "sha256": "917f10fb14f4a7172c8986f0aa5c1e521e8a690dafb20ba43ce43451f8e6735e",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/links.log",
+      "sha256": "5accca43e5119a54b56358474ac47399be32112593ca365a1694c08c45bf3d1b",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/formula-red.log",
+      "sha256": "ca638e4588e2bf4a611912cd070b52da81ffcee8dfcebaf940e43c113a398db2",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/single-bin-red.log",
+      "sha256": "8a2d3eb17d3828adf92387d1d9f3b18ce375f0a833d515b94e42131093615749",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/errors-red.log",
+      "sha256": "76338dd60a073f87ec56a9c52f832d52236ed8590db28511c862b70fd76a5c5d",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/build-safe-bash.log",
+      "sha256": "63e3e5e3f10bfdbfb6c0ee05476c0e7e356d72c562a9512c05b2731f8e88aa36",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/build-final.log",
+      "sha256": "ad413a0c12270ba17793d8242829a81b6066db16591d6733dcd37522fe7df025",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/build-delivery.log",
+      "sha256": "63e3e5e3f10bfdbfb6c0ee05476c0e7e356d72c562a9512c05b2731f8e88aa36",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/lint-delivery.log",
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/lint-links.log",
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/integration-delivery.log",
+      "sha256": "fc02cb1945410d3dfc0d1a25f2bcc461b3634a1899cd0a1af2ddbe1c1bca4fa1",
+      "purgedAfterReduction": true
+    },
+    {
+      "path": "out/ssconvert-distributions/typecheck.log",
+      "sha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3",
+      "purgedAfterReduction": true
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 export * from "./core.js";
+export {createSsconvertCommand, ssconvertCommands, type SsconvertCommandsOptions} from "./commands/ssconvert/index.js";
 export { posix as posixPath } from "node:path";
 export * from "./commands/network/index.js";
 export * from "./commands/op/index.js";

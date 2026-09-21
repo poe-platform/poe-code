@@ -1,0 +1,138 @@
+{
+  "input": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Calculation ManualRecalc=\"true\" EnableIteration=\"FaLsE\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Boolean</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Boolean</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">0.1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+  "captures": [
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "HOME=/out/gnumeric-xml-codecs/home",
+        "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+        "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+        "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/gnumeric-xml-codecs/boolean.xml",
+        "/out/gnumeric-xml-codecs/boolean-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputSha256": "6876bc42789d672507ada93901204346b5c6fc6e09878e394354c8e6209e2c85"
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "HOME=/out/gnumeric-xml-codecs/home",
+        "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+        "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+        "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax",
+        "/out/gnumeric-xml-codecs/boolean.xml",
+        "/out/gnumeric-xml-codecs/boolean-native.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputSha256": "98f856a1ea9cfce3d25a3d949871fde2818172284d89311d31ae1894b41c9565"
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "HOME=/out/gnumeric-xml-codecs/home",
+        "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+        "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+        "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax",
+        "/out/gnumeric-xml-codecs/boolean.xml",
+        "/out/gnumeric-xml-codecs/boolean-repeat.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputSha256": "98f856a1ea9cfce3d25a3d949871fde2818172284d89311d31ae1894b41c9565"
+    }
+  ],
+  "calculationAttributes": {
+    "ManualRecalc": "1",
+    "EnableIteration": "0",
+    "MaxIterations": "100",
+    "IterationTolerance": "0.001",
+    "FloatRadix": "2",
+    "FloatDigits": "53"
+  },
+  "nativeGzipHeaders": [
+    [
+      31,
+      139,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3
+    ],
+    [
+      31,
+      139,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3
+    ]
+  ],
+  "repeatedNativeGzipBytesEqual": true,
+  "nativeCompressedAndPlainPayloadEqual": true,
+  "scope": "This one original fixture only; no general gzip byte parity claim.",
+  "missingIndexCase": {
+    "input": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Calculation ManualRecalc=\"true\" EnableIteration=\"FaLsE\"/><gnm:Sheets><gnm:Sheet><gnm:Name>Boolean</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">0.1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "status": 1,
+    "stdout": "",
+    "stderr": "E File has inconsistent SheetNameIndex element.\n"
+  }
+}

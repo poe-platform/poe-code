@@ -1,0 +1,1490 @@
+{
+  "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "candidate": {
+    "gitHead": "b97c4938a469ee70e09bd08a0e5fcf7e868ca04c",
+    "state": "source-hashed dirty candidate; existing untracked work preserved; no new commit",
+    "sourceSha256": {
+      "packages/ssconvert/src/codecs/gnumeric.ts": "c5d3d1964b381378a0a3171e77949291dc4b5759716db8846741c026f50acab3",
+      "packages/ssconvert/src/codecs/gnumeric-schema.ts": "234a1d34af93987feaab3d83b0121d1c58ddf86630accc3db42749073f902c3d",
+      "packages/ssconvert/src/codecs/gnumeric.test.ts": "af53180e0ae4e8945749e71828926925091efcab0210ac87a6397a9a400df6d1",
+      "packages/ssconvert/src/codecs/gnumeric-independent.test.ts": "be3b2747a6b4509e2d06c54d0e775f26213b00d01dfc83dc324dcc6c7a263fbb",
+      "packages/ssconvert/src/codecs/gnumeric-followup-independent.test.ts": "2e2a86554807163faa866f0b154fc6a7601570eec638a258ae74739b2b812329",
+      "packages/ssconvert/src/codecs/providers/xml.ts": "19d1f04fa382554e1dedbfc3d232433bb80dca3a7fdb213ba2048b609647f32f",
+      "packages/ssconvert/src/engine.ts": "a2fbfd957179198fe53951f7870beb226fad0dea6c6f49e845bf8f29f81d9bb0",
+      "packages/safe-bash/src/commands/ssconvert/index.ts": "a23b63a408e964f86ef7b5caa5e4cea452d64c09899efd317518913e68473d61",
+      "packages/safe-fs/src/xml.ts": "2a464157700253da0c31f9f2e445733052b4094299b47d5318a0fcb1807b7b65"
+    }
+  },
+  "oracleIdentity": {
+    "image": "sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a",
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "profilePath": "docs/ssconvert/gnumeric-xml-reference-profile.json",
+    "profileSha256": "1e98d3f8bfdc3d949b07162341d02e40b30c89a85453bb9e71c9001c4b075d38"
+  },
+  "nativeStyleCase": {
+    "inputXml": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:PrintInformation><g:Margins><g:top Points=\"42\" PrefUnit=\"cm\" Mystery=\"gone\"/></g:Margins></g:PrintInformation><g:Styles><g:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"><g:Style Format=\"0.00\" Orient=\"3\" Mystery=\"gone\" g:Format=\"bad\"><g:Font Unit=\"12\" Bold=\"1\" Mystery=\"gone\">Sans</g:Font></g:Style></g:StyleRegion></g:Styles><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1.2</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>",
+    "inputSha256": "3d5794a9fe91073ec511795972fdc72a7c78ea4116e755c33c623a7e8dbcb6b2",
+    "outputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:08:46Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;S&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"42\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"0.00\">\n            <gnm:Font Unit=\"12\" Bold=\"1\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"1\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"1\" startRow=\"0\" endCol=\"255\" endRow=\"0\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1.2</gnm:Cell>\n      </gnm:Cells>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n",
+    "outputSha256": "2bb4df5b2f2c78bcdb5d48f6ec70536148855bca5a6c98a78c3bf8de409f9e09",
+    "argv": [
+      "--context",
+      "colima",
+      "exec",
+      "ssconvert-statistics-qa",
+      "env",
+      "LC_ALL=C",
+      "LANG=C",
+      "TZ=UTC",
+      "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+      "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "GSETTINGS_BACKEND=memory",
+      "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+      "HOME=/out/gnumeric-xml-codecs/home",
+      "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+      "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+      "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+      "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+      "-T",
+      "Gnumeric_XmlIO:sax:0",
+      "/out/style-followup.xml",
+      "/out/style-followup-native.xml"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "sdkNativeReimport": {
+    "inputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"42\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\">\n          <gnm:Style Format=\"0.00\">\n            <gnm:Font Unit=\"12\" Bold=\"1\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols/>\n      <gnm:Rows/>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1.2</gnm:Cell>\n      </gnm:Cells>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n",
+    "inputSha256": "2d9321fc1394e98fb1f613b0cd3d52ab8ac59f3d6cb7482596dcaa85bdbf95b6",
+    "outputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:15:35Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;S&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"42\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"0.00\">\n            <gnm:Font Unit=\"12\" Bold=\"1\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"1\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"1\" startRow=\"0\" endCol=\"255\" endRow=\"0\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1.2</gnm:Cell>\n      </gnm:Cells>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n",
+    "outputSha256": "ffdd6c5edaecb54010505f208747b441b56f31259e770ff6b0fa944f44edeb89",
+    "argv": [
+      "--context",
+      "colima",
+      "exec",
+      "ssconvert-statistics-qa",
+      "env",
+      "LC_ALL=C",
+      "LANG=C",
+      "TZ=UTC",
+      "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+      "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "GSETTINGS_BACKEND=memory",
+      "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+      "HOME=/out/gnumeric-xml-codecs/home",
+      "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+      "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+      "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+      "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+      "-T",
+      "Gnumeric_XmlIO:sax:0",
+      "/out/style-followup-sdk.xml",
+      "/out/style-followup-sdk-native.xml"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "measuredSemanticComparison": {
+    "measuredFields": {
+      "top": {
+        "Points": "42",
+        "PrefUnit": "mm"
+      },
+      "format": "0.00",
+      "font": {
+        "Unit": "12",
+        "Bold": "1",
+        "text": "Sans"
+      },
+      "ignored": false
+    },
+    "sdkMatches": true,
+    "nativeReimportMatches": true
+  },
+  "independentNameCaptures": [
+    {
+      "input": "out/gnumeric-followup-stress/latest.xml",
+      "argv": [
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "HOME=/out/gnumeric-xml-codecs/home",
+        "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+        "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+        "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/gnumeric-followup-stress/latest.xml",
+        "/out/followup-root-latest.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "inputXml": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v14.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:PrintInformation><gnm:Margins><gnm:top Points=\"42\" Mystery=\"margin\"/></gnm:Margins></gnm:PrintInformation><gnm:Styles><gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"><gnm:Style Format=\"0.0\" Mystery=\"style\"><gnm:Font Unit=\"12\" Mystery=\"font\">Sans</gnm:Font></gnm:Style></gnm:StyleRegion></gnm:Styles><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1.2</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>\n",
+      "nativeOutputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:10:27Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;S&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"42\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"0.0\">\n            <gnm:Font Unit=\"12\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"1\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"1\" startRow=\"0\" endCol=\"255\" endRow=\"0\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1.2</gnm:Cell>\n      </gnm:Cells>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n"
+    },
+    {
+      "input": "out/gnumeric-followup-stress/name.xml",
+      "argv": [
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "HOME=/out/gnumeric-xml-codecs/home",
+        "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+        "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+        "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/gnumeric-followup-stress/name.xml",
+        "/out/followup-root-name.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Unexpected element 'g:value' in state : \n\tWorkbook -> Sheets -> Sheet -> Name\nUnexpected element 'value' in state : \n\tWorkbook -> Sheets -> Sheet -> Name\n",
+      "inputXml": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>S<g:value>bad</g:value><value>worse</value></g:Name><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>\n",
+      "nativeOutputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:12:05Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sbadworse</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>Sbadworse</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;Sbadworse&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</gnm:Cell>\n      </gnm:Cells>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n"
+    },
+    {
+      "input": "out/gnumeric-followup-stress/mixed-name.xml",
+      "argv": [
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "HOME=/out/gnumeric-xml-codecs/home",
+        "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+        "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+        "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/gnumeric-followup-stress/mixed-name.xml",
+        "/out/followup-root-mixed-name.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Unexpected element 'gnm:value' in state : \n\tWorkbook -> Sheets -> Sheet -> Name\nUnexpected element 'value' in state : \n\tWorkbook -> Sheets -> Sheet -> Name\n",
+      "inputXml": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">ABCDEFGHI&amp;</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>A<gnm:value>B<![CDATA[C]]><deep>D</deep>E</gnm:value>F<value>G</value>H<!--ignored--><?qa ignored?><![CDATA[I&]]></gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>\n",
+      "nativeOutputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:13:19Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">ABCDEFGHI&amp;</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>ABCDEFGHI&amp;</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;ABCDEFGHI&amp;&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</gnm:Cell>\n      </gnm:Cells>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n"
+    }
+  ],
+  "independentGraphCaptures": {
+    "sourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "profilePath": "docs/ssconvert/gnumeric-xml-reference-profile.json",
+    "profileSha256": "1e98d3f8bfdc3d949b07162341d02e40b30c89a85453bb9e71c9001c4b075d38",
+    "captures": [
+      {
+        "variant": "GogStyle",
+        "argv": [
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-followup-stress/graph-GogStyle.xml",
+          "/out/gnumeric-followup-stress/graph-GogStyle-out.xml"
+        ],
+        "invocation": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-followup-stress/graph-GogStyle.xml",
+          "/out/gnumeric-followup-stress/graph-GogStyle-out.xml"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND": "memory",
+          "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME": "/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME": "/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME": "/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME": "/out/gnumeric-xml-codecs/cache"
+        },
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "inputSha256": "7add597ca99d9629eec826e8e1cd9a579d32a3bace32d79755c67d5cea7e7994",
+        "outputSha256": "7d6b4c440e285227d5cc0010997f89b11f34cc205736b99e63b8ca23b58e171a",
+        "inputLocalPath": "out/gnumeric-followup-stress/graph-GogStyle.xml",
+        "outputLocalPath": "out/gnumeric-followup-stress/graph-GogStyle-out.xml",
+        "inputXml": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Objects><g:SheetObjectGraph ObjectBound=\"A1:B2\"><GogObject type=\"GogGraph\"><property name=\"style\" type=\"GogStyle\"><outline width=\"2.75\" color=\"FF0000FF\"/></property></GogObject></g:SheetObjectGraph></g:Objects></g:Sheet></g:Sheets></g:Workbook>",
+        "nativeOutputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:22:17Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;S&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Objects>\n        <gnm:SheetObjectGraph ObjectBound=\"A1:B2\" ObjectOffset=\"0 0 0 0\" Direction=\"255\" Print=\"1\">\n          <GogObject type=\"GogGraph\">\n            <property name=\"height-pts\">12.75</property>\n            <property name=\"width-pts\">48</property>\n            <property name=\"theme-name\">Default</property>\n            <property name=\"padding-pts\">7.086614173228346</property>\n            <property name=\"style\" type=\"GogStyle\">\n              <outline auto-dash=\"1\" auto-width=\"0\" width=\"2.75\" auto-color=\"1\"/>\n              <fill type=\"none\" auto-type=\"1\" is-auto=\"1\" auto-fore=\"1\"/>\n            </property>\n            <property name=\"anchor\">top-left</property>\n            <property name=\"alignment\">fill</property>\n          </GogObject>\n        </gnm:SheetObjectGraph>\n      </gnm:Objects>\n      <gnm:Cells/>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n"
+      },
+      {
+        "variant": "GOStyle",
+        "argv": [
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-followup-stress/graph-GOStyle.xml",
+          "/out/gnumeric-followup-stress/graph-GOStyle-out.xml"
+        ],
+        "invocation": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-followup-stress/graph-GOStyle.xml",
+          "/out/gnumeric-followup-stress/graph-GOStyle-out.xml"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND": "memory",
+          "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME": "/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME": "/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME": "/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME": "/out/gnumeric-xml-codecs/cache"
+        },
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "\n** (ssconvert:66314): WARNING **: 14:22:17.537: invalid type 'GOStyle' for property `style' of class `GogGraph'\nUnexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+        "inputSha256": "1a254263c8c49ee7c6a5b328ae6e0116abf62a5479fa87cd98fafd9ad570a21b",
+        "outputSha256": "345a7863d0f1c30696a9e455fbbb49b511aa4ad115c31a95e1270fc21ad6a96b",
+        "inputLocalPath": "out/gnumeric-followup-stress/graph-GOStyle.xml",
+        "outputLocalPath": "out/gnumeric-followup-stress/graph-GOStyle-out.xml",
+        "inputXml": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Objects><g:SheetObjectGraph ObjectBound=\"A1:B2\"><GogObject type=\"GogGraph\"><property name=\"style\" type=\"GOStyle\"><outline width=\"2.75\" color=\"FF0000FF\"/></property></GogObject></g:SheetObjectGraph></g:Objects></g:Sheet></g:Sheets></g:Workbook>",
+        "nativeOutputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:22:17Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;S&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Objects>\n        <gnm:SheetObjectGraph ObjectBound=\"A1:B2\" ObjectOffset=\"0 0 0 0\" Direction=\"255\" Print=\"1\">\n          <GogObject type=\"GogGraph\">\n            <property name=\"height-pts\">12.75</property>\n            <property name=\"width-pts\">48</property>\n            <property name=\"theme-name\">Default</property>\n            <property name=\"padding-pts\">7.086614173228346</property>\n            <property name=\"style\" type=\"GogStyle\">\n              <outline auto-dash=\"1\" auto-width=\"1\" auto-color=\"1\"/>\n              <fill type=\"none\" auto-type=\"1\" is-auto=\"1\" auto-fore=\"1\"/>\n            </property>\n            <property name=\"anchor\">top-left</property>\n            <property name=\"alignment\">fill</property>\n          </GogObject>\n        </gnm:SheetObjectGraph>\n      </gnm:Objects>\n      <gnm:Cells/>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n"
+      },
+      {
+        "variant": "InvalidStyle",
+        "argv": [
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-followup-stress/graph-InvalidStyle.xml",
+          "/out/gnumeric-followup-stress/graph-InvalidStyle-out.xml"
+        ],
+        "invocation": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-followup-stress/graph-InvalidStyle.xml",
+          "/out/gnumeric-followup-stress/graph-InvalidStyle-out.xml"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND": "memory",
+          "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME": "/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME": "/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME": "/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME": "/out/gnumeric-xml-codecs/cache"
+        },
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "\n** (ssconvert:66321): WARNING **: 14:22:17.638: unknown type 'InvalidStyle' for property `style' of class `GogGraph'\nUnexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+        "inputSha256": "bf1b6cc41520feac00cd5802ddf1f9943b537284c3479a6006e2f98409737d46",
+        "outputSha256": "345a7863d0f1c30696a9e455fbbb49b511aa4ad115c31a95e1270fc21ad6a96b",
+        "inputLocalPath": "out/gnumeric-followup-stress/graph-InvalidStyle.xml",
+        "outputLocalPath": "out/gnumeric-followup-stress/graph-InvalidStyle-out.xml",
+        "inputXml": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Objects><g:SheetObjectGraph ObjectBound=\"A1:B2\"><GogObject type=\"GogGraph\"><property name=\"style\" type=\"InvalidStyle\"><outline width=\"2.75\" color=\"FF0000FF\"/></property></GogObject></g:SheetObjectGraph></g:Objects></g:Sheet></g:Sheets></g:Workbook>",
+        "nativeOutputXml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:Attributes>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::do_auto_completion</gnm:name>\n      <gnm:value>TRUE</gnm:value>\n    </gnm:Attribute>\n    <gnm:Attribute>\n      <gnm:name>WorkbookView::is_protected</gnm:name>\n      <gnm:value>FALSE</gnm:value>\n    </gnm:Attribute>\n  </gnm:Attributes>\n  <office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\" xmlns:ooo=\"http://openoffice.org/2004/office\" office:version=\"1.2\">\n    <office:meta>\n      <meta:creation-date>2026-09-20T14:22:17Z</meta:creation-date>\n    </office:meta>\n  </office:document-meta>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\" GridColor=\"0:0:0\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Print_Area</gnm:name>\n          <gnm:value>#REF!</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n        <gnm:Name>\n          <gnm:name>Sheet_Title</gnm:name>\n          <gnm:value>&quot;S&quot;</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:PrintInformation>\n        <gnm:Margins>\n          <gnm:top Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:bottom Points=\"120\" PrefUnit=\"mm\"/>\n          <gnm:left Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:right Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:header Points=\"72\" PrefUnit=\"mm\"/>\n          <gnm:footer Points=\"72\" PrefUnit=\"mm\"/>\n        </gnm:Margins>\n        <gnm:Scale type=\"percentage\" percentage=\"100\"/>\n        <gnm:vcenter value=\"0\"/>\n        <gnm:hcenter value=\"0\"/>\n        <gnm:grid value=\"0\"/>\n        <gnm:even_if_only_styles value=\"0\"/>\n        <gnm:monochrome value=\"0\"/>\n        <gnm:draft value=\"0\"/>\n        <gnm:titles value=\"0\"/>\n        <gnm:do_not_print value=\"0\"/>\n        <gnm:print_range value=\"GNM_PRINT_ACTIVE_SHEET\"/>\n        <gnm:order>d_then_r</gnm:order>\n        <gnm:orientation>portrait</gnm:orientation>\n        <gnm:Header Left=\"\" Middle=\"&amp;[TAB]\" Right=\"\"/>\n        <gnm:Footer Left=\"\" Middle=\"Page &amp;[PAGE]\" Right=\"\"/>\n        <gnm:paper>iso_a4</gnm:paper>\n        <gnm:comments placement=\"GNM_PRINT_COMMENTS_IN_PLACE\"/>\n        <gnm:errors PrintErrorsAs=\"GNM_PRINT_ERRORS_AS_DISPLAYED\"/>\n      </gnm:PrintInformation>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"255\" endRow=\"65535\">\n          <gnm:Style HAlign=\"GNM_HALIGN_GENERAL\" VAlign=\"GNM_VALIGN_BOTTOM\" WrapText=\"0\" ShrinkToFit=\"0\" Rotation=\"0\" Shade=\"0\" Indent=\"0\" Locked=\"1\" Hidden=\"0\" Fore=\"0:0:0\" Back=\"FFFF:FFFF:FFFF\" PatternColor=\"0:0:0\" Format=\"General\">\n            <gnm:Font Unit=\"10\" Bold=\"0\" Italic=\"0\" Underline=\"0\" StrikeThrough=\"0\" Script=\"0\">Sans</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols DefaultSizePts=\"48\"/>\n      <gnm:Rows DefaultSizePts=\"12.75\"/>\n      <gnm:Selections CursorCol=\"0\" CursorRow=\"0\">\n        <gnm:Selection startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\"/>\n      </gnm:Selections>\n      <gnm:Objects>\n        <gnm:SheetObjectGraph ObjectBound=\"A1:B2\" ObjectOffset=\"0 0 0 0\" Direction=\"255\" Print=\"1\">\n          <GogObject type=\"GogGraph\">\n            <property name=\"height-pts\">12.75</property>\n            <property name=\"width-pts\">48</property>\n            <property name=\"theme-name\">Default</property>\n            <property name=\"padding-pts\">7.086614173228346</property>\n            <property name=\"style\" type=\"GogStyle\">\n              <outline auto-dash=\"1\" auto-width=\"1\" auto-color=\"1\"/>\n              <fill type=\"none\" auto-type=\"1\" is-auto=\"1\" auto-fore=\"1\"/>\n            </property>\n            <property name=\"anchor\">top-left</property>\n            <property name=\"alignment\">fill</property>\n          </GogObject>\n        </gnm:SheetObjectGraph>\n      </gnm:Objects>\n      <gnm:Cells/>\n      <gnm:SheetLayout TopLeft=\"A1\"/>\n      <gnm:Solver ModelType=\"0\" ProblemType=\"0\" MaxTime=\"60\" MaxIter=\"1000\" NonNeg=\"1\" Discr=\"0\" AutoScale=\"0\" ProgramR=\"0\" SensitivityR=\"0\"/>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n"
+      }
+    ],
+    "qualification": "GogStyle retained native outline width 2.75. GOStyle and InvalidStyle reject outline; candidate mirrors unexpected-element warning/drop, but GLib invalid/unknown-type warnings remain unmatched. Parent/class full reflection unmeasured."
+  },
+  "upstreamFamilyInitial": {
+    "family": "test/t6162-gnumeric-deterministic.pl",
+    "scope": "9 small .gnumeric corpus variants; remaining corpus unverified",
+    "limits": {
+      "inputBytes": 2097152,
+      "outputBytes": 4194304,
+      "cells": 10000,
+      "sheets": 100,
+      "operations": 1000000,
+      "workbookNodes": 100000,
+      "workbookWork": 10000000,
+      "signalTimeoutMs": 5000
+    },
+    "cases": [
+      {
+        "name": "object-tests",
+        "inputSha256": "261bc167386b0d241353a1395449a493ef67b06d948c0bf7a95906204346f942",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'marker' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276d61726b65722720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              }
+            ],
+            "outputSha256": "58f918bfe599394da5fe1feeb1e8676afafbce7177295408281015ba3c5c2cc5",
+            "outputBytes": 116643
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'outline' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276f75746c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'fill' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e74202766696c6c2720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'font' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027666f6e742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'text_layout' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e742027746578745f6c61796f75742720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'line' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276c696e652720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              },
+              {
+                "code": "gnumeric-xml",
+                "severity": "warning",
+                "message": "Unexpected element 'marker' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> SheetObjectGraph -> GogObject -> GogObject -> GogObject -> GogObject -> property\n",
+                "bytesHex": "556e657870656374656420656c656d656e7420276d61726b65722720696e207374617465203a200a09576f726b626f6f6b202d3e20536865657473202d3e205368656574202d3e204f626a65637473202d3e2053686565744f626a6563744772617068202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e20476f674f626a656374202d3e2070726f70657274790a"
+              }
+            ],
+            "outputSha256": "58f918bfe599394da5fe1feeb1e8676afafbce7177295408281015ba3c5c2cc5",
+            "outputBytes": 116643
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "graph-tests",
+        "inputSha256": "815f5604ce96cf4973b5a2bc0a5343f6835ae480377c8fa98feb7d977b4611b4",
+        "runs": [
+          {
+            "error": "SsconvertError: ssconvert workbook nodes limit exceeded",
+            "code": "resource-limit"
+          },
+          {
+            "error": "SsconvertError: ssconvert workbook nodes limit exceeded",
+            "code": "resource-limit"
+          }
+        ],
+        "deterministicSerialization": false,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "rich-text-tests",
+        "inputSha256": "5b184e4ab6169cd343f2090abd995af79944604b227b6a5685342910620b23bd",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "39711f73f0b298a6017d9af2bba1f5a0c1fb631452cee75e76a42286a2ea52dd",
+            "outputBytes": 10489
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "39711f73f0b298a6017d9af2bba1f5a0c1fb631452cee75e76a42286a2ea52dd",
+            "outputBytes": 10489
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "page-setup-tests",
+        "inputSha256": "02c5c0735d1ea91427c26559207f3e383f4a2be891338e3bf5ec2905c2a692a6",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "928a33fd79aaa0f89d8c0e08a0c71f809b6a1796351dc0b723160ca577c24731",
+            "outputBytes": 4989
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "928a33fd79aaa0f89d8c0e08a0c71f809b6a1796351dc0b723160ca577c24731",
+            "outputBytes": 4989
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "names-tests",
+        "inputSha256": "126c356dc9de4c0401d9efb33f469fd3cb1b0ab6fd28d8c8af5e7a40fd871388",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "58338b0458cbf415f096d3907b621234707671d96836741dd12c222581ca9227",
+            "outputBytes": 17502
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "58338b0458cbf415f096d3907b621234707671d96836741dd12c222581ca9227",
+            "outputBytes": 17502
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "merge-tests",
+        "inputSha256": "bcaffd9d45748e0ba00ed39c7f2665b6c6a1fe79263cde829da0ec988d9a1086",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "a6cfad8abcea0de30f1065c52964d986d3a6011686fb3d6570b9942140734ab1",
+            "outputBytes": 12331
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "a6cfad8abcea0de30f1065c52964d986d3a6011686fb3d6570b9942140734ab1",
+            "outputBytes": 12331
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "validation-tests",
+        "inputSha256": "a824e4cf367681f71db8134b140180d6219f66b5671ee7eb3e90abb4217ed8b8",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "02896548051adfca8539aa0561cb6ca5237cf0080d62d1c6b10f43cb3de5fdbf",
+            "outputBytes": 85208
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "02896548051adfca8539aa0561cb6ca5237cf0080d62d1c6b10f43cb3de5fdbf",
+            "outputBytes": 85208
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "solver-tests",
+        "inputSha256": "c5b24e6c63f90b0ab2b4cadfbff43ac7e87c449c7e017e0fc3a269593891dd7c",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "4a03f18e468c1eb968f43241c6d6b835ae8f9d65d3e090b3f96984e3210a08a1",
+            "outputBytes": 6084
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "4a03f18e468c1eb968f43241c6d6b835ae8f9d65d3e090b3f96984e3210a08a1",
+            "outputBytes": 6084
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "split-panes-tests",
+        "inputSha256": "3410b81e693a8fa5032dd388a4d30f0a8c21bfcae7049f1657f5e7e08ec1ee38",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "13ae056e2bfcb236abd642583849d12991401da2a00fa06a741d05e31cfec88a",
+            "outputBytes": 11174
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "13ae056e2bfcb236abd642583849d12991401da2a00fa06a741d05e31cfec88a",
+            "outputBytes": 11174
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      }
+    ]
+  },
+  "upstreamFamilyFinal": {
+    "family": "test/t6162-gnumeric-deterministic.pl",
+    "scope": "9 small .gnumeric corpus variants; remaining corpus unverified",
+    "limits": {
+      "inputBytes": 2097152,
+      "outputBytes": 4194304,
+      "cells": 10000,
+      "sheets": 100,
+      "operations": 1000000,
+      "workbookNodes": 1000000,
+      "workbookWork": 10000000,
+      "signalTimeoutMs": 5000
+    },
+    "cases": [
+      {
+        "name": "object-tests",
+        "inputSha256": "261bc167386b0d241353a1395449a493ef67b06d948c0bf7a95906204346f942",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "a50ca1cfa94f9198fd40da17402d36d2cb3044a602dd941c35e256ded686ab4d",
+            "outputBytes": 118629
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "a50ca1cfa94f9198fd40da17402d36d2cb3044a602dd941c35e256ded686ab4d",
+            "outputBytes": 118629
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "graph-tests",
+        "inputSha256": "815f5604ce96cf4973b5a2bc0a5343f6835ae480377c8fa98feb7d977b4611b4",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "7c85fe65579fed523b6f8fdd80ff1147d28f85d0190b24de5716739eac616600",
+            "outputBytes": 364335
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "7c85fe65579fed523b6f8fdd80ff1147d28f85d0190b24de5716739eac616600",
+            "outputBytes": 364335
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "rich-text-tests",
+        "inputSha256": "5b184e4ab6169cd343f2090abd995af79944604b227b6a5685342910620b23bd",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "39711f73f0b298a6017d9af2bba1f5a0c1fb631452cee75e76a42286a2ea52dd",
+            "outputBytes": 10489
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "39711f73f0b298a6017d9af2bba1f5a0c1fb631452cee75e76a42286a2ea52dd",
+            "outputBytes": 10489
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "page-setup-tests",
+        "inputSha256": "02c5c0735d1ea91427c26559207f3e383f4a2be891338e3bf5ec2905c2a692a6",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "928a33fd79aaa0f89d8c0e08a0c71f809b6a1796351dc0b723160ca577c24731",
+            "outputBytes": 4989
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "928a33fd79aaa0f89d8c0e08a0c71f809b6a1796351dc0b723160ca577c24731",
+            "outputBytes": 4989
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "names-tests",
+        "inputSha256": "126c356dc9de4c0401d9efb33f469fd3cb1b0ab6fd28d8c8af5e7a40fd871388",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "58338b0458cbf415f096d3907b621234707671d96836741dd12c222581ca9227",
+            "outputBytes": 17502
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "58338b0458cbf415f096d3907b621234707671d96836741dd12c222581ca9227",
+            "outputBytes": 17502
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "merge-tests",
+        "inputSha256": "bcaffd9d45748e0ba00ed39c7f2665b6c6a1fe79263cde829da0ec988d9a1086",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "a6cfad8abcea0de30f1065c52964d986d3a6011686fb3d6570b9942140734ab1",
+            "outputBytes": 12331
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "a6cfad8abcea0de30f1065c52964d986d3a6011686fb3d6570b9942140734ab1",
+            "outputBytes": 12331
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "validation-tests",
+        "inputSha256": "a824e4cf367681f71db8134b140180d6219f66b5671ee7eb3e90abb4217ed8b8",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "02896548051adfca8539aa0561cb6ca5237cf0080d62d1c6b10f43cb3de5fdbf",
+            "outputBytes": 85208
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "02896548051adfca8539aa0561cb6ca5237cf0080d62d1c6b10f43cb3de5fdbf",
+            "outputBytes": 85208
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "solver-tests",
+        "inputSha256": "c5b24e6c63f90b0ab2b4cadfbff43ac7e87c449c7e017e0fc3a269593891dd7c",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "4a03f18e468c1eb968f43241c6d6b835ae8f9d65d3e090b3f96984e3210a08a1",
+            "outputBytes": 6084
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "4a03f18e468c1eb968f43241c6d6b835ae8f9d65d3e090b3f96984e3210a08a1",
+            "outputBytes": 6084
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      },
+      {
+        "name": "split-panes-tests",
+        "inputSha256": "3410b81e693a8fa5032dd388a4d30f0a8c21bfcae7049f1657f5e7e08ec1ee38",
+        "runs": [
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "13ae056e2bfcb236abd642583849d12991401da2a00fa06a741d05e31cfec88a",
+            "outputBytes": 11174
+          },
+          {
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputSha256": "13ae056e2bfcb236abd642583849d12991401da2a00fa06a741d05e31cfec88a",
+            "outputBytes": 11174
+          }
+        ],
+        "deterministicSerialization": true,
+        "nativeSemanticParity": "UNVERIFIED"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert --no-cache",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test --workspace=@poe-code/ssconvert -- --no-cache",
+      "exitCode": 0,
+      "filesPassed": 144,
+      "testsPassed": 3985
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "independentAgent": true
+    },
+    {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts packages/safe-bash/tests/commands/ssconvert-encoding.test.ts packages/safe-bash/tests/commands/ssconvert-text.test.ts",
+      "exitCode": 0,
+      "testsPassed": 49
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "qualification": "Whole workspace/root suffix build repeated successfully against the final source-hashed implementation after the complete uncached root test. Selected final dependency closure also built uncached."
+    },
+    {
+      "command": "npm test -- --no-cache",
+      "status": "COMPLETE",
+      "exitCode": 0,
+      "logSha256": "fbbf317b5e03d6918a914c5b452f39b6169bf2fdb94c95912898540a86675832",
+      "runner": {
+        "workspaces": 85,
+        "builds": 33,
+        "tests": 53,
+        "concurrency": 1,
+        "cache": "UNCACHED",
+        "excluded": [],
+        "noTest": [
+          {
+            "name": "@poe-code/agent-defs",
+            "path": "packages/agent-defs",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-eval",
+            "path": "packages/agent-eval",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-human-in-loop",
+            "path": "packages/agent-human-in-loop",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-mcp-config",
+            "path": "packages/agent-mcp-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-skill-config",
+            "path": "packages/agent-skill-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "auth-store",
+            "path": "packages/auth-store",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/cached-resource",
+            "path": "packages/cached-resource",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/config-extends",
+            "path": "packages/config-extends",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/config-mutations",
+            "path": "packages/config-mutations",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/e2e-test-runner",
+            "path": "packages/e2e-test-runner",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "mcp-oauth",
+            "path": "packages/mcp-oauth",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/pipeline",
+            "path": "packages/pipeline",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/plan-browser",
+            "path": "packages/plan-browser",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-acp-client",
+            "path": "packages/poe-acp-client",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-agent",
+            "path": "packages/poe-agent",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-code-config",
+            "path": "packages/poe-code-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "poe-oauth",
+            "path": "packages/poe-oauth",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/providers",
+            "path": "packages/providers",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/safe-fs",
+            "path": "packages/safe-fs",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/terminal-name",
+            "path": "packages/terminal-name",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-pilot-mcp",
+            "path": "packages/terminal-pilot-mcp",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-png",
+            "path": "packages/terminal-png",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-png-mcp",
+            "path": "packages/terminal-png-mcp",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-http-mcp-oauth-test-server",
+            "path": "packages/tiny-http-mcp-oauth-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-http-mcp-server",
+            "path": "packages/tiny-http-mcp-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-mcp-client",
+            "path": "packages/tiny-mcp-client",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-oauth-test-server",
+            "path": "packages/tiny-oauth-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-stdio-mcp-server",
+            "path": "packages/tiny-stdio-mcp-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-stdio-mcp-test-server",
+            "path": "packages/tiny-stdio-mcp-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tokenfill",
+            "path": "packages/tokenfill",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "toolcraft-design",
+            "path": "packages/toolcraft-design",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/user-error",
+            "path": "packages/user-error",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/worktree",
+            "path": "packages/worktree",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          }
+        ],
+        "noBuild": [],
+        "manifestless": [
+          "packages/braintrust",
+          "packages/safe-bash-optional"
+        ]
+      },
+      "ssconvert": {
+        "filesPassed": 144,
+        "testsPassed": 3985
+      },
+      "safeBash": {
+        "tests": 44930,
+        "pass": 44097,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 831,
+        "todo": 2
+      },
+      "safeJS": {
+        "filesPassed": 1467,
+        "filesSkipped": 3,
+        "testsPassed": 31121,
+        "testsSkipped": 48
+      },
+      "posttest": {
+        "command": "npm run test:stress:lint",
+        "filesPassed": 1,
+        "testsPassed": 2
+      },
+      "pendingComparators": [
+        {
+          "engine": "just-bash",
+          "name": "plugin-diff-patch-roundtrip",
+          "status": "PENDING_NOT_A_PASS",
+          "reason": "Isolated comparator not installed"
+        }
+      ],
+      "todos": [
+        {
+          "name": "csvformat numeric/null cells",
+          "status": "TODO_NOT_A_PASS",
+          "reason": "native float serialization differs"
+        },
+        {
+          "name": "XLSX named shell descriptor path",
+          "status": "TODO_NOT_A_PASS",
+          "reason": "shell /dev/fd paths unavailable"
+        }
+      ]
+    },
+    {
+      "command": "npm run lint",
+      "status": "COMPLETE",
+      "exitCode": 0,
+      "guard": {
+        "complete": true,
+        "errorCount": 0,
+        "warningCount": 4,
+        "gaps": [],
+        "scope": {
+          "configured": 16749,
+          "linted": 16749,
+          "ignored": 2044,
+          "unconfigured": 38762,
+          "ignoredDirectories": 166,
+          "heldExcluded": 5
+        }
+      }
+    }
+  ],
+  "incompleteRuns": [
+    {
+      "command": "npm test -- --no-cache",
+      "attempt": 1,
+      "status": "INTERRUPTED_NOT_A_PASS",
+      "reason": "Serialized build/test output mutations."
+    },
+    {
+      "command": "npm test -- --no-cache",
+      "attempt": 2,
+      "status": "INTERRUPTED_NOT_A_PASS",
+      "reason": "Reproduced new delegated-style loss and changed candidate."
+    },
+    {
+      "command": "npm run lint",
+      "attempt": 1,
+      "exitCode": 2,
+      "status": "INCOMPLETE_NOT_A_PASS",
+      "reason": "Guarded root directory identity changed during traversal; size 1376 -> 1408; one descendantsUnknown gap. No policy/budget relaxation.",
+      "warnings": 4,
+      "errors": 0
+    }
+  ],
+  "qaDriverFailures": [
+    {
+      "error": "TypeError: Invalid ssconvert limit: inputBytes",
+      "cause": "Manual SDK driver omitted mandatory limits; corrected explicit injection, no product change.",
+      "followon": {
+        "argv": [
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/style-followup-sdk.xml",
+          "/out/style-followup-sdk-native.xml"
+        ],
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "E /out/style-followup-sdk.xml: No such file or directory\n"
+      }
+    }
+  ],
+  "remaining": [
+    "Full native parity remains unfinished; prior detailed surface gaps in gnumeric-xml-verification.md apply.",
+    "Graph GOStyle/InvalidStyle native GLib PID/time diagnostics remain unmatched beyond static unexpected-element warnings.",
+    "Graph owner class/property reflection and all registered plugin subclasses are not qualified.",
+    "Native default synthesis, numeric/font/rotation normalization, negative/nonfinite margin Points, all content-bearing SAX leaf accumulation beyond measured sheet Name remain unmeasured.",
+    "The repeated uncompressed upstream family passes 9 selected variants under explicit final budgets; remaining upstream corpus and their native semantic equivalence are unverified.",
+    "Graph variant was rejected under initial 100000-node ownership budget; 1000000-node qualification is a separate matrix cell, not a pass at the original budget.",
+    "Exact gzip deflate-body equality remains a previously measured mismatch.",
+    "Foreign AbortSignal implementation, comprehensive host/realm authority, exhaustive cleanup/performance/locale/plugin matrices remain unverified."
+  ],
+  "screenshots": {
+    "status": "PASS_INSPECTED",
+    "command": "npm run screenshot -- --output out/gnumeric-xml-followup/terminal.png --no-header -- node --import tsx out/gnumeric-xml-followup/terminal.mts",
+    "imageSha256": "5cf40f6f302d8d7029f1a76c9c0038fc1c2f40ba870418f49a012916efcc0117",
+    "scope": "Actual virtual exporter listing and sheet Name child warning readable, aligned and unclipped. No screenshot tests."
+  },
+  "temporaryLogBindings": {
+  "build-final.log": {
+    "bytes": 624,
+    "sha256": "ab82ac5582c3262bded867843f6e917f21132b8aa9ec58377fa5a60751ed3d03"
+  },
+  "test-final.log": {
+    "bytes": 11808,
+    "sha256": "86218b31acf1098a8564608c8a0e6660dcc4934c1f8f035ae525db574838373d"
+  },
+  "root-lint-verified.log": {
+    "bytes": 2259051,
+    "sha256": "6a8af5cf282f4b820c636348cac3b050ae49e6a345eed2d9ad173d8edd037fd8"
+  },
+  "integration-verified.log": {
+    "bytes": 11428,
+    "sha256": "731ef9ca5ffe105cb4c919674f8e358d0f217690d3146e101a3202c8f2267098"
+  },
+  "root-build-final.log": {
+    "bytes": 10406,
+    "sha256": "5e63b62104678b7625a5a13a894fc269a6b7d02278ab8ade30ba1420b766e5c6"
+  }
+},
+  "scratchCleanup": {
+    "status": "COMPLETE",
+    "removed": ["out/gnumeric-xml-followup", "out/gnumeric-followup-stress"],
+    "ownedOracleFixturesRemoved": 7,
+    "preexistingSourceArchiveAndOraclePreserved": true,
+    "rawLogsPurgedAfterOutcomeAndHashReduction": true
+  },
+  "delivery": {
+    "localCommit": false,
+    "pushed": false,
+    "published": false
+  },
+  "sourceArchiveBinding": {
+    "admission": "regular non-symlink archive smaller than 20000000 bytes; streamed SHA-256 verified before tar member inspection",
+    "readerSha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+    "writerSha256": "5605cd67d0be77854c0f28e1cab71bcae99175fa8edca8fa62d10e4a6ba7a013",
+    "extractedFilesMatchAuthenticatedArchiveMembers": true
+  }
+}

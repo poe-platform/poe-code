@@ -1,0 +1,262 @@
+{
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "referenceProfile": "docs/ssconvert/gnumeric-xml-reference-profile.json",
+  "procedure": "docs/plans/ssconvert-gnumeric-independent-stress.md",
+  "status": "scoped-native-observations-not-full-parity-certification",
+  "captures": [
+    {
+      "case": "latin1",
+      "classification": "native-QA-oracle-only",
+      "capture": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-xml-independent/latin1.xml",
+          "/out/gnumeric-xml-independent/latin1-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "input": {
+        "encoding": "base64",
+        "bytes": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iSVNPLTg4NTktMSI/PjxnOldvcmtib29rIHhtbG5zOmc9Imh0dHA6Ly93d3cuZ251bWVyaWMub3JnL3YxMC5kdGQiPjxnOlNoZWV0cz48ZzpTaGVldD48ZzpOYW1lPkZpcnN0PC9nOk5hbWU+PGc6Q2VsbHM+PGc6Q2VsbCBSb3c9IjAiIENvbD0iMCIgVmFsdWVUeXBlPSI2MCI+Y2Fm6TwvZzpDZWxsPjwvZzpDZWxscz48L2c6U2hlZXQ+PC9nOlNoZWV0cz48L2c6V29ya2Jvb2s+",
+        "sha256": "539bb31164c3d113259e305142c0be9857c99475a654204cff5e956baf6dd426"
+      },
+      "outputSha256": "0627252d48600c7ffa47f2ec0294ef05c579e0ee1813e3fbd73972ed19188ab2"
+    },
+    {
+      "case": "multiple-ns",
+      "classification": "native-QA-oracle-only",
+      "capture": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-xml-independent/multiple-ns.xml",
+          "/out/gnumeric-xml-independent/multiple-ns-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "\n** (ssconvert:66119): WARNING **: 12:50:17.301: Damn.  Someone just declared the same namespace 'http://www.gnumeric.org/v14.dtd' with a different prefix 'gmr:'\n"
+      },
+      "input": {
+        "encoding": "base64",
+        "bytes": "PGdubTpXb3JrYm9vayB4bWxuczpnbm09Imh0dHA6Ly93d3cuZ251bWVyaWMub3JnL3YxMC5kdGQiIHhtbG5zOmdtcj0iaHR0cDovL3d3dy5nbnVtZXJpYy5vcmcvdjE0LmR0ZCI+PGdubTpTaGVldE5hbWVJbmRleD48Z25tOlNoZWV0TmFtZT5GaXJzdDwvZ25tOlNoZWV0TmFtZT48L2dubTpTaGVldE5hbWVJbmRleD48Z25tOlNoZWV0cz48Z25tOlNoZWV0Pjxnbm06TmFtZT5GaXJzdDwvZ25tOk5hbWU+PC9nbm06U2hlZXQ+PC9nbm06U2hlZXRzPjwvZ25tOldvcmtib29rPg==",
+        "sha256": "bc1912b6188eb6d96aabc1d68ab4eb55d15869abfcc33b873793f89d8fbdf94a"
+      },
+      "outputSha256": "ef87574c0aca6f254d6d605b8303b307d412c4c82cf39e02d14b9a67dcde926b"
+    },
+    {
+      "case": "object",
+      "classification": "native-QA-oracle-only",
+      "capture": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-xml-independent/object.xml",
+          "/out/gnumeric-xml-independent/object-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "Unexpected element 'custom:extra' in state : \n\tWorkbook -> Sheets -> Sheet -> Objects -> CellComment\n"
+      },
+      "input": {
+        "encoding": "base64",
+        "bytes": "PGc6V29ya2Jvb2sgeG1sbnM6Zz0iaHR0cDovL3d3dy5nbnVtZXJpYy5vcmcvdjEwLmR0ZCI+PGc6U2hlZXRzPjxnOlNoZWV0PjxnOk5hbWU+Rmlyc3Q8L2c6TmFtZT48ZzpPYmplY3RzPjxnOkNlbGxDb21tZW50IEF1dGhvcj0iU29tZW9uZSIgVGV4dD0iaGVsbG8iPjxjdXN0b206ZXh0cmEgeG1sbnM6Y3VzdG9tPSJ1cm46b2JqZWN0LWV4dGVuc2lvbiIgZmxhZz0ieWVzIi8+PC9nOkNlbGxDb21tZW50PjwvZzpPYmplY3RzPjwvZzpTaGVldD48L2c6U2hlZXRzPjwvZzpXb3JrYm9vaz4=",
+        "sha256": "9cf4f4847854ceef9f5ab80a1bfe0a4d12ccb25c9fd50e4ac455338d4851ef45"
+      },
+      "outputSha256": "9e1c78d2a35a4d1aee8b2405bc87d0fa476ae41f6521d3ab4988111554d37438"
+    },
+    {
+      "case": "shared",
+      "classification": "native-QA-oracle-only",
+      "capture": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-xml-independent/shared.xml",
+          "/out/gnumeric-xml-independent/shared-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "input": {
+        "encoding": "base64",
+        "bytes": "PGc6V29ya2Jvb2sgeG1sbnM6Zz0iaHR0cDovL3d3dy5nbnVtZXJpYy5vcmcvdjEwLmR0ZCI+PGc6U2hlZXRzPjxnOlNoZWV0PjxnOk5hbWU+Rmlyc3Q8L2c6TmFtZT48ZzpDZWxscz48ZzpDZWxsIFJvdz0iMCIgQ29sPSIyIiBFeHBySUQ9IjEiPj1BMSskQiQxPC9nOkNlbGw+PGc6Q2VsbCBSb3c9IjEiIENvbD0iMiIgRXhwcklEPSIxIi8+PC9nOkNlbGxzPjwvZzpTaGVldD48L2c6U2hlZXRzPjwvZzpXb3JrYm9vaz4=",
+        "sha256": "a80bff5cf5dc29b9da1ad3ad8a5b467e87273c8e91a00c340bdf9a3d8ceb2e77"
+      },
+      "outputSha256": "3a36db9d6f870b496d58521da0874bb8058783710a4b52bf840ace090297fc09"
+    },
+    {
+      "case": "unknown-v10",
+      "classification": "native-QA-oracle-only",
+      "capture": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-xml-independent/unknown-v10.xml",
+          "/out/gnumeric-xml-independent/unknown-v10-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "Unexpected element 'g:Unexpected' in state : \n\tWorkbook -> Sheets -> Sheet -> Cells\n"
+      },
+      "input": {
+        "encoding": "base64",
+        "bytes": "PGc6V29ya2Jvb2sgeG1sbnM6Zz0iaHR0cDovL3d3dy5nbnVtZXJpYy5vcmcvdjEwLmR0ZCI+PGc6U2hlZXRzPjxnOlNoZWV0IEJvZ3VzPSJ5ZXMiPjxnOk5hbWU+Rmlyc3Q8L2c6TmFtZT48ZzpDZWxscz48ZzpDZWxsIFJvdz0iMCIgQ29sPSIwIiBWYWx1ZVR5cGU9IjYwIiBNeXN0ZXJ5PSJ5ZXMiPm9uZTwvZzpDZWxsPjxnOlVuZXhwZWN0ZWQgYXR0cj0iMSIvPjwvZzpDZWxscz48L2c6U2hlZXQ+PC9nOlNoZWV0cz48L2c6V29ya2Jvb2s+",
+        "sha256": "4a23b4235d4d0508488595d783d33c0f121a053ef27c2aee94bc52c7a7cbdc5e"
+      },
+      "outputSha256": "8a18cc06b4e5139355849342f7009c7a4cf36e246dfad67300044a33ea5f93f9"
+    },
+    {
+      "case": "unknown-v14",
+      "classification": "native-QA-oracle-only",
+      "capture": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "HOME=/out/gnumeric-xml-codecs/home",
+          "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+          "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+          "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/gnumeric-xml-independent/unknown-v14.xml",
+          "/out/gnumeric-xml-independent/unknown-v14-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "Unexpected element 'g:Unexpected' in state : \n\tWorkbook -> Sheets -> Sheet -> Cells\n"
+      },
+      "input": {
+        "encoding": "base64",
+        "bytes": "PGc6V29ya2Jvb2sgeG1sbnM6Zz0iaHR0cDovL3d3dy5nbnVtZXJpYy5vcmcvdjE0LmR0ZCI+PGc6U2hlZXRzPjxnOlNoZWV0IEJvZ3VzPSJ5ZXMiPjxnOk5hbWU+Rmlyc3Q8L2c6TmFtZT48ZzpDZWxscz48ZzpDZWxsIFJvdz0iMCIgQ29sPSIwIiBWYWx1ZVR5cGU9IjYwIiBNeXN0ZXJ5PSJ5ZXMiPm9uZTwvZzpDZWxsPjxnOlVuZXhwZWN0ZWQgYXR0cj0iMSIvPjwvZzpDZWxscz48L2c6U2hlZXQ+PC9nOlNoZWV0cz48L2c6V29ya2Jvb2s+",
+        "sha256": "5d153b80cc3eee32a8b4b2361a7f7059062cdeb3acb4288176ed9de487e7b628"
+      },
+      "outputSha256": "8a18cc06b4e5139355849342f7009c7a4cf36e246dfad67300044a33ea5f93f9"
+    }
+  ],
+  "observations": {
+    "latin1": "Native accepts ISO-8859-1 declared cafe accented value and exports UTF-8; status zero and empty stderr.",
+    "shared": "Native retains ExprID reuse shorthand; relative AST semantics additionally source-validated in xml-sax-read.c 2318-2430.",
+    "object": "Native drops unknown custom:extra child under CellComment with exact recorded warning.",
+    "unknown-v10": "Generic g prefix without Version does not select modern reader version. Unknown Sheet Bogus and Cell Mystery attributes silently drop; unknown Cells child warns.",
+    "unknown-v14": "Same generic-prefix behavior in v14 URI; declaration URI alone does not select the version.",
+    "multiple-ns": "Native libgsf emits volatile PID/time namespace-redeclaration warning; recorded mismatch, not a parity pass."
+  },
+  "sourceEvidence": {
+    "calculationBooleans": "src/xml-sax-read.c:188-200",
+    "axisIntegerFlags": "src/xml-sax-read.c:1471-1507",
+    "literalPrefixVersionSelection": "src/xml-sax-read.c:501-583",
+    "modernSheetNameIndexRequirement": "src/xml-sax-read.c:851-860"
+  },
+  "limits": [
+    "Small original fixtures do not qualify every SAX handler or attribute.",
+    "Shared native shorthand output is not byte-equivalence proof for product export.",
+    "Reserved XML namespace unit cases establish well-formed SDK output only.",
+    "Unsupported and unmeasured cases are not passes."
+  ]
+}

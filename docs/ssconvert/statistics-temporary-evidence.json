@@ -1,0 +1,410 @@
+{
+  "policy": "Only task-owned top-level temporary files removed after durable results and hashes; source and oracle directories retained for explicitly unmeasured follow-up.",
+  "files": [
+    {
+      "name": "ssconvert-statistics-accuracy-audit.py",
+      "sha256": "784d95c0235ba252990d4790ad5a8e46096bbe7dce5a26e56fe4ab873b41318f",
+      "bytes": 5224
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-chitest.xls.xlsx",
+      "sha256": "17010e0e1e485f31a7ac0ce2e37501e4c8590240c5f3dac999379fda59df8a41",
+      "bytes": 9330
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-cronbach.gnumeric.xlsx",
+      "sha256": "f912ce1fdaa00b4520ae72f081a25e61e882756ca4537e519d8b8fa2f573ad3a",
+      "bytes": 9268
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-ftest.xls.xlsx",
+      "sha256": "d7904b6627febb7399b451d2b2f44b4f0a43b5791af02d261b6f8c9a126b0c75",
+      "bytes": 9459
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-gamma.gnumeric.xlsx",
+      "sha256": "c4a800c82924f8d3d71b8f486eee9d591f6ba025989048593f309358cd4d68ad",
+      "bytes": 2248524
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-holdout-native.json",
+      "sha256": "7877efd1869c566b9beaa06e01d2375cb45b66ac8f5b6ec790820eed8a07e4f6",
+      "bytes": 436
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-holdout.ts",
+      "sha256": "219a9f7a98bf372edac5a1fcebbe3d3dd50a5774b6b0895310c99e44b8f9d105",
+      "bytes": 762
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-linest.xls.xlsx",
+      "sha256": "6efe87c8c4a896b89673077e417f8b83a08294a3c8354068783dcfc48e20b684",
+      "bytes": 57096
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-statfuns.xls.xlsx",
+      "sha256": "2489a74c775ea2e24d7588d8d0aae886db0692c444782eac847ea3bbb3c73800",
+      "bytes": 29751
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-ttest.xls.xlsx",
+      "sha256": "ddaedd5fff60e584c5db142df3ea78ee4177f35581f8aed0714373b5f0f4959a",
+      "bytes": 15866
+    },
+    {
+      "name": "ssconvert-statistics-accuracy-yalta2008.xls.xlsx",
+      "sha256": "74571a958412da31cd7eb0d97b8b23cfb64727bd74957edc4d7eed3a4452531b",
+      "bytes": 25528
+    },
+    {
+      "name": "ssconvert-statistics-alias-handlers-green.log",
+      "sha256": "e244999c4d9090be37e22eff7e1a2d784b4be89e3ac7f7446826592bbe7bd4b6",
+      "bytes": 299
+    },
+    {
+      "name": "ssconvert-statistics-alias-handlers-red.log",
+      "sha256": "eded0724d0a2dfbe9d2194733199995ea2740167ed00c73fa4351f955309e19e",
+      "bytes": 10574
+    },
+    {
+      "name": "ssconvert-statistics-aliases-red.log",
+      "sha256": "b27d3621585d748a0c653979caaf9fa032446759fa71898168235a550ead1817",
+      "bytes": 9589
+    },
+    {
+      "name": "ssconvert-statistics-aliases-stage.log",
+      "sha256": "1a73b11104f47a571261cb3bc3fb729c28a926213e855c520cf678c88524952d",
+      "bytes": 1975
+    },
+    {
+      "name": "ssconvert-statistics-aliases.py",
+      "sha256": "842edc67f17bf78eedf18875aee09f5be30d50f49f90486503168d8a45148a43",
+      "bytes": 2720
+    },
+    {
+      "name": "ssconvert-statistics-boundaries-compare.log",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "name": "ssconvert-statistics-boundaries-green.log",
+      "sha256": "2c52b6f8248b9060d184a9d554e3be4b00254dc7c685cabbf883d3db4423ff72",
+      "bytes": 304
+    },
+    {
+      "name": "ssconvert-statistics-boundaries-native.log",
+      "sha256": "71c155ba14ca1eb9eb5f4869cde697fd4daeaa3b63e6f6e8398b425a2e7f92f1",
+      "bytes": 34
+    },
+    {
+      "name": "ssconvert-statistics-boundaries-red.log",
+      "sha256": "20c7cf596825c721e7cab64e4df2dbf4da8a8fbb6bcd49a3c3ee59e0c1292ad3",
+      "bytes": 8577
+    },
+    {
+      "name": "ssconvert-statistics-boundaries.py",
+      "sha256": "6d8a954b14f4c5483d7c90840971224c077ed2b41f96705a76d69986f70411c8",
+      "bytes": 2268
+    },
+    {
+      "name": "ssconvert-statistics-boundary-compare.ts",
+      "sha256": "ce77638fd0a04e99ad5b303cd93dc15b5eb86812e6daa72943b5137dcab42972",
+      "bytes": 1995
+    },
+    {
+      "name": "ssconvert-statistics-classic-domain-green.log",
+      "sha256": "e406f7cd5586b4980bacb0719983f0b9ff2c07ee7797ead68733ac387e9724b7",
+      "bytes": 304
+    },
+    {
+      "name": "ssconvert-statistics-classic-domain-red.log",
+      "sha256": "2aeeded73aafebfe9e4d63fd7b38b2c8d0b95caf6cd578eb91f3a03c94c9548f",
+      "bytes": 15776
+    },
+    {
+      "name": "ssconvert-statistics-command-stage.log",
+      "sha256": "cf732fdfe64e217892e2967d31ec1ce862521bd92be11cccaf13e5cac4795745",
+      "bytes": 9062
+    },
+    {
+      "name": "ssconvert-statistics-compare.ts",
+      "sha256": "088eccf1f092141b0458a5a1f57e18e08ec960752cf7de5276704708ca6e433d",
+      "bytes": 1999
+    },
+    {
+      "name": "ssconvert-statistics-coverage.py",
+      "sha256": "48ef8162c14eeb1c710f0121fb3a4a072e2bc7c7f0bbce43733c39103e7c31d2",
+      "bytes": 5140
+    },
+    {
+      "name": "ssconvert-statistics-cross-build.log",
+      "sha256": "024948762405938de3660cd5d1cc534bc29f9901861c8144052bf989233d2edf",
+      "bytes": 2354
+    },
+    {
+      "name": "ssconvert-statistics-differential.py",
+      "sha256": "f467ccb5b158b041824ca294d66552feb61a012ee6101d94bb996b8b8c769148",
+      "bytes": 5095
+    },
+    {
+      "name": "ssconvert-statistics-elementary-tail-green.log",
+      "sha256": "1815bc9783ea1693b7a171d96fc992cc10b4a84e108c81efb637accc538f54de",
+      "bytes": 304
+    },
+    {
+      "name": "ssconvert-statistics-elementary-tail-red.log",
+      "sha256": "eafdf566a3e83e135752ad6f4d1040d7be94dbf45edc3851665f8f2d6889cc28",
+      "bytes": 14057
+    },
+    {
+      "name": "ssconvert-statistics-extended-red.log",
+      "sha256": "1e1290d5cfb6a0182fa22c43f835f530186ecf6f986de5fb545302b13a9c1dd8",
+      "bytes": 32513
+    },
+    {
+      "name": "ssconvert-statistics-final-build.log",
+      "sha256": "4ee9b546e5aef68ebaacf801bb73215503fdfc6556c28e07169bbaa1dd6cf721",
+      "bytes": 380
+    },
+    {
+      "name": "ssconvert-statistics-final-command.log",
+      "sha256": "e2a844df38d9777e989120a74db4d336c3066960f908229b6c655b851e9d9fbc",
+      "bytes": 117
+    },
+    {
+      "name": "ssconvert-statistics-final-differential.log",
+      "sha256": "fd415546f7f31d91ad81f02589bb0cc2b59be40b44f42fb340df430b3c4736bc",
+      "bytes": 778
+    },
+    {
+      "name": "ssconvert-statistics-final-lint.log",
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "bytes": 132
+    },
+    {
+      "name": "ssconvert-statistics-final-unit.log",
+      "sha256": "2216b3411932c05c09951141833a0f448db6f4f17fe6deb44f3d70ec8be57f33",
+      "bytes": 9842
+    },
+    {
+      "name": "ssconvert-statistics-focused-final.log",
+      "sha256": "f5d64e6be58d5a8a51bdd61f01935c6ed753284e7e469e245a98ab87b748d4a0",
+      "bytes": 803
+    },
+    {
+      "name": "ssconvert-statistics-holdout-final.log",
+      "sha256": "c94ad229d337363bff1f27657101411f9aa050df28214fe4a8ca802fc5aee4a7",
+      "bytes": 459
+    },
+    {
+      "name": "ssconvert-statistics-inventory-stage.log",
+      "sha256": "7dd547d405b3137b460953f7c83dafbeb3138fe3c7a21e83b20e15504c175738",
+      "bytes": 308
+    },
+    {
+      "name": "ssconvert-statistics-inventory.py",
+      "sha256": "b11abec0cca4c4c8ed3de9316f2f3812d7b8b0bb8a16f37e3491a11e598b0844",
+      "bytes": 1682
+    },
+    {
+      "name": "ssconvert-statistics-lint.log",
+      "sha256": "a2ede7dea27ca7790db8ae8bf87409dfa74cfec6bf912408da16e72a1dd153b8",
+      "bytes": 15543
+    },
+    {
+      "name": "ssconvert-statistics-native.py",
+      "sha256": "50375bb60eade82cc70a7c5bb861501f3a0a9a1c8466a8c7108787adee3ab540",
+      "bytes": 1491
+    },
+    {
+      "name": "ssconvert-statistics-normal-tail-green.log",
+      "sha256": "12f2a2a50a178e5b3cc5abe2517e3e05b871da185212b858d3933a5637a8251e",
+      "bytes": 304
+    },
+    {
+      "name": "ssconvert-statistics-normal-tail-red.log",
+      "sha256": "647dab78fa2f8fcdc0ef4ea8f00687d0e75a770e79438b1f432a5664b199804d",
+      "bytes": 2893
+    },
+    {
+      "name": "ssconvert-statistics-odf-export-green.log",
+      "sha256": "54d5813d820ae377ba429dded6502422336981a0f85741293ca07292d79c0aab",
+      "bytes": 297
+    },
+    {
+      "name": "ssconvert-statistics-odf-export-red.log",
+      "sha256": "7737984f8d4c1fe4ff2d97ead0f82921b56a4f3131bb6003e8cbbeedb5126574",
+      "bytes": 5230
+    },
+    {
+      "name": "ssconvert-statistics-odf-handlers-green.log",
+      "sha256": "00df7e193ae43585901e2f36f38131b12c5d425f7138581329b1fcbb42775e1e",
+      "bytes": 301
+    },
+    {
+      "name": "ssconvert-statistics-odf-handlers-red.log",
+      "sha256": "20148fdfae5914e3aed252bef72648de4b9781cc5eba17f8ac041d438194eaf4",
+      "bytes": 15790
+    },
+    {
+      "name": "ssconvert-statistics-oracle-build.log",
+      "sha256": "121aa3f25ef0e20c9fbac4cc60aeaf670db4d83a23d67fb8ad048d4b7aa96b9d",
+      "bytes": 741556
+    },
+    {
+      "name": "ssconvert-statistics-oracle-install.log",
+      "sha256": "bd0905518572c7f73725993143e00851319a4fb6ff5e265d5f96e6a6e48b162c",
+      "bytes": 168739
+    },
+    {
+      "name": "ssconvert-statistics-port-landau.py",
+      "sha256": "7a761e1b9dcb471a4051cbecb1f41c5378cce627b1b07665f36632d863cef16c",
+      "bytes": 1916
+    },
+    {
+      "name": "ssconvert-statistics-pst-intermediates",
+      "sha256": "d6833a3c1cd059bcd2a8aa16e0b026763315ee6caacb6c53caad3bec9a92ffea",
+      "bytes": 70752
+    },
+    {
+      "name": "ssconvert-statistics-pst-intermediates.c",
+      "sha256": "e7919182849f64983c484cca83427f58ed829afbd32f985733e50eddd8bb7c63",
+      "bytes": 796
+    },
+    {
+      "name": "ssconvert-statistics-random-compare.log",
+      "sha256": "bf4d6eeac3f8601d0579b6d301298fc59b7359ff1dc91ac0ccab2c7c70216c96",
+      "bytes": 50
+    },
+    {
+      "name": "ssconvert-statistics-random-compare.ts",
+      "sha256": "0f45d008cdc338edb21f65b4e0e8898a36239fd3fd33846c1dd44c158eeeb93a",
+      "bytes": 3326
+    },
+    {
+      "name": "ssconvert-statistics-random-native.json",
+      "sha256": "d5c6ed983cbb22a9da33c7e3e3f10fa610e7d877c5f0704667ed90199e7dd057",
+      "bytes": 1482029
+    },
+    {
+      "name": "ssconvert-statistics-random-native.log",
+      "sha256": "9b1c6f506dd3766065e58213b70d8ca62fc348568b8707315a2bc8695375e7b4",
+      "bytes": 84
+    },
+    {
+      "name": "ssconvert-statistics-random-native.py",
+      "sha256": "1b35da9f14adcee4ed7dd41489f386ef8377985883f2308571cd327fb9fb11af",
+      "bytes": 1917
+    },
+    {
+      "name": "ssconvert-statistics-random-stage.log",
+      "sha256": "f774be21a5771da1b2c7aac953711ae7b2a3015a6c7220eb175f4790d428ae2b",
+      "bytes": 300
+    },
+    {
+      "name": "ssconvert-statistics-receipts.py",
+      "sha256": "6c5896c31358616acd4398b847243b9c946548dfd5191fd52d1b95a8e1be80f3",
+      "bytes": 3479
+    },
+    {
+      "name": "ssconvert-statistics-red.log",
+      "sha256": "80e79300f00e891028476aba8c2fca1bd50e2339e8736eb17ebe62e34f944ff2",
+      "bytes": 63700
+    },
+    {
+      "name": "ssconvert-statistics-safe-bash-typecheck.log",
+      "sha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3",
+      "bytes": 686
+    },
+    {
+      "name": "ssconvert-statistics-stage.log",
+      "sha256": "502beea81a445024dcc3aab7841e993359a517b0c3298f25f27f36b4cb6a617f",
+      "bytes": 6441
+    },
+    {
+      "name": "ssconvert-statistics-stage2.log",
+      "sha256": "b8f876ea07d649af81b3dd1a54974254ae229eba9715313cb93cd3e0dcc18193",
+      "bytes": 6035
+    },
+    {
+      "name": "ssconvert-statistics-stage3.log",
+      "sha256": "5f4e7dbdeb3246a6cd41643fbfaa353d9d8a116490db0575ce73ffafc24048c0",
+      "bytes": 384
+    },
+    {
+      "name": "ssconvert-statistics-student-inverse-green.log",
+      "sha256": "3562a6ab1cfc9de25cc796ebbb860dc394264319cdd471d18ea226c7fda7d8b0",
+      "bytes": 304
+    },
+    {
+      "name": "ssconvert-statistics-student-inverse-red.log",
+      "sha256": "b9c03820335ec77f9fc6526fa7611f368ebb4238feb62923d3383a3664a37ac8",
+      "bytes": 4530
+    },
+    {
+      "name": "ssconvert-statistics-tails-compare.log",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "name": "ssconvert-statistics-tails-compare.ts",
+      "sha256": "5c2a4cfbab0a7e9fdab68ce311d907b6911175a199bffb59e5fe6ade8e956a34",
+      "bytes": 1985
+    },
+    {
+      "name": "ssconvert-statistics-tails-native.log",
+      "sha256": "e9cc0967555c94833654c58a5b20dc3bdf0c204d3321009532f2011b02e6db1b",
+      "bytes": 28
+    },
+    {
+      "name": "ssconvert-statistics-tails.py",
+      "sha256": "564eb9545f9bcd177009a842c0ecd32fe8b2193d62d8e652ada5c930a59d541b",
+      "bytes": 1686
+    },
+    {
+      "name": "ssconvert-statistics-tukey-integral",
+      "sha256": "75282c1577db8ca8620400cff0415f8172c1b52d1969c780d892b998fcdd5fd6",
+      "bytes": 70776
+    },
+    {
+      "name": "ssconvert-statistics-tukey-integral.c",
+      "sha256": "8767dfcc40ab31a52b63dd9b3981c09afad6a96c9c05cd5ed7f0d4c40eb5275b",
+      "bytes": 2457
+    },
+    {
+      "name": "ssconvert-statistics-tukey-intermediates",
+      "sha256": "ed29bf9f632a6a7808edc8bbbae37029b12cdb280b74b306e12c819862d9ee8c",
+      "bytes": 70616
+    },
+    {
+      "name": "ssconvert-statistics-tukey-intermediates.c",
+      "sha256": "e1ea154564a4a8a0f4e56d159af810052b1accdf4592c95a8f7ec80a4c8e25ae",
+      "bytes": 242
+    },
+    {
+      "name": "ssconvert-statistics-tukey-product-trace.ts",
+      "sha256": "cdda1fb64b415370810b43671ceb1b12e9e567f867253472a27970c4a0f33fb5",
+      "bytes": 17770
+    },
+    {
+      "name": "ssconvert-statistics-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "ssconvert-statistics-visual.log",
+      "sha256": "17c5ca8703bdafa243c5008cae178516a4627a4ebb8c6ab16ee184b3958c4437",
+      "bytes": 36
+    },
+    {
+      "name": "ssconvert-statistics-visual.mjs",
+      "sha256": "b1ceebd1e50ae7b51d9a5ccee45325c86c4f37533a44944fbf454b8e8031047c",
+      "bytes": 1477
+    },
+    {
+      "name": "ssconvert-statistics-visual.png",
+      "sha256": "b03c3c5a7e7ea616704e02cb9439b09f8ffed6799df5421ce339244fc2285c56",
+      "bytes": 124035
+    }
+  ]
+}

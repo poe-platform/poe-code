@@ -1,0 +1,1460 @@
+{
+  "seed": 20260919,
+  "candidateReceipt": "docs/ssconvert/numeric-current-candidate.json",
+  "nativeExitCode": 0,
+  "nativeStderr": "",
+  "cases": [
+    {
+      "formula": "=ILOG(0.5,4)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.125,4)",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.0625,8)",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.5,2)",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.5,3)",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ODD(9007199254740992)",
+      "native": "9007199254740992",
+      "engine": {
+        "kind": "number",
+        "value": 9007199254740992
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ODD(-9007199254740992)",
+      "native": "-9007199254740992",
+      "engine": {
+        "kind": "number",
+        "value": -9007199254740992
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ODD(4503599627370497)",
+      "native": "4503599627370497",
+      "engine": {
+        "kind": "number",
+        "value": 4503599627370497
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ODD(0)",
+      "native": "1",
+      "engine": {
+        "kind": "number",
+        "value": 1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ODD(-2.25)",
+      "native": "-3",
+      "engine": {
+        "kind": "number",
+        "value": -3
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=EVEN(FLT.NEXTAFTER(0,1))",
+      "native": "2",
+      "engine": {
+        "kind": "number",
+        "value": 2
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=EVEN(-FLT.NEXTAFTER(0,1))",
+      "native": "-2",
+      "engine": {
+        "kind": "number",
+        "value": -2
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(5e-324,2)",
+      "native": "-1074",
+      "engine": {
+        "kind": "number",
+        "value": -1074
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.2250738585072014e-308,2)",
+      "native": "-1022",
+      "engine": {
+        "kind": "number",
+        "value": -1022
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(4.76837158203125e-07,2)",
+      "native": "-21",
+      "engine": {
+        "kind": "number",
+        "value": -21
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.125,2)",
+      "native": "-3",
+      "engine": {
+        "kind": "number",
+        "value": -3
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.5,2)",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(1.0,2)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.0,2)",
+      "native": "1",
+      "engine": {
+        "kind": "number",
+        "value": 1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(131072.0,2)",
+      "native": "17",
+      "engine": {
+        "kind": "number",
+        "value": 17
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(8.98846567431158e+307,2)",
+      "native": "1023",
+      "engine": {
+        "kind": "number",
+        "value": 1023
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(5e-324,4)",
+      "native": "-537",
+      "engine": {
+        "kind": "number",
+        "value": -537
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.2250738585072014e-308,4)",
+      "native": "-511",
+      "engine": {
+        "kind": "number",
+        "value": -511
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(4.76837158203125e-07,4)",
+      "native": "-10",
+      "engine": {
+        "kind": "number",
+        "value": -10
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.125,4)",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.5,4)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(1.0,4)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.0,4)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(131072.0,4)",
+      "native": "8",
+      "engine": {
+        "kind": "number",
+        "value": 8
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(8.98846567431158e+307,4)",
+      "native": "511",
+      "engine": {
+        "kind": "number",
+        "value": 511
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(5e-324,8)",
+      "native": "-358",
+      "engine": {
+        "kind": "number",
+        "value": -358
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.2250738585072014e-308,8)",
+      "native": "-340",
+      "engine": {
+        "kind": "number",
+        "value": -340
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(4.76837158203125e-07,8)",
+      "native": "-7",
+      "engine": {
+        "kind": "number",
+        "value": -7
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.125,8)",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.5,8)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(1.0,8)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.0,8)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(131072.0,8)",
+      "native": "5",
+      "engine": {
+        "kind": "number",
+        "value": 5
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(8.98846567431158e+307,8)",
+      "native": "341",
+      "engine": {
+        "kind": "number",
+        "value": 341
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(5e-324,16)",
+      "native": "-268",
+      "engine": {
+        "kind": "number",
+        "value": -268
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.2250738585072014e-308,16)",
+      "native": "-255",
+      "engine": {
+        "kind": "number",
+        "value": -255
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(4.76837158203125e-07,16)",
+      "native": "-5",
+      "engine": {
+        "kind": "number",
+        "value": -5
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.125,16)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(0.5,16)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(1.0,16)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(2.0,16)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(131072.0,16)",
+      "native": "4",
+      "engine": {
+        "kind": "number",
+        "value": 4
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ILOG(8.98846567431158e+307,16)",
+      "native": "255",
+      "engine": {
+        "kind": "number",
+        "value": 255
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BITAND(-1,1/0)",
+      "native": "#DIV/0!",
+      "engine": {
+        "kind": "error",
+        "value": "#DIV/0!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BITLSHIFT(7,-1)",
+      "native": "3",
+      "engine": {
+        "kind": "number",
+        "value": 3
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BITRSHIFT(7,-1)",
+      "native": "14",
+      "engine": {
+        "kind": "number",
+        "value": 14
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=DEC2HEX(-1)",
+      "native": "FFFFFFFFFF",
+      "engine": {
+        "kind": "string",
+        "value": "FFFFFFFFFF"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=HEX2DEC(\"FFFFFFFFFF\")",
+      "native": "-1",
+      "engine": {
+        "kind": "number",
+        "value": -1
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=CONVERT(1,\"in\",\"m\")",
+      "native": "0.0254",
+      "engine": {
+        "kind": "number",
+        "value": 0.0254
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=IMDIV(\"1e200+1e200i\",\"1e200-1e200i\")",
+      "native": "-1.4844402465586865E-17+i",
+      "engine": {
+        "kind": "string",
+        "value": "-1.4844402465586865E-17+i"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=IMARGUMENT(\"-1\")",
+      "native": "3.141592653589793",
+      "engine": {
+        "kind": "number",
+        "value": 3.141592653589793
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=FLT.NEXTAFTER(0,1)",
+      "native": "5E-324",
+      "engine": {
+        "kind": "number",
+        "value": 5e-324
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=SQRT(-1)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(1613)",
+      "native": "1612",
+      "engine": {
+        "kind": "number",
+        "value": 1612
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(1613)",
+      "native": "1614",
+      "engine": {
+        "kind": "number",
+        "value": 1614
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(1613)",
+      "native": "TRUE",
+      "engine": {
+        "kind": "boolean",
+        "value": true
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(5752)",
+      "native": "2872",
+      "engine": {
+        "kind": "number",
+        "value": 2872
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(5752)",
+      "native": "10800",
+      "engine": {
+        "kind": "number",
+        "value": 10800
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(5752)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(2286)",
+      "native": "756",
+      "engine": {
+        "kind": "number",
+        "value": 756
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(2286)",
+      "native": "4992",
+      "engine": {
+        "kind": "number",
+        "value": 4992
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(2286)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(5549)",
+      "native": "5340",
+      "engine": {
+        "kind": "number",
+        "value": 5340
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(5549)",
+      "native": "5760",
+      "engine": {
+        "kind": "number",
+        "value": 5760
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(5549)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(6592)",
+      "native": "3264",
+      "engine": {
+        "kind": "number",
+        "value": 3264
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(6592)",
+      "native": "13208",
+      "engine": {
+        "kind": "number",
+        "value": 13208
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(6592)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(9183)",
+      "native": "6120",
+      "engine": {
+        "kind": "number",
+        "value": 6120
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(9183)",
+      "native": "12248",
+      "engine": {
+        "kind": "number",
+        "value": 12248
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(9183)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(4593)",
+      "native": "3060",
+      "engine": {
+        "kind": "number",
+        "value": 3060
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(4593)",
+      "native": "6128",
+      "engine": {
+        "kind": "number",
+        "value": 6128
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(4593)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(910)",
+      "native": "288",
+      "engine": {
+        "kind": "number",
+        "value": 288
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(910)",
+      "native": "2016",
+      "engine": {
+        "kind": "number",
+        "value": 2016
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(910)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(1027)",
+      "native": "936",
+      "engine": {
+        "kind": "number",
+        "value": 936
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(1027)",
+      "native": "1120",
+      "engine": {
+        "kind": "number",
+        "value": 1120
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(1027)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(7014)",
+      "native": "1992",
+      "engine": {
+        "kind": "number",
+        "value": 1992
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(7014)",
+      "native": "16128",
+      "engine": {
+        "kind": "number",
+        "value": 16128
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(7014)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(1525)",
+      "native": "1200",
+      "engine": {
+        "kind": "number",
+        "value": 1200
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(1525)",
+      "native": "1922",
+      "engine": {
+        "kind": "number",
+        "value": 1922
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(1525)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(8815)",
+      "native": "6720",
+      "engine": {
+        "kind": "number",
+        "value": 6720
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(8815)",
+      "native": "11088",
+      "engine": {
+        "kind": "number",
+        "value": 11088
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(8815)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(370)",
+      "native": "144",
+      "engine": {
+        "kind": "number",
+        "value": 144
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(370)",
+      "native": "684",
+      "engine": {
+        "kind": "number",
+        "value": 684
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(370)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(5212)",
+      "native": "2604",
+      "engine": {
+        "kind": "number",
+        "value": 2604
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(5212)",
+      "native": "9128",
+      "engine": {
+        "kind": "number",
+        "value": 9128
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(5212)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(9651)",
+      "native": "6432",
+      "engine": {
+        "kind": "number",
+        "value": 6432
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(9651)",
+      "native": "12872",
+      "engine": {
+        "kind": "number",
+        "value": 12872
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(9651)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(386)",
+      "native": "192",
+      "engine": {
+        "kind": "number",
+        "value": 192
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(386)",
+      "native": "582",
+      "engine": {
+        "kind": "number",
+        "value": 582
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(386)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(6282)",
+      "native": "2088",
+      "engine": {
+        "kind": "number",
+        "value": 2088
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(6282)",
+      "native": "13650",
+      "engine": {
+        "kind": "number",
+        "value": 13650
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(6282)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(64)",
+      "native": "32",
+      "engine": {
+        "kind": "number",
+        "value": 32
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(64)",
+      "native": "127",
+      "engine": {
+        "kind": "number",
+        "value": 127
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(64)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(596)",
+      "native": "296",
+      "engine": {
+        "kind": "number",
+        "value": 296
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(596)",
+      "native": "1050",
+      "engine": {
+        "kind": "number",
+        "value": 1050
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(596)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_PHI(8192)",
+      "native": "4096",
+      "engine": {
+        "kind": "number",
+        "value": 4096
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=NT_SIGMA(8192)",
+      "native": "16383",
+      "engine": {
+        "kind": "number",
+        "value": 16383
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ISPRIME(8192)",
+      "native": "FALSE",
+      "engine": {
+        "kind": "boolean",
+        "value": false
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=GAMMA(0.125)",
+      "native": "7.533941598797612",
+      "engine": {
+        "kind": "number",
+        "value": 7.533941598797584
+      },
+      "exactValueMatch": false
+    },
+    {
+      "formula": "=GAMMA(0.5)",
+      "native": "1.772453850905516",
+      "engine": {
+        "kind": "number",
+        "value": 1.772453850905516
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=GAMMA(1.25)",
+      "native": "0.906402477055477",
+      "engine": {
+        "kind": "number",
+        "value": 0.9064024770554779
+      },
+      "exactValueMatch": false
+    },
+    {
+      "formula": "=GAMMA(10.25)",
+      "native": "639232.5987795768",
+      "engine": {
+        "kind": "number",
+        "value": 639232.5987795762
+      },
+      "exactValueMatch": false
+    },
+    {
+      "formula": "=ERFC(0.125)",
+      "native": "0.8596837951986662",
+      "engine": {
+        "kind": "number",
+        "value": 0.8596837951986662
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ERFC(0.5)",
+      "native": "0.4795001221869535",
+      "engine": {
+        "kind": "number",
+        "value": 0.4795001221869535
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ERFC(1.25)",
+      "native": "0.07709987174354177",
+      "engine": {
+        "kind": "number",
+        "value": 0.07709987174354177
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=ERFC(10.25)",
+      "native": "1.2900138905042904E-47",
+      "engine": {
+        "kind": "number",
+        "value": 1.2900138905042904e-47
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(0.25,0.5)",
+      "native": "0.39479959874137005",
+      "engine": {
+        "kind": "number",
+        "value": 0.39479959874137005
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(10,2)",
+      "native": "0.25463031368512057",
+      "engine": {
+        "kind": "number",
+        "value": 0.25463031368512057
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(100,1)",
+      "native": "-0.07714535201411217",
+      "engine": {
+        "kind": "number",
+        "value": -0.07714535201411216
+      },
+      "exactValueMatch": false
+    },
+    {
+      "formula": "=BESSELI(0.25,0.5)",
+      "native": "0.4031109348997593",
+      "engine": {
+        "kind": "number",
+        "value": 0.4031109348997593
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELI(10,2)",
+      "native": "2281.5189677260037",
+      "engine": {
+        "kind": "number",
+        "value": 2281.5189677260037
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELI(100,1)",
+      "native": "1.0683693903381625E+42",
+      "engine": {
+        "kind": "number",
+        "value": 1.0683693903381625e+42
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELK(0.25,0.5)",
+      "native": "1.9521640631515473",
+      "engine": {
+        "kind": "number",
+        "value": 1.9521640631515473
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELK(10,2)",
+      "native": "2.150981700693277E-05",
+      "engine": {
+        "kind": "number",
+        "value": 2.150981700693277e-05
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELK(100,1)",
+      "native": "4.6798537356369095E-45",
+      "engine": {
+        "kind": "number",
+        "value": 4.6798537356369095e-45
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(0.25,0.5)",
+      "native": "-1.546160524106077",
+      "engine": {
+        "kind": "number",
+        "value": -1.546160524106077
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(10,2)",
+      "native": "-0.005868082442208625",
+      "engine": {
+        "kind": "number",
+        "value": -0.005868082442208625
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(100,1)",
+      "native": "-0.0203723120027598",
+      "engine": {
+        "kind": "number",
+        "value": -0.020372312002759796
+      },
+      "exactValueMatch": false
+    }
+  ],
+  "highPrecision": {
+    "library": "mpmath",
+    "version": "1.4.1",
+    "decimalDigits": 100,
+    "cases": [
+      {
+        "index": 118,
+        "formula": "=GAMMA(0.125)",
+        "value": "7.533941598797611904699229841215133624610419588149075940983127897776663657198906412833528626810356854",
+        "engine": {
+          "kind": "number",
+          "value": 7.533941598797584
+        },
+        "relativeError": "0.000000000000003650150481777202024295804884133797729328123304934877655083209022062063967583993488066670803136032612"
+      },
+      {
+        "index": 119,
+        "formula": "=GAMMA(0.5)",
+        "value": "1.772453850905516027298167483341145182797549456122387128213807789852911284591032181374950656738544665",
+        "engine": {
+          "kind": "number",
+          "value": 1.772453850905516
+        },
+        "relativeError": "0.0000000000000000432540824456956796806091653189836074972193842171703069321098310463058729317379621638675794503160132"
+      },
+      {
+        "index": 120,
+        "formula": "=GAMMA(1.25)",
+        "value": "0.9064024770554770779826712889669180007487919207200163668583444998924798108846822804045900341808460751",
+        "engine": {
+          "kind": "number",
+          "value": 0.9064024770554779
+        },
+        "relativeError": "0.0000000000000009507792315197553891479923326839161227312852186861322892512600505061975456449592665681859273564075768"
+      },
+      {
+        "index": 121,
+        "formula": "=GAMMA(10.25)",
+        "value": "639232.5987795767942837584018760849671534252849968211468120979937789260384181999179235915861915639837",
+        "engine": {
+          "kind": "number",
+          "value": 639232.5987795762
+        },
+        "relativeError": "0.0000000000000008538276038577184295463534909966881114661562158766155866853647239539611533650252959192106115825589924"
+      },
+      {
+        "index": 122,
+        "formula": "=ERFC(0.125)",
+        "value": "0.8596837951986661826069705534783766018130204168501545268858269735723635312633877433639182096443062019",
+        "engine": {
+          "kind": "number",
+          "value": 0.8596837951986662
+        },
+        "relativeError": "0.0000000000000000469378155875799638218456438883638575721936505274703031530414317632331712267647598005955535137537431"
+      },
+      {
+        "index": 123,
+        "formula": "=ERFC(0.5)",
+        "value": "0.479500122186953462317253346108035471263548424242036299941194274352806478283146429085211781265212243",
+        "engine": {
+          "kind": "number",
+          "value": 0.4795001221869535
+        },
+        "relativeError": "0.00000000000000003962621446789665651245749655256138908028244789088108018834724184621855096323340467628144475361707197"
+      },
+      {
+        "index": 124,
+        "formula": "=ERFC(1.25)",
+        "value": "0.07709987174354176986347651880271885957639856129777167020633151240777994346879891252450199776412327685",
+        "engine": {
+          "kind": "number",
+          "value": 0.07709987174354177
+        },
+        "relativeError": "0.000000000000000004326945364167546215903811801421575930197552502859436717988753074783967932778590037018556811811389415"
+      },
+      {
+        "index": 125,
+        "formula": "=ERFC(10.25)",
+        "value": "1.29001389050429040379720925338594896235105062918359143293364506839931803129959417579766187186406542e-47",
+        "engine": {
+          "kind": "number",
+          "value": 1.2900138905042904e-47
+        },
+        "relativeError": "0.00000000000000002657270195588053674017301184503360654217917769359268333379470210967433478097719281183318703688837552"
+      },
+      {
+        "index": 126,
+        "formula": "=BESSELJ(0.25,0.5)",
+        "value": "0.3947995987413700469685389753082522723400318084519554512254931947663492691270045624196856351693178177",
+        "engine": {
+          "kind": "number",
+          "value": 0.39479959874137005
+        },
+        "relativeError": "0.000000000000000008362244739180318836317420105923390012238263563248668535715274935803959256861416369253009892105136642"
+      },
+      {
+        "index": 127,
+        "formula": "=BESSELJ(10,2)",
+        "value": "0.2546303136851206225317106160905006114908546462502854113263412581613613905828821440479752885374141739",
+        "engine": {
+          "kind": "number",
+          "value": 0.25463031368512057
+        },
+        "relativeError": "0.0000000000000002125853651038145699159695596628871706893983143314912246315173952363249659807373652531780987611925109"
+      },
+      {
+        "index": 128,
+        "formula": "=BESSELJ(100,1)",
+        "value": "-0.07714535201411215803268549492723447021161166709924297160697339304148532954159595548560949625925024381",
+        "engine": {
+          "kind": "number",
+          "value": -0.07714535201411216
+        },
+        "relativeError": "0.0000000000000000230030424373803691358060278857226735441620520133095735867586025811303692165075365197404789975423264"
+      },
+      {
+        "index": 129,
+        "formula": "=BESSELI(0.25,0.5)",
+        "value": "0.4031109348997593047996807317994119625080558590068025919966614742837005573353729363986763893049032979",
+        "engine": {
+          "kind": "number",
+          "value": 0.4031109348997593
+        },
+        "relativeError": "0.0000000000000000145540989550967958828885473492082439492587126608139649813523815915717672558669053338342705824093746"
+      },
+      {
+        "index": 130,
+        "formula": "=BESSELI(10,2)",
+        "value": "2281.518967726003540601604760072159583249302207638570239545450396691664247795685758076211882020023872",
+        "engine": {
+          "kind": "number",
+          "value": 2281.5189677260037
+        },
+        "relativeError": "0.00000000000000005497583286516798077982799520637858279284417660509678960578449247461429664056980835022708045311656422"
+      },
+      {
+        "index": 131,
+        "formula": "=BESSELI(100,1)",
+        "value": "1068369390338162481206145763224295265446122.844056232269659180215103300559617328508790105571601867514",
+        "engine": {
+          "kind": "number",
+          "value": 1.0683693903381625e+42
+        },
+        "relativeError": "0.00000000000000001810268171062231042475103622270108873771410688522386782718218942948433419406713641023816784339807996"
+      },
+      {
+        "index": 132,
+        "formula": "=BESSELK(0.25,0.5)",
+        "value": "1.952164063151547689044436458244681092563988198851203823137632080512066610211635152366850370590059383",
+        "engine": {
+          "kind": "number",
+          "value": 1.9521640631515473
+        },
+        "relativeError": "0.0000000000000001812599141204461170926712562117154476370607509410682691542832372696917721599361332563156620577419596"
+      },
+      {
+        "index": 133,
+        "formula": "=BESSELK(10,2)",
+        "value": "0.00002150981700693276873066456442396712724920684618087324683355693813367684235383562975867462119343481075",
+        "engine": {
+          "kind": "number",
+          "value": 2.150981700693277e-05
+        },
+        "relativeError": "0.00000000000000005819508521220503025675732553846073765308787659034264981277252252393490750300607767882380159221016462"
+      },
+      {
+        "index": 134,
+        "formula": "=BESSELK(100,1)",
+        "value": "4.679853735636909286562544242024335307974943546943353529374646664803105135210046241027217648245495412e-45",
+        "engine": {
+          "kind": "number",
+          "value": 4.6798537356369095e-45
+        },
+        "relativeError": "0.00000000000000003834415620713546004072344152348839289435153922301073347884739723344720817162919159658339647142714912"
+      },
+      {
+        "index": 135,
+        "formula": "=BESSELY(0.25,0.5)",
+        "value": "-1.54616052410607695437334090640995837874714824091959066301836218490874484343055241238571716133571061",
+        "engine": {
+          "kind": "number",
+          "value": -1.546160524106077
+        },
+        "relativeError": "0.000000000000000004353075868904179252996990526847894918475597621867172290586618602423702390113861475765804928608665458"
+      },
+      {
+        "index": 136,
+        "formula": "=BESSELY(10,2)",
+        "value": "-0.005868082442208614639803182477545487493044805902973351832909165417064902538581313145961492216901642917",
+        "engine": {
+          "kind": "number",
+          "value": -0.005868082442208625
+        },
+        "relativeError": "0.000000000000001750477638931872190444964834314346765938993788505130359557347274031649048230041585183032801343683443"
+      },
+      {
+        "index": 137,
+        "formula": "=BESSELY(100,1)",
+        "value": "-0.02037231200275979330470393266641455974201865568903699045979928263155680899959382961906344091043529834",
+        "engine": {
+          "kind": "number",
+          "value": -0.020372312002759796
+        },
+        "relativeError": "0.0000000000000001285528738339828651017128960010204872370105145477989865791309088803943220338174463641889099816251297"
+      }
+    ]
+  },
+  "passes": 133,
+  "mismatches": 5,
+  "unmeasured": "full domain and other runtime/locale cells"
+}

@@ -1,0 +1,1042 @@
+{
+  "environment": {
+    "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "HOSTNAME": "ba43b94e9cee",
+    "HOME": "/out/ssconvert-xlsx-write/home",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+    "GSETTINGS_BACKEND": "memory",
+    "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+    "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+    "XDG_CONFIG_HOME": "/out/ssconvert-xlsx-write/config",
+    "XDG_DATA_HOME": "/out/ssconvert-xlsx-write/data",
+    "XDG_CACHE_HOME": "/out/ssconvert-xlsx-write/cache"
+  },
+  "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+  "listings": {
+    "--version": {
+      "status": 0,
+      "stdout": "ssconvert version '1.12.61'\ndatadir := '/out/ssconvert-statistics-oracle/prefix/share/gnumeric/1.12.61'\nlibdir := '/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61'\n",
+      "stderr": ""
+    },
+    "--list-exporters": {
+      "status": 0,
+      "stdout": "",
+      "stderr": "ID                                | Description\nGnumeric_Excel:excel_biff7        | MS Excel? 5.0/95\nGnumeric_Excel:excel_biff8        | MS Excel? 97/2000/XP\nGnumeric_Excel:excel_dsf          | MS Excel? 97/2000/XP & 5.0/95\nGnumeric_Excel:xlsx               | ECMA 376 1st edition (2006); [MS Excel? 2007]\nGnumeric_Excel:xlsx2              | ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel? 2010]\nGnumeric_OpenCalc:odf             | ODF 1.2 extended conformance (*.ods)\nGnumeric_OpenCalc:openoffice      | ODF 1.2 strict conformance (*.ods)\nGnumeric_XmlIO:sax                | Gnumeric XML (*.gnumeric)\nGnumeric_XmlIO:sax:0              | Gnumeric XML uncompressed (*.xml)\nGnumeric_dif:dif                  | Data Interchange Format (*.dif)\nGnumeric_glpk:glpk                | GLPK Linear Program Solver\nGnumeric_html:html32              | HTML 3.2 (*.html)\nGnumeric_html:html40              | HTML 4.0 (*.html)\nGnumeric_html:html40frag          | HTML (*.html) fragment\nGnumeric_html:latex               | LaTeX 2e (*.tex)\nGnumeric_html:latex_table         | LaTeX 2e (*.tex) table fragment\nGnumeric_html:latex_table_visible | LaTeX 2e (*.tex) table fragment of visible rows\nGnumeric_html:roff                | TROFF (*.me)\nGnumeric_html:xhtml               | XHTML (*.html)\nGnumeric_html:xhtml_range         | XHTML range - for export to clipboard\nGnumeric_lpsolve:lpsolve          | LPSolve Linear Program Solver\nGnumeric_pdf:pdf_assistant        | PDF export\nGnumeric_stf:stf_assistant        | Text (configurable)\nGnumeric_stf:stf_csv              | Comma separated values (CSV)\nGnumeric_sylk:sylk                | MultiPlan (SYLK)\n"
+    },
+    "--list-importers": {
+      "status": 0,
+      "stdout": "",
+      "stderr": "ID                           | Description\nGnumeric_Excel:excel         | MS Excel? (*.xls)\nGnumeric_Excel:excel_enc     | MS Excel? (*.xls) requiring encoding specification\nGnumeric_Excel:excel_xml     | MS Excel? 2003 SpreadsheetML\nGnumeric_Excel:xlsx          | ECMA 376 / Office Open XML [MS Excel? 2007/2010] (*.xlsx)\nGnumeric_OpenCalc:openoffice | Open Document Format (*.sxc, *.ods)\nGnumeric_QPro:qpro           | Quattro Pro (*.wb1, *.wb2, *.wb3)\nGnumeric_XmlIO:sax           | Gnumeric XML (*.gnumeric)\nGnumeric_applix:applix       | Applix (*.as)\nGnumeric_dif:dif             | Data Interchange Format (*.dif)\nGnumeric_html:html           | HTML (*.html, *.htm)\nGnumeric_lotus:lotus         | Lotus 123 (*.wk1, *.wks, *.123)\nGnumeric_mps:mps             | Linear and integer program (*.mps) file format\nGnumeric_oleo:oleo           | GNU Oleo (*.oleo)\nGnumeric_plan_perfect:pln    | Plan Perfect Format (PLN) import\nGnumeric_sc:sc               | SC/xspread\nGnumeric_stf:stf_csvtab      | Comma or tab separated values (CSV/TSV)\nGnumeric_sylk:sylk           | MultiPlan (SYLK)\nGnumeric_xbase:xbase         | Xbase (*.dbf) file format\n"
+    }
+  },
+  "dependencies": "\tlinux-vdso.so.1 (0x0000eadbbd2b8000)\n\tlibspreadsheet-1.12.61.so => /out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so (0x0000eadbbcd00000)\n\tlibgoffice-0.10.so.10 => /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10 (0x0000eadbbcb10000)\n\tlibgsf-1.so.114 => /lib/aarch64-linux-gnu/libgsf-1.so.114 (0x0000eadbbcaa0000)\n\tlibgtk-3.so.0 => /lib/aarch64-linux-gnu/libgtk-3.so.0 (0x0000eadbbc240000)\n\tlibgobject-2.0.so.0 => /lib/aarch64-linux-gnu/libgobject-2.0.so.0 (0x0000eadbbc1b0000)\n\tlibglib-2.0.so.0 => /lib/aarch64-linux-gnu/libglib-2.0.so.0 (0x0000eadbbc020000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000eadbbbe60000)\n\tlibxml2.so.2 => /lib/aarch64-linux-gnu/libxml2.so.2 (0x0000eadbbbc90000)\n\tlibgmodule-2.0.so.0 => /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 (0x0000eadbbbc60000)\n\tlibgdk-3.so.0 => /lib/aarch64-linux-gnu/libgdk-3.so.0 (0x0000eadbbbb30000)\n\tlibpangocairo-1.0.so.0 => /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0 (0x0000eadbbbb00000)\n\tlibpango-1.0.so.0 => /lib/aarch64-linux-gnu/libpango-1.0.so.0 (0x0000eadbbba70000)\n\tlibatk-1.0.so.0 => /lib/aarch64-linux-gnu/libatk-1.0.so.0 (0x0000eadbbba20000)\n\tlibcairo.so.2 => /lib/aarch64-linux-gnu/libcairo.so.2 (0x0000eadbbb8c0000)\n\tlibgdk_pixbuf-2.0.so.0 => /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x0000eadbbb870000)\n\tlibgio-2.0.so.0 => /lib/aarch64-linux-gnu/libgio-2.0.so.0 (0x0000eadbbb640000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000eadbbb590000)\n\tlibxslt.so.1 => /lib/aarch64-linux-gnu/libxslt.so.1 (0x0000eadbbb530000)\n\tlibrsvg-2.so.2 => /lib/aarch64-linux-gnu/librsvg-2.so.2 (0x0000eadbbafc0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000eadbbaf80000)\n\tlibbz2.so.1.0 => /lib/aarch64-linux-gnu/libbz2.so.1.0 (0x0000eadbbaf50000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000eadbbd270000)\n\tlibharfbuzz.so.0 => /lib/aarch64-linux-gnu/libharfbuzz.so.0 (0x0000eadbbadf0000)\n\tlibpangoft2-1.0.so.0 => /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0 (0x0000eadbbadb0000)\n\tlibfontconfig.so.1 => /lib/aarch64-linux-gnu/libfontconfig.so.1 (0x0000eadbbad40000)\n\tlibfribidi.so.0 => /lib/aarch64-linux-gnu/libfribidi.so.0 (0x0000eadbbad00000)\n\tlibcairo-gobject.so.2 => /lib/aarch64-linux-gnu/libcairo-gobject.so.2 (0x0000eadbbacd0000)\n\tlibepoxy.so.0 => /lib/aarch64-linux-gnu/libepoxy.so.0 (0x0000eadbbab60000)\n\tlibXi.so.6 => /lib/aarch64-linux-gnu/libXi.so.6 (0x0000eadbbab30000)\n\tlibX11.so.6 => /lib/aarch64-linux-gnu/libX11.so.6 (0x0000eadbba9c0000)\n\tlibatk-bridge-2.0.so.0 => /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0 (0x0000eadbba960000)\n\tlibcloudproviders.so.0 => /lib/aarch64-linux-gnu/libcloudproviders.so.0 (0x0000eadbba920000)\n\tlibXfixes.so.3 => /lib/aarch64-linux-gnu/libXfixes.so.3 (0x0000eadbba8f0000)\n\tlibffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000eadbba8c0000)\n\tlibatomic.so.1 => /lib/aarch64-linux-gnu/libatomic.so.1 (0x0000eadbba890000)\n\tlibpcre2-8.so.0 => /lib/aarch64-linux-gnu/libpcre2-8.so.0 (0x0000eadbba7d0000)\n\tliblzma.so.5 => /lib/aarch64-linux-gnu/liblzma.so.5 (0x0000eadbba780000)\n\tlibxkbcommon.so.0 => /lib/aarch64-linux-gnu/libxkbcommon.so.0 (0x0000eadbba710000)\n\tlibwayland-client.so.0 => /lib/aarch64-linux-gnu/libwayland-client.so.0 (0x0000eadbba6e0000)\n\tlibwayland-cursor.so.0 => /lib/aarch64-linux-gnu/libwayland-cursor.so.0 (0x0000eadbba6b0000)\n\tlibwayland-egl.so.1 => /lib/aarch64-linux-gnu/libwayland-egl.so.1 (0x0000eadbba680000)\n\tlibXext.so.6 => /lib/aarch64-linux-gnu/libXext.so.6 (0x0000eadbba640000)\n\tlibXcursor.so.1 => /lib/aarch64-linux-gnu/libXcursor.so.1 (0x0000eadbba610000)\n\tlibXdamage.so.1 => /lib/aarch64-linux-gnu/libXdamage.so.1 (0x0000eadbba5e0000)\n\tlibXcomposite.so.1 => /lib/aarch64-linux-gnu/libXcomposite.so.1 (0x0000eadbba5b0000)\n\tlibXrandr.so.2 => /lib/aarch64-linux-gnu/libXrandr.so.2 (0x0000eadbba580000)\n\tlibXinerama.so.1 => /lib/aarch64-linux-gnu/libXinerama.so.1 (0x0000eadbba550000)\n\tlibthai.so.0 => /lib/aarch64-linux-gnu/libthai.so.0 (0x0000eadbba520000)\n\tlibpng16.so.16 => /lib/aarch64-linux-gnu/libpng16.so.16 (0x0000eadbba4c0000)\n\tlibfreetype.so.6 => /lib/aarch64-linux-gnu/libfreetype.so.6 (0x0000eadbba3e0000)\n\tlibXrender.so.1 => /lib/aarch64-linux-gnu/libXrender.so.1 (0x0000eadbba3b0000)\n\tlibxcb.so.1 => /lib/aarch64-linux-gnu/libxcb.so.1 (0x0000eadbba360000)\n\tlibxcb-render.so.0 => /lib/aarch64-linux-gnu/libxcb-render.so.0 (0x0000eadbba330000)\n\tlibxcb-shm.so.0 => /lib/aarch64-linux-gnu/libxcb-shm.so.0 (0x0000eadbba300000)\n\tlibpixman-1.so.0 => /lib/aarch64-linux-gnu/libpixman-1.so.0 (0x0000eadbba250000)\n\tlibjpeg.so.62 => /lib/aarch64-linux-gnu/libjpeg.so.62 (0x0000eadbba1d0000)\n\tlibmount.so.1 => /lib/aarch64-linux-gnu/libmount.so.1 (0x0000eadbba130000)\n\tlibselinux.so.1 => /lib/aarch64-linux-gnu/libselinux.so.1 (0x0000eadbba0d0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000eadbba090000)\n\tlibdav1d.so.7 => /lib/aarch64-linux-gnu/libdav1d.so.7 (0x0000eadbb9f90000)\n\tlibgraphite2.so.3 => /lib/aarch64-linux-gnu/libgraphite2.so.3 (0x0000eadbb9f50000)\n\tlibexpat.so.1 => /lib/aarch64-linux-gnu/libexpat.so.1 (0x0000eadbb9f00000)\n\tlibatspi.so.0 => /lib/aarch64-linux-gnu/libatspi.so.0 (0x0000eadbb9ea0000)\n\tlibdbus-1.so.3 => /lib/aarch64-linux-gnu/libdbus-1.so.3 (0x0000eadbb9e20000)\n\tlibdatrie.so.1 => /lib/aarch64-linux-gnu/libdatrie.so.1 (0x0000eadbb9df0000)\n\tlibbrotlidec.so.1 => /lib/aarch64-linux-gnu/libbrotlidec.so.1 (0x0000eadbb9dc0000)\n\tlibXau.so.6 => /lib/aarch64-linux-gnu/libXau.so.6 (0x0000eadbb9d90000)\n\tlibXdmcp.so.6 => /lib/aarch64-linux-gnu/libXdmcp.so.6 (0x0000eadbb9d60000)\n\tlibblkid.so.1 => /lib/aarch64-linux-gnu/libblkid.so.1 (0x0000eadbb9ce0000)\n\tlibsystemd.so.0 => /lib/aarch64-linux-gnu/libsystemd.so.0 (0x0000eadbb9bb0000)\n\tlibbrotlicommon.so.1 => /lib/aarch64-linux-gnu/libbrotlicommon.so.1 (0x0000eadbb9b70000)\n\tlibcap.so.2 => /lib/aarch64-linux-gnu/libcap.so.2 (0x0000eadbb9b40000)\n",
+  "packages": "libc6:arm64\t2.41-12+deb13u4\nlibc6-dev:arm64\t2.41-12+deb13u4\nlibglib2.0-0t64:arm64\t2.84.4-3~deb13u5\nlibglib2.0-bin\t2.84.4-3~deb13u5\nlibglib2.0-data\t2.84.4-3~deb13u5\nlibglib2.0-dev:arm64\t2.84.4-3~deb13u5\nlibglib2.0-dev-bin\t2.84.4-3~deb13u5\nlibgoffice-0.10-10-common\t0.10.57-2\nlibgoffice-0.10-10t64\t0.10.57-2+b1\nlibgoffice-0.10-dev\t0.10.57-2+b1\nlibgsf-1-114:arm64\t1.14.53-1\nlibgsf-1-common\t1.14.53-1\nlibgsf-1-dev:arm64\t1.14.53-1\nlibgtk-3-0t64:arm64\t3.24.49-3\nlibgtk-3-bin\t3.24.49-3\nlibgtk-3-common\t3.24.49-3\nlibgtk-3-dev:arm64\t3.24.49-3\nlibpango-1.0-0:arm64\t1.56.3-1\nlibpango1.0-dev:arm64\t1.56.3-1\nlibpangocairo-1.0-0:arm64\t1.56.3-1\nlibpangoft2-1.0-0:arm64\t1.56.3-1\nlibpangoxft-1.0-0:arm64\t1.56.3-1\nlibxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxml2-dev:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxml2-utils\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nzlib1g:arm64\t1:1.3.dfsg+really1.3.1-1+b1\nzlib1g-dev:arm64\t1:1.3.dfsg+really1.3.1-1+b1",
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "independentReader": "openpyxl 3.1.5",
+  "differential": {
+    "xlsx": {
+      "orderedMembersEqual": true,
+      "parts": 13,
+      "semanticMismatches": [],
+      "rawXmlDifferences": [
+        "xl/comments1.xml",
+        "xl/drawings/vmlDrawing1.vml",
+        "xl/worksheets/sheet1.xml",
+        "xl/worksheets/_rels/sheet1.xml.rels",
+        "xl/worksheets/sheet2.xml",
+        "xl/styles.xml",
+        "docProps/app.xml",
+        "docProps/core.xml",
+        "docProps/custom.xml",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "[Content_Types].xml",
+        "_rels/.rels"
+      ],
+      "reader": {
+        "formula": "=A1+2",
+        "cache": 5,
+        "comment": "hello & world",
+        "validationCount": 1,
+        "conditionalFormats": 1,
+        "warnings": [
+          "Unknown type for Amount",
+          "Workbook contains no default style, apply openpyxl's default"
+        ]
+      },
+      "candidateSha256": "33234d716afabcd3316475293d0663055b2e0f4374c600fbcbddfc2b0d201ef0",
+      "nativeSha256": "6e217fe71bab6b771da6f12c6887105c2ed9ca3df20adc08bcb1920e3fc5bad7"
+    },
+    "xlsx2": {
+      "orderedMembersEqual": true,
+      "parts": 13,
+      "semanticMismatches": [],
+      "rawXmlDifferences": [
+        "xl/comments1.xml",
+        "xl/drawings/vmlDrawing1.vml",
+        "xl/worksheets/sheet1.xml",
+        "xl/worksheets/_rels/sheet1.xml.rels",
+        "xl/worksheets/sheet2.xml",
+        "xl/styles.xml",
+        "docProps/app.xml",
+        "docProps/core.xml",
+        "docProps/custom.xml",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "[Content_Types].xml",
+        "_rels/.rels"
+      ],
+      "reader": {
+        "formula": "=A1+2",
+        "cache": 5,
+        "comment": "hello & world",
+        "validationCount": 1,
+        "conditionalFormats": 1,
+        "warnings": [
+          "Unknown type for Amount",
+          "Workbook contains no default style, apply openpyxl's default"
+        ]
+      },
+      "candidateSha256": "d06883368c3891841e6029f0f36863e9ef1818df8ecbacec0b810e37d2b925fc",
+      "nativeSha256": "fb78d31e0a6f5e8b2a6b3025cbc43e2f51e780648a9130f05234db109b1824df"
+    }
+  },
+  "reopen": [
+    {
+      "profile": "xlsx",
+      "origin": "candidate",
+      "status": 0,
+      "stdout": "",
+      "stderr": "Unhandled object of type Note\nUnexpected element 'vt:decimal' in state : \n\tProperties -> property\n"
+    },
+    {
+      "profile": "xlsx",
+      "origin": "native",
+      "status": 0,
+      "stdout": "",
+      "stderr": "Unhandled object of type Note\nUnexpected element 'vt:decimal' in state : \n\tProperties -> property\n"
+    },
+    {
+      "profile": "xlsx2",
+      "origin": "candidate",
+      "status": 0,
+      "stdout": "",
+      "stderr": "Unhandled object of type Note\nUnexpected element 'vt:decimal' in state : \n\tProperties -> property\n"
+    },
+    {
+      "profile": "xlsx2",
+      "origin": "native",
+      "status": 0,
+      "stdout": "",
+      "stderr": "Unhandled object of type Note\nUnexpected element 'vt:decimal' in state : \n\tProperties -> property\n"
+    }
+  ],
+  "fixtureSha256": "0dc99cbefe91e0b6ea79f44302c5d1d812aa2fdbd9a67730967b8da1c93972a7",
+  "filters": {
+    "xlsx": {
+      "status": 0,
+      "stderr": "",
+      "filterEqual": true,
+      "candidate": [
+        "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}autoFilter",
+        [
+          [
+            "ref",
+            "A1:F4"
+          ]
+        ],
+        null,
+        [
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "0"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "equal"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "1"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [
+                  [
+                    "and",
+                    "true"
+                  ]
+                ],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "greaterThan"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ],
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "lessThan"
+                      ],
+                      [
+                        "val",
+                        "9"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "2"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filters",
+                [
+                  [
+                    "blank",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "3"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "notEqual"
+                      ],
+                      [
+                        "val",
+                        " "
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "4"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "10"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "5"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "25.5"
+                  ],
+                  [
+                    "top",
+                    "0"
+                  ],
+                  [
+                    "percent",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ]
+        ]
+      ],
+      "native": [
+        "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}autoFilter",
+        [
+          [
+            "ref",
+            "A1:F4"
+          ]
+        ],
+        null,
+        [
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "0"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "equal"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "1"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [
+                  [
+                    "and",
+                    "true"
+                  ]
+                ],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "greaterThan"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ],
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "lessThan"
+                      ],
+                      [
+                        "val",
+                        "9"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "2"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filters",
+                [
+                  [
+                    "blank",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "3"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "notEqual"
+                      ],
+                      [
+                        "val",
+                        " "
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "4"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "10"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "5"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "25.5"
+                  ],
+                  [
+                    "top",
+                    "0"
+                  ],
+                  [
+                    "percent",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ]
+        ]
+      ]
+    },
+    "xlsx2": {
+      "status": 0,
+      "stderr": "",
+      "filterEqual": true,
+      "candidate": [
+        "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}autoFilter",
+        [
+          [
+            "ref",
+            "A1:F4"
+          ]
+        ],
+        null,
+        [
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "0"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "equal"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "1"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [
+                  [
+                    "and",
+                    "true"
+                  ]
+                ],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "greaterThan"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ],
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "lessThan"
+                      ],
+                      [
+                        "val",
+                        "9"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "2"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filters",
+                [
+                  [
+                    "blank",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "3"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "notEqual"
+                      ],
+                      [
+                        "val",
+                        " "
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "4"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "10"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "5"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "25.5"
+                  ],
+                  [
+                    "top",
+                    "0"
+                  ],
+                  [
+                    "percent",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ]
+        ]
+      ],
+      "native": [
+        "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}autoFilter",
+        [
+          [
+            "ref",
+            "A1:F4"
+          ]
+        ],
+        null,
+        [
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "0"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "equal"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "1"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [
+                  [
+                    "and",
+                    "true"
+                  ]
+                ],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "greaterThan"
+                      ],
+                      [
+                        "val",
+                        "7"
+                      ]
+                    ],
+                    null,
+                    []
+                  ],
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "lessThan"
+                      ],
+                      [
+                        "val",
+                        "9"
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "2"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filters",
+                [
+                  [
+                    "blank",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "3"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilters",
+                [],
+                null,
+                [
+                  [
+                    "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}customFilter",
+                    [
+                      [
+                        "operator",
+                        "notEqual"
+                      ],
+                      [
+                        "val",
+                        " "
+                      ]
+                    ],
+                    null,
+                    []
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "4"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "10"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ],
+          [
+            "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}filterColumn",
+            [
+              [
+                "colId",
+                "5"
+              ]
+            ],
+            null,
+            [
+              [
+                "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}top10",
+                [
+                  [
+                    "val",
+                    "25.5"
+                  ],
+                  [
+                    "top",
+                    "0"
+                  ],
+                  [
+                    "percent",
+                    "1"
+                  ]
+                ],
+                null,
+                []
+              ]
+            ]
+          ]
+        ]
+      ]
+    }
+  },
+  "dependencyHashes": {
+    "status": 0,
+    "stdout": "b429e875c714d8eab593a878b0b2fb15e35a8bdec332301a9c63d4d9cc6009a0  /out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so\n0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42  /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10\n6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28  /lib/aarch64-linux-gnu/libgsf-1.so.114\n7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4  /lib/aarch64-linux-gnu/libgtk-3.so.0\n1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f  /lib/aarch64-linux-gnu/libgobject-2.0.so.0\na8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1  /lib/aarch64-linux-gnu/libglib-2.0.so.0\n70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13  /lib/aarch64-linux-gnu/libc.so.6\n1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d  /lib/aarch64-linux-gnu/libxml2.so.2\n81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08  /lib/aarch64-linux-gnu/libgmodule-2.0.so.0\n4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0  /lib/aarch64-linux-gnu/libgdk-3.so.0\n0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5  /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0\ndf07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233  /lib/aarch64-linux-gnu/libpango-1.0.so.0\n256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5  /lib/aarch64-linux-gnu/libatk-1.0.so.0\nb521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6  /lib/aarch64-linux-gnu/libcairo.so.2\n16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c  /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0\n9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77  /lib/aarch64-linux-gnu/libgio-2.0.so.0\na8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2  /lib/aarch64-linux-gnu/libm.so.6\n6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042  /lib/aarch64-linux-gnu/libxslt.so.1\n86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7  /lib/aarch64-linux-gnu/librsvg-2.so.2\n6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65  /lib/aarch64-linux-gnu/libz.so.1\n810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46  /lib/aarch64-linux-gnu/libbz2.so.1.0\n1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6  /lib/ld-linux-aarch64.so.1\n49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c  /lib/aarch64-linux-gnu/libharfbuzz.so.0\n732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2  /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0\n6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad  /lib/aarch64-linux-gnu/libfontconfig.so.1\n9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720  /lib/aarch64-linux-gnu/libfribidi.so.0\n8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13  /lib/aarch64-linux-gnu/libcairo-gobject.so.2\n353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e  /lib/aarch64-linux-gnu/libepoxy.so.0\n9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761  /lib/aarch64-linux-gnu/libXi.so.6\n94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0  /lib/aarch64-linux-gnu/libX11.so.6\n1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3  /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0\ncce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c  /lib/aarch64-linux-gnu/libcloudproviders.so.0\n6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5  /lib/aarch64-linux-gnu/libXfixes.so.3\nf0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490  /lib/aarch64-linux-gnu/libffi.so.8\n6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e  /lib/aarch64-linux-gnu/libatomic.so.1\n97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75  /lib/aarch64-linux-gnu/libpcre2-8.so.0\n4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84  /lib/aarch64-linux-gnu/liblzma.so.5\n5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380  /lib/aarch64-linux-gnu/libxkbcommon.so.0\n0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670  /lib/aarch64-linux-gnu/libwayland-client.so.0\n5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43  /lib/aarch64-linux-gnu/libwayland-cursor.so.0\nf9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c  /lib/aarch64-linux-gnu/libwayland-egl.so.1\n1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651  /lib/aarch64-linux-gnu/libXext.so.6\n69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43  /lib/aarch64-linux-gnu/libXcursor.so.1\n032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e  /lib/aarch64-linux-gnu/libXdamage.so.1\ne24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48  /lib/aarch64-linux-gnu/libXcomposite.so.1\n6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2  /lib/aarch64-linux-gnu/libXrandr.so.2\n74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6  /lib/aarch64-linux-gnu/libXinerama.so.1\nd43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7  /lib/aarch64-linux-gnu/libthai.so.0\n7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e  /lib/aarch64-linux-gnu/libpng16.so.16\n037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e  /lib/aarch64-linux-gnu/libfreetype.so.6\n33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102  /lib/aarch64-linux-gnu/libXrender.so.1\ne8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210  /lib/aarch64-linux-gnu/libxcb.so.1\nd950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0  /lib/aarch64-linux-gnu/libxcb-render.so.0\n70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0  /lib/aarch64-linux-gnu/libxcb-shm.so.0\n65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197  /lib/aarch64-linux-gnu/libpixman-1.so.0\nc16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87  /lib/aarch64-linux-gnu/libjpeg.so.62\n8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538  /lib/aarch64-linux-gnu/libmount.so.1\n18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952  /lib/aarch64-linux-gnu/libselinux.so.1\n9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0  /lib/aarch64-linux-gnu/libgcc_s.so.1\nde01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b  /lib/aarch64-linux-gnu/libdav1d.so.7\n42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402  /lib/aarch64-linux-gnu/libgraphite2.so.3\nfce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48  /lib/aarch64-linux-gnu/libexpat.so.1\n465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52  /lib/aarch64-linux-gnu/libatspi.so.0\n33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af  /lib/aarch64-linux-gnu/libdbus-1.so.3\nee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45  /lib/aarch64-linux-gnu/libdatrie.so.1\n3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e  /lib/aarch64-linux-gnu/libbrotlidec.so.1\n66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26  /lib/aarch64-linux-gnu/libXau.so.6\nd2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298  /lib/aarch64-linux-gnu/libXdmcp.so.6\nd7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741  /lib/aarch64-linux-gnu/libblkid.so.1\ne3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f  /lib/aarch64-linux-gnu/libsystemd.so.0\n077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e  /lib/aarch64-linux-gnu/libbrotlicommon.so.1\n2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec  /lib/aarch64-linux-gnu/libcap.so.2\n",
+    "stderr": ""
+  },
+  "originalFixtureXml": "<?xml version=\"1.0\"?><g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\" Version=\"14\" g:DateConvention=\"Apple:1904\"><g:Calculation DateConvention=\"Apple:1904\" ManualRecalc=\"1\" EnableIteration=\"0\" MaxIterations=\"12\" IterationTolerance=\"0.02\"/><office:document-meta xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:meta=\"urn:oasis:names:tc:opendocument:xmlns:meta:1.0\"><office:meta><meta:creation-date>2000-01-01T00:00:00Z</meta:creation-date><meta:user-defined meta:name=\"Amount\" meta:value-type=\"float\">2.5</meta:user-defined><meta:user-defined meta:name=\"Flag\" meta:value-type=\"boolean\">true</meta:user-defined><meta:user-defined meta:name=\"CustomName\" meta:value-type=\"string\">a&amp;b</meta:user-defined></office:meta></office:document-meta><g:Sheets><g:Sheet Rows=\"65536\" Cols=\"256\"><g:Name>S</g:Name><g:Styles><g:StyleRegion startRow=\"0\" endRow=\"2\" startCol=\"0\" endCol=\"1\"><g:Style Format=\"0.000\"><g:Validation Style=\"GNM_VALIDATION_STYLE_WARNING\" Type=\"GNM_VALIDATION_TYPE_AS_INT\" Operator=\"GNM_VALIDATION_OP_BETWEEN\" AllowBlank=\"1\" UseDropdown=\"1\" Title=\"Bad\" Message=\"range\"><g:Expression0>1</g:Expression0><g:Expression1>9</g:Expression1></g:Validation><g:Condition Operator=\"2\"><g:Expression0>5</g:Expression0><g:Style Back=\"FFFF:0000:0000\" Shade=\"1\"/></g:Condition></g:Style></g:StyleRegion><g:StyleRegion startRow=\"0\" endRow=\"0\" startCol=\"2\" endCol=\"2\"><g:Style><g:HyperLink type=\"GnmHLinkURL\" target=\"https://example.com/path#location\" tip=\"go\"/></g:Style></g:StyleRegion></g:Styles><g:Objects><g:CellComment ObjectBound=\"A1\" ObjectOffset=\"1 0 1 0\" Direction=\"17\" Print=\"1\" Author=\"Me\" Text=\"hello &amp; world\"/></g:Objects><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">3</g:Cell><g:Cell Row=\"0\" Col=\"1\">=A1+2</g:Cell><g:Cell Row=\"0\" Col=\"2\" ValueType=\"60\">link</g:Cell></g:Cells></g:Sheet><g:Sheet Rows=\"65536\" Cols=\"256\"><g:Name>Second</g:Name><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"60\">other</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>\n",
+  "originalFilterFixtureXml": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\" Version=\"14\"><g:Sheets><g:Sheet Rows=\"65536\" Cols=\"256\"><g:Name>S</g:Name><g:Filters><g:Filter Area=\"A1:F4\"><g:Field Index=\"5\" Type=\"bucket\" top=\"0\" items=\"0\" rel_range=\"1\" count=\"25.5\"/><g:Field Index=\"4\" Type=\"bucket\" top=\"1\" items=\"1\" rel_range=\"1\" count=\"10\"/><g:Field Index=\"3\" Type=\"noblanks\"/><g:Field Index=\"2\" Type=\"blanks\"/><g:Field Index=\"1\" Type=\"expr\" Op0=\"gt\" Value0=\"40\" ValueType0=\"7\" Op1=\"lt\" Value1=\"40\" ValueType1=\"9\" IsAnd=\"0\"/><g:Field Index=\"0\" Type=\"expr\" Op0=\"eq\" Value0=\"40\" ValueType0=\"7\"/></g:Filter></g:Filters><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"60\">Header</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>",
+  "checks": {
+    "ssconvertUncachedUnit": {
+      "files": 152,
+      "pass": 4133,
+      "fail": 0
+    },
+    "ssconvertLint": {
+      "exit": 0,
+      "scope": "ESLint, source TypeScript, test TypeScript"
+    },
+    "safeBashUncachedBuildClosure": {
+      "builds": 18,
+      "exit": 0
+    },
+    "safeBashFocusedSsconvert": {
+      "pass": 51,
+      "fail": 0,
+      "exit": 0
+    },
+    "safeBashChangedTestEslint": {
+      "exit": 0
+    },
+    "safeBashFullMaintainedUnit": {
+      "tests": 44932,
+      "pass": 44099,
+      "fail": 0,
+      "skipped": 831,
+      "todo": 2,
+      "exit": 0,
+      "todoBlockers": [
+        "csvformat quoting mode 2 numeric/null float serialization",
+        "csvkit XLSX /dev/fd/3 shell descriptor path unsupported"
+      ]
+    },
+    "independentWriterStress": {
+      "pass": 74,
+      "fail": 0,
+      "nativeOrDiskUnitExecution": false
+    }
+  }
+}

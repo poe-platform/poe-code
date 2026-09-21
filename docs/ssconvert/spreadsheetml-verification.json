@@ -1,0 +1,883 @@
+{
+  "projection": "sheet order/names, nonblank scalar values, formulas including formula cells with blank value, merges, explicit finite axis dimensions/visibility, user-defined names, explicit properties; native-generated Print_Area/Sheet_Title and creation-time defaults are measured output mismatches excluded from this importer projection; formula caches and style records excluded",
+  "results": [
+    {
+      "name": "alias",
+      "mode": "auto",
+      "nativeStatus": 1,
+      "actualStatus": 1,
+      "statusEqual": true,
+      "stderr": "Unexpected element 's:Worksheet' in state : \n\tWorkbook\n\nLoading file:///alias.xml failed\n",
+      "nativeStderr": "\n** (ssconvert:68115): WARNING **: 19:14:49.243: Damn.  Someone just declared the same namespace 'urn:schemas-microsoft-com:office:spreadsheet' with a different prefix 's:'\nUnexpected element 's:Worksheet' in state : \n\tWorkbook\nLoading file:///out/spreadsheetml/alias.xml failed\n",
+      "stdout": ""
+    },
+    {
+      "name": "alias",
+      "mode": "forced",
+      "nativeStatus": 1,
+      "actualStatus": 1,
+      "statusEqual": true,
+      "stderr": "Unexpected element 's:Worksheet' in state : \n\tWorkbook\n\nLoading file:///alias.xml failed\n",
+      "nativeStderr": "\n** (ssconvert:68117): WARNING **: 19:14:49.291: Damn.  Someone just declared the same namespace 'urn:schemas-microsoft-com:office:spreadsheet' with a different prefix 's:'\nUnexpected element 's:Worksheet' in state : \n\tWorkbook\nLoading file:///out/spreadsheetml/alias.xml failed\n",
+      "stdout": ""
+    },
+    {
+      "name": "alternate",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "alternate",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "axes",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "axes",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "booleans",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!A1 : Invalid content of ss:data element, received '0'\n\nS!B1 : Invalid content of ss:data element, received '1'\n\nS!G1 : Invalid content of ss:data element, received '2'\n\nS!H1 : Invalid content of ss:data element, received ''\n\n",
+      "nativeStderr": "\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!A1 : Invalid content of ss:data element, received '0'\n\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!B1 : Invalid content of ss:data element, received '1'\n\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!G1 : Invalid content of ss:data element, received '2'\n\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!H1 : Invalid content of ss:data element, received ''\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "booleans",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!A1 : Invalid content of ss:data element, received '0'\n\nS!B1 : Invalid content of ss:data element, received '1'\n\nS!G1 : Invalid content of ss:data element, received '2'\n\nS!H1 : Invalid content of ss:data element, received ''\n\n",
+      "nativeStderr": "\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!A1 : Invalid content of ss:data element, received '0'\n\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!B1 : Invalid content of ss:data element, received '1'\n\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!G1 : Invalid content of ss:data element, received '2'\n\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!H1 : Invalid content of ss:data element, received ''\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "dates",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "\n(ssconvert:68131): GLib-CRITICAL **: 19:14:49.621: g_date_set_dmy: assertion 'g_date_valid_dmy (day, m, y)' failed\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "dates",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "\n(ssconvert:68133): GLib-CRITICAL **: 19:14:49.665: g_date_set_dmy: assertion 'g_date_valid_dmy (day, m, y)' failed\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "duplicate",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "duplicate",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "empty",
+      "mode": "auto",
+      "nativeStatus": 1,
+      "actualStatus": 1,
+      "statusEqual": true,
+      "stderr": "Loading file:///empty.xml failed\n",
+      "nativeStderr": "Loading file:///out/spreadsheetml/empty.xml failed\n",
+      "stdout": ""
+    },
+    {
+      "name": "empty",
+      "mode": "forced",
+      "nativeStatus": 1,
+      "actualStatus": 1,
+      "statusEqual": true,
+      "stderr": "Loading file:///empty.xml failed\n",
+      "nativeStderr": "Loading file:///out/spreadsheetml/empty.xml failed\n",
+      "stdout": ""
+    },
+    {
+      "name": "errors",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "errors",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "formula-empty",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "formula-empty",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "formula-index",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "formula-index",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "ignored",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "Unexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\n\nUnexpected element 'x:Date1904' in state : \n\tWorkbook -> ExcelWorkbook\n\n",
+      "nativeStderr": "Unexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\nUnexpected element 'x:Date1904' in state : \n\tWorkbook -> ExcelWorkbook\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "ignored",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "Unexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\n\nUnexpected element 'x:Date1904' in state : \n\tWorkbook -> ExcelWorkbook\n\n",
+      "nativeStderr": "Unexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\nUnexpected element 'x:Date1904' in state : \n\tWorkbook -> ExcelWorkbook\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "malformed",
+      "mode": "auto",
+      "nativeStatus": 1,
+      "actualStatus": 1,
+      "statusEqual": true,
+      "stderr": "Document likely damaged.\n\nE XML document not well formed!\n",
+      "nativeStderr": "\n(ssconvert:68159): XML-CRITICAL **: 19:14:50.260: Premature end of data in tag Workbook line 1\n\n\n** (ssconvert:68159): WARNING **: 19:14:50.260: Document likely damaged.\nE XML document not well formed!\n",
+      "stdout": ""
+    },
+    {
+      "name": "malformed",
+      "mode": "forced",
+      "nativeStatus": 1,
+      "actualStatus": 1,
+      "statusEqual": true,
+      "stderr": "Document likely damaged.\n\nE XML document not well formed!\n",
+      "nativeStderr": "\n(ssconvert:68161): XML-CRITICAL **: 19:14:50.304: Premature end of data in tag Workbook line 1\n\n\n** (ssconvert:68161): WARNING **: 19:14:50.304: Document likely damaged.\nE XML document not well formed!\n",
+      "stdout": ""
+    },
+    {
+      "name": "merges",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 1,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "merges",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 1,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "names",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "'S!R1C1' Unknown sheet 'S'\n\nGlobal = =S!R1C1\n\n",
+      "nativeStderr": "\n** (ssconvert:68167): WARNING **: 19:14:50.435: 'S!R1C1' Unknown sheet 'S'\n\n** (ssconvert:68167): WARNING **: 19:14:50.435: Global = =S!R1C1\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "names",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "'S!R1C1' Unknown sheet 'S'\n\nGlobal = =S!R1C1\n\n",
+      "nativeStderr": "\n** (ssconvert:68169): WARNING **: 19:14:50.476: 'S!R1C1' Unknown sheet 'S'\n\n** (ssconvert:68169): WARNING **: 19:14:50.476: Global = =S!R1C1\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "numbers",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!E1 : Invalid content of ss:data element, expected number, received '12bad'\n\nS!F1 : Invalid content of ss:data element, expected number, received 'bad'\n\nS!H1 : Invalid content of ss:data element, expected number, received '12 '\n\nS!K1 : Invalid content of ss:data element, expected number, received '0x10'\n\n",
+      "nativeStderr": "\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!E1 : Invalid content of ss:data element, expected number, received '12bad'\n\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!F1 : Invalid content of ss:data element, expected number, received 'bad'\n\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!H1 : Invalid content of ss:data element, expected number, received '12 '\n\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!K1 : Invalid content of ss:data element, expected number, received '0x10'\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "numbers",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!E1 : Invalid content of ss:data element, expected number, received '12bad'\n\nS!F1 : Invalid content of ss:data element, expected number, received 'bad'\n\nS!H1 : Invalid content of ss:data element, expected number, received '12 '\n\nS!K1 : Invalid content of ss:data element, expected number, received '0x10'\n\n",
+      "nativeStderr": "\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!E1 : Invalid content of ss:data element, expected number, received '12bad'\n\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!F1 : Invalid content of ss:data element, expected number, received 'bad'\n\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!H1 : Invalid content of ss:data element, expected number, received '12 '\n\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!K1 : Invalid content of ss:data element, expected number, received '0x10'\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "print",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "print",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "properties",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "properties",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "rich",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "rich",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "sparse",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "sparse",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "styles",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 1,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "styles",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 1,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "unknown",
+      "mode": "auto",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "Unexpected element 'Unexpected' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n\n",
+      "nativeStderr": "Unexpected element 'Unexpected' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "unknown",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "Unexpected element 'Unexpected' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n\n",
+      "nativeStderr": "Unexpected element 'Unexpected' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "index-lexical",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!A1 : Invalid attribute 'Index', expected integer, received '1e2'\n\nS!B1 : Invalid attribute 'Index', expected integer, received '0x10'\n\nS!E1 : Invalid attribute 'Index', expected integer, received '2 '\n\n",
+      "nativeStderr": "\n** (ssconvert:68225): WARNING **: 19:22:34.608: S!A1 : Invalid attribute 'Index', expected integer, received '1e2'\n\n** (ssconvert:68225): WARNING **: 19:22:34.608: S!B1 : Invalid attribute 'Index', expected integer, received '0x10'\n\n** (ssconvert:68225): WARNING **: 19:22:34.608: S!E1 : Invalid attribute 'Index', expected integer, received '2 '\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "font-complete",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 1,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "multiple-data",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "empty-types",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!B1 : Invalid content of ss:data element, received ''\n\n",
+      "nativeStderr": "\n** (ssconvert:68231): WARNING **: 19:22:34.778: S!B1 : Invalid content of ss:data element, received ''\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "unknown-type",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!A1 : Invalid attribute 'Type', unknown enum value 'Bogus'\n\nUnexpected element 'Unknown' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n\n",
+      "nativeStderr": "\n** (ssconvert:68233): WARNING **: 19:22:34.831: S!A1 : Invalid attribute 'Type', unknown enum value 'Bogus'\nUnexpected element 'Unknown' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "integer-size",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "order",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!A1 : Invalid content of ss:data element, expected number, received 'bad'\n\nUnexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\n\n",
+      "nativeStderr": "\n** (ssconvert:68237): WARNING **: 19:22:34.940: S!A1 : Invalid content of ss:data element, expected number, received 'bad'\nUnexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "column-zero",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "merge-overlap",
+      "mode": "forced",
+      "nativeStatus": 1,
+      "actualStatus": 1,
+      "statusEqual": true,
+      "stderr": "E There is already a merged region that intersects\nS!B1:C1\n",
+      "nativeStderr": "E There is already a merged region that intersects\nS!B1:C1\n",
+      "stdout": ""
+    },
+    {
+      "name": "named-formats",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 17,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "latin1",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "selection",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "print-default",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "float-attrs",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S : Invalid attribute 'Width', expected number, received '0x10'\n\n",
+      "nativeStderr": "\n** (ssconvert:68256): WARNING **: 19:26:23.885: S!A1 : Invalid attribute 'Width', expected number, received '0x10'\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": false,
+      "actual": {
+        "sheets": [
+          {
+            "name": "S",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "merges": [],
+            "rows": [],
+            "columns": []
+          }
+        ],
+        "names": [],
+        "properties": {}
+      },
+      "expected": {
+        "sheets": [
+          {
+            "name": "S",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "merges": [],
+            "rows": [],
+            "columns": [
+              {
+                "index": 2,
+                "sizePoints": 0,
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "names": [],
+        "properties": {}
+      }
+    },
+    {
+      "name": "formula-unknown",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!A1 : 'Missing!R1C1' Unknown sheet 'Missing'\n\n",
+      "nativeStderr": "\n** (ssconvert:68258): WARNING **: 19:26:23.966: S!A1 : 'Missing!R1C1' Unknown sheet 'Missing'\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "row-style-span",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 3,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "axis-overwrites",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 1,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "cell-attribute-order",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "S!A1 : Invalid formula 'bad' does not begin with '='\n\nS!E1 : Invalid formula 'bad' does not begin with '='\n\n",
+      "nativeStderr": "\n** (ssconvert:68264): WARNING **: 19:26:24.218: S!A1 : Invalid formula 'bad' does not begin with '='\n\n** (ssconvert:68264): WARNING **: 19:26:24.218: S!E1 : Invalid formula 'bad' does not begin with '='\n",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    },
+    {
+      "name": "properties-all",
+      "mode": "forced",
+      "nativeStatus": 0,
+      "actualStatus": 0,
+      "statusEqual": true,
+      "stderr": "",
+      "nativeStderr": "",
+      "stdout": "",
+      "styleComparedCells": 0,
+      "styleMismatches": [],
+      "semanticEqual": true
+    }
+  ],
+  "summary": {
+    "cases": 61,
+    "statusMatches": 61,
+    "semanticMeasured": 54,
+    "semanticMatches": 53,
+    "styledCellsMeasured": 26,
+    "styledCellMatches": 26
+  },
+  "initialComparisonHarness": {
+    "sha256": "0ff6e68bfcc996e2086c57144521650ca0a679357ab3e86fc2c131f24b46f8c9",
+    "validForParityClaims": false,
+    "defects": [
+      "omitted formula cells with blank native exported value",
+      "compared absent hidden flag differently from false",
+      "compared direct importer empty sheets rather than actual conversion exit status"
+    ],
+    "supersededBy": "final engine/command comparison in this document"
+  },
+  "checks": {
+    "ssconvertUnit": {
+      "files": 167,
+      "tests": 4407,
+      "failures": 0
+    },
+    "safeBashCommands": {
+      "tests": 54,
+      "failures": 0,
+      "afterFinalBundledBuild": true
+    },
+    "safeBashRunner": {
+      "tests": 558,
+      "failures": 0
+    },
+    "uncachedBuildClosures": {
+      "@poe-code/ssconvert": 3,
+      "@poe-platform/safe-bash": 18
+    },
+    "ssconvertLint": "passed ESLint and both TypeScript projects",
+    "integrationLint": "passed",
+    "independentAgentStress": {
+      "tests": 25,
+      "failures": 0
+    },
+    "screenshot": {
+      "adapter": "public Shell + MemoryFileSystem + standardCommands + ssconvertCommands",
+      "inspected": true,
+      "sha256": "7ca75d4220a47789d0ac3b90a355f17d7b5f6bea57bdd1c81ad9909947623b4c",
+      "cases": [
+        "importer listing",
+        "forced SpreadsheetML conversion",
+        "CSV output",
+        "malformed XML warning/status"
+      ]
+    }
+  },
+  "temporaryEvidence": "Task-owned scratch fixtures, scripts and logs reduced to this report/reference captures then purged; pre-existing primary source and native oracle preserved."
+}

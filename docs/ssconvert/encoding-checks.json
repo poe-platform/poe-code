@@ -1,0 +1,108 @@
+{
+  "kind": "ssconvert-encoding-locale-checks",
+  "referenceProfile": "encoding-reference-profile.json",
+  "packageTests": {
+    "command": "npm run test --workspace=@poe-code/ssconvert",
+    "exitCode": 0,
+    "files": 139,
+    "tests": 3865,
+    "logSha256": "ef8c658b049ab9e94a7e3a810ba72398904b4c43d07366f7dae8b86d1f0ae58d"
+  },
+  "packageLint": {
+    "command": "npm run lint --workspace=@poe-code/ssconvert",
+    "exitCode": 0,
+    "logSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+  },
+  "uncachedBuild": {
+    "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+    "exitCode": 0,
+    "summary": {
+      "workspaces": 85,
+      "builds": 18,
+      "edges": 235,
+      "layers": 10,
+      "noBuild": [],
+      "manifestless": [
+        "packages/braintrust",
+        "packages/safe-bash-optional"
+      ]
+    },
+    "logSha256": "024948762405938de3660cd5d1cc534bc29f9901861c8144052bf989233d2edf"
+  },
+  "virtualCommandTests": {
+    "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert-encoding.test.ts packages/safe-bash/tests/commands/ssconvert-text.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
+    "exitCode": 0,
+    "tests": 47,
+    "logSha256": "7b818acede9b4ed3cf1fa75b0762d6f3eca3cad66253b73bc24be1e8c48513b0"
+  },
+  "safeBashRunner": {
+    "command": "npm run test:runner --workspace=@poe-platform/safe-bash",
+    "exitCode": 0,
+    "tests": 558
+  },
+  "guardedRootLint": {
+    "command": "npm run lint:eslint",
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 4,
+    "scope": {
+      "configured": 16741,
+      "linted": 16741,
+      "ignored": 2044,
+      "unconfigured": 38741,
+      "ignoredDirectories": 166,
+      "heldExcluded": 5
+    },
+    "metadataOperations": 3712641,
+    "cacheHits": 16705,
+    "logSha256": "e573e48ca97cdb30343a5fe66dea0a587617b54d9205dbbce561d1829e4143dc"
+  },
+  "safeBashTypecheck": {
+    "command": "npm run typecheck --workspace=@poe-platform/safe-bash",
+    "exitCode": 2,
+    "typesCompiled": false,
+    "reason": "Missing public shared SafeFS export ./packages/safe-js/dist/safe-fs.js; required shared SafeJS runtime identity not preserved"
+  },
+  "nativeDifferential": {
+    "passingCases": 266,
+    "excludedStartupLocaleMismatches": 2,
+    "additionalDefaultCLIProfileMismatch": true
+  },
+  "independentReview": {
+    "runtimeAliasCases": 56,
+    "sdkBudgetCases": 9
+  },
+  "screenshots": {
+    "inspected": true,
+    "cases": [
+      "C.UTF-8 ASCII transliteration with locale=C",
+      "C.UTF-8 ASCII codepoint escape output"
+    ],
+    "captures": {
+      "visual-escape.png": "541a6bfaa63884b37821d97a71a5ab2a310410b5969a78036351392a5bb21b9e",
+      "visual-transliteration.png": "4156c4a55844ddd0b2b819084c705d8f2fc9ea760fb4bccd1aad52ba1111f897"
+    }
+  },
+  "productSourceHashes": {
+    "packages/ssconvert/src/encoding/ucs2-transliteration-tables.ts": "4a6d9f35717da11b8e588918c96b6d275b4339817d6bd622247dacbdf4c615fc",
+    "packages/ssconvert/src/encoding/decode.ts": "ee75b341c52df43b4dd88fa181ea8bf3e8f5ef1449a96b2a0f50af6939115c40",
+    "packages/ssconvert/src/encoding/tables.ts": "a13bbb840cc5a3783b4abd13cdfafbeefd224eadf8c3403167743da394636ff7",
+    "packages/ssconvert/src/encoding/names.ts": "6d3a6c18c5f7b8b07af1686ff16b07bff82b4ead21f3e7aa01b589ca458d5509",
+    "packages/ssconvert/src/encoding/target-transliteration-tables.ts": "e9e8dd29205cd8486b438f5140d536ce1b593c5536be43297ab6dd366d4ee055",
+    "packages/ssconvert/src/encoding/transliteration-tables.ts": "c1495774dfbadc2cdb2200193b424ba5bf06490fd7e0bb186a1a7fe8cb16d301",
+    "packages/ssconvert/src/encoding/encode.ts": "7c532287fbd0b7cec2d359da49be6afc8554617604903ab3f8c45444dd784556",
+    "packages/ssconvert/src/locale/runtime.ts": "947c45f4a4820b2e40c64d62fbd0ab190e6777dc7f4fb73545a9e30ab9bf743d",
+    "packages/ssconvert/src/engine.ts": "a2fbfd957179198fe53951f7870beb226fad0dea6c6f49e845bf8f29f81d9bb0",
+    "packages/ssconvert/src/codecs/text.ts": "1480d361fcd81c0d1743aed025a9f081144bf7f8488cf0c2d449cfe4419eff32",
+    "packages/ssconvert/src/codecs/text-export.ts": "ba1c58ff83a921b9f1d2b331f10cc1469b74f785aa5b9df8cf912ce7c769ca18",
+    "packages/ssconvert/package.json": "1e3eeca7f0ec6f631e653e87aa65e9052bf40942080c2fa0a23cae8580cce3e1"
+  },
+  "delivery": {
+    "localCommits": 0,
+    "pushed": false,
+    "remoteMainVerified": false,
+    "released": false,
+    "readmeEdits": false
+  }
+}

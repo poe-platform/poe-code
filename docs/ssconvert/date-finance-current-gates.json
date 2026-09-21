@@ -1,0 +1,700 @@
+{
+  "candidateAggregateSha256": "4f41644eb007f3c0e62976177f4b65c3486d92f5c35310aca092908c42afdbed",
+  "checks": [
+    {
+      "command": "npm test --workspace=@poe-code/ssconvert -- --no-cache",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "files": 111,
+        "passed": 2794,
+        "failed": 0,
+        "skipped": 0
+      },
+      "outputSha256": "b54e7b4adaf928cc3126716aacbc1f591473cb0ce55a3a33466786c3b8b256a6",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Maintained ESLint, source and test typechecks",
+      "outputSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Uncached maintained18-build closure after final derivative refactor",
+      "outputSha256": "024948762405938de3660cd5d1cc534bc29f9901861c8144052bf989233d2edf",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "passed": 35,
+        "failed": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "outputSha256": "bdf77f2ef1c2d1df66c6c16fe84ebb647c7bb6572ff54a4d43b0affe8b39d6cd",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "npx eslint packages/safe-bash/src/commands/ssconvert/index.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Focused integration lint",
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "Manual Node SDK realm/budget/cancellation controls",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Foreign prototype rejection, structuredClone, null-prototype output, original immutability, exact reason,239 hashes",
+      "outputSha256": "9ec544f6dd619f9878126812d6b99edeea420318ba038eae0b297256b6bdf9dc",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "npm run build -- --no-cache",
+      "status": "pass-earlier-candidate",
+      "exitCode": 0,
+      "detail": "Root script forwards --no-cache to final bundle, not workspace stage; observed workspace cache SHARED. Root build preceded final derivative refactor.",
+      "outputSha256": "fbbab22a893e016b6ad0352f0193116163c5b320b92cbb461e16ecbbe506f753",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "npm test -- --no-cache",
+      "status": "incomplete-earlier-candidate-stopped",
+      "detail": "Stopped owned redundant process tree after final-candidate broad run began; no observed failures. Neither complete nor final candidate pass.",
+      "exitCode": 1,
+      "outputSha256": "4c3a22b2b7aa7adc3c272160872e287916c02d7f4e103158cd7e4ce87927d559",
+      "candidatePhase": "before-final-date2unix-int32-and-calendar-fixes"
+    },
+    {
+      "command": "npm test --workspace=@poe-code/ssconvert -- --no-cache",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "files": 111,
+        "passed": 2799,
+        "failed": 0,
+        "skipped": 0
+      },
+      "outputSha256": "acddb9851fe4ff729d3bfdfc1fc8cc74556ceb670314d96728b84169b2b4771e",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Final maintained workspace lint",
+      "outputSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Final uncached18-build closure",
+      "outputSha256": "76fedf21518d694ee82c290831e2fde8b0718e7cc71cde043f838be09f05d09c",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "passed": 35,
+        "failed": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "outputSha256": "2bd834456335087a4e50f9485d45a7719e5b4c150f20cc94dabca5650d8634c5",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "npm run build",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Final root build, maintained SHARED workspace cache; final bundle rebuilt",
+      "outputSha256": "e9056d781f2686a2de3a2e98ffa853010368fcf3d8f3fe6a247521f41a77e205",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "npm run lint",
+      "status": "pass-before-final-date2unix-fix",
+      "exitCode": 0,
+      "detail": "Complete traversal, zero errors, four warnings, zero gaps; final post-fix rerun pending",
+      "outputSha256": "540cf6df22b3d6e3a1f495607354ac6a4dcee670205f82417bef5c318e70e1ab",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "Fresh native --recalc raw CSV1900/1904, QA-only clock shim",
+      "status": "pass-with-recorded-numeric-mismatches",
+      "exitCode": 0,
+      "detail": {
+        "cases": 468,
+        "exact": 412,
+        "numericDifferences": 56,
+        "outsideRelative1e12": 0,
+        "newControlsExact": 58,
+        "stderrBytes": 0
+      },
+      "evidence": "docs/ssconvert/date-finance-current-differential.json",
+      "profile": "docs/ssconvert/date-finance-current-native-profile.json",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "Final SDK hash/budget/cancellation controls",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "All239 hashes unchanged; signed1904 result; original immutability, exhausted budget, exact cancellation reason",
+      "outputSha256": "7f9bc900fe563329ee0ca9e87183075aed7e25e440b8078333c2af4250853e0d",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "npm run lint",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "complete": true,
+        "errorCount": 0,
+        "warningCount": 4,
+        "gaps": 0,
+        "types": "pass",
+        "workflows": "pass"
+      },
+      "outputSha256": "12e35b9bf9679d1849ddb7cf8c7d7f322157b90102e8709b455d2c9f933f5055",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "npm test",
+      "status": "incomplete-before-calendar-fix-stopped",
+      "detail": "Stopped owned earlier-candidate tree after calendar regression fix; final maintained concurrency4 run replaces this incomplete attempt.",
+      "exitCode": 1,
+      "outputSha256": "0a9035567d8ab0117eb011954a090f8c80448e5b321d43887ed9c857f638eb2c",
+      "candidatePhase": "date2unix-int32-fixed-before-calendar-fix"
+    },
+    {
+      "command": "npm run test --workspace=@poe-code/ssconvert -- --no-cache",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "files": 111,
+        "passed": 2808,
+        "failed": 0,
+        "skipped": 0
+      },
+      "outputSha256": "928be157060ef175b271d38ea372c57857adf727be52670d2ebca235bb4083b7",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Final production/test syntax, type and ESLint checks",
+      "outputSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Final calendar-fix uncached18-build closure",
+      "outputSha256": "024948762405938de3660cd5d1cc534bc29f9901861c8144052bf989233d2edf",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "npm run build",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": "Final calendar-fix root build with maintained SHARED build cache and fresh bundle",
+      "outputSha256": "a4b3abc30fca3b63490c5fb3e3fa22f309b70be1347d2f6bb0435fd99e37c230",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "passed": 35,
+        "failed": 0,
+        "skipped": 0,
+        "todo": 0,
+        "calendarNoArgumentCommandSdkReplay": "exact"
+      },
+      "outputSha256": "81b990092dd1bae5f483fc57690e571d6f061784816fd94e88565f841bf6bbf4",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "npx eslint packages/safe-bash/src/commands/ssconvert/index.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "pass",
+      "exitCode": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "npm test -- --concurrency=4",
+      "status": "failed-incomplete-timeouts",
+      "detail": "Five SafeJS float32-camera tests exceeded5000ms under concurrent suites/lint/other workspace load; stopped failed run. Earlier serial cases passed. No timeout raised, no cases removed; final serial maintained full gate required.",
+      "exitCode": 1,
+      "outputSha256": "aa42aed63e7ac33e9fcf1bbc07affe688f30b9756649a7b8185578bc67cbc61d",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "npm run lint",
+      "status": "pass",
+      "exitCode": 0,
+      "detail": {
+        "complete": true,
+        "errorCount": 0,
+        "warningCount": 4,
+        "gaps": 0,
+        "types": "pass",
+        "workflows": "pass"
+      },
+      "outputSha256": "c203fd06107d6d8f37e3036ce28c9d19f19570886a4ade395f87774eef2b8708",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    },
+    {
+      "command": "npm test",
+      "status": "pass-with-recorded-skips-and-todos",
+      "detail": {
+        "maintainedSummary": {
+          "workspaces": 85,
+          "builds": 33,
+          "tests": 53,
+          "concurrency": 1,
+          "cache": "SHARED",
+          "unitCacheHits": 0,
+          "unitCacheMisses": 0,
+          "unitFingerprintMs": 11669,
+          "excluded": [],
+          "noTest": [
+            {
+              "name": "@poe-code/agent-defs",
+              "path": "packages/agent-defs",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/agent-eval",
+              "path": "packages/agent-eval",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/agent-human-in-loop",
+              "path": "packages/agent-human-in-loop",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/agent-mcp-config",
+              "path": "packages/agent-mcp-config",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/agent-skill-config",
+              "path": "packages/agent-skill-config",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "auth-store",
+              "path": "packages/auth-store",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/cached-resource",
+              "path": "packages/cached-resource",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/config-extends",
+              "path": "packages/config-extends",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/config-mutations",
+              "path": "packages/config-mutations",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/e2e-test-runner",
+              "path": "packages/e2e-test-runner",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "mcp-oauth",
+              "path": "packages/mcp-oauth",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/pipeline",
+              "path": "packages/pipeline",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/plan-browser",
+              "path": "packages/plan-browser",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/poe-acp-client",
+              "path": "packages/poe-acp-client",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/poe-agent",
+              "path": "packages/poe-agent",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/poe-code-config",
+              "path": "packages/poe-code-config",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "poe-oauth",
+              "path": "packages/poe-oauth",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/providers",
+              "path": "packages/providers",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/safe-fs",
+              "path": "packages/safe-fs",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/terminal-name",
+              "path": "packages/terminal-name",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "terminal-pilot-mcp",
+              "path": "packages/terminal-pilot-mcp",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "terminal-png",
+              "path": "packages/terminal-png",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "terminal-png-mcp",
+              "path": "packages/terminal-png-mcp",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "tiny-http-mcp-oauth-test-server",
+              "path": "packages/tiny-http-mcp-oauth-test-server",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "tiny-http-mcp-server",
+              "path": "packages/tiny-http-mcp-server",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "tiny-mcp-client",
+              "path": "packages/tiny-mcp-client",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "tiny-oauth-test-server",
+              "path": "packages/tiny-oauth-test-server",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "tiny-stdio-mcp-server",
+              "path": "packages/tiny-stdio-mcp-server",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "tiny-stdio-mcp-test-server",
+              "path": "packages/tiny-stdio-mcp-test-server",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "tokenfill",
+              "path": "packages/tokenfill",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "toolcraft-design",
+              "path": "packages/toolcraft-design",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/user-error",
+              "path": "packages/user-error",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            },
+            {
+              "name": "@poe-code/worktree",
+              "path": "packages/worktree",
+              "status": "NO_DECLARED_TEST_NOT_A_PASS"
+            }
+          ],
+          "noBuild": [],
+          "manifestless": [
+            "packages/braintrust",
+            "packages/safe-bash-optional"
+          ],
+          "cacheHits": 20,
+          "cacheMisses": 0,
+          "fingerprintMs": 12558,
+          "executionMs": 4690024
+        },
+        "vitestSkippedTodoSummaryLines": [
+          "Test Files  99 passed | 1 skipped (100)",
+          "Tests  1515 passed | 1 skipped (1516)",
+          "Tests  4159 passed | 5 todo (4164)",
+          "Test Files  99 passed | 1 skipped (100)",
+          "Tests  1986 passed | 1 skipped (1987)",
+          "Test Files  1467 passed | 3 skipped (1470)",
+          "Tests  31121 passed | 48 skipped (31169)"
+        ],
+        "nodeSummaryLines": [
+          "# tests 851",
+          "# pass 851",
+          "# fail 0",
+          "# skipped 0",
+          "# todo 0",
+          "\u2139 tests 558",
+          "\u2139 pass 558",
+          "\u2139 fail 0",
+          "\u2139 cancelled 0",
+          "\u2139 skipped 0",
+          "\u2139 todo 0",
+          "\u2139 tests 44916",
+          "\u2139 pass 44083",
+          "\u2139 fail 0",
+          "\u2139 cancelled 0",
+          "\u2139 skipped 831",
+          "\u2139 todo 2",
+          "# tests 117",
+          "# pass 117",
+          "# fail 0",
+          "# skipped 0",
+          "# todo 0",
+          "# tests 84",
+          "# pass 84",
+          "# fail 0",
+          "# skipped 0",
+          "# todo 0",
+          "# tests 1",
+          "# pass 1",
+          "# fail 0",
+          "# skipped 0",
+          "# todo 0",
+          "# tests 34",
+          "# pass 34",
+          "# fail 0",
+          "# skipped 0",
+          "# todo 0"
+        ],
+        "observedSkippedAssertions": 881,
+        "observedTodoAssertions": 7,
+        "summaryTotalsAreUniqueCases": false,
+        "allSkipsTodosAndNoDeclaredTestsArePasses": false
+      },
+      "exitCode": 0,
+      "outputSha256": "9dd3abffa4bda66d4438cf0e282955a55a799dd78953742ae400e17b132b386d",
+      "candidatePhase": "final-calendar-fixed-candidate"
+    }
+  ],
+  "incompleteAttempts": [
+    {
+      "command": "npm run lint",
+      "status": "incomplete",
+      "exitCode": 2,
+      "outputSha256": "a6ca78578f283768d4c7813437b7b719032cb588e850dbe3f0bc9024ea9bd5b2",
+      "complete": false,
+      "errorCount": 0,
+      "warningCount": 4,
+      "gaps": 419,
+      "firstGap": {
+        "path": "packages/safe-js/src/interp/function-string.ts",
+        "message": "filesystem identity drift: size {\"path\":\"/Users/kjopek/Workspace/poe-code-5/packages/safe-js\",\"pathTruncated\":false,\"phase\":\"directory-entry-ancestor\",\"field\":\"size\",\"expected\":{\"type\":\"number\",\"value\":\"576\",\"truncated\":false},\"observed\":{\"type\":\"number\",\"value\":\"544\",\"truncated\":false}}",
+        "descendantsUnknown": true
+      },
+      "investigation": "Guarded directory identity changed while other workspace builds were running. No lint guard was weakened; retry must run serially after builds settle."
+    },
+    {
+      "command": "Manual initial foreign-realm/output assertions",
+      "status": "failed-harness-assumptions",
+      "detail": "Foreign prototypes are deliberately rejected and admitted outputs have null prototypes. Inspected existing snapshot policy, corrected controls, retained policy."
+    },
+    {
+      "command": "Fresh native QA setup/build",
+      "status": "failed-then-resolved",
+      "detail": "Image startup race; missing libxslt/rsvg headers, xmllint; resolved by sequenced local image commit and installing declared native build dependencies. No product dependencies changed."
+    },
+    {
+      "command": "Fresh native export initial fixture",
+      "status": "failed-then-resolved",
+      "exitCode": 1,
+      "detail": "Set isolated GSETTINGS_SCHEMA_DIR; native v10XML requires SheetNameIndex. Corrected original fixture then both date-system exports passed with empty diagnostics."
+    },
+    {
+      "command": "DATE2UNIX int-boundary failing regressions",
+      "status": "expected-failure-before-fix",
+      "exitCode": 1,
+      "outputSha256": "47eb811111b25a482fa71bb4f92d22a836bfb3bd2f92c5624b42fad2aa5e5f3f"
+    },
+    {
+      "command": "Initial DATE2UNIX pre-epoch positive-serial tie control",
+      "status": "failed-harness-assumption-corrected",
+      "exitCode": 1,
+      "detail": "Source rounds positive fractional day before adding epoch;25569\u22121/256 returns\u2212337, not\u2212338. Native confirms; separate1904 negative-serial controls qualify signed rounding."
+    },
+    {
+      "command": "Final screenshot initial invocation",
+      "status": "failed-harness-assumption-corrected",
+      "exitCode": 1,
+      "detail": "MemoryFileSystem requires Uint8Array data. Encoded original fixture then rendered actual command and inspected successfully."
+    },
+    {
+      "command": "Independent calendar noon/timezone fail-first regressions",
+      "status": "expected-failure-before-fix",
+      "exitCode": 1,
+      "detail": {
+        "failed": 4,
+        "passed": 18,
+        "total": 22
+      },
+      "originalToolChunkId": "7cf6a4",
+      "rawLogRetained": false,
+      "transcriptExcerptSha256": "b47251d98de6cb228249ca0cf2f874e55d27729d145307d502abfbf404ca0e4e",
+      "transcriptExcerpt": "# Calendar fail-first transcript excerpt\n\nThis is an excerpt transcribed from the actual tool response, not a retained raw command log and not a new reproduction. The original full raw output was not saved to the filesystem.\n\nTool response chunk: `7cf6a4`.\nCommand: `npx vitest run packages/ssconvert/src/formulas/date-finance-stress.test.ts`.\nExit status: 1.\nVitest start: 23:56:11 on 2026-09-19.\nDuration: 765 ms.\nTest result: 4 failed, 18 passed, 22 total.\n\nThe four failing tests were:\n\n- uses only local calendar fields from injected midnight/noon in 1900\n- uses only local calendar fields from injected midnight/noon in 1904\n- uses the configured timezone's preceding local date in 1900\n- uses the configured timezone's preceding local date in 1904\n\nBoth noon failures expected `{ kind: \"string\", value: \"20 Tebet 5784\" }` and received `{ kind: \"string\", value: \"20.5 Tebet 5784\" }`.\n\nBoth timezone failures expected `{ kind: \"string\", value: \"20 Tebet 5784\" }` and received `{ kind: \"string\", value: \"20.875 Tebet 5784\" }`.\n\nThe test matrix used an injected UTC midnight/noon on January 1, 2024, and an injected January 2, 2024, 02:00 UTC with America/New_York timezone (January 1 local date). The explicit fractional serial cases already passed before the fix. Assertions in the matrix stop at the first failure; this failed run does not establish results for subsequent expressions in those test loops.\n\nThe following product fix was applied after this failed run in calendars.ts: the DATE2 path reconstructs `gregorian(value.getUTCFullYear(), value.getUTCMonth() + 1, value.getUTCDate())` rather than retaining the time-bearing default Date object. This matches upstream gnumeric_date_get_date extracting GDate fields.\n"
+    },
+    {
+      "command": "Calendar test-helper typecheck first attempt",
+      "status": "failed-then-fixed",
+      "detail": "Four exactOptionalPropertyTypes errors from supplying clock:undefined; changed helper to omit capability property. Product fix unchanged; final uncached2808 tests and lint pass."
+    },
+    {
+      "command": "npm test -- --concurrency=4",
+      "status": "failed-incomplete",
+      "observedFailedCases": 5,
+      "cases": [
+        "camera-axis-frustum-typed:samples-5-5",
+        "camera-oblique-frame-typed:samples-0-0",
+        "camera-oblique-frame-typed:samples-2-2",
+        "camera-oblique-frame-typed:samples-3-3",
+        "camera-offset-handoff-typed:samples-3-3"
+      ],
+      "timeoutMilliseconds": 5000,
+      "measuredFailureDurationsMilliseconds": [
+        6693,
+        6781,
+        5330,
+        5513,
+        5369
+      ],
+      "investigation": "All18 camera cases passed in earlier serial run. Preserve assertions/limits; use serial maintained full gate after lint settles. Focused confirmation cannot replace broad gate.",
+      "observedFailureLines": [
+        "\u00d7 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-5-5 6693ms",
+        "\u00d7 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-0-0 6781ms",
+        "\u00d7 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-2-2 5330ms",
+        "\u00d7 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-3-3 5513ms",
+        "\u00d7 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-3-3 5369ms"
+      ],
+      "earlierSerialBaselineFileLines": [
+        "\u2713 packages/safe-js/src/interp/float32-camera.test.ts (18 tests) 18679ms"
+      ],
+      "serialResolution": {
+        "fileTestsPassed": 18,
+        "assertionsAndTimeoutUnchanged": true,
+        "fullGateStillRequired": false,
+        "observedLines": [
+          "\u2713 packages/safe-js/src/interp/float32-camera.test.ts (18 tests) 17592ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-0-0  1237ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-1-1  1155ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-2-2  1132ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-3-3  1136ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-4-4  1113ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-axis-frustum-typed:samples-5-5  1163ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-0-0  1178ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-1-1  1138ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-2-2  1143ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-3-3  1182ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-oblique-frame-typed:samples-4-4  1204ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-0-0  1193ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-1-1  1211ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-2-2  1199ms",
+          "\u2713 matches the complete native and recorded batch trace for inverse-coordinate-transforms:camera-offset-handoff-typed:samples-3-3  1199ms"
+        ],
+        "qualification": "Bounded scheduling observations, not performance certification",
+        "fullGateCompleted": true,
+        "fullGateExitCode": 0
+      }
+    }
+  ],
+  "failFirstEvidence": [
+    {
+      "path": "out/date-finance-current-text-red.log",
+      "sha256": "3eb18102ed45b257f4c38857a3150013ed43c869300d24d10cc3f3c6fb59aedd",
+      "exitCode": 1
+    },
+    {
+      "path": "out/date-finance-current-ampm-red.log",
+      "sha256": "0a244134e271b38abb78c396dc3cd4f6f9f3d30d07f61f424082d74c67e8a7f7",
+      "exitCode": 1
+    }
+  ],
+  "independentReview": {
+    "agent": "date_finance_stress",
+    "archiveAuthenticated": true,
+    "finalFocusedTests": 27,
+    "derivativeBaselineAndFinalTests": 65,
+    "symbolAudit": {
+      "hostReferences": 287,
+      "propagatedCalls": 36,
+      "directRegistryEntries": 29,
+      "errors": 0
+    },
+    "postNativeFocusedTests": 86,
+    "postCalendarFocusedTests": 95,
+    "finalPackageTests": 2808
+  },
+  "runtime": {
+    "node": "v22.22.2",
+    "icu": "78.2",
+    "tz": "2025c",
+    "cldr": "48.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "screenshot": {
+    "viewed": true,
+    "sha256": "8386412ba948c72ebbdd047ebf5fcb67c93db099aadb6bb2f64cfc65b91254b3",
+    "scope": "Final actual virtual command; original injected bytes,C/UTC1900; date, errors, finance,Easter,signed32/tie and noargHebrew/Julian controls; Hebrew glyph rendering unqualified."
+  },
+  "freshNativeDifferential": {
+    "cases": 486,
+    "exact": 430,
+    "numericDifferences": 56,
+    "outsideRelative1e12": 0,
+    "measuredNames": 127,
+    "newControlsExact": 76,
+    "evidence": "docs/ssconvert/date-finance-current-differential.json",
+    "profile": "docs/ssconvert/date-finance-current-native-profile.json"
+  },
+  "priorNumericMismatches": 56,
+  "realFormatByteRoundtrips": "unsupported/unverified",
+  "exactParityClaim": false,
+  "unsupportedOrUnmeasuredArePasses": false,
+  "commit": "none",
+  "push": "none",
+  "release": "none",
+  "temporaryArtifacts": "Owned date-finance-current artifacts purged after retaining bounded receipts; pre-existing out evidence preserved.",
+  "candidateVerifiedAfterBroadGate": true
+}

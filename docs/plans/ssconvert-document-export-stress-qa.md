@@ -1,0 +1,26 @@
+# Independent document exporter stress QA
+
+Run after implementing LaTeX, TROFF and glossary providers. Root owns provider/engine integration and Git; the separate stress agent owns the focused regression file and validated exporter repairs. Do not push, publish, edit README files, or use native executables from product code or unit tests.
+
+## Procedure
+
+1. Read root and `packages/safe-bash/AGENTS.md`. Inspect the current implementations and authenticated Gnumeric 1.12.61 source under `out/ssconvert-lifecycle/gnumeric-1.12.61`. The authenticated source archive SHA-256 is `2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12`.
+2. Run `npx vitest run packages/ssconvert/src/codecs/document-export-stress.test.ts` for quick regressions. Use the maintained uncached workspace checks for final delivery; this focused Vitest invocation is not their replacement.
+3. Manually create original small Gnumeric fixtures under `out/ssconvert-document-stress`. Native QA runs only through the separately installed `ssconvert-statistics-qa` container on Docker context `colima`, with binary `/out/ssconvert-statistics-oracle/prefix/bin/ssconvert`. Set `LD_LIBRARY_PATH` to the prefix `lib`, `GSETTINGS_SCHEMA_DIR` to prefix `share/glib-2.0/schemas`, `XDG_DATA_DIRS` to prefix `share:/usr/local/share:/usr/share`, `LC_ALL=C`, `GSETTINGS_BACKEND=memory`, and `TZ=UTC`. Do not substitute host locale/plugin defaults.
+4. Export an empty sheet with distant merge `D5:F7` using `Gnumeric_html:latex_table`. Compare every output byte to the fragment header followed by bytes `5c 5c 0a` (two backslashes and newline). Its extent remains `A1`; empty merges do not expand the native extent.
+5. Export an original two-row/two-column fixture using `Gnumeric_html:latex_table_visible`: hidden first row, hidden second column, `#DIV/0!` in the second row/first column, and `é😀` in the second row/second column. Native XML axis records require valid `Unit` values (row 12 and column 48). Confirm the hidden row is omitted, the hidden column remains, the error starts with escaped `#`, and the accented/emoji output bytes are `e9 3f`. Compare complete bytes, including the wrapper, tab, ampersand and final bytes `5c 5c 0a`.
+6. Run `npm run lint --workspace=@poe-code/ssconvert`. Coordinate final uncached build/test and cross-workspace checks with root. Purge the owned scratch directory after recording results.
+
+## Verified coverage and repairs
+
+The independent regression file has 17 passing tests. It verifies exact UTF-8 output admission at six bytes for `é😀`, rejection one byte below the boundary, caller abort-reason identity before all five writers, abort after injected formatting for LaTeX/TROFF, output/work limits, occupied versus empty merge extents, and the visible-row rule with hidden columns, Unicode and a cached formula error. SDK regressions use memfs with injected byte I/O, check exit status, diagnostics, output bytes and the exact resulting namespace, and verify a resource-limit rejection preserves an existing destination and its namespace. Border regressions verify a billion-column scan stops at the shared work cap and cancellation during style lookup preserves the exact caller reason. Unit tests spawn no native process and write no host files.
+
+After root integrated native border syntax and token-based numeric format classification, the independent agent reviewed the latest LaTeX/border implementations and ran the focused independent and `latex-roff.test.ts` suites: 45 tests passed (17 independent and 28 root-owned golden cases). No additional runtime defect was validated in that follow-up review. Final maintained workspace lint/build/test checks remain root's delivery responsibility.
+
+Two regressions failed before repairs: an absent glossary clock returned an error code outside the declared contract, and an empty distant merge incorrectly expanded the LaTeX extent. Repairs use the existing `capability-denied` code and extend merges only when their corner cell is nonempty. Source evidence is `src/sheet.c`, `cb_sheet_get_extent`/`sheet_get_extent`; only visited nonempty merged corner cells expand the native range. The `parseA1` mapping callback also required an explicit single-argument wrapper to satisfy its declared signature.
+
+Both manual native fixtures above passed byte comparison with the valid native profile. An initial axis fixture omitted `Unit`; native warned that it was corrupted and did not apply hidden axes. That malformed attempt is not a passing fixture; the corrected valid fixture is the measured result.
+
+## Remaining limits
+
+This stress pass does not establish all-input parity, font-dependent overflow spans, every alignment/font/border combination, every locale/timezone, native glossary execution, or concurrent replay behavior. Native glossary plugin execution is unavailable in the captured Python/plugin profile; source-derived glossary tests are not native execution passes. The legacy glossary source prints entry dictionaries to stdout; exact Python diagnostic rendering is unmeasured in this profile. Retained overlapping partial style regions and cell style overrides need separate measurement; this audit does not count them as passes or make speculative changes. Root's broader golden/integration audit tracks additional measured coverage and remaining mismatches.

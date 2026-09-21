@@ -1,0 +1,11 @@
+{
+  "input": 137330.13360794372,
+  "inputBits": "4100c39111a10aa6",
+  "decimalDigits": 100,
+  "mathematical": "0.1228342376887838830052022758989622690601835585653883675480203871443445278105436235421003199791453653",
+  "rounded": 0.12283423768878389,
+  "upstreamExpression": "s_sin.c TAYLOR_SIN: ((POLYNOMIAL(xx)*x - 0.5*dx)*xx + dx)",
+  "minimalChange": "fusedMultiplyAdd(polynomial, x, -.5*low) replaces polynomial*x-.5*low, no other changes",
+  "heldNativeBits": "3fbf721089b3d1a1",
+  "unmodifiedCandidateBits": "3fbf721089b3d1a0"
+}

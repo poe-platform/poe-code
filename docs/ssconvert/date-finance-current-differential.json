@@ -1,0 +1,5366 @@
+[
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(1900,3,1)",
+    "actual": {
+      "kind": "number",
+      "value": 61
+    },
+    "native": "61",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(1900,2,29)",
+    "actual": {
+      "kind": "number",
+      "value": 61
+    },
+    "native": "61",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "native": "45292",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EDATE(DATE(2024,1,31),1)",
+    "actual": {
+      "kind": "number",
+      "value": 45351
+    },
+    "native": "45351",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EOMONTH(DATE(2024,2,1))",
+    "actual": {
+      "kind": "number",
+      "value": 45351
+    },
+    "native": "45351",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATEDIF(DATE(2023,1,31),DATE(2023,3,1),\"m\")",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS(DATE(1900,3,1),DATE(1900,2,28))",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7))",
+    "actual": {
+      "kind": "number",
+      "value": 5
+    },
+    "native": "5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,5),1)",
+    "actual": {
+      "kind": "number",
+      "value": 45299
+    },
+    "native": "45299",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TIME(25,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.041666666666666664
+    },
+    "native": "0.041666666666666664",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODF.TIME(-1,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": -0.041666666666666664
+    },
+    "native": "-0.041666666666666664",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOWEEKNUM(DATE(2021,1,1))",
+    "actual": {
+      "kind": "number",
+      "value": 53
+    },
+    "native": "53",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EASTERSUNDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 45382
+    },
+    "native": "45382",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_YEAR(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 5784
+    },
+    "native": "5784",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PV(0,10,-100)",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "native": "1000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FV(0,10,-100)",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "native": "1000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PMT(0,10,1000)",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "native": "-100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;110})",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "native": "0.09999999999999998",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RATE(1,0,-100,110)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "native": "0.09999999999999999",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"c\",100,100,1,0.05,0.2,0.05)",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "native": "10.450583572185565",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE(1904,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 1462
+    },
+    "native": "1462",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINT(DATE(2024,1,1),DATE(2024,7,1),DATE(2024,4,1),.1,1000,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "native": "25",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=AMORLINC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,3)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=AMORDEGRC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": 188
+    },
+    "native": "188",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICEMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": 99.76190476190476
+    },
+    "native": "99.76190476190476",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELDMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,100,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09523809523809534
+    },
+    "native": "0.09523809523809534",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDLPRICE(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDLYIELD(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDFPRICE(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "99.99999999999999",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ODDFYIELD(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.0999999999999999",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(DATE(2021,1,1))",
+    "actual": {
+      "kind": "number",
+      "value": 2020
+    },
+    "native": "2020",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(DATE(2018,12,31))",
+    "actual": {
+      "kind": "number",
+      "value": 2019
+    },
+    "native": "2019",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(DATE(2024,6,1))",
+    "actual": {
+      "kind": "number",
+      "value": 2024
+    },
+    "native": "2024",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),99)",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "native": "31",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),-1)",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "native": "31",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),2)",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "native": "30",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAYS360(DATE(2024,1,30),DATE(2024,2,29),2)",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "native": "30",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{-1},{1;1;1;1;1;1;1})",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "native": "0",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1),0,{-1},{1;1;1;1;1;1;1})",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "native": "45292",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISOYEAR(60)",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,1,11)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּשְׁבׇט התשפ״ד"
+    },
+    "native": "א׳ בְּשְׁבׇט התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,10,3)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּתִּשְׁרֵי התשפ״ה"
+    },
+    "native": "א׳ בְּתִּשְׁרֵי התשפ״ה",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,11,2)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּחֶשְׁוׇן התשפ״ה"
+    },
+    "native": "א׳ בְּחֶשְׁוׇן התשפ״ה",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,4,23)",
+    "actual": {
+      "kind": "string",
+      "value": "ט״ו בְּנִיסׇן התשפ״ד"
+    },
+    "native": "ט״ו בְּנִיסׇן התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,3,11)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּאַדׇר ב׳ התשפ״ד"
+    },
+    "native": "א׳ בְּאַדׇר ב׳ התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB(2024,7,7)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּתׇּמוּז התשפ״ד"
+    },
+    "native": "א׳ בְּתׇּמוּז התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAY(DATE(2024,1,1)+1-0.25/86400)",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "native": "2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATEVALUE(DATE(2024,1,1)+1-0.25/86400)",
+    "actual": {
+      "kind": "number",
+      "value": 45293
+    },
+    "native": "45293",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1)+1-0.25/86400,0)",
+    "actual": {
+      "kind": "number",
+      "value": 45293
+    },
+    "native": "45293",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1)+1-0.25/86400,DATE(2024,1,2))",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(-0.5)",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MINUTE(-0.5+1/1440)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SECOND(-0.5+1/86400)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_JULIAN(0,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": 1721028
+    },
+    "native": "1721028",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(0,1,{0},{1})",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1),1073741824,{0},{1})",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{0},{1;1;1;1;1;1;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WORKDAY(DATE(2024,1,1),1,{0},{1;1;1;1;1;1;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=UNIX2DATE(1704067200)",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "native": "45292",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2UNIX(DATE(2024,1,1))",
+    "actual": {
+      "kind": "number",
+      "value": 1704067200
+    },
+    "native": "1704067200",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=UNIX2DATE(0.0005)",
+    "actual": {
+      "kind": "number",
+      "value": 25569.000000005788
+    },
+    "native": "25569.000000005788",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEARFRAC(DATE(2024,1,30),DATE(2024,3,31),5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FV(-2,2,0,100)",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "native": "-100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PMT(.1,2,100,0,2)",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "native": "-52.38095238095237",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PMT(.1,2,100,0,-.5)",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "native": "-52.38095238095237",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SYD(100,0,2,4)",
+    "actual": {
+      "kind": "number",
+      "value": -33.333333333333336
+    },
+    "native": "-33.333333333333336",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;200100},2000)",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "native": "2000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RATE(1,0,-100,200100)",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "native": "2000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;50})",
+    "actual": {
+      "kind": "number",
+      "value": -0.5
+    },
+    "native": "-0.5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;200100})",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RRI(0,100,110)",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RRI(1,0,110)",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RATE(1,0,-100,100,0,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,-.1,100,2,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISPMT(.1,1.9,3.9,100)",
+    "actual": {
+      "kind": "number",
+      "value": -6.666666666666668
+    },
+    "native": "-6.666666666666666",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DDB(100,0,4,1.5)",
+    "actual": {
+      "kind": "number",
+      "value": 35.35533905932738
+    },
+    "native": "35.35533905932738",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DDB(100,0,4,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 50
+    },
+    "native": "50",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DB(100,0,2,1,24)",
+    "actual": {
+      "kind": "number",
+      "value": 200
+    },
+    "native": "200",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DB(100,0,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "native": "0",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,0)",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "native": "7.777777777777778",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,4)",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "native": "7.777777777777778",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(DATE(2024,2,29),DATE(2024,3,31),.1,1000,0)",
+    "actual": {
+      "kind": "number",
+      "value": 8.61111111111111
+    },
+    "native": "8.61111111111111",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICEDISC(DATE(2024,1,31),DATE(2024,2,29),.1,100,0)",
+    "actual": {
+      "kind": "number",
+      "value": 99.22222222222223
+    },
+    "native": "99.22222222222223",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MDURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.9523809523809523
+    },
+    "native": "0.9523809523809523",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MIRR({-100;110},.1,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999964
+    },
+    "native": "0.09999999999999964",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=XNPV(.1,{-100;110},{1;366})",
+    "actual": {
+      "kind": "number",
+      "value": -1.4210854715202004e-14
+    },
+    "native": "-1.4210854715202004E-14",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=XIRR({-100;110},{1;366})",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "native": "0.09999999999999998",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EURO(\"DEM\")",
+    "actual": {
+      "kind": "number",
+      "value": 1.95583
+    },
+    "native": "1.95583",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DOLLARDE(1.02,16)",
+    "actual": {
+      "kind": "number",
+      "value": 1.125
+    },
+    "native": "1.125",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DOLLARFR(-1.125,16)",
+    "actual": {
+      "kind": "number",
+      "value": -1.02
+    },
+    "native": "-1.02",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EFFECT(.1,2)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10250000000000001
+    },
+    "native": "0.10250000000000001",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NOMINAL(.1025,2)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "native": "0.09999999999999999",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=G_DURATION(.1,100,110)",
+    "actual": {
+      "kind": "number",
+      "value": 1.0000000000000007
+    },
+    "native": "1.0000000000000007",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NPV(.1,110,TRUE)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=INTRATE(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RECEIVED(DATE(2024,1,1),DATE(2025,1,1),100,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": 111.11111111111111
+    },
+    "native": "111.11111111111111",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DISC(DATE(2024,1,1),DATE(2025,1,1),90,100,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELDDISC(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "native": "0.10000000000000009",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TBILLPRICE(1,181,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 95
+    },
+    "native": "95",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TBILLYIELD(1,181,95)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10526315789473684
+    },
+    "native": "0.10526315789473684",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TBILLEQ(1,181,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1067251461988304
+    },
+    "native": "0.1067251461988304",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPNUM(DATE(2024,4,1),DATE(2025,1,1),2)",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "native": "2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYBS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "native": "90",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 180
+    },
+    "native": "180",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYSNC(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "native": "90",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPPCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "native": "45292",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPNCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 45474
+    },
+    "native": "45474",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,4,0,4)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SLN(100,0,4)",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "native": "25",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=RRI(1,100,110)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "native": "0.10000000000000009",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EUROCONVERT(1,\"DEM\",\"EUR\",FALSE)",
+    "actual": {
+      "kind": "number",
+      "value": 0.51
+    },
+    "native": "0.51",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SLN(100,0,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ISPMT(.1,0,3,100)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DDB(100,0,4,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DB(0,0,4,1)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(1,2,.1,1000,5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ACCRINTM(1,2,.1,1000,-.5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=COUPDAYS(1,366,2,-.5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELDDISC(1,366,-1,100,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MIRR({-100;110},.1,-2)",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FVSCHEDULE(100,{.1;\"bad\"})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;200;-100})",
+    "actual": {
+      "kind": "number",
+      "value": 5.907981582180289e-9
+    },
+    "native": "5.907981582180289E-09",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,4,3,4,2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 12.5
+    },
+    "native": "12.5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,4,1.5,3.5,2,TRUE)",
+    "actual": {
+      "kind": "number",
+      "value": 28.125
+    },
+    "native": "28.125",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,10,5,2.5,4.5,1)",
+    "actual": {
+      "kind": "number",
+      "value": 35
+    },
+    "native": "35",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,0,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "native": "0",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=VDB(100,0,20000,0,10001,2,TRUE)",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FV(.5,10,0,1)",
+    "actual": {
+      "kind": "number",
+      "value": -57.6650390625
+    },
+    "native": "-57.6650390625",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IPMT(.1,1,2,100)",
+    "actual": {
+      "kind": "number",
+      "value": -10
+    },
+    "native": "-10",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PPMT(.1,1,2,100)",
+    "actual": {
+      "kind": "number",
+      "value": -47.61904761904761
+    },
+    "native": "-47.61904761904761",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUMIPMT(.1,2,100,1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": -15.23809523809524
+    },
+    "native": "-15.238095238095234",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUMPRINC(.1,2,100,1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": -99.99999999999999
+    },
+    "native": "-100.00000000000003",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUMIPMT(.1,2,100,1,2,1)",
+    "actual": {
+      "kind": "number",
+      "value": -4.761904761904763
+    },
+    "native": "-4.761904761904762",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NPER(.1,-100 * 1.21 / 2.1,100)",
+    "actual": {
+      "kind": "number",
+      "value": 1.9999999999999998
+    },
+    "native": "1.9999999999999998",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELD(DATE(2024,7,1),DATE(2025,1,1),.1,110,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": -0.09090909090909098
+    },
+    "native": "-0.09090909090909098",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2024,1,1),.1,.1,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YIELD(DATE(2024,1,1),DATE(2025,1,1),.1,100,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.09999999999999998",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EUROCONVERT(-1.005,\"EUR\",\"EUR\",FALSE)",
+    "actual": {
+      "kind": "number",
+      "value": -1.01
+    },
+    "native": "-1.01",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=EUROCONVERT(-1.0005,\"EUR\",\"EUR\",TRUE,3)",
+    "actual": {
+      "kind": "number",
+      "value": -1.001
+    },
+    "native": "-1.001",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=AMORDEGRC(-10,DATE(2024,1,1),DATE(2025,1,1),0,0,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": -2
+    },
+    "native": "-2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-1;TRUE})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FVSCHEDULE(100,{.1;TRUE})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MIRR({-100;TRUE},.1,.1)",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=XNPV(.1,{-100;TRUE},{1;366})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=IRR({-100;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=FVSCHEDULE(100,{.1;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PRICE(DATE(2024,7,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 105
+    },
+    "native": "105",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 0.586851146134764
+    },
+    "native": "0.586851146134764",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_RHO(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 49.45810910532236
+    },
+    "native": "49.45810910532236",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_THETA(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": -5.0893189139983335
+    },
+    "native": "-5.089318913998333",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 0.018950578755008718
+    },
+    "native": "0.018950578755008714",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 37.901157510017434
+    },
+    "native": "37.90115751001743",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_CARRYCOST(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 58.685114613476394
+    },
+    "native": "58.685114613476394",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUM_BIV_NORM_DIST(.2,.3,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 0.43688917987362585
+    },
+    "native": "0.43688917987362585",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_GARMAN_KOHLHAGEN(\"c\",100,100,1,.05,.02,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FRENCH(\"c\",100,100,.8,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 8.427393891848233
+    },
+    "native": "8.427393891848233",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 10.417165470240846
+    },
+    "native": "10.41716547024085",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 8.348939840201675
+    },
+    "native": "8.348939840201675",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BJER_STENS(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508552367
+    },
+    "native": "9.227005508552383",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_MILTERSEN_SCHWARTZ(\"c\",.95,100,100,.5,1,.2,.1,.1,.2,.1,.1,.5,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 5.610778432447091
+    },
+    "native": "5.610778432447092",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BAW_AMER(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227555802623748
+    },
+    "native": "9.227555802623748",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_RGW(100,100,.5,1,.05,3,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 8.514104824319844
+    },
+    "native": "8.514104824319844",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FORWARD_START(\"c\",100,1,.5,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 6.244873136512819
+    },
+    "native": "6.2448731365128145",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,.1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 0.4396344416865478
+    },
+    "native": "0.4396344416865478",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_SIMPLE_CHOOSER(100,100,.5,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 13.34428044806922
+    },
+    "native": "13.344280448069227",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_COMPLEX_CHOOSER(100,100,100,.25,1,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 11.801429205461332
+    },
+    "native": "11.801429205461341",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_ON_OPTIONS(\"cc\",100,100,5,.5,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 5.511638296903568
+    },
+    "native": "5.511638296903571",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EXTENDIBLE_WRITER(\"c\",100,100,105,.5,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 56.07037821954924
+    },
+    "native": "56.070378219549234",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_2_ASSET_CORRELATION(\"c\",100,100,100,100,1,.03,.03,.05,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 7.09633436485435
+    },
+    "native": "7.096334364854347",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EURO_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 8.266327791618494
+    },
+    "native": "8.266327791618496",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_AMER_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 8.266378724639608
+    },
+    "native": "8.266378724639583",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 9.826787796317308
+    },
+    "native": "9.826787796317303",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 17.98696654912108
+    },
+    "native": "17.98696654912109",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 19.624426428795637
+    },
+    "native": "19.624426428795637",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.130449517016777
+    },
+    "native": "9.130449517016778",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "native": "10.450583572185565",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS(\"p\",100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 5.573526022256971
+    },
+    "native": "5.573526022256973",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 0.6368306511756191
+    },
+    "native": "0.6368306511756191",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 0.018762017345846895
+    },
+    "native": "0.018762017345846895",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 37.52403469169379
+    },
+    "native": "37.52403469169379",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_FRENCH(\"c\",100,100,1,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,0)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",1000,100,100,1,.05,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 7.575188125571488
+    },
+    "native": "7.575188125571481",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",100,100,100,1,.05,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 7.5581635403361584
+    },
+    "native": "7.5581635403361584",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,0,.05,.03,.2)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=CUM_BIV_NORM_DIST((LN(100/105)+(.03+.2^2/2))/(.2),-((.03+.2^2/2)*.5/(.2*SQRT(.5))),-SQRT(.5))",
+    "actual": {
+      "kind": "number",
+      "value": 0.5933532382196918
+    },
+    "native": "0.5933532382196917",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 7.482997600461917
+    },
+    "native": "7.4829976004619185",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(1900,3,1)",
+    "actual": {
+      "kind": "number",
+      "value": -1401
+    },
+    "native": "-1401",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(1900,2,29)",
+    "actual": {
+      "kind": "number",
+      "value": -1401
+    },
+    "native": "-1401",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "native": "43830",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EDATE(DATE(2024,1,31),1)",
+    "actual": {
+      "kind": "number",
+      "value": 43889
+    },
+    "native": "43889",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EOMONTH(DATE(2024,2,1))",
+    "actual": {
+      "kind": "number",
+      "value": 43889
+    },
+    "native": "43889",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATEDIF(DATE(2023,1,31),DATE(2023,3,1),\"m\")",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS(DATE(1900,3,1),DATE(1900,2,28))",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7))",
+    "actual": {
+      "kind": "number",
+      "value": 5
+    },
+    "native": "5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,5),1)",
+    "actual": {
+      "kind": "number",
+      "value": 43837
+    },
+    "native": "43837",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TIME(25,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.041666666666666664
+    },
+    "native": "0.041666666666666664",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODF.TIME(-1,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": -0.041666666666666664
+    },
+    "native": "-0.041666666666666664",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOWEEKNUM(DATE(2021,1,1))",
+    "actual": {
+      "kind": "number",
+      "value": 53
+    },
+    "native": "53",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EASTERSUNDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 43920
+    },
+    "native": "43920",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_YEAR(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 5784
+    },
+    "native": "5784",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PV(0,10,-100)",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "native": "1000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FV(0,10,-100)",
+    "actual": {
+      "kind": "number",
+      "value": 1000
+    },
+    "native": "1000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PMT(0,10,1000)",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "native": "-100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;110})",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "native": "0.09999999999999998",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RATE(1,0,-100,110)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "native": "0.09999999999999999",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"c\",100,100,1,0.05,0.2,0.05)",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "native": "10.450583572185565",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE(1904,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "native": "0",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINT(DATE(2024,1,1),DATE(2024,7,1),DATE(2024,4,1),.1,1000,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "native": "25",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=AMORLINC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,3)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=AMORDEGRC(1000,DATE(2024,1,1),DATE(2025,1,1),0,1,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": 188
+    },
+    "native": "188",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICEMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": 99.76190476190476
+    },
+    "native": "99.76190476190476",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELDMAT(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,1,1),.1,100,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09523809523809534
+    },
+    "native": "0.09523809523809534",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDLPRICE(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDLYIELD(DATE(2024,7,1),DATE(2025,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDFPRICE(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,.1,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "99.99999999999999",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ODDFYIELD(DATE(2024,1,1),DATE(2025,1,1),DATE(2024,1,1),DATE(2024,7,1),.1,100,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.0999999999999999",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(DATE(2021,1,1))",
+    "actual": {
+      "kind": "number",
+      "value": 2020
+    },
+    "native": "2020",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(DATE(2018,12,31))",
+    "actual": {
+      "kind": "number",
+      "value": 2019
+    },
+    "native": "2019",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(DATE(2024,6,1))",
+    "actual": {
+      "kind": "number",
+      "value": 2024
+    },
+    "native": "2024",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),99)",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "native": "31",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),-1)",
+    "actual": {
+      "kind": "number",
+      "value": 31
+    },
+    "native": "31",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,2,29),DATE(2024,3,31),2)",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "native": "30",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAYS360(DATE(2024,1,30),DATE(2024,2,29),2)",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "native": "30",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{-1},{1;1;1;1;1;1;1})",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "native": "0",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1),0,{-1},{1;1;1;1;1;1;1})",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "native": "43830",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISOYEAR(60)",
+    "actual": {
+      "kind": "number",
+      "value": 1904
+    },
+    "native": "1904",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,1,11)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּשְׁבׇט התשפ״ד"
+    },
+    "native": "א׳ בְּשְׁבׇט התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,10,3)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּתִּשְׁרֵי התשפ״ה"
+    },
+    "native": "א׳ בְּתִּשְׁרֵי התשפ״ה",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,11,2)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּחֶשְׁוׇן התשפ״ה"
+    },
+    "native": "א׳ בְּחֶשְׁוׇן התשפ״ה",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,4,23)",
+    "actual": {
+      "kind": "string",
+      "value": "ט״ו בְּנִיסׇן התשפ״ד"
+    },
+    "native": "ט״ו בְּנִיסׇן התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,3,11)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּאַדׇר ב׳ התשפ״ד"
+    },
+    "native": "א׳ בְּאַדׇר ב׳ התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB(2024,7,7)",
+    "actual": {
+      "kind": "string",
+      "value": "א׳ בְּתׇּמוּז התשפ״ד"
+    },
+    "native": "א׳ בְּתׇּמוּז התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAY(DATE(2024,1,1)+1-0.25/86400)",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "native": "2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATEVALUE(DATE(2024,1,1)+1-0.25/86400)",
+    "actual": {
+      "kind": "number",
+      "value": 43831
+    },
+    "native": "43831",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1)+1-0.25/86400,0)",
+    "actual": {
+      "kind": "number",
+      "value": 43831
+    },
+    "native": "43831",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1)+1-0.25/86400,DATE(2024,1,2))",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(-0.5)",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MINUTE(-0.5+1/1440)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SECOND(-0.5+1/86400)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_JULIAN(0,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": 1721028
+    },
+    "native": "1721028",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(0,1,{0},{1})",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1),1073741824,{0},{1})",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NETWORKDAYS(DATE(2024,1,1),DATE(2024,1,7),{0},{1;1;1;1;1;1;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WORKDAY(DATE(2024,1,1),1,{0},{1;1;1;1;1;1;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=UNIX2DATE(1704067200)",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "native": "43830",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2UNIX(DATE(2024,1,1))",
+    "actual": {
+      "kind": "number",
+      "value": 1704067200
+    },
+    "native": "1704067200",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=UNIX2DATE(0.0005)",
+    "actual": {
+      "kind": "number",
+      "value": 24107.000000005788
+    },
+    "native": "24107.000000005788",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEARFRAC(DATE(2024,1,30),DATE(2024,3,31),5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FV(-2,2,0,100)",
+    "actual": {
+      "kind": "number",
+      "value": -100
+    },
+    "native": "-100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PMT(.1,2,100,0,2)",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "native": "-52.38095238095237",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PMT(.1,2,100,0,-.5)",
+    "actual": {
+      "kind": "number",
+      "value": -52.38095238095237
+    },
+    "native": "-52.38095238095237",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SYD(100,0,2,4)",
+    "actual": {
+      "kind": "number",
+      "value": -33.333333333333336
+    },
+    "native": "-33.333333333333336",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;200100},2000)",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "native": "2000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RATE(1,0,-100,200100)",
+    "actual": {
+      "kind": "number",
+      "value": 2000
+    },
+    "native": "2000",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;50})",
+    "actual": {
+      "kind": "number",
+      "value": -0.5
+    },
+    "native": "-0.5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;200100})",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RRI(0,100,110)",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RRI(1,0,110)",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RATE(1,0,-100,100,0,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,-.1,100,2,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISPMT(.1,1.9,3.9,100)",
+    "actual": {
+      "kind": "number",
+      "value": -6.666666666666668
+    },
+    "native": "-6.666666666666666",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DDB(100,0,4,1.5)",
+    "actual": {
+      "kind": "number",
+      "value": 35.35533905932738
+    },
+    "native": "35.35533905932738",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DDB(100,0,4,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 50
+    },
+    "native": "50",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DB(100,0,2,1,24)",
+    "actual": {
+      "kind": "number",
+      "value": 200
+    },
+    "native": "200",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DB(100,0,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "native": "0",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,0)",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "native": "7.777777777777778",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(DATE(2024,1,31),DATE(2024,2,29),.1,1000,4)",
+    "actual": {
+      "kind": "number",
+      "value": 7.777777777777778
+    },
+    "native": "7.777777777777778",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(DATE(2024,2,29),DATE(2024,3,31),.1,1000,0)",
+    "actual": {
+      "kind": "number",
+      "value": 8.61111111111111
+    },
+    "native": "8.61111111111111",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICEDISC(DATE(2024,1,31),DATE(2024,2,29),.1,100,0)",
+    "actual": {
+      "kind": "number",
+      "value": 99.22222222222223
+    },
+    "native": "99.22222222222223",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MDURATION(DATE(2024,4,1),DATE(2025,1,1),0,.1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.9523809523809523
+    },
+    "native": "0.9523809523809523",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MIRR({-100;110},.1,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999964
+    },
+    "native": "0.09999999999999964",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=XNPV(.1,{-100;110},{1;366})",
+    "actual": {
+      "kind": "number",
+      "value": -1.4210854715202004e-14
+    },
+    "native": "-1.4210854715202004E-14",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=XIRR({-100;110},{1;366})",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999998
+    },
+    "native": "0.09999999999999998",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EURO(\"DEM\")",
+    "actual": {
+      "kind": "number",
+      "value": 1.95583
+    },
+    "native": "1.95583",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DOLLARDE(1.02,16)",
+    "actual": {
+      "kind": "number",
+      "value": 1.125
+    },
+    "native": "1.125",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DOLLARFR(-1.125,16)",
+    "actual": {
+      "kind": "number",
+      "value": -1.02
+    },
+    "native": "-1.02",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EFFECT(.1,2)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10250000000000001
+    },
+    "native": "0.10250000000000001",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NOMINAL(.1025,2)",
+    "actual": {
+      "kind": "number",
+      "value": 0.09999999999999999
+    },
+    "native": "0.09999999999999999",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=G_DURATION(.1,100,110)",
+    "actual": {
+      "kind": "number",
+      "value": 1.0000000000000007
+    },
+    "native": "1.0000000000000007",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NPV(.1,110,TRUE)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=INTRATE(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RECEIVED(DATE(2024,1,1),DATE(2025,1,1),100,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": 111.11111111111111
+    },
+    "native": "111.11111111111111",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DISC(DATE(2024,1,1),DATE(2025,1,1),90,100,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELDDISC(DATE(2024,1,1),DATE(2025,1,1),100,110,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "native": "0.10000000000000009",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TBILLPRICE(1,181,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 95
+    },
+    "native": "95",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TBILLYIELD(1,181,95)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10526315789473684
+    },
+    "native": "0.10526315789473684",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TBILLEQ(1,181,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1067251461988304
+    },
+    "native": "0.1067251461988304",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPNUM(DATE(2024,4,1),DATE(2025,1,1),2)",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "native": "2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYBS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "native": "90",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYS(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 180
+    },
+    "native": "180",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYSNC(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 90
+    },
+    "native": "90",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPPCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "native": "43830",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPNCD(DATE(2024,4,1),DATE(2025,1,1),2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 44012
+    },
+    "native": "44012",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,4,0,4)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SLN(100,0,4)",
+    "actual": {
+      "kind": "number",
+      "value": 25
+    },
+    "native": "25",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=RRI(1,100,110)",
+    "actual": {
+      "kind": "number",
+      "value": 0.10000000000000009
+    },
+    "native": "0.10000000000000009",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EUROCONVERT(1,\"DEM\",\"EUR\",FALSE)",
+    "actual": {
+      "kind": "number",
+      "value": 0.51
+    },
+    "native": "0.51",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SLN(100,0,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ISPMT(.1,0,3,100)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DDB(100,0,4,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DB(0,0,4,1)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(1,2,.1,1000,5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ACCRINTM(1,2,.1,1000,-.5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=COUPDAYS(1,366,2,-.5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELDDISC(1,366,-1,100,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MIRR({-100;110},.1,-2)",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FVSCHEDULE(100,{.1;\"bad\"})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;200;-100})",
+    "actual": {
+      "kind": "number",
+      "value": 5.907981582180289e-9
+    },
+    "native": "5.907981582180289E-09",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,4,3,4,2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 12.5
+    },
+    "native": "12.5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,4,1.5,3.5,2,TRUE)",
+    "actual": {
+      "kind": "number",
+      "value": 28.125
+    },
+    "native": "28.125",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,10,5,2.5,4.5,1)",
+    "actual": {
+      "kind": "number",
+      "value": 35
+    },
+    "native": "35",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,0,0,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0
+    },
+    "native": "0",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=VDB(100,0,20000,0,10001,2,TRUE)",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FV(.5,10,0,1)",
+    "actual": {
+      "kind": "number",
+      "value": -57.6650390625
+    },
+    "native": "-57.6650390625",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IPMT(.1,1,2,100)",
+    "actual": {
+      "kind": "number",
+      "value": -10
+    },
+    "native": "-10",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PPMT(.1,1,2,100)",
+    "actual": {
+      "kind": "number",
+      "value": -47.61904761904761
+    },
+    "native": "-47.61904761904761",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUMIPMT(.1,2,100,1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": -15.23809523809524
+    },
+    "native": "-15.238095238095234",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUMPRINC(.1,2,100,1,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": -99.99999999999999
+    },
+    "native": "-100.00000000000003",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUMIPMT(.1,2,100,1,2,1)",
+    "actual": {
+      "kind": "number",
+      "value": -4.761904761904763
+    },
+    "native": "-4.761904761904762",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NPER(.1,-100 * 1.21 / 2.1,100)",
+    "actual": {
+      "kind": "number",
+      "value": 1.9999999999999998
+    },
+    "native": "1.9999999999999998",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELD(DATE(2024,7,1),DATE(2025,1,1),.1,110,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": -0.09090909090909098
+    },
+    "native": "-0.09090909090909098",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2024,1,1),.1,.1,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 100
+    },
+    "native": "100",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YIELD(DATE(2024,1,1),DATE(2025,1,1),.1,100,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 0.1
+    },
+    "native": "0.09999999999999998",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EUROCONVERT(-1.005,\"EUR\",\"EUR\",FALSE)",
+    "actual": {
+      "kind": "number",
+      "value": -1.01
+    },
+    "native": "-1.01",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=EUROCONVERT(-1.0005,\"EUR\",\"EUR\",TRUE,3)",
+    "actual": {
+      "kind": "number",
+      "value": -1.001
+    },
+    "native": "-1.001",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=AMORDEGRC(-10,DATE(2024,1,1),DATE(2025,1,1),0,0,.1,0)",
+    "actual": {
+      "kind": "number",
+      "value": -2
+    },
+    "native": "-2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,1,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-1;TRUE})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FVSCHEDULE(100,{.1;TRUE})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MIRR({-100;TRUE},.1,.1)",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=XNPV(.1,{-100;TRUE},{1;366})",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=IRR({-100;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=FVSCHEDULE(100,{.1;#DIV/0!})",
+    "actual": {
+      "kind": "error",
+      "value": "#DIV/0!"
+    },
+    "native": "#DIV/0!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PRICE(DATE(2024,7,1),DATE(2025,1,1),.1,0,100,2,0)",
+    "actual": {
+      "kind": "number",
+      "value": 105
+    },
+    "native": "105",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 0.586851146134764
+    },
+    "native": "0.586851146134764",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_RHO(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 49.45810910532236
+    },
+    "native": "49.45810910532236",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_THETA(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": -5.0893189139983335
+    },
+    "native": "-5.089318913998333",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 0.018950578755008718
+    },
+    "native": "0.018950578755008714",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 37.901157510017434
+    },
+    "native": "37.90115751001743",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_CARRYCOST(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 58.685114613476394
+    },
+    "native": "58.685114613476394",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUM_BIV_NORM_DIST(.2,.3,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 0.43688917987362585
+    },
+    "native": "0.43688917987362585",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_GARMAN_KOHLHAGEN(\"c\",100,100,1,.05,.02,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FRENCH(\"c\",100,100,.8,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 8.427393891848233
+    },
+    "native": "8.427393891848233",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_JUMP_DIFF(\"c\",100,100,1,.05,.2,1,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 10.417165470240846
+    },
+    "native": "10.41716547024085",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,.1)",
+    "actual": {
+      "kind": "number",
+      "value": 8.348939840201675
+    },
+    "native": "8.348939840201675",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BJER_STENS(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508552367
+    },
+    "native": "9.227005508552383",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_MILTERSEN_SCHWARTZ(\"c\",.95,100,100,.5,1,.2,.1,.1,.2,.1,.1,.5,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 5.610778432447091
+    },
+    "native": "5.610778432447092",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BAW_AMER(\"c\",100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227555802623748
+    },
+    "native": "9.227555802623748",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_RGW(100,100,.5,1,.05,3,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 8.514104824319844
+    },
+    "native": "8.514104824319844",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FORWARD_START(\"c\",100,1,.5,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 6.244873136512819
+    },
+    "native": "6.2448731365128145",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,.1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 0.4396344416865478
+    },
+    "native": "0.4396344416865478",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_SIMPLE_CHOOSER(100,100,.5,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 13.34428044806922
+    },
+    "native": "13.344280448069227",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_COMPLEX_CHOOSER(100,100,100,.25,1,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 11.801429205461332
+    },
+    "native": "11.801429205461341",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_ON_OPTIONS(\"cc\",100,100,5,.5,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 5.511638296903568
+    },
+    "native": "5.511638296903571",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EXTENDIBLE_WRITER(\"c\",100,100,105,.5,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 56.07037821954924
+    },
+    "native": "56.070378219549234",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_2_ASSET_CORRELATION(\"c\",100,100,100,100,1,.03,.03,.05,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 7.09633436485435
+    },
+    "native": "7.096334364854347",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EURO_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 8.266327791618494
+    },
+    "native": "8.266327791618496",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_AMER_EXCHANGE(100,100,1,1,1,.05,.03,.02,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 8.266378724639608
+    },
+    "native": "8.266378724639583",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_SPREAD_APPROX(\"c\",100,90,5,1,.05,.2,.2,.5)",
+    "actual": {
+      "kind": "number",
+      "value": 9.826787796317308
+    },
+    "native": "9.826787796317303",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FLOAT_STRK_LKBK(\"c\",100,90,110,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 17.98696654912108
+    },
+    "native": "17.98696654912109",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FIXED_STRK_LKBK(\"c\",100,90,110,100,1,.05,.03,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 19.624426428795637
+    },
+    "native": "19.624426428795637",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.130449517016777
+    },
+    "native": "9.130449517016778",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"c\",100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 10.450583572185565
+    },
+    "native": "10.450583572185565",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS(\"p\",100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 5.573526022256971
+    },
+    "native": "5.573526022256973",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_DELTA(\"c\",100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 0.6368306511756191
+    },
+    "native": "0.6368306511756191",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_GAMMA(100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 0.018762017345846895
+    },
+    "native": "0.018762017345846895",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BS_VEGA(100,100,1,.05,.2,.05)",
+    "actual": {
+      "kind": "number",
+      "value": 37.52403469169379
+    },
+    "native": "37.52403469169379",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_FRENCH(\"c\",100,100,1,1,.05,.2,.03)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_EXEC(\"c\",100,100,1,.05,.2,.03,0)",
+    "actual": {
+      "kind": "number",
+      "value": 9.227005508154036
+    },
+    "native": "9.227005508154036",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",1000,100,100,1,.05,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 7.575188125571488
+    },
+    "native": "7.575188125571481",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",100,100,100,1,.05,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 7.5581635403361584
+    },
+    "native": "7.5581635403361584",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_TIME_SWITCH(\"c\",100,100,1,1,0,0,.05,.03,.2)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=CUM_BIV_NORM_DIST((LN(100/105)+(.03+.2^2/2))/(.2),-((.03+.2^2/2)*.5/(.2*SQRT(.5))),-SQRT(.5))",
+    "actual": {
+      "kind": "number",
+      "value": 0.5933532382196918
+    },
+    "native": "0.5933532382196917",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=OPT_BINOMIAL(\"e\",\"c\",20,100,100,1,.05,.2)",
+    "actual": {
+      "kind": "number",
+      "value": 7.482997600461917
+    },
+    "native": "7.4829976004619185",
+    "exact": false,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ASCENSIONTHURSDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 45421
+    },
+    "native": "45421",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=ASHWEDNESDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 45336
+    },
+    "native": "45336",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=PENTECOSTSUNDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 45431
+    },
+    "native": "45431",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=GOODFRIDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 45380
+    },
+    "native": "45380",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MONTH(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TIMEVALUE(\"12:30:00\")",
+    "actual": {
+      "kind": "number",
+      "value": 0.5208333333333334
+    },
+    "native": "0.5208333333333334",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WEEKDAY(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "native": "2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 2024
+    },
+    "native": "2024",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=WEEKNUM(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE(2024,1,1)",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "native": "20 Tebet 5784",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_MONTH(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 3
+    },
+    "native": "3",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_DAY(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 20
+    },
+    "native": "20",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2HDATE(45292)",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "native": "20 Tebet 5784",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2HDATE_HEB(45292)",
+    "actual": {
+      "kind": "string",
+      "value": "כ׳ בְּטֵבֵת התשפ״ד"
+    },
+    "native": "כ׳ בְּטֵבֵת התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2JULIAN(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 2460311
+    },
+    "native": "2460311",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ASCENSIONTHURSDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 43959
+    },
+    "native": "43959",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=ASHWEDNESDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 43874
+    },
+    "native": "43874",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=PENTECOSTSUNDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 43969
+    },
+    "native": "43969",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=GOODFRIDAY(2024)",
+    "actual": {
+      "kind": "number",
+      "value": 43918
+    },
+    "native": "43918",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MONTH(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TIMEVALUE(\"12:30:00\")",
+    "actual": {
+      "kind": "number",
+      "value": 0.5208333333333334
+    },
+    "native": "0.5208333333333334",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WEEKDAY(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 1
+    },
+    "native": "1",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 2028
+    },
+    "native": "2028",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=WEEKNUM(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 2
+    },
+    "native": "2",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE(2024,1,1)",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "native": "20 Tebet 5784",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_MONTH(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 3
+    },
+    "native": "3",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_DAY(2024,1,1)",
+    "actual": {
+      "kind": "number",
+      "value": 20
+    },
+    "native": "20",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2HDATE(45292)",
+    "actual": {
+      "kind": "string",
+      "value": "3 Tebet 5788"
+    },
+    "native": "3 Tebet 5788",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2HDATE_HEB(45292)",
+    "actual": {
+      "kind": "string",
+      "value": "ג׳ בְּטֵבֵת התשפ״ח"
+    },
+    "native": "ג׳ בְּטֵבֵת התשפ״ח",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2JULIAN(45292)",
+    "actual": {
+      "kind": "number",
+      "value": 2461773
+    },
+    "native": "2461773",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATEVALUE(\"2024/2-29\")",
+    "actual": {
+      "kind": "number",
+      "value": 45351
+    },
+    "native": "45351",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATEVALUE(\"2/29/2024\")",
+    "actual": {
+      "kind": "number",
+      "value": 45351
+    },
+    "native": "45351",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(\"1/2/29\")",
+    "actual": {
+      "kind": "number",
+      "value": 2029
+    },
+    "native": "2029",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(\"1/2/30\")",
+    "actual": {
+      "kind": "number",
+      "value": 1930
+    },
+    "native": "1930",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAY(\"2024-02-29 25:00:00\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DAY(\"2024-03-01 -1:00:00\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(\"2024/2/30\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(\"13/1/2024\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(\"2024-02-29 garbage\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(\"2024-02-29 2024-03-01 12:00:00\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEAR(\"0001-01-01\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(\"2024-02-29 1230\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SECOND(\"2024-02-29 123045\")",
+    "actual": {
+      "kind": "number",
+      "value": 45
+    },
+    "native": "45",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(\"2024-02-29 12:00:00.\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=SECOND(\"2024-02-29 30.0\")",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "native": "30",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=MINUTE(\"2024-02-29 1230.5\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(\"2024-02-29 123045.5\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(\"2024-02-29 1pm\")",
+    "actual": {
+      "kind": "number",
+      "value": 13
+    },
+    "native": "13",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(\"2024-02-29 1.5pm\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HOUR(\"2024-02-29 1:30.5pm\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEARFRAC(DATE(2024,1,1),DATE(2024,2,1),-0.5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=YEARFRAC(DATE(2024,1,1),DATE(2024,2,1),0.5)",
+    "actual": {
+      "kind": "number",
+      "value": 0.08333333333333333
+    },
+    "native": "0.08333333333333333",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2UNIX(-1-1/256)",
+    "actual": {
+      "kind": "number",
+      "value": -2147483648
+    },
+    "native": "-2147483648",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2UNIX(1+1/256)",
+    "actual": {
+      "kind": "number",
+      "value": -2147483648
+    },
+    "native": "-2147483648",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=NOW()",
+    "actual": {
+      "kind": "number",
+      "value": 45292.5
+    },
+    "native": "45292.5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=TODAY()",
+    "actual": {
+      "kind": "number",
+      "value": 45292
+    },
+    "native": "45292",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATEVALUE(\"2024/2-29\")",
+    "actual": {
+      "kind": "number",
+      "value": 43889
+    },
+    "native": "43889",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATEVALUE(\"2/29/2024\")",
+    "actual": {
+      "kind": "number",
+      "value": 43889
+    },
+    "native": "43889",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(\"1/2/29\")",
+    "actual": {
+      "kind": "number",
+      "value": 2029
+    },
+    "native": "2029",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(\"1/2/30\")",
+    "actual": {
+      "kind": "number",
+      "value": 1930
+    },
+    "native": "1930",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAY(\"2024-02-29 25:00:00\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DAY(\"2024-03-01 -1:00:00\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(\"2024/2/30\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(\"13/1/2024\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(\"2024-02-29 garbage\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(\"2024-02-29 2024-03-01 12:00:00\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEAR(\"0001-01-01\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(\"2024-02-29 1230\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SECOND(\"2024-02-29 123045\")",
+    "actual": {
+      "kind": "number",
+      "value": 45
+    },
+    "native": "45",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(\"2024-02-29 12:00:00.\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=SECOND(\"2024-02-29 30.0\")",
+    "actual": {
+      "kind": "number",
+      "value": 30
+    },
+    "native": "30",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=MINUTE(\"2024-02-29 1230.5\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(\"2024-02-29 123045.5\")",
+    "actual": {
+      "kind": "number",
+      "value": 12
+    },
+    "native": "12",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(\"2024-02-29 1pm\")",
+    "actual": {
+      "kind": "number",
+      "value": 13
+    },
+    "native": "13",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(\"2024-02-29 1.5pm\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HOUR(\"2024-02-29 1:30.5pm\")",
+    "actual": {
+      "kind": "error",
+      "value": "#VALUE!"
+    },
+    "native": "#VALUE!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEARFRAC(DATE(2024,1,1),DATE(2024,2,1),-0.5)",
+    "actual": {
+      "kind": "error",
+      "value": "#NUM!"
+    },
+    "native": "#NUM!",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=YEARFRAC(DATE(2024,1,1),DATE(2024,2,1),0.5)",
+    "actual": {
+      "kind": "number",
+      "value": 0.08333333333333333
+    },
+    "native": "0.08333333333333333",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2UNIX(-1-1/256)",
+    "actual": {
+      "kind": "number",
+      "value": -2082931538
+    },
+    "native": "-2082931538",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2UNIX(1+1/256)",
+    "actual": {
+      "kind": "number",
+      "value": -2082758062
+    },
+    "native": "-2082758062",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=NOW()",
+    "actual": {
+      "kind": "number",
+      "value": 43830.5
+    },
+    "native": "43830.5",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=TODAY()",
+    "actual": {
+      "kind": "number",
+      "value": 43830
+    },
+    "native": "43830",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2UNIX(25569-1/256)",
+    "actual": {
+      "kind": "number",
+      "value": -337
+    },
+    "native": "-337",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2UNIX(25569+1/256)",
+    "actual": {
+      "kind": "number",
+      "value": 338
+    },
+    "native": "338",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2UNIX(DATE(2038,1,19)+TIME(3,14,8))",
+    "actual": {
+      "kind": "number",
+      "value": 2147483647
+    },
+    "native": "2147483647",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2UNIX(25569-1/256)",
+    "actual": {
+      "kind": "number",
+      "value": 126316463
+    },
+    "native": "126316463",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2UNIX(25569+1/256)",
+    "actual": {
+      "kind": "number",
+      "value": 126317138
+    },
+    "native": "126317138",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2UNIX(DATE(2038,1,19)+TIME(3,14,8))",
+    "actual": {
+      "kind": "number",
+      "value": 2147483647
+    },
+    "native": "2147483647",
+    "exact": true,
+    "withinRelative1e12": true
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE()",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "native": "20 Tebet 5784",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_HEB()",
+    "actual": {
+      "kind": "string",
+      "value": "כ׳ בְּטֵבֵת התשפ״ד"
+    },
+    "native": "כ׳ בְּטֵבֵת התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_DAY()",
+    "actual": {
+      "kind": "number",
+      "value": 20
+    },
+    "native": "20",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_MONTH()",
+    "actual": {
+      "kind": "number",
+      "value": 3
+    },
+    "native": "3",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_YEAR()",
+    "actual": {
+      "kind": "number",
+      "value": 5784
+    },
+    "native": "5784",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=HDATE_JULIAN()",
+    "actual": {
+      "kind": "number",
+      "value": 2460311
+    },
+    "native": "2460311",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2HDATE()",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "native": "20 Tebet 5784",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2HDATE_HEB()",
+    "actual": {
+      "kind": "string",
+      "value": "כ׳ בְּטֵבֵת התשפ״ד"
+    },
+    "native": "כ׳ בְּטֵבֵת התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1900",
+    "formula": "=DATE2JULIAN()",
+    "actual": {
+      "kind": "number",
+      "value": 2460311
+    },
+    "native": "2460311",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE()",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "native": "20 Tebet 5784",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_HEB()",
+    "actual": {
+      "kind": "string",
+      "value": "כ׳ בְּטֵבֵת התשפ״ד"
+    },
+    "native": "כ׳ בְּטֵבֵת התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_DAY()",
+    "actual": {
+      "kind": "number",
+      "value": 20
+    },
+    "native": "20",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_MONTH()",
+    "actual": {
+      "kind": "number",
+      "value": 3
+    },
+    "native": "3",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_YEAR()",
+    "actual": {
+      "kind": "number",
+      "value": 5784
+    },
+    "native": "5784",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=HDATE_JULIAN()",
+    "actual": {
+      "kind": "number",
+      "value": 2460311
+    },
+    "native": "2460311",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2HDATE()",
+    "actual": {
+      "kind": "string",
+      "value": "20 Tebet 5784"
+    },
+    "native": "20 Tebet 5784",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2HDATE_HEB()",
+    "actual": {
+      "kind": "string",
+      "value": "כ׳ בְּטֵבֵת התשפ״ד"
+    },
+    "native": "כ׳ בְּטֵבֵת התשפ״ד",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  },
+  {
+    "dateSystem": "1904",
+    "formula": "=DATE2JULIAN()",
+    "actual": {
+      "kind": "number",
+      "value": 2460311
+    },
+    "native": "2460311",
+    "exact": true,
+    "withinRelative1e12": true,
+    "verificationClassification": "fixed-clock-calendar-optional-arguments"
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "seed": 6192908,
+  "cases": 2048,
+  "passes": 2047,
+  "mismatches": 1,
+  "failures": [
+    {
+      "x": 137330.13360794372,
+      "inputBits": "4100c39111a10aa6",
+      "cosine": true,
+      "value": 0.12283423768878388,
+      "bits": "3fbf721089b3d1a0",
+      "native": 0.12283423768878389,
+      "nativeBits": "3fbf721089b3d1a1",
+      "exact": false
+    }
+  ],
+  "harnessCorrection": "input bits preserve negative zero for native invocation; original JSON-number trace incorrectly lost its input sign",
+  "settledCandidateAggregateSha256": "7ddece0475af378bbbeb93370871993fdf42152ebf7c70aa4cbd00e2b8d40211"
+}

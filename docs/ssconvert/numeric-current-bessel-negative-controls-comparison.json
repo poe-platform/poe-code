@@ -1,0 +1,126 @@
+{
+  "seed": 6197301,
+  "candidateReceipt": "docs/ssconvert/numeric-current-candidate.json",
+  "nativeExitCode": 0,
+  "nativeStderr": "",
+  "cases": [
+    {
+      "formula": "=BESSELJ(1,-100)",
+      "native": "8.431828789626699E-189",
+      "engine": {
+        "kind": "number",
+        "value": 8.431828789626699e-189
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(1,-200)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(0,-1)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(1e-100,-100)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(1e-200,-2)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELJ(1e-200,-3)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(1,-100)",
+      "native": "-3.775287810110526E+185",
+      "engine": {
+        "kind": "number",
+        "value": -3.775287810110526e+185
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(1,-200)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(0,-1)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(1e-100,-100)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(1e-200,-2)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    },
+    {
+      "formula": "=BESSELY(1e-200,-3)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "exactValueMatch": true
+    }
+  ],
+  "highPrecision": {
+    "library": "mpmath",
+    "version": "1.4.1",
+    "decimalDigits": 100,
+    "cases": []
+  },
+  "passes": 12,
+  "mismatches": 0,
+  "unmeasured": "full domain and other runtime/locale cells",
+  "settledCandidateAggregateSha256": "7ddece0475af378bbbeb93370871993fdf42152ebf7c70aa4cbd00e2b8d40211"
+}

@@ -1,0 +1,2362 @@
+{
+  "kind": "glib-main-cli-reference-profile",
+  "scope": "Native QA oracle only; no product dependency or fallback",
+  "source": {
+    "version": "1.12.61",
+    "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+  },
+  "goffice": {
+    "version": "0.10.61",
+    "sha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15"
+  },
+  "binary": {
+    "path": "/opt/ssconvert-reference/bin/ssconvert",
+    "sha256": "8a9a0ef179cc97f9588c8f54173f0d29a265277246f1d89b0eabc0be7e28ff57"
+  },
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+    "GSETTINGS_BACKEND": "memory",
+    "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+    "HOME": "/evidence/qa-home",
+    "XDG_CONFIG_HOME": "/evidence/qa-config",
+    "XDG_DATA_HOME": "/evidence/qa-data",
+    "XDG_CACHE_HOME": "/evidence/qa-cache",
+    "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig"
+  },
+  "parserDependencies": {
+    "glib": "2.84.4",
+    "gtk": "3.24.49",
+    "goffice": "0.10.61",
+    "libgsf": "1.14.53"
+  },
+  "installedPackages": [
+    {
+      "name": "adwaita-icon-theme",
+      "version": "48.1-1"
+    },
+    {
+      "name": "apt",
+      "version": "3.0.3"
+    },
+    {
+      "name": "at-spi2-common",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "autoconf",
+      "version": "2.72-3.1"
+    },
+    {
+      "name": "automake",
+      "version": "1:1.17-4"
+    },
+    {
+      "name": "autotools-dev",
+      "version": "20240727.1"
+    },
+    {
+      "name": "base-files",
+      "version": "13.8+deb13u7"
+    },
+    {
+      "name": "base-passwd",
+      "version": "3.6.7"
+    },
+    {
+      "name": "bash",
+      "version": "5.2.37-2+b10"
+    },
+    {
+      "name": "binutils",
+      "version": "2.44-3"
+    },
+    {
+      "name": "binutils-aarch64-linux-gnu",
+      "version": "2.44-3"
+    },
+    {
+      "name": "binutils-common",
+      "version": "2.44-3"
+    },
+    {
+      "name": "bison",
+      "version": "2:3.8.2+dfsg-1+b2"
+    },
+    {
+      "name": "bsdutils",
+      "version": "1:2.41.5-0+deb13u1"
+    },
+    {
+      "name": "build-essential",
+      "version": "12.12"
+    },
+    {
+      "name": "bzip2",
+      "version": "1.0.8-6"
+    },
+    {
+      "name": "ca-certificates",
+      "version": "20250419"
+    },
+    {
+      "name": "coreutils",
+      "version": "9.7-3"
+    },
+    {
+      "name": "cpp",
+      "version": "4:14.2.0-1"
+    },
+    {
+      "name": "cpp-14",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "cpp-14-aarch64-linux-gnu",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "cpp-aarch64-linux-gnu",
+      "version": "4:14.2.0-1"
+    },
+    {
+      "name": "dash",
+      "version": "0.5.12-12"
+    },
+    {
+      "name": "dbus",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "dbus-bin",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "dbus-daemon",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "dbus-session-bus-common",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "dbus-system-bus-common",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "dbus-user-session",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "dconf-gsettings-backend",
+      "version": "0.40.0-5"
+    },
+    {
+      "name": "dconf-service",
+      "version": "0.40.0-5"
+    },
+    {
+      "name": "debconf",
+      "version": "1.5.91"
+    },
+    {
+      "name": "debian-archive-keyring",
+      "version": "2025.1"
+    },
+    {
+      "name": "debianutils",
+      "version": "5.23.2"
+    },
+    {
+      "name": "diffutils",
+      "version": "1:3.10-4"
+    },
+    {
+      "name": "dpkg",
+      "version": "1.22.22"
+    },
+    {
+      "name": "dpkg-dev",
+      "version": "1.22.22"
+    },
+    {
+      "name": "file",
+      "version": "1:5.46-5"
+    },
+    {
+      "name": "findutils",
+      "version": "4.10.0-3"
+    },
+    {
+      "name": "fontconfig",
+      "version": "2.15.0-2.3"
+    },
+    {
+      "name": "fontconfig-config",
+      "version": "2.15.0-2.3"
+    },
+    {
+      "name": "fonts-dejavu-core",
+      "version": "2.37-8"
+    },
+    {
+      "name": "fonts-dejavu-mono",
+      "version": "2.37-8"
+    },
+    {
+      "name": "g++",
+      "version": "4:14.2.0-1"
+    },
+    {
+      "name": "g++-14",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "g++-14-aarch64-linux-gnu",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "g++-aarch64-linux-gnu",
+      "version": "4:14.2.0-1"
+    },
+    {
+      "name": "gcc",
+      "version": "4:14.2.0-1"
+    },
+    {
+      "name": "gcc-14",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "gcc-14-aarch64-linux-gnu",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "gcc-14-base",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "gcc-aarch64-linux-gnu",
+      "version": "4:14.2.0-1"
+    },
+    {
+      "name": "gettext",
+      "version": "0.23.1-2"
+    },
+    {
+      "name": "gettext-base",
+      "version": "0.23.1-2"
+    },
+    {
+      "name": "gir1.2-atk-1.0",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "gir1.2-atspi-2.0",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "gir1.2-cloudproviders-0.3.0",
+      "version": "0.3.6-2"
+    },
+    {
+      "name": "gir1.2-freedesktop",
+      "version": "1.84.0-1"
+    },
+    {
+      "name": "gir1.2-freedesktop-dev",
+      "version": "1.84.0-1"
+    },
+    {
+      "name": "gir1.2-gda-5.0",
+      "version": "5.2.10-5"
+    },
+    {
+      "name": "gir1.2-gdkpixbuf-2.0",
+      "version": "2.42.12+dfsg-4+deb13u1"
+    },
+    {
+      "name": "gir1.2-glib-2.0",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "gir1.2-glib-2.0-dev",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "gir1.2-goffice-0.10",
+      "version": "0.10.57-2+b1"
+    },
+    {
+      "name": "gir1.2-gsf-1",
+      "version": "1.14.53-1"
+    },
+    {
+      "name": "gir1.2-gtk-3.0",
+      "version": "3.24.49-3"
+    },
+    {
+      "name": "gir1.2-harfbuzz-0.0",
+      "version": "10.2.0-1+deb13u1"
+    },
+    {
+      "name": "gir1.2-pango-1.0",
+      "version": "1.56.3-1"
+    },
+    {
+      "name": "gir1.2-rsvg-2.0",
+      "version": "2.60.0+dfsg-1"
+    },
+    {
+      "name": "girepository-tools",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "grep",
+      "version": "3.11-4+b1"
+    },
+    {
+      "name": "gtk-update-icon-cache",
+      "version": "4.18.6+ds-2"
+    },
+    {
+      "name": "gzip",
+      "version": "1.13-1+deb13u1"
+    },
+    {
+      "name": "hicolor-icon-theme",
+      "version": "0.18-2"
+    },
+    {
+      "name": "hostname",
+      "version": "3.25"
+    },
+    {
+      "name": "icu-devtools",
+      "version": "76.1-4"
+    },
+    {
+      "name": "init-system-helpers",
+      "version": "1.69~deb13u1"
+    },
+    {
+      "name": "intltool",
+      "version": "0.51.0-7"
+    },
+    {
+      "name": "itstool",
+      "version": "2.0.6-4"
+    },
+    {
+      "name": "libacl1",
+      "version": "2.3.2-2+b1"
+    },
+    {
+      "name": "libapparmor1",
+      "version": "4.1.0-1"
+    },
+    {
+      "name": "libapt-pkg7.0",
+      "version": "3.0.3"
+    },
+    {
+      "name": "libasan8",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libatk-bridge2.0-0t64",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "libatk-bridge2.0-dev",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "libatk1.0-0t64",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "libatk1.0-dev",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "libatomic1",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libatspi2.0-0t64",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "libatspi2.0-dev",
+      "version": "2.56.2-1+deb13u2"
+    },
+    {
+      "name": "libattr1",
+      "version": "1:2.5.2-3"
+    },
+    {
+      "name": "libaudit-common",
+      "version": "1:4.0.2-2+deb13u1"
+    },
+    {
+      "name": "libaudit1",
+      "version": "1:4.0.2-2+deb13u1"
+    },
+    {
+      "name": "libavahi-client3",
+      "version": "0.8-16"
+    },
+    {
+      "name": "libavahi-common-data",
+      "version": "0.8-16"
+    },
+    {
+      "name": "libavahi-common3",
+      "version": "0.8-16"
+    },
+    {
+      "name": "libbinutils",
+      "version": "2.44-3"
+    },
+    {
+      "name": "libblkid-dev",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "libblkid1",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "libbrotli-dev",
+      "version": "1.1.0-2+b7"
+    },
+    {
+      "name": "libbrotli1",
+      "version": "1.1.0-2+b7"
+    },
+    {
+      "name": "libbsd0",
+      "version": "0.12.2-2"
+    },
+    {
+      "name": "libbz2-1.0",
+      "version": "1.0.8-6"
+    },
+    {
+      "name": "libbz2-dev",
+      "version": "1.0.8-6"
+    },
+    {
+      "name": "libc-bin",
+      "version": "2.41-12+deb13u4"
+    },
+    {
+      "name": "libc-dev-bin",
+      "version": "2.41-12+deb13u4"
+    },
+    {
+      "name": "libc6",
+      "version": "2.41-12+deb13u4"
+    },
+    {
+      "name": "libc6-dev",
+      "version": "2.41-12+deb13u4"
+    },
+    {
+      "name": "libcairo-gobject2",
+      "version": "1.18.4-1+b1"
+    },
+    {
+      "name": "libcairo-script-interpreter2",
+      "version": "1.18.4-1+b1"
+    },
+    {
+      "name": "libcairo2",
+      "version": "1.18.4-1+b1"
+    },
+    {
+      "name": "libcairo2-dev",
+      "version": "1.18.4-1+b1"
+    },
+    {
+      "name": "libcap-dev",
+      "version": "1:2.75-10+deb13u1+b3"
+    },
+    {
+      "name": "libcap-ng0",
+      "version": "0.8.5-4+b1"
+    },
+    {
+      "name": "libcap2",
+      "version": "1:2.75-10+deb13u1+b3"
+    },
+    {
+      "name": "libcc1-0",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libclone-perl",
+      "version": "0.47-1+b1"
+    },
+    {
+      "name": "libcloudproviders-dev",
+      "version": "0.3.6-2"
+    },
+    {
+      "name": "libcloudproviders0",
+      "version": "0.3.6-2"
+    },
+    {
+      "name": "libcolord2",
+      "version": "1.4.7-3"
+    },
+    {
+      "name": "libcom-err2",
+      "version": "1.47.2-3+b12"
+    },
+    {
+      "name": "libcrypt-dev",
+      "version": "1:4.4.38-1"
+    },
+    {
+      "name": "libcrypt1",
+      "version": "1:4.4.38-1"
+    },
+    {
+      "name": "libctf-nobfd0",
+      "version": "2.44-3"
+    },
+    {
+      "name": "libctf0",
+      "version": "2.44-3"
+    },
+    {
+      "name": "libcups2t64",
+      "version": "2.4.10-3+deb13u2"
+    },
+    {
+      "name": "libdatrie-dev",
+      "version": "0.2.13-3+b1"
+    },
+    {
+      "name": "libdatrie1",
+      "version": "0.2.13-3+b1"
+    },
+    {
+      "name": "libdav1d-dev",
+      "version": "1.5.1-1"
+    },
+    {
+      "name": "libdav1d7",
+      "version": "1.5.1-1"
+    },
+    {
+      "name": "libdb5.3t64",
+      "version": "5.3.28+dfsg2-9"
+    },
+    {
+      "name": "libdbus-1-3",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "libdbus-1-dev",
+      "version": "1.16.2-2"
+    },
+    {
+      "name": "libdconf1",
+      "version": "0.40.0-5"
+    },
+    {
+      "name": "libdebconfclient0",
+      "version": "0.280"
+    },
+    {
+      "name": "libdeflate-dev",
+      "version": "1.23-2"
+    },
+    {
+      "name": "libdeflate0",
+      "version": "1.23-2"
+    },
+    {
+      "name": "libdpkg-perl",
+      "version": "1.22.22"
+    },
+    {
+      "name": "libdrm-amdgpu1",
+      "version": "2.4.124-2"
+    },
+    {
+      "name": "libdrm-common",
+      "version": "2.4.124-2"
+    },
+    {
+      "name": "libdrm2",
+      "version": "2.4.124-2"
+    },
+    {
+      "name": "libedit2",
+      "version": "3.1-20250104-1"
+    },
+    {
+      "name": "libegl-dev",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libegl-mesa0",
+      "version": "25.0.7-2+deb13u1"
+    },
+    {
+      "name": "libegl1",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libegl1-mesa-dev",
+      "version": "25.0.7-2+deb13u1"
+    },
+    {
+      "name": "libelf1t64",
+      "version": "0.192-4"
+    },
+    {
+      "name": "libencode-locale-perl",
+      "version": "1.05-3"
+    },
+    {
+      "name": "libepoxy-dev",
+      "version": "1.5.10-2"
+    },
+    {
+      "name": "libepoxy0",
+      "version": "1.5.10-2"
+    },
+    {
+      "name": "libexpat1",
+      "version": "2.8.3-1~deb13u1"
+    },
+    {
+      "name": "libexpat1-dev",
+      "version": "2.8.3-1~deb13u1"
+    },
+    {
+      "name": "libffi-dev",
+      "version": "3.4.8-2"
+    },
+    {
+      "name": "libffi8",
+      "version": "3.4.8-2"
+    },
+    {
+      "name": "libfile-listing-perl",
+      "version": "6.16-1"
+    },
+    {
+      "name": "libfontconfig-dev",
+      "version": "2.15.0-2.3"
+    },
+    {
+      "name": "libfontconfig1",
+      "version": "2.15.0-2.3"
+    },
+    {
+      "name": "libfreetype-dev",
+      "version": "2.13.3+dfsg-1+deb13u1"
+    },
+    {
+      "name": "libfreetype6",
+      "version": "2.13.3+dfsg-1+deb13u1"
+    },
+    {
+      "name": "libfribidi-dev",
+      "version": "1.0.16-1"
+    },
+    {
+      "name": "libfribidi0",
+      "version": "1.0.16-1"
+    },
+    {
+      "name": "libgbm1",
+      "version": "25.0.7-2+deb13u1"
+    },
+    {
+      "name": "libgcc-14-dev",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libgcc-s1",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libgcrypt20",
+      "version": "1.11.0-7+deb13u1"
+    },
+    {
+      "name": "libgda-5.0-4t64",
+      "version": "5.2.10-5"
+    },
+    {
+      "name": "libgda-5.0-common",
+      "version": "5.2.10-5"
+    },
+    {
+      "name": "libgda-5.0-dev",
+      "version": "5.2.10-5"
+    },
+    {
+      "name": "libgdbm-compat4t64",
+      "version": "1.24-2"
+    },
+    {
+      "name": "libgdbm6t64",
+      "version": "1.24-2"
+    },
+    {
+      "name": "libgdk-pixbuf-2.0-0",
+      "version": "2.42.12+dfsg-4+deb13u1"
+    },
+    {
+      "name": "libgdk-pixbuf-2.0-dev",
+      "version": "2.42.12+dfsg-4+deb13u1"
+    },
+    {
+      "name": "libgdk-pixbuf2.0-bin",
+      "version": "2.42.12+dfsg-4+deb13u1"
+    },
+    {
+      "name": "libgdk-pixbuf2.0-common",
+      "version": "2.42.12+dfsg-4+deb13u1"
+    },
+    {
+      "name": "libgio-2.0-dev",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libgio-2.0-dev-bin",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libgirepository-2.0-0",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libgl-dev",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libgl1",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libgl1-mesa-dri",
+      "version": "25.0.7-2+deb13u1"
+    },
+    {
+      "name": "libgles-dev",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libgles1",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libgles2",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libglib2.0-0t64",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libglib2.0-bin",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libglib2.0-data",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libglib2.0-dev",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libglib2.0-dev-bin",
+      "version": "2.84.4-3~deb13u5"
+    },
+    {
+      "name": "libglvnd-core-dev",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libglvnd-dev",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libglvnd0",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libglx-dev",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libglx-mesa0",
+      "version": "25.0.7-2+deb13u1"
+    },
+    {
+      "name": "libglx0",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libgmp10",
+      "version": "2:6.3.0+dfsg-3"
+    },
+    {
+      "name": "libgnutls30t64",
+      "version": "3.8.9-3+deb13u4"
+    },
+    {
+      "name": "libgoffice-0.10-10-common",
+      "version": "0.10.57-2"
+    },
+    {
+      "name": "libgoffice-0.10-10t64",
+      "version": "0.10.57-2+b1"
+    },
+    {
+      "name": "libgoffice-0.10-dev",
+      "version": "0.10.57-2+b1"
+    },
+    {
+      "name": "libgomp1",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libgpg-error0",
+      "version": "1.51-4"
+    },
+    {
+      "name": "libgprofng0",
+      "version": "2.44-3"
+    },
+    {
+      "name": "libgraphite2-3",
+      "version": "1.3.14-2+deb13u1"
+    },
+    {
+      "name": "libgraphite2-dev",
+      "version": "1.3.14-2+deb13u1"
+    },
+    {
+      "name": "libgsf-1-114",
+      "version": "1.14.53-1"
+    },
+    {
+      "name": "libgsf-1-common",
+      "version": "1.14.53-1"
+    },
+    {
+      "name": "libgsf-1-dev",
+      "version": "1.14.53-1"
+    },
+    {
+      "name": "libgssapi-krb5-2",
+      "version": "1.21.3-5+deb13u1"
+    },
+    {
+      "name": "libgtk-3-0t64",
+      "version": "3.24.49-3"
+    },
+    {
+      "name": "libgtk-3-common",
+      "version": "3.24.49-3"
+    },
+    {
+      "name": "libgtk-3-dev",
+      "version": "3.24.49-3"
+    },
+    {
+      "name": "libharfbuzz-cairo0",
+      "version": "10.2.0-1+deb13u1"
+    },
+    {
+      "name": "libharfbuzz-dev",
+      "version": "10.2.0-1+deb13u1"
+    },
+    {
+      "name": "libharfbuzz-gobject0",
+      "version": "10.2.0-1+deb13u1"
+    },
+    {
+      "name": "libharfbuzz-icu0",
+      "version": "10.2.0-1+deb13u1"
+    },
+    {
+      "name": "libharfbuzz-subset0",
+      "version": "10.2.0-1+deb13u1"
+    },
+    {
+      "name": "libharfbuzz0b",
+      "version": "10.2.0-1+deb13u1"
+    },
+    {
+      "name": "libhogweed6t64",
+      "version": "3.10.1-1"
+    },
+    {
+      "name": "libhtml-parser-perl",
+      "version": "3.83-2~deb13u1"
+    },
+    {
+      "name": "libhtml-tagset-perl",
+      "version": "3.24-1"
+    },
+    {
+      "name": "libhtml-tree-perl",
+      "version": "5.07-3"
+    },
+    {
+      "name": "libhttp-cookies-perl",
+      "version": "6.11-1"
+    },
+    {
+      "name": "libhttp-date-perl",
+      "version": "6.06-1"
+    },
+    {
+      "name": "libhttp-message-perl",
+      "version": "7.00-2"
+    },
+    {
+      "name": "libhttp-negotiate-perl",
+      "version": "6.01-2"
+    },
+    {
+      "name": "libhwasan0",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libice-dev",
+      "version": "2:1.1.1-1"
+    },
+    {
+      "name": "libice6",
+      "version": "2:1.1.1-1"
+    },
+    {
+      "name": "libicu-dev",
+      "version": "76.1-4"
+    },
+    {
+      "name": "libicu76",
+      "version": "76.1-4"
+    },
+    {
+      "name": "libidn2-0",
+      "version": "2.3.8-2"
+    },
+    {
+      "name": "libio-html-perl",
+      "version": "1.004-3"
+    },
+    {
+      "name": "libio-socket-ssl-perl",
+      "version": "2.089-1"
+    },
+    {
+      "name": "libisl23",
+      "version": "0.27-1"
+    },
+    {
+      "name": "libitm1",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libjansson4",
+      "version": "2.14-2+b3"
+    },
+    {
+      "name": "libjbig-dev",
+      "version": "2.1-6.1+b2"
+    },
+    {
+      "name": "libjbig0",
+      "version": "2.1-6.1+b2"
+    },
+    {
+      "name": "libjpeg-dev",
+      "version": "1:2.1.5-4"
+    },
+    {
+      "name": "libjpeg62-turbo",
+      "version": "1:2.1.5-4"
+    },
+    {
+      "name": "libjpeg62-turbo-dev",
+      "version": "1:2.1.5-4"
+    },
+    {
+      "name": "libjs-jquery",
+      "version": "3.6.1+dfsg+~3.5.14-1"
+    },
+    {
+      "name": "libk5crypto3",
+      "version": "1.21.3-5+deb13u1"
+    },
+    {
+      "name": "libkeyutils1",
+      "version": "1.6.3-6"
+    },
+    {
+      "name": "libkrb5-3",
+      "version": "1.21.3-5+deb13u1"
+    },
+    {
+      "name": "libkrb5support0",
+      "version": "1.21.3-5+deb13u1"
+    },
+    {
+      "name": "liblastlog2-2",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "liblcms2-2",
+      "version": "2.16-2+deb13u2"
+    },
+    {
+      "name": "liblerc-dev",
+      "version": "4.0.0+ds-5"
+    },
+    {
+      "name": "liblerc4",
+      "version": "4.0.0+ds-5"
+    },
+    {
+      "name": "libllvm19",
+      "version": "1:19.1.7-3+b1"
+    },
+    {
+      "name": "liblsan0",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "liblwp-mediatypes-perl",
+      "version": "6.04-2"
+    },
+    {
+      "name": "liblwp-protocol-https-perl",
+      "version": "6.14-1"
+    },
+    {
+      "name": "liblz4-1",
+      "version": "1.10.0-4"
+    },
+    {
+      "name": "liblzma-dev",
+      "version": "5.8.1-1+deb13u1"
+    },
+    {
+      "name": "liblzma5",
+      "version": "5.8.1-1+deb13u1"
+    },
+    {
+      "name": "liblzo2-2",
+      "version": "2.10-3+b1"
+    },
+    {
+      "name": "libmagic-mgc",
+      "version": "1:5.46-5"
+    },
+    {
+      "name": "libmagic1t64",
+      "version": "1:5.46-5"
+    },
+    {
+      "name": "libmd0",
+      "version": "1.1.0-2+b1"
+    },
+    {
+      "name": "libmount-dev",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "libmount1",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "libmpc3",
+      "version": "1.3.1-1+b3"
+    },
+    {
+      "name": "libmpfr6",
+      "version": "4.2.2-1"
+    },
+    {
+      "name": "libncursesw6",
+      "version": "6.5+20250216-2"
+    },
+    {
+      "name": "libnet-http-perl",
+      "version": "6.23-1"
+    },
+    {
+      "name": "libnet-ssleay-perl",
+      "version": "1.94-3"
+    },
+    {
+      "name": "libnettle8t64",
+      "version": "3.10.1-1"
+    },
+    {
+      "name": "libopengl-dev",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libopengl0",
+      "version": "1.7.0-1+b2"
+    },
+    {
+      "name": "libp11-kit0",
+      "version": "0.25.5-3"
+    },
+    {
+      "name": "libpam-modules",
+      "version": "1.7.0-5"
+    },
+    {
+      "name": "libpam-modules-bin",
+      "version": "1.7.0-5"
+    },
+    {
+      "name": "libpam-runtime",
+      "version": "1.7.0-5"
+    },
+    {
+      "name": "libpam-systemd",
+      "version": "257.13-1~deb13u1"
+    },
+    {
+      "name": "libpam0g",
+      "version": "1.7.0-5"
+    },
+    {
+      "name": "libpango-1.0-0",
+      "version": "1.56.3-1"
+    },
+    {
+      "name": "libpango1.0-dev",
+      "version": "1.56.3-1"
+    },
+    {
+      "name": "libpangocairo-1.0-0",
+      "version": "1.56.3-1"
+    },
+    {
+      "name": "libpangoft2-1.0-0",
+      "version": "1.56.3-1"
+    },
+    {
+      "name": "libpangoxft-1.0-0",
+      "version": "1.56.3-1"
+    },
+    {
+      "name": "libpcre2-16-0",
+      "version": "10.46-1~deb13u2"
+    },
+    {
+      "name": "libpcre2-32-0",
+      "version": "10.46-1~deb13u2"
+    },
+    {
+      "name": "libpcre2-8-0",
+      "version": "10.46-1~deb13u2"
+    },
+    {
+      "name": "libpcre2-dev",
+      "version": "10.46-1~deb13u2"
+    },
+    {
+      "name": "libpcre2-posix3",
+      "version": "10.46-1~deb13u2"
+    },
+    {
+      "name": "libperl5.40",
+      "version": "5.40.1-6+deb13u1"
+    },
+    {
+      "name": "libpixman-1-0",
+      "version": "0.44.0-3"
+    },
+    {
+      "name": "libpixman-1-dev",
+      "version": "0.44.0-3"
+    },
+    {
+      "name": "libpkgconf3",
+      "version": "1.8.1-4"
+    },
+    {
+      "name": "libpng-dev",
+      "version": "1.6.48-1+deb13u5"
+    },
+    {
+      "name": "libpng16-16t64",
+      "version": "1.6.48-1+deb13u5"
+    },
+    {
+      "name": "libproc2-0",
+      "version": "2:4.0.4-9"
+    },
+    {
+      "name": "libpython3-stdlib",
+      "version": "3.13.5-1"
+    },
+    {
+      "name": "libpython3.13-minimal",
+      "version": "3.13.5-2+deb13u5"
+    },
+    {
+      "name": "libpython3.13-stdlib",
+      "version": "3.13.5-2+deb13u5"
+    },
+    {
+      "name": "libreadline8t64",
+      "version": "8.2-6"
+    },
+    {
+      "name": "librsvg2-2",
+      "version": "2.60.0+dfsg-1"
+    },
+    {
+      "name": "librsvg2-common",
+      "version": "2.60.0+dfsg-1"
+    },
+    {
+      "name": "librsvg2-dev",
+      "version": "2.60.0+dfsg-1"
+    },
+    {
+      "name": "libseccomp2",
+      "version": "2.6.0-2"
+    },
+    {
+      "name": "libselinux1",
+      "version": "3.8.1-1"
+    },
+    {
+      "name": "libselinux1-dev",
+      "version": "3.8.1-1"
+    },
+    {
+      "name": "libsemanage-common",
+      "version": "3.8.1-1"
+    },
+    {
+      "name": "libsemanage2",
+      "version": "3.8.1-1"
+    },
+    {
+      "name": "libsensors-config",
+      "version": "1:3.6.2-2"
+    },
+    {
+      "name": "libsensors5",
+      "version": "1:3.6.2-2"
+    },
+    {
+      "name": "libsepol-dev",
+      "version": "3.8.1-1"
+    },
+    {
+      "name": "libsepol2",
+      "version": "3.8.1-1"
+    },
+    {
+      "name": "libsframe1",
+      "version": "2.44-3"
+    },
+    {
+      "name": "libsharpyuv-dev",
+      "version": "1.5.0-0.1"
+    },
+    {
+      "name": "libsharpyuv0",
+      "version": "1.5.0-0.1"
+    },
+    {
+      "name": "libsm-dev",
+      "version": "2:1.2.6-1"
+    },
+    {
+      "name": "libsm6",
+      "version": "2:1.2.6-1"
+    },
+    {
+      "name": "libsmartcols1",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "libsqlite3-0",
+      "version": "3.46.1-7+deb13u2"
+    },
+    {
+      "name": "libssl3t64",
+      "version": "3.5.7-1~deb13u2"
+    },
+    {
+      "name": "libstdc++-14-dev",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libstdc++6",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libsysprof-capture-4-dev",
+      "version": "48.0-2"
+    },
+    {
+      "name": "libsystemd-dev",
+      "version": "257.13-1~deb13u1"
+    },
+    {
+      "name": "libsystemd-shared",
+      "version": "257.13-1~deb13u1"
+    },
+    {
+      "name": "libsystemd0",
+      "version": "257.13-1~deb13u1"
+    },
+    {
+      "name": "libtasn1-6",
+      "version": "4.20.0-2+deb13u1"
+    },
+    {
+      "name": "libthai-data",
+      "version": "0.1.29-2"
+    },
+    {
+      "name": "libthai-dev",
+      "version": "0.1.29-2+b1"
+    },
+    {
+      "name": "libthai0",
+      "version": "0.1.29-2+b1"
+    },
+    {
+      "name": "libtiff-dev",
+      "version": "4.7.0-3+deb13u3"
+    },
+    {
+      "name": "libtiff6",
+      "version": "4.7.0-3+deb13u3"
+    },
+    {
+      "name": "libtiffxx6",
+      "version": "4.7.0-3+deb13u3"
+    },
+    {
+      "name": "libtimedate-perl",
+      "version": "2.3300-2"
+    },
+    {
+      "name": "libtinfo6",
+      "version": "6.5+20250216-2"
+    },
+    {
+      "name": "libtry-tiny-perl",
+      "version": "0.32-1"
+    },
+    {
+      "name": "libtsan2",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libubsan1",
+      "version": "14.2.0-19"
+    },
+    {
+      "name": "libudev1",
+      "version": "257.13-1~deb13u1"
+    },
+    {
+      "name": "libunistring5",
+      "version": "1.3-2"
+    },
+    {
+      "name": "liburi-perl",
+      "version": "5.30-1"
+    },
+    {
+      "name": "libuuid1",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "libvulkan1",
+      "version": "1.4.309.0-1"
+    },
+    {
+      "name": "libwayland-bin",
+      "version": "1.23.1-3"
+    },
+    {
+      "name": "libwayland-client0",
+      "version": "1.23.1-3"
+    },
+    {
+      "name": "libwayland-cursor0",
+      "version": "1.23.1-3"
+    },
+    {
+      "name": "libwayland-dev",
+      "version": "1.23.1-3"
+    },
+    {
+      "name": "libwayland-egl1",
+      "version": "1.23.1-3"
+    },
+    {
+      "name": "libwayland-server0",
+      "version": "1.23.1-3"
+    },
+    {
+      "name": "libwebp-dev",
+      "version": "1.5.0-0.1"
+    },
+    {
+      "name": "libwebp7",
+      "version": "1.5.0-0.1"
+    },
+    {
+      "name": "libwebpdecoder3",
+      "version": "1.5.0-0.1"
+    },
+    {
+      "name": "libwebpdemux2",
+      "version": "1.5.0-0.1"
+    },
+    {
+      "name": "libwebpmux3",
+      "version": "1.5.0-0.1"
+    },
+    {
+      "name": "libwww-perl",
+      "version": "6.78-1"
+    },
+    {
+      "name": "libwww-robotrules-perl",
+      "version": "6.02-1"
+    },
+    {
+      "name": "libx11-6",
+      "version": "2:1.8.12-1"
+    },
+    {
+      "name": "libx11-data",
+      "version": "2:1.8.12-1"
+    },
+    {
+      "name": "libx11-dev",
+      "version": "2:1.8.12-1"
+    },
+    {
+      "name": "libx11-xcb1",
+      "version": "2:1.8.12-1"
+    },
+    {
+      "name": "libxau-dev",
+      "version": "1:1.0.11-1"
+    },
+    {
+      "name": "libxau6",
+      "version": "1:1.0.11-1"
+    },
+    {
+      "name": "libxcb-dri3-0",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-glx0",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-present0",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-randr0",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-render0",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-render0-dev",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-shm0",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-shm0-dev",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-sync1",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb-xfixes0",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb1",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcb1-dev",
+      "version": "1.17.0-2+b1"
+    },
+    {
+      "name": "libxcomposite-dev",
+      "version": "1:0.4.6-1"
+    },
+    {
+      "name": "libxcomposite1",
+      "version": "1:0.4.6-1"
+    },
+    {
+      "name": "libxcursor-dev",
+      "version": "1:1.2.3-1"
+    },
+    {
+      "name": "libxcursor1",
+      "version": "1:1.2.3-1"
+    },
+    {
+      "name": "libxdamage-dev",
+      "version": "1:1.1.6-1+b2"
+    },
+    {
+      "name": "libxdamage1",
+      "version": "1:1.1.6-1+b2"
+    },
+    {
+      "name": "libxdmcp-dev",
+      "version": "1:1.1.5-1"
+    },
+    {
+      "name": "libxdmcp6",
+      "version": "1:1.1.5-1"
+    },
+    {
+      "name": "libxext-dev",
+      "version": "2:1.3.4-1+b3"
+    },
+    {
+      "name": "libxext6",
+      "version": "2:1.3.4-1+b3"
+    },
+    {
+      "name": "libxfixes-dev",
+      "version": "1:6.0.0-2+b4"
+    },
+    {
+      "name": "libxfixes3",
+      "version": "1:6.0.0-2+b4"
+    },
+    {
+      "name": "libxft-dev",
+      "version": "2.3.6-1+b4"
+    },
+    {
+      "name": "libxft2",
+      "version": "2.3.6-1+b4"
+    },
+    {
+      "name": "libxi-dev",
+      "version": "2:1.8.2-1"
+    },
+    {
+      "name": "libxi6",
+      "version": "2:1.8.2-1"
+    },
+    {
+      "name": "libxinerama-dev",
+      "version": "2:1.1.4-3+b4"
+    },
+    {
+      "name": "libxinerama1",
+      "version": "2:1.1.4-3+b4"
+    },
+    {
+      "name": "libxkbcommon-dev",
+      "version": "1.7.0-2"
+    },
+    {
+      "name": "libxkbcommon0",
+      "version": "1.7.0-2"
+    },
+    {
+      "name": "libxml-parser-perl",
+      "version": "2.47-2~deb13u1"
+    },
+    {
+      "name": "libxml2",
+      "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+    },
+    {
+      "name": "libxml2-dev",
+      "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+    },
+    {
+      "name": "libxml2-utils",
+      "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+    },
+    {
+      "name": "libxrandr-dev",
+      "version": "2:1.5.4-1+b3"
+    },
+    {
+      "name": "libxrandr2",
+      "version": "2:1.5.4-1+b3"
+    },
+    {
+      "name": "libxrender-dev",
+      "version": "1:0.9.12-1"
+    },
+    {
+      "name": "libxrender1",
+      "version": "1:0.9.12-1"
+    },
+    {
+      "name": "libxshmfence1",
+      "version": "1.3.3-1"
+    },
+    {
+      "name": "libxslt1-dev",
+      "version": "1.1.35-1.2+deb13u3"
+    },
+    {
+      "name": "libxslt1.1",
+      "version": "1.1.35-1.2+deb13u3"
+    },
+    {
+      "name": "libxtst-dev",
+      "version": "2:1.2.5-1"
+    },
+    {
+      "name": "libxtst6",
+      "version": "2:1.2.5-1"
+    },
+    {
+      "name": "libxxf86vm1",
+      "version": "1:1.1.4-1+b4"
+    },
+    {
+      "name": "libxxhash0",
+      "version": "0.8.3-2"
+    },
+    {
+      "name": "libz3-4",
+      "version": "4.13.3-1"
+    },
+    {
+      "name": "libzstd-dev",
+      "version": "1.5.7+dfsg-1"
+    },
+    {
+      "name": "libzstd1",
+      "version": "1.5.7+dfsg-1"
+    },
+    {
+      "name": "linux-libc-dev",
+      "version": "6.12.107-1"
+    },
+    {
+      "name": "login",
+      "version": "1:4.16.0-2+really2.41.5-0+deb13u1"
+    },
+    {
+      "name": "login.defs",
+      "version": "1:4.17.4-2"
+    },
+    {
+      "name": "m4",
+      "version": "1.4.19-8"
+    },
+    {
+      "name": "make",
+      "version": "4.4.1-2"
+    },
+    {
+      "name": "mawk",
+      "version": "1.3.4.20250131-1"
+    },
+    {
+      "name": "media-types",
+      "version": "13.0.0"
+    },
+    {
+      "name": "mesa-libgallium",
+      "version": "25.0.7-2+deb13u1"
+    },
+    {
+      "name": "mount",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "native-architecture",
+      "version": "0.2.6"
+    },
+    {
+      "name": "ncurses-base",
+      "version": "6.5+20250216-2"
+    },
+    {
+      "name": "ncurses-bin",
+      "version": "6.5+20250216-2"
+    },
+    {
+      "name": "netbase",
+      "version": "6.5"
+    },
+    {
+      "name": "openssl",
+      "version": "3.5.7-1~deb13u2"
+    },
+    {
+      "name": "openssl-provider-legacy",
+      "version": "3.5.7-1~deb13u2"
+    },
+    {
+      "name": "pango1.0-tools",
+      "version": "1.56.3-1"
+    },
+    {
+      "name": "passwd",
+      "version": "1:4.17.4-2"
+    },
+    {
+      "name": "patch",
+      "version": "2.8-2"
+    },
+    {
+      "name": "perl",
+      "version": "5.40.1-6+deb13u1"
+    },
+    {
+      "name": "perl-base",
+      "version": "5.40.1-6+deb13u1"
+    },
+    {
+      "name": "perl-modules-5.40",
+      "version": "5.40.1-6+deb13u1"
+    },
+    {
+      "name": "perl-openssl-defaults",
+      "version": "7+b2"
+    },
+    {
+      "name": "pkg-config",
+      "version": "1.8.1-4"
+    },
+    {
+      "name": "pkgconf",
+      "version": "1.8.1-4"
+    },
+    {
+      "name": "pkgconf-bin",
+      "version": "1.8.1-4"
+    },
+    {
+      "name": "procps",
+      "version": "2:4.0.4-9"
+    },
+    {
+      "name": "python3",
+      "version": "3.13.5-1"
+    },
+    {
+      "name": "python3-libxml2",
+      "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+    },
+    {
+      "name": "python3-minimal",
+      "version": "3.13.5-1"
+    },
+    {
+      "name": "python3-packaging",
+      "version": "25.0-1"
+    },
+    {
+      "name": "python3.13",
+      "version": "3.13.5-2+deb13u5"
+    },
+    {
+      "name": "python3.13-minimal",
+      "version": "3.13.5-2+deb13u5"
+    },
+    {
+      "name": "readline-common",
+      "version": "8.2-6"
+    },
+    {
+      "name": "rpcsvc-proto",
+      "version": "1.4.3-1+b1"
+    },
+    {
+      "name": "sed",
+      "version": "4.9-2+deb13u1"
+    },
+    {
+      "name": "sgml-base",
+      "version": "1.31+nmu1"
+    },
+    {
+      "name": "shared-mime-info",
+      "version": "2.4-5+b2"
+    },
+    {
+      "name": "sqv",
+      "version": "1.3.0-3+b2"
+    },
+    {
+      "name": "systemd",
+      "version": "257.13-1~deb13u1"
+    },
+    {
+      "name": "systemd-sysv",
+      "version": "257.13-1~deb13u1"
+    },
+    {
+      "name": "sysvinit-utils",
+      "version": "3.14-4"
+    },
+    {
+      "name": "tar",
+      "version": "1.35+dfsg-3.1"
+    },
+    {
+      "name": "tzdata",
+      "version": "2026c-0+deb13u1"
+    },
+    {
+      "name": "util-linux",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "uuid-dev",
+      "version": "2.41.5-0+deb13u1"
+    },
+    {
+      "name": "wayland-protocols",
+      "version": "1.44-1"
+    },
+    {
+      "name": "x11-common",
+      "version": "1:7.7+24+deb13u1"
+    },
+    {
+      "name": "x11proto-dev",
+      "version": "2024.1-1"
+    },
+    {
+      "name": "xkb-data",
+      "version": "2.42-1"
+    },
+    {
+      "name": "xml-core",
+      "version": "0.19"
+    },
+    {
+      "name": "xorg-sgml-doctools",
+      "version": "1:1.11-1.1"
+    },
+    {
+      "name": "xtrans-dev",
+      "version": "1.4.0-1"
+    },
+    {
+      "name": "xz-utils",
+      "version": "5.8.1-1+deb13u1"
+    },
+    {
+      "name": "zlib1g",
+      "version": "1:1.3.dfsg+really1.3.1-1+b1"
+    },
+    {
+      "name": "zlib1g-dev",
+      "version": "1:1.3.dfsg+really1.3.1-1+b1"
+    }
+  ],
+  "linkedLibraries": [
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "6347b479b2db6008e7433819c0147049b3894cffd09dee0c9486a19354c142b6"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10",
+      "sha256": "1c8c93e9a2a5c5935134a206bc8b8267dc4073d54c36824531e7948b9fb2bc8f"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgsf-1.so.114",
+      "sha256": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgtk-3.so.0",
+      "sha256": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgobject-2.0.so.0",
+      "sha256": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libglib-2.0.so.0",
+      "sha256": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libc.so.6",
+      "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxml2.so.2",
+      "sha256": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgmodule-2.0.so.0",
+      "sha256": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgdk-3.so.0",
+      "sha256": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0",
+      "sha256": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpango-1.0.so.0",
+      "sha256": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatk-1.0.so.0",
+      "sha256": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcairo.so.2",
+      "sha256": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0",
+      "sha256": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgio-2.0.so.0",
+      "sha256": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libm.so.6",
+      "sha256": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxslt.so.1",
+      "sha256": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/librsvg-2.so.2",
+      "sha256": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libz.so.1",
+      "sha256": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libbz2.so.1.0",
+      "sha256": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46"
+    },
+    {
+      "path": "/lib/ld-linux-aarch64.so.1",
+      "sha256": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libharfbuzz.so.0",
+      "sha256": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0",
+      "sha256": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libfontconfig.so.1",
+      "sha256": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libfribidi.so.0",
+      "sha256": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcairo-gobject.so.2",
+      "sha256": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libepoxy.so.0",
+      "sha256": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXi.so.6",
+      "sha256": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libX11.so.6",
+      "sha256": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0",
+      "sha256": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcloudproviders.so.0",
+      "sha256": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXfixes.so.3",
+      "sha256": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libffi.so.8",
+      "sha256": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatomic.so.1",
+      "sha256": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpcre2-8.so.0",
+      "sha256": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/liblzma.so.5",
+      "sha256": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxkbcommon.so.0",
+      "sha256": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libwayland-client.so.0",
+      "sha256": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libwayland-cursor.so.0",
+      "sha256": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libwayland-egl.so.1",
+      "sha256": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXext.so.6",
+      "sha256": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXcursor.so.1",
+      "sha256": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXdamage.so.1",
+      "sha256": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXcomposite.so.1",
+      "sha256": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXrandr.so.2",
+      "sha256": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXinerama.so.1",
+      "sha256": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libthai.so.0",
+      "sha256": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpng16.so.16",
+      "sha256": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libfreetype.so.6",
+      "sha256": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXrender.so.1",
+      "sha256": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxcb.so.1",
+      "sha256": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxcb-render.so.0",
+      "sha256": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxcb-shm.so.0",
+      "sha256": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpixman-1.so.0",
+      "sha256": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libjpeg.so.62",
+      "sha256": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libmount.so.1",
+      "sha256": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libselinux.so.1",
+      "sha256": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "sha256": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libdav1d.so.7",
+      "sha256": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgraphite2.so.3",
+      "sha256": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libexpat.so.1",
+      "sha256": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatspi.so.0",
+      "sha256": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libdbus-1.so.3",
+      "sha256": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libdatrie.so.1",
+      "sha256": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libbrotlidec.so.1",
+      "sha256": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXau.so.6",
+      "sha256": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXdmcp.so.6",
+      "sha256": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libblkid.so.1",
+      "sha256": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libsystemd.so.0",
+      "sha256": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libbrotlicommon.so.1",
+      "sha256": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcap.so.2",
+      "sha256": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec"
+    }
+  ],
+  "installedPluginManifests": [
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml",
+      "sha256": "a5574fbeca4886d4b2d1833c87d426ecbbe0dcfb3cd3aa4889f05ec26a1131a3"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/html/plugin.xml",
+      "sha256": "0e24fe00f38781cdb1a63056cd382747edcd41c8decb7b355cb8ac8485de31cd"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml",
+      "sha256": "9871ad45a606d789ea8a88c8ebf0f3c24c8ad36a48085c0d3640855537d593d1"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/oleo/plugin.xml",
+      "sha256": "04785baf2b561c260c0b5d6b86f0f3ce372d4e52446fba12aabe723a8b61862f"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml",
+      "sha256": "725750f75463e7e23bcef0d258e6d608f8acb3b40420dd34c41c5aabc3d6c0ac"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml",
+      "sha256": "1bc6f5cf11d2ff63acf624460e792028348a3b779bd9d912f05c3cf3f2b536c3"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml",
+      "sha256": "5389636fe217178ea53c2f786576f03171f7272cda505116d1ff120353557712"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml",
+      "sha256": "e8e43964a2956c5c2d671aa84f529142868fc6a8a4bf4e959f3cc1562a7a73c8"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml",
+      "sha256": "ebe04a5845a58a9b5838d81974053e79ffb9ef22f505827d3673a9606dee66e5"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/excel/plugin.xml",
+      "sha256": "04af00f442424ae635c43d758c9da5a9cef93731015519e5a01c0da7a635aff2"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml",
+      "sha256": "8bb27356e050e4ac7598412725bc400431ce3e6c7a481e55e6ebbf8bc351b959"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml",
+      "sha256": "4c576c6678566525258e4ed3102db586429e9e4b178b3c14ef3ab62be773b3bf"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sylk/plugin.xml",
+      "sha256": "5b0dff2a02ef7efa50773c1c775766c9cb9c8ae8a70645a9fe1c7b1cf8aa3c54"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/applix/plugin.xml",
+      "sha256": "6d35f6abb0886d915ba6e4b7cfc17e23678804e82cbb92018b277d12321c686a"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml",
+      "sha256": "7ebcf83d399b971cfa949a512515f149707e66fd70e63a977035766d56f16e44"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml",
+      "sha256": "4540ff972f2b5c35e1c709ca522bb385333d1fb9832ebcb9a355c87000075978"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml",
+      "sha256": "73f79393f3e38c493080afe204a0bea3b8ee936d6342aa680800f6dfc5b507a6"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sc/plugin.xml",
+      "sha256": "ac9c8c8ca7b20045cd6e297b985f47ed0109468752357adf99e81275c3e6674c"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml",
+      "sha256": "971a835f16d9c26130875f07b1eece000a3405ac05244305f0472bff4823430c"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml",
+      "sha256": "d06c9e7d9aec1849fa9ea5d9bd267f4af20f227a98c708dc57ed3b63f17f93cc"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml",
+      "sha256": "a17f4faa5ccea0be71c413b1ab15617ab935a0492bc79c376aadc611c978fb46"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/glpk/plugin.xml",
+      "sha256": "f9ff2f40013f2ba14c5f2cf363591508fed7c681ac4e7b426f889e754fa37ea6"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml",
+      "sha256": "b26fadcf27e9783fa243775f74851730675703f8a25fa1c3c16cd775803505d3"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml",
+      "sha256": "b1efca176c3e4acb7988b62619d942b345dc4651441e45d8faad2db52f22d351"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml",
+      "sha256": "512e2debdc09f8ab5adaab5c7f99b5c414a31d7b4285dfe81c5b7b382c7a5093"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml",
+      "sha256": "98edcc7806bf6e51ad0a27ca299b207750ecfd2367460ef13dc42a3ab8c83bda"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/mps/plugin.xml",
+      "sha256": "b4af2d3924241b0e15ad39afb433cf802135d92a6c8b5bde328e409cf4814f9d"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml",
+      "sha256": "4377e08837429c637fd528229634443a84d1e1b1ff442e942a427d44026b9f8d"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/qpro/plugin.xml",
+      "sha256": "2ad3b9c8436d47d497fe8394626a19efb085f53afaa420637ec758401039a9f3"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/xbase/plugin.xml",
+      "sha256": "77dee717114afeecce37ea4d348fff0c2ffe230b345607e0e10819578ec6780a"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lotus/plugin.xml",
+      "sha256": "a38de08bb20b878d566708a305d242ff898b8df6fbfd467af43362d46cd38f5b"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml",
+      "sha256": "261ac77c377ed815456a8f6934cc12a9a6edca868e08cfe331a17fdadce73c0f"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/uihello/plugin.xml",
+      "sha256": "54f9eb2f628c6d4d069a89426ad5e9b9e4229340d0a9dc628e63f991befb6a37"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/dif/plugin.xml",
+      "sha256": "c4df295133bbea7ec076e0334c7c8578258e34e1ccbd492eaa52ab21bd3553d6"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml",
+      "sha256": "9dc90aaf8202a8dae7000c7a740df897f7cf477932652bb14c60d86515d34606"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml",
+      "sha256": "48a4d9c2142d9eb0bf8ecf0136841e9e500cf5c0bd88471e1802159232f1a0f3"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml",
+      "sha256": "82285e2a1f04ca5e9ff50b3c534710fd3de52faad19ad1bb2fdf65adfafbd2ac"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml",
+      "sha256": "e9802b5951b077a533f7c90ae6feae5b2a22aa38191911a04b58c45bbdbfa634"
+    }
+  ],
+  "locales": [
+    "C",
+    "C.utf8",
+    "POSIX"
+  ],
+  "referenceContract": {
+    "path": "docs/ssconvert/reference-profile.json",
+    "sha256": "111b2a50a5df70f73734f536660a74317a193ff8c026823156918fcfc6402fdc"
+  },
+  "profileDifference": "Paradox is absent in this supplementary build; both importer and exporter lists lack Gnumeric_paradox:paradox. Version/help/image-format bytes match the prior fresh reference. Main parser qualification does not qualify format conversion or all upstream profiles.",
+  "differential": {
+    "cases": 644,
+    "terminalPasses": 641,
+    "terminalMismatches": 0,
+    "conversionDispatchCasesNotCounted": 3,
+    "argv0Substitution": {
+      "from": "/opt/ssconvert-reference/bin/ssconvert",
+      "to": "ssconvert",
+      "scope": "help and parser-error hints only"
+    }
+  }
+}

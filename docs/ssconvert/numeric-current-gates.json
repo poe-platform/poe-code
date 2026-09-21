@@ -1,0 +1,439 @@
+{
+  "candidateAggregateSha256": "bbaf00e24fa4b1e843a2a502b520731385bd8626c78ac7e03f7334d2d3ef26e3",
+  "scope": "Scoped dirty-worktree receipt; not committed revision or complete transitive runtime closure",
+  "checks": [
+    {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "status": "pass",
+      "exitStatus": 0,
+      "detail": "2545 tests,102 files,no skips",
+      "logSha256": "4c9fcbfd58f158eb2a65590f93e6b58b39085591dcd30516c355fa5eca34ea2c"
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "pass",
+      "exitStatus": 0,
+      "detail": "ESLint, production and test TypeScript",
+      "logSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": "pass",
+      "exitStatus": 0,
+      "detail": "maintained 18-workspace closure",
+      "logSha256": "024948762405938de3660cd5d1cc534bc29f9901861c8144052bf989233d2edf"
+    },
+    {
+      "command": "npm run build",
+      "status": "pass",
+      "exitStatus": 0,
+      "detail": "full workspace and root suffix stages",
+      "logSha256": "c74de8f0592df8ca86c874c0eafd31e0292b8f5f490457f3b63868691a18505b"
+    },
+    {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "pass",
+      "exitStatus": 0,
+      "detail": "33 tests,no skips",
+      "logSha256": "804365988ec818a08dc7f676e0b52455104ea32447e0591a696aea07f1d72524"
+    },
+    {
+      "command": "npm test",
+      "status": "pass-with-skips-and-todos",
+      "exitStatus": 0,
+      "logSha256": "8d29155dd343f0afb486e17b17b6b38413354153bbdfe23a01b4a2c2a8e5f62a",
+      "workspaceRunner": {
+        "workspaces": 85,
+        "builds": 33,
+        "tests": 53,
+        "concurrency": 1,
+        "cache": "SHARED",
+        "unitCacheHits": 0,
+        "unitCacheMisses": 0,
+        "unitFingerprintMs": 16204,
+        "excluded": [],
+        "noTest": [
+          {
+            "name": "@poe-code/agent-defs",
+            "path": "packages/agent-defs",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-eval",
+            "path": "packages/agent-eval",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-human-in-loop",
+            "path": "packages/agent-human-in-loop",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-mcp-config",
+            "path": "packages/agent-mcp-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-skill-config",
+            "path": "packages/agent-skill-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "auth-store",
+            "path": "packages/auth-store",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/cached-resource",
+            "path": "packages/cached-resource",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/config-extends",
+            "path": "packages/config-extends",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/config-mutations",
+            "path": "packages/config-mutations",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/e2e-test-runner",
+            "path": "packages/e2e-test-runner",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "mcp-oauth",
+            "path": "packages/mcp-oauth",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/pipeline",
+            "path": "packages/pipeline",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/plan-browser",
+            "path": "packages/plan-browser",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-acp-client",
+            "path": "packages/poe-acp-client",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-agent",
+            "path": "packages/poe-agent",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-code-config",
+            "path": "packages/poe-code-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "poe-oauth",
+            "path": "packages/poe-oauth",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/providers",
+            "path": "packages/providers",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/safe-fs",
+            "path": "packages/safe-fs",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/terminal-name",
+            "path": "packages/terminal-name",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-pilot-mcp",
+            "path": "packages/terminal-pilot-mcp",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-png",
+            "path": "packages/terminal-png",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-png-mcp",
+            "path": "packages/terminal-png-mcp",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-http-mcp-oauth-test-server",
+            "path": "packages/tiny-http-mcp-oauth-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-http-mcp-server",
+            "path": "packages/tiny-http-mcp-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-mcp-client",
+            "path": "packages/tiny-mcp-client",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-oauth-test-server",
+            "path": "packages/tiny-oauth-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-stdio-mcp-server",
+            "path": "packages/tiny-stdio-mcp-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-stdio-mcp-test-server",
+            "path": "packages/tiny-stdio-mcp-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tokenfill",
+            "path": "packages/tokenfill",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "toolcraft-design",
+            "path": "packages/toolcraft-design",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/user-error",
+            "path": "packages/user-error",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/worktree",
+            "path": "packages/worktree",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          }
+        ],
+        "noBuild": [],
+        "manifestless": [
+          "packages/braintrust",
+          "packages/safe-bash-optional"
+        ],
+        "cacheHits": 20,
+        "cacheMisses": 0,
+        "fingerprintMs": 12430,
+        "executionMs": 4562849
+      },
+      "frameworkSummaryLines": [
+        " Test Files  100 passed (100)",
+        "      Tests  1867 passed (1867)",
+        " Test Files  100 passed (100)",
+        "      Tests  2665 passed (2665)",
+        " Test Files  100 passed (100)",
+        "      Tests  3824 passed (3824)",
+        " Test Files  99 passed | 1 skipped (100)",
+        "      Tests  1476 passed | 1 skipped (1477)",
+        " Test Files  100 passed (100)",
+        "      Tests  3072 passed (3072)",
+        " Test Files  100 passed (100)",
+        "      Tests  1281 passed (1281)",
+        " Test Files  100 passed (100)",
+        "      Tests  2548 passed (2548)",
+        " Test Files  100 passed (100)",
+        "      Tests  2131 passed (2131)",
+        " Test Files  100 passed (100)",
+        "      Tests  1828 passed (1828)",
+        " Test Files  100 passed (100)",
+        "      Tests  4109 passed | 5 todo (4114)",
+        " Test Files  100 passed (100)",
+        "      Tests  1831 passed (1831)",
+        " Test Files  100 passed (100)",
+        "      Tests  1687 passed (1687)",
+        " Test Files  100 passed (100)",
+        "      Tests  2719 passed (2719)",
+        " Test Files  100 passed (100)",
+        "      Tests  1760 passed (1760)",
+        " Test Files  100 passed (100)",
+        "      Tests  1896 passed (1896)",
+        " Test Files  100 passed (100)",
+        "      Tests  3420 passed (3420)",
+        " Test Files  99 passed | 1 skipped (100)",
+        "      Tests  1909 passed | 1 skipped (1910)",
+        " Test Files  100 passed (100)",
+        "      Tests  7119 passed (7119)",
+        " Test Files  100 passed (100)",
+        "      Tests  2777 passed (2777)",
+        " Test Files  4 passed (4)",
+        "      Tests  2304 passed (2304)",
+        "# tests 851",
+        "# suites 1",
+        "# pass 851",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  47 passed (47)",
+        "      Tests  1067 passed (1067)",
+        "ℹ tests 558",
+        "ℹ suites 0",
+        "ℹ pass 558",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ tests 44914",
+        "ℹ suites 43",
+        "ℹ pass 44081",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 831",
+        "ℹ todo 2",
+        "# tests 117",
+        "# suites 0",
+        "# pass 117",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# tests 84",
+        "# suites 0",
+        "# pass 84",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# tests 1",
+        "# suites 0",
+        "# pass 1",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  1467 passed | 3 skipped (1470)",
+        "      Tests  31121 passed | 48 skipped (31169)",
+        "# tests 34",
+        "# suites 0",
+        "# pass 34",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  9 passed (9)",
+        "      Tests  34 passed (34)",
+        " Test Files  1153 passed (1153)",
+        "      Tests  84610 passed (84610)",
+        " Test Files  102 passed (102)",
+        "      Tests  2545 passed (2545)",
+        " Test Files  9 passed (9)",
+        "      Tests  293 passed (293)",
+        " Test Files  1 passed (1)",
+        "      Tests  2 passed (2)"
+      ],
+      "unavailableCasesArePasses": false
+    },
+    {
+      "command": "npm run lint",
+      "status": "pass-with-warnings",
+      "exitStatus": 0,
+      "logSha256": "8d2f1b8f3afe0ff2bc89c665c5eb213c03b3f50e948a6507108d6c4e82f4b6a6",
+      "eslint": {
+        "complete": true,
+        "errorCount": 0,
+        "warningCount": 4,
+        "scope": {
+          "configured": 16660,
+          "linted": 16660,
+          "ignored": 2044,
+          "unconfigured": 38679,
+          "ignoredDirectories": 166,
+          "heldExcluded": 5
+        },
+        "cacheHits": 16626,
+        "receiptsComplete": true
+      },
+      "typescriptAndWorkflowLint": "pass",
+      "contractSummaryLines": [
+        "NodeNext Node-only: 25 cases passed in 1758.5ms",
+        "NodeNext DOM: 25 cases passed in 2267.7ms",
+        "Bundler Node-only: 25 cases passed in 1014.6ms",
+        "Bundler DOM: 25 cases passed in 1609.1ms",
+        "NodeNext Node-only: 9 cases passed in 1999.0ms",
+        "NodeNext DOM: 9 cases passed in 1705.6ms",
+        "Bundler Node-only: 9 cases passed in 690.8ms",
+        "Bundler DOM: 9 cases passed in 1276.8ms"
+      ]
+    }
+  ],
+  "blockedChecks": [
+    {
+      "command": "npm run typecheck --workspace=@poe-platform/safe-bash",
+      "status": "failed-prerequisite",
+      "reason": "Public SafeFS must preserve shared SafeJS runtime identity",
+      "builds": 0,
+      "consumerGroups": 0,
+      "runtimeExecutions": 0,
+      "cleanup": true,
+      "exitStatus": 2,
+      "logSha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3"
+    }
+  ],
+  "incompleteAttempts": [
+    {
+      "check": "broad uncached npm test",
+      "status": "failed-and-incomplete",
+      "reason": "ENOENT op/dist/secrets.js during overlapping root build; owned children cleaned up"
+    },
+    {
+      "check": "two subsequent broad npm test runs",
+      "status": "interrupted-incomplete",
+      "reason": "candidate changed; final completed run supersedes them"
+    },
+    {
+      "check": "two repository lint attempts",
+      "status": "failed-incomplete",
+      "exitStatus": 2,
+      "reason": "ancestor directory size changed during concurrent build/test; zero lint errors,four warnings"
+    }
+  ],
+  "postFullTestReceiptCheck": [
+    {
+      "receipt": "candidate",
+      "files": 221,
+      "drift": []
+    },
+    {
+      "receipt": "artifacts",
+      "files": 424,
+      "drift": []
+    }
+  ],
+  "screenshot": {
+    "status": "generated-and-visually-inspected",
+    "sha256": "d90bbc29cb8e65352048c1d5b29f24b07b09e6be8c54b7b925d3dd83d41c5753",
+    "qualification": "Ad hoc injected-codec CLI preview, not full real-format serialization parity"
+  },
+  "finalReceiptCheck": [
+    {
+      "receipt": "candidate",
+      "files": 221,
+      "drift": []
+    },
+    {
+      "receipt": "artifacts",
+      "files": 424,
+      "drift": []
+    }
+  ],
+  "cleanup": {
+    "rootOwnedTransientEntriesRemoved": 75,
+    "primarySourcesPreserved": true,
+    "oracleContainerPreviouslyRemoved": true,
+    "otherWorktreeProcessesUntouched": true,
+    "agentOwnedTransientFilesRemoved": 176
+  }
+}

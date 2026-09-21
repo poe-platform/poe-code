@@ -1,0 +1,115 @@
+{
+  "captureDate": "2026-09-19",
+  "purpose": "Separate native QA oracle; never a product dependency or fallback",
+  "container": "ssconvert-math-qa-20260919",
+  "architecture": "aarch64",
+  "gnumericVersion": "1.12.61",
+  "gnumericSourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "gofficeVersion": "0.10.61",
+  "nativeBinarySha256": "c4a0bb36004f427e69625691bb3b9886a976cd38c38a528ad9db5ed03289e72a",
+  "environment": {
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "GSETTINGS_SCHEMA_DIR": "/out/prefix/share/glib-2.0/schemas",
+    "GSETTINGS_BACKEND": "memory"
+  },
+  "dependencies": [
+    "libc6:arm64\t2.41-12+deb13u4",
+    "libglib2.0-0t64:arm64\t2.84.4-3~deb13u5",
+    "libgmp10:arm64\t2:6.3.0+dfsg-3",
+    "libgsf-1-114:arm64\t1.14.53-1",
+    "libmpfr6:arm64\t4.2.2-1",
+    "libxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+  ],
+  "plugins": [
+    {
+      "group": "fn-math",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "0c4085d04b4830c97c3aa44ba3a06ccfe053d065c4fac44da6027d827e5d3f1b"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "52ff2d50c0d5f54dff5c5ee2689a3d692db29291f10c9fee5541153feebbc2d4"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "971a835f16d9c26130875f07b1eece000a3405ac05244305f0472bff4823430c"
+        }
+      ]
+    },
+    {
+      "group": "fn-eng",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "667fdc61806328d730d9d3ae9c7be0e8eed44336e828f3841e947b7b4f14e997"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "d0d14ce7619755b64907a791e3993f58e73e447b68cdfc4cc7c967c961df65b3"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "d06c9e7d9aec1849fa9ea5d9bd267f4af20f227a98c708dc57ed3b63f17f93cc"
+        }
+      ]
+    },
+    {
+      "group": "fn-complex",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "5ba08001706968c751e6a6955212966f6cdbc583e53294c31b7e37283d09995f"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "1715d90ff85cd9683898572be94eb6c36d9fd67c411d34c203df3a4645e47fd0"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "a5574fbeca4886d4b2d1833c87d426ecbbe0dcfb3cd3aa4889f05ec26a1131a3"
+        }
+      ]
+    },
+    {
+      "group": "fn-flt",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "d973e2b1689906038452f9a99226424713c69f325ba2c714f271bee6c021363f"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "ccd52b8e8037856a154f21e29e4b194bf4c89a9343cb48b18adf9874a45814ec"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "4377e08837429c637fd528229634443a84d1e1b1ff442e942a427d44026b9f8d"
+        }
+      ]
+    },
+    {
+      "group": "fn-numtheory",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "91a461b7a1d82950882138e6003b8500d0971c97723dd1f7b08ce9aab02f49e4"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "f4d3fc37f9709fc774408dc48fadfdda1efef947fefb52e1d72f772111f6fc5d"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "4540ff972f2b5c35e1c709ca522bb385333d1fb9832ebcb9a355c87000075978"
+        }
+      ]
+    }
+  ],
+  "historicalProfileEquivalent": false,
+  "referenceSourceHashes": {
+    "goMathC": "faf6b7fbdd00d70a989135d95bf0924307fc3a89570b1eed36ca224684a7ef36"
+  }
+}

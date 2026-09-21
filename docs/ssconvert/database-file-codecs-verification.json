@@ -1,0 +1,2139 @@
+{
+  "schemaVersion": 1,
+  "task": "database-file-codecs",
+  "reference": {
+    "version": "Gnumeric 1.12.61",
+    "sourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "baseProfile": "html-reference-profile.json",
+    "optionalProfile": "modified QA-only pxlib 0.6.9; not an unmodified parity gate",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib:/out/ssconvert-database/px-qa-prefix/lib",
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+      "GNUMERIC_PLUGIN_PATH": "/out/ssconvert-database/plugins-qa",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GSETTINGS_BACKEND": "memory",
+      "HOME": "/out/ssconvert-database/home-final"
+    },
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "libraries": {
+      "/out/ssconvert-database/px-qa-prefix/lib/libpx.so.0.6.9": "758aa7f70d40fe804b54792712a46d9f1d0be4df15de74270edada728334ae25",
+      "/out/ssconvert-database/plugins-qa/paradox/paradox.so": "fc6fce627e6a6b97cf70895896e8111569d6d04e8c1dcf678d2ea92d88f4e8ff"
+    },
+    "packages": [
+      {
+        "name": "adduser",
+        "version": "3.152"
+      },
+      {
+        "name": "adwaita-icon-theme",
+        "version": "48.1-1"
+      },
+      {
+        "name": "apt",
+        "version": "3.0.3"
+      },
+      {
+        "name": "at-spi2-common",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "at-spi2-core",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "autoconf",
+        "version": "2.72-3.1"
+      },
+      {
+        "name": "automake",
+        "version": "1:1.17-4"
+      },
+      {
+        "name": "autotools-dev",
+        "version": "20240727.1"
+      },
+      {
+        "name": "base-files",
+        "version": "13.8+deb13u7"
+      },
+      {
+        "name": "base-passwd",
+        "version": "3.6.7"
+      },
+      {
+        "name": "bash",
+        "version": "5.2.37-2+b10"
+      },
+      {
+        "name": "bash-completion",
+        "version": "1:2.16.0-7"
+      },
+      {
+        "name": "binutils",
+        "version": "2.44-3"
+      },
+      {
+        "name": "binutils-aarch64-linux-gnu",
+        "version": "2.44-3"
+      },
+      {
+        "name": "binutils-common:arm64",
+        "version": "2.44-3"
+      },
+      {
+        "name": "bison",
+        "version": "2:3.8.2+dfsg-1+b2"
+      },
+      {
+        "name": "bsdutils",
+        "version": "1:2.41.5-0+deb13u1"
+      },
+      {
+        "name": "build-essential",
+        "version": "12.12"
+      },
+      {
+        "name": "bzip2",
+        "version": "1.0.8-6"
+      },
+      {
+        "name": "bzip2-doc",
+        "version": "1.0.8-6"
+      },
+      {
+        "name": "ca-certificates",
+        "version": "20250419"
+      },
+      {
+        "name": "coreutils",
+        "version": "9.7-3"
+      },
+      {
+        "name": "cpp",
+        "version": "4:14.2.0-1"
+      },
+      {
+        "name": "cpp-14",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "cpp-14-aarch64-linux-gnu",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "cpp-aarch64-linux-gnu",
+        "version": "4:14.2.0-1"
+      },
+      {
+        "name": "curl",
+        "version": "8.14.1-2+deb13u5"
+      },
+      {
+        "name": "dash",
+        "version": "0.5.12-12"
+      },
+      {
+        "name": "dbus",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "dbus-bin",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "dbus-daemon",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "dbus-session-bus-common",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "dbus-system-bus-common",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "dbus-user-session",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "dconf-gsettings-backend:arm64",
+        "version": "0.40.0-5"
+      },
+      {
+        "name": "dconf-service",
+        "version": "0.40.0-5"
+      },
+      {
+        "name": "debconf",
+        "version": "1.5.91"
+      },
+      {
+        "name": "debian-archive-keyring",
+        "version": "2025.1"
+      },
+      {
+        "name": "debianutils",
+        "version": "5.23.2"
+      },
+      {
+        "name": "diffutils",
+        "version": "1:3.10-4"
+      },
+      {
+        "name": "dmsetup",
+        "version": "2:1.02.205-2"
+      },
+      {
+        "name": "dpkg",
+        "version": "1.22.22"
+      },
+      {
+        "name": "dpkg-dev",
+        "version": "1.22.22"
+      },
+      {
+        "name": "fakeroot",
+        "version": "1.37.1.1-1"
+      },
+      {
+        "name": "file",
+        "version": "1:5.46-5"
+      },
+      {
+        "name": "findutils",
+        "version": "4.10.0-3"
+      },
+      {
+        "name": "fontconfig",
+        "version": "2.15.0-2.3"
+      },
+      {
+        "name": "fontconfig-config",
+        "version": "2.15.0-2.3"
+      },
+      {
+        "name": "fonts-dejavu-core",
+        "version": "2.37-8"
+      },
+      {
+        "name": "fonts-dejavu-mono",
+        "version": "2.37-8"
+      },
+      {
+        "name": "g++",
+        "version": "4:14.2.0-1"
+      },
+      {
+        "name": "g++-14",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "g++-14-aarch64-linux-gnu",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "g++-aarch64-linux-gnu",
+        "version": "4:14.2.0-1"
+      },
+      {
+        "name": "gcc",
+        "version": "4:14.2.0-1"
+      },
+      {
+        "name": "gcc-14",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "gcc-14-aarch64-linux-gnu",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "gcc-14-base:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "gcc-aarch64-linux-gnu",
+        "version": "4:14.2.0-1"
+      },
+      {
+        "name": "gettext",
+        "version": "0.23.1-2"
+      },
+      {
+        "name": "gettext-base",
+        "version": "0.23.1-2"
+      },
+      {
+        "name": "gir1.2-atk-1.0:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "gir1.2-atspi-2.0:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "gir1.2-cloudproviders-0.3.0:arm64",
+        "version": "0.3.6-2"
+      },
+      {
+        "name": "gir1.2-freedesktop:arm64",
+        "version": "1.84.0-1"
+      },
+      {
+        "name": "gir1.2-freedesktop-dev:arm64",
+        "version": "1.84.0-1"
+      },
+      {
+        "name": "gir1.2-gdkpixbuf-2.0:arm64",
+        "version": "2.42.12+dfsg-4+deb13u1"
+      },
+      {
+        "name": "gir1.2-glib-2.0:arm64",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "gir1.2-glib-2.0-dev:arm64",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "gir1.2-goffice-0.10",
+        "version": "0.10.57-2+b1"
+      },
+      {
+        "name": "gir1.2-gsf-1:arm64",
+        "version": "1.14.53-1"
+      },
+      {
+        "name": "gir1.2-gtk-3.0:arm64",
+        "version": "3.24.49-3"
+      },
+      {
+        "name": "gir1.2-harfbuzz-0.0:arm64",
+        "version": "10.2.0-1+deb13u1"
+      },
+      {
+        "name": "gir1.2-pango-1.0:arm64",
+        "version": "1.56.3-1"
+      },
+      {
+        "name": "gir1.2-rsvg-2.0:arm64",
+        "version": "2.60.0+dfsg-1"
+      },
+      {
+        "name": "girepository-tools:arm64",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "grep",
+        "version": "3.11-4+b1"
+      },
+      {
+        "name": "gsettings-desktop-schemas",
+        "version": "48.0-1"
+      },
+      {
+        "name": "gtk-update-icon-cache",
+        "version": "4.18.6+ds-2"
+      },
+      {
+        "name": "gzip",
+        "version": "1.13-1+deb13u1"
+      },
+      {
+        "name": "hicolor-icon-theme",
+        "version": "0.18-2"
+      },
+      {
+        "name": "hostname",
+        "version": "3.25"
+      },
+      {
+        "name": "icu-devtools",
+        "version": "76.1-4"
+      },
+      {
+        "name": "init-system-helpers",
+        "version": "1.69~deb13u1"
+      },
+      {
+        "name": "intltool",
+        "version": "0.51.0-7"
+      },
+      {
+        "name": "itstool",
+        "version": "2.0.6-4"
+      },
+      {
+        "name": "krb5-locales",
+        "version": "1.21.3-5+deb13u1"
+      },
+      {
+        "name": "libacl1:arm64",
+        "version": "2.3.2-2+b1"
+      },
+      {
+        "name": "libalgorithm-diff-perl",
+        "version": "1.201-1"
+      },
+      {
+        "name": "libalgorithm-diff-xs-perl",
+        "version": "0.04-9"
+      },
+      {
+        "name": "libalgorithm-merge-perl",
+        "version": "0.08-5"
+      },
+      {
+        "name": "libapparmor1:arm64",
+        "version": "4.1.0-1"
+      },
+      {
+        "name": "libapt-pkg7.0:arm64",
+        "version": "3.0.3"
+      },
+      {
+        "name": "libasan8:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libatk-bridge2.0-0t64:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "libatk-bridge2.0-dev:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "libatk1.0-0t64:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "libatk1.0-dev:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "libatomic1:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libatspi2.0-0t64:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "libatspi2.0-dev:arm64",
+        "version": "2.56.2-1+deb13u2"
+      },
+      {
+        "name": "libattr1:arm64",
+        "version": "1:2.5.2-3"
+      },
+      {
+        "name": "libaudit-common",
+        "version": "1:4.0.2-2+deb13u1"
+      },
+      {
+        "name": "libaudit1:arm64",
+        "version": "1:4.0.2-2+deb13u1"
+      },
+      {
+        "name": "libauthen-sasl-perl",
+        "version": "2.1700-1"
+      },
+      {
+        "name": "libavahi-client3:arm64",
+        "version": "0.8-16"
+      },
+      {
+        "name": "libavahi-common-data:arm64",
+        "version": "0.8-16"
+      },
+      {
+        "name": "libavahi-common3:arm64",
+        "version": "0.8-16"
+      },
+      {
+        "name": "libbinutils:arm64",
+        "version": "2.44-3"
+      },
+      {
+        "name": "libblkid-dev:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "libblkid1:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "libbrotli-dev:arm64",
+        "version": "1.1.0-2+b7"
+      },
+      {
+        "name": "libbrotli1:arm64",
+        "version": "1.1.0-2+b7"
+      },
+      {
+        "name": "libbsd0:arm64",
+        "version": "0.12.2-2"
+      },
+      {
+        "name": "libbz2-1.0:arm64",
+        "version": "1.0.8-6"
+      },
+      {
+        "name": "libbz2-dev:arm64",
+        "version": "1.0.8-6"
+      },
+      {
+        "name": "libc-bin",
+        "version": "2.41-12+deb13u4"
+      },
+      {
+        "name": "libc-dev-bin",
+        "version": "2.41-12+deb13u4"
+      },
+      {
+        "name": "libc6:arm64",
+        "version": "2.41-12+deb13u4"
+      },
+      {
+        "name": "libc6-dev:arm64",
+        "version": "2.41-12+deb13u4"
+      },
+      {
+        "name": "libcairo-gobject2:arm64",
+        "version": "1.18.4-1+b1"
+      },
+      {
+        "name": "libcairo-script-interpreter2:arm64",
+        "version": "1.18.4-1+b1"
+      },
+      {
+        "name": "libcairo2:arm64",
+        "version": "1.18.4-1+b1"
+      },
+      {
+        "name": "libcairo2-dev:arm64",
+        "version": "1.18.4-1+b1"
+      },
+      {
+        "name": "libcap-dev:arm64",
+        "version": "1:2.75-10+deb13u1+b3"
+      },
+      {
+        "name": "libcap-ng0:arm64",
+        "version": "0.8.5-4+b1"
+      },
+      {
+        "name": "libcap2:arm64",
+        "version": "1:2.75-10+deb13u1+b3"
+      },
+      {
+        "name": "libcc1-0:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libclone-perl:arm64",
+        "version": "0.47-1+b1"
+      },
+      {
+        "name": "libcloudproviders-dev:arm64",
+        "version": "0.3.6-2"
+      },
+      {
+        "name": "libcloudproviders0:arm64",
+        "version": "0.3.6-2"
+      },
+      {
+        "name": "libcolord2:arm64",
+        "version": "1.4.7-3"
+      },
+      {
+        "name": "libcom-err2:arm64",
+        "version": "1.47.2-3+b12"
+      },
+      {
+        "name": "libcrypt-dev:arm64",
+        "version": "1:4.4.38-1"
+      },
+      {
+        "name": "libcrypt1:arm64",
+        "version": "1:4.4.38-1"
+      },
+      {
+        "name": "libcryptsetup12:arm64",
+        "version": "2:2.7.5-2"
+      },
+      {
+        "name": "libctf-nobfd0:arm64",
+        "version": "2.44-3"
+      },
+      {
+        "name": "libctf0:arm64",
+        "version": "2.44-3"
+      },
+      {
+        "name": "libcups2t64:arm64",
+        "version": "2.4.10-3+deb13u2"
+      },
+      {
+        "name": "libcurl4t64:arm64",
+        "version": "8.14.1-2+deb13u5"
+      },
+      {
+        "name": "libdata-dump-perl",
+        "version": "1.25-1"
+      },
+      {
+        "name": "libdatrie-dev:arm64",
+        "version": "0.2.13-3+b1"
+      },
+      {
+        "name": "libdatrie1:arm64",
+        "version": "0.2.13-3+b1"
+      },
+      {
+        "name": "libdav1d-dev:arm64",
+        "version": "1.5.1-1"
+      },
+      {
+        "name": "libdav1d7:arm64",
+        "version": "1.5.1-1"
+      },
+      {
+        "name": "libdb5.3t64:arm64",
+        "version": "5.3.28+dfsg2-9"
+      },
+      {
+        "name": "libdbus-1-3:arm64",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "libdbus-1-dev:arm64",
+        "version": "1.16.2-2"
+      },
+      {
+        "name": "libdconf1:arm64",
+        "version": "0.40.0-5"
+      },
+      {
+        "name": "libdebconfclient0:arm64",
+        "version": "0.280"
+      },
+      {
+        "name": "libdeflate-dev:arm64",
+        "version": "1.23-2"
+      },
+      {
+        "name": "libdeflate0:arm64",
+        "version": "1.23-2"
+      },
+      {
+        "name": "libdevmapper1.02.1:arm64",
+        "version": "2:1.02.205-2"
+      },
+      {
+        "name": "libdpkg-perl",
+        "version": "1.22.22"
+      },
+      {
+        "name": "libdrm-amdgpu1:arm64",
+        "version": "2.4.124-2"
+      },
+      {
+        "name": "libdrm-common",
+        "version": "2.4.124-2"
+      },
+      {
+        "name": "libdrm2:arm64",
+        "version": "2.4.124-2"
+      },
+      {
+        "name": "libedit2:arm64",
+        "version": "3.1-20250104-1"
+      },
+      {
+        "name": "libegl-dev:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libegl-mesa0:arm64",
+        "version": "25.0.7-2+deb13u1"
+      },
+      {
+        "name": "libegl1:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libegl1-mesa-dev:arm64",
+        "version": "25.0.7-2+deb13u1"
+      },
+      {
+        "name": "libelf1t64:arm64",
+        "version": "0.192-4"
+      },
+      {
+        "name": "libencode-locale-perl",
+        "version": "1.05-3"
+      },
+      {
+        "name": "libepoxy-dev:arm64",
+        "version": "1.5.10-2"
+      },
+      {
+        "name": "libepoxy0:arm64",
+        "version": "1.5.10-2"
+      },
+      {
+        "name": "libexpat1:arm64",
+        "version": "2.8.3-1~deb13u1"
+      },
+      {
+        "name": "libexpat1-dev:arm64",
+        "version": "2.8.3-1~deb13u1"
+      },
+      {
+        "name": "libfakeroot:arm64",
+        "version": "1.37.1.1-1"
+      },
+      {
+        "name": "libffi-dev:arm64",
+        "version": "3.4.8-2"
+      },
+      {
+        "name": "libffi8:arm64",
+        "version": "3.4.8-2"
+      },
+      {
+        "name": "libfile-fcntllock-perl",
+        "version": "0.22-4+b4"
+      },
+      {
+        "name": "libfile-listing-perl",
+        "version": "6.16-1"
+      },
+      {
+        "name": "libfont-afm-perl",
+        "version": "1.20-4"
+      },
+      {
+        "name": "libfontconfig-dev:arm64",
+        "version": "2.15.0-2.3"
+      },
+      {
+        "name": "libfontconfig1:arm64",
+        "version": "2.15.0-2.3"
+      },
+      {
+        "name": "libfreetype-dev:arm64",
+        "version": "2.13.3+dfsg-1+deb13u1"
+      },
+      {
+        "name": "libfreetype6:arm64",
+        "version": "2.13.3+dfsg-1+deb13u1"
+      },
+      {
+        "name": "libfribidi-dev:arm64",
+        "version": "1.0.16-1"
+      },
+      {
+        "name": "libfribidi0:arm64",
+        "version": "1.0.16-1"
+      },
+      {
+        "name": "libgbm1:arm64",
+        "version": "25.0.7-2+deb13u1"
+      },
+      {
+        "name": "libgcc-14-dev:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libgcc-s1:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libgcrypt20:arm64",
+        "version": "1.11.0-7+deb13u1"
+      },
+      {
+        "name": "libgdbm-compat4t64:arm64",
+        "version": "1.24-2"
+      },
+      {
+        "name": "libgdbm6t64:arm64",
+        "version": "1.24-2"
+      },
+      {
+        "name": "libgdk-pixbuf-2.0-0:arm64",
+        "version": "2.42.12+dfsg-4+deb13u1"
+      },
+      {
+        "name": "libgdk-pixbuf-2.0-dev:arm64",
+        "version": "2.42.12+dfsg-4+deb13u1"
+      },
+      {
+        "name": "libgdk-pixbuf2.0-bin",
+        "version": "2.42.12+dfsg-4+deb13u1"
+      },
+      {
+        "name": "libgdk-pixbuf2.0-common",
+        "version": "2.42.12+dfsg-4+deb13u1"
+      },
+      {
+        "name": "libgio-2.0-dev:arm64",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libgio-2.0-dev-bin",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libgirepository-2.0-0:arm64",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libgl-dev:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libgl1:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libgl1-mesa-dri:arm64",
+        "version": "25.0.7-2+deb13u1"
+      },
+      {
+        "name": "libgles-dev:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libgles1:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libgles2:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libglib2.0-0t64:arm64",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libglib2.0-bin",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libglib2.0-data",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libglib2.0-dev:arm64",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libglib2.0-dev-bin",
+        "version": "2.84.4-3~deb13u5"
+      },
+      {
+        "name": "libglvnd-core-dev:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libglvnd-dev:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libglvnd0:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libglx-dev:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libglx-mesa0:arm64",
+        "version": "25.0.7-2+deb13u1"
+      },
+      {
+        "name": "libglx0:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libgmp-dev:arm64",
+        "version": "2:6.3.0+dfsg-3"
+      },
+      {
+        "name": "libgmp10:arm64",
+        "version": "2:6.3.0+dfsg-3"
+      },
+      {
+        "name": "libgmpxx4ldbl:arm64",
+        "version": "2:6.3.0+dfsg-3"
+      },
+      {
+        "name": "libgnutls30t64:arm64",
+        "version": "3.8.9-3+deb13u4"
+      },
+      {
+        "name": "libgoffice-0.10-10-common",
+        "version": "0.10.57-2"
+      },
+      {
+        "name": "libgoffice-0.10-10t64",
+        "version": "0.10.57-2+b1"
+      },
+      {
+        "name": "libgoffice-0.10-dev",
+        "version": "0.10.57-2+b1"
+      },
+      {
+        "name": "libgomp1:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libgpg-error-l10n",
+        "version": "1.51-4"
+      },
+      {
+        "name": "libgpg-error0:arm64",
+        "version": "1.51-4"
+      },
+      {
+        "name": "libgpm2:arm64",
+        "version": "1.20.7-11+b2"
+      },
+      {
+        "name": "libgprofng0:arm64",
+        "version": "2.44-3"
+      },
+      {
+        "name": "libgraphite2-3:arm64",
+        "version": "1.3.14-2+deb13u1"
+      },
+      {
+        "name": "libgraphite2-dev:arm64",
+        "version": "1.3.14-2+deb13u1"
+      },
+      {
+        "name": "libgsf-1-114:arm64",
+        "version": "1.14.53-1"
+      },
+      {
+        "name": "libgsf-1-common",
+        "version": "1.14.53-1"
+      },
+      {
+        "name": "libgsf-1-dev:arm64",
+        "version": "1.14.53-1"
+      },
+      {
+        "name": "libgssapi-krb5-2:arm64",
+        "version": "1.21.3-5+deb13u1"
+      },
+      {
+        "name": "libgtk-3-0t64:arm64",
+        "version": "3.24.49-3"
+      },
+      {
+        "name": "libgtk-3-bin",
+        "version": "3.24.49-3"
+      },
+      {
+        "name": "libgtk-3-common",
+        "version": "3.24.49-3"
+      },
+      {
+        "name": "libgtk-3-dev:arm64",
+        "version": "3.24.49-3"
+      },
+      {
+        "name": "libharfbuzz-cairo0:arm64",
+        "version": "10.2.0-1+deb13u1"
+      },
+      {
+        "name": "libharfbuzz-dev:arm64",
+        "version": "10.2.0-1+deb13u1"
+      },
+      {
+        "name": "libharfbuzz-gobject0:arm64",
+        "version": "10.2.0-1+deb13u1"
+      },
+      {
+        "name": "libharfbuzz-icu0:arm64",
+        "version": "10.2.0-1+deb13u1"
+      },
+      {
+        "name": "libharfbuzz-subset0:arm64",
+        "version": "10.2.0-1+deb13u1"
+      },
+      {
+        "name": "libharfbuzz0b:arm64",
+        "version": "10.2.0-1+deb13u1"
+      },
+      {
+        "name": "libhogweed6t64:arm64",
+        "version": "3.10.1-1"
+      },
+      {
+        "name": "libhtml-form-perl",
+        "version": "6.12-1"
+      },
+      {
+        "name": "libhtml-format-perl",
+        "version": "2.16-2"
+      },
+      {
+        "name": "libhtml-parser-perl:arm64",
+        "version": "3.83-2~deb13u1"
+      },
+      {
+        "name": "libhtml-tagset-perl",
+        "version": "3.24-1"
+      },
+      {
+        "name": "libhtml-tree-perl",
+        "version": "5.07-3"
+      },
+      {
+        "name": "libhttp-cookies-perl",
+        "version": "6.11-1"
+      },
+      {
+        "name": "libhttp-daemon-perl",
+        "version": "6.16-1+deb13u1"
+      },
+      {
+        "name": "libhttp-date-perl",
+        "version": "6.06-1"
+      },
+      {
+        "name": "libhttp-message-perl",
+        "version": "7.00-2"
+      },
+      {
+        "name": "libhttp-negotiate-perl",
+        "version": "6.01-2"
+      },
+      {
+        "name": "libhwasan0:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libice-dev:arm64",
+        "version": "2:1.1.1-1"
+      },
+      {
+        "name": "libice6:arm64",
+        "version": "2:1.1.1-1"
+      },
+      {
+        "name": "libicu-dev:arm64",
+        "version": "76.1-4"
+      },
+      {
+        "name": "libicu76:arm64",
+        "version": "76.1-4"
+      },
+      {
+        "name": "libidn2-0:arm64",
+        "version": "2.3.8-2"
+      },
+      {
+        "name": "libio-compress-brotli-perl",
+        "version": "0.004001-2+b3"
+      },
+      {
+        "name": "libio-html-perl",
+        "version": "1.004-3"
+      },
+      {
+        "name": "libio-socket-ssl-perl",
+        "version": "2.089-1"
+      },
+      {
+        "name": "libisl23:arm64",
+        "version": "0.27-1"
+      },
+      {
+        "name": "libitm1:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libjansson4:arm64",
+        "version": "2.14-2+b3"
+      },
+      {
+        "name": "libjbig-dev:arm64",
+        "version": "2.1-6.1+b2"
+      },
+      {
+        "name": "libjbig0:arm64",
+        "version": "2.1-6.1+b2"
+      },
+      {
+        "name": "libjpeg-dev:arm64",
+        "version": "1:2.1.5-4"
+      },
+      {
+        "name": "libjpeg62-turbo:arm64",
+        "version": "1:2.1.5-4"
+      },
+      {
+        "name": "libjpeg62-turbo-dev:arm64",
+        "version": "1:2.1.5-4"
+      },
+      {
+        "name": "libjson-c5:arm64",
+        "version": "0.18+ds-1"
+      },
+      {
+        "name": "libk5crypto3:arm64",
+        "version": "1.21.3-5+deb13u1"
+      },
+      {
+        "name": "libkeyutils1:arm64",
+        "version": "1.6.3-6"
+      },
+      {
+        "name": "libkmod2:arm64",
+        "version": "34.2-2"
+      },
+      {
+        "name": "libkrb5-3:arm64",
+        "version": "1.21.3-5+deb13u1"
+      },
+      {
+        "name": "libkrb5support0:arm64",
+        "version": "1.21.3-5+deb13u1"
+      },
+      {
+        "name": "liblastlog2-2:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "liblcms2-2:arm64",
+        "version": "2.16-2+deb13u2"
+      },
+      {
+        "name": "libldap-common",
+        "version": "2.6.10+dfsg-1"
+      },
+      {
+        "name": "libldap2:arm64",
+        "version": "2.6.10+dfsg-1"
+      },
+      {
+        "name": "liblerc-dev:arm64",
+        "version": "4.0.0+ds-5"
+      },
+      {
+        "name": "liblerc4:arm64",
+        "version": "4.0.0+ds-5"
+      },
+      {
+        "name": "libllvm19:arm64",
+        "version": "1:19.1.7-3+b1"
+      },
+      {
+        "name": "liblocale-gettext-perl",
+        "version": "1.07-7+b1"
+      },
+      {
+        "name": "liblsan0:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "liblwp-mediatypes-perl",
+        "version": "6.04-2"
+      },
+      {
+        "name": "liblwp-protocol-https-perl",
+        "version": "6.14-1"
+      },
+      {
+        "name": "liblz4-1:arm64",
+        "version": "1.10.0-4"
+      },
+      {
+        "name": "liblzma-dev:arm64",
+        "version": "5.8.1-1+deb13u1"
+      },
+      {
+        "name": "liblzma5:arm64",
+        "version": "5.8.1-1+deb13u1"
+      },
+      {
+        "name": "liblzo2-2:arm64",
+        "version": "2.10-3+b1"
+      },
+      {
+        "name": "libmagic-mgc",
+        "version": "1:5.46-5"
+      },
+      {
+        "name": "libmagic1t64:arm64",
+        "version": "1:5.46-5"
+      },
+      {
+        "name": "libmailtools-perl",
+        "version": "2.22-1"
+      },
+      {
+        "name": "libmd0:arm64",
+        "version": "1.1.0-2+b1"
+      },
+      {
+        "name": "libmount-dev:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "libmount1:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "libmpc3:arm64",
+        "version": "1.3.1-1+b3"
+      },
+      {
+        "name": "libmpfr6:arm64",
+        "version": "4.2.2-1"
+      },
+      {
+        "name": "libncursesw6:arm64",
+        "version": "6.5+20250216-2"
+      },
+      {
+        "name": "libnet-http-perl",
+        "version": "6.23-1"
+      },
+      {
+        "name": "libnet-smtp-ssl-perl",
+        "version": "1.04-2"
+      },
+      {
+        "name": "libnet-ssleay-perl:arm64",
+        "version": "1.94-3"
+      },
+      {
+        "name": "libnettle8t64:arm64",
+        "version": "3.10.1-1"
+      },
+      {
+        "name": "libnghttp2-14:arm64",
+        "version": "1.64.0-1.1+deb13u1"
+      },
+      {
+        "name": "libnghttp3-9:arm64",
+        "version": "1.8.0-1"
+      },
+      {
+        "name": "libnss-systemd:arm64",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "libopengl-dev:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libopengl0:arm64",
+        "version": "1.7.0-1+b2"
+      },
+      {
+        "name": "libp11-kit0:arm64",
+        "version": "0.25.5-3"
+      },
+      {
+        "name": "libpam-modules:arm64",
+        "version": "1.7.0-5"
+      },
+      {
+        "name": "libpam-modules-bin",
+        "version": "1.7.0-5"
+      },
+      {
+        "name": "libpam-runtime",
+        "version": "1.7.0-5"
+      },
+      {
+        "name": "libpam-systemd:arm64",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "libpam0g:arm64",
+        "version": "1.7.0-5"
+      },
+      {
+        "name": "libpango-1.0-0:arm64",
+        "version": "1.56.3-1"
+      },
+      {
+        "name": "libpango1.0-dev:arm64",
+        "version": "1.56.3-1"
+      },
+      {
+        "name": "libpangocairo-1.0-0:arm64",
+        "version": "1.56.3-1"
+      },
+      {
+        "name": "libpangoft2-1.0-0:arm64",
+        "version": "1.56.3-1"
+      },
+      {
+        "name": "libpangoxft-1.0-0:arm64",
+        "version": "1.56.3-1"
+      },
+      {
+        "name": "libpcre2-16-0:arm64",
+        "version": "10.46-1~deb13u2"
+      },
+      {
+        "name": "libpcre2-32-0:arm64",
+        "version": "10.46-1~deb13u2"
+      },
+      {
+        "name": "libpcre2-8-0:arm64",
+        "version": "10.46-1~deb13u2"
+      },
+      {
+        "name": "libpcre2-dev:arm64",
+        "version": "10.46-1~deb13u2"
+      },
+      {
+        "name": "libpcre2-posix3:arm64",
+        "version": "10.46-1~deb13u2"
+      },
+      {
+        "name": "libperl5.40:arm64",
+        "version": "5.40.1-6+deb13u1"
+      },
+      {
+        "name": "libpixman-1-0:arm64",
+        "version": "0.44.0-3"
+      },
+      {
+        "name": "libpixman-1-dev:arm64",
+        "version": "0.44.0-3"
+      },
+      {
+        "name": "libpkgconf3:arm64",
+        "version": "1.8.1-4"
+      },
+      {
+        "name": "libpng-dev:arm64",
+        "version": "1.6.48-1+deb13u5"
+      },
+      {
+        "name": "libpng-tools",
+        "version": "1.6.48-1+deb13u5"
+      },
+      {
+        "name": "libpng16-16t64:arm64",
+        "version": "1.6.48-1+deb13u5"
+      },
+      {
+        "name": "libproc2-0:arm64",
+        "version": "2:4.0.4-9"
+      },
+      {
+        "name": "libpsl5t64:arm64",
+        "version": "0.21.2-1.1+b1"
+      },
+      {
+        "name": "libpython3-stdlib:arm64",
+        "version": "3.13.5-1"
+      },
+      {
+        "name": "libpython3.13-minimal:arm64",
+        "version": "3.13.5-2+deb13u5"
+      },
+      {
+        "name": "libpython3.13-stdlib:arm64",
+        "version": "3.13.5-2+deb13u5"
+      },
+      {
+        "name": "libreadline8t64:arm64",
+        "version": "8.2-6"
+      },
+      {
+        "name": "librsvg2-2:arm64",
+        "version": "2.60.0+dfsg-1"
+      },
+      {
+        "name": "librsvg2-common:arm64",
+        "version": "2.60.0+dfsg-1"
+      },
+      {
+        "name": "librsvg2-dev:arm64",
+        "version": "2.60.0+dfsg-1"
+      },
+      {
+        "name": "librtmp1:arm64",
+        "version": "2.4+20151223.gitfa8646d.1-2+b5"
+      },
+      {
+        "name": "libsasl2-2:arm64",
+        "version": "2.1.28+dfsg1-9"
+      },
+      {
+        "name": "libsasl2-modules:arm64",
+        "version": "2.1.28+dfsg1-9"
+      },
+      {
+        "name": "libsasl2-modules-db:arm64",
+        "version": "2.1.28+dfsg1-9"
+      },
+      {
+        "name": "libseccomp2:arm64",
+        "version": "2.6.0-2"
+      },
+      {
+        "name": "libselinux1:arm64",
+        "version": "3.8.1-1"
+      },
+      {
+        "name": "libselinux1-dev:arm64",
+        "version": "3.8.1-1"
+      },
+      {
+        "name": "libsemanage-common",
+        "version": "3.8.1-1"
+      },
+      {
+        "name": "libsemanage2:arm64",
+        "version": "3.8.1-1"
+      },
+      {
+        "name": "libsensors-config",
+        "version": "1:3.6.2-2"
+      },
+      {
+        "name": "libsensors5:arm64",
+        "version": "1:3.6.2-2"
+      },
+      {
+        "name": "libsepol-dev:arm64",
+        "version": "3.8.1-1"
+      },
+      {
+        "name": "libsepol2:arm64",
+        "version": "3.8.1-1"
+      },
+      {
+        "name": "libsframe1:arm64",
+        "version": "2.44-3"
+      },
+      {
+        "name": "libsharpyuv-dev:arm64",
+        "version": "1.5.0-0.1"
+      },
+      {
+        "name": "libsharpyuv0:arm64",
+        "version": "1.5.0-0.1"
+      },
+      {
+        "name": "libsm-dev:arm64",
+        "version": "2:1.2.6-1"
+      },
+      {
+        "name": "libsm6:arm64",
+        "version": "2:1.2.6-1"
+      },
+      {
+        "name": "libsmartcols1:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "libsqlite3-0:arm64",
+        "version": "3.46.1-7+deb13u2"
+      },
+      {
+        "name": "libssh2-1t64:arm64",
+        "version": "1.11.1-1+deb13u2"
+      },
+      {
+        "name": "libssl3t64:arm64",
+        "version": "3.5.7-1~deb13u2"
+      },
+      {
+        "name": "libstdc++-14-dev:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libstdc++6:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libsysprof-capture-4-dev:arm64",
+        "version": "48.0-2"
+      },
+      {
+        "name": "libsystemd-dev:arm64",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "libsystemd-shared:arm64",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "libsystemd0:arm64",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "libtasn1-6:arm64",
+        "version": "4.20.0-2+deb13u1"
+      },
+      {
+        "name": "libthai-data",
+        "version": "0.1.29-2"
+      },
+      {
+        "name": "libthai-dev:arm64",
+        "version": "0.1.29-2+b1"
+      },
+      {
+        "name": "libthai0:arm64",
+        "version": "0.1.29-2+b1"
+      },
+      {
+        "name": "libtiff-dev:arm64",
+        "version": "4.7.0-3+deb13u3"
+      },
+      {
+        "name": "libtiff6:arm64",
+        "version": "4.7.0-3+deb13u3"
+      },
+      {
+        "name": "libtiffxx6:arm64",
+        "version": "4.7.0-3+deb13u3"
+      },
+      {
+        "name": "libtimedate-perl",
+        "version": "2.3300-2"
+      },
+      {
+        "name": "libtinfo6:arm64",
+        "version": "6.5+20250216-2"
+      },
+      {
+        "name": "libtry-tiny-perl",
+        "version": "0.32-1"
+      },
+      {
+        "name": "libtsan2:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libubsan1:arm64",
+        "version": "14.2.0-19"
+      },
+      {
+        "name": "libudev1:arm64",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "libunistring5:arm64",
+        "version": "1.3-2"
+      },
+      {
+        "name": "liburi-perl",
+        "version": "5.30-1"
+      },
+      {
+        "name": "libuuid1:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "libvulkan1:arm64",
+        "version": "1.4.309.0-1"
+      },
+      {
+        "name": "libwayland-bin",
+        "version": "1.23.1-3"
+      },
+      {
+        "name": "libwayland-client0:arm64",
+        "version": "1.23.1-3"
+      },
+      {
+        "name": "libwayland-cursor0:arm64",
+        "version": "1.23.1-3"
+      },
+      {
+        "name": "libwayland-dev:arm64",
+        "version": "1.23.1-3"
+      },
+      {
+        "name": "libwayland-egl1:arm64",
+        "version": "1.23.1-3"
+      },
+      {
+        "name": "libwayland-server0:arm64",
+        "version": "1.23.1-3"
+      },
+      {
+        "name": "libwebp-dev:arm64",
+        "version": "1.5.0-0.1"
+      },
+      {
+        "name": "libwebp7:arm64",
+        "version": "1.5.0-0.1"
+      },
+      {
+        "name": "libwebpdecoder3:arm64",
+        "version": "1.5.0-0.1"
+      },
+      {
+        "name": "libwebpdemux2:arm64",
+        "version": "1.5.0-0.1"
+      },
+      {
+        "name": "libwebpmux3:arm64",
+        "version": "1.5.0-0.1"
+      },
+      {
+        "name": "libwww-perl",
+        "version": "6.78-1"
+      },
+      {
+        "name": "libwww-robotrules-perl",
+        "version": "6.02-1"
+      },
+      {
+        "name": "libx11-6:arm64",
+        "version": "2:1.8.12-1"
+      },
+      {
+        "name": "libx11-data",
+        "version": "2:1.8.12-1"
+      },
+      {
+        "name": "libx11-dev:arm64",
+        "version": "2:1.8.12-1"
+      },
+      {
+        "name": "libx11-xcb1:arm64",
+        "version": "2:1.8.12-1"
+      },
+      {
+        "name": "libxau-dev:arm64",
+        "version": "1:1.0.11-1"
+      },
+      {
+        "name": "libxau6:arm64",
+        "version": "1:1.0.11-1"
+      },
+      {
+        "name": "libxcb-dri3-0:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-glx0:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-present0:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-randr0:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-render0:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-render0-dev:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-shm0:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-shm0-dev:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-sync1:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb-xfixes0:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb1:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcb1-dev:arm64",
+        "version": "1.17.0-2+b1"
+      },
+      {
+        "name": "libxcomposite-dev:arm64",
+        "version": "1:0.4.6-1"
+      },
+      {
+        "name": "libxcomposite1:arm64",
+        "version": "1:0.4.6-1"
+      },
+      {
+        "name": "libxcursor-dev:arm64",
+        "version": "1:1.2.3-1"
+      },
+      {
+        "name": "libxcursor1:arm64",
+        "version": "1:1.2.3-1"
+      },
+      {
+        "name": "libxdamage-dev:arm64",
+        "version": "1:1.1.6-1+b2"
+      },
+      {
+        "name": "libxdamage1:arm64",
+        "version": "1:1.1.6-1+b2"
+      },
+      {
+        "name": "libxdmcp-dev:arm64",
+        "version": "1:1.1.5-1"
+      },
+      {
+        "name": "libxdmcp6:arm64",
+        "version": "1:1.1.5-1"
+      },
+      {
+        "name": "libxext-dev:arm64",
+        "version": "2:1.3.4-1+b3"
+      },
+      {
+        "name": "libxext6:arm64",
+        "version": "2:1.3.4-1+b3"
+      },
+      {
+        "name": "libxfixes-dev:arm64",
+        "version": "1:6.0.0-2+b4"
+      },
+      {
+        "name": "libxfixes3:arm64",
+        "version": "1:6.0.0-2+b4"
+      },
+      {
+        "name": "libxft-dev:arm64",
+        "version": "2.3.6-1+b4"
+      },
+      {
+        "name": "libxft2:arm64",
+        "version": "2.3.6-1+b4"
+      },
+      {
+        "name": "libxi-dev:arm64",
+        "version": "2:1.8.2-1"
+      },
+      {
+        "name": "libxi6:arm64",
+        "version": "2:1.8.2-1"
+      },
+      {
+        "name": "libxinerama-dev:arm64",
+        "version": "2:1.1.4-3+b4"
+      },
+      {
+        "name": "libxinerama1:arm64",
+        "version": "2:1.1.4-3+b4"
+      },
+      {
+        "name": "libxkbcommon-dev:arm64",
+        "version": "1.7.0-2"
+      },
+      {
+        "name": "libxkbcommon0:arm64",
+        "version": "1.7.0-2"
+      },
+      {
+        "name": "libxml-parser-perl",
+        "version": "2.47-2~deb13u1"
+      },
+      {
+        "name": "libxml2:arm64",
+        "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      },
+      {
+        "name": "libxml2-dev:arm64",
+        "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      },
+      {
+        "name": "libxml2-utils",
+        "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      },
+      {
+        "name": "libxrandr-dev:arm64",
+        "version": "2:1.5.4-1+b3"
+      },
+      {
+        "name": "libxrandr2:arm64",
+        "version": "2:1.5.4-1+b3"
+      },
+      {
+        "name": "libxrender-dev:arm64",
+        "version": "1:0.9.12-1"
+      },
+      {
+        "name": "libxrender1:arm64",
+        "version": "1:0.9.12-1"
+      },
+      {
+        "name": "libxshmfence1:arm64",
+        "version": "1.3.3-1"
+      },
+      {
+        "name": "libxslt1-dev:arm64",
+        "version": "1.1.35-1.2+deb13u3"
+      },
+      {
+        "name": "libxslt1.1:arm64",
+        "version": "1.1.35-1.2+deb13u3"
+      },
+      {
+        "name": "libxtst-dev:arm64",
+        "version": "2:1.2.5-1"
+      },
+      {
+        "name": "libxtst6:arm64",
+        "version": "2:1.2.5-1"
+      },
+      {
+        "name": "libxxf86vm1:arm64",
+        "version": "1:1.1.4-1+b4"
+      },
+      {
+        "name": "libxxhash0:arm64",
+        "version": "0.8.3-2"
+      },
+      {
+        "name": "libz3-4:arm64",
+        "version": "4.13.3-1"
+      },
+      {
+        "name": "libzstd-dev:arm64",
+        "version": "1.5.7+dfsg-1"
+      },
+      {
+        "name": "libzstd1:arm64",
+        "version": "1.5.7+dfsg-1"
+      },
+      {
+        "name": "linux-libc-dev",
+        "version": "6.12.107-1"
+      },
+      {
+        "name": "linux-sysctl-defaults",
+        "version": "4.12.1"
+      },
+      {
+        "name": "login",
+        "version": "1:4.16.0-2+really2.41.5-0+deb13u1"
+      },
+      {
+        "name": "login.defs",
+        "version": "1:4.17.4-2"
+      },
+      {
+        "name": "m4",
+        "version": "1.4.19-8"
+      },
+      {
+        "name": "make",
+        "version": "4.4.1-2"
+      },
+      {
+        "name": "manpages",
+        "version": "6.9.1-1"
+      },
+      {
+        "name": "manpages-dev",
+        "version": "6.9.1-1"
+      },
+      {
+        "name": "mawk",
+        "version": "1.3.4.20250131-1"
+      },
+      {
+        "name": "media-types",
+        "version": "13.0.0"
+      },
+      {
+        "name": "mesa-libgallium:arm64",
+        "version": "25.0.7-2+deb13u1"
+      },
+      {
+        "name": "mesa-vulkan-drivers:arm64",
+        "version": "25.0.7-2+deb13u1"
+      },
+      {
+        "name": "mount",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "native-architecture",
+        "version": "0.2.6"
+      },
+      {
+        "name": "ncurses-base",
+        "version": "6.5+20250216-2"
+      },
+      {
+        "name": "ncurses-bin",
+        "version": "6.5+20250216-2"
+      },
+      {
+        "name": "netbase",
+        "version": "6.5"
+      },
+      {
+        "name": "openssl",
+        "version": "3.5.7-1~deb13u2"
+      },
+      {
+        "name": "openssl-provider-legacy",
+        "version": "3.5.7-1~deb13u2"
+      },
+      {
+        "name": "pango1.0-tools",
+        "version": "1.56.3-1"
+      },
+      {
+        "name": "passwd",
+        "version": "1:4.17.4-2"
+      },
+      {
+        "name": "patch",
+        "version": "2.8-2"
+      },
+      {
+        "name": "perl",
+        "version": "5.40.1-6+deb13u1"
+      },
+      {
+        "name": "perl-base",
+        "version": "5.40.1-6+deb13u1"
+      },
+      {
+        "name": "perl-modules-5.40",
+        "version": "5.40.1-6+deb13u1"
+      },
+      {
+        "name": "perl-openssl-defaults:arm64",
+        "version": "7+b2"
+      },
+      {
+        "name": "pkg-config:arm64",
+        "version": "1.8.1-4"
+      },
+      {
+        "name": "pkgconf:arm64",
+        "version": "1.8.1-4"
+      },
+      {
+        "name": "pkgconf-bin",
+        "version": "1.8.1-4"
+      },
+      {
+        "name": "procps",
+        "version": "2:4.0.4-9"
+      },
+      {
+        "name": "psmisc",
+        "version": "23.7-2"
+      },
+      {
+        "name": "publicsuffix",
+        "version": "20250328.1952-0.1"
+      },
+      {
+        "name": "python3",
+        "version": "3.13.5-1"
+      },
+      {
+        "name": "python3-libxml2:arm64",
+        "version": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      },
+      {
+        "name": "python3-minimal",
+        "version": "3.13.5-1"
+      },
+      {
+        "name": "python3-packaging",
+        "version": "25.0-1"
+      },
+      {
+        "name": "python3.13",
+        "version": "3.13.5-2+deb13u5"
+      },
+      {
+        "name": "python3.13-minimal",
+        "version": "3.13.5-2+deb13u5"
+      },
+      {
+        "name": "readline-common",
+        "version": "8.2-6"
+      },
+      {
+        "name": "rpcsvc-proto",
+        "version": "1.4.3-1+b1"
+      },
+      {
+        "name": "sed",
+        "version": "4.9-2+deb13u1"
+      },
+      {
+        "name": "sgml-base",
+        "version": "1.31+nmu1"
+      },
+      {
+        "name": "shared-mime-info",
+        "version": "2.4-5+b2"
+      },
+      {
+        "name": "sq",
+        "version": "1.3.1-2+b2"
+      },
+      {
+        "name": "sqv",
+        "version": "1.3.0-3+b2"
+      },
+      {
+        "name": "systemd",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "systemd-cryptsetup",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "systemd-sysv",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "systemd-timesyncd",
+        "version": "257.13-1~deb13u1"
+      },
+      {
+        "name": "sysvinit-utils",
+        "version": "3.14-4"
+      },
+      {
+        "name": "tar",
+        "version": "1.35+dfsg-3.1"
+      },
+      {
+        "name": "tzdata",
+        "version": "2026c-0+deb13u1"
+      },
+      {
+        "name": "util-linux",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "uuid-dev:arm64",
+        "version": "2.41.5-0+deb13u1"
+      },
+      {
+        "name": "wayland-protocols",
+        "version": "1.44-1"
+      },
+      {
+        "name": "x11-common",
+        "version": "1:7.7+24+deb13u1"
+      },
+      {
+        "name": "x11proto-dev",
+        "version": "2024.1-1"
+      },
+      {
+        "name": "xdg-user-dirs",
+        "version": "0.18-2"
+      },
+      {
+        "name": "xkb-data",
+        "version": "2.42-1"
+      },
+      {
+        "name": "xml-core",
+        "version": "0.19"
+      },
+      {
+        "name": "xorg-sgml-doctools",
+        "version": "1:1.11-1.1"
+      },
+      {
+        "name": "xtrans-dev",
+        "version": "1.4.0-1"
+      },
+      {
+        "name": "xz-utils",
+        "version": "5.8.1-1+deb13u1"
+      },
+      {
+        "name": "zlib1g:arm64",
+        "version": "1:1.3.dfsg+really1.3.1-1+b1"
+      },
+      {
+        "name": "zlib1g-dev:arm64",
+        "version": "1:1.3.dfsg+really1.3.1-1+b1"
+      }
+    ],
+    "locale": "LANG=\nLANGUAGE=\nLC_CTYPE=\"C\"\nLC_NUMERIC=\"C\"\nLC_TIME=\"C\"\nLC_COLLATE=\"C\"\nLC_MONETARY=\"C\"\nLC_MESSAGES=\"C\"\nLC_PAPER=\"C\"\nLC_NAME=\"C\"\nLC_ADDRESS=\"C\"\nLC_TELEPHONE=\"C\"\nLC_MEASUREMENT=\"C\"\nLC_IDENTIFICATION=\"C\"\nLC_ALL=C\n",
+    "pxlibPatches": [
+      "px_gsfread return ssize_t length on non-NULL pointer, -1 otherwise",
+      "PX_put_data_alpha iconv compare size_t -1 without undeclared res"
+    ],
+    "configureCache": "am_cv_func_iconv=yes",
+    "compilerFlags": "-g -O2 -Wno-error=incompatible-pointer-types -Wno-error=implicit-function-declaration"
+  },
+  "coverage": {
+    "dbfOriginalDifferentialCases": 24,
+    "dbfLanguageIdSamples": 68,
+    "databaseUnitCases": 31,
+    "packageTestFiles": 225,
+    "packageTests": 5182,
+    "virtualCommandTests": 79,
+    "build": "uncached maintained safe-bash 18-workspace dependency closure passed",
+    "packageLint": "passed; includes strict source/test types",
+    "rootLint": "16905 files, zero errors, four warnings; preceded final additions",
+    "independentReview": "../plans/ssconvert-database-independent-qa.md",
+    "screenshot": "actual listing and typed round trip inspected; scratch purged",
+    "fullSafeBashTypecheck": "blocked before compilation by absent unrelated root SafeFS export",
+    "wholeSafeBashSuite": "aborted; not a pass"
+  },
+  "limits": {
+    "details": "../plans/ssconvert-database-file-codecs-qa.md",
+    "nativeMismatches": [
+      "short-specification exporter use-after-free and BCD allocator corruption",
+      "nonterminated inline memo output garbage",
+      "truncated block uninitialized values",
+      "cyclic native block hangs",
+      "profile-specific GLib prefixes and memory allocation diagnostics",
+      "pointer/time output header bytes"
+    ],
+    "unmeasured": [
+      "encrypted tables",
+      "maximal dimensions",
+      "broad real database catalogs and companion corruption",
+      "encoding-loss/truncation boundaries",
+      "sparse multi-sheet saves",
+      "exotic numeric/date syntax",
+      "non-C locales"
+    ]
+  },
+  "delivery": {
+    "commits": 0,
+    "pushed": false,
+    "published": false
+  }
+}

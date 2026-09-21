@@ -1,0 +1,1641 @@
+{
+  "task": "visual-compatibility-qa independent follow-up",
+  "candidate": {
+    "gitHead": "b97c4938a469ee70e09bd08a0e5fcf7e868ca04c",
+    "state": "dirty working tree audit, not a frozen commit gate",
+    "ordering": "UTF-8 pathname byte order",
+    "algorithm": "SHA-256 compact JSON array of {path,sha256}",
+    "manifestSha256": "c563741b6f8134ce2a9cffffd356cd0b577f21bedca2314bc1f71eb1bf9afa31"
+  },
+  "fingerprintFiles": 5069,
+  "fingerprintScope": "All regular non-symlink files below src and dist in ssconvert,safe-bash,pdf,safe-fs,office-package; their package.json and tsconfig.json; root package.json and package-lock.json. UTF-8 pathname-byte ordering. Membership and hashes unchanged across repeat. Other workspace dependencies not included; not a full immutable release gate.",
+  "entryHashes": {
+    "packages/ssconvert/src/engine.ts": "5ff85fd43e87d1312def054884d6b69d6d260683b6d7eea5f9fa93fef11706c6",
+    "packages/ssconvert/dist/index.js": "d0c56a1047c278ad9a2115be72a273eaefacbf42561ed933fd27799b514a17e6",
+    "packages/safe-bash/src/commands/ssconvert/index.ts": "3be28170b5f60a9697876f87c865f7363b68e15c3fa0b0ce2ebde91f9b3983d5",
+    "packages/safe-bash/dist/commands/ssconvert/index.js": "b831e7617095fea7d0a50c205328c4859a0afcd7eb05c693a174fa8a74fe25f8"
+  },
+  "referenceQualification": {
+    "checks": [
+      {
+        "path": "/opt/ssconvert-reference/bin/ssconvert",
+        "sha256": "8a9a0ef179cc97f9588c8f54173f0d29a265277246f1d89b0eabc0be7e28ff57",
+        "actual": null,
+        "matches": false
+      },
+      {
+        "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+        "sha256": "6347b479b2db6008e7433819c0147049b3894cffd09dee0c9486a19354c142b6",
+        "actual": null,
+        "matches": false
+      },
+      {
+        "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10",
+        "sha256": "1c8c93e9a2a5c5935134a206bc8b8267dc4073d54c36824531e7948b9fb2bc8f",
+        "actual": null,
+        "matches": false
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgsf-1.so.114",
+        "sha256": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28",
+        "actual": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgtk-3.so.0",
+        "sha256": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4",
+        "actual": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgobject-2.0.so.0",
+        "sha256": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f",
+        "actual": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libglib-2.0.so.0",
+        "sha256": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1",
+        "actual": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libc.so.6",
+        "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13",
+        "actual": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxml2.so.2",
+        "sha256": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d",
+        "actual": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgmodule-2.0.so.0",
+        "sha256": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08",
+        "actual": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgdk-3.so.0",
+        "sha256": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0",
+        "actual": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0",
+        "sha256": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5",
+        "actual": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpango-1.0.so.0",
+        "sha256": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233",
+        "actual": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatk-1.0.so.0",
+        "sha256": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5",
+        "actual": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcairo.so.2",
+        "sha256": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6",
+        "actual": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0",
+        "sha256": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c",
+        "actual": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgio-2.0.so.0",
+        "sha256": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77",
+        "actual": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libm.so.6",
+        "sha256": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+        "actual": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxslt.so.1",
+        "sha256": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042",
+        "actual": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/librsvg-2.so.2",
+        "sha256": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7",
+        "actual": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libz.so.1",
+        "sha256": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65",
+        "actual": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbz2.so.1.0",
+        "sha256": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46",
+        "actual": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46",
+        "matches": true
+      },
+      {
+        "path": "/lib/ld-linux-aarch64.so.1",
+        "sha256": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6",
+        "actual": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libharfbuzz.so.0",
+        "sha256": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c",
+        "actual": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0",
+        "sha256": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2",
+        "actual": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfontconfig.so.1",
+        "sha256": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad",
+        "actual": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfribidi.so.0",
+        "sha256": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720",
+        "actual": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcairo-gobject.so.2",
+        "sha256": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13",
+        "actual": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libepoxy.so.0",
+        "sha256": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e",
+        "actual": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXi.so.6",
+        "sha256": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761",
+        "actual": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libX11.so.6",
+        "sha256": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0",
+        "actual": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0",
+        "sha256": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3",
+        "actual": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcloudproviders.so.0",
+        "sha256": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c",
+        "actual": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXfixes.so.3",
+        "sha256": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5",
+        "actual": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libffi.so.8",
+        "sha256": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490",
+        "actual": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatomic.so.1",
+        "sha256": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e",
+        "actual": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpcre2-8.so.0",
+        "sha256": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75",
+        "actual": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/liblzma.so.5",
+        "sha256": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84",
+        "actual": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxkbcommon.so.0",
+        "sha256": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380",
+        "actual": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-client.so.0",
+        "sha256": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670",
+        "actual": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-cursor.so.0",
+        "sha256": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43",
+        "actual": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-egl.so.1",
+        "sha256": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c",
+        "actual": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXext.so.6",
+        "sha256": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651",
+        "actual": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXcursor.so.1",
+        "sha256": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43",
+        "actual": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXdamage.so.1",
+        "sha256": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e",
+        "actual": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXcomposite.so.1",
+        "sha256": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48",
+        "actual": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXrandr.so.2",
+        "sha256": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2",
+        "actual": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXinerama.so.1",
+        "sha256": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6",
+        "actual": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libthai.so.0",
+        "sha256": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7",
+        "actual": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpng16.so.16",
+        "sha256": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e",
+        "actual": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfreetype.so.6",
+        "sha256": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e",
+        "actual": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXrender.so.1",
+        "sha256": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102",
+        "actual": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb.so.1",
+        "sha256": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210",
+        "actual": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb-render.so.0",
+        "sha256": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0",
+        "actual": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb-shm.so.0",
+        "sha256": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0",
+        "actual": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpixman-1.so.0",
+        "sha256": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197",
+        "actual": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libjpeg.so.62",
+        "sha256": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87",
+        "actual": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libmount.so.1",
+        "sha256": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538",
+        "actual": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libselinux.so.1",
+        "sha256": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952",
+        "actual": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgcc_s.so.1",
+        "sha256": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0",
+        "actual": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdav1d.so.7",
+        "sha256": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b",
+        "actual": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgraphite2.so.3",
+        "sha256": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402",
+        "actual": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libexpat.so.1",
+        "sha256": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48",
+        "actual": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatspi.so.0",
+        "sha256": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52",
+        "actual": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdbus-1.so.3",
+        "sha256": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af",
+        "actual": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdatrie.so.1",
+        "sha256": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45",
+        "actual": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbrotlidec.so.1",
+        "sha256": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e",
+        "actual": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXau.so.6",
+        "sha256": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26",
+        "actual": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXdmcp.so.6",
+        "sha256": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298",
+        "actual": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libblkid.so.1",
+        "sha256": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741",
+        "actual": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libsystemd.so.0",
+        "sha256": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f",
+        "actual": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbrotlicommon.so.1",
+        "sha256": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e",
+        "actual": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcap.so.2",
+        "sha256": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec",
+        "actual": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "sha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "actual": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "actual": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
+        "sha256": "0d3c03d1b667192f91223660a3163325cf83132662fe4d9f7d6e596bf7a995c2",
+        "actual": "0d3c03d1b667192f91223660a3163325cf83132662fe4d9f7d6e596bf7a995c2",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-BoldOblique.ttf",
+        "sha256": "2084995adab143b149258f5944b7f863804796b753014526bd7f7915b1b20770",
+        "actual": "2084995adab143b149258f5944b7f863804796b753014526bd7f7915b1b20770",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf",
+        "sha256": "710323dd803666c37988df68e736c233d96efdf5c770c8ee28f4c4f4b84fb32d",
+        "actual": "710323dd803666c37988df68e736c233d96efdf5c770c8ee28f4c4f4b84fb32d",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+        "sha256": "54bf827eb99404e8f430c330ad30f063334f637eba0109b6a18d4f566a8e9dd8",
+        "actual": "54bf827eb99404e8f430c330ad30f063334f637eba0109b6a18d4f566a8e9dd8",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+        "sha256": "aac3f559445d23f0f567a243f91f3f6ad6cb4b5cafa1521a3479fffe0637f0bd",
+        "actual": "aac3f559445d23f0f567a243f91f3f6ad6cb4b5cafa1521a3479fffe0637f0bd",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+        "sha256": "8cb29f7db250ebb2551a6ce2c1e0bfd5a0eb520e9e233370db0493e82e1f36f7",
+        "actual": "8cb29f7db250ebb2551a6ce2c1e0bfd5a0eb520e9e233370db0493e82e1f36f7",
+        "matches": true
+      }
+    ],
+    "status": 1,
+    "stderr": "sha256sum: /opt/ssconvert-reference/bin/ssconvert: No such file or directory\nsha256sum: /opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so: No such file or directory\nsha256sum: /opt/ssconvert-reference/lib/libgoffice-0.10.so.10: No such file or directory\n"
+  },
+  "chartQualification": {
+    "checks": [
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "sha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+        "actual": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+        "matches": true
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so",
+        "sha256": "b429e875c714d8eab593a878b0b2fb15e35a8bdec332301a9c63d4d9cc6009a0",
+        "actual": "b429e875c714d8eab593a878b0b2fb15e35a8bdec332301a9c63d4d9cc6009a0",
+        "matches": true
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10",
+        "sha256": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42",
+        "actual": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgsf-1.so.114",
+        "sha256": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28",
+        "actual": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgtk-3.so.0",
+        "sha256": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4",
+        "actual": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgobject-2.0.so.0",
+        "sha256": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f",
+        "actual": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libglib-2.0.so.0",
+        "sha256": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1",
+        "actual": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libc.so.6",
+        "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13",
+        "actual": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxml2.so.2",
+        "sha256": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d",
+        "actual": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgmodule-2.0.so.0",
+        "sha256": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08",
+        "actual": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgdk-3.so.0",
+        "sha256": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0",
+        "actual": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0",
+        "sha256": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5",
+        "actual": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpango-1.0.so.0",
+        "sha256": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233",
+        "actual": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatk-1.0.so.0",
+        "sha256": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5",
+        "actual": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcairo.so.2",
+        "sha256": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6",
+        "actual": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0",
+        "sha256": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c",
+        "actual": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgio-2.0.so.0",
+        "sha256": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77",
+        "actual": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libm.so.6",
+        "sha256": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+        "actual": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxslt.so.1",
+        "sha256": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042",
+        "actual": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/librsvg-2.so.2",
+        "sha256": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7",
+        "actual": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libz.so.1",
+        "sha256": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65",
+        "actual": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbz2.so.1.0",
+        "sha256": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46",
+        "actual": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46",
+        "matches": true
+      },
+      {
+        "path": "/lib/ld-linux-aarch64.so.1",
+        "sha256": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6",
+        "actual": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libharfbuzz.so.0",
+        "sha256": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c",
+        "actual": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0",
+        "sha256": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2",
+        "actual": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfontconfig.so.1",
+        "sha256": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad",
+        "actual": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfribidi.so.0",
+        "sha256": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720",
+        "actual": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcairo-gobject.so.2",
+        "sha256": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13",
+        "actual": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libepoxy.so.0",
+        "sha256": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e",
+        "actual": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXi.so.6",
+        "sha256": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761",
+        "actual": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libX11.so.6",
+        "sha256": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0",
+        "actual": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0",
+        "sha256": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3",
+        "actual": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcloudproviders.so.0",
+        "sha256": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c",
+        "actual": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXfixes.so.3",
+        "sha256": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5",
+        "actual": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libffi.so.8",
+        "sha256": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490",
+        "actual": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatomic.so.1",
+        "sha256": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e",
+        "actual": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpcre2-8.so.0",
+        "sha256": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75",
+        "actual": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/liblzma.so.5",
+        "sha256": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84",
+        "actual": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxkbcommon.so.0",
+        "sha256": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380",
+        "actual": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-client.so.0",
+        "sha256": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670",
+        "actual": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-cursor.so.0",
+        "sha256": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43",
+        "actual": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-egl.so.1",
+        "sha256": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c",
+        "actual": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXext.so.6",
+        "sha256": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651",
+        "actual": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXcursor.so.1",
+        "sha256": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43",
+        "actual": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXdamage.so.1",
+        "sha256": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e",
+        "actual": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXcomposite.so.1",
+        "sha256": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48",
+        "actual": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXrandr.so.2",
+        "sha256": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2",
+        "actual": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXinerama.so.1",
+        "sha256": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6",
+        "actual": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libthai.so.0",
+        "sha256": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7",
+        "actual": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpng16.so.16",
+        "sha256": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e",
+        "actual": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfreetype.so.6",
+        "sha256": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e",
+        "actual": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXrender.so.1",
+        "sha256": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102",
+        "actual": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb.so.1",
+        "sha256": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210",
+        "actual": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb-render.so.0",
+        "sha256": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0",
+        "actual": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb-shm.so.0",
+        "sha256": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0",
+        "actual": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpixman-1.so.0",
+        "sha256": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197",
+        "actual": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libjpeg.so.62",
+        "sha256": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87",
+        "actual": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libmount.so.1",
+        "sha256": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538",
+        "actual": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libselinux.so.1",
+        "sha256": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952",
+        "actual": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgcc_s.so.1",
+        "sha256": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0",
+        "actual": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdav1d.so.7",
+        "sha256": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b",
+        "actual": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgraphite2.so.3",
+        "sha256": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402",
+        "actual": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libexpat.so.1",
+        "sha256": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48",
+        "actual": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatspi.so.0",
+        "sha256": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52",
+        "actual": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdbus-1.so.3",
+        "sha256": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af",
+        "actual": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdatrie.so.1",
+        "sha256": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45",
+        "actual": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbrotlidec.so.1",
+        "sha256": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e",
+        "actual": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXau.so.6",
+        "sha256": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26",
+        "actual": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXdmcp.so.6",
+        "sha256": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298",
+        "actual": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libblkid.so.1",
+        "sha256": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741",
+        "actual": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libsystemd.so.0",
+        "sha256": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f",
+        "actual": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbrotlicommon.so.1",
+        "sha256": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e",
+        "actual": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e",
+        "matches": true
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcap.so.2",
+        "sha256": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec",
+        "actual": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec",
+        "matches": true
+      },
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "actual": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "matches": true
+      }
+    ],
+    "status": 0,
+    "stderr": ""
+  },
+  "current": [
+    {
+      "name": "help",
+      "cmd": "ssconvert --help",
+      "exit": 0,
+      "stdout": 1475,
+      "stderr": ""
+    },
+    {
+      "name": "importers",
+      "cmd": "ssconvert --list-importers",
+      "exit": 0,
+      "stdout": 0,
+      "stderr": "ID                           | Description\nGnumeric_Excel:excel         | MS Excel? (*.xls)\nGnumeric_Excel:excel_enc     | MS Excel? (*.xls) requiring encoding specification\nGnumeric_Excel:excel_xml     | MS Excel? 2003 SpreadsheetML\nGnumeric_Excel:xlsx          | ECMA 376 / Office Open XML [MS Excel? 2007/2010] (*.xlsx)\nGnumeric_OpenCalc:openoffice | Open Document Format (*.sxc, *.ods)\nGnumeric_QPro:qpro           | Quattro Pro (*.wb1, *.wb2, *.wb3)\nGnumeric_XmlIO:sax           | Gnumeric XML (*.gnumeric)\nGnumeric_applix:applix       | Applix (*.as)\nGnumeric_dif:dif             | Data Interchange Format (*.dif)\nGnumeric_html:html           | HTML (*.html, *.htm)\nGnumeric_lotus:lotus         | Lotus 123 (*.wk1, *.wks, *.123)\nGnumeric_mps:mps             | Linear and integer program (*.mps) file format\nGnumeric_oleo:oleo           | GNU Oleo (*.oleo)\nGnumeric_paradox:paradox     | Paradox database or primary index file (*.db, *.px)\nGnumeric_plan_perfect:pln    | Plan Perfect Format (PLN) import\nGnumeric_psiconv:psiconv     | Psion (*.psisheet)\nGnumeric_sc:sc               | SC/xspread\nGnumeric_stf:stf_csvtab      | Comma or tab separated values (CSV/TSV)\nGnumeric_sylk:sylk           | MultiPlan (SYLK)\nGnumeric_xbase:xbase         | Xbase (*.dbf) file format\n"
+    },
+    {
+      "name": "exporters",
+      "cmd": "ssconvert --list-exporters",
+      "exit": 0,
+      "stdout": 0,
+      "stderr": "ID                                | Description\nGnumeric_Excel:excel_biff7        | MS Excel? 5.0/95\nGnumeric_Excel:excel_biff8        | MS Excel? 97/2000/XP\nGnumeric_Excel:excel_dsf          | MS Excel? 97/2000/XP & 5.0/95\nGnumeric_Excel:xlsx               | ECMA 376 1st edition (2006); [MS Excel? 2007]\nGnumeric_Excel:xlsx2              | ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel? 2010]\nGnumeric_GnomeGlossary:po         | Gnome Glossary PO file format\nGnumeric_OpenCalc:odf             | ODF 1.2 extended conformance (*.ods)\nGnumeric_OpenCalc:openoffice      | ODF 1.2 strict conformance (*.ods)\nGnumeric_XmlIO:sax                | Gnumeric XML (*.gnumeric)\nGnumeric_XmlIO:sax:0              | Gnumeric XML uncompressed (*.xml)\nGnumeric_dif:dif                  | Data Interchange Format (*.dif)\nGnumeric_glpk:glpk                | GLPK Linear Program Solver\nGnumeric_html:html32              | HTML 3.2 (*.html)\nGnumeric_html:html40              | HTML 4.0 (*.html)\nGnumeric_html:html40frag          | HTML (*.html) fragment\nGnumeric_html:latex               | LaTeX 2e (*.tex)\nGnumeric_html:latex_table         | LaTeX 2e (*.tex) table fragment\nGnumeric_html:latex_table_visible | LaTeX 2e (*.tex) table fragment of visible rows\nGnumeric_html:roff                | TROFF (*.me)\nGnumeric_html:xhtml               | XHTML (*.html)\nGnumeric_html:xhtml_range         | XHTML range - for export to clipboard\nGnumeric_lpsolve:lpsolve          | LPSolve Linear Program Solver\nGnumeric_paradox:paradox          | Paradox database (*.db)\nGnumeric_pdf:pdf_assistant        | PDF export\nGnumeric_stf:stf_assistant        | Text (configurable)\nGnumeric_stf:stf_csv              | Comma separated values (CSV)\nGnumeric_sylk:sylk                | MultiPlan (SYLK)\n"
+    },
+    {
+      "name": "bad-option",
+      "cmd": "ssconvert --visual-invalid",
+      "exit": 1,
+      "stdout": 0,
+      "stderr": "Unknown option --visual-invalid\nRun 'ssconvert --help' to see a full list of available command line options.\n"
+    },
+    {
+      "name": "missing",
+      "cmd": "ssconvert /missing.xlsx /result.csv",
+      "exit": 1,
+      "stdout": 0,
+      "stderr": "E /missing.xlsx: No such file or directory\n"
+    },
+    {
+      "name": "portrait",
+      "cmd": "ssconvert -T Gnumeric_pdf:pdf_assistant /portrait.gnumeric fd://1",
+      "exit": 0,
+      "stdout": 12944,
+      "stderr": ""
+    },
+    {
+      "name": "portrait-checkpoint",
+      "cmd": "ssconvert -T Gnumeric_XmlIO:sax:0 /portrait.gnumeric /checkpoint.xml",
+      "exit": 0,
+      "stdout": 0,
+      "stderr": ""
+    },
+    {
+      "name": "portrait-replay",
+      "cmd": "ssconvert -T Gnumeric_pdf:pdf_assistant /checkpoint.xml fd://1",
+      "exit": 0,
+      "stdout": 12944,
+      "stderr": ""
+    },
+    {
+      "name": "portrait-sdk-checkpoint",
+      "equal": true
+    },
+    {
+      "name": "landscape",
+      "cmd": "ssconvert -T Gnumeric_pdf:pdf_assistant /landscape.gnumeric fd://1",
+      "exit": 0,
+      "stdout": 12815,
+      "stderr": ""
+    },
+    {
+      "name": "landscape-checkpoint",
+      "cmd": "ssconvert -T Gnumeric_XmlIO:sax:0 /landscape.gnumeric /checkpoint.xml",
+      "exit": 0,
+      "stdout": 0,
+      "stderr": ""
+    },
+    {
+      "name": "landscape-replay",
+      "cmd": "ssconvert -T Gnumeric_pdf:pdf_assistant /checkpoint.xml fd://1",
+      "exit": 0,
+      "stdout": 12815,
+      "stderr": ""
+    },
+    {
+      "name": "landscape-sdk-checkpoint",
+      "equal": true
+    },
+    {
+      "name": "graph-png",
+      "cmd": "ssconvert --export-graphs -T png /graph.gnumeric 'graph-%n.png'",
+      "exit": 1,
+      "stdout": 0,
+      "stderr": "Unsupported ssconvert feature: graph scene rendering\n"
+    },
+    {
+      "name": "grid",
+      "cmd": "ssconvert -T Gnumeric_pdf:pdf_assistant /grid.gnumeric /keep",
+      "exit": 1,
+      "stdout": 0,
+      "stderr": "Unsupported ssconvert feature: PDF print grid\n"
+    },
+    {
+      "name": "object-missing",
+      "cmd": "ssconvert -T Gnumeric_pdf:pdf_assistant -O object=missing /graph.gnumeric /keep",
+      "exit": 1,
+      "stdout": 0,
+      "stderr": "ssconvert: There is no object with name 'missing'\n"
+    }
+  ],
+  "native": {
+    "profile": "chart-rendering-verification.json#nativeQaProfile",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "GSETTINGS_BACKEND": "memory",
+      "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+      "HOME": "/tmp/ssconvert-visual-current-qa-20260921/home",
+      "XDG_CONFIG_HOME": "/tmp/ssconvert-visual-current-qa-20260921/config",
+      "XDG_DATA_HOME": "/tmp/ssconvert-visual-current-qa-20260921/data",
+      "XDG_CACHE_HOME": "/tmp/ssconvert-visual-current-qa-20260921/cache",
+      "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    },
+    "records": [
+      {
+        "name": "version",
+        "argv": ["/out/ssconvert-statistics-oracle/prefix/bin/ssconvert", "--version"],
+        "exit": 0,
+        "stdoutBytes": 177,
+        "stderr": ""
+      },
+      {
+        "name": "help",
+        "argv": ["/out/ssconvert-statistics-oracle/prefix/bin/ssconvert", "--help"],
+        "exit": 0,
+        "stdoutBytes": 1519,
+        "stderr": ""
+      },
+      {
+        "name": "importers",
+        "argv": ["/out/ssconvert-statistics-oracle/prefix/bin/ssconvert", "--list-importers"],
+        "exit": 0,
+        "stdoutBytes": 0,
+        "stderr": "ID                           | Description\nGnumeric_Excel:excel         | MS Excel? (*.xls)\nGnumeric_Excel:excel_enc     | MS Excel? (*.xls) requiring encoding specification\nGnumeric_Excel:excel_xml     | MS Excel? 2003 SpreadsheetML\nGnumeric_Excel:xlsx          | ECMA 376 / Office Open XML [MS Excel? 2007/2010] (*.xlsx)\nGnumeric_OpenCalc:openoffice | Open Document Format (*.sxc, *.ods)\nGnumeric_QPro:qpro           | Quattro Pro (*.wb1, *.wb2, *.wb3)\nGnumeric_XmlIO:sax           | Gnumeric XML (*.gnumeric)\nGnumeric_applix:applix       | Applix (*.as)\nGnumeric_dif:dif             | Data Interchange Format (*.dif)\nGnumeric_html:html           | HTML (*.html, *.htm)\nGnumeric_lotus:lotus         | Lotus 123 (*.wk1, *.wks, *.123)\nGnumeric_mps:mps             | Linear and integer program (*.mps) file format\nGnumeric_oleo:oleo           | GNU Oleo (*.oleo)\nGnumeric_plan_perfect:pln    | Plan Perfect Format (PLN) import\nGnumeric_sc:sc               | SC/xspread\nGnumeric_stf:stf_csvtab      | Comma or tab separated values (CSV/TSV)\nGnumeric_sylk:sylk           | MultiPlan (SYLK)\nGnumeric_xbase:xbase         | Xbase (*.dbf) file format\n"
+      },
+      {
+        "name": "exporters",
+        "argv": ["/out/ssconvert-statistics-oracle/prefix/bin/ssconvert", "--list-exporters"],
+        "exit": 0,
+        "stdoutBytes": 0,
+        "stderr": "ID                                | Description\nGnumeric_Excel:excel_biff7        | MS Excel? 5.0/95\nGnumeric_Excel:excel_biff8        | MS Excel? 97/2000/XP\nGnumeric_Excel:excel_dsf          | MS Excel? 97/2000/XP & 5.0/95\nGnumeric_Excel:xlsx               | ECMA 376 1st edition (2006); [MS Excel? 2007]\nGnumeric_Excel:xlsx2              | ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel? 2010]\nGnumeric_OpenCalc:odf             | ODF 1.2 extended conformance (*.ods)\nGnumeric_OpenCalc:openoffice      | ODF 1.2 strict conformance (*.ods)\nGnumeric_XmlIO:sax                | Gnumeric XML (*.gnumeric)\nGnumeric_XmlIO:sax:0              | Gnumeric XML uncompressed (*.xml)\nGnumeric_dif:dif                  | Data Interchange Format (*.dif)\nGnumeric_glpk:glpk                | GLPK Linear Program Solver\nGnumeric_html:html32              | HTML 3.2 (*.html)\nGnumeric_html:html40              | HTML 4.0 (*.html)\nGnumeric_html:html40frag          | HTML (*.html) fragment\nGnumeric_html:latex               | LaTeX 2e (*.tex)\nGnumeric_html:latex_table         | LaTeX 2e (*.tex) table fragment\nGnumeric_html:latex_table_visible | LaTeX 2e (*.tex) table fragment of visible rows\nGnumeric_html:roff                | TROFF (*.me)\nGnumeric_html:xhtml               | XHTML (*.html)\nGnumeric_html:xhtml_range         | XHTML range - for export to clipboard\nGnumeric_lpsolve:lpsolve          | LPSolve Linear Program Solver\nGnumeric_pdf:pdf_assistant        | PDF export\nGnumeric_stf:stf_assistant        | Text (configurable)\nGnumeric_stf:stf_csv              | Comma separated values (CSV)\nGnumeric_sylk:sylk                | MultiPlan (SYLK)\n"
+      },
+      {
+        "name": "bad-option",
+        "argv": ["/out/ssconvert-statistics-oracle/prefix/bin/ssconvert", "--visual-invalid"],
+        "exit": 1,
+        "stdoutBytes": 0,
+        "stderr": "Unknown option --visual-invalid\nRun '/out/ssconvert-statistics-oracle/prefix/bin/ssconvert --help' to see a full list of available command line options.\n"
+      },
+      {
+        "name": "missing",
+        "argv": [
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "/missing.xlsx",
+          "/result.csv"
+        ],
+        "exit": 1,
+        "stdoutBytes": 0,
+        "stderr": "E /missing.xlsx: No such file or directory\n"
+      },
+      {
+        "name": "portrait",
+        "argv": [
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_pdf:pdf_assistant",
+          "/tmp/ssconvert-visual-current-qa-20260921/portrait.gnumeric",
+          "/tmp/ssconvert-visual-current-qa-20260921/portrait-native.pdf"
+        ],
+        "exit": 0,
+        "stdoutBytes": 0,
+        "stderr": ""
+      },
+      {
+        "name": "landscape",
+        "argv": [
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_pdf:pdf_assistant",
+          "/tmp/ssconvert-visual-current-qa-20260921/landscape.gnumeric",
+          "/tmp/ssconvert-visual-current-qa-20260921/landscape-native.pdf"
+        ],
+        "exit": 0,
+        "stdoutBytes": 0,
+        "stderr": ""
+      },
+      {
+        "name": "graph",
+        "argv": [
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--export-graphs",
+          "-T",
+          "png",
+          "/tmp/ssconvert-visual-current-qa-20260921/graph.gnumeric",
+          "/tmp/ssconvert-visual-current-qa-20260921/graph-native-%n.png"
+        ],
+        "exit": 0,
+        "stdoutBytes": 0,
+        "stderr": "\n** (ssconvert:90233): WARNING **: 17:20:12.606: unknown type 'GODataVectorVal' for dimension `0' of class `GogXYSeries'\n\n** (ssconvert:90233): WARNING **: 17:20:12.606: unknown type 'GODataVectorVal' for dimension `1' of class `GogXYSeries'\n"
+      }
+    ],
+    "containerScratch": "/tmp/ssconvert-visual-current-qa-20260921"
+  },
+  "correctedGraphs": [
+    {
+      "name": "plot",
+      "cmd": "ssconvert --export-graphs -T png /plot.gnumeric 'plot-%n.png'",
+      "exit": 1,
+      "stderr": "Unsupported ssconvert feature: graph scene rendering\n",
+      "stdoutBytes": 0
+    },
+    {
+      "name": "empty",
+      "cmd": "ssconvert --export-graphs -T png /empty.gnumeric 'empty-%n.png'",
+      "exit": 0,
+      "stderr": "",
+      "stdoutBytes": 0
+    }
+  ],
+  "nativeCorrectedGraphs": [
+    {
+      "name": "plot",
+      "argv": [
+        "--export-graphs",
+        "-T",
+        "png",
+        "/tmp/ssconvert-visual-current-qa-20260921/plot.gnumeric",
+        "/tmp/ssconvert-visual-current-qa-20260921/plot-native-%n.png"
+      ],
+      "exit": 0,
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "name": "empty",
+      "argv": [
+        "--export-graphs",
+        "-T",
+        "png",
+        "/tmp/ssconvert-visual-current-qa-20260921/empty.gnumeric",
+        "/tmp/ssconvert-visual-current-qa-20260921/empty-native-%n.png"
+      ],
+      "exit": 0,
+      "stdoutBytes": 0,
+      "stderr": ""
+    }
+  ],
+  "fingerprintBoundRepeat": [
+    {
+      "name": "portrait",
+      "originalSdkCheckpointReplayEqual": true
+    },
+    {
+      "name": "landscape",
+      "originalSdkCheckpointReplayEqual": true
+    },
+    {
+      "name": "plot",
+      "exit": 1,
+      "stderr": "Unsupported ssconvert feature: graph scene rendering\n"
+    },
+    {
+      "name": "empty",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "name": "missing-object-sentinel",
+      "preserved": true
+    }
+  ],
+  "pdfSummary": {
+    "portrait": {
+      "currentPages": 2,
+      "nativePages": 2,
+      "geometryEqual": [true, true],
+      "textTokensEqual": [true, true],
+      "pageSizes": [
+        [0.0, 0.0, 595.2755737304688, 841.8897705078125],
+        [0.0, 0.0, 595.2755737304688, 841.8897705078125]
+      ],
+      "currentFonts": ["JetBrainsMono-Regular-8863"],
+      "nativeFonts": ["CEPPUB+DejaVuSans", "YOADQO+DejaVuSans"]
+    },
+    "landscape": {
+      "currentPages": 2,
+      "nativePages": 2,
+      "geometryEqual": [true, true],
+      "textTokensEqual": [true, true],
+      "pageSizes": [
+        [0.0, 0.0, 792.0, 612.0],
+        [0.0, 0.0, 792.0, 612.0]
+      ],
+      "currentFonts": ["JetBrainsMono-Regular-8863"],
+      "nativeFonts": ["CEPPUB+DejaVuSans", "YOADQO+DejaVuSans"]
+    }
+  },
+  "artifacts": [
+    {
+      "name": "bad-option-native.stderr",
+      "bytes": 153,
+      "sha256": "367d48408ffda430e8bc264d6314fc0b0727c2464e4c5334f467262df584da1a"
+    },
+    {
+      "name": "bad-option-native.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bad-option.stderr",
+      "bytes": 109,
+      "sha256": "38c8e8482d97c7cc9674a136efdde1b14e5e8a865e5b8f80396705fae04ad924"
+    },
+    {
+      "name": "bad-option.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "empty-current.png",
+      "bytes": 180228,
+      "sha256": "c854984a5a430392a76fb26d20679f6f4930ba26e1baaecef2f9e1c8c4faafbf",
+      "pixels": [300, 150]
+    },
+    {
+      "name": "empty-native.png",
+      "bytes": 270,
+      "sha256": "dccf2dc10058293e57d871a284f5120e736f70ee84d317734be1d28b051b1a30",
+      "pixels": [300, 150]
+    },
+    {
+      "name": "empty.gnumeric",
+      "bytes": 307,
+      "sha256": "7fb6d7cbb98882a4ebabda66fa48b2826772671d253182fcb1b1437f3b589867"
+    },
+    {
+      "name": "exporters-native.stderr",
+      "bytes": 1649,
+      "sha256": "a298b5a0400e5589d975ddb84a0529063781d4063a0dbfa1dd93af9b233eb054"
+    },
+    {
+      "name": "exporters-native.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "exporters.stderr",
+      "bytes": 1775,
+      "sha256": "86e89e25af29c83271689f65a3b2b09d43f13a93eefb7483130b28e2d01430c2"
+    },
+    {
+      "name": "exporters.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "graph-native-0.png",
+      "bytes": 4146,
+      "sha256": "f2a90e9062f620970d7a096203e4331e4832e7e0458587154d4b95815e5e552d",
+      "pixels": [300, 150]
+    },
+    {
+      "name": "graph-native.stderr",
+      "bytes": 242,
+      "sha256": "f55c7536efc51109a1c864edd89bc2a56d720afb8e9c526cf93427ed84d6bea5"
+    },
+    {
+      "name": "graph-native.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "graph-png.stderr",
+      "bytes": 53,
+      "sha256": "0dedb93af83de6be21502e7c281dcf025158404c8fc10fbbc358aef974621c13"
+    },
+    {
+      "name": "graph-png.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "graph.gnumeric",
+      "bytes": 734,
+      "sha256": "9adb2bd813a0c19f1e55c5bce42b44bb64b023bc5ad8a7a92f87ec3adc6b2d56"
+    },
+    {
+      "name": "grid.stderr",
+      "bytes": 46,
+      "sha256": "87359a339a434bc86b6dc16c4736ff16fdcb99f73f31fb1b961f4bb43d766beb"
+    },
+    {
+      "name": "grid.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help-native.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help-native.stdout",
+      "bytes": 1519,
+      "sha256": "20da107acd0cb1b89b57af70bb650d8e397bad25fe2c7e6ba76e2c08310864e8"
+    },
+    {
+      "name": "help.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "help.stdout",
+      "bytes": 1475,
+      "sha256": "3eb2274e6af304e1cfaddcb0f07ad83d1f08daa97936c20717b2da2541b2d3cf"
+    },
+    {
+      "name": "importers-native.stderr",
+      "bytes": 1144,
+      "sha256": "6aede5ad3388ed810ce7d2714f2d03215ac6a54ae45b884eefa122fdf9332a36"
+    },
+    {
+      "name": "importers-native.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "importers.stderr",
+      "bytes": 1277,
+      "sha256": "a16a766e6d60f3ea90cd4fa15ec13de7036556698ae07713ad0cec482e7dafab"
+    },
+    {
+      "name": "importers.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "landscape-checkpoint.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "landscape-checkpoint.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "landscape-current-0.png",
+      "bytes": 12636,
+      "sha256": "9c99a8afd9dafaa3f38117f41efcd74014fa16e1df007f2a848ec188ecb6cc5a",
+      "pixels": [792, 612]
+    },
+    {
+      "name": "landscape-current-1.png",
+      "bytes": 9096,
+      "sha256": "ee4fec310b436cfb5fd9cda9f6c776c629f05d8f45c6f79235686fb677b5bb0a",
+      "pixels": [792, 612]
+    },
+    {
+      "name": "landscape-current.pdf",
+      "bytes": 12815,
+      "sha256": "3d5a329e9041887eadc5bf23d2ed8a3e35c8a970cb1fa211af1ff51d29358fe8"
+    },
+    {
+      "name": "landscape-native-0.png",
+      "bytes": 16663,
+      "sha256": "d1e5b6194b52ddd7e481f510911104f66a80e9c459bc7243767bc5c90e43760f",
+      "pixels": [792, 612]
+    },
+    {
+      "name": "landscape-native-1.png",
+      "bytes": 11428,
+      "sha256": "e0b811bc5b1640ab9432e948a2e746efe3cd3d3a5b832e2652236402148cbd93",
+      "pixels": [792, 612]
+    },
+    {
+      "name": "landscape-native.pdf",
+      "bytes": 13654,
+      "sha256": "835bec88b06ff430ea5eb3c7deb5d0f949b0028c7f24a6d68ba66b122ac61dc9"
+    },
+    {
+      "name": "landscape-native.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "landscape-native.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "landscape-replay.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "landscape-replay.stdout",
+      "bytes": 12815,
+      "sha256": "3d5a329e9041887eadc5bf23d2ed8a3e35c8a970cb1fa211af1ff51d29358fe8"
+    },
+    {
+      "name": "landscape.gnumeric",
+      "bytes": 5862,
+      "sha256": "b6b3afbeeb3665130f5a7186174660aabc2335262e97c558b6c403924911f605"
+    },
+    {
+      "name": "landscape.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "landscape.stdout",
+      "bytes": 12815,
+      "sha256": "3d5a329e9041887eadc5bf23d2ed8a3e35c8a970cb1fa211af1ff51d29358fe8"
+    },
+    {
+      "name": "missing-native.stderr",
+      "bytes": 43,
+      "sha256": "6936c1791a4a24cfbf13da9b7856fe9f7ca1f32a3abce175e0be750e12614a9b"
+    },
+    {
+      "name": "missing-native.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "missing.stderr",
+      "bytes": 43,
+      "sha256": "6936c1791a4a24cfbf13da9b7856fe9f7ca1f32a3abce175e0be750e12614a9b"
+    },
+    {
+      "name": "missing.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native-terminal.png",
+      "bytes": 1583833,
+      "sha256": "f38d6ccaedcaa746036a075efcc70980f3f17c8df4a342f61ef639bb763df07e",
+      "pixels": [4198, 6314]
+    },
+    {
+      "name": "object-missing.stderr",
+      "bytes": 50,
+      "sha256": "a93624afa14d43936473190e7a3ad693bf16ae34910a75e92874535c3b482896"
+    },
+    {
+      "name": "object-missing.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "plot-native.png",
+      "bytes": 7002,
+      "sha256": "ddb2010a1b583b5fbee0e33ff0310c3e6cdcf2bed9070fed4272aa743b60f5b4",
+      "pixels": [300, 150]
+    },
+    {
+      "name": "plot.gnumeric",
+      "bytes": 1059,
+      "sha256": "ef85d6a7dc195111a605ee177ef05d3a4a4198c297f4c2e7a17d2db6dea90979"
+    },
+    {
+      "name": "portrait-checkpoint.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "portrait-checkpoint.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "portrait-current-0.png",
+      "bytes": 12144,
+      "sha256": "2cf7938d46751ac7b2888dfe0ea65632c09b8ab8c0b3129d6925c7f03a034337",
+      "pixels": [596, 842]
+    },
+    {
+      "name": "portrait-current-1.png",
+      "bytes": 11715,
+      "sha256": "0f2787897e29dfe3e1d47c7b53feacfe3daebf223995358a228e9cc4c5ecaa24",
+      "pixels": [596, 842]
+    },
+    {
+      "name": "portrait-current.pdf",
+      "bytes": 12944,
+      "sha256": "1a80380ad35d7e21fe593215240bd6950b20c9b848a42e1646a75ea5c2e05a14"
+    },
+    {
+      "name": "portrait-native-0.png",
+      "bytes": 20392,
+      "sha256": "b1525731068f1cf1756a184cd20e90e571ffdcd391da69eb799cacb640bac07d",
+      "pixels": [596, 842]
+    },
+    {
+      "name": "portrait-native-1.png",
+      "bytes": 19952,
+      "sha256": "fb94469e5d47a4b479850c549a197fdd83157ca7e17eafbeaf3ce85ff88e6e28",
+      "pixels": [596, 842]
+    },
+    {
+      "name": "portrait-native.pdf",
+      "bytes": 13655,
+      "sha256": "2726414a7866e33aeda6623d5e7d285ce68b70af79591b1ac018b3a0563be011"
+    },
+    {
+      "name": "portrait-native.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "portrait-native.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "portrait-replay.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "portrait-replay.stdout",
+      "bytes": 12944,
+      "sha256": "1a80380ad35d7e21fe593215240bd6950b20c9b848a42e1646a75ea5c2e05a14"
+    },
+    {
+      "name": "portrait.gnumeric",
+      "bytes": 5709,
+      "sha256": "c1b8112860f9f39a0e1178b089b377d70a9d508bf1d991036526bec2ca504f41"
+    },
+    {
+      "name": "portrait.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "portrait.stdout",
+      "bytes": 12944,
+      "sha256": "1a80380ad35d7e21fe593215240bd6950b20c9b848a42e1646a75ea5c2e05a14"
+    },
+    {
+      "name": "terminal.png",
+      "bytes": 1652933,
+      "sha256": "e6d374142032ce8e032bc6d8a3c789283f861e596a38186472e59c8752c6d23a",
+      "pixels": [4030, 6583]
+    },
+    {
+      "name": "version-native.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "version-native.stdout",
+      "bytes": 177,
+      "sha256": "e4f6b63c31cca1117a32ecbffed24f3c85006504ee4ead5f90a9a5289f3a2270"
+    }
+  ],
+  "fixtures": {
+    "portrait": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>Visual</g:Name><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"60\">visual row 0</g:Cell><g:Cell Row=\"1\" Col=\"0\" ValueType=\"60\">visual row 1</g:Cell><g:Cell Row=\"2\" Col=\"0\" ValueType=\"60\">visual row 2</g:Cell><g:Cell Row=\"3\" Col=\"0\" ValueType=\"60\">visual row 3</g:Cell><g:Cell Row=\"4\" Col=\"0\" ValueType=\"60\">visual row 4</g:Cell><g:Cell Row=\"5\" Col=\"0\" ValueType=\"60\">visual row 5</g:Cell><g:Cell Row=\"6\" Col=\"0\" ValueType=\"60\">visual row 6</g:Cell><g:Cell Row=\"7\" Col=\"0\" ValueType=\"60\">visual row 7</g:Cell><g:Cell Row=\"8\" Col=\"0\" ValueType=\"60\">visual row 8</g:Cell><g:Cell Row=\"9\" Col=\"0\" ValueType=\"60\">visual row 9</g:Cell><g:Cell Row=\"10\" Col=\"0\" ValueType=\"60\">visual row 10</g:Cell><g:Cell Row=\"11\" Col=\"0\" ValueType=\"60\">visual row 11</g:Cell><g:Cell Row=\"12\" Col=\"0\" ValueType=\"60\">visual row 12</g:Cell><g:Cell Row=\"13\" Col=\"0\" ValueType=\"60\">visual row 13</g:Cell><g:Cell Row=\"14\" Col=\"0\" ValueType=\"60\">visual row 14</g:Cell><g:Cell Row=\"15\" Col=\"0\" ValueType=\"60\">visual row 15</g:Cell><g:Cell Row=\"16\" Col=\"0\" ValueType=\"60\">visual row 16</g:Cell><g:Cell Row=\"17\" Col=\"0\" ValueType=\"60\">visual row 17</g:Cell><g:Cell Row=\"18\" Col=\"0\" ValueType=\"60\">visual row 18</g:Cell><g:Cell Row=\"19\" Col=\"0\" ValueType=\"60\">visual row 19</g:Cell><g:Cell Row=\"20\" Col=\"0\" ValueType=\"60\">visual row 20</g:Cell><g:Cell Row=\"21\" Col=\"0\" ValueType=\"60\">visual row 21</g:Cell><g:Cell Row=\"22\" Col=\"0\" ValueType=\"60\">visual row 22</g:Cell><g:Cell Row=\"23\" Col=\"0\" ValueType=\"60\">visual row 23</g:Cell><g:Cell Row=\"24\" Col=\"0\" ValueType=\"60\">visual row 24</g:Cell><g:Cell Row=\"25\" Col=\"0\" ValueType=\"60\">visual row 25</g:Cell><g:Cell Row=\"26\" Col=\"0\" ValueType=\"60\">visual row 26</g:Cell><g:Cell Row=\"27\" Col=\"0\" ValueType=\"60\">visual row 27</g:Cell><g:Cell Row=\"28\" Col=\"0\" ValueType=\"60\">visual row 28</g:Cell><g:Cell Row=\"29\" Col=\"0\" ValueType=\"60\">visual row 29</g:Cell><g:Cell Row=\"30\" Col=\"0\" ValueType=\"60\">visual row 30</g:Cell><g:Cell Row=\"31\" Col=\"0\" ValueType=\"60\">visual row 31</g:Cell><g:Cell Row=\"32\" Col=\"0\" ValueType=\"60\">visual row 32</g:Cell><g:Cell Row=\"33\" Col=\"0\" ValueType=\"60\">visual row 33</g:Cell><g:Cell Row=\"34\" Col=\"0\" ValueType=\"60\">visual row 34</g:Cell><g:Cell Row=\"35\" Col=\"0\" ValueType=\"60\">visual row 35</g:Cell><g:Cell Row=\"36\" Col=\"0\" ValueType=\"60\">visual row 36</g:Cell><g:Cell Row=\"37\" Col=\"0\" ValueType=\"60\">visual row 37</g:Cell><g:Cell Row=\"38\" Col=\"0\" ValueType=\"60\">visual row 38</g:Cell><g:Cell Row=\"39\" Col=\"0\" ValueType=\"60\">visual row 39</g:Cell><g:Cell Row=\"40\" Col=\"0\" ValueType=\"60\">visual row 40</g:Cell><g:Cell Row=\"41\" Col=\"0\" ValueType=\"60\">visual row 41</g:Cell><g:Cell Row=\"42\" Col=\"0\" ValueType=\"60\">visual row 42</g:Cell><g:Cell Row=\"43\" Col=\"0\" ValueType=\"60\">visual row 43</g:Cell><g:Cell Row=\"44\" Col=\"0\" ValueType=\"60\">visual row 44</g:Cell><g:Cell Row=\"45\" Col=\"0\" ValueType=\"60\">visual row 45</g:Cell><g:Cell Row=\"46\" Col=\"0\" ValueType=\"60\">visual row 46</g:Cell><g:Cell Row=\"47\" Col=\"0\" ValueType=\"60\">visual row 47</g:Cell><g:Cell Row=\"48\" Col=\"0\" ValueType=\"60\">visual row 48</g:Cell><g:Cell Row=\"49\" Col=\"0\" ValueType=\"60\">visual row 49</g:Cell><g:Cell Row=\"50\" Col=\"0\" ValueType=\"60\">visual row 50</g:Cell><g:Cell Row=\"51\" Col=\"0\" ValueType=\"60\">visual row 51</g:Cell><g:Cell Row=\"52\" Col=\"0\" ValueType=\"60\">visual row 52</g:Cell><g:Cell Row=\"53\" Col=\"0\" ValueType=\"60\">visual row 53</g:Cell><g:Cell Row=\"54\" Col=\"0\" ValueType=\"60\">visual row 54</g:Cell><g:Cell Row=\"55\" Col=\"0\" ValueType=\"60\">visual row 55</g:Cell><g:Cell Row=\"56\" Col=\"0\" ValueType=\"60\">visual row 56</g:Cell><g:Cell Row=\"57\" Col=\"0\" ValueType=\"60\">visual row 57</g:Cell><g:Cell Row=\"58\" Col=\"0\" ValueType=\"60\">visual row 58</g:Cell><g:Cell Row=\"59\" Col=\"0\" ValueType=\"60\">visual row 59</g:Cell><g:Cell Row=\"60\" Col=\"0\" ValueType=\"60\">visual row 60</g:Cell><g:Cell Row=\"61\" Col=\"0\" ValueType=\"60\">visual row 61</g:Cell><g:Cell Row=\"62\" Col=\"0\" ValueType=\"60\">visual row 62</g:Cell><g:Cell Row=\"63\" Col=\"0\" ValueType=\"60\">visual row 63</g:Cell><g:Cell Row=\"64\" Col=\"0\" ValueType=\"60\">visual row 64</g:Cell><g:Cell Row=\"65\" Col=\"0\" ValueType=\"60\">visual row 65</g:Cell><g:Cell Row=\"66\" Col=\"0\" ValueType=\"60\">visual row 66</g:Cell><g:Cell Row=\"67\" Col=\"0\" ValueType=\"60\">visual row 67</g:Cell><g:Cell Row=\"68\" Col=\"0\" ValueType=\"60\">visual row 68</g:Cell><g:Cell Row=\"69\" Col=\"0\" ValueType=\"60\">visual row 69</g:Cell><g:Cell Row=\"70\" Col=\"0\" ValueType=\"60\">visual row 70</g:Cell><g:Cell Row=\"71\" Col=\"0\" ValueType=\"60\">visual row 71</g:Cell><g:Cell Row=\"72\" Col=\"0\" ValueType=\"60\">visual row 72</g:Cell><g:Cell Row=\"73\" Col=\"0\" ValueType=\"60\">visual row 73</g:Cell><g:Cell Row=\"74\" Col=\"0\" ValueType=\"60\">visual row 74</g:Cell><g:Cell Row=\"75\" Col=\"0\" ValueType=\"60\">visual row 75</g:Cell><g:Cell Row=\"76\" Col=\"0\" ValueType=\"60\">visual row 76</g:Cell><g:Cell Row=\"77\" Col=\"0\" ValueType=\"60\">visual row 77</g:Cell><g:Cell Row=\"78\" Col=\"0\" ValueType=\"60\">visual row 78</g:Cell><g:Cell Row=\"79\" Col=\"0\" ValueType=\"60\">visual row 79</g:Cell><g:Cell Row=\"80\" Col=\"0\" ValueType=\"60\">visual row 80</g:Cell><g:Cell Row=\"81\" Col=\"0\" ValueType=\"60\">visual row 81</g:Cell><g:Cell Row=\"82\" Col=\"0\" ValueType=\"60\">visual row 82</g:Cell><g:Cell Row=\"83\" Col=\"0\" ValueType=\"60\">visual row 83</g:Cell><g:Cell Row=\"84\" Col=\"0\" ValueType=\"60\">visual row 84</g:Cell><g:Cell Row=\"85\" Col=\"0\" ValueType=\"60\">visual row 85</g:Cell><g:Cell Row=\"86\" Col=\"0\" ValueType=\"60\">visual row 86</g:Cell><g:Cell Row=\"87\" Col=\"0\" ValueType=\"60\">visual row 87</g:Cell><g:Cell Row=\"88\" Col=\"0\" ValueType=\"60\">visual row 88</g:Cell><g:Cell Row=\"89\" Col=\"0\" ValueType=\"60\">visual row 89</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>",
+    "landscape": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>Visual</g:Name><g:PrintInformation><g:paper>na_letter</g:paper><g:orientation>landscape</g:orientation><g:Scale type=\"percentage\" percentage=\"50\"/></g:PrintInformation><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"60\">visual row 0</g:Cell><g:Cell Row=\"1\" Col=\"0\" ValueType=\"60\">visual row 1</g:Cell><g:Cell Row=\"2\" Col=\"0\" ValueType=\"60\">visual row 2</g:Cell><g:Cell Row=\"3\" Col=\"0\" ValueType=\"60\">visual row 3</g:Cell><g:Cell Row=\"4\" Col=\"0\" ValueType=\"60\">visual row 4</g:Cell><g:Cell Row=\"5\" Col=\"0\" ValueType=\"60\">visual row 5</g:Cell><g:Cell Row=\"6\" Col=\"0\" ValueType=\"60\">visual row 6</g:Cell><g:Cell Row=\"7\" Col=\"0\" ValueType=\"60\">visual row 7</g:Cell><g:Cell Row=\"8\" Col=\"0\" ValueType=\"60\">visual row 8</g:Cell><g:Cell Row=\"9\" Col=\"0\" ValueType=\"60\">visual row 9</g:Cell><g:Cell Row=\"10\" Col=\"0\" ValueType=\"60\">visual row 10</g:Cell><g:Cell Row=\"11\" Col=\"0\" ValueType=\"60\">visual row 11</g:Cell><g:Cell Row=\"12\" Col=\"0\" ValueType=\"60\">visual row 12</g:Cell><g:Cell Row=\"13\" Col=\"0\" ValueType=\"60\">visual row 13</g:Cell><g:Cell Row=\"14\" Col=\"0\" ValueType=\"60\">visual row 14</g:Cell><g:Cell Row=\"15\" Col=\"0\" ValueType=\"60\">visual row 15</g:Cell><g:Cell Row=\"16\" Col=\"0\" ValueType=\"60\">visual row 16</g:Cell><g:Cell Row=\"17\" Col=\"0\" ValueType=\"60\">visual row 17</g:Cell><g:Cell Row=\"18\" Col=\"0\" ValueType=\"60\">visual row 18</g:Cell><g:Cell Row=\"19\" Col=\"0\" ValueType=\"60\">visual row 19</g:Cell><g:Cell Row=\"20\" Col=\"0\" ValueType=\"60\">visual row 20</g:Cell><g:Cell Row=\"21\" Col=\"0\" ValueType=\"60\">visual row 21</g:Cell><g:Cell Row=\"22\" Col=\"0\" ValueType=\"60\">visual row 22</g:Cell><g:Cell Row=\"23\" Col=\"0\" ValueType=\"60\">visual row 23</g:Cell><g:Cell Row=\"24\" Col=\"0\" ValueType=\"60\">visual row 24</g:Cell><g:Cell Row=\"25\" Col=\"0\" ValueType=\"60\">visual row 25</g:Cell><g:Cell Row=\"26\" Col=\"0\" ValueType=\"60\">visual row 26</g:Cell><g:Cell Row=\"27\" Col=\"0\" ValueType=\"60\">visual row 27</g:Cell><g:Cell Row=\"28\" Col=\"0\" ValueType=\"60\">visual row 28</g:Cell><g:Cell Row=\"29\" Col=\"0\" ValueType=\"60\">visual row 29</g:Cell><g:Cell Row=\"30\" Col=\"0\" ValueType=\"60\">visual row 30</g:Cell><g:Cell Row=\"31\" Col=\"0\" ValueType=\"60\">visual row 31</g:Cell><g:Cell Row=\"32\" Col=\"0\" ValueType=\"60\">visual row 32</g:Cell><g:Cell Row=\"33\" Col=\"0\" ValueType=\"60\">visual row 33</g:Cell><g:Cell Row=\"34\" Col=\"0\" ValueType=\"60\">visual row 34</g:Cell><g:Cell Row=\"35\" Col=\"0\" ValueType=\"60\">visual row 35</g:Cell><g:Cell Row=\"36\" Col=\"0\" ValueType=\"60\">visual row 36</g:Cell><g:Cell Row=\"37\" Col=\"0\" ValueType=\"60\">visual row 37</g:Cell><g:Cell Row=\"38\" Col=\"0\" ValueType=\"60\">visual row 38</g:Cell><g:Cell Row=\"39\" Col=\"0\" ValueType=\"60\">visual row 39</g:Cell><g:Cell Row=\"40\" Col=\"0\" ValueType=\"60\">visual row 40</g:Cell><g:Cell Row=\"41\" Col=\"0\" ValueType=\"60\">visual row 41</g:Cell><g:Cell Row=\"42\" Col=\"0\" ValueType=\"60\">visual row 42</g:Cell><g:Cell Row=\"43\" Col=\"0\" ValueType=\"60\">visual row 43</g:Cell><g:Cell Row=\"44\" Col=\"0\" ValueType=\"60\">visual row 44</g:Cell><g:Cell Row=\"45\" Col=\"0\" ValueType=\"60\">visual row 45</g:Cell><g:Cell Row=\"46\" Col=\"0\" ValueType=\"60\">visual row 46</g:Cell><g:Cell Row=\"47\" Col=\"0\" ValueType=\"60\">visual row 47</g:Cell><g:Cell Row=\"48\" Col=\"0\" ValueType=\"60\">visual row 48</g:Cell><g:Cell Row=\"49\" Col=\"0\" ValueType=\"60\">visual row 49</g:Cell><g:Cell Row=\"50\" Col=\"0\" ValueType=\"60\">visual row 50</g:Cell><g:Cell Row=\"51\" Col=\"0\" ValueType=\"60\">visual row 51</g:Cell><g:Cell Row=\"52\" Col=\"0\" ValueType=\"60\">visual row 52</g:Cell><g:Cell Row=\"53\" Col=\"0\" ValueType=\"60\">visual row 53</g:Cell><g:Cell Row=\"54\" Col=\"0\" ValueType=\"60\">visual row 54</g:Cell><g:Cell Row=\"55\" Col=\"0\" ValueType=\"60\">visual row 55</g:Cell><g:Cell Row=\"56\" Col=\"0\" ValueType=\"60\">visual row 56</g:Cell><g:Cell Row=\"57\" Col=\"0\" ValueType=\"60\">visual row 57</g:Cell><g:Cell Row=\"58\" Col=\"0\" ValueType=\"60\">visual row 58</g:Cell><g:Cell Row=\"59\" Col=\"0\" ValueType=\"60\">visual row 59</g:Cell><g:Cell Row=\"60\" Col=\"0\" ValueType=\"60\">visual row 60</g:Cell><g:Cell Row=\"61\" Col=\"0\" ValueType=\"60\">visual row 61</g:Cell><g:Cell Row=\"62\" Col=\"0\" ValueType=\"60\">visual row 62</g:Cell><g:Cell Row=\"63\" Col=\"0\" ValueType=\"60\">visual row 63</g:Cell><g:Cell Row=\"64\" Col=\"0\" ValueType=\"60\">visual row 64</g:Cell><g:Cell Row=\"65\" Col=\"0\" ValueType=\"60\">visual row 65</g:Cell><g:Cell Row=\"66\" Col=\"0\" ValueType=\"60\">visual row 66</g:Cell><g:Cell Row=\"67\" Col=\"0\" ValueType=\"60\">visual row 67</g:Cell><g:Cell Row=\"68\" Col=\"0\" ValueType=\"60\">visual row 68</g:Cell><g:Cell Row=\"69\" Col=\"0\" ValueType=\"60\">visual row 69</g:Cell><g:Cell Row=\"70\" Col=\"0\" ValueType=\"60\">visual row 70</g:Cell><g:Cell Row=\"71\" Col=\"0\" ValueType=\"60\">visual row 71</g:Cell><g:Cell Row=\"72\" Col=\"0\" ValueType=\"60\">visual row 72</g:Cell><g:Cell Row=\"73\" Col=\"0\" ValueType=\"60\">visual row 73</g:Cell><g:Cell Row=\"74\" Col=\"0\" ValueType=\"60\">visual row 74</g:Cell><g:Cell Row=\"75\" Col=\"0\" ValueType=\"60\">visual row 75</g:Cell><g:Cell Row=\"76\" Col=\"0\" ValueType=\"60\">visual row 76</g:Cell><g:Cell Row=\"77\" Col=\"0\" ValueType=\"60\">visual row 77</g:Cell><g:Cell Row=\"78\" Col=\"0\" ValueType=\"60\">visual row 78</g:Cell><g:Cell Row=\"79\" Col=\"0\" ValueType=\"60\">visual row 79</g:Cell><g:Cell Row=\"80\" Col=\"0\" ValueType=\"60\">visual row 80</g:Cell><g:Cell Row=\"81\" Col=\"0\" ValueType=\"60\">visual row 81</g:Cell><g:Cell Row=\"82\" Col=\"0\" ValueType=\"60\">visual row 82</g:Cell><g:Cell Row=\"83\" Col=\"0\" ValueType=\"60\">visual row 83</g:Cell><g:Cell Row=\"84\" Col=\"0\" ValueType=\"60\">visual row 84</g:Cell><g:Cell Row=\"85\" Col=\"0\" ValueType=\"60\">visual row 85</g:Cell><g:Cell Row=\"86\" Col=\"0\" ValueType=\"60\">visual row 86</g:Cell><g:Cell Row=\"87\" Col=\"0\" ValueType=\"60\">visual row 87</g:Cell><g:Cell Row=\"88\" Col=\"0\" ValueType=\"60\">visual row 88</g:Cell><g:Cell Row=\"89\" Col=\"0\" ValueType=\"60\">visual row 89</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>",
+    "plot": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>Visual</g:Name><g:Objects><g:SheetObjectGraph Name=\"graph\" AnchorMode=\"2\" ObjectBound=\"A1:A1\" ObjectOffset=\"0 0 216 108\"><GogObject type=\"GogGraph\"><GogObject role=\"Chart\" type=\"GogChart\"><GogObject role=\"Title\" type=\"GogLabel\"><data><dimension id=\"0\" type=\"GODataScalarStr\">Visual QA</dimension></data></GogObject><GogObject role=\"Plot\" type=\"GogXYPlot\"><GogObject role=\"Series\" type=\"GogXYSeries\"><data><dimension id=\"0\" type=\"GnmGODataVector\">Visual!$A$1:$A$3</dimension><dimension id=\"1\" type=\"GnmGODataVector\">Visual!$B$1:$B$3</dimension></data></GogObject></GogObject></GogObject></GogObject></g:SheetObjectGraph></g:Objects><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</g:Cell><g:Cell Row=\"0\" Col=\"1\" ValueType=\"40\">1</g:Cell><g:Cell Row=\"1\" Col=\"0\" ValueType=\"40\">2</g:Cell><g:Cell Row=\"1\" Col=\"1\" ValueType=\"40\">4</g:Cell><g:Cell Row=\"2\" Col=\"0\" ValueType=\"40\">3</g:Cell><g:Cell Row=\"2\" Col=\"1\" ValueType=\"40\">2</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>",
+    "empty": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>Visual</g:Name><g:Objects><g:SheetObjectGraph Name=\"graph\" AnchorMode=\"2\" ObjectBound=\"A1:A1\" ObjectOffset=\"0 0 216 108\"><GogObject type=\"GogGraph\"/></g:SheetObjectGraph></g:Objects><g:Cells/></g:Sheet></g:Sheets></g:Workbook>"
+  },
+  "gates": {
+    "build": "18 builds passed, uncached safe-bash closure",
+    "lint": "@poe-code/ssconvert lint passed",
+    "unit": "317 files, 6275 tests passed; npm test --workspace=@poe-code/ssconvert -- --no-cache; 53.89 seconds",
+    "fullRoot": "not run; documentation-only audit"
+  },
+  "scratchCleanup": "Completed: only owned out/ssconvert-visual-current-qa and owned container /tmp/ssconvert-visual-current-qa-20260921 removed after evidence reduction."
+}

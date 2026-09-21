@@ -1,0 +1,657 @@
+{
+  "purpose": "MPS/GLPK/LPSolve separate native QA oracle; never product dependency or fallback",
+  "sourceVersion": "1.12.61",
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "gofficeVersion": "0.10.61",
+  "environment": {
+    "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+    "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+    "GSETTINGS_BACKEND": "memory",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/ssconvert-mps-root-home",
+    "XDG_CONFIG_HOME": "/tmp/ssconvert-mps-root-config",
+    "XDG_DATA_HOME": "/tmp/ssconvert-mps-root-data",
+    "XDG_CACHE_HOME": "/tmp/ssconvert-mps-root-cache"
+  },
+  "version": {
+    "argv": [
+      "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+      "--version"
+    ],
+    "status": 0,
+    "stdout": "ssconvert version '1.12.61'\ndatadir := '/out/ssconvert-statistics-oracle/prefix/share/gnumeric/1.12.61'\nlibdir := '/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61'\n",
+    "stderr": ""
+  },
+  "dependencyPackages": {
+    "argv": [
+      "dpkg-query",
+      "-W"
+    ],
+    "status": 0,
+    "stdout": "adduser\t3.152\nadwaita-icon-theme\t48.1-1\napt\t3.0.3\nat-spi2-common\t2.56.2-1+deb13u2\nat-spi2-core\t2.56.2-1+deb13u2\nautoconf\t2.72-3.1\nautomake\t1:1.17-4\nautotools-dev\t20240727.1\nbase-files\t13.8+deb13u7\nbase-passwd\t3.6.7\nbash\t5.2.37-2+b10\nbash-completion\t1:2.16.0-7\nbinutils\t2.44-3\nbinutils-aarch64-linux-gnu\t2.44-3\nbinutils-common:arm64\t2.44-3\nbison\t2:3.8.2+dfsg-1+b2\nbsdutils\t1:2.41.5-0+deb13u1\nbuild-essential\t12.12\nbzip2\t1.0.8-6\nbzip2-doc\t1.0.8-6\nca-certificates\t20250419\ncoreutils\t9.7-3\ncpp\t4:14.2.0-1\ncpp-14\t14.2.0-19\ncpp-14-aarch64-linux-gnu\t14.2.0-19\ncpp-aarch64-linux-gnu\t4:14.2.0-1\ncurl\t8.14.1-2+deb13u5\ndash\t0.5.12-12\ndbus\t1.16.2-2\ndbus-bin\t1.16.2-2\ndbus-daemon\t1.16.2-2\ndbus-session-bus-common\t1.16.2-2\ndbus-system-bus-common\t1.16.2-2\ndbus-user-session\t1.16.2-2\ndconf-gsettings-backend:arm64\t0.40.0-5\ndconf-service\t0.40.0-5\ndebconf\t1.5.91\ndebian-archive-keyring\t2025.1\ndebianutils\t5.23.2\ndiffutils\t1:3.10-4\ndmsetup\t2:1.02.205-2\ndpkg\t1.22.22\ndpkg-dev\t1.22.22\nfakeroot\t1.37.1.1-1\nfile\t1:5.46-5\nfindutils\t4.10.0-3\nfontconfig\t2.15.0-2.3\nfontconfig-config\t2.15.0-2.3\nfonts-dejavu-core\t2.37-8\nfonts-dejavu-mono\t2.37-8\ng++\t4:14.2.0-1\ng++-14\t14.2.0-19\ng++-14-aarch64-linux-gnu\t14.2.0-19\ng++-aarch64-linux-gnu\t4:14.2.0-1\ngcc\t4:14.2.0-1\ngcc-14\t14.2.0-19\ngcc-14-aarch64-linux-gnu\t14.2.0-19\ngcc-14-base:arm64\t14.2.0-19\ngcc-aarch64-linux-gnu\t4:14.2.0-1\ngettext\t0.23.1-2\ngettext-base\t0.23.1-2\ngir1.2-atk-1.0:arm64\t2.56.2-1+deb13u2\ngir1.2-atspi-2.0:arm64\t2.56.2-1+deb13u2\ngir1.2-cloudproviders-0.3.0:arm64\t0.3.6-2\ngir1.2-freedesktop:arm64\t1.84.0-1\ngir1.2-freedesktop-dev:arm64\t1.84.0-1\ngir1.2-gdkpixbuf-2.0:arm64\t2.42.12+dfsg-4+deb13u1\ngir1.2-glib-2.0:arm64\t2.84.4-3~deb13u5\ngir1.2-glib-2.0-dev:arm64\t2.84.4-3~deb13u5\ngir1.2-goffice-0.10\t0.10.57-2+b1\ngir1.2-gsf-1:arm64\t1.14.53-1\ngir1.2-gtk-3.0:arm64\t3.24.49-3\ngir1.2-harfbuzz-0.0:arm64\t10.2.0-1+deb13u1\ngir1.2-pango-1.0:arm64\t1.56.3-1\ngir1.2-rsvg-2.0:arm64\t2.60.0+dfsg-1\ngirepository-tools:arm64\t2.84.4-3~deb13u5\ngrep\t3.11-4+b1\ngsettings-desktop-schemas\t48.0-1\ngtk-update-icon-cache\t4.18.6+ds-2\ngzip\t1.13-1+deb13u1\nhicolor-icon-theme\t0.18-2\nhostname\t3.25\nicu-devtools\t76.1-4\ninit-system-helpers\t1.69~deb13u1\nintltool\t0.51.0-7\nitstool\t2.0.6-4\nkrb5-locales\t1.21.3-5+deb13u1\nlibacl1:arm64\t2.3.2-2+b1\nlibalgorithm-diff-perl\t1.201-1\nlibalgorithm-diff-xs-perl\t0.04-9\nlibalgorithm-merge-perl\t0.08-5\nlibapparmor1:arm64\t4.1.0-1\nlibapt-pkg7.0:arm64\t3.0.3\nlibasan8:arm64\t14.2.0-19\nlibatk-bridge2.0-0t64:arm64\t2.56.2-1+deb13u2\nlibatk-bridge2.0-dev:arm64\t2.56.2-1+deb13u2\nlibatk1.0-0t64:arm64\t2.56.2-1+deb13u2\nlibatk1.0-dev:arm64\t2.56.2-1+deb13u2\nlibatomic1:arm64\t14.2.0-19\nlibatspi2.0-0t64:arm64\t2.56.2-1+deb13u2\nlibatspi2.0-dev:arm64\t2.56.2-1+deb13u2\nlibattr1:arm64\t1:2.5.2-3\nlibaudit-common\t1:4.0.2-2+deb13u1\nlibaudit1:arm64\t1:4.0.2-2+deb13u1\nlibauthen-sasl-perl\t2.1700-1\nlibavahi-client3:arm64\t0.8-16\nlibavahi-common-data:arm64\t0.8-16\nlibavahi-common3:arm64\t0.8-16\nlibbinutils:arm64\t2.44-3\nlibblkid-dev:arm64\t2.41.5-0+deb13u1\nlibblkid1:arm64\t2.41.5-0+deb13u1\nlibbrotli-dev:arm64\t1.1.0-2+b7\nlibbrotli1:arm64\t1.1.0-2+b7\nlibbsd0:arm64\t0.12.2-2\nlibbz2-1.0:arm64\t1.0.8-6\nlibbz2-dev:arm64\t1.0.8-6\nlibc-bin\t2.41-12+deb13u4\nlibc-dev-bin\t2.41-12+deb13u4\nlibc6:arm64\t2.41-12+deb13u4\nlibc6-dev:arm64\t2.41-12+deb13u4\nlibcairo-gobject2:arm64\t1.18.4-1+b1\nlibcairo-script-interpreter2:arm64\t1.18.4-1+b1\nlibcairo2:arm64\t1.18.4-1+b1\nlibcairo2-dev:arm64\t1.18.4-1+b1\nlibcap-dev:arm64\t1:2.75-10+deb13u1+b3\nlibcap-ng0:arm64\t0.8.5-4+b1\nlibcap2:arm64\t1:2.75-10+deb13u1+b3\nlibcc1-0:arm64\t14.2.0-19\nlibclone-perl:arm64\t0.47-1+b1\nlibcloudproviders-dev:arm64\t0.3.6-2\nlibcloudproviders0:arm64\t0.3.6-2\nlibcolord2:arm64\t1.4.7-3\nlibcom-err2:arm64\t1.47.2-3+b12\nlibcrypt-dev:arm64\t1:4.4.38-1\nlibcrypt1:arm64\t1:4.4.38-1\nlibcryptsetup12:arm64\t2:2.7.5-2\nlibctf-nobfd0:arm64\t2.44-3\nlibctf0:arm64\t2.44-3\nlibcups2t64:arm64\t2.4.10-3+deb13u2\nlibcurl4t64:arm64\t8.14.1-2+deb13u5\nlibdata-dump-perl\t1.25-1\nlibdatrie-dev:arm64\t0.2.13-3+b1\nlibdatrie1:arm64\t0.2.13-3+b1\nlibdav1d-dev:arm64\t1.5.1-1\nlibdav1d7:arm64\t1.5.1-1\nlibdb5.3t64:arm64\t5.3.28+dfsg2-9\nlibdbus-1-3:arm64\t1.16.2-2\nlibdbus-1-dev:arm64\t1.16.2-2\nlibdconf1:arm64\t0.40.0-5\nlibdebconfclient0:arm64\t0.280\nlibdeflate-dev:arm64\t1.23-2\nlibdeflate0:arm64\t1.23-2\nlibdevmapper1.02.1:arm64\t2:1.02.205-2\nlibdpkg-perl\t1.22.22\nlibdrm-amdgpu1:arm64\t2.4.124-2\nlibdrm-common\t2.4.124-2\nlibdrm2:arm64\t2.4.124-2\nlibedit2:arm64\t3.1-20250104-1\nlibegl-dev:arm64\t1.7.0-1+b2\nlibegl-mesa0:arm64\t25.0.7-2+deb13u1\nlibegl1:arm64\t1.7.0-1+b2\nlibegl1-mesa-dev:arm64\t25.0.7-2+deb13u1\nlibelf1t64:arm64\t0.192-4\nlibencode-locale-perl\t1.05-3\nlibepoxy-dev:arm64\t1.5.10-2\nlibepoxy0:arm64\t1.5.10-2\nlibexpat1:arm64\t2.8.3-1~deb13u1\nlibexpat1-dev:arm64\t2.8.3-1~deb13u1\nlibfakeroot:arm64\t1.37.1.1-1\nlibffi-dev:arm64\t3.4.8-2\nlibffi8:arm64\t3.4.8-2\nlibfile-fcntllock-perl\t0.22-4+b4\nlibfile-listing-perl\t6.16-1\nlibfont-afm-perl\t1.20-4\nlibfontconfig-dev:arm64\t2.15.0-2.3\nlibfontconfig1:arm64\t2.15.0-2.3\nlibfreetype-dev:arm64\t2.13.3+dfsg-1+deb13u1\nlibfreetype6:arm64\t2.13.3+dfsg-1+deb13u1\nlibfribidi-dev:arm64\t1.0.16-1\nlibfribidi0:arm64\t1.0.16-1\nlibgbm1:arm64\t25.0.7-2+deb13u1\nlibgcc-14-dev:arm64\t14.2.0-19\nlibgcc-s1:arm64\t14.2.0-19\nlibgcrypt20:arm64\t1.11.0-7+deb13u1\nlibgdbm-compat4t64:arm64\t1.24-2\nlibgdbm6t64:arm64\t1.24-2\nlibgdk-pixbuf-2.0-0:arm64\t2.42.12+dfsg-4+deb13u1\nlibgdk-pixbuf-2.0-dev:arm64\t2.42.12+dfsg-4+deb13u1\nlibgdk-pixbuf2.0-bin\t2.42.12+dfsg-4+deb13u1\nlibgdk-pixbuf2.0-common\t2.42.12+dfsg-4+deb13u1\nlibgio-2.0-dev:arm64\t2.84.4-3~deb13u5\nlibgio-2.0-dev-bin\t2.84.4-3~deb13u5\nlibgirepository-2.0-0:arm64\t2.84.4-3~deb13u5\nlibgl-dev:arm64\t1.7.0-1+b2\nlibgl1:arm64\t1.7.0-1+b2\nlibgl1-mesa-dri:arm64\t25.0.7-2+deb13u1\nlibgles-dev:arm64\t1.7.0-1+b2\nlibgles1:arm64\t1.7.0-1+b2\nlibgles2:arm64\t1.7.0-1+b2\nlibglib2.0-0t64:arm64\t2.84.4-3~deb13u5\nlibglib2.0-bin\t2.84.4-3~deb13u5\nlibglib2.0-data\t2.84.4-3~deb13u5\nlibglib2.0-dev:arm64\t2.84.4-3~deb13u5\nlibglib2.0-dev-bin\t2.84.4-3~deb13u5\nlibglvnd-core-dev:arm64\t1.7.0-1+b2\nlibglvnd-dev:arm64\t1.7.0-1+b2\nlibglvnd0:arm64\t1.7.0-1+b2\nlibglx-dev:arm64\t1.7.0-1+b2\nlibglx-mesa0:arm64\t25.0.7-2+deb13u1\nlibglx0:arm64\t1.7.0-1+b2\nlibgmp-dev:arm64\t2:6.3.0+dfsg-3\nlibgmp10:arm64\t2:6.3.0+dfsg-3\nlibgmpxx4ldbl:arm64\t2:6.3.0+dfsg-3\nlibgnutls30t64:arm64\t3.8.9-3+deb13u4\nlibgoffice-0.10-10-common\t0.10.57-2\nlibgoffice-0.10-10t64\t0.10.57-2+b1\nlibgoffice-0.10-dev\t0.10.57-2+b1\nlibgomp1:arm64\t14.2.0-19\nlibgpg-error-l10n\t1.51-4\nlibgpg-error0:arm64\t1.51-4\nlibgpm2:arm64\t1.20.7-11+b2\nlibgprofng0:arm64\t2.44-3\nlibgraphite2-3:arm64\t1.3.14-2+deb13u1\nlibgraphite2-dev:arm64\t1.3.14-2+deb13u1\nlibgsf-1-114:arm64\t1.14.53-1\nlibgsf-1-common\t1.14.53-1\nlibgsf-1-dev:arm64\t1.14.53-1\nlibgssapi-krb5-2:arm64\t1.21.3-5+deb13u1\nlibgtk-3-0t64:arm64\t3.24.49-3\nlibgtk-3-bin\t3.24.49-3\nlibgtk-3-common\t3.24.49-3\nlibgtk-3-dev:arm64\t3.24.49-3\nlibharfbuzz-cairo0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-dev:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-gobject0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-icu0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-subset0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz0b:arm64\t10.2.0-1+deb13u1\nlibhogweed6t64:arm64\t3.10.1-1\nlibhtml-form-perl\t6.12-1\nlibhtml-format-perl\t2.16-2\nlibhtml-parser-perl:arm64\t3.83-2~deb13u1\nlibhtml-tagset-perl\t3.24-1\nlibhtml-tree-perl\t5.07-3\nlibhttp-cookies-perl\t6.11-1\nlibhttp-daemon-perl\t6.16-1+deb13u1\nlibhttp-date-perl\t6.06-1\nlibhttp-message-perl\t7.00-2\nlibhttp-negotiate-perl\t6.01-2\nlibhwasan0:arm64\t14.2.0-19\nlibice-dev:arm64\t2:1.1.1-1\nlibice6:arm64\t2:1.1.1-1\nlibicu-dev:arm64\t76.1-4\nlibicu76:arm64\t76.1-4\nlibidn2-0:arm64\t2.3.8-2\nlibio-compress-brotli-perl\t0.004001-2+b3\nlibio-html-perl\t1.004-3\nlibio-socket-ssl-perl\t2.089-1\nlibisl23:arm64\t0.27-1\nlibitm1:arm64\t14.2.0-19\nlibjansson4:arm64\t2.14-2+b3\nlibjbig-dev:arm64\t2.1-6.1+b2\nlibjbig0:arm64\t2.1-6.1+b2\nlibjpeg-dev:arm64\t1:2.1.5-4\nlibjpeg62-turbo:arm64\t1:2.1.5-4\nlibjpeg62-turbo-dev:arm64\t1:2.1.5-4\nlibjson-c5:arm64\t0.18+ds-1\nlibk5crypto3:arm64\t1.21.3-5+deb13u1\nlibkeyutils1:arm64\t1.6.3-6\nlibkmod2:arm64\t34.2-2\nlibkrb5-3:arm64\t1.21.3-5+deb13u1\nlibkrb5support0:arm64\t1.21.3-5+deb13u1\nliblastlog2-2:arm64\t2.41.5-0+deb13u1\nliblcms2-2:arm64\t2.16-2+deb13u2\nlibldap-common\t2.6.10+dfsg-1\nlibldap2:arm64\t2.6.10+dfsg-1\nliblerc-dev:arm64\t4.0.0+ds-5\nliblerc4:arm64\t4.0.0+ds-5\nlibllvm19:arm64\t1:19.1.7-3+b1\nliblocale-gettext-perl\t1.07-7+b1\nliblsan0:arm64\t14.2.0-19\nliblwp-mediatypes-perl\t6.04-2\nliblwp-protocol-https-perl\t6.14-1\nliblz4-1:arm64\t1.10.0-4\nliblzma-dev:arm64\t5.8.1-1+deb13u1\nliblzma5:arm64\t5.8.1-1+deb13u1\nliblzo2-2:arm64\t2.10-3+b1\nlibmagic-mgc\t1:5.46-5\nlibmagic1t64:arm64\t1:5.46-5\nlibmailtools-perl\t2.22-1\nlibmd0:arm64\t1.1.0-2+b1\nlibmount-dev:arm64\t2.41.5-0+deb13u1\nlibmount1:arm64\t2.41.5-0+deb13u1\nlibmpc3:arm64\t1.3.1-1+b3\nlibmpfr6:arm64\t4.2.2-1\nlibncursesw6:arm64\t6.5+20250216-2\nlibnet-http-perl\t6.23-1\nlibnet-smtp-ssl-perl\t1.04-2\nlibnet-ssleay-perl:arm64\t1.94-3\nlibnettle8t64:arm64\t3.10.1-1\nlibnghttp2-14:arm64\t1.64.0-1.1+deb13u1\nlibnghttp3-9:arm64\t1.8.0-1\nlibnss-systemd:arm64\t257.13-1~deb13u1\nlibopengl-dev:arm64\t1.7.0-1+b2\nlibopengl0:arm64\t1.7.0-1+b2\nlibp11-kit0:arm64\t0.25.5-3\nlibpam-modules:arm64\t1.7.0-5\nlibpam-modules-bin\t1.7.0-5\nlibpam-runtime\t1.7.0-5\nlibpam-systemd:arm64\t257.13-1~deb13u1\nlibpam0g:arm64\t1.7.0-5\nlibpango-1.0-0:arm64\t1.56.3-1\nlibpango1.0-dev:arm64\t1.56.3-1\nlibpangocairo-1.0-0:arm64\t1.56.3-1\nlibpangoft2-1.0-0:arm64\t1.56.3-1\nlibpangoxft-1.0-0:arm64\t1.56.3-1\nlibpcre2-16-0:arm64\t10.46-1~deb13u2\nlibpcre2-32-0:arm64\t10.46-1~deb13u2\nlibpcre2-8-0:arm64\t10.46-1~deb13u2\nlibpcre2-dev:arm64\t10.46-1~deb13u2\nlibpcre2-posix3:arm64\t10.46-1~deb13u2\nlibperl5.40:arm64\t5.40.1-6+deb13u1\nlibpixman-1-0:arm64\t0.44.0-3\nlibpixman-1-dev:arm64\t0.44.0-3\nlibpkgconf3:arm64\t1.8.1-4\nlibpng-dev:arm64\t1.6.48-1+deb13u5\nlibpng-tools\t1.6.48-1+deb13u5\nlibpng16-16t64:arm64\t1.6.48-1+deb13u5\nlibproc2-0:arm64\t2:4.0.4-9\nlibpsl5t64:arm64\t0.21.2-1.1+b1\nlibpython3-stdlib:arm64\t3.13.5-1\nlibpython3.13-minimal:arm64\t3.13.5-2+deb13u5\nlibpython3.13-stdlib:arm64\t3.13.5-2+deb13u5\nlibreadline8t64:arm64\t8.2-6\nlibrsvg2-2:arm64\t2.60.0+dfsg-1\nlibrsvg2-common:arm64\t2.60.0+dfsg-1\nlibrsvg2-dev:arm64\t2.60.0+dfsg-1\nlibrtmp1:arm64\t2.4+20151223.gitfa8646d.1-2+b5\nlibsasl2-2:arm64\t2.1.28+dfsg1-9\nlibsasl2-modules:arm64\t2.1.28+dfsg1-9\nlibsasl2-modules-db:arm64\t2.1.28+dfsg1-9\nlibseccomp2:arm64\t2.6.0-2\nlibselinux1:arm64\t3.8.1-1\nlibselinux1-dev:arm64\t3.8.1-1\nlibsemanage-common\t3.8.1-1\nlibsemanage2:arm64\t3.8.1-1\nlibsensors-config\t1:3.6.2-2\nlibsensors5:arm64\t1:3.6.2-2\nlibsepol-dev:arm64\t3.8.1-1\nlibsepol2:arm64\t3.8.1-1\nlibsframe1:arm64\t2.44-3\nlibsharpyuv-dev:arm64\t1.5.0-0.1\nlibsharpyuv0:arm64\t1.5.0-0.1\nlibsm-dev:arm64\t2:1.2.6-1\nlibsm6:arm64\t2:1.2.6-1\nlibsmartcols1:arm64\t2.41.5-0+deb13u1\nlibsqlite3-0:arm64\t3.46.1-7+deb13u2\nlibssh2-1t64:arm64\t1.11.1-1+deb13u2\nlibssl3t64:arm64\t3.5.7-1~deb13u2\nlibstdc++-14-dev:arm64\t14.2.0-19\nlibstdc++6:arm64\t14.2.0-19\nlibsysprof-capture-4-dev:arm64\t48.0-2\nlibsystemd-dev:arm64\t257.13-1~deb13u1\nlibsystemd-shared:arm64\t257.13-1~deb13u1\nlibsystemd0:arm64\t257.13-1~deb13u1\nlibtasn1-6:arm64\t4.20.0-2+deb13u1\nlibthai-data\t0.1.29-2\nlibthai-dev:arm64\t0.1.29-2+b1\nlibthai0:arm64\t0.1.29-2+b1\nlibtiff-dev:arm64\t4.7.0-3+deb13u3\nlibtiff6:arm64\t4.7.0-3+deb13u3\nlibtiffxx6:arm64\t4.7.0-3+deb13u3\nlibtimedate-perl\t2.3300-2\nlibtinfo6:arm64\t6.5+20250216-2\nlibtry-tiny-perl\t0.32-1\nlibtsan2:arm64\t14.2.0-19\nlibubsan1:arm64\t14.2.0-19\nlibudev1:arm64\t257.13-1~deb13u1\nlibunistring5:arm64\t1.3-2\nliburi-perl\t5.30-1\nlibuuid1:arm64\t2.41.5-0+deb13u1\nlibvulkan1:arm64\t1.4.309.0-1\nlibwayland-bin\t1.23.1-3\nlibwayland-client0:arm64\t1.23.1-3\nlibwayland-cursor0:arm64\t1.23.1-3\nlibwayland-dev:arm64\t1.23.1-3\nlibwayland-egl1:arm64\t1.23.1-3\nlibwayland-server0:arm64\t1.23.1-3\nlibwebp-dev:arm64\t1.5.0-0.1\nlibwebp7:arm64\t1.5.0-0.1\nlibwebpdecoder3:arm64\t1.5.0-0.1\nlibwebpdemux2:arm64\t1.5.0-0.1\nlibwebpmux3:arm64\t1.5.0-0.1\nlibwww-perl\t6.78-1\nlibwww-robotrules-perl\t6.02-1\nlibx11-6:arm64\t2:1.8.12-1\nlibx11-data\t2:1.8.12-1\nlibx11-dev:arm64\t2:1.8.12-1\nlibx11-xcb1:arm64\t2:1.8.12-1\nlibxau-dev:arm64\t1:1.0.11-1\nlibxau6:arm64\t1:1.0.11-1\nlibxcb-dri3-0:arm64\t1.17.0-2+b1\nlibxcb-glx0:arm64\t1.17.0-2+b1\nlibxcb-present0:arm64\t1.17.0-2+b1\nlibxcb-randr0:arm64\t1.17.0-2+b1\nlibxcb-render0:arm64\t1.17.0-2+b1\nlibxcb-render0-dev:arm64\t1.17.0-2+b1\nlibxcb-shm0:arm64\t1.17.0-2+b1\nlibxcb-shm0-dev:arm64\t1.17.0-2+b1\nlibxcb-sync1:arm64\t1.17.0-2+b1\nlibxcb-xfixes0:arm64\t1.17.0-2+b1\nlibxcb1:arm64\t1.17.0-2+b1\nlibxcb1-dev:arm64\t1.17.0-2+b1\nlibxcomposite-dev:arm64\t1:0.4.6-1\nlibxcomposite1:arm64\t1:0.4.6-1\nlibxcursor-dev:arm64\t1:1.2.3-1\nlibxcursor1:arm64\t1:1.2.3-1\nlibxdamage-dev:arm64\t1:1.1.6-1+b2\nlibxdamage1:arm64\t1:1.1.6-1+b2\nlibxdmcp-dev:arm64\t1:1.1.5-1\nlibxdmcp6:arm64\t1:1.1.5-1\nlibxext-dev:arm64\t2:1.3.4-1+b3\nlibxext6:arm64\t2:1.3.4-1+b3\nlibxfixes-dev:arm64\t1:6.0.0-2+b4\nlibxfixes3:arm64\t1:6.0.0-2+b4\nlibxft-dev:arm64\t2.3.6-1+b4\nlibxft2:arm64\t2.3.6-1+b4\nlibxi-dev:arm64\t2:1.8.2-1\nlibxi6:arm64\t2:1.8.2-1\nlibxinerama-dev:arm64\t2:1.1.4-3+b4\nlibxinerama1:arm64\t2:1.1.4-3+b4\nlibxkbcommon-dev:arm64\t1.7.0-2\nlibxkbcommon0:arm64\t1.7.0-2\nlibxml-parser-perl\t2.47-2~deb13u1\nlibxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxml2-dev:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxml2-utils\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxrandr-dev:arm64\t2:1.5.4-1+b3\nlibxrandr2:arm64\t2:1.5.4-1+b3\nlibxrender-dev:arm64\t1:0.9.12-1\nlibxrender1:arm64\t1:0.9.12-1\nlibxshmfence1:arm64\t1.3.3-1\nlibxslt1-dev:arm64\t1.1.35-1.2+deb13u3\nlibxslt1.1:arm64\t1.1.35-1.2+deb13u3\nlibxtst-dev:arm64\t2:1.2.5-1\nlibxtst6:arm64\t2:1.2.5-1\nlibxxf86vm1:arm64\t1:1.1.4-1+b4\nlibxxhash0:arm64\t0.8.3-2\nlibz3-4:arm64\t4.13.3-1\nlibzstd-dev:arm64\t1.5.7+dfsg-1\nlibzstd1:arm64\t1.5.7+dfsg-1\nlinux-libc-dev\t6.12.107-1\nlinux-sysctl-defaults\t4.12.1\nlogin\t1:4.16.0-2+really2.41.5-0+deb13u1\nlogin.defs\t1:4.17.4-2\nm4\t1.4.19-8\nmake\t4.4.1-2\nmanpages\t6.9.1-1\nmanpages-dev\t6.9.1-1\nmawk\t1.3.4.20250131-1\nmedia-types\t13.0.0\nmesa-libgallium:arm64\t25.0.7-2+deb13u1\nmesa-vulkan-drivers:arm64\t25.0.7-2+deb13u1\nmount\t2.41.5-0+deb13u1\nnative-architecture\t0.2.6\nncurses-base\t6.5+20250216-2\nncurses-bin\t6.5+20250216-2\nnetbase\t6.5\nopenssl\t3.5.7-1~deb13u2\nopenssl-provider-legacy\t3.5.7-1~deb13u2\npango1.0-tools\t1.56.3-1\npasswd\t1:4.17.4-2\npatch\t2.8-2\nperl\t5.40.1-6+deb13u1\nperl-base\t5.40.1-6+deb13u1\nperl-modules-5.40\t5.40.1-6+deb13u1\nperl-openssl-defaults:arm64\t7+b2\npkg-config:arm64\t1.8.1-4\npkgconf:arm64\t1.8.1-4\npkgconf-bin\t1.8.1-4\nprocps\t2:4.0.4-9\npsmisc\t23.7-2\npublicsuffix\t20250328.1952-0.1\npython3\t3.13.5-1\npython3-libxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\npython3-minimal\t3.13.5-1\npython3-packaging\t25.0-1\npython3.13\t3.13.5-2+deb13u5\npython3.13-minimal\t3.13.5-2+deb13u5\nreadline-common\t8.2-6\nrpcsvc-proto\t1.4.3-1+b1\nsed\t4.9-2+deb13u1\nsgml-base\t1.31+nmu1\nshared-mime-info\t2.4-5+b2\nsq\t1.3.1-2+b2\nsqv\t1.3.0-3+b2\nsystemd\t257.13-1~deb13u1\nsystemd-cryptsetup\t257.13-1~deb13u1\nsystemd-sysv\t257.13-1~deb13u1\nsystemd-timesyncd\t257.13-1~deb13u1\nsysvinit-utils\t3.14-4\ntar\t1.35+dfsg-3.1\ntzdata\t2026c-0+deb13u1\nutil-linux\t2.41.5-0+deb13u1\nuuid-dev:arm64\t2.41.5-0+deb13u1\nwayland-protocols\t1.44-1\nx11-common\t1:7.7+24+deb13u1\nx11proto-dev\t2024.1-1\nxdg-user-dirs\t0.18-2\nxkb-data\t2.42-1\nxml-core\t0.19\nxorg-sgml-doctools\t1:1.11-1.1\nxtrans-dev\t1.4.0-1\nxz-utils\t5.8.1-1+deb13u1\nzlib1g:arm64\t1:1.3.dfsg+really1.3.1-1+b1\nzlib1g-dev:arm64\t1:1.3.dfsg+really1.3.1-1+b1\n",
+    "stderr": ""
+  },
+  "linkedLibraries": {
+    "argv": [
+      "ldd",
+      "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert"
+    ],
+    "status": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000e59c3ec36000)\n\tlibspreadsheet-1.12.61.so => /out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so (0x0000e59c3e680000)\n\tlibgoffice-0.10.so.10 => /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10 (0x0000e59c3e490000)\n\tlibgsf-1.so.114 => /lib/aarch64-linux-gnu/libgsf-1.so.114 (0x0000e59c3e420000)\n\tlibgtk-3.so.0 => /lib/aarch64-linux-gnu/libgtk-3.so.0 (0x0000e59c3dbc0000)\n\tlibgobject-2.0.so.0 => /lib/aarch64-linux-gnu/libgobject-2.0.so.0 (0x0000e59c3db30000)\n\tlibglib-2.0.so.0 => /lib/aarch64-linux-gnu/libglib-2.0.so.0 (0x0000e59c3d9a0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000e59c3d7e0000)\n\tlibxml2.so.2 => /lib/aarch64-linux-gnu/libxml2.so.2 (0x0000e59c3d610000)\n\tlibgmodule-2.0.so.0 => /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 (0x0000e59c3d5e0000)\n\tlibgdk-3.so.0 => /lib/aarch64-linux-gnu/libgdk-3.so.0 (0x0000e59c3d4b0000)\n\tlibpangocairo-1.0.so.0 => /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0 (0x0000e59c3d480000)\n\tlibpango-1.0.so.0 => /lib/aarch64-linux-gnu/libpango-1.0.so.0 (0x0000e59c3d3f0000)\n\tlibatk-1.0.so.0 => /lib/aarch64-linux-gnu/libatk-1.0.so.0 (0x0000e59c3d3a0000)\n\tlibcairo.so.2 => /lib/aarch64-linux-gnu/libcairo.so.2 (0x0000e59c3d240000)\n\tlibgdk_pixbuf-2.0.so.0 => /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x0000e59c3d1f0000)\n\tlibgio-2.0.so.0 => /lib/aarch64-linux-gnu/libgio-2.0.so.0 (0x0000e59c3cfc0000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000e59c3cf10000)\n\tlibxslt.so.1 => /lib/aarch64-linux-gnu/libxslt.so.1 (0x0000e59c3ceb0000)\n\tlibrsvg-2.so.2 => /lib/aarch64-linux-gnu/librsvg-2.so.2 (0x0000e59c3c940000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000e59c3c900000)\n\tlibbz2.so.1.0 => /lib/aarch64-linux-gnu/libbz2.so.1.0 (0x0000e59c3c8d0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000e59c3ebf0000)\n\tlibharfbuzz.so.0 => /lib/aarch64-linux-gnu/libharfbuzz.so.0 (0x0000e59c3c770000)\n\tlibpangoft2-1.0.so.0 => /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0 (0x0000e59c3c730000)\n\tlibfontconfig.so.1 => /lib/aarch64-linux-gnu/libfontconfig.so.1 (0x0000e59c3c6c0000)\n\tlibfribidi.so.0 => /lib/aarch64-linux-gnu/libfribidi.so.0 (0x0000e59c3c680000)\n\tlibcairo-gobject.so.2 => /lib/aarch64-linux-gnu/libcairo-gobject.so.2 (0x0000e59c3c650000)\n\tlibepoxy.so.0 => /lib/aarch64-linux-gnu/libepoxy.so.0 (0x0000e59c3c4e0000)\n\tlibXi.so.6 => /lib/aarch64-linux-gnu/libXi.so.6 (0x0000e59c3c4b0000)\n\tlibX11.so.6 => /lib/aarch64-linux-gnu/libX11.so.6 (0x0000e59c3c340000)\n\tlibatk-bridge-2.0.so.0 => /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0 (0x0000e59c3c2e0000)\n\tlibcloudproviders.so.0 => /lib/aarch64-linux-gnu/libcloudproviders.so.0 (0x0000e59c3c2a0000)\n\tlibXfixes.so.3 => /lib/aarch64-linux-gnu/libXfixes.so.3 (0x0000e59c3c270000)\n\tlibffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000e59c3c240000)\n\tlibatomic.so.1 => /lib/aarch64-linux-gnu/libatomic.so.1 (0x0000e59c3c210000)\n\tlibpcre2-8.so.0 => /lib/aarch64-linux-gnu/libpcre2-8.so.0 (0x0000e59c3c150000)\n\tliblzma.so.5 => /lib/aarch64-linux-gnu/liblzma.so.5 (0x0000e59c3c100000)\n\tlibxkbcommon.so.0 => /lib/aarch64-linux-gnu/libxkbcommon.so.0 (0x0000e59c3c090000)\n\tlibwayland-client.so.0 => /lib/aarch64-linux-gnu/libwayland-client.so.0 (0x0000e59c3c060000)\n\tlibwayland-cursor.so.0 => /lib/aarch64-linux-gnu/libwayland-cursor.so.0 (0x0000e59c3c030000)\n\tlibwayland-egl.so.1 => /lib/aarch64-linux-gnu/libwayland-egl.so.1 (0x0000e59c3c000000)\n\tlibXext.so.6 => /lib/aarch64-linux-gnu/libXext.so.6 (0x0000e59c3bfc0000)\n\tlibXcursor.so.1 => /lib/aarch64-linux-gnu/libXcursor.so.1 (0x0000e59c3bf90000)\n\tlibXdamage.so.1 => /lib/aarch64-linux-gnu/libXdamage.so.1 (0x0000e59c3bf60000)\n\tlibXcomposite.so.1 => /lib/aarch64-linux-gnu/libXcomposite.so.1 (0x0000e59c3bf30000)\n\tlibXrandr.so.2 => /lib/aarch64-linux-gnu/libXrandr.so.2 (0x0000e59c3bf00000)\n\tlibXinerama.so.1 => /lib/aarch64-linux-gnu/libXinerama.so.1 (0x0000e59c3bed0000)\n\tlibthai.so.0 => /lib/aarch64-linux-gnu/libthai.so.0 (0x0000e59c3bea0000)\n\tlibpng16.so.16 => /lib/aarch64-linux-gnu/libpng16.so.16 (0x0000e59c3be40000)\n\tlibfreetype.so.6 => /lib/aarch64-linux-gnu/libfreetype.so.6 (0x0000e59c3bd60000)\n\tlibXrender.so.1 => /lib/aarch64-linux-gnu/libXrender.so.1 (0x0000e59c3bd30000)\n\tlibxcb.so.1 => /lib/aarch64-linux-gnu/libxcb.so.1 (0x0000e59c3bce0000)\n\tlibxcb-render.so.0 => /lib/aarch64-linux-gnu/libxcb-render.so.0 (0x0000e59c3bcb0000)\n\tlibxcb-shm.so.0 => /lib/aarch64-linux-gnu/libxcb-shm.so.0 (0x0000e59c3bc80000)\n\tlibpixman-1.so.0 => /lib/aarch64-linux-gnu/libpixman-1.so.0 (0x0000e59c3bbd0000)\n\tlibjpeg.so.62 => /lib/aarch64-linux-gnu/libjpeg.so.62 (0x0000e59c3bb50000)\n\tlibmount.so.1 => /lib/aarch64-linux-gnu/libmount.so.1 (0x0000e59c3bab0000)\n\tlibselinux.so.1 => /lib/aarch64-linux-gnu/libselinux.so.1 (0x0000e59c3ba50000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000e59c3ba10000)\n\tlibdav1d.so.7 => /lib/aarch64-linux-gnu/libdav1d.so.7 (0x0000e59c3b910000)\n\tlibgraphite2.so.3 => /lib/aarch64-linux-gnu/libgraphite2.so.3 (0x0000e59c3b8d0000)\n\tlibexpat.so.1 => /lib/aarch64-linux-gnu/libexpat.so.1 (0x0000e59c3b880000)\n\tlibatspi.so.0 => /lib/aarch64-linux-gnu/libatspi.so.0 (0x0000e59c3b820000)\n\tlibdbus-1.so.3 => /lib/aarch64-linux-gnu/libdbus-1.so.3 (0x0000e59c3b7a0000)\n\tlibdatrie.so.1 => /lib/aarch64-linux-gnu/libdatrie.so.1 (0x0000e59c3b770000)\n\tlibbrotlidec.so.1 => /lib/aarch64-linux-gnu/libbrotlidec.so.1 (0x0000e59c3b740000)\n\tlibXau.so.6 => /lib/aarch64-linux-gnu/libXau.so.6 (0x0000e59c3b710000)\n\tlibXdmcp.so.6 => /lib/aarch64-linux-gnu/libXdmcp.so.6 (0x0000e59c3b6e0000)\n\tlibblkid.so.1 => /lib/aarch64-linux-gnu/libblkid.so.1 (0x0000e59c3b660000)\n\tlibsystemd.so.0 => /lib/aarch64-linux-gnu/libsystemd.so.0 (0x0000e59c3b530000)\n\tlibbrotlicommon.so.1 => /lib/aarch64-linux-gnu/libbrotlicommon.so.1 (0x0000e59c3b4f0000)\n\tlibcap.so.2 => /lib/aarch64-linux-gnu/libcap.so.2 (0x0000e59c3b4c0000)\n",
+    "stderr": ""
+  },
+  "binarySha256": {
+    "argv": [
+      "sha256sum",
+      "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert"
+    ],
+    "status": 0,
+    "stdout": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c  /out/ssconvert-statistics-oracle/prefix/bin/ssconvert\n",
+    "stderr": ""
+  },
+  "pluginFiles": {
+    "argv": [
+      "sh",
+      "-c",
+      "find /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins -type f -name plugin.xml -exec sha256sum {} +"
+    ],
+    "status": 0,
+    "stdout": "512e2debdc09f8ab5adaab5c7f99b5c414a31d7b4285dfe81c5b7b382c7a5093  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml\n73f79393f3e38c493080afe204a0bea3b8ee936d6342aa680800f6dfc5b507a6  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml\n8bb27356e050e4ac7598412725bc400431ce3e6c7a481e55e6ebbf8bc351b959  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml\nac9c8c8ca7b20045cd6e297b985f47ed0109468752357adf99e81275c3e6674c  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sc/plugin.xml\n5b0dff2a02ef7efa50773c1c775766c9cb9c8ae8a70645a9fe1c7b1cf8aa3c54  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sylk/plugin.xml\n4540ff972f2b5c35e1c709ca522bb385333d1fb9832ebcb9a355c87000075978  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml\n7ebcf83d399b971cfa949a512515f149707e66fd70e63a977035766d56f16e44  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml\n9871ad45a606d789ea8a88c8ebf0f3c24c8ad36a48085c0d3640855537d593d1  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml\nb4af2d3924241b0e15ad39afb433cf802135d92a6c8b5bde328e409cf4814f9d  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/mps/plugin.xml\n1bc6f5cf11d2ff63acf624460e792028348a3b779bd9d912f05c3cf3f2b536c3  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml\n9dc90aaf8202a8dae7000c7a740df897f7cf477932652bb14c60d86515d34606  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml\n98edcc7806bf6e51ad0a27ca299b207750ecfd2367460ef13dc42a3ab8c83bda  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml\nd06c9e7d9aec1849fa9ea5d9bd267f4af20f227a98c708dc57ed3b63f17f93cc  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml\n48a4d9c2142d9eb0bf8ecf0136841e9e500cf5c0bd88471e1802159232f1a0f3  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml\n04af00f442424ae635c43d758c9da5a9cef93731015519e5a01c0da7a635aff2  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/excel/plugin.xml\na38de08bb20b878d566708a305d242ff898b8df6fbfd467af43362d46cd38f5b  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/lotus/plugin.xml\n0e24fe00f38781cdb1a63056cd382747edcd41c8decb7b355cb8ac8485de31cd  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/html/plugin.xml\n6d35f6abb0886d915ba6e4b7cfc17e23678804e82cbb92018b277d12321c686a  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/applix/plugin.xml\na5574fbeca4886d4b2d1833c87d426ecbbe0dcfb3cd3aa4889f05ec26a1131a3  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml\n4377e08837429c637fd528229634443a84d1e1b1ff442e942a427d44026b9f8d  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml\nf9ff2f40013f2ba14c5f2cf363591508fed7c681ac4e7b426f889e754fa37ea6  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/glpk/plugin.xml\n2ad3b9c8436d47d497fe8394626a19efb085f53afaa420637ec758401039a9f3  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/qpro/plugin.xml\n77dee717114afeecce37ea4d348fff0c2ffe230b345607e0e10819578ec6780a  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/xbase/plugin.xml\n5389636fe217178ea53c2f786576f03171f7272cda505116d1ff120353557712  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml\nb26fadcf27e9783fa243775f74851730675703f8a25fa1c3c16cd775803505d3  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml\n4c576c6678566525258e4ed3102db586429e9e4b178b3c14ef3ab62be773b3bf  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml\nc4df295133bbea7ec076e0334c7c8578258e34e1ccbd492eaa52ab21bd3553d6  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/dif/plugin.xml\ne9802b5951b077a533f7c90ae6feae5b2a22aa38191911a04b58c45bbdbfa634  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml\n54f9eb2f628c6d4d069a89426ad5e9b9e4229340d0a9dc628e63f991befb6a37  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/uihello/plugin.xml\n04785baf2b561c260c0b5d6b86f0f3ce372d4e52446fba12aabe723a8b61862f  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/oleo/plugin.xml\n971a835f16d9c26130875f07b1eece000a3405ac05244305f0472bff4823430c  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml\ne8e43964a2956c5c2d671aa84f529142868fc6a8a4bf4e959f3cc1562a7a73c8  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml\nebe04a5845a58a9b5838d81974053e79ffb9ef22f505827d3673a9606dee66e5  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml\n725750f75463e7e23bcef0d258e6d608f8acb3b40420dd34c41c5aabc3d6c0ac  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml\nb1efca176c3e4acb7988b62619d942b345dc4651441e45d8faad2db52f22d351  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml\n261ac77c377ed815456a8f6934cc12a9a6edca868e08cfe331a17fdadce73c0f  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml\na17f4faa5ccea0be71c413b1ab15617ab935a0492bc79c376aadc611c978fb46  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml\n82285e2a1f04ca5e9ff50b3c534710fd3de52faad19ad1bb2fdf65adfafbd2ac  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml\n",
+    "stderr": ""
+  },
+  "locale": {
+    "argv": [
+      "locale"
+    ],
+    "status": 0,
+    "stdout": "LANG=\nLANGUAGE=\nLC_CTYPE=\"C\"\nLC_NUMERIC=\"C\"\nLC_TIME=\"C\"\nLC_COLLATE=\"C\"\nLC_MONETARY=\"C\"\nLC_MESSAGES=\"C\"\nLC_PAPER=\"C\"\nLC_NAME=\"C\"\nLC_ADDRESS=\"C\"\nLC_TELEPHONE=\"C\"\nLC_MEASUREMENT=\"C\"\nLC_IDENTIFICATION=\"C\"\nLC_ALL=C\n",
+    "stderr": ""
+  },
+  "compiler": {
+    "argv": [
+      "cc",
+      "--version"
+    ],
+    "status": 0,
+    "stdout": "cc (Debian 14.2.0-19) 14.2.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "stderr": ""
+  },
+  "architecture": {
+    "argv": [
+      "uname",
+      "-m"
+    ],
+    "status": 0,
+    "stdout": "aarch64\n",
+    "stderr": ""
+  },
+  "numericalProfileNote": "Captured ELF/dependency/plugin/locale profile; source recurrence QA distinguishes -O0 from -O2 and reproduces fused operations. A compiler version alone does not authenticate all optimization flags.",
+  "cases": [
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_glpk:glpk",
+        "/out/ssconvert-mps-model/small.mps",
+        "/out/ssconvert-mps-model/qualified.cplex"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputBase64": "XCBDcmVhdGVkIGJ5IEdudW1lcmljIDEuMTIuNjEKCk1pbmltaXplCiBvYmo6IDIgWF8xIC0gWF8yCgpTdWJqZWN0IHRvCiBDXzA6IDMgWF8xICsgWF8yIDw9IDkKIENfMTogWF8xIDw9IDQKCkJvdW5kcwogWF8xID49IDAKIFhfMiA+PSAwCgpFbmQK",
+      "outputSha256": "5c51fe43b9cf82c5d3de0c3ec984fd86be1fbb75d1940c24b4540dcadf1c841e"
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_lpsolve:lpsolve",
+        "/out/ssconvert-mps-model/small.mps",
+        "/out/ssconvert-mps-model/qualified.lp"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputBase64": "LyogQ3JlYXRlZCBieSBHbnVtZXJpYyAxLjEyLjYxICovCgovKiBPYmplY3QgZnVuY3Rpb24gKi8KbWluOiAyIEIxMCAtIEIxMTsKCi8qIENvbnN0cmFpbnRzICovCkIxMCA+PSAwOwpCMTEgPj0gMDsKQ09OU1RSXzA6IDMgQjEwICsgQjExIDw9IDk7CkNPTlNUUl8wOiBCMTAgPD0gNDsKCi8qIERlY2xhcmF0aW9ucyAqLwoKLyogVGhlIEVuZCAqLwo=",
+      "outputSha256": "e87b151e9772a2f2bfd5265db1a1042c794eb27c5a8f9aa14ab4048306fbc665"
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax",
+        "/out/ssconvert-mps-model/small.mps",
+        "/out/ssconvert-mps-model/qualified.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputBase64": "H4sIAAAAAAAAA+0a7W7juPH/PoWqLu5Hi8SWvzb2xT44iZMYcBzDVnK3WxQCLTE2LxSpo+h83Bv0PfpkfZIOSVmWpWjXvha4DeAEMMjhzHA43xJ1+tNLSK0nLGLCWdd2jqu2hZnPA8IWXfvOvTw6sX/qfThdsLDzMxePc84fLSBhcQdAXXspZdSpVJ6fn48XbBViQfxjLhaVJ6d6HMjATnBfYrKF+1zXWLVq1an8cjOa+UscoiPCYomYj4EqJp1YA0fcR1LLVrpV+/glDuzeB8vSYt6bw1iDiPtLOJJt3aBfuYBRDYaEqWELoJcrStWJndoxTCspfV9KQeYriWMFygMNLIEyFOLeWi33BD93OvGSP3tLLsjvnElEvdgXnNI5EqeVlCLL4gnRFe6507uBQTBzs3HljZ3/gDRgXUn870MWxiVWIE+iefyniBFwD60k93weRhQr1/pTxCCxFwlQhi9x8FUBLvuj2U4S5EDae0/5wwPxMRzah4hh8ijEEiUxaZa69kqwDkcxibUEcUf6HR5htibpZLE7OkEkMU0Je3wrqp12u13Rq2vUwE/xopWgGivwK5hitUNcgSCsrHGVhLsKpXCzInHO040UuhF6nWoaFTO3reQwmbRXsxO9JkuKc2oMvY0vsE5ERwECfdeqtdZRtX1Uc9xqreOcdOr1L6eVNxATa+XYpoAtw6Qp6BxRf0U1F0hebIXoFEMAgxbhqAOG5hQPJRZJYtQZ7iUFxACpAl4KcDmFEVO2rh5DxoXURzmSUxSQl65dS6YXZEEk0DbrmVw4W2Isx2CBIQvwS8bP0wVLy8spUNaaLVtPp/wZpq1ms96yexrTMc6ZUm38tbjDhn+c39C6IHFE0eslFyHoJ9b6uCYB/oIFTydXggTpBES7xijAIoWAdBlIwvF2JcFhcay1mUxmr+EcDnaGKX9+Az4li6XU8HsSkzmhRL527avxjTe7Hgxc7344G54NR0P3sxmOBralRAOJVAmqduDf3gp4rZmsvsb5lAB2BvJeyywnsxwCnK/nVFMMNc1ifOE87CX89TgvQbyGZKVKQdmMNhGESa8P/l7MYLks9tfp4PIvhSyWQYt4TJSz9vqJbClgI01BJ9+UUCvTc4mk+Jsi/vDbissfjfrN+P8u7wYSb6ldK3LIHsCtUY6HsaJYQG9UkEHyyJpwIFVuWwNnngj8cMcIeGUYmijewp9zKXm4FwnFDzIl+FT7Jr5QQbEPwVKH4j4UDxzK5m4U6yDIqc8kFEio2JKvEaTFCAsfkjBaQG3YjE0ereTontQq7K/dQqWQPMLyWwgLSALlq/gJM488eJzRVy+WrxTH5cghZ9DkCg55uBQnEAhsWLosVXB8ZQvol6Bpg2YF1F2OpZc9qDKLVBKVCSfT4dj1+ufu8H5g0mKBkguwfy/w5BLOnXSmBpbHI8osOjwiLqRARK6xNyvbNCbPWyNw4q6tmv8goCDZDyiMfvyH2z/7p20lWbwg1qXxsjzpBPzCMvST/tXgKwwiBJ7UIzG0m40kQ2jINhZ0oboFsqAI+bobyiru/PbmZjB2Z95w7E1G/fNB0VuE4CK2dAIZ6HE/znIYTKe305nXn3kXwxmw+Dy42PAwYpUlHxMl2gHzoaOAU7xQ7Qk8sQkJVUgXUz2ZqmqpHyODNRyGCbQQzZqXdd2nZMGM4Nf90fBq7F0NxoNpfwTVNbN2b9bObl339sa2fhYocvGL1JvMlnCQR5dfEjOfcpk0SHoRPEGPVJ/BDAY8Wz7iQJdwaAwArKHQXOB1ebbOkA897iX8ddIfyDdIgnOwrUqu6ECBICdm0G7RraOmTgUxZBKVo5hzanYfwpMiMd3dHYgnVJdhxIZm/hG7EOGrxdJAfEEiLX5vhljyCKX4bmm2kqo2nwwzttvfqs7GqrVmc2PX+sGuRbtW349dG29Ga+Ng1Xcdrc2SaP10sOu7jtaTjV2djVVPDlZ919HaLolW9RqlebDte4tYp6Qb3rLtoR9+33ZtlNj10Dm9O7vWSips7VBh37FV6yVWbR2s+lWrft9906eyWM3m4INdv8dozSxsX4GoK0TrAj+gFZUz8jueqHf7jZPMy0qFpW4WC1hO7fhTM4c4wxT7+jbUOl+JmIt1w21mhe5rm2jft5q5N6qbzbePiCnNv0pVMGvNe834Xr1Ad/XNRAuEnAi+ECi01L2R2UBRlTJyShndTodXw3F/tAOTRjmT+a/qcE/Yelgxf/P9xE7sHLvXrf3t49lHp3qkfp0daE9KRblHgqi78D2YOG8wgekeHOoFDudgaHUdweQebBr/syDNAgc12oNBq8BgREKyyyHapSb5ZQ/qNzTZn+xBD112t26c6e+7OlO7VHn/+de/96Df1l0D6Nu7hGZ5kH/eh7youV30npIrxWm17UP0RzWWMiiqrFEk30C2c6e+lh+hV76Slssjcy3Xd/JZn9MnLCwXiQWGdTgjSH3DA0zNplV1VcwhY4TpfMiilSoiZ061c+aYT2lcEpojrr+r0TfBMB1zNsYLnUUuSOybL0j6K8n1ZfKav0rWU1NAMVMfBTwR+Tp9o96YxGEZWYAnXYIgHwcflcqEHl+pcf7Or5TMyZA5haKkdWNgmU9vFCAzNV+Nqend8AJJZJlahgMXzZNKZ7DXX7P1PvwXgMSzMkMqAAA=",
+      "outputSha256": "029a449cb72e378894421b43baebb6dc1d9509f011a699f841ac4463fbdf9234"
+    }
+  ],
+  "fixtures": {
+    "small.mps": "NAME          ORIGINAL\nROWS\n N COST\n L CAP\nCOLUMNS\n X COST 2 CAP 3\n Y COST -1 CAP 1\nRHS\n RHS CAP 9\nBOUNDS\n UP B X 4\nENDATA\n"
+  },
+  "sourceAlgorithms": {
+    "plugins/mps/mps.c": "e034268db0aa148847a0b98baf296a71bafefd5d02769f6cd829e3cb3da0c902",
+    "plugins/glpk/glpk-write.c": "89ccc763f7f6e5ee594f1b9a7035d4e6d70f0b2e77519dbcc51a16dad80dab5b",
+    "plugins/lpsolve/lpsolve-write.c": "6d79fdffacd75374eefa2b00f3cffeabe554bd94b0d5bfdf8c1ec0bad049d760",
+    "src/tools/gnm-solver.c": "b2c028f4b775d6c90cf71abc0e7cf3a1c426fa9410398d70eb6ea8f88a349da8"
+  },
+  "invalidImportCases": [
+    {
+      "name": "duplicate-row",
+      "source": "NAME D\nROWS\n N O\n L A\n L A\nENDATA\n",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_mps:mps",
+        "-T",
+        "Gnumeric_glpk:glpk",
+        "/out/ssconvert-mps-model/duplicate-row.mps",
+        "/out/ssconvert-mps-model/duplicate-row.cplex"
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": "E Error while reading MPS file.\n  E Duplicate row name A\n",
+      "outputExists": false
+    },
+    {
+      "name": "no-objective",
+      "source": "NAME D\nROWS\n L A\nENDATA\n",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_mps:mps",
+        "-T",
+        "Gnumeric_glpk:glpk",
+        "/out/ssconvert-mps-model/no-objective.mps",
+        "/out/ssconvert-mps-model/no-objective.cplex"
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": "E Error while reading MPS file.\n  E Missing objective row\n",
+      "outputExists": false
+    },
+    {
+      "name": "bad-column",
+      "source": "NAME D\nROWS\n N O\nCOLUMNS\n X BAD 1\nENDATA\n",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_mps:mps",
+        "-T",
+        "Gnumeric_glpk:glpk",
+        "/out/ssconvert-mps-model/bad-column.mps",
+        "/out/ssconvert-mps-model/bad-column.cplex"
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": "E Error while reading MPS file.\n  E Invalid row name, BAD, in columns\n",
+      "outputExists": false
+    },
+    {
+      "name": "bad-bound",
+      "source": "NAME D\nROWS\n N O\nCOLUMNS\n X O 1\nBOUNDS\n ZZ B X 1\nENDATA\n",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_mps:mps",
+        "-T",
+        "Gnumeric_glpk:glpk",
+        "/out/ssconvert-mps-model/bad-bound.mps",
+        "/out/ssconvert-mps-model/bad-bound.cplex"
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": "E Error while reading MPS file.\n  E Invalid bounds type ZZ\n",
+      "outputExists": false
+    }
+  ],
+  "variantCases": [
+    {
+      "name": "fixed-continuation",
+      "source": "NAME          FIXED\nROWS\n N  OBJ\n G  FLOOR\n L  CAP\nCOLUMNS\n    X         OBJ       3             FLOOR     2\n              CAP       1\n    Y         OBJ      -2             FLOOR     1\n              CAP       4\nRHS\n    FIRST     FLOOR     1             CAP      10\n    SECOND    CAP       2\nENDATA\n",
+      "exports": [
+        {
+          "type": "Gnumeric_glpk:glpk",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_glpk:glpk",
+            "/out/ssconvert-mps-model/fixed-continuation.mps",
+            "/out/ssconvert-mps-model/fixed-continuation.cplex"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "output": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: 3 X_1 - 2 X_2\n\nSubject to\n C_0: 2 X_1 + X_2 >= 1\n C_1: X_1 + 4 X_2 <= 12\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n",
+          "sha256": "9e28e22178d36c513e83b75d3e154cfdeab1f2b0ec0bbbb87467d1301f570d96"
+        },
+        {
+          "type": "Gnumeric_lpsolve:lpsolve",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_lpsolve:lpsolve",
+            "/out/ssconvert-mps-model/fixed-continuation.mps",
+            "/out/ssconvert-mps-model/fixed-continuation.lp"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "output": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmin: 3 B10 - 2 B11;\n\n/* Constraints */\nB10 >= 0;\nB11 >= 0;\nCONSTR_0: 2 B10 + B11 >= 1;\nCONSTR_0: B10 + 4 B11 <= 12;\n\n/* Declarations */\n\n/* The End */\n",
+          "sha256": "4c8dda6238fb9d7cd96f946e7f5a3a824243aa1230252610e609ba430cb8077c"
+        }
+      ]
+    },
+    {
+      "name": "integer-bounds",
+      "source": "NAME INTEGER\nROWS\n N O\n L C\nCOLUMNS\n M1 'MARKER' 'INTORG'\n X O 2 C 1\n M2 'MARKER' 'INTEND'\n Y O 0 C 1\nBOUNDS\n LI B X 1.2\n UI B X 2.8\n BV B Y 0\n FR B Y\nENDATA\n",
+      "exports": [
+        {
+          "type": "Gnumeric_glpk:glpk",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_glpk:glpk",
+            "/out/ssconvert-mps-model/integer-bounds.mps",
+            "/out/ssconvert-mps-model/integer-bounds.cplex"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "output": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: 0 X_1 + 0 X_2 +4\n\nSubject to\n C_0: X_2 +2 <= 0\n C_2: 2 >= 1.2\n C_4: 2 <= 2.8\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nGeneral\n X_1\n X_1\n X_1\n X_2\n\nBinary\n X_2\n\nEnd\n",
+          "sha256": "131d2f58db6b9c8b271d3884f49dbcc5152b77daefd32b35e9989136a2b66be1"
+        },
+        {
+          "type": "Gnumeric_lpsolve:lpsolve",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_lpsolve:lpsolve",
+            "/out/ssconvert-mps-model/integer-bounds.mps",
+            "/out/ssconvert-mps-model/integer-bounds.lp"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "output": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmin: 4;\n\n/* Constraints */\nB10 >= 0;\nB11 >= 0;\nCONSTR_0: B11 +2 <= 0;\nCONSTR_0: 2 >= 1.2;\nCONSTR_0: 2 <= 2.8;\n\n/* Declarations */\nint B10;\nint B10;\nint B10;\nbinary B11;\nint B11;\n\n/* The End */\n",
+          "sha256": "9ec9d1c6d05fdf7877f7ad32e3880edcad347c30cd42068e025d2ffe5d38a155"
+        }
+      ]
+    },
+    {
+      "name": "range-upper-lower",
+      "source": "NAME RANGES\nROWS\n N O\n L U\n G L\nCOLUMNS\n X O 1 U 2 L 3\nRHS\n B U 8 L 1\nRANGES\n B U 4 L -2\nENDATA\n",
+      "exports": [
+        {
+          "type": "Gnumeric_glpk:glpk",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_glpk:glpk",
+            "/out/ssconvert-mps-model/range-upper-lower.mps",
+            "/out/ssconvert-mps-model/range-upper-lower.cplex"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "output": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: X_1\n\nSubject to\n C_0: 2 X_1 >= 4\n C_1: 2 X_1 <= 8\n C_2: 3 X_1 >= 1\n C_3: 3 X_1 <= 3\n\nBounds\n X_1 >= 0\n\nEnd\n",
+          "sha256": "26856291ac0c97a7a97c95147509263adb9881bbb93c16e2448e733357301703"
+        },
+        {
+          "type": "Gnumeric_lpsolve:lpsolve",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_lpsolve:lpsolve",
+            "/out/ssconvert-mps-model/range-upper-lower.mps",
+            "/out/ssconvert-mps-model/range-upper-lower.lp"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "output": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmin: B10;\n\n/* Constraints */\nB10 >= 0;\nCONSTR_0: 2 B10 >= 4;\nCONSTR_0: 2 B10 <= 8;\nCONSTR_0: 3 B10 >= 1;\nCONSTR_0: 3 B10 <= 3;\n\n/* Declarations */\n\n/* The End */\n",
+          "sha256": "61157bc76ad6f43e40308ccfb2f94d057aa0373d8c42229ec70c1ae296bc8416"
+        }
+      ]
+    },
+    {
+      "name": "range-equality",
+      "source": "NAME EQ\nROWS\n N O\n E E\nCOLUMNS\n X O 1 E 2\nRHS\n B E 3\nRANGES\n B E 4\nENDATA\n",
+      "exports": [
+        {
+          "type": "Gnumeric_glpk:glpk",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_glpk:glpk",
+            "/out/ssconvert-mps-model/range-equality.mps",
+            "/out/ssconvert-mps-model/range-equality.cplex"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "\n(ssconvert:82080): GLib-WARNING **: 02:22:26.712: GError set over the top of a previous GError or uninitialized memory.\nThis indicates a bug in someone's code. You must ensure an error is NULL before it's set.\nThe overwriting error message was: Target cell did not evaluate to a number.\n",
+          "output": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: X_1\n\nSubject to\n C_0:  >= 7\n C_1:  <= 7\n\nBounds\n X_1 >= 0\n\nEnd\n",
+          "sha256": "a4eb8ba6564ffa9d78a4e7ab6cda1c1ec01e474ecde6c51763897bd1ca9d9272"
+        },
+        {
+          "type": "Gnumeric_lpsolve:lpsolve",
+          "argv": [
+            "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+            "-T",
+            "Gnumeric_lpsolve:lpsolve",
+            "/out/ssconvert-mps-model/range-equality.mps",
+            "/out/ssconvert-mps-model/range-equality.lp"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": "\n(ssconvert:82087): GLib-WARNING **: 02:22:26.803: GError set over the top of a previous GError or uninitialized memory.\nThis indicates a bug in someone's code. You must ensure an error is NULL before it's set.\nThe overwriting error message was: Target cell did not evaluate to a number.\n",
+          "output": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmin: B10;\n\n/* Constraints */\nB10 >= 0;\nCONSTR_0:  >= 7;\nCONSTR_0:  <= 7;\n\n/* Declarations */\n\n/* The End */\n",
+          "sha256": "b5d1dc8a1e98c508fd06c5627e31c835b441dee084c5b3a03a0e3ccbdd87f5e7"
+        }
+      ]
+    }
+  ],
+  "independentCaptureEnvironment": {
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+    "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+    "HOME": "/tmp/model-independent-home",
+    "note": "Initially fresh HOME reused within independent cohort; source/output native filenames captured below."
+  },
+  "independentCaptures": {
+    "numbers2.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: 100000 X_1 + 1000000 X_2 + 1e-05 X_3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n X_3 >= 0\n\nEnd\n"
+    },
+    ".gsf-save-HRJCW3": {
+      "text": ""
+    },
+    "numericinputs.stdout": {
+      "text": ""
+    },
+    "symmetric.lpsolve.stderr": {
+      "text": ""
+    },
+    "range.lp": {
+      "text": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmax: 3;\n\n/* Constraints */\nA1 >= 0;\nA2 >= 0;\nCONSTR_0: 0 <= 2;\nCONSTR_1: 0 <= 2;\n\n/* Declarations */\n\n/* The End */\n"
+    },
+    "integeroutside.stderr": {
+      "text": ""
+    },
+    "formulainput.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\">=9+3</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "targetinput.stdout": {
+      "text": ""
+    },
+    "nonnumber.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=1/0</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "numbers2.mps": {
+      "text": "NAME NUMBERS\nROWS\n N OBJ\nCOLUMNS\n X OBJ 100000\n Y OBJ 1000000\n Z OBJ 0.00001\nENDATA\n"
+    },
+    "nonlp.glpk.stdout": {
+      "text": ""
+    },
+    "numbers.mps": {
+      "text": "NAME NUMBERS\nROWS\n N OBJ\nCOLUMNS\n X OBJ 1e-7\n Y OBJ 1e20\n Z OBJ 1.2345678901234567\nENDATA\n"
+    },
+    "fixed.cplex": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: 0 X_1 + X_2\n\nSubject to\n C_0: 0 = 2\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "formulainput.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1 + X_2 +3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "nonnumber.lpsolve.stdout": {
+      "text": ""
+    },
+    "fixed-mps.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: 0 X_1 +6\n\nSubject to\n C_0: 3 = 3\n\nBounds\n X_1 >= 0\n\nEnd\n"
+    },
+    "quadratic.lpsolve": {
+      "text": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmax: A1 + A2;\n\n/* Constraints */\nA1 >= 0;\nA2 >= 0;\n\n/* Declarations */\n\n/* The End */\n"
+    },
+    "targetinput.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1\n\nSubject to\n\nBounds\n X_1 >= 0\n\nEnd\n"
+    },
+    "invalidinputs.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"#REF!\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "nonlp.lpsolve": {
+      "text": ""
+    },
+    "numericinputs.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "numericlhs.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"><gnm:Constr Type=\"1\" lhs=\"2\" rhs=\"2\"/></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "numericinputs.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: \n\nSubject to\n\nBounds\n\nEnd\n"
+    },
+    "nonlp.glpk.stderr": {
+      "text": "E Only linear programs are handled.\n"
+    },
+    "integer.mps": {
+      "text": "NAME          INTEGER\nROWS\n N OBJ\nCOLUMNS\n X OBJ 2\nBOUNDS\n LI B X 1.2\n UI B X 2.8\nENDATA\n"
+    },
+    "nonnumber.lpsolve.stderr": {
+      "text": ""
+    },
+    "symmetric.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: \n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "quadratic.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1 + X_2\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "integeroutside.stdout": {
+      "text": ""
+    },
+    "invalidinputs.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: \n\nSubject to\n\nBounds\n\nEnd\n"
+    },
+    "targetinput.stderr": {
+      "text": ""
+    },
+    "integeroutside.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1 + X_2 +3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "unknown-rhs.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"><gnm:Constr Type=\"1\" lhs=\"$A$1:$A$2\" rhs=\"UNKNOWN\"/></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "symmetric.lpsolve.stdout": {
+      "text": ""
+    },
+    "numbers.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: 1e-07 X_1 + 1e+20 X_2 + 1.2345678901234567 X_3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n X_3 >= 0\n\nEnd\n"
+    },
+    "numericinputs.stderr": {
+      "text": ""
+    },
+    "badlhs.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"><gnm:Constr Type=\"1\" lhs=\"UNKNOWN\" rhs=\"2\"/></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "nonnumber.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: \n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "integeroutside.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"><gnm:Constr Type=\"8\" lhs=\"$B$1\" rhs=\"2\"/></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "unknowninputs.stderr": {
+      "text": ""
+    },
+    "short-rhs.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1 + X_2 +3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "nonlp.lpsolve.stderr": {
+      "text": "E Only linear programs are handled.\n"
+    },
+    "quadratic.glpk.stdout": {
+      "text": ""
+    },
+    "unknowninputs.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"UNKNOWN\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "formulainput.stdout": {
+      "text": ""
+    },
+    "fixed.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1^2+A2</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"><gnm:Constr Type=\"4\" lhs=\"$A$1\" rhs=\"2\"/></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "symmetric.glpk.stderr": {
+      "text": ""
+    },
+    "nonnumber.glpk.stderr": {
+      "text": ""
+    },
+    "short-rhs.stdout": {
+      "text": ""
+    },
+    "quadratic.lpsolve.stderr": {
+      "text": ""
+    },
+    "unknown-rhs.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1 + X_2 +3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "badlhs.stderr": {
+      "text": ""
+    },
+    "badlhs.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1 + X_2 +3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "fixed.mps": {
+      "text": "NAME          FIXED\nROWS\n N OBJ\nCOLUMNS\n X OBJ 2\nBOUNDS\n FX B X 3\nENDATA\n"
+    },
+    "numericlhs.stdout": {
+      "text": ""
+    },
+    "unknown-rhs.stderr": {
+      "text": ""
+    },
+    "invalidinputs.stdout": {
+      "text": ""
+    },
+    "numericlhs.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: X_1 + X_2 +3\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+    },
+    "numericlhs.stderr": {
+      "text": ""
+    },
+    "nonlp.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"1\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "unknown-rhs.stdout": {
+      "text": ""
+    },
+    "nonlp.glpk": {
+      "text": ""
+    },
+    "invalidinputs.stderr": {
+      "text": ""
+    },
+    "nonnumber.glpk.stdout": {
+      "text": ""
+    },
+    "symmetric.glpk.stdout": {
+      "text": ""
+    },
+    "quadratic.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1^2+A2</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "quadratic.lpsolve.stdout": {
+      "text": ""
+    },
+    "nonnumber.lpsolve": {
+      "text": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmax: ;\n\n/* Constraints */\nA1 >= 0;\nA2 >= 0;\n\n/* Declarations */\n\n/* The End */\n"
+    },
+    "badlhs.stdout": {
+      "text": ""
+    },
+    "short-rhs.stderr": {
+      "text": ""
+    },
+    "symmetric.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1*(1-A1)+A2</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "nonlp.lpsolve.stdout": {
+      "text": ""
+    },
+    "unknowninputs.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMaximize\n obj: \n\nSubject to\n\nBounds\n\nEnd\n"
+    },
+    "unknowninputs.stdout": {
+      "text": ""
+    },
+    "integer.glpk": {
+      "text": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: 0 X_1 +4\n\nSubject to\n C_0: 2 >= 1.2\n C_2: 2 <= 2.8\n\nBounds\n X_1 >= 0\n\nGeneral\n X_1\n X_1\n\nEnd\n"
+    },
+    "formulainput.stderr": {
+      "text": ""
+    },
+    "range.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"><gnm:Constr Type=\"1\" lhs=\"$A$1:$A$2\" rhs=\"2\"/></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "quadratic.glpk.stderr": {
+      "text": ""
+    },
+    "symmetric.lpsolve": {
+      "text": "/* Created by Gnumeric 1.12.61 */\n\n/* Object function */\nmax: ;\n\n/* Constraints */\nA1 >= 0;\nA2 >= 0;\n\n/* Declarations */\n\n/* The End */\n"
+    },
+    "short-rhs.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"><gnm:Constr Type=\"1\" lhs=\"$A$1:$A$2\" rhs=\"$A$1\"/></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    "targetinput.gnumeric": {
+      "text": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>3</gnm:MaxCol><gnm:MaxRow>2</gnm:MaxRow><gnm:Cells><gnm:Cell Col=\"0\" Row=\"0\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"0\" Row=\"1\" ValueType=\"40\">0</gnm:Cell><gnm:Cell Col=\"1\" Row=\"0\">=A1+A2+3</gnm:Cell></gnm:Cells><gnm:Solver Target=\"$B$1\" Inputs=\"$B$1\" ModelType=\"0\" ProblemType=\"1\" NonNeg=\"1\" Discr=\"0\"></gnm:Solver></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    }
+  },
+  "geometryCase": {
+    "source": "<Workbook xmlns=\"http://www.gnumeric.org/v10.dtd\"><Sheets><Sheet><Name>Geometry</Name><Solver Target=\"$B$1\" Inputs=\"$A$1:$A$2\" NonNeg=\"0\"><Constr Type=\"1\" lhs=\"$A$1:$A$2\" rhs=\"$C$1:$D$1\"/></Solver><Cells><Cell Row=\"0\" Col=\"0\" ValueType=\"40\">0</Cell><Cell Row=\"1\" Col=\"0\" ValueType=\"40\">0</Cell><Cell Row=\"0\" Col=\"1\">=A1+2*A2</Cell><Cell Row=\"0\" Col=\"2\" ValueType=\"40\">8</Cell><Cell Row=\"0\" Col=\"3\" ValueType=\"40\">9</Cell></Cells></Sheet></Sheets></Workbook>",
+    "argv": [
+      "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+      "-T",
+      "Gnumeric_glpk:glpk",
+      "/out/ssconvert-mps-model/geometry.gnumeric",
+      "/out/ssconvert-mps-model/geometry.cplex"
+    ],
+    "status": 0,
+    "stdout": "",
+    "stderr": "",
+    "output": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: X_1 + 2 X_2\n\nSubject to\n\nBounds\n X_1 free\n X_2 free\n\nEnd\n"
+  },
+  "nameOnlyCase": {
+    "source": "NAME EMPTY\nENDATA\n",
+    "status": 0,
+    "stdout": "",
+    "stderr": "",
+    "output": "\\ Created by Gnumeric 1.12.61\n\nMinimize\n obj: 0\n\nSubject to\n\nBounds\n X_1 >= 0\n X_2 >= 0\n\nEnd\n"
+  },
+  "freshOracleIdentities": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c  /out/ssconvert-statistics-oracle/prefix/bin/ssconvert\n74b5678f1ffec05cf286d457e93c35cb2a1d2d2f21e34a15064555fb42d9d422  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/mps/mps.so\n04adbe36684f17e3ce102711acbf66f18a8a5ca8fe04e5a512c6abc2a519d98f  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/glpk/glpk.so\nd809c1d0ee1b61c5491ef3f6e3afdd5698c414574a8d772c18bf2dc9d2846b18  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so\n",
+  "verification": {
+    "focusedTests": 42,
+    "workspaceTests": 5238,
+    "workspaceFiles": 229,
+    "shellTests": 81,
+    "build": "selected maintained ssconvert closure, --no-cache, exit0",
+    "lint": "workspace ESLint/source/test TypeScript exit0",
+    "crossTypes": "maintained root lint:types and declared contract checks exit0",
+    "screenshot": {
+      "sha256": "cbc363fe7b93a45826536762714a6885a483d3c93ff04b1ee569259357e79981",
+      "inspected": true
+    },
+    "remainingDiagnosticMismatches": [
+      "native equality-range GLib GError overwrite warnings",
+      "unknown-section native g_warning output"
+    ],
+    "noPushOrPublish": true
+  },
+  "independentCaptureCaveats": [
+    "The first handwritten fixed.gnumeric used invalid ProblemType=4 and native aborted with status134; the retained final fixture uses ProblemType=1. Invalid direction4 is not a passed case; JavaScript currently defaults to minimization.",
+    "Independent capture HOME was initially fresh then reused within that cohort.",
+    "Native equality-range GLib warning PID/timestamp bytes are captured but not emulated."
+  ]
+}

@@ -1,0 +1,6785 @@
+{
+  "sourceVersion": "1.12.61",
+  "oracleProfile": "docs/ssconvert/statistics-native-profile.json",
+  "oracleStatus": 0,
+  "oracleDiagnostics": "",
+  "method": "Original small argument-domain and extreme-x probes; binary64 roundtrip caches. A single probe is not whole-domain verification.",
+  "inputColumns": {
+    "A": [
+      1,
+      2,
+      4,
+      5,
+      7,
+      9,
+      10,
+      12,
+      15,
+      18
+    ],
+    "B": [
+      3,
+      5,
+      9,
+      11,
+      15,
+      19,
+      21,
+      25,
+      31,
+      37
+    ],
+    "C": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "D": [
+      1,
+      4,
+      16,
+      25,
+      49,
+      81,
+      100,
+      144,
+      225,
+      324
+    ]
+  },
+  "cases": [
+    {
+      "name": "PROBBLOCK",
+      "formula": "=PROBBLOCK(-1,30)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "PROBBLOCK",
+      "formula": "=PROBBLOCK(0,30)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "PROBBLOCK",
+      "formula": "=PROBBLOCK(24,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "PROBBLOCK",
+      "formula": "=PROBBLOCK(24,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "OFFTRAF",
+      "formula": "=OFFTRAF(-1,30)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "OFFTRAF",
+      "formula": "=OFFTRAF(0,30)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "OFFTRAF",
+      "formula": "=OFFTRAF(24,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "OFFTRAF",
+      "formula": "=OFFTRAF(24,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "DIMCIRC",
+      "formula": "=DIMCIRC(-1,.01)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "DIMCIRC",
+      "formula": "=DIMCIRC(0,.01)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "DIMCIRC",
+      "formula": "=DIMCIRC(24,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "DIMCIRC",
+      "formula": "=DIMCIRC(24,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "OFFCAP",
+      "formula": "=OFFCAP(-1,.01)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "OFFCAP",
+      "formula": "=OFFCAP(0,.01)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "OFFCAP",
+      "formula": "=OFFCAP(30,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "OFFCAP",
+      "formula": "=OFFCAP(30,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(0.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(0.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(0.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DBETA",
+      "formula": "=R.DBETA(0.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(-1,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(0,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.05764801
+      }
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(1e6,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(2,-1,0.3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(2,0,0.3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(2,8,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DBINOM",
+      "formula": "=R.DBINOM(2,8,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.07957747154594767
+      }
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.12732395447351627
+      }
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 6.366210456064895e-13
+      }
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(2,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.048970751720583176
+      }
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(2,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.07957747154594767
+      }
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(2,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DCAUCHY",
+      "formula": "=R.DCAUCHY(2,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DCHISQ",
+      "formula": "=R.DCHISQ(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DCHISQ",
+      "formula": "=R.DCHISQ(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DCHISQ",
+      "formula": "=R.DCHISQ(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DCHISQ",
+      "formula": "=R.DCHISQ(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DCHISQ",
+      "formula": "=R.DCHISQ(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DEXP",
+      "formula": "=R.DEXP(-1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DEXP",
+      "formula": "=R.DEXP(0,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      }
+    },
+    {
+      "name": "R.DEXP",
+      "formula": "=R.DEXP(1e6,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DEXP",
+      "formula": "=R.DEXP(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DEXP",
+      "formula": "=R.DEXP(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(-1,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(0,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(1e6,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.826371362120479e-20
+      }
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(2,-1,5)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(2,0,5)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DF",
+      "formula": "=R.DF(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(2,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(2,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(2,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DGAMMA",
+      "formula": "=R.DGAMMA(2,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DGEOM",
+      "formula": "=R.DGEOM(-1,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DGEOM",
+      "formula": "=R.DGEOM(0,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.3
+      }
+    },
+    {
+      "name": "R.DGEOM",
+      "formula": "=R.DGEOM(1e6,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DGEOM",
+      "formula": "=R.DGEOM(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DGEOM",
+      "formula": "=R.DGEOM(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0896870393670086
+      }
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.15852096053897108
+      }
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(2,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.08925325925656047
+      }
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(2,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.12732319002179124
+      }
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(2,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DGUMBEL",
+      "formula": "=R.DGUMBEL(2,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(-1,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(0,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.010101010101010107
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(1e6,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(2,-1,5,4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(2,0,5,4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(2,7,-1,4)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(2,7,0,4)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(2,7,5,-1)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DHYPER",
+      "formula": "=R.DHYPER(2,7,5,0)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(-1,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(0,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(1e6,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.5230462042091338e-85
+      }
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(2,-1,0.7)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.015288365062077404
+      }
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(2,0,0.7)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.17452819974140227
+      }
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(2,0.5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DLNORM",
+      "formula": "=R.DLNORM(2,0.5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(-1,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(0,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.06400000000000002
+      }
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(1e6,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(2,-1,0.4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(2,0,0.4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DNBINOM",
+      "formula": "=R.DNBINOM(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.12098536225957168
+      }
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.17603266338214976
+      }
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(2,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.06475879783294587
+      }
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(2,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.12098536225957168
+      }
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(2,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DNORM",
+      "formula": "=R.DNORM(2,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DPOIS",
+      "formula": "=R.DPOIS(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DPOIS",
+      "formula": "=R.DPOIS(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.049787068367863944
+      }
+    },
+    {
+      "name": "R.DPOIS",
+      "formula": "=R.DPOIS(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DPOIS",
+      "formula": "=R.DPOIS(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DPOIS",
+      "formula": "=R.DPOIS(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DRAYLEIGH",
+      "formula": "=R.DRAYLEIGH(-1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DRAYLEIGH",
+      "formula": "=R.DRAYLEIGH(0,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DRAYLEIGH",
+      "formula": "=R.DRAYLEIGH(1e6,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DRAYLEIGH",
+      "formula": "=R.DRAYLEIGH(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DRAYLEIGH",
+      "formula": "=R.DRAYLEIGH(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(-1,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.03838992674256333
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(0,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.10862536939061732
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(1e6,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(2,-1,1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.10862536939061732
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(2,0,1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.17603266338214976
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(2,1,-1,2)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.12086488758438194
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(2,1,0,2)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.20358079777658003
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(2,1,1,-1)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DSNORM",
+      "formula": "=R.DSNORM(2,1,1,0)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(-1,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.07818792463973862
+      }
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(0,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.37960668982249446
+      }
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(1e6,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 9.253742207000618e-35
+      }
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(2,-1,1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(2,0,1)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(2,5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.009997211865435117
+      }
+    },
+    {
+      "name": "R.DST",
+      "formula": "=R.DST(2,5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.06509031032621647
+      }
+    },
+    {
+      "name": "R.DT",
+      "formula": "=R.DT(-1,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.2196797973509806
+      }
+    },
+    {
+      "name": "R.DT",
+      "formula": "=R.DT(0,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.37960668982249446
+      }
+    },
+    {
+      "name": "R.DT",
+      "formula": "=R.DT(1e6,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 4.745083622709959e-35
+      }
+    },
+    {
+      "name": "R.DT",
+      "formula": "=R.DT(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DT",
+      "formula": "=R.DT(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(2,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(2,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(2,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.DWEIBULL",
+      "formula": "=R.DWEIBULL(2,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.35662074822157436
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.515990388119534
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.48176785714285725
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.5877777777777778
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(-1,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(0,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.05764800999999999
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(1e6,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(2,-1,0.3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(2,0,0.3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(2,8,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(2,8,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.25
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.35241638234956674
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.9999993633795909
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(2,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.8128329581890013
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(2,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.75
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(2,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(2,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(-1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(0,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(1e6,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(-1,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(0,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(1e6,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999927
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(2,-1,5)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(2,0,5)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(2,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(2,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(2,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(2,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(-1,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(0,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.3
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(1e6,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.06598803584531254
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.1922956455479649
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(2,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.8000107130043536
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(2,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.6922006275553464
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(2,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(2,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(-1,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(0,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.010101010101010107
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(1e6,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(2,-1,5,4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(2,0,5,4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(2,7,-1,4)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(2,7,0,4)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(2,7,5,-1)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(2,7,5,0)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(-1,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(0,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(1e6,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(2,-1,0.7)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.9922137084097665
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(2,0,0.7)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.8389643201535454
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(2,0.5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(2,0.5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(-1,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(0,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.06400000000000002
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(1e6,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(2,-1,0.4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(2,0,0.4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.15865525393145705
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.30853753872598694
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(2,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.9331927987311419
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(2,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.8413447460685429
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(2,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(2,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.049787068367863944
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(-1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(0,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(1e6,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(-1,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.025171489600055108
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(0,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.09519541280308991
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(1e6,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(2,-1,1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.90480458719691
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(2,0,1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.691462461274013
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(2,1,-1,2)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.8708487996036616
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(2,1,0,2)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.707860981737141
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(2,1,1,-1)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.025171489600055108
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(2,1,1,0)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(-1,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.038680531473864216
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(0,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.25000000000000006
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(1e6,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(2,-1,1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(2,0,1)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(2,5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.9942508563656514
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(2,5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.9490302605850708
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(-1,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.18160873382456133
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(0,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(1e6,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(-1,3,10)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(0,3,10)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(1e6,3,10)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999991
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(2,-1,10)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(2,0,10)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(2,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(2,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(2,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(2,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(-1,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(1e6,8,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0.3,-1,0.3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0.3,0,0.3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0.3,8,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0.3,8,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0.3,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -2.453085056010722
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0.3,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -1.4530850560107218
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0.3,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0.3,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(-1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(1e6,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(-1,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(1e6,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0.3,-1,5)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0.3,0,5)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0.3,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0.3,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -1.0973492107034915
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(-1,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(1e6,0.3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0.3,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -1.3712535177247314
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0.3,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -0.3712535177247315
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0.3,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0.3,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(-1,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(1e6,7,5,4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,-1,5,4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,0,5,4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,7,-1,4)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,7,0,4)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 4.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,7,5,-1)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,7,5,0)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(-1,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(1e6,0.5,0.7)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0.3,-1,0.7)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.25484994477412765
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0.3,0,0.7)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.6927539738633024
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0.3,0.5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0.3,0.5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.6487212707001282
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(-1,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(1e6,3,0.4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0.3,-1,0.4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0.3,0,0.4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0.3,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0.3,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0.3,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -2.048801025416082
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0.3,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -1.0488010254160816
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0.3,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0.3,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(-1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(1e6,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(-1,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(1e6,1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,-1,1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -0.9616463533170504
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,0,1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -0.048801025416081556
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,1,-1,2)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -0.7601811164481727
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,1,0,2)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.23981888355182734
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,1,1,-1)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -7.394064564034049e+184
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,1,1,0)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(-1,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(1e6,5,1)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0.3,-1,1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0.3,0,1)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0.3,5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -1.0698452330822121
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0.3,5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -0.5594296444693608
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(-1,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(1e6,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(-1,3,10)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0,3,10)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(1e6,3,10)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0.3,-1,10)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0.3,0,10)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0.3,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0.3,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BERNOULLI",
+      "formula": "=BERNOULLI(-1,.3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BERNOULLI",
+      "formula": "=BERNOULLI(0,.3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.7
+      }
+    },
+    {
+      "name": "BERNOULLI",
+      "formula": "=BERNOULLI(1e6,.3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BERNOULLI",
+      "formula": "=BERNOULLI(1,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BERNOULLI",
+      "formula": "=BERNOULLI(1,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETADIST",
+      "formula": "=BETADIST(.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(-1,2,3,FALSE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(0,2,3,FALSE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(1e6,2,3,FALSE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(.3,-1,3,FALSE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(.3,0,3,FALSE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(.3,2,-1,FALSE)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETA.DIST",
+      "formula": "=BETA.DIST(.3,2,0,FALSE)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BETAINV",
+      "formula": "=BETAINV(.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(-1,.3,2,4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(0,.3,2,4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(1e6,.3,2,4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(8,-1,2,4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(8,0,2,4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(8,.3,-1,4)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.94203235
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(8,.3,0,4)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.94203235
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(8,.3,2,-1)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "formula": "=BINOM.DIST.RANGE(8,.3,2,0)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(-1,8,.3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(0,8,.3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.05764800999999999
+      }
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(1e6,8,.3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(2,-1,.3,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(2,0,.3,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(2,8,-1,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "BINOMDIST",
+      "formula": "=BINOMDIST(2,8,0,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "CAUCHY",
+      "formula": "=CAUCHY(-1,1,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.75
+      }
+    },
+    {
+      "name": "CAUCHY",
+      "formula": "=CAUCHY(0,1,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      }
+    },
+    {
+      "name": "CAUCHY",
+      "formula": "=CAUCHY(1e6,1,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 3.1830988618368455e-07
+      }
+    },
+    {
+      "name": "CAUCHY",
+      "formula": "=CAUCHY(2,-1,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CAUCHY",
+      "formula": "=CAUCHY(2,0,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CHIDIST",
+      "formula": "=CHIDIST(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "CHIDIST",
+      "formula": "=CHIDIST(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "CHIDIST",
+      "formula": "=CHIDIST(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "CHIDIST",
+      "formula": "=CHIDIST(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CHIDIST",
+      "formula": "=CHIDIST(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CHIINV",
+      "formula": "=CHIINV(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CHIINV",
+      "formula": "=CHIINV(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CHIINV",
+      "formula": "=CHIINV(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CHIINV",
+      "formula": "=CHIINV(.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CHIINV",
+      "formula": "=CHIINV(.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(-1,2,10)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(0,2,10)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(1e6,2,10)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(.05,-1,10)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(.05,0,10)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(.05,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE",
+      "formula": "=CONFIDENCE(.05,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#DIV/0!"
+      }
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(-1,2,10)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(0,2,10)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(1e6,2,10)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(.05,-1,10)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(.05,0,10)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(.05,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "formula": "=CONFIDENCE.T(.05,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(-1,.3,.5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(0,.3,.5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(1e6,.3,.5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 300000.0
+      }
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(8,-1,.5)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(8,0,.5)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(8,.3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "CRITBINOM",
+      "formula": "=CRITBINOM(8,.3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "EXPONDIST",
+      "formula": "=EXPONDIST(-1,.5,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "EXPONDIST",
+      "formula": "=EXPONDIST(0,.5,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "EXPONDIST",
+      "formula": "=EXPONDIST(1e6,.5,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "EXPONDIST",
+      "formula": "=EXPONDIST(2,-1,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "EXPONDIST",
+      "formula": "=EXPONDIST(2,0,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(-1,3,1.5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.15230126304188957
+      }
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(0,3,1.5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.18462202790541207
+      }
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(1e6,3,1.5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(2,-1,1.5)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -0.03273666837339508
+      }
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(2,0,1.5)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "EXPPOWDIST",
+      "formula": "=EXPPOWDIST(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(-1,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(0,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(1e6,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 7.305499363694878e-15
+      }
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(2,-1,5)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(2,0,5)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FDIST",
+      "formula": "=FDIST(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(-1,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(0,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(1e6,3,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(.3,-1,5)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(.3,0,5)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(.3,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FINV",
+      "formula": "=FINV(.3,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FISHER",
+      "formula": "=FISHER(-1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FISHER",
+      "formula": "=FISHER(0)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "FISHER",
+      "formula": "=FISHER(1e6)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "FISHERINV",
+      "formula": "=FISHERINV(-1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -0.7615941559557649
+      }
+    },
+    {
+      "name": "FISHERINV",
+      "formula": "=FISHERINV(0)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "FISHERINV",
+      "formula": "=FISHERINV(1e6)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(-1,2,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(0,2,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(1e6,2,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(2,-1,3,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(2,0,3,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(2,2,-1,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMADIST",
+      "formula": "=GAMMADIST(2,2,0,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(.3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(.3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(.3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GAMMAINV",
+      "formula": "=GAMMAINV(.3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GEOMDIST",
+      "formula": "=GEOMDIST(-1,.3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GEOMDIST",
+      "formula": "=GEOMDIST(0,.3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.3
+      }
+    },
+    {
+      "name": "GEOMDIST",
+      "formula": "=GEOMDIST(1e6,.3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "GEOMDIST",
+      "formula": "=GEOMDIST(2,-1,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "GEOMDIST",
+      "formula": "=GEOMDIST(2,0,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(-1,4,7,12,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(0,4,7,12,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.010101010101010107
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(1e6,4,7,12,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(2,-1,7,12,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(2,0,7,12,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(2,4,-1,12,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(2,4,0,12,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(2,4,7,-1,TRUE)",
+      "mutatedArgument": 3,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "formula": "=HYPGEOMDIST(2,4,7,0,TRUE)",
+      "mutatedArgument": 3,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LANDAU",
+      "formula": "=LANDAU(-1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.1513919113594072
+      }
+    },
+    {
+      "name": "LANDAU",
+      "formula": "=LANDAU(0)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.1788541609
+      }
+    },
+    {
+      "name": "LANDAU",
+      "formula": "=LANDAU(1e6)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.00002578591665e-12
+      }
+    },
+    {
+      "name": "LAPLACE",
+      "formula": "=LAPLACE(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.11942188509563154
+      }
+    },
+    {
+      "name": "LAPLACE",
+      "formula": "=LAPLACE(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.16666666666666666
+      }
+    },
+    {
+      "name": "LAPLACE",
+      "formula": "=LAPLACE(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "LAPLACE",
+      "formula": "=LAPLACE(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LAPLACE",
+      "formula": "=LAPLACE(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(-1,.5,.7)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(0,.5,.7)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(1e6,.5,.7)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(.3,-1,.7)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.25484994477412765
+      }
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(.3,0,.7)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.6927539738633024
+      }
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(.3,.5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGINV",
+      "formula": "=LOGINV(.3,.5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGISTIC",
+      "formula": "=LOGISTIC(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.08106072033492359
+      }
+    },
+    {
+      "name": "LOGISTIC",
+      "formula": "=LOGISTIC(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.08333333333333333
+      }
+    },
+    {
+      "name": "LOGISTIC",
+      "formula": "=LOGISTIC(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "LOGISTIC",
+      "formula": "=LOGISTIC(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGISTIC",
+      "formula": "=LOGISTIC(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(-1,.5,.7)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(0,.5,.7)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(1e6,.5,.7)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(2,-1,.7)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(2,0,.7)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.8389643201535454
+      }
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(2,.5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "LOGNORMDIST",
+      "formula": "=LOGNORMDIST(2,.5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(-1,3,.4)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(0,3,.4)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.06400000000000002
+      }
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(1e6,3,.4)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(2,-1,.4)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(2,0,.4)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(2,3,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "formula": "=NEGBINOMDIST(2,3,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(-1,1,2,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.15865525393145705
+      }
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(0,1,2,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.30853753872598694
+      }
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(1e6,1,2,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(2,-1,2,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.9331927987311419
+      }
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(2,0,2,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.8413447460685429
+      }
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(2,1,-1,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMDIST",
+      "formula": "=NORMDIST(2,1,0,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(-1,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(0,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(1e6,1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(.3,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -2.048801025416082
+      }
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(.3,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -1.0488010254160816
+      }
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(.3,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMINV",
+      "formula": "=NORMINV(.3,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMSDIST",
+      "formula": "=NORMSDIST(-1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.15865525393145705
+      }
+    },
+    {
+      "name": "NORMSDIST",
+      "formula": "=NORMSDIST(0)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      }
+    },
+    {
+      "name": "NORMSDIST",
+      "formula": "=NORMSDIST(1e6)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "SNORM.DIST.RANGE",
+      "formula": "=SNORM.DIST.RANGE(-1,9)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.8413447460685429
+      }
+    },
+    {
+      "name": "SNORM.DIST.RANGE",
+      "formula": "=SNORM.DIST.RANGE(0,9)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      }
+    },
+    {
+      "name": "SNORM.DIST.RANGE",
+      "formula": "=SNORM.DIST.RANGE(1e6,9)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": -1.1285884059538408e-19
+      }
+    },
+    {
+      "name": "SNORM.DIST.RANGE",
+      "formula": "=SNORM.DIST.RANGE(8,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -0.8413447460685423
+      }
+    },
+    {
+      "name": "SNORM.DIST.RANGE",
+      "formula": "=SNORM.DIST.RANGE(8,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -0.4999999999999994
+      }
+    },
+    {
+      "name": "NORMSINV",
+      "formula": "=NORMSINV(-1)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMSINV",
+      "formula": "=NORMSINV(0)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "NORMSINV",
+      "formula": "=NORMSINV(1e6)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "OWENT",
+      "formula": "=OWENT(-1,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0784681869930841
+      }
+    },
+    {
+      "name": "OWENT",
+      "formula": "=OWENT(0,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.17620819117478337
+      }
+    },
+    {
+      "name": "OWENT",
+      "formula": "=OWENT(1e6,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "OWENT",
+      "formula": "=OWENT(1,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -0.06674188216570097
+      }
+    },
+    {
+      "name": "OWENT",
+      "formula": "=OWENT(1,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.8000000000000003e-17
+      }
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(4,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(4,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(4,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PARETO",
+      "formula": "=PARETO(4,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PERMUT",
+      "formula": "=PERMUT(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PERMUT",
+      "formula": "=PERMUT(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PERMUT",
+      "formula": "=PERMUT(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 9.99997000002e+17
+      }
+    },
+    {
+      "name": "PERMUT",
+      "formula": "=PERMUT(8,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PERMUT",
+      "formula": "=PERMUT(8,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "PERMUTATIONA",
+      "formula": "=PERMUTATIONA(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PERMUTATIONA",
+      "formula": "=PERMUTATIONA(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "PERMUTATIONA",
+      "formula": "=PERMUTATIONA(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1e+18
+      }
+    },
+    {
+      "name": "PERMUTATIONA",
+      "formula": "=PERMUTATIONA(8,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "PERMUTATIONA",
+      "formula": "=PERMUTATIONA(8,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "POISSON",
+      "formula": "=POISSON(-1,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "POISSON",
+      "formula": "=POISSON(0,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.049787068367863944
+      }
+    },
+    {
+      "name": "POISSON",
+      "formula": "=POISSON(1e6,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "POISSON",
+      "formula": "=POISSON(2,-1,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "POISSON",
+      "formula": "=POISSON(2,0,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "RAYLEIGH",
+      "formula": "=RAYLEIGH(-1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "RAYLEIGH",
+      "formula": "=RAYLEIGH(0,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "RAYLEIGH",
+      "formula": "=RAYLEIGH(1e6,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "RAYLEIGH",
+      "formula": "=RAYLEIGH(2,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "RAYLEIGH",
+      "formula": "=RAYLEIGH(2,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(-1,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(0,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(1e6,2,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(3,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 0.2137267961433182
+      }
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(3,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.2021768865708778
+      }
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(3,2,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "formula": "=RAYLEIGHTAIL(3,2,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(-1,1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": -0.6666666666666666
+      }
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(0,1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": -0.3333333333333333
+      }
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(1e6,1,3)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 333333.0
+      }
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(2,-1,3)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(2,0,3)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.6666666666666666
+      }
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(2,1,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "STANDARDIZE",
+      "formula": "=STANDARDIZE(2,1,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(-1,5,2)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(0,5,2)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(1e6,5,2)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.8980334490921542e-29
+      }
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(2,-1,2)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(2,0,2)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(2,5,-1)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TDIST",
+      "formula": "=TDIST(2,5,0)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TINV",
+      "formula": "=TINV(-1,5)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TINV",
+      "formula": "=TINV(0,5)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TINV",
+      "formula": "=TINV(1e6,5)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TINV",
+      "formula": "=TINV(.3,-1)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "TINV",
+      "formula": "=TINV(.3,0)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(-1,2,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(0,2,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "0",
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(1e6,2,3,TRUE)",
+      "mutatedArgument": 0,
+      "probeValue": "1e6",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(2,-1,3,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(2,0,3,TRUE)",
+      "mutatedArgument": 1,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(2,2,-1,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "-1",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "WEIBULL",
+      "formula": "=WEIBULL(2,2,0,TRUE)",
+      "mutatedArgument": 2,
+      "probeValue": "0",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "SIMTABLE",
+      "formula": "=SIMTABLE(5,6,7)",
+      "expected": {
+        "kind": "number",
+        "value": 5.0
+      }
+    },
+    {
+      "name": "SIMTABLE",
+      "formula": "=SIMTABLE(A99:A100,5,6)",
+      "expected": {
+        "kind": "number",
+        "value": 5.0
+      }
+    },
+    {
+      "name": "SUBTOTAL",
+      "formula": "=SUBTOTAL()",
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "SUBTOTAL",
+      "formula": "=SUBTOTAL(\"9\",1)",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "SUBTOTAL",
+      "formula": "=SUBTOTAL(TRUE,1)",
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "CRONBACH",
+      "formula": "=CRONBACH(1)",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
+    },
+    {
+      "name": "SIMTABLE",
+      "formula": "=SIMTABLE()",
+      "expected": {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    }
+  ]
+}

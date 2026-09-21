@@ -1,0 +1,1359 @@
+{
+  "task": "xls-biff-read",
+  "date": "2026-09-20",
+  "status": "Implemented importers with explicitly incomplete full Gnumeric parity",
+  "profile": {
+    "dockerContext": "colima",
+    "container": "ssconvert-statistics-qa",
+    "nativeProductUse": false,
+    "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "environment": {
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+      "GSETTINGS_BACKEND": "memory",
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas"
+    },
+    "capture": "ssconvert version '1.12.61'\ndatadir := '/out/ssconvert-statistics-oracle/prefix/share/gnumeric/1.12.61'\nlibdir := '/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61'\n104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c  /out/ssconvert-statistics-oracle/prefix/bin/ssconvert\nID                           | Description\nGnumeric_Excel:excel         | MS Excel? (*.xls)\nGnumeric_Excel:excel_enc     | MS Excel? (*.xls) requiring encoding specification\nGnumeric_Excel:excel_xml     | MS Excel? 2003 SpreadsheetML\nGnumeric_Excel:xlsx          | ECMA 376 / Office Open XML [MS Excel? 2007/2010] (*.xlsx)\nGnumeric_OpenCalc:openoffice | Open Document Format (*.sxc, *.ods)\nGnumeric_QPro:qpro           | Quattro Pro (*.wb1, *.wb2, *.wb3)\nGnumeric_XmlIO:sax           | Gnumeric XML (*.gnumeric)\nGnumeric_applix:applix       | Applix (*.as)\nGnumeric_dif:dif             | Data Interchange Format (*.dif)\nGnumeric_html:html           | HTML (*.html, *.htm)\nGnumeric_lotus:lotus         | Lotus 123 (*.wk1, *.wks, *.123)\nGnumeric_mps:mps             | Linear and integer program (*.mps) file format\nGnumeric_oleo:oleo           | GNU Oleo (*.oleo)\nGnumeric_plan_perfect:pln    | Plan Perfect Format (PLN) import\nGnumeric_sc:sc               | SC/xspread\nGnumeric_stf:stf_csvtab      | Comma or tab separated values (CSV/TSV)\nGnumeric_sylk:sylk           | MultiPlan (SYLK)\nGnumeric_xbase:xbase         | Xbase (*.dbf) file format\nLANG=\nLANGUAGE=\nLC_CTYPE=\"C\"\nLC_NUMERIC=\"C\"\nLC_TIME=\"C\"\nLC_COLLATE=\"C\"\nLC_MONETARY=\"C\"\nLC_MESSAGES=\"C\"\nLC_PAPER=\"C\"\nLC_NAME=\"C\"\nLC_ADDRESS=\"C\"\nLC_TELEPHONE=\"C\"\nLC_MEASUREMENT=\"C\"\nLC_IDENTIFICATION=\"C\"\nLC_ALL=C\n\tlinux-vdso.so.1 (0x0000e30f3279f000)\n\tlibspreadsheet-1.12.61.so => /out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so (0x0000e30f321e0000)\n\tlibgoffice-0.10.so.10 => /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10 (0x0000e30f31ff0000)\n\tlibgsf-1.so.114 => /lib/aarch64-linux-gnu/libgsf-1.so.114 (0x0000e30f31f80000)\n\tlibgtk-3.so.0 => /lib/aarch64-linux-gnu/libgtk-3.so.0 (0x0000e30f31720000)\n\tlibgobject-2.0.so.0 => /lib/aarch64-linux-gnu/libgobject-2.0.so.0 (0x0000e30f31690000)\n\tlibglib-2.0.so.0 => /lib/aarch64-linux-gnu/libglib-2.0.so.0 (0x0000e30f31500000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000e30f31340000)\n\tlibxml2.so.2 => /lib/aarch64-linux-gnu/libxml2.so.2 (0x0000e30f31170000)\n\tlibgmodule-2.0.so.0 => /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 (0x0000e30f31140000)\n\tlibgdk-3.so.0 => /lib/aarch64-linux-gnu/libgdk-3.so.0 (0x0000e30f31010000)\n\tlibpangocairo-1.0.so.0 => /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0 (0x0000e30f30fe0000)\n\tlibpango-1.0.so.0 => /lib/aarch64-linux-gnu/libpango-1.0.so.0 (0x0000e30f30f50000)\n\tlibatk-1.0.so.0 => /lib/aarch64-linux-gnu/libatk-1.0.so.0 (0x0000e30f30f00000)\n\tlibcairo.so.2 => /lib/aarch64-linux-gnu/libcairo.so.2 (0x0000e30f30da0000)\n\tlibgdk_pixbuf-2.0.so.0 => /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x0000e30f30d50000)\n\tlibgio-2.0.so.0 => /lib/aarch64-linux-gnu/libgio-2.0.so.0 (0x0000e30f30b20000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000e30f30a70000)\n\tlibxslt.so.1 => /lib/aarch64-linux-gnu/libxslt.so.1 (0x0000e30f30a10000)\n\tlibrsvg-2.so.2 => /lib/aarch64-linux-gnu/librsvg-2.so.2 (0x0000e30f304a0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000e30f30460000)\n\tlibbz2.so.1.0 => /lib/aarch64-linux-gnu/libbz2.so.1.0 (0x0000e30f30430000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000e30f32750000)\n\tlibharfbuzz.so.0 => /lib/aarch64-linux-gnu/libharfbuzz.so.0 (0x0000e30f302d0000)\n\tlibpangoft2-1.0.so.0 => /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0 (0x0000e30f30290000)\n\tlibfontconfig.so.1 => /lib/aarch64-linux-gnu/libfontconfig.so.1 (0x0000e30f30220000)\n\tlibfribidi.so.0 => /lib/aarch64-linux-gnu/libfribidi.so.0 (0x0000e30f301e0000)\n\tlibcairo-gobject.so.2 => /lib/aarch64-linux-gnu/libcairo-gobject.so.2 (0x0000e30f301b0000)\n\tlibepoxy.so.0 => /lib/aarch64-linux-gnu/libepoxy.so.0 (0x0000e30f30040000)\n\tlibXi.so.6 => /lib/aarch64-linux-gnu/libXi.so.6 (0x0000e30f30010000)\n\tlibX11.so.6 => /lib/aarch64-linux-gnu/libX11.so.6 (0x0000e30f2fea0000)\n\tlibatk-bridge-2.0.so.0 => /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0 (0x0000e30f2fe40000)\n\tlibcloudproviders.so.0 => /lib/aarch64-linux-gnu/libcloudproviders.so.0 (0x0000e30f2fe00000)\n\tlibXfixes.so.3 => /lib/aarch64-linux-gnu/libXfixes.so.3 (0x0000e30f2fdd0000)\n\tlibffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000e30f2fda0000)\n\tlibatomic.so.1 => /lib/aarch64-linux-gnu/libatomic.so.1 (0x0000e30f2fd70000)\n\tlibpcre2-8.so.0 => /lib/aarch64-linux-gnu/libpcre2-8.so.0 (0x0000e30f2fcb0000)\n\tliblzma.so.5 => /lib/aarch64-linux-gnu/liblzma.so.5 (0x0000e30f2fc60000)\n\tlibxkbcommon.so.0 => /lib/aarch64-linux-gnu/libxkbcommon.so.0 (0x0000e30f2fbf0000)\n\tlibwayland-client.so.0 => /lib/aarch64-linux-gnu/libwayland-client.so.0 (0x0000e30f2fbc0000)\n\tlibwayland-cursor.so.0 => /lib/aarch64-linux-gnu/libwayland-cursor.so.0 (0x0000e30f2fb90000)\n\tlibwayland-egl.so.1 => /lib/aarch64-linux-gnu/libwayland-egl.so.1 (0x0000e30f2fb60000)\n\tlibXext.so.6 => /lib/aarch64-linux-gnu/libXext.so.6 (0x0000e30f2fb20000)\n\tlibXcursor.so.1 => /lib/aarch64-linux-gnu/libXcursor.so.1 (0x0000e30f2faf0000)\n\tlibXdamage.so.1 => /lib/aarch64-linux-gnu/libXdamage.so.1 (0x0000e30f2fac0000)\n\tlibXcomposite.so.1 => /lib/aarch64-linux-gnu/libXcomposite.so.1 (0x0000e30f2fa90000)\n\tlibXrandr.so.2 => /lib/aarch64-linux-gnu/libXrandr.so.2 (0x0000e30f2fa60000)\n\tlibXinerama.so.1 => /lib/aarch64-linux-gnu/libXinerama.so.1 (0x0000e30f2fa30000)\n\tlibthai.so.0 => /lib/aarch64-linux-gnu/libthai.so.0 (0x0000e30f2fa00000)\n\tlibpng16.so.16 => /lib/aarch64-linux-gnu/libpng16.so.16 (0x0000e30f2f9a0000)\n\tlibfreetype.so.6 => /lib/aarch64-linux-gnu/libfreetype.so.6 (0x0000e30f2f8c0000)\n\tlibXrender.so.1 => /lib/aarch64-linux-gnu/libXrender.so.1 (0x0000e30f2f890000)\n\tlibxcb.so.1 => /lib/aarch64-linux-gnu/libxcb.so.1 (0x0000e30f2f840000)\n\tlibxcb-render.so.0 => /lib/aarch64-linux-gnu/libxcb-render.so.0 (0x0000e30f2f810000)\n\tlibxcb-shm.so.0 => /lib/aarch64-linux-gnu/libxcb-shm.so.0 (0x0000e30f2f7e0000)\n\tlibpixman-1.so.0 => /lib/aarch64-linux-gnu/libpixman-1.so.0 (0x0000e30f2f730000)\n\tlibjpeg.so.62 => /lib/aarch64-linux-gnu/libjpeg.so.62 (0x0000e30f2f6b0000)\n\tlibmount.so.1 => /lib/aarch64-linux-gnu/libmount.so.1 (0x0000e30f2f610000)\n\tlibselinux.so.1 => /lib/aarch64-linux-gnu/libselinux.so.1 (0x0000e30f2f5b0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000e30f2f570000)\n\tlibdav1d.so.7 => /lib/aarch64-linux-gnu/libdav1d.so.7 (0x0000e30f2f470000)\n\tlibgraphite2.so.3 => /lib/aarch64-linux-gnu/libgraphite2.so.3 (0x0000e30f2f430000)\n\tlibexpat.so.1 => /lib/aarch64-linux-gnu/libexpat.so.1 (0x0000e30f2f3e0000)\n\tlibatspi.so.0 => /lib/aarch64-linux-gnu/libatspi.so.0 (0x0000e30f2f380000)\n\tlibdbus-1.so.3 => /lib/aarch64-linux-gnu/libdbus-1.so.3 (0x0000e30f2f300000)\n\tlibdatrie.so.1 => /lib/aarch64-linux-gnu/libdatrie.so.1 (0x0000e30f2f2d0000)\n\tlibbrotlidec.so.1 => /lib/aarch64-linux-gnu/libbrotlidec.so.1 (0x0000e30f2f2a0000)\n\tlibXau.so.6 => /lib/aarch64-linux-gnu/libXau.so.6 (0x0000e30f2f270000)\n\tlibXdmcp.so.6 => /lib/aarch64-linux-gnu/libXdmcp.so.6 (0x0000e30f2f240000)\n\tlibblkid.so.1 => /lib/aarch64-linux-gnu/libblkid.so.1 (0x0000e30f2f1c0000)\n\tlibsystemd.so.0 => /lib/aarch64-linux-gnu/libsystemd.so.0 (0x0000e30f2f090000)\n\tlibbrotlicommon.so.1 => /lib/aarch64-linux-gnu/libbrotlicommon.so.1 (0x0000e30f2f050000)\n\tlibcap.so.2 => /lib/aarch64-linux-gnu/libcap.so.2 (0x0000e30f2f020000)\nlibc6:arm64\t2.41-12+deb13u4\nlibglib2.0-0t64:arm64\t2.84.4-3~deb13u5\nlibgoffice-0.10-10t64\t0.10.57-2+b1\nlibgsf-1-114:arm64\t1.14.53-1\nlibxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nzlib1g:arm64\t1:1.3.dfsg+really1.3.1-1+b1\n",
+    "pluginsAndHost": "Linux ba43b94e9cee 6.8.0-117-generic #117-Ubuntu SMP PREEMPT_DYNAMIC Thu May  7 17:26:37 UTC 2026 aarch64 GNU/Linux\n0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42  /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10\n04af00f442424ae635c43d758c9da5a9cef93731015519e5a01c0da7a635aff2  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/excel/plugin.xml\n98fe34bfa47d5457e1b41750aacaf94137d9ef621d4083baee3e6cffe9e1d601  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/excel/excel.la\na05993275c1b71e9868f94e2ac4d8c3841b66a0ac740f81876b60d6f8f5cbaff  /out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/excel/excel.so\n",
+    "installedGOffice": "Custom built 0.10.61 prefix library; distro dpkg-query 0.10.57 does not describe the loaded prefix library."
+  },
+  "sourceIdentities": {
+    "packages/ssconvert/src/codecs/biff-groups.test.ts": "794efb16621838dce499471d5476780673569b7611f510f0820b801b0bfaf449",
+    "packages/ssconvert/src/codecs/biff-metadata-stress.test.ts": "861c2837b7f50168f395ba74200a3b0ca8c085173a7e0ebd1dd34b9c348f4b1c",
+    "packages/ssconvert/src/codecs/biff.ts": "5a5c745012d6d0e86260e32acf539a038b31a025020f32861aa39ae24e03d4ea",
+    "packages/ssconvert/src/codecs/biff-binary.ts": "cb404dc22f88d59d274941619dabc85d83d4f910d976c10dcb42ea775202e0f2",
+    "packages/ssconvert/src/codecs/biff-metadata.test.ts": "0fb2de5f97fba5b63d01716adc7c9a6a057b02b45bbd4222dbf79aa6d2bffe79",
+    "packages/ssconvert/src/codecs/biff-formulas.ts": "35288c3bc5abe8f2acf7909edf2e364397dd49ee96cb6b49b078dddf0b869bea",
+    "packages/ssconvert/src/codecs/biff-strings.ts": "f2f8e82f47b41876c6c89e3c6d3a56f0971a2ebcd0f977c22373cd1065301cb8",
+    "packages/ssconvert/src/codecs/biff-source.ts": "54ba331ed1fe8a0b34b49e11407645c48bb0404fa26af6e9849255e8042dee07",
+    "packages/ssconvert/src/codecs/biff-groups-stress.test.ts": "23e4f72d33cff6909c2e2f0aaa125b2e521331d5e7fa69a684838d8d5beaf151",
+    "packages/ssconvert/src/codecs/biff-metadata.ts": "0f874f9fff5819b17d68fe72c72d283947d132644a8e6d3c53786556a06f5703",
+    "packages/ssconvert/src/codecs/biff-stress.test.ts": "d6edc326554dabac6850c0a9d8f71bc2cb990969c12e80dd1834651c1680ffa8",
+    "packages/ssconvert/src/codecs/biff.test.ts": "90935905fb945c80460c4eaef279b72a8febd9252376f75148e90c3f3e07c1b7",
+    "packages/ssconvert/src/codecs/biff-fixtures.test-support.ts": "135ef0028ac42b87c43e7a34b63ed4d44fe0767cb30ab280ba1525c739fc623b",
+    "packages/ssconvert/src/codecs/providers/excel.ts": "d3b1024419f99744cc63cbbe929735265371325b53e6a154faa175626e0eb3ad",
+    "packages/ssconvert/src/encoding/biff-dbcs-tables.ts": "1a7e4561f6e8082926a0f8dc4b58a2653bf846fb41f8d7ea6b99d9b01a44cccd",
+    "packages/safe-bash/tests/commands/ssconvert-biff.test.ts": "9178f95ecd98a90f3ca11d610fcea3cfa1620191e9f704a764406878f1bd3f08",
+    "packages/safe-bash/tests/commands/ssconvert.test.ts": "aa8c0e7415723dbf983e6f861e906aadc77d0e84d3f959b97f669385f9413f38"
+  },
+  "checks": {
+    "ssconvert-unit": {
+      "logSha256": "6a6ba73799cfba3a0f39273ca49ee427b83eeb8e50f11b8a06beeb5845632742",
+      "summary": "ests) 5ms\n ✓ packages/ssconvert/src/formulas-regression.test.ts (3 tests) 5ms\n ✓ packages/ssconvert/src/io/binding.test.ts (1 test) 4ms\n ✓ packages/ssconvert/src/io/authority-cleanup-stress.test.ts (8 tests) 5ms\n ✓ packages/ssconvert/src/codecs/provider-discovery.test.ts (1 test) 2ms\n ✓ packages/ssconvert/src/workbook/ownership.test.ts (4 tests) 5ms\n ✓ packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts (11 tests) 5ms\n ✓ packages/ssconvert/src/codecs.test.ts (2 tests) 3ms\n ✓ packages/ssconvert/src/formulas/functions/captured-trigonometry.test.ts (3 tests) 3ms\n ✓ packages/ssconvert/src/codecs/export-options-stress.test.ts (3 tests) 3ms\n ✓ packages/ssconvert/src/io/names.test.ts (1 test) 2ms\n\n Test Files  159 passed (159)\n      Tests  4218 passed (4218)\n   Start at  12:57:24\n   Duration  25.81s (transform 2.54s, setup 2.28s, import 20.27s, tests 13.01s, environment 11ms)\n\n",
+      "exitCode": 0,
+      "command": "npm run test --workspace=@poe-code/ssconvert (direct fresh workspace runner)"
+    },
+    "ssconvert-lint": {
+      "logSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "summary": "\n> @poe-code/ssconvert@0.0.1 lint\n> node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json\n\n",
+      "exitCode": 0,
+      "command": "npm run lint --workspace=@poe-code/ssconvert"
+    },
+    "cross-workspace-build": {
+      "logSha256": "fbf07bf7a839233f668e7929b0802c5d5c0a5651db4ef3e66b00c468b9781a43",
+      "summary": "> @poe-code/package-lint@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> @poe-code/pandoc@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-command-exiftool@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-command-wkhtmltopdf@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> @poe-code/csvkit@0.0.1 build\n> node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> @poe-platform/safe-bash@0.0.0 build\n> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs\n\n\n> @poe-platform/safe-bash@0.0.0 postbuild\n> node scripts/build-optional-cli.mjs\n\n{\"workspaces\":85,\"builds\":18,\"edges\":237,\"layers\":10,\"noBuild\":[],\"manifestless\":[\"packages/braintrust\",\"packages/safe-bash-optional\"]}\n",
+      "exitCode": 0,
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache"
+    },
+    "safe-bash-selective": {
+      "logSha256": "28c57892873debd9cb8a65612eb4aed405ad483c411fda18ea83fe052448a499",
+      "summary": "ℹ tests 52\nℹ suites 0\nℹ pass 52\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2128.0885\n",
+      "exitCode": 0,
+      "command": "node packages/safe-bash/scripts/test-reporting.mjs --import tsx packages/safe-bash/tests/commands/ssconvert-biff.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts packages/safe-bash/tests/commands/ssconvert-encoding.test.ts packages/safe-bash/tests/commands/ssconvert-text.test.ts"
+    },
+    "safe-bash-edited-file-lint": {
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "",
+      "exitCode": 0,
+      "command": "npx eslint packages/safe-bash/tests/commands/ssconvert-biff.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "limitation": "Direct selected-file lint only; this was not the maintained guarded root npm run lint:eslint route and is not a root lint gate pass."
+    },
+    "interrupted-full-safe-bash": {
+      "status": "INCOMPLETE; interrupted unintended full discovery after 400 reported files; SAFE_BASH_TEST_RG is not honored by this checkout. Not a pass. Selective maintained test-reporting runner executed separately."
+    },
+    "screenshot": {
+      "status": "Inspected actual virtual --list-importers; columns legible and excel_enc present",
+      "sha256": "0cab2cb3f49893a2c1e11a20439799d279e9e9fabac58676e64fd4f40994d85c",
+      "initialHarnessFailure": "Missing explicitly bound Shell filesystem; corrected before inspection."
+    }
+  },
+  "mappingCapture": {
+    "converter": "gsf_msole_iconv_open_for_import from captured libgsf; iconv handles from glibc",
+    "captureSha256": "5931b3c4922d42d8820091ed1f287a971ea91562c266ba12e684df8445a8742a",
+    "checks": {
+      "932": {
+        "singleCases": 256,
+        "pairCases": 16640,
+        "singleMappings": 191,
+        "doubleMappings": 9604
+      },
+      "936": {
+        "singleCases": 256,
+        "pairCases": 32512,
+        "singleMappings": 129,
+        "doubleMappings": 21791
+      },
+      "949": {
+        "singleCases": 256,
+        "pairCases": 32768,
+        "singleMappings": 128,
+        "doubleMappings": 17048
+      },
+      "950": {
+        "singleCases": 256,
+        "pairCases": 32512,
+        "singleMappings": 129,
+        "doubleMappings": 13911
+      },
+      "1361": {
+        "singleCases": 256,
+        "pairCases": 32768,
+        "singleMappings": 128,
+        "doubleMappings": 17049
+      }
+    },
+    "scope": "Complete captured accepted single/lead+trail byte mappings for these five codepages. No claim about native invalid-byte recovery, all locales or stateful charsets."
+  },
+  "cases": {
+    "raw-v2": {
+      "fixtureSha256": "4c7b7a0ff84d4cf8efeb38a8cbcffe8f46d371f3d0be1fcb0fbacdfe8d472910",
+      "fixtureBytes": 31,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "\n(ssconvert:67372): gnumeric:read-WARNING **: 17:38:45.513: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67372): gnumeric:read-WARNING **: 17:38:45.513: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Worksheet",
+          "cells": [
+            {
+              "row": 1,
+              "column": 2,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": null
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090004000002100003000f000100020000000000000000000045400a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "raw-v3": {
+      "fixtureSha256": "782df2ffc45c839e486f579b7dfff9b9a0e386e273446fbb82dd380cce19f171",
+      "fixtureBytes": 30,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "\n(ssconvert:67374): gnumeric:read-WARNING **: 17:38:45.553: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67374): gnumeric:read-WARNING **: 17:38:45.553: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Worksheet",
+          "cells": [
+            {
+              "row": 1,
+              "column": 2,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": null
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090204000003100003020e0001000200000000000000000045400a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "raw-v4": {
+      "fixtureSha256": "6e92d0cdb8636272f600c8d1252e8a5390c518d4c9d24309dac915ac0df92f4a",
+      "fixtureBytes": 30,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "\n(ssconvert:67376): gnumeric:read-WARNING **: 17:38:45.593: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67376): gnumeric:read-WARNING **: 17:38:45.593: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Worksheet",
+          "cells": [
+            {
+              "row": 1,
+              "column": 2,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": null
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090404000004100003020e0001000200000000000000000045400a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "raw-v7": {
+      "fixtureSha256": "7952f3fbff3fb91c54945a029cc809a0472923d5005778dd84a4539d7f44b4d1",
+      "fixtureBytes": 30,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "Sheet offset in stream of 0x0 not found in list\n\n(ssconvert:67378): gnumeric:read-WARNING **: 17:38:45.633: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67378): gnumeric:read-WARNING **: 17:38:45.633: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67378): gnumeric:read-WARNING **: 17:38:45.633: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Worksheet",
+          "cells": [
+            {
+              "row": 1,
+              "column": 2,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": null
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090804000005100003020e0001000200000000000000000045400a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "raw-v8": {
+      "fixtureSha256": "e436f15cf5edd77937ea435f1d461500e89c21df81b22b2dc97ad47a3c83befc",
+      "fixtureBytes": 30,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "Sheet offset in stream of 0x0 not found in list\n\n(ssconvert:67380): gnumeric:read-WARNING **: 17:38:45.673: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67380): gnumeric:read-WARNING **: 17:38:45.673: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67380): gnumeric:read-WARNING **: 17:38:45.673: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Worksheet",
+          "cells": [
+            {
+              "row": 1,
+              "column": 2,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": null
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090804000006100003020e0001000200000000000000000045400a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "original-cfb": {
+      "fixtureSha256": "61af7845f0f646a1a1fc9e9ec9d807e37aa831ec222d0319377451a89f64c22d",
+      "fixtureBytes": 2560,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "\n(ssconvert:67396): gnumeric:read-WARNING **: 17:44:09.089: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67396): gnumeric:read-WARNING **: 17:44:09.089: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Worksheet",
+          "cells": [
+            {
+              "row": 1,
+              "column": 2,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": null
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "d0cf11e0a1b11ae10000000000000000000000000000000000000300feff0900060000000000000000000000010000000000000000000000001000000200000001000000feffffff0000000001000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff52006f006f007400200045006e00740072007900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016000501ffffffffffffffff0100000000000000000000000000000000000000000000000000000000000000000000000000000003000000400000000000000057006f0072006b0062006f006f006b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012000201ffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000001e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fefffffffdfffffffefffffffefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff090204000003100003020e0001000200000000000000000045400a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 1,
+                "column": 2,
+                "text": "42",
+                "type": "40"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "codepage": {
+      "fixtureSha256": "68cc6bb9c7fb79dcc82f947dc5bddff07b70ab16bc85939cf2bf94298e769d8e",
+      "fixtureBytes": 31,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "Sheet offset in stream of 0x0 not found in list\n\n(ssconvert:67382): gnumeric:read-WARNING **: 17:38:45.709: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67382): gnumeric:read-WARNING **: 17:38:45.709: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n\n(ssconvert:67382): gnumeric:read-WARNING **: 17:38:45.709: File is most likely corrupted.\n(Condition \"p->len > 0\" failed in excel_get_xf.)\n\n",
+      "candidateDiagnostics": [
+        {
+          "code": "biff-loss-warning",
+          "severity": "warning",
+          "message": "BIFF CODEPAGE retained without semantic interpretation"
+        }
+      ],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Worksheet",
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "string",
+                "value": "À"
+              },
+              "formula": null,
+              "cache": null,
+              "format": null
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090804000005100042000200e304040209000000000000000100c00a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "À",
+                "type": "60"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": false,
+          "merges": true
+        }
+      ]
+    },
+    "codepage-valid": {
+      "fixtureSha256": "27ff1f1a9452553b1721e0411ee1650e8cd5153b9f78d0d3fe9ec4952a29b4a4",
+      "fixtureBytes": 99,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "\n(ssconvert:67416): gnumeric:read-WARNING **: 17:51:18.354: XL: Xf index 0xF is not in the range[0..0x1)\n\n(ssconvert:67416): gnumeric:read-WARNING **: 17:51:18.355: Invalid font index 0\n\n\n(ssconvert:67416): gnumeric:read-WARNING **: 17:51:18.355: Invalid font index 0\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "S",
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "string",
+                "value": "А"
+              },
+              "formula": null,
+              "cache": null,
+              "format": "General"
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090810000005050000000000000000000000000042000200e304e000100000000000000000000000000000000000850008003e000000000001530a0000000908100000051000000000000000000000000000040209000000000000000100c00a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "S",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "А",
+                "type": "60"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"S\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "S",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "А",
+                "type": "60"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "dbcs-valid": {
+      "fixtureSha256": "41f0e4a6bbb9deeab2257414acce56efef6ee51a8c1e86335a7a95f113c0b22c",
+      "fixtureBytes": 100,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "\n(ssconvert:67418): gnumeric:read-WARNING **: 17:51:18.998: XL: Xf index 0xF is not in the range[0..0x1)\n\n(ssconvert:67418): gnumeric:read-WARNING **: 17:51:18.998: Invalid font index 0\n\n\n(ssconvert:67418): gnumeric:read-WARNING **: 17:51:18.998: Invalid font index 0\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "S",
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "string",
+                "value": "中"
+              },
+              "formula": null,
+              "cache": null,
+              "format": "General"
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090810000005050000000000000000000000000042000200a803e000100000000000000000000000000000000000850008003e000000000001530a000000090810000005100000000000000000000000000004020a000000000000000200d6d00a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "S",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "中",
+                "type": "60"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"S\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "S",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "中",
+                "type": "60"
+              }
+            ],
+            "merges": [],
+            "names": []
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ]
+    },
+    "roundtrip-v7": {
+      "fixtureSha256": "8ca2f0f75f7112e7fef34a92a885254fd3352a129069eecddf84724f245f0bc8",
+      "fixtureBytes": 4608,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Original ?",
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": "0.000"
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "value": {
+                "kind": "string",
+                "value": "Résumé"
+              },
+              "formula": null,
+              "cache": null,
+              "format": "General"
+            },
+            {
+              "row": 1,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 44
+              },
+              "formula": "=A1+2",
+              "cache": {
+                "kind": "number",
+                "value": 44
+              },
+              "format": "General"
+            }
+          ],
+          "merges": [
+            {
+              "startRow": 3,
+              "endRow": 4,
+              "startColumn": 0,
+              "endColumn": 1
+            }
+          ]
+        }
+      ],
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Original ?",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "42",
+                "type": "40"
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "text": "Résumé",
+                "type": "60"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "text": "=A1+2",
+                "type": null
+              }
+            ],
+            "merges": [
+              "A4:B5"
+            ],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Original ?\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Original ?",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "42",
+                "type": "40"
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "text": "Résumé",
+                "type": "60"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "text": "=A1+2",
+                "type": null
+              }
+            ],
+            "merges": [
+              "A4:B5"
+            ],
+            "names": [
+              [
+                "_BIFF_BUILTIN_12",
+                "=\"Original ?\""
+              ],
+              [
+                "Print_Area",
+                "=#REF!"
+              ]
+            ]
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ],
+      "nativeReplayStatus": 0,
+      "nativeReplayStderr": "",
+      "nativeReplayWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Original ?",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "42",
+                "type": "40"
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "text": "Résumé",
+                "type": "60"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "text": "=A1+2",
+                "type": null
+              }
+            ],
+            "merges": [
+              "A4:B5"
+            ],
+            "names": [
+              [
+                "_BIFF_BUILTIN_12",
+                ""
+              ],
+              [
+                "Print_Area",
+                ""
+              ],
+              [
+                "Sheet_Title",
+                "\"Original ?\""
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "roundtrip-v8": {
+      "fixtureSha256": "9cbe659b4e8ee739161546ade70b7f4ac7038bb42fe45e529d622f516e09cc1d",
+      "fixtureBytes": 4608,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "Original Ω",
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 42
+              },
+              "formula": null,
+              "cache": null,
+              "format": "0.000"
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "value": {
+                "kind": "string",
+                "value": "Résumé"
+              },
+              "formula": null,
+              "cache": null,
+              "format": "General"
+            },
+            {
+              "row": 1,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 44
+              },
+              "formula": "=A1+2",
+              "cache": {
+                "kind": "number",
+                "value": 44
+              },
+              "format": "General"
+            }
+          ],
+          "merges": [
+            {
+              "startRow": 3,
+              "endRow": 4,
+              "startColumn": 0,
+              "endColumn": 1
+            }
+          ]
+        }
+      ],
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Original Ω",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "42",
+                "type": "40"
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "text": "Résumé",
+                "type": "60"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "text": "=A1+2",
+                "type": null
+              }
+            ],
+            "merges": [
+              "A4:B5"
+            ],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Original Ω\""
+              ]
+            ]
+          }
+        ]
+      },
+      "serializedCandidateWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Original Ω",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "42",
+                "type": "40"
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "text": "Résumé",
+                "type": "60"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "text": "=A1+2",
+                "type": null
+              }
+            ],
+            "merges": [
+              "A4:B5"
+            ],
+            "names": [
+              [
+                "_BIFF_BUILTIN_12",
+                "=\"Original Ω\""
+              ],
+              [
+                "Print_Area",
+                "=#REF!"
+              ]
+            ]
+          }
+        ]
+      },
+      "cellAndMergeComparison": [
+        {
+          "name": true,
+          "cells": true,
+          "merges": true
+        }
+      ],
+      "nativeReplayStatus": 0,
+      "nativeReplayStderr": "",
+      "nativeReplayWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Original Ω",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "42",
+                "type": "40"
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "text": "Résumé",
+                "type": "60"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "text": "=A1+2",
+                "type": null
+              }
+            ],
+            "merges": [
+              "A4:B5"
+            ],
+            "names": [
+              [
+                "_BIFF_BUILTIN_12",
+                ""
+              ],
+              [
+                "Print_Area",
+                ""
+              ],
+              [
+                "Sheet_Title",
+                "\"Original Ω\""
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "corrupt": {
+      "fixtureSha256": "2bfd69b564fd3cbdb02db143f23b94e04afe2b01e03d177aa3d83f8d67b29a13",
+      "fixtureBytes": 13,
+      "nativeStatus": 0,
+      "candidateStatus": 1,
+      "nativeStderr": "Error, hit end without EOF\n",
+      "candidateDiagnostics": [],
+      "candidateError": "E Invalid Excel BIFF: truncated binary data",
+      "candidateSheets": [],
+      "originalFixtureHex": "090204000003100003020e0000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "Worksheet",
+            "cells": [],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"Worksheet\""
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "encrypted": {
+      "fixtureSha256": "9bb26d899f62f92cb83a5825899e9870ae9b956c0d6aa1f84ced22f714a11918",
+      "fixtureBytes": 18,
+      "nativeStatus": 1,
+      "candidateStatus": 1,
+      "nativeStderr": "\n(ssconvert:67386): gnumeric:read-WARNING **: 17:38:45.785: File is most likely corrupted.\n(Condition \"q->length >= 8\" failed in excel_read_BOF.)\n\n\n** (ssconvert:67386): WARNING **: 17:38:45.785: File is most likely corrupted.\n(Condition \"q->length >= (6 + 3*16)\" failed in ms_biff_query_set_decrypt.)\n\nE No password supplied\n",
+      "candidateDiagnostics": [],
+      "candidateError": "Unsupported ssconvert feature: encrypted Excel workbook",
+      "candidateSheets": [],
+      "originalFixtureHex": "09080400000605002f00020001000a000000"
+    },
+    "override-valid": {
+      "fixtureSha256": "27ff1f1a9452553b1721e0411ee1650e8cd5153b9f78d0d3fe9ec4952a29b4a4",
+      "fixtureBytes": 99,
+      "nativeStatus": 0,
+      "candidateStatus": 0,
+      "nativeStderr": "\n(ssconvert:67420): gnumeric:read-WARNING **: 17:51:19.607: XL: Xf index 0xF is not in the range[0..0x1)\n\n(ssconvert:67420): gnumeric:read-WARNING **: 17:51:19.608: Invalid font index 0\n\n\n(ssconvert:67420): gnumeric:read-WARNING **: 17:51:19.609: Invalid font index 0\n\n",
+      "candidateDiagnostics": [],
+      "candidateError": null,
+      "candidateSheets": [
+        {
+          "name": "S",
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "string",
+                "value": "А"
+              },
+              "formula": null,
+              "cache": null,
+              "format": "General"
+            }
+          ],
+          "merges": []
+        }
+      ],
+      "originalFixtureHex": "090810000005050000000000000000000000000042000200e304e000100000000000000000000000000000000000850008003e000000000001530a0000000908100000051000000000000000000000000000040209000000000000000100c00a000000",
+      "nativeWorkbook": {
+        "dateConvention": null,
+        "sheets": [
+          {
+            "name": "S",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "text": "А",
+                "type": "60"
+              }
+            ],
+            "merges": [],
+            "names": [
+              [
+                "Print_Area",
+                "#REF!"
+              ],
+              [
+                "Sheet_Title",
+                "\"S\""
+              ]
+            ]
+          }
+        ]
+      },
+      "comparisonMeaning": "Native and direct candidate SDK cells above match. No separately serialized candidate XML was captured for this case; do not infer XML replay verification."
+    }
+  },
+  "remainingMismatches": [
+    "Native recovery of the truncated-record original fixture exits 0 and retains an empty worksheet; bounded JavaScript parser exits 1. Native corrupt-input warning envelopes and diagnostics differ.",
+    "Encrypted original fixture exits 1 in both; JavaScript reports unsupported encryption, native reports E No password supplied plus corruption warnings. Native VelvetSweatshop XOR/RC4 automatic decryption is unsupported.",
+    "Original bare worksheet LABEL without XF is retained by JavaScript, while native drops it with invalid-XF warnings. Worksheet CODEPAGE is retained as unknown; its native warning envelope differs. Valid workbook CODEPAGE and DBCS controls are measured separately.",
+    "Implicit native Print_Area and Sheet_Title names, full default stylesheet/geometry/selection/row-column defaults and complete workbook metadata are not synthesized.",
+    "Drawings/charts/VBA/pivots/conditional formatting/validation/hyperlinks/images/extended records are retained as original hex with loss warnings; semantic reconstruction and rendering are unsupported.",
+    "Legacy external declarations are interpreted; external workbook evaluation, detached forward-declared sheets, multi-sheet spans and some old external formula tokens are incomplete. Unsupported formula tokens preserve caches and raw tokens with warnings.",
+    "BIFF4 BUNDLEHEADER embedded-workbook sheet naming, mixed-revision DSF workbooks, property-set streams and non-workbook CFB storage trees are unmeasured/incomplete.",
+    "Most token translation paths, full XF border/pattern mappings/style inheritance, locale magic formats, symbol/Wingdings font overrides and uncommon codepages are not native-measured. Shared/array formulas and comments have independent unit stress but no exhaustive native differential coverage.",
+    "Codepage tables match the captured libc/libgsf profile; native invalid/truncated charset recovery and unknown-codepage fallback warning bytes are not matched.",
+    "Full repository-wide unit/lint and full Safe Bash suites are not passes; scope-specific uncached checks are recorded separately."
+  ],
+  "delivery": {
+    "readmeEdits": false,
+    "localCommits": false,
+    "push": false,
+    "publish": false
+  },
+  "inventory": "biff-source-audit.json inventories every defined opcode with source-inspected candidate disposition; these are not per-opcode semantic parity passes.",
+  "cleanup": "Owned out/ssconvert-biff scratch reduced into this receipt and removed after final check settlement; authenticated existing out/ssconvert-lifecycle source preserved."
+}

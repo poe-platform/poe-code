@@ -1,0 +1,1049 @@
+{
+  "task": "analysis-regression-anova-moments",
+  "scope": "Fresh linked formula/value-type/array-anchor coordinate comparison; empty native string cells ignored. Not complete styles/model identity. Historical materialized numerical QA remains in earlier receipt.",
+  "commands": [
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=regression",
+        "--tool-test=x:A1:A4",
+        "--tool-test=y:B1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments-current/input.xml",
+        "/out/ssconvert-moments-current/regression-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments-current/input.xml",
+        "/out/ssconvert-moments-current/anova-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova2",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments-current/input.xml",
+        "/out/ssconvert-moments-current/anova2-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=descriptive-statistics",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments-current/input.xml",
+        "/out/ssconvert-moments-current/descriptive-statistics-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=correlation",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments-current/input.xml",
+        "/out/ssconvert-moments-current/correlation-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=covariance",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments-current/input.xml",
+        "/out/ssconvert-moments-current/covariance-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=principal-components",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments-current/input.xml",
+        "/out/ssconvert-moments-current/principal-components-native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "comparisons": [
+    {
+      "tool": "regression",
+      "sheetName": "Regression (1)",
+      "comparedCoordinates": 89,
+      "mismatches": []
+    },
+    {
+      "tool": "anova",
+      "sheetName": "Single Factor ANOVA (1)",
+      "comparedCoordinates": 39,
+      "mismatches": []
+    },
+    {
+      "tool": "anova2",
+      "sheetName": "Two Factor ANOVA (1)",
+      "comparedCoordinates": 65,
+      "mismatches": []
+    },
+    {
+      "tool": "descriptive-statistics",
+      "sheetName": "Descriptive Statistics (1)",
+      "comparedCoordinates": 59,
+      "mismatches": []
+    },
+    {
+      "tool": "correlation",
+      "sheetName": "Correlation (1)",
+      "comparedCoordinates": 8,
+      "mismatches": []
+    },
+    {
+      "tool": "covariance",
+      "sheetName": "Covariance (1)",
+      "comparedCoordinates": 8,
+      "mismatches": []
+    },
+    {
+      "tool": "principal-components",
+      "sheetName": "Principal Components Analysis (1)",
+      "comparedCoordinates": 30,
+      "mismatches": []
+    }
+  ],
+  "candidate": [
+    {
+      "path": "packages/ssconvert/src/analysis/catalog.ts",
+      "sha256": "18ac4770b8ea5a583265daf3401296274fc9364b7db0859550750a7fc0fde96d"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/current-stress.test.ts",
+      "sha256": "f137e785c94a74e6a865d68bcdf1c235480c9c069101581f6f26e1eeb213e101"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/moments-bounds.test.ts",
+      "sha256": "b6079745a523c21d75458dedf637445b206478ccf38982da2b16fc831adcfc96"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/moments-stress.test.ts",
+      "sha256": "6056e867b8724c9f825b9c91280bee2b1362055f751266af76660851c9ebb526"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/moments.test.ts",
+      "sha256": "db0195f5a71566707aa80ef39ae77b89c5ac4b2fd11a4829120f8b273ddaa90a"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/protocol-independent-stress.test.ts",
+      "sha256": "f1ca12c324ff1bbb72be1349a52491098233680bfdfe0a382d2bdaf476adae65"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/protocol.test.ts",
+      "sha256": "091e3e90ee16ae31e3da2365c4b9790c59f2ecea2c41c14392b8608c2623b654"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/protocol.ts",
+      "sha256": "b5327f7f10578ba838aae6fa76838a462fb4818716090c32f10c30ea4ddf7860"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/run.ts",
+      "sha256": "e0fe5959d6e0ae9e27402fcc05f48ba6b126761ec312db20c88ab2563ec11a81"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/runner-independent-stress.test.ts",
+      "sha256": "d4e78b600bc340bbcfdf12c07b20dc01bb5bd4101bec19a6f2c27011f0441a10"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/statistical.ts",
+      "sha256": "3a3eab3e4f7bee7e995f0bb445903ec7f61924aaca645f2d05a9ebc7d5095188"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "sha256": "fb313a389d9eab85754d8abd405efc269a3488e013547d9df9352fc0130dc3a4"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
+      "sha256": "a23b63a408e964f86ef7b5caa5e4cea452d64c09899efd317518913e68473d61"
+    }
+  ],
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "materialized": {
+    "task": "analysis-regression-anova-moments",
+    "scope": "Fresh materialized default coordinate/value-type comparison; floating values use rel_tol=abs_tol=1e-12; other cell values exact. Empty native strings ignored. Not complete workbook identity.",
+    "commands": [
+      {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=regression",
+          "--tool-test=x:A1:A4",
+          "--tool-test=y:B1:B4",
+          "--tool-test=formulas:no",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/regression-materialized-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "\n** (ssconvert:86891): CRITICAL **: 12:17:44.211: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86891): CRITICAL **: 12:17:44.211: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86891): CRITICAL **: 12:17:44.211: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86891): CRITICAL **: 12:17:44.211: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86891): CRITICAL **: 12:17:44.211: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86891): CRITICAL **: 12:17:44.211: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n"
+      },
+      {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=formulas:no",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/anova-materialized-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova2",
+          "--tool-test=data:A1:B4",
+          "--tool-test=formulas:no",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/anova2-materialized-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=descriptive-statistics",
+          "--tool-test=data:A1:B4",
+          "--tool-test=formulas:no",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/descriptive-statistics-materialized-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=correlation",
+          "--tool-test=data:A1:B4",
+          "--tool-test=formulas:no",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/correlation-materialized-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=covariance",
+          "--tool-test=data:A1:B4",
+          "--tool-test=formulas:no",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/covariance-materialized-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=principal-components",
+          "--tool-test=data:A1:B4",
+          "--tool-test=formulas:no",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/principal-components-materialized-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "comparisons": [
+      {
+        "tool": "regression",
+        "sheetName": "Regression (1)",
+        "comparedCoordinates": 98,
+        "mismatches": []
+      },
+      {
+        "tool": "anova",
+        "sheetName": "Single Factor ANOVA (1)",
+        "comparedCoordinates": 39,
+        "mismatches": []
+      },
+      {
+        "tool": "anova2",
+        "sheetName": "Two Factor ANOVA (1)",
+        "comparedCoordinates": 65,
+        "mismatches": []
+      },
+      {
+        "tool": "descriptive-statistics",
+        "sheetName": "Descriptive Statistics (1)",
+        "comparedCoordinates": 59,
+        "mismatches": []
+      },
+      {
+        "tool": "correlation",
+        "sheetName": "Correlation (1)",
+        "comparedCoordinates": 8,
+        "mismatches": []
+      },
+      {
+        "tool": "covariance",
+        "sheetName": "Covariance (1)",
+        "comparedCoordinates": 8,
+        "mismatches": []
+      },
+      {
+        "tool": "principal-components",
+        "sheetName": "Principal Components Analysis (1)",
+        "comparedCoordinates": 38,
+        "mismatches": []
+      }
+    ],
+    "candidate": [
+      {
+        "path": "packages/ssconvert/src/analysis/protocol.test.ts",
+        "sha256": "091e3e90ee16ae31e3da2365c4b9790c59f2ecea2c41c14392b8608c2623b654"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/moments.test.ts",
+        "sha256": "db0195f5a71566707aa80ef39ae77b89c5ac4b2fd11a4829120f8b273ddaa90a"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/moments-stress.test.ts",
+        "sha256": "6056e867b8724c9f825b9c91280bee2b1362055f751266af76660851c9ebb526"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/protocol-independent-stress.test.ts",
+        "sha256": "f1ca12c324ff1bbb72be1349a52491098233680bfdfe0a382d2bdaf476adae65"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/current-stress.test.ts",
+        "sha256": "f137e785c94a74e6a865d68bcdf1c235480c9c069101581f6f26e1eeb213e101"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/protocol.ts",
+        "sha256": "b5327f7f10578ba838aae6fa76838a462fb4818716090c32f10c30ea4ddf7860"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/moments-bounds.test.ts",
+        "sha256": "b6079745a523c21d75458dedf637445b206478ccf38982da2b16fc831adcfc96"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/statistical.ts",
+        "sha256": "3a3eab3e4f7bee7e995f0bb445903ec7f61924aaca645f2d05a9ebc7d5095188"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/run.ts",
+        "sha256": "e0fe5959d6e0ae9e27402fcc05f48ba6b126761ec312db20c88ab2563ec11a81"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/catalog.ts",
+        "sha256": "18ac4770b8ea5a583265daf3401296274fc9364b7db0859550750a7fc0fde96d"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/runner-independent-stress.test.ts",
+        "sha256": "d4e78b600bc340bbcfdf12c07b20dc01bb5bd4101bec19a6f2c27011f0441a10"
+      }
+    ],
+    "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "numericalTolerance": {
+      "relative": 1e-12,
+      "absolute": 1e-12
+    }
+  },
+  "alphaVariants": [
+    {
+      "alpha": "-0",
+      "native": [
+        null,
+        "=finv(0,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(0,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:-0",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "alpha": "0",
+      "native": [
+        null,
+        "=finv(0,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(0,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:0",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "alpha": "1",
+      "native": [
+        null,
+        "=finv(1,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(1,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:1",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "alpha": "0.5",
+      "native": [
+        null,
+        "=finv(0.5,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(0.5,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:0.5",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "alpha": "0.1",
+      "native": [
+        null,
+        "=finv(0.10000000000000001,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(0.10000000000000001,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:0.1",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "alpha": "0.0001",
+      "native": [
+        null,
+        "=finv(0.0001,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(0.0001,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:0.0001",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "alpha": "0.00001",
+      "native": [
+        null,
+        "=finv(1.0000000000000001e-05,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(1.0000000000000001e-05,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:0.00001",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "alpha": "0.0000001",
+      "native": [
+        null,
+        "=finv(9.9999999999999995e-08,C11,C12)",
+        "1",
+        "1"
+      ],
+      "product": [
+        null,
+        "=finv(9.9999999999999995e-08,C11,C12)",
+        "1",
+        "1"
+      ],
+      "matches": true,
+      "command": {
+        "argv": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "ssconvert-statistics-qa",
+          "env",
+          "LC_ALL=C",
+          "LANG=C",
+          "TZ=UTC",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "GSETTINGS_BACKEND=memory",
+          "HOME=/out/analysis-tool-protocol/home",
+          "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+          "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+          "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+          "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "--tool-test=anova",
+          "--tool-test=data:A1:B4",
+          "--tool-test=alpha:0.0000001",
+          "-T",
+          "Gnumeric_XmlIO:sax:0",
+          "/out/ssconvert-moments-current/input.xml",
+          "/out/ssconvert-moments-current/alpha-native.xml"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "historicalReceipt": "docs/ssconvert/analysis-regression-anova-moments.json",
+  "profileReverification": {
+    "archiveAndElevenMembers": true,
+    "binarySourceAndLibraryBindings": 74,
+    "dependenciesMatch": true,
+    "environment": "explicit retained C/UTC profile",
+    "plugins": "retained inventory; not newly enumerated"
+  },
+  "remaining": [
+    "Native regression materialized diagnostics differ (GLib CRITICAL versus empty product stderr).",
+    "Complete styles, blank geometry, comments, exporter parity and degenerate numerical matrix remain unverified.",
+    "Safe Bash maintained typecheck blocked before compilation by checkout peer SafeFS identity guard.",
+    "Browser/workerd and public packed-consumer runtime cells unverified."
+  ]
+}

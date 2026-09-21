@@ -1,0 +1,33 @@
+{
+  "input": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Calculation ManualRecalc=\"true\" EnableIteration=\"FaLsE\" IterationTolerance=\"0.1\"/><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Boolean</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Boolean</gnm:Name><gnm:Zoom>0.123456</gnm:Zoom><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">0.1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+  "argv": [
+    "docker",
+    "--context",
+    "colima",
+    "exec",
+    "ssconvert-statistics-qa",
+    "env",
+    "LC_ALL=C",
+    "LANG=C",
+    "TZ=UTC",
+    "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+    "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+    "GSETTINGS_BACKEND=memory",
+    "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+    "HOME=/out/gnumeric-xml-codecs/home",
+    "XDG_CONFIG_HOME=/out/gnumeric-xml-codecs/config",
+    "XDG_DATA_HOME=/out/gnumeric-xml-codecs/data",
+    "XDG_CACHE_HOME=/out/gnumeric-xml-codecs/cache",
+    "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+    "-T",
+    "Gnumeric_XmlIO:sax:0",
+    "/out/gnumeric-xml-codecs/precision.xml",
+    "/out/gnumeric-xml-codecs/precision-native.xml"
+  ],
+  "status": 0,
+  "stdout": "",
+  "stderr": "",
+  "iterationTolerance": "0.1",
+  "zoom": "0.1235",
+  "scope": "One original valid zoom/tolerance fixture only."
+}

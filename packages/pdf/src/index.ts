@@ -9,6 +9,8 @@ import {PdfError} from "./errors.js";
 import {pdfTextString} from "./text-string.js";
 import {serializePdf} from "./serialization.js";
 export {PdfError} from "./errors.js";
+export {serializePdf} from "./serialization.js";
+export {decodePng} from "./png.js";
 export function pdfCapabilities() {
   return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], fonts: ["sfnt-TrueType-glyf"], png: "static-noninterlaced-8bit", jpeg: "8bit-gray-rgb-adobe-cmyk", images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
 }

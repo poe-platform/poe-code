@@ -1,0 +1,445 @@
+{
+  "classification": "Original failing-first regressions and completed maintained gates; standalone safe-bash typecheck failure remains explicit",
+  "observations": [
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/table-selective-command-first-failure.log",
+      "sha256": "b992db8d929236427aa5efa03ed69c50a1621376a57fe944e3e6e1292af0f19e",
+      "raw": "TAP version 13\n# Subtest: ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()\nnot ok 1 - ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()\n  ---\n  duration_ms: 27.688625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/poe-code-5/packages/safe-bash/tests/commands/ssconvert.test.ts:1:717'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '{\"kind\":\"number\",\"value\":0}\\n'\n    - '{\"kind\":\"number\",\"value\":1}\\n'\n                                ^\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    {\"kind\":\"number\",\"value\":1}\n    \n  actual: |-\n    {\"kind\":\"number\",\"value\":0}\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/poe-code-5/packages/safe-bash/tests/commands/ssconvert.test.ts:35:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()+D1*0\nnot ok 2 - ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()+D1*0\n  ---\n  duration_ms: 7.58075\n  type: 'test'\n  location: '/Users/kjopek/Workspace/poe-code-5/packages/safe-bash/tests/commands/ssconvert.test.ts:1:717'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '{\"kind\":\"number\",\"value\":0}\\n'\n    - '{\"kind\":\"number\",\"value\":1}\\n'\n                                ^\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    {\"kind\":\"number\",\"value\":1}\n    \n  actual: |-\n    {\"kind\":\"number\",\"value\":0}\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/poe-code-5/packages/safe-bash/tests/commands/ssconvert.test.ts:35:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: ssconvert updates computed range interiors through the command and SDK, retaining replayable caches\nok 3 - ssconvert updates computed range interiors through the command and SDK, retaining replayable caches\n  ---\n  duration_ms: 6.672\n  type: 'test'\n  ...\n# Subtest: ssconvert dependency calculation shares exact command/SDK bytes, caches and namespace effects\nok 4 - ssconvert dependency calculation shares exact command/SDK bytes, caches and namespace effects\n  ---\n  duration_ms: 3.323417\n  type: 'test'\n  ...\n# Subtest: ssconvert external formulas call only the explicitly injected resolver with cancellation\nok 5 - ssconvert external formulas call only the explicitly injected resolver with cancellation\n  ---\n  duration_ms: 4.541833\n  type: 'test'\n  ...\n# Subtest: ssconvert formula syntax shares unary/power/omission behavior with the SDK\nok 6 - ssconvert formula syntax shares unary/power/omission behavior with the SDK\n  ---\n  duration_ms: 4.198042\n  type: 'test'\n  ...\n# Subtest: ssconvert resize rewrites formulas through CLI and SDK while retaining manual caches\nok 7 - ssconvert resize rewrites formulas through CLI and SDK while retaining manual caches\n  ---\n  duration_ms: 2.902459\n  type: 'test'\n  ...\n# Subtest: ssconvert ordered text updates share SDK calculation and first-error effects\nok 8 - ssconvert ordered text updates share SDK calculation and first-error effects\n  ---\n  duration_ms: 17.241334\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual spans normalize on endpoint sheets before active-view updates\nok 9 - ssconvert virtual spans normalize on endpoint sheets before active-view updates\n  ---\n  duration_ms: 5.832958\n  type: 'test'\n  ...\n# Subtest: ssconvert shares qualified, axis and split-range selection with the SDK\nok 10 - ssconvert shares qualified, axis and split-range selection with the SDK\n  ---\n  duration_ms: 8.351125\n  type: 'test'\n  ...\n# Subtest: ssconvert dispatches text handlers and ordered common options through the SDK engine\nok 11 - ssconvert dispatches text handlers and ordered common options through the SDK engine\n  ---\n  duration_ms: 3.482875\n  type: 'test'\n  ...\n# Subtest: ssconvert graph dispatch uses image IDs and C numeric resolution through injected rendering\nok 12 - ssconvert graph dispatch uses image IDs and C numeric resolution through injected rendering\n  ---\n  duration_ms: 6.366833\n  type: 'test'\n  ...\n# Subtest: ssconvert uses file URI bytes, literal dash and explicit stdin including empty input\nok 13 - ssconvert uses file URI bytes, literal dash and explicit stdin including empty input\n  ---\n  duration_ms: 8.073875\n  type: 'test'\n  ...\n# Subtest: ssconvert reads and publishes binary bytes across mounted VFS paths\nok 14 - ssconvert reads and publishes binary bytes across mounted VFS paths\n  ---\n  duration_ms: 4.655167\n  type: 'test'\n  ...\n# Subtest: ssconvert inherited terminals share SDK parsing without virtual file effects\nok 15 - ssconvert inherited terminals share SDK parsing without virtual file effects\n  ---\n  duration_ms: 10.338584\n  type: 'test'\n  ...\n# Subtest: ssconvert abbreviated inherited aliases preserve native channels and namespace\nok 16 - ssconvert abbreviated inherited aliases preserve native channels and namespace\n  ---\n  duration_ms: 1.599916\n  type: 'test'\n  ...\n# Subtest: ssconvert binds owned virtual configuration roots at registration\nok 17 - ssconvert binds owned virtual configuration roots at registration\n  ---\n  duration_ms: 0.672625\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual invocation discovers content, resolves competing savers and honors forced IDs\nok 18 - ssconvert virtual invocation discovers content, resolves competing savers and honors forced IDs\n  ---\n  duration_ms: 4.108334\n  type: 'test'\n  ...\n# Subtest: ssconvert uses main GOption byte grammar before any namespace changes\nok 19 - ssconvert uses main GOption byte grammar before any namespace changes\n  ---\n  duration_ms: 3.710167\n  type: 'test'\n  ...\n# Subtest: ssconvert opt-in command uses shell VFS and shared domain exporter\nok 20 - ssconvert opt-in command uses shell VFS and shared domain exporter\n  ---\n  duration_ms: 2.610792\n  type: 'test'\n  ...\n# Subtest: ssconvert admits eager VFS reads against the shell input budget\nok 21 - ssconvert admits eager VFS reads against the shell input budget\n  ---\n  duration_ms: 1.256167\n  type: 'test'\n  ...\n# Subtest: ssconvert releases invocation ownership when engine construction rejects limits\nok 22 - ssconvert releases invocation ownership when engine construction rejects limits\n  ---\n  duration_ms: 0.202834\n  type: 'test'\n  ...\n# Subtest: ssconvert unsupported CLI action fails without file effects\nok 23 - ssconvert unsupported CLI action fails without file effects\n  ---\n  duration_ms: 1.236\n  type: 'test'\n  ...\n# Subtest: ssconvert SDK and virtual command preserve the same sparse workbook records\nok 24 - ssconvert SDK and virtual command preserve the same sparse workbook records\n  ---\n  duration_ms: 2.254916\n  type: 'test'\n  ...\n# Subtest: ssconvert conflicting workbook names fail before destination namespace effects\nok 25 - ssconvert conflicting workbook names fail before destination namespace effects\n  ---\n  duration_ms: 0.952209\n  type: 'test'\n  ...\n# Subtest: ssconvert hidden codec accessor denial matches SDK and preserves destination\nok 26 - ssconvert hidden codec accessor denial matches SDK and preserves destination\n  ---\n  duration_ms: 1.0485\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual fd stdout preserves data bytes and warnings without VFS effects\nok 27 - ssconvert virtual fd stdout preserves data bytes and warnings without VFS effects\n  ---\n  duration_ms: 1.9695\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual image enum listing and invalid expressions use stderr\nok 28 - ssconvert virtual image enum listing and invalid expressions use stderr\n  ---\n  duration_ms: 6.443584\n  type: 'test'\n  ...\n# Subtest: ssconvert actual virtual merge preserves notices and native duplicate names\nok 29 - ssconvert actual virtual merge preserves notices and native duplicate names\n  ---\n  duration_ms: 2.4045\n  type: 'test'\n  ...\n# Subtest: ssconvert native publication breaks hardlinks and preserves terminal symlinks and mode\nok 30 - ssconvert native publication breaks hardlinks and preserves terminal symlinks and mode\n  ---\n  duration_ms: 5.437416\n  type: 'test'\n  ...\n# Subtest: ssconvert loading diagnostics retain the resolved virtual filename\nok 31 - ssconvert loading diagnostics retain the resolved virtual filename\n  ---\n  duration_ms: 1.1015\n  type: 'test'\n  ...\n1..31\n# tests 31\n# suites 0\n# pass 29\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 920.714791\n"
+    },
+    {
+      "historicalTemporaryPath": "out/table-selective-first-failure.log",
+      "sha256": "33ff4e022f4e45e7387a403fd562bf1fb99dc70380df20f3bc9bee5535cf1499",
+      "raw": "\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts (35 tests | 2 failed) 46ms\n   \u2713 refuses combined named-expression and syntax dependency depth with a typed limit 6ms\n   \u2713 terminates cyclic names without acquiring external authority in an unselected branch 1ms\n   \u2713 propagates a recalculated named precedent through clean cached errors 1ms\n   \u2713 recalculates shared relative links independently of sparse input cell order 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM((A1):(C1)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(left_edge:right_edge) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM((left_edge):(right_edge)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(((A1):(B1)):(C1)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(((A1:C1) (A1:B1)):(C1)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(IF(TRUE,A1,A2):C1) 0ms\n   \u2713 canonicalizes calculated signed zero for =0/-3 0ms\n   \u2713 canonicalizes calculated signed zero for =PRODUCT(-1,0) 0ms\n   \u2713 canonicalizes calculated signed zero for =SUM(-0) 0ms\n   \u2713 canonicalizes calculated signed zero for =-(-0) 0ms\n   \u2713 skips missing TABLE columns without acquiring cached external output authority 1ms\n   \u2713 rolls TABLE substitutions back after resolver cancellation and admits a fresh run 1ms\n   \u2713 keeps qualified scoped-name changes separate from unrelated sheet coordinates 1ms\n   \u2713 invalidates sparse computed ranges and all stored array members without formulas 1ms\n   \u2713 replays ordered updates identically across a plain-data workbook checkpoint 3ms\n   \u2713 refuses canceled and under-budget cell-update graph work without changing original caches 1ms\n   \u2713 explicitly refuses unsupported foreign workbook and resolver record prototypes 1ms\n   \u2713 preserves cross-realm host refusal identity without publishing partial results 0ms\n   \u2713 bounds named dependencies during sparse cell-update admission 10ms\n   \u2713 applies negative-base exponent domain checks independently across array elements 1ms\n   \u2713 limits nonsingleton array power dimensions to their common width before aggregation 0ms\n   \u2713 keeps qualified sparse TABLE arguments inert through canceled output evaluation and retry 1ms\n   \u2713 uses released recursive dirty-flag clearing for self iteration cap 1 0ms\n   \u2713 uses released recursive dirty-flag clearing for self iteration cap 3 0ms\n   \u2713 uses released recursive dirty-flag clearing for self iteration cap 10 0ms\n   \u2713 reads the current self value after the recursive calculation clears its dirty flag 0ms\n   \u2713 keeps completed dependencies cached while preserving multi-cell cycle storage order: false 0ms\n   \u2713 keeps completed dependencies cached while preserving multi-cell cycle storage order: true 0ms\n   \u2713 cancels a TABLE self-cycle and restores flags and caches for a fresh calculation 1ms\n   \u00d7 preserves unrelated volatile TABLE row-header caches (array=false) 5ms\n   \u00d7 preserves unrelated volatile TABLE row-header caches (array=true) 1ms\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > preserves unrelated volatile TABLE row-header caches (array=false)\nAssertionError: expected { kind: 'number', value: +0 } to deeply equal { kind: 'number', value: 1 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 1,\n+   \"value\": 0,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:266:92\n    264|   ] }] };\n    265|   const output = recalculateWorkbook(input, { ...context, random: { ne\u2026\n    266|   expect(output.sheets[0]!.cells.find(cell => cell.row === 1 && cell.c\u2026\n       |                                                                                            ^\n    267|   expect(draws).toBe(1);\n    268|   expect(input.sheets[0]!.cells.find(cell => cell.column === 4)!.value\u2026\n\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > preserves unrelated volatile TABLE row-header caches (array=true)\nAssertionError: expected { kind: 'number', value: +0 } to deeply equal { kind: 'number', value: 1 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 1,\n+   \"value\": 0,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:266:92\n    264|   ] }] };\n    265|   const output = recalculateWorkbook(input, { ...context, random: { ne\u2026\n    266|   expect(output.sheets[0]!.cells.find(cell => cell.row === 1 && cell.c\u2026\n       |                                                                                            ^\n    267|   expect(draws).toBe(1);\n    268|   expect(input.sheets[0]!.cells.find(cell => cell.column === 4)!.value\u2026\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 2 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > preserves unrelated volatile TABLE row-header caches (array=false)\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > preserves unrelated volatile TABLE row-header caches (array=true)\nAssertionError: expected { kind: 'number', value: +0 } to deeply equal { kind: 'number', value: 1 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 1,\n+   \"value\": 0,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:266:92\n    264|   ] }] };\n    265|   const output = recalculateWorkbook(input, { ...context, random: { ne\u2026\n    266|   expect(output.sheets[0]!.cells.find(cell => cell.row === 1 && cell.c\u2026\n       |                                                                                            ^\n    267|   expect(draws).toBe(1);\n    268|   expect(input.sheets[0]!.cells.find(cell => cell.column === 4)!.value\u2026\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/2]\u23af\n\n\n Test Files  1 failed (1)\n      Tests  2 failed | 33 passed (35)\n   Start at  14:22:22\n   Duration  308ms (transform 147ms, setup 44ms, import 130ms, tests 46ms, environment 0ms)\n\n"
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/final-command-test-v4.log",
+      "sha256": "54180a8de1ee6ac9ce25a86064a3175499c97c1dd7a2b3c4f7f3d7a020c2b7d7",
+      "raw": "TAP version 13\n# Subtest: ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()\nok 1 - ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()\n  ---\n  duration_ms: 23.552792\n  type: 'test'\n  ...\n# Subtest: ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()+D1*0\nok 2 - ssconvert TABLE retains the copied volatile header through command and SDK: =RAND()+D1*0\n  ---\n  duration_ms: 6.044917\n  type: 'test'\n  ...\n# Subtest: ssconvert updates computed range interiors through the command and SDK, retaining replayable caches\nok 3 - ssconvert updates computed range interiors through the command and SDK, retaining replayable caches\n  ---\n  duration_ms: 6.253542\n  type: 'test'\n  ...\n# Subtest: ssconvert dependency calculation shares exact command/SDK bytes, caches and namespace effects\nok 4 - ssconvert dependency calculation shares exact command/SDK bytes, caches and namespace effects\n  ---\n  duration_ms: 3.611667\n  type: 'test'\n  ...\n# Subtest: ssconvert external formulas call only the explicitly injected resolver with cancellation\nok 5 - ssconvert external formulas call only the explicitly injected resolver with cancellation\n  ---\n  duration_ms: 3.167417\n  type: 'test'\n  ...\n# Subtest: ssconvert formula syntax shares unary/power/omission behavior with the SDK\nok 6 - ssconvert formula syntax shares unary/power/omission behavior with the SDK\n  ---\n  duration_ms: 4.01825\n  type: 'test'\n  ...\n# Subtest: ssconvert resize rewrites formulas through CLI and SDK while retaining manual caches\nok 7 - ssconvert resize rewrites formulas through CLI and SDK while retaining manual caches\n  ---\n  duration_ms: 2.841833\n  type: 'test'\n  ...\n# Subtest: ssconvert ordered text updates share SDK calculation and first-error effects\nok 8 - ssconvert ordered text updates share SDK calculation and first-error effects\n  ---\n  duration_ms: 11.366667\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual spans normalize on endpoint sheets before active-view updates\nok 9 - ssconvert virtual spans normalize on endpoint sheets before active-view updates\n  ---\n  duration_ms: 3.623833\n  type: 'test'\n  ...\n# Subtest: ssconvert shares qualified, axis and split-range selection with the SDK\nok 10 - ssconvert shares qualified, axis and split-range selection with the SDK\n  ---\n  duration_ms: 5.462583\n  type: 'test'\n  ...\n# Subtest: ssconvert dispatches text handlers and ordered common options through the SDK engine\nok 11 - ssconvert dispatches text handlers and ordered common options through the SDK engine\n  ---\n  duration_ms: 2.354667\n  type: 'test'\n  ...\n# Subtest: ssconvert graph dispatch uses image IDs and C numeric resolution through injected rendering\nok 12 - ssconvert graph dispatch uses image IDs and C numeric resolution through injected rendering\n  ---\n  duration_ms: 5.06025\n  type: 'test'\n  ...\n# Subtest: ssconvert uses file URI bytes, literal dash and explicit stdin including empty input\nok 13 - ssconvert uses file URI bytes, literal dash and explicit stdin including empty input\n  ---\n  duration_ms: 7.202375\n  type: 'test'\n  ...\n# Subtest: ssconvert reads and publishes binary bytes across mounted VFS paths\nok 14 - ssconvert reads and publishes binary bytes across mounted VFS paths\n  ---\n  duration_ms: 3.991791\n  type: 'test'\n  ...\n# Subtest: ssconvert inherited terminals share SDK parsing without virtual file effects\nok 15 - ssconvert inherited terminals share SDK parsing without virtual file effects\n  ---\n  duration_ms: 9.240791\n  type: 'test'\n  ...\n# Subtest: ssconvert abbreviated inherited aliases preserve native channels and namespace\nok 16 - ssconvert abbreviated inherited aliases preserve native channels and namespace\n  ---\n  duration_ms: 1.313792\n  type: 'test'\n  ...\n# Subtest: ssconvert binds owned virtual configuration roots at registration\nok 17 - ssconvert binds owned virtual configuration roots at registration\n  ---\n  duration_ms: 0.724083\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual invocation discovers content, resolves competing savers and honors forced IDs\nok 18 - ssconvert virtual invocation discovers content, resolves competing savers and honors forced IDs\n  ---\n  duration_ms: 3.725958\n  type: 'test'\n  ...\n# Subtest: ssconvert uses main GOption byte grammar before any namespace changes\nok 19 - ssconvert uses main GOption byte grammar before any namespace changes\n  ---\n  duration_ms: 3.257292\n  type: 'test'\n  ...\n# Subtest: ssconvert opt-in command uses shell VFS and shared domain exporter\nok 20 - ssconvert opt-in command uses shell VFS and shared domain exporter\n  ---\n  duration_ms: 1.4005\n  type: 'test'\n  ...\n# Subtest: ssconvert admits eager VFS reads against the shell input budget\nok 21 - ssconvert admits eager VFS reads against the shell input budget\n  ---\n  duration_ms: 1.337\n  type: 'test'\n  ...\n# Subtest: ssconvert releases invocation ownership when engine construction rejects limits\nok 22 - ssconvert releases invocation ownership when engine construction rejects limits\n  ---\n  duration_ms: 0.285875\n  type: 'test'\n  ...\n# Subtest: ssconvert unsupported CLI action fails without file effects\nok 23 - ssconvert unsupported CLI action fails without file effects\n  ---\n  duration_ms: 1.373708\n  type: 'test'\n  ...\n# Subtest: ssconvert SDK and virtual command preserve the same sparse workbook records\nok 24 - ssconvert SDK and virtual command preserve the same sparse workbook records\n  ---\n  duration_ms: 2.223875\n  type: 'test'\n  ...\n# Subtest: ssconvert conflicting workbook names fail before destination namespace effects\nok 25 - ssconvert conflicting workbook names fail before destination namespace effects\n  ---\n  duration_ms: 0.926584\n  type: 'test'\n  ...\n# Subtest: ssconvert hidden codec accessor denial matches SDK and preserves destination\nok 26 - ssconvert hidden codec accessor denial matches SDK and preserves destination\n  ---\n  duration_ms: 1.005333\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual fd stdout preserves data bytes and warnings without VFS effects\nok 27 - ssconvert virtual fd stdout preserves data bytes and warnings without VFS effects\n  ---\n  duration_ms: 2.006041\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual image enum listing and invalid expressions use stderr\nok 28 - ssconvert virtual image enum listing and invalid expressions use stderr\n  ---\n  duration_ms: 6.12575\n  type: 'test'\n  ...\n# Subtest: ssconvert actual virtual merge preserves notices and native duplicate names\nok 29 - ssconvert actual virtual merge preserves notices and native duplicate names\n  ---\n  duration_ms: 2.147625\n  type: 'test'\n  ...\n# Subtest: ssconvert native publication breaks hardlinks and preserves terminal symlinks and mode\nok 30 - ssconvert native publication breaks hardlinks and preserves terminal symlinks and mode\n  ---\n  duration_ms: 4.939917\n  type: 'test'\n  ...\n# Subtest: ssconvert loading diagnostics retain the resolved virtual filename\nok 31 - ssconvert loading diagnostics retain the resolved virtual filename\n  ---\n  duration_ms: 0.986875\n  type: 'test'\n  ...\n1..31\n# tests 31\n# suites 0\n# pass 31\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 786.643875\n"
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/final-package-test-v4.log",
+      "sha256": "4a30927456809545476742ce27554f895eec75935728273c94c71ebf59300e84",
+      "raw": "\n> @poe-code/ssconvert@0.0.1 test\n> node scripts/generate-providers.mjs && cd ../.. && vitest run packages/ssconvert/src\n\n\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5\n\n \u2713 packages/ssconvert/src/workbook/updates.test.ts (13 tests) 48ms\n \u2713 packages/ssconvert/src/workbook/updates-independent.test.ts (24 tests) 294ms\n \u2713 packages/ssconvert/src/conversion/sheet-span-followup-independent.test.ts (36 tests) 50ms\n \u2713 packages/ssconvert/src/cli/diagnostics-independent.test.ts (50 tests) 36ms\n \u2713 packages/ssconvert/src/formulas/calculation-independent.test.ts (47 tests) 43ms\n \u2713 packages/ssconvert/src/formulas/calculation-stress-review.test.ts (35 tests) 39ms\n \u2713 packages/ssconvert/src/conversion/sheet-selection.test.ts (25 tests) 34ms\n \u2713 packages/ssconvert/src/cli/independent-parser.test.ts (13 tests) 29ms\n \u2713 packages/ssconvert/src/conversion/lifecycle-followup-stress.test.ts (26 tests) 27ms\n \u2713 packages/ssconvert/src/conversion/independent-stress.test.ts (24 tests) 30ms\n \u2713 packages/ssconvert/src/cli/diagnostics.test.ts (26 tests) 25ms\n \u2713 packages/ssconvert/src/cli/export-options-independent.test.ts (6 tests) 24ms\n \u2713 packages/ssconvert/src/conversion-lifecycle.test.ts (17 tests) 22ms\n \u2713 packages/ssconvert/src/cli/listing-review.test.ts (45 tests) 21ms\n \u2713 packages/ssconvert/src/workbook/stress.test.ts (39 tests) 16ms\n \u2713 packages/ssconvert/src/formulas/numeric-table-regression.test.ts (31 tests) 19ms\n \u2713 packages/ssconvert/src/stress.test.ts (15 tests) 17ms\n \u2713 packages/ssconvert/src/engine.test.ts (8 tests) 18ms\n \u2713 packages/ssconvert/src/conversion/sheet-range-independent.test.ts (11 tests) 23ms\n \u2713 packages/ssconvert/src/workbook.test.ts (11 tests) 30ms\n \u2713 packages/ssconvert/src/codecs/export-options.test.ts (7 tests) 108ms\n \u2713 packages/ssconvert/src/formulas/evaluation.test.ts (11 tests) 31ms\n \u2713 packages/ssconvert/src/formulas/syntax.test.ts (42 tests) 18ms\n \u2713 packages/ssconvert/src/cli/inherited-stress.test.ts (5 tests) 23ms\n \u2713 packages/ssconvert/src/formulas/workbook-references.test.ts (6 tests) 16ms\n \u2713 packages/ssconvert/src/codecs/command.test.ts (7 tests) 15ms\n \u2713 packages/ssconvert/src/formulas/references-independent.test.ts (28 tests) 17ms\n \u2713 packages/ssconvert/src/workbook/updates-review.test.ts (5 tests) 16ms\n \u2713 packages/ssconvert/src/workbook/independent-boundaries.test.ts (6 tests) 10ms\n \u2713 packages/ssconvert/src/workbook/range-selection.test.ts (4 tests) 16ms\n \u2713 packages/ssconvert/src/formulas/integration-boundaries.test.ts (11 tests) 16ms\n \u2713 packages/ssconvert/src/codecs/ascii-stress.test.ts (16 tests) 9ms\n \u2713 packages/ssconvert/src/formulas/workbook-independent.test.ts (6 tests) 14ms\n \u2713 packages/ssconvert/src/io/io.test.ts (4 tests) 10ms\n \u2713 packages/ssconvert/src/formulas/odf-independent-review.test.ts (12 tests) 10ms\n \u2713 packages/ssconvert/src/cli.test.ts (42 tests) 8ms\n \u2713 packages/ssconvert/src/formulas/legacy-independent.test.ts (26 tests) 9ms\n \u2713 packages/ssconvert/src/io/authority-cleanup-stress.test.ts (8 tests) 5ms\n \u2713 packages/ssconvert/src/codecs/registry.test.ts (16 tests) 7ms\n \u2713 packages/ssconvert/src/codecs/independent-stress.test.ts (11 tests) 6ms\n \u2713 packages/ssconvert/src/io/independent.test.ts (8 tests) 6ms\n \u2713 packages/ssconvert/src/cli/inherited-independent-review.test.ts (4 tests) 8ms\n \u2713 packages/ssconvert/src/formulas/conventions-independent.test.ts (7 tests) 5ms\n \u2713 packages/ssconvert/src/formulas/odf-sheet-regression.test.ts (7 tests) 5ms\n \u2713 packages/ssconvert/src/cli/export-options-stress.test.ts (27 tests) 6ms\n \u2713 packages/ssconvert/src/formulas-regression.test.ts (3 tests) 5ms\n \u2713 packages/ssconvert/src/formulas/legacy.test.ts (5 tests) 6ms\n \u2713 packages/ssconvert/src/cli/export-options.test.ts (13 tests) 6ms\n \u2713 packages/ssconvert/src/cli/inherited.test.ts (12 tests) 5ms\n \u2713 packages/ssconvert/src/io/binding.test.ts (1 test) 4ms\n \u2713 packages/ssconvert/src/workbook/ownership.test.ts (4 tests) 4ms\n \u2713 packages/ssconvert/src/cli/group-aliases.test.ts (3 tests) 4ms\n \u2713 packages/ssconvert/src/codecs/export-options-stress.test.ts (3 tests) 3ms\n \u2713 packages/ssconvert/src/codecs/provider-discovery.test.ts (1 test) 2ms\n \u2713 packages/ssconvert/src/codecs.test.ts (2 tests) 2ms\n \u2713 packages/ssconvert/src/io/names.test.ts (1 test) 2ms\n\n Test Files  56 passed (56)\n      Tests  876 passed (876)\n   Start at  14:25:11\n   Duration  5.06s (transform 693ms, setup 815ms, import 2.84s, tests 1.28s, environment 4ms)\n\n"
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/final-package-lint-v4.log",
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1",
+      "raw": "\n> @poe-code/ssconvert@0.0.1 lint\n> node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json\n\n"
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/final-engine-build-v4.log",
+      "sha256": "4ee9b546e5aef68ebaacf801bb73215503fdfc6556c28e07169bbaa1dd6cf721",
+      "raw": "\n> poe-code@0.0.0-dev build:workspaces\n> node scripts/build-workspaces.mjs --workspace=@poe-code/ssconvert --no-cache\n\n\n> @poe-code/ssconvert@0.0.1 build\n> node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc\n\n{\"workspaces\":85,\"builds\":1,\"edges\":235,\"layers\":10,\"noBuild\":[],\"manifestless\":[\"packages/braintrust\",\"packages/safe-bash-optional\"]}\n"
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/final-root-build-v4.log",
+      "sha256": "5b8e185f5fdde4e09c63baba4d5c8a2def6054ae7635d361859b38282e45adb5",
+      "raw": "\n> poe-code@0.0.0-dev build\n> node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && node --input-type=module -e 'import {rm} from \"node:fs/promises\"; import {assertSafeOutputDirectory} from \"./scripts/guard-package-dist.mjs\"; await assertSafeOutputDirectory(process.cwd()); await rm(\"dist\", {recursive:true, force:true});' && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs\n\n\n> @poe-code/safe-fs@0.0.0-dev build\n> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs\n\n\n> @poe-code/ssconvert@0.0.1 build\n> node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> tokenfill@0.0.14 build\n> tsc && node ./scripts/copy-corpus.mjs\n\n{\"nativeAssets\":\"/Users/kjopek/Workspace/poe-code-5/packages/safe-fs/dist/native/fs-seek\",\"targets\":[]}\n\n> toolcraft-schema@0.0.1 build\n> rm -rf dist && tsc\n\n\n> @poe-code/providers@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc\n\n\n> @poe-code/safe-python@0.0.0-dev build\n> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json\n\n\n> pptx@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-contracts@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> toolcraft-design@0.0.2 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> toolcraft-design@0.0.2 postbuild\n> node scripts/smoke-built-exports.mjs\n\n\n> @poe-code/pandoc@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> docx@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-command-exiftool@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-command-wkhtmltopdf@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> tiny-mcp-client@0.1.0 build\n> node scripts/build.mjs\n\n\n> toolcraft-landing-page@0.0.1 build\n> rm -rf dist && tsc\n\n\n> @poe-code/agent-skill-config@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs\n\n\n> @poe-code/poe-code-config@0.0.1 build\n> rm -rf dist && tsc\n\n\n> toolcraft@0.0.51 build\n> rm -rf dist && tsc && cp src/composition.json dist/composition.json\n\n\n> @poe-code/csvkit@0.0.1 build\n> node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> terminal-pilot@0.0.1 build\n> rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs\n\n\n> @poe-platform/safe-bash@0.0.0 build\n> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs\n\n\n> toolcraft-openapi@0.0.1 build\n> rm -rf dist && tsc\n\n\n> @poe-code/acp-telemetry@0.0.1 build\n> rm -rf dist && tsc\n\n\n> @poe-code/experiment-loop@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-assets.mjs\n\n\n> @poe-code/github-workflows@0.0.1 build\n> tsx scripts/generate-gh-workflows.ts && tsc && tsx scripts/build-assets.ts\n\nGenerated .github/workflows/gh-fix-vulnerabilities.yml\nGenerated .github/workflows/gh-github-issue-comment-created.yml\nGenerated .github/workflows/gh-github-issue-opened.yml\nGenerated .github/workflows/gh-github-pull-request-comment-created.yml\nGenerated .github/workflows/gh-github-pull-request-opened.yml\nGenerated .github/workflows/gh-github-pull-request-synchronized.yml\nGenerated .github/workflows/gh-update-dependencies.yml\nGenerated .github/workflows/gh-update-documentation.yml\n\n> @poe-code/poe-agent@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\"\n\n\n> @poe-code/safe-js@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs\n\n\n> @poe-platform/safe-bash@0.0.0 postbuild\n> node scripts/build-optional-cli.mjs\n\n{\"numberFormatLocales\":766,\"sourceBytes\":5153552,\"pluralLocales\":224}\n\n> @poe-code/safe-playwright-cloudflare@0.0.0-dev build\n> node ../../scripts/guard-package-dist.mjs && node --import tsx scripts/build-browser-run-code-guest.ts && tsc -p tsconfig.json\n\n\u25b2 [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]\n\n    ../safe-bash/dist/playwright/highlight.js:62:30:\n      62 \u2502             const operation = eval(`(${source})`);\n         \u2575                               ~~~~\n\n  You can read more about direct eval and bundling here: https://esbuild.github.io/link/direct-eval\n\n\n> safe-bash-playground@0.0.1 build\n> tsc --noEmit && npm run build:site\n\n\n> safe-bash-playground@0.0.1 build:site\n> node scripts/build.mjs\n\nvite v6.4.3 building for production...\ntransforming...\nchmod 0755 dist/cli.js\nchmod 0755 dist/cli.js\n\n> @poe-code/safe-js@0.0.1 postbuild\n> node --test scripts/built-imports.test.mjs\n\nTAP version 13\n# Subtest: Workerd public entry bundles without native filesystem authority\nok 1 - Workerd public entry bundles without native filesystem authority\n  ---\n  duration_ms: 208.182667\n  type: 'test'\n  ...\n# Subtest: built platform resolution does not add a nested canonical filesystem package scope\nok 2 - built platform resolution does not add a nested canonical filesystem package scope\n  ---\n  duration_ms: 0.138375\n  type: 'test'\n  ...\n# Subtest: built . export initializes in a fresh native ESM process\nok 3 - built . export initializes in a fresh native ESM process\n  ---\n  duration_ms: 372.976208\n  type: 'test'\n  ...\n# Subtest: built ./core export initializes in a fresh native ESM process\nok 4 - built ./core export initializes in a fresh native ESM process\n  ---\n  duration_ms: 278.741875\n  type: 'test'\n  ...\n# Subtest: built ./cli export initializes in a fresh native ESM process\nok 5 - built ./cli export initializes in a fresh native ESM process\n  ---\n  duration_ms: 45.566125\n  type: 'test'\n  ...\n# Subtest: built ./workerd export initializes in a fresh native ESM process\nok 6 - built ./workerd export initializes in a fresh native ESM process\n  ---\n  duration_ms: 284.124375\n  type: 'test'\n  ...\n# Subtest: built SDK and snapshot helpers initialize together without preloading value modules\nok 7 - built SDK and snapshot helpers initialize together without preloading value modules\n  ---\n  duration_ms: 313.505042\n  type: 'test'\n  ...\n# Subtest: built replay-data helpers initialize without preloading the SDK\nok 8 - built replay-data helpers initialize without preloading the SDK\n  ---\n  duration_ms: 245.118375\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 8\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1816.850958\n\n> agent-code-review@0.1.0 build\n> rm -rf dist && tsc\n\n\n> terminal-pilot-mcp@0.0.1 build\n> rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs\n\n\n> @poe-code/agent-harness@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs\n\n\u2713 411 modules transformed.\nCircular chunk: browser-text-programs -> browser-commands -> browser-text-programs. Please adjust the manual chunk logic for these chunks.\nCircular chunk: browser-commands -> browser-structured -> browser-commands. Please adjust the manual chunk logic for these chunks.\nrendering chunks...\n\n> @poe-code/superintendent@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs\n\ncomputing gzip size...\ndist/site/safe-bash-engine.LICENSE.txt                  1.07 kB \u2502 gzip:   0.66 kB\ndist/site/browser-hashes.LICENSE.txt                    1.11 kB \u2502 gzip:   0.69 kB\ndist/site/index.html                                   18.46 kB \u2502 gzip:   4.13 kB\ndist/site/browser-platform.LICENSE.txt                 42.18 kB \u2502 gzip:   5.65 kB\ndist/site/assets/bz2-pANi4B14.js                      162.23 kB\ndist/site/assets/xz-ChR7eyJu.js                       204.31 kB\ndist/site/assets/zstd-CtR4R30v.js                   1,183.59 kB\ndist/site/assets/execution-worker-CM5zt6EC.js       1,883.62 kB\ndist/site/assets/index-Czt0fF1Z.css                    23.51 kB \u2502 gzip:   5.83 kB\ndist/site/assets/browser-builtins-D9FLfLXg.js           0.49 kB \u2502 gzip:   0.27 kB\ndist/site/assets/yield-BMO6Oh1S.js                      0.93 kB \u2502 gzip:   0.49 kB\ndist/site/assets/preload-helper-Ct5FWWRu.js             1.23 kB \u2502 gzip:   0.72 kB\ndist/site/assets/browser-shell-F8TIt24q.js              2.44 kB \u2502 gzip:   1.24 kB\ndist/site/assets/index-mMEl50gl.js                     20.15 kB \u2502 gzip:   7.48 kB\ndist/site/assets/session-DNs2b2Wi.js                   20.50 kB \u2502 gzip:   8.54 kB\ndist/site/assets/browser-structured-C3EacK22.js        48.73 kB \u2502 gzip:  16.29 kB\ndist/site/assets/browser-text-programs-D933nM9w.js     65.19 kB \u2502 gzip:  20.95 kB\ndist/site/assets/workers-CdrfC34B.js                   70.32 kB \u2502 gzip:  22.86 kB\ndist/site/assets/browser-filesystem-BfTlGPYh.js        74.71 kB \u2502 gzip:  21.27 kB\ndist/site/assets/browser-platform-Do18PO8S.js          82.91 kB \u2502 gzip:  28.15 kB\ndist/site/assets/browser-workers-BQnJoEHE.js          217.01 kB \u2502 gzip:  67.09 kB\ndist/site/assets/browser-commands-BxenSYrX.js       2,564.68 kB \u2502 gzip: 625.49 kB\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u2713 built in 6.71s\n\n> toolcraft-codemode@0.0.1 build\n> rm -rf dist && tsc\n\n\n> @poe-code/maestro@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> @poe-code/maestro-tui@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n{\"workspaces\":85,\"builds\":84,\"edges\":235,\"layers\":10,\"noBuild\":[{\"name\":\"@poe-code/py-poe-spawn\",\"path\":\"packages/py-poe-spawn\",\"status\":\"NO_DECLARED_BUILD_NOT_A_PASS\"}],\"manifestless\":[\"packages/braintrust\",\"packages/safe-bash-optional\"],\"cache\":\"SHARED\",\"cacheHits\":48,\"cacheMisses\":0,\"fingerprintMs\":13749,\"executionMs\":59106}\n\n> poe-code@0.0.0-dev codegen:plan-schemas\n> tsx scripts/generate-plan-schemas.ts\n\n\n> poe-code@0.0.0-dev codegen:harness-schemas\n> tsx scripts/generate-harness-schemas.ts\n\nBundle complete: dist/index.js + dist/bin.cjs\n"
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/bash-typecheck.log",
+      "sha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3",
+      "raw": "\n> @poe-platform/safe-bash@0.0.0 typecheck\n> node scripts/typecheck.mjs\n\ntypecheck: Public SafeFS must preserve shared SafeJS runtime identity\n+ actual - expected\n\n+ undefined\n- './packages/safe-js/dist/safe-fs.js'\n\n{\"status\":\"typecheck-failed\",\"builds\":0,\"currentConsumerGroups\":0,\"heldEvidenceInputs\":4,\"runtimeExecutions\":0,\"cleaned\":true}\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/kjopek/Workspace/poe-code-5/packages/safe-bash\nnpm error workspace @poe-platform/safe-bash@0.0.0\nnpm error location /Users/kjopek/Workspace/poe-code-5/packages/safe-bash\nnpm error command failed\nnpm error command sh -c node scripts/typecheck.mjs\n"
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/final-root-lint-v4.log",
+      "rawSha256": "e3894cffbfd27d95d52ad1c1adc9d7bad4c86307007cdb3811f6fe36fa29b48d",
+      "summary": {
+        "complete": true,
+        "exitCode": 0,
+        "errorCount": 0,
+        "warningCount": 4,
+        "scope": {
+          "configured": 16579,
+          "linted": 16579,
+          "ignored": 2044,
+          "unconfigured": 38627,
+          "ignoredDirectories": 166,
+          "heldExcluded": 5
+        },
+        "gaps": []
+      }
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/test.log",
+      "command": "npm test -- --no-cache",
+      "exitCode": 0,
+      "qualification": "Completed broad gate across live source changes; frozen-candidate rerun pending",
+      "rawSha256": "f621d516d6dbc76fbc7c5282d78ffdbeb3ed7c13de52f4950bfe5d19367687d9",
+      "summaries": [
+        " Test Files  100 passed (100)",
+        "      Tests  1851 passed (1851)",
+        " Test Files  100 passed (100)",
+        "      Tests  2681 passed (2681)",
+        " Test Files  100 passed (100)",
+        "      Tests  3824 passed (3824)",
+        " Test Files  99 passed | 1 skipped (100)",
+        "      Tests  1496 passed | 1 skipped (1497)",
+        " Test Files  100 passed (100)",
+        "      Tests  3036 passed (3036)",
+        " Test Files  100 passed (100)",
+        "      Tests  1266 passed (1266)",
+        " Test Files  100 passed (100)",
+        "      Tests  1743 passed (1743)",
+        " Test Files  100 passed (100)",
+        "      Tests  1783 passed (1783)",
+        " Test Files  100 passed (100)",
+        "      Tests  2521 passed (2521)",
+        " Test Files  100 passed (100)",
+        "      Tests  3772 passed | 5 todo (3777)",
+        " Test Files  100 passed (100)",
+        "      Tests  1674 passed (1674)",
+        " Test Files  100 passed (100)",
+        "      Tests  3035 passed (3035)",
+        " Test Files  100 passed (100)",
+        "      Tests  1262 passed (1262)",
+        " Test Files  100 passed (100)",
+        "      Tests  1779 passed (1779)",
+        " Test Files  100 passed (100)",
+        "      Tests  3420 passed (3420)",
+        " Test Files  99 passed | 1 skipped (100)",
+        "      Tests  2398 passed | 1 skipped (2399)",
+        " Test Files  100 passed (100)",
+        "      Tests  5660 passed (5660)",
+        " Test Files  100 passed (100)",
+        "      Tests  3386 passed (3386)",
+        " Test Files  58 passed (58)",
+        "      Tests  3949 passed (3949)",
+        "# tests 851",
+        "# pass 851",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  47 passed (47)",
+        "      Tests  1067 passed (1067)",
+        "\u2139 tests 558",
+        "\u2139 pass 558",
+        "\u2139 fail 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 tests 44910",
+        "\u2139 pass 44077",
+        "\u2139 fail 0",
+        "\u2139 skipped 831",
+        "\u2139 todo 2",
+        "# tests 117",
+        "# pass 117",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        "# tests 84",
+        "# pass 84",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        "# tests 1",
+        "# pass 1",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  1467 passed | 3 skipped (1470)",
+        "      Tests  31121 passed | 48 skipped (31169)",
+        "# tests 34",
+        "# pass 34",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  9 passed (9)",
+        "      Tests  34 passed (34)",
+        " Test Files  1153 passed (1153)",
+        "      Tests  84610 passed (84610)",
+        " Test Files  56 passed (56)",
+        "      Tests  876 passed (876)",
+        " Test Files  9 passed (9)",
+        "      Tests  293 passed (293)",
+        " Test Files  1 passed (1)",
+        "      Tests  2 passed (2)"
+      ]
+    },
+    {
+      "historicalTemporaryPath": "out/ssconvert-calculation-current/final-root-test-v4.log",
+      "command": "npm test",
+      "exitCode": 0,
+      "qualification": "Complete maintained route including native npm pre/event/post scripts against unchanged canonical target source/integration inventory",
+      "rawSha256": "ebf61d34b3c1290e8ef5d2fee73443f9c79ca928c49019a57f050ccfbc045bd7",
+      "declarationDerivedRunnerSummary": {
+        "workspaces": 85,
+        "builds": 33,
+        "tests": 53,
+        "concurrency": 1,
+        "cache": "SHARED",
+        "unitCacheHits": 0,
+        "unitCacheMisses": 0,
+        "unitFingerprintMs": 12474,
+        "excluded": [],
+        "noTest": [
+          {
+            "name": "@poe-code/agent-defs",
+            "path": "packages/agent-defs",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-eval",
+            "path": "packages/agent-eval",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-human-in-loop",
+            "path": "packages/agent-human-in-loop",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-mcp-config",
+            "path": "packages/agent-mcp-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/agent-skill-config",
+            "path": "packages/agent-skill-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "auth-store",
+            "path": "packages/auth-store",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/cached-resource",
+            "path": "packages/cached-resource",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/config-extends",
+            "path": "packages/config-extends",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/config-mutations",
+            "path": "packages/config-mutations",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/e2e-test-runner",
+            "path": "packages/e2e-test-runner",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "mcp-oauth",
+            "path": "packages/mcp-oauth",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/pipeline",
+            "path": "packages/pipeline",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/plan-browser",
+            "path": "packages/plan-browser",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-acp-client",
+            "path": "packages/poe-acp-client",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-agent",
+            "path": "packages/poe-agent",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/poe-code-config",
+            "path": "packages/poe-code-config",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "poe-oauth",
+            "path": "packages/poe-oauth",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/providers",
+            "path": "packages/providers",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/safe-fs",
+            "path": "packages/safe-fs",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/terminal-name",
+            "path": "packages/terminal-name",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-pilot-mcp",
+            "path": "packages/terminal-pilot-mcp",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-png",
+            "path": "packages/terminal-png",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "terminal-png-mcp",
+            "path": "packages/terminal-png-mcp",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-http-mcp-oauth-test-server",
+            "path": "packages/tiny-http-mcp-oauth-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-http-mcp-server",
+            "path": "packages/tiny-http-mcp-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-mcp-client",
+            "path": "packages/tiny-mcp-client",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-oauth-test-server",
+            "path": "packages/tiny-oauth-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-stdio-mcp-server",
+            "path": "packages/tiny-stdio-mcp-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tiny-stdio-mcp-test-server",
+            "path": "packages/tiny-stdio-mcp-test-server",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "tokenfill",
+            "path": "packages/tokenfill",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "toolcraft-design",
+            "path": "packages/toolcraft-design",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/user-error",
+            "path": "packages/user-error",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          },
+          {
+            "name": "@poe-code/worktree",
+            "path": "packages/worktree",
+            "status": "NO_DECLARED_TEST_NOT_A_PASS"
+          }
+        ],
+        "noBuild": [],
+        "manifestless": [
+          "packages/braintrust",
+          "packages/safe-bash-optional"
+        ],
+        "cacheHits": 20,
+        "cacheMisses": 0,
+        "fingerprintMs": 11285,
+        "executionMs": 4528002
+      },
+      "summaries": [
+        " Test Files  100 passed (100)",
+        "      Tests  1931 passed (1931)",
+        " Test Files  100 passed (100)",
+        "      Tests  2601 passed (2601)",
+        " Test Files  100 passed (100)",
+        "      Tests  3824 passed (3824)",
+        " Test Files  100 passed (100)",
+        "      Tests  1536 passed (1536)",
+        " Test Files  99 passed | 1 skipped (100)",
+        "      Tests  2600 passed | 1 skipped (2601)",
+        " Test Files  100 passed (100)",
+        "      Tests  1585 passed (1585)",
+        " Test Files  100 passed (100)",
+        "      Tests  1867 passed (1867)",
+        " Test Files  100 passed (100)",
+        "      Tests  1754 passed (1754)",
+        " Test Files  100 passed (100)",
+        "      Tests  2521 passed (2521)",
+        " Test Files  100 passed (100)",
+        "      Tests  3772 passed | 5 todo (3777)",
+        " Test Files  100 passed (100)",
+        "      Tests  1674 passed (1674)",
+        " Test Files  100 passed (100)",
+        "      Tests  3035 passed (3035)",
+        " Test Files  100 passed (100)",
+        "      Tests  1262 passed (1262)",
+        " Test Files  100 passed (100)",
+        "      Tests  1779 passed (1779)",
+        " Test Files  100 passed (100)",
+        "      Tests  3420 passed (3420)",
+        " Test Files  99 passed | 1 skipped (100)",
+        "      Tests  2398 passed | 1 skipped (2399)",
+        " Test Files  100 passed (100)",
+        "      Tests  5660 passed (5660)",
+        " Test Files  100 passed (100)",
+        "      Tests  3386 passed (3386)",
+        " Test Files  58 passed (58)",
+        "      Tests  3949 passed (3949)",
+        "# tests 851",
+        "# pass 851",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  47 passed (47)",
+        "      Tests  1067 passed (1067)",
+        "\u2139 tests 558",
+        "\u2139 pass 558",
+        "\u2139 fail 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 tests 44912",
+        "\u2139 pass 44079",
+        "\u2139 fail 0",
+        "\u2139 skipped 831",
+        "\u2139 todo 2",
+        "# tests 117",
+        "# pass 117",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        "# tests 84",
+        "# pass 84",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        "# tests 1",
+        "# pass 1",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  1467 passed | 3 skipped (1470)",
+        "      Tests  31121 passed | 48 skipped (31169)",
+        "# tests 34",
+        "# pass 34",
+        "# fail 0",
+        "# skipped 0",
+        "# todo 0",
+        " Test Files  9 passed (9)",
+        "      Tests  34 passed (34)",
+        " Test Files  1153 passed (1153)",
+        "      Tests  84610 passed (84610)",
+        " Test Files  56 passed (56)",
+        "      Tests  876 passed (876)",
+        " Test Files  9 passed (9)",
+        "      Tests  293 passed (293)",
+        " Test Files  1 passed (1)",
+        "      Tests  2 passed (2)"
+      ]
+    }
+  ],
+  "finalSourceManifestSha256": "941a509aa04508fa397621006be12b52a593bbb418ca17e160036193702598b0",
+  "finalSourceInventoryUnchangedAfterGates": true
+}

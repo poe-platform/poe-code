@@ -1,0 +1,57 @@
+{
+  "purpose": "Separate native goal-seek QA oracle, never product dependency or fallback",
+  "sourceVersion": "1.12.61",
+  "archiveSHA256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "environment": {
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib"
+  },
+  "inheritedBuildProfile": "docs/ssconvert/statistics-native-profile.json",
+  "captures": {
+    "version": {
+      "argv": [
+        "env",
+        "LC_ALL=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "ssconvert version '1.12.61'\ndatadir := '/out/ssconvert-statistics-oracle/prefix/share/gnumeric/1.12.61'\nlibdir := '/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61'\n",
+      "stderr": ""
+    },
+    "dependencies": {
+      "argv": [
+        "env",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "ldd",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert"
+      ],
+      "status": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000f30a6477d000)\n\tlibspreadsheet-1.12.61.so => /out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so (0x0000f30a641d0000)\n\tlibgoffice-0.10.so.10 => /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10 (0x0000f30a63fe0000)\n\tlibgsf-1.so.114 => /lib/aarch64-linux-gnu/libgsf-1.so.114 (0x0000f30a63f70000)\n\tlibgtk-3.so.0 => /lib/aarch64-linux-gnu/libgtk-3.so.0 (0x0000f30a63710000)\n\tlibgobject-2.0.so.0 => /lib/aarch64-linux-gnu/libgobject-2.0.so.0 (0x0000f30a63680000)\n\tlibglib-2.0.so.0 => /lib/aarch64-linux-gnu/libglib-2.0.so.0 (0x0000f30a634f0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000f30a63330000)\n\tlibxml2.so.2 => /lib/aarch64-linux-gnu/libxml2.so.2 (0x0000f30a63160000)\n\tlibgmodule-2.0.so.0 => /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 (0x0000f30a63130000)\n\tlibgdk-3.so.0 => /lib/aarch64-linux-gnu/libgdk-3.so.0 (0x0000f30a63000000)\n\tlibpangocairo-1.0.so.0 => /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0 (0x0000f30a62fd0000)\n\tlibpango-1.0.so.0 => /lib/aarch64-linux-gnu/libpango-1.0.so.0 (0x0000f30a62f40000)\n\tlibatk-1.0.so.0 => /lib/aarch64-linux-gnu/libatk-1.0.so.0 (0x0000f30a62ef0000)\n\tlibcairo.so.2 => /lib/aarch64-linux-gnu/libcairo.so.2 (0x0000f30a62d90000)\n\tlibgdk_pixbuf-2.0.so.0 => /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x0000f30a62d40000)\n\tlibgio-2.0.so.0 => /lib/aarch64-linux-gnu/libgio-2.0.so.0 (0x0000f30a62b10000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000f30a62a60000)\n\tlibxslt.so.1 => /lib/aarch64-linux-gnu/libxslt.so.1 (0x0000f30a62a00000)\n\tlibrsvg-2.so.2 => /lib/aarch64-linux-gnu/librsvg-2.so.2 (0x0000f30a62490000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000f30a62450000)\n\tlibbz2.so.1.0 => /lib/aarch64-linux-gnu/libbz2.so.1.0 (0x0000f30a62420000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000f30a64740000)\n\tlibharfbuzz.so.0 => /lib/aarch64-linux-gnu/libharfbuzz.so.0 (0x0000f30a622c0000)\n\tlibpangoft2-1.0.so.0 => /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0 (0x0000f30a62280000)\n\tlibfontconfig.so.1 => /lib/aarch64-linux-gnu/libfontconfig.so.1 (0x0000f30a62210000)\n\tlibfribidi.so.0 => /lib/aarch64-linux-gnu/libfribidi.so.0 (0x0000f30a621d0000)\n\tlibcairo-gobject.so.2 => /lib/aarch64-linux-gnu/libcairo-gobject.so.2 (0x0000f30a621a0000)\n\tlibepoxy.so.0 => /lib/aarch64-linux-gnu/libepoxy.so.0 (0x0000f30a62030000)\n\tlibXi.so.6 => /lib/aarch64-linux-gnu/libXi.so.6 (0x0000f30a62000000)\n\tlibX11.so.6 => /lib/aarch64-linux-gnu/libX11.so.6 (0x0000f30a61e90000)\n\tlibatk-bridge-2.0.so.0 => /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0 (0x0000f30a61e30000)\n\tlibcloudproviders.so.0 => /lib/aarch64-linux-gnu/libcloudproviders.so.0 (0x0000f30a61df0000)\n\tlibXfixes.so.3 => /lib/aarch64-linux-gnu/libXfixes.so.3 (0x0000f30a61dc0000)\n\tlibffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000f30a61d90000)\n\tlibatomic.so.1 => /lib/aarch64-linux-gnu/libatomic.so.1 (0x0000f30a61d60000)\n\tlibpcre2-8.so.0 => /lib/aarch64-linux-gnu/libpcre2-8.so.0 (0x0000f30a61ca0000)\n\tliblzma.so.5 => /lib/aarch64-linux-gnu/liblzma.so.5 (0x0000f30a61c50000)\n\tlibxkbcommon.so.0 => /lib/aarch64-linux-gnu/libxkbcommon.so.0 (0x0000f30a61be0000)\n\tlibwayland-client.so.0 => /lib/aarch64-linux-gnu/libwayland-client.so.0 (0x0000f30a61bb0000)\n\tlibwayland-cursor.so.0 => /lib/aarch64-linux-gnu/libwayland-cursor.so.0 (0x0000f30a61b80000)\n\tlibwayland-egl.so.1 => /lib/aarch64-linux-gnu/libwayland-egl.so.1 (0x0000f30a61b50000)\n\tlibXext.so.6 => /lib/aarch64-linux-gnu/libXext.so.6 (0x0000f30a61b10000)\n\tlibXcursor.so.1 => /lib/aarch64-linux-gnu/libXcursor.so.1 (0x0000f30a61ae0000)\n\tlibXdamage.so.1 => /lib/aarch64-linux-gnu/libXdamage.so.1 (0x0000f30a61ab0000)\n\tlibXcomposite.so.1 => /lib/aarch64-linux-gnu/libXcomposite.so.1 (0x0000f30a61a80000)\n\tlibXrandr.so.2 => /lib/aarch64-linux-gnu/libXrandr.so.2 (0x0000f30a61a50000)\n\tlibXinerama.so.1 => /lib/aarch64-linux-gnu/libXinerama.so.1 (0x0000f30a61a20000)\n\tlibthai.so.0 => /lib/aarch64-linux-gnu/libthai.so.0 (0x0000f30a619f0000)\n\tlibpng16.so.16 => /lib/aarch64-linux-gnu/libpng16.so.16 (0x0000f30a61990000)\n\tlibfreetype.so.6 => /lib/aarch64-linux-gnu/libfreetype.so.6 (0x0000f30a618b0000)\n\tlibXrender.so.1 => /lib/aarch64-linux-gnu/libXrender.so.1 (0x0000f30a61880000)\n\tlibxcb.so.1 => /lib/aarch64-linux-gnu/libxcb.so.1 (0x0000f30a61830000)\n\tlibxcb-render.so.0 => /lib/aarch64-linux-gnu/libxcb-render.so.0 (0x0000f30a61800000)\n\tlibxcb-shm.so.0 => /lib/aarch64-linux-gnu/libxcb-shm.so.0 (0x0000f30a617d0000)\n\tlibpixman-1.so.0 => /lib/aarch64-linux-gnu/libpixman-1.so.0 (0x0000f30a61720000)\n\tlibjpeg.so.62 => /lib/aarch64-linux-gnu/libjpeg.so.62 (0x0000f30a616a0000)\n\tlibmount.so.1 => /lib/aarch64-linux-gnu/libmount.so.1 (0x0000f30a61600000)\n\tlibselinux.so.1 => /lib/aarch64-linux-gnu/libselinux.so.1 (0x0000f30a615a0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000f30a61560000)\n\tlibdav1d.so.7 => /lib/aarch64-linux-gnu/libdav1d.so.7 (0x0000f30a61460000)\n\tlibgraphite2.so.3 => /lib/aarch64-linux-gnu/libgraphite2.so.3 (0x0000f30a61420000)\n\tlibexpat.so.1 => /lib/aarch64-linux-gnu/libexpat.so.1 (0x0000f30a613d0000)\n\tlibatspi.so.0 => /lib/aarch64-linux-gnu/libatspi.so.0 (0x0000f30a61370000)\n\tlibdbus-1.so.3 => /lib/aarch64-linux-gnu/libdbus-1.so.3 (0x0000f30a612f0000)\n\tlibdatrie.so.1 => /lib/aarch64-linux-gnu/libdatrie.so.1 (0x0000f30a612c0000)\n\tlibbrotlidec.so.1 => /lib/aarch64-linux-gnu/libbrotlidec.so.1 (0x0000f30a61290000)\n\tlibXau.so.6 => /lib/aarch64-linux-gnu/libXau.so.6 (0x0000f30a61260000)\n\tlibXdmcp.so.6 => /lib/aarch64-linux-gnu/libXdmcp.so.6 (0x0000f30a61230000)\n\tlibblkid.so.1 => /lib/aarch64-linux-gnu/libblkid.so.1 (0x0000f30a611b0000)\n\tlibsystemd.so.0 => /lib/aarch64-linux-gnu/libsystemd.so.0 (0x0000f30a61080000)\n\tlibbrotlicommon.so.1 => /lib/aarch64-linux-gnu/libbrotlicommon.so.1 (0x0000f30a61040000)\n\tlibcap.so.2 => /lib/aarch64-linux-gnu/libcap.so.2 (0x0000f30a61010000)\n",
+      "stderr": ""
+    },
+    "locales": {
+      "argv": [
+        "locale",
+        "-a"
+      ],
+      "status": 0,
+      "stdout": "C\nC.utf8\nPOSIX\n",
+      "stderr": ""
+    },
+    "plugins": {
+      "argv": [
+        "find",
+        "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins",
+        "-name",
+        "plugin.xml"
+      ],
+      "status": 0,
+      "stdout": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sc/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sylk/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/mps/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/excel/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/lotus/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/html/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/applix/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/glpk/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/qpro/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/xbase/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/dif/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/uihello/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/oleo/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml\n/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml\n",
+      "stderr": ""
+    }
+  }
+}

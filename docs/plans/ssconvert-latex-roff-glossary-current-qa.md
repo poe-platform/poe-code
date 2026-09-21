@@ -1,0 +1,36 @@
+# Current LaTeX, TROFF and glossary candidate QA
+
+Execute as an agent; native commands below are separate QA oracles. Preserve existing edits, do not edit README files, push, publish, or stage unrelated files. Root owns integration and Git. Primary source and scratch belong only in `out`.
+
+## Procedure
+
+1. Authenticate `out/ssconvert-lifecycle/gnumeric-1.12.61.tar.xz` with SHA-256 `2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12`. Audit the released HTML writer sources and glossary Python source against the declarative providers and shared SDK engine.
+2. Use the exact `baseArgv` and environment recorded in `docs/ssconvert/latex-roff-glossary-profile.json`. Do not substitute a host utility. Create the original overlapping-region workbook in owned `out/ssconvert-document-current`; the second region omits wrapping, font family, size and bold. Export all four native HTML-family variants to `fd://1`; retain raw bytes as base64 in `document-style-current-golden.json`.
+3. Verify the new native fixtures through the existing memfs CLI golden harness and stream SDK negative control. A suspected partial-style defect must not be repaired unless reproduced; this case matches native behavior and needs no product change.
+4. Have a different agent probe the implemented exporters with independently authored edge and negative cases. Keep its tests separate from original goldens. Validate each proposed issue before repair, and preserve minimized inputs.
+5. Run maintained uncached ssconvert unit tests, workspace lint and the selected Safe Bash build closure. Run focused Safe Bash ssconvert command tests against rebuilt outputs and the maintained typecheck route. Classify prerequisite failures separately from consumer results.
+6. Render the actual explicitly bound virtual command's `--list-exporters` with `scripts/screenshot.ts`. Inspect its screenshot for the five service names and column alignment. Keep temporary launchers and images under owned `out`, then purge them.
+7. Record fresh results and remaining gaps below. Historical QA documents do not qualify this candidate. Source-construction glossary tests cannot qualify native plugin behavior when that plugin is unavailable.
+
+## Fresh results
+
+The five declarative exporters and their Safe Bash integration were already present at task entry. No new product defect was validated beyond the existing overflow limitation, so product code was preserved. Added four byte-for-byte native overlapping-style golden cases, one SDK stream negative control, and five independently authored stress cases. Unit file changes use memfs; tests spawn no native utility and create no host files.
+
+- Source archive checksum matched exactly. The separate oracle reported version 1.12.61; its executable SHA-256 was `104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c`. Native runs used the captured profile's explicit argv/environment. Existing dependency/plugin profile records remain historical captures, not freshly authenticated complete runtime-cell coverage.
+- `npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache`: passed all 18 builds in the maintained dependency closure. No production source changed afterward.
+- Final `npm test --workspace=@poe-code/ssconvert -- --no-cache`: passed 188 files / 4,629 tests. Includes 32 LaTeX/TROFF golden records, 16 native scope records and both independent stress files. This is a workspace run, not a repository-wide gate.
+- Final `npm run lint --workspace=@poe-code/ssconvert`: passed ESLint and both maintained TypeScript source/test configurations.
+- `TSX_DISABLE_CACHE=1 node --import tsx --test packages/safe-bash/tests/commands/ssconvert*.test.ts`: passed 74 tests after the build, with zero failures, cancellations, skips or TODOs. Checks actual virtual CLI/SDK byte identity, replay, diagnostics, budgets and namespace effects. No new shell/realm boundary was introduced; this focused run does not qualify every host or checkpoint variant.
+- Independent agent: five new current stress cases passed. Native complete TROFF bytes and wide-column raw-LaTeX escaping matched. PO construction remained source-derived. The suspected conditional `[Red]` mismatch did not reproduce: native produced no color command with either cell or style format. Overlapping-style behavior matched all four native writers, so neither suspected defect prompted a repair.
+- `npm run typecheck --workspace=@poe-platform/safe-bash`: failed with exit 2 at `Public SafeFS must preserve shared SafeJS runtime identity`, actual `undefined`, expected `./packages/safe-js/dist/safe-fs.js`. Zero consumer groups and runtime executions were reached. The prerequisite belongs to the shared root export surface; it was recorded and not changed by this focused exporter qualification.
+- Screenshot: executed the compiled virtual Shell with an explicit memory filesystem and ssconvert binding, rendered `ssconvert --list-exporters`, and inspected all five IDs and column alignment. The command and renderer exited successfully. Owned screenshot/launcher/native scratch were purged afterward.
+
+The first new SDK negative-control attempt failed because its test setup omitted required environment/limits and used an invalid input shape. Corrected the harness to the actual stream SDK contract; subsequent focused and final maintained runs passed. That setup failure was not an exporter regression. No validated new implementation change required a failing-test repair cycle.
+
+Candidate identity is a dirty-worktree fingerprint, not a committed revision: 385 files, SHA-256 `8e84cbf470d3f9874d2f8e97cd1dcffc32c3ab32278962d3e92f1a6e308729f9`. Reproduce by lexically sorting all regular files under `packages/ssconvert/src`, all regular files under `packages/safe-bash/src/commands/ssconvert`, plus `packages/safe-bash/tests/commands/ssconvert-document.test.ts`; feed each relative UTF-8 path, a NUL byte, and its binary SHA-256 digest into one SHA-256 accumulator. No commit, push, publication or README edit was performed. Existing unrelated changes were preserved. Repository-wide test/lint/build and release qualification were not run; none is claimed complete.
+
+## Remaining qualification gaps
+
+The existing captured Pango overflow differential is unresolved and independently reproduced. A minimized original fixture containing only A1 string `\L{unterminated` in a default-width sheet expands native `latex_table` extent through B1: native suffix is `$\backslash$L\{unterminated` followed by tab, ampersand, two backslashes and newline; JavaScript omits the tab and ampersand. Setting column `Unit=1000` removes that discrepancy. The wide-column escaping result is a measured pass; default-width overflow is a measured mismatch. No approximate font-width heuristic was added.
+
+Native glossary is unavailable in the captured no-Python plugin profile; native Unicode length/encoding, dictionary stdout and legacy failure diagnostics remain unverified. Other unmeasured font/configuration/locale combinations listed in the original task QA remain unverified. No bounded performance cohort, complete runtime matrix or concurrent checkpoint qualification was performed. Do not count unavailable cells as passes. Complete Gnumeric parity and completion of the compatibility task are not established.

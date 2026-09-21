@@ -1,0 +1,572 @@
+{
+  "classification": "Live dirty source binding, not an immutable Git revision. Integration metadata includes preexisting edits preserved by this task.",
+  "baseHead": "b97c4938a469ee70e09bd08a0e5fcf7e868ca04c",
+  "canonicalManifestFormat": "UTF-8 path + NUL + lowercase SHA256 + LF, sorted by UTF-8 path bytes",
+  "sourceManifestSha256": "941a509aa04508fa397621006be12b52a593bbb418ca17e160036193702598b0",
+  "sourceCount": 129,
+  "source": [
+    {
+      "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
+      "sha256": "a23b63a408e964f86ef7b5caa5e4cea452d64c09899efd317518913e68473d61"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "sha256": "25af57c2a43333bd051a005600d89972c0ebbe73c7aaa87088b05e6998cdff50"
+    },
+    {
+      "path": "packages/ssconvert/src/cli.test.ts",
+      "sha256": "48a1ce6c8a724958ca79768d826b2a0843854e510811b22e0a632954700bd65e"
+    },
+    {
+      "path": "packages/ssconvert/src/cli.ts",
+      "sha256": "01130a4bf1dd369284b0c0b29d4378ff770b618a514c4ee9240028f0394a4ce0"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/diagnostics-independent.test.ts",
+      "sha256": "ebc1772cf809e6bfedbac8f3c5365330f127e89c05d44e94fe67200d9a6c3a5c"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/diagnostics.test.ts",
+      "sha256": "9667074cf9f5512dbd5b32a1b6385465a5b936aaa37bb275da06be71443b215d"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/export-options-independent.test.ts",
+      "sha256": "b3a2055a27c80cec5bacdd14c83c49db7baad0c0d063b3d3694f7599fccefc42"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/export-options-stress.test.ts",
+      "sha256": "d60732c3ab9e715df0dfce8bc7add85999bd0a54426ce7c699cadeb9b8a38c09"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/export-options.test.ts",
+      "sha256": "21fc32c654f949fad674eb235a45dd47c3f693898de731ec61d0761a876c561b"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/export-options.ts",
+      "sha256": "495f88d51b8f4e878e2f97d2a695a90d36f79514bb36aa071f8c363450e179a8"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/group-aliases.test.ts",
+      "sha256": "2cefe461c471575b2ac9dc0c67ebacd60b3807fdc7697d44c3dd91591b33d249"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/independent-parser.test.ts",
+      "sha256": "f3271c01584dfe1efe0903e7659d838adcb6eb55ba2ab943cdc9c074de2e39e2"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/inherited-independent-review.test.ts",
+      "sha256": "283b1bcda9d5a7368b820bb8ea5287a8ef59dae4af18c2daf364d9864a93a66e"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/inherited-stress.test.ts",
+      "sha256": "19f493e7573c21a6eab82f8391cb9e0cd6e1ed256dcf5c62e2a9c38de3ed1b24"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/inherited.test.ts",
+      "sha256": "75730ceeab9581ca5b32e53816cef1e1b1c31982714f8ec93b3c761cbcde2d7f"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/listing-review.test.ts",
+      "sha256": "f85ca1e832ba13972a7af7747f5e2265f384728063057c31b95ddb5b7a4afb4c"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/parser.ts",
+      "sha256": "1d73eb1df82496acabc1bbacaa348e84be21db6cb4bb1b5dbc3db769b61b00ba"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/reference.ts",
+      "sha256": "b580a608c7477c6dcc624b3e714f08f7fbb0d1ef1432f2105a3f119c50236557"
+    },
+    {
+      "path": "packages/ssconvert/src/cli/unicode-alphanumeric.ts",
+      "sha256": "010fa25f6e14b705e3ac93d234cddfd50b60e9e526ca793e4d1dc878e13ef251"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs.test.ts",
+      "sha256": "6b471335df4ea6bf13ab1779d9508843769e35d9c0f38d91851b664daf636d28"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs.ts",
+      "sha256": "f2872ca7326df45fd047c2937834b2dc49626b7525208f31e9f9ee30ff0a5f77"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/ascii-stress.test.ts",
+      "sha256": "6f2229aafb5357b9fa67efb83b4e030eed5749a0ef64bdbe080961630bfe80fa"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/command.test.ts",
+      "sha256": "695b15e6c537055522494df8f6559f0d85ff9e9627717e3899ca0df673ec70d6"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/export-options-stress.test.ts",
+      "sha256": "43643997619920acc7def78352e1da4b07db477b5fb62f8d0d5a2b8224c499e0"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/export-options.test.ts",
+      "sha256": "549f2493524d11fa2f60a51a0bad1af8ded86c0da51e530a8d5d036302d49d0a"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/export-options.ts",
+      "sha256": "04ad9fb745d2abc8fb0e12bcec886f45ad0c90d24d99ddd4ab586c259a3a55e2"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/independent-stress.test.ts",
+      "sha256": "d061fbed7752f5d8baac164ab825203da3a7f3175964c9e4967d42c51b5dd808"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/ordering.ts",
+      "sha256": "8a5912eac1b684e56e537b62d67db317b535342057598bf2b1630f5d55c3ea32"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/provider-discovery.test.ts",
+      "sha256": "09a4232c3b9d403220ff7e05b596837828a7f994eb4733bd10326bc7d84d535f"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers.generated.ts",
+      "sha256": "5e2e50dc9234f93264bab9ca1a5f70568d7cf9db77b3af0e3277cd8b8c61e380"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/applix.ts",
+      "sha256": "490a9cafc10ade92c8bb7d9f8f1fc660df40df802ad6cb8b2f551292ec4e0b3e"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/dif.ts",
+      "sha256": "0fa8a17f1056ec1fa419f588d73b004f49242f2c913f3e9c6f3fd3310aee7762"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "sha256": "a99e5be8eafdc9b42b96ffa23b27f18655167d23bc2568592307c3b95b7f2e8b"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/glpk.ts",
+      "sha256": "0e1246d21d553328fbd7f97560fec40655138d305e6fe720e8157eff07decb36"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/gnome-glossary.ts",
+      "sha256": "894b8fb8b76ebb0461267ada26ef7a63dd21e100a31bc3264b3d1eb6f28cb58a"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/html.ts",
+      "sha256": "a447a3f1fb488e17fbcc7491868ee6d8169b1654679131b0b01f9d9b063bd569"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/lotus-123.ts",
+      "sha256": "fa67e29e40926e97ba2e1c3c1cfdeee8d0576cb965f55ad57011a64ce9625034"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/lpsolve.ts",
+      "sha256": "d5675a70c6d66f3a0ee0c19bd5d459b47839aaa263f686655e51ee547b18bfc6"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/mps.ts",
+      "sha256": "552291602ea0645ef12dbb09d37b9bf24fdef3cb56e5ac5d0e663bfedc0c6f9a"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/oleo.ts",
+      "sha256": "c72875677d6dae4f27acbed8040cf9cad76ed1843d31f6181f7be27fb0cb796b"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/openoffice.ts",
+      "sha256": "a68e3312cac7661fb0cb6d4d3305a2a58e1ef35905c083e6782b007bc866e223"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/paradox.ts",
+      "sha256": "0a5c75e93f468e831b8ea3e174b424d0406fd8756d5fbb21d6b735b5b2252480"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/pdf.ts",
+      "sha256": "b63c061626a88e9113c35457d5be353ecde15fdb96aee571b6d661433b7e64e8"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/plan-perfect.ts",
+      "sha256": "352759a30e0638d928eaa1fc82f039c705eee931f13330069ed03a5ee411716d"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/psiconv.ts",
+      "sha256": "4b1a760d88a9b2be35795f4387ce14123165ec5730f36463b3a6d85ad208f6eb"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/qpro.ts",
+      "sha256": "8d7df3d76479016372d37f526c80c4a05e3aaa1f095b1404aa2ecd9bfcbba2d0"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/sc.ts",
+      "sha256": "a4abdff87f6cda13e434c61881ad201461bb8deb8916fdf4bec870def65f39b4"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/stf.ts",
+      "sha256": "d0f75fe099252560e3574b30954419a7f906c37a3255c50c449d4a94656d1239"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/sylk.ts",
+      "sha256": "33e9081ab11cc6c8cb85ac9a63adb6bae9c202bb3b6bc41653aeefbdd9bc9a62"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/xbase.ts",
+      "sha256": "6bfc70b2efb96ab5479f7a3bd5f86cc12cb7e2fd0a9c97030505d3e0e347a9fd"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/xml.ts",
+      "sha256": "baaa10687c3862a528db637ebd148f2ab0ef36066228651b83b49f7095ce76a8"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/registry.test.ts",
+      "sha256": "f7d42dde7dbc2afd5cdc262d9f54970c9af25bab0165ee1837839007abc2044b"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/registry.ts",
+      "sha256": "3bb346e7e0f08079db9c12dd7078760474b83f6bda22ad376f4909e96929e476"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/types.ts",
+      "sha256": "ca654c556bac81e265d4d85205d61847543a50bcc3fdd963d1765fc848121ab2"
+    },
+    {
+      "path": "packages/ssconvert/src/contracts.ts",
+      "sha256": "25a028104b43952487751b2cafd7c19102983fd69d3501a5c03237e54091d0ae"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion-lifecycle.test.ts",
+      "sha256": "d4c2d1d94609705c1832ee5743222fa1f526bacba455dc115e28ff9e01ae5633"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/c-number.ts",
+      "sha256": "8a0b630b98e0c1bc972f7bf1c4da123e40083425b4cf0bc53d080a6869195f84"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/image-options.ts",
+      "sha256": "ec6a62b777263fd928ea177f12f51feb2c64cf442e5501ca312e8851c8a053cc"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/independent-stress.test.ts",
+      "sha256": "39200c3a39f99329d3526f7c0614e6cb8c536780871e47a7d5b116d1974bb47b"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/lifecycle-followup-stress.test.ts",
+      "sha256": "a7b6be93b58c4016b86b55d5f532e07f5b09e87a14534ce71d762cbfaffaf17f"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/output.ts",
+      "sha256": "b9176ef721eb09a96d58c7057dd732cd0946e13170a3bf278cbb6d30ca6440af"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/resize.ts",
+      "sha256": "b0cf2ecb3de38066d8cec13ce21e650e552bd92e19427840e29b2e1a383780a3"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/sheet-range-independent.test.ts",
+      "sha256": "169ebed3db1f1c2a5e6576cebf9cf9cd7e236d6b9ceff29f4af4d10b7a9aa6e8"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/sheet-selection.test.ts",
+      "sha256": "e5712ced77cd5609bd51d96b76bbbe57c7a2776b4a817248994a7b559211efa5"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/sheet-span-followup-independent.test.ts",
+      "sha256": "48bf19b1dff56c849fe764e28413036bdb826e55b9ed63c82acd2797bd714bd9"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/transforms.ts",
+      "sha256": "0dcc91b235c3aaed8bc264190a8d903554ed37f6ec1ba9b7b25ff4f88f96158f"
+    },
+    {
+      "path": "packages/ssconvert/src/conversion/updates.ts",
+      "sha256": "1a4bf30bf5540d0394a4b300103633541cda06eb4322555f378bfe943f0bf5ba"
+    },
+    {
+      "path": "packages/ssconvert/src/engine.test.ts",
+      "sha256": "4ed73b5a35c262c7fa5b133be8c17cdf3e1f4775c4062bf3bbcbb7f068df4966"
+    },
+    {
+      "path": "packages/ssconvert/src/engine.ts",
+      "sha256": "e2788c00c35b2f7e1004073045d6f7ee52734c15ec23a33ad9933b1acc54f6ff"
+    },
+    {
+      "path": "packages/ssconvert/src/formatting.ts",
+      "sha256": "fcf1ea6e32ec7e4176003c683f55995b75718f026a5f4ff6539d8f5af354485f"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas-regression.test.ts",
+      "sha256": "b4bb50374b73df029c10a2c61628b4759e0bb6937af560f4d18a13face1d6879"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas.ts",
+      "sha256": "e5264b4431e08812406514d91aecba631f3e4afb986b2ef64218a8d73be932db"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/ast.ts",
+      "sha256": "45c567faed23c061a606a5f352b1baff27fb386b88cc6b310a9e83449995f23c"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/calculation-independent.test.ts",
+      "sha256": "61589424895f63869092b76f83c370ba06571b2936fa36c7f452b21728c74e6b"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/calculation-stress-review.test.ts",
+      "sha256": "c2ef224da411cd5bf9492c394c20c301bdf046e8a6a0e09837710bab8aefee11"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/conventions-independent.test.ts",
+      "sha256": "1b4bb7f4a1138536a8ea9e04b7af35e18044aba33976185de01f0ce054a8ed36"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/conventions.ts",
+      "sha256": "c73d0c7b42e5f1607008f749d5244455472acc692b797ac5a593030ac7106f56"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/dependencies.ts",
+      "sha256": "cb74d9a6cc5d58b874ec26e793f1aedfcf826dadd1dd0a8affa7586a6aeeb31a"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/evaluation.test.ts",
+      "sha256": "c2a5c15c9d2361c417a02aaa1344358ac8fcf04842878acf8a12d63a6aa034fc"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/evaluator.ts",
+      "sha256": "f58e34d4152560f9505c8d67d5caff73ebfc36612166ed01516f0f4f1df44b78"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/integration-boundaries.test.ts",
+      "sha256": "fdf9214ee5ce3029b890f059df04c424d8ceed4024c8047f3b765fed8f4fc378"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/legacy-independent.test.ts",
+      "sha256": "a70216aa4cd20be0e7b510d8cea406e5c45d03f171959d836d3e765563ffed66"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/legacy.test.ts",
+      "sha256": "6f7b7e7879edf7b524954bc6bf529fc5e7caca2eb7a671b73a9a0c450440555b"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/local-references.ts",
+      "sha256": "f029f97ad7895cf28461d52c8bfc2ea607875c4aae6679ac3723be03b9676ee9"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/numeric-table-regression.test.ts",
+      "sha256": "7bccee711d15490875b66e99ee276305d46f02f2e9f017bd03b0ef2a65de8705"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/odf-independent-review.test.ts",
+      "sha256": "3c9a202b5bb2b20525472ee203f0d85ddb10d890f42d89ad6b7f3d887601d160"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/odf-sheet-regression.test.ts",
+      "sha256": "6f970546a875ceaa5b753666e528489dba7ce717ffc498d768fd566ed9399a8f"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/parser.ts",
+      "sha256": "edb92bcf20aaba8f2a14d36764c6a474c10750f8454f1346a8e1870270318d13"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/references-independent.test.ts",
+      "sha256": "58d1a2e942e772dfb43ef4bf8bc21983c9bf3b60464885012504d3c7dae272b3"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/rewriting.ts",
+      "sha256": "b81fec256aa78ec233f05d81c864672aaf90c12755239c46bfc92386ebb2a8d4"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/serialization.ts",
+      "sha256": "b149f74d42d4b4ccf74ed08fc9332e1e570c6b7e889f90a725f46116f343de15"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/syntax.test.ts",
+      "sha256": "a7ac64b3ddc4fabc0d4bb7f9f969f43a2217033ca8f598a90580b2d06851c4ce"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/values.ts",
+      "sha256": "cfeba9366118300f754682902b48fc3a5a8a36d686984e852965e4b4b740087c"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/workbook-independent.test.ts",
+      "sha256": "3c2647c50b9d564758f2870213895f02c1e439f28ffe020125497525f6c98425"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/workbook-references.test.ts",
+      "sha256": "80fe311fdc3a4887a760233cff6388f113c3db0f9cec883be0980c63e0f5ceb2"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/workbook.ts",
+      "sha256": "80afbc6e3d71f35b8a7ebb0d992e2faeeff4e4cf0b543e2efa13614e2b423b52"
+    },
+    {
+      "path": "packages/ssconvert/src/index.ts",
+      "sha256": "554a291f048c1a23cbb7ed37c506b37d4a0ce2c858f1ae92613b1b865d48ce11"
+    },
+    {
+      "path": "packages/ssconvert/src/io-errors.ts",
+      "sha256": "4411c74f1f2aca79a17fe6bf13be6b8752c7ca57ce7119537a378da3b5fbedfb"
+    },
+    {
+      "path": "packages/ssconvert/src/io/authority-cleanup-stress.test.ts",
+      "sha256": "43181911281a679db8605f2dd1a3e21f8c0f75e6cd5942016004a5563dffb648"
+    },
+    {
+      "path": "packages/ssconvert/src/io/binding.test.ts",
+      "sha256": "d59bf5780ff03073228126eb1e8f328f9df9069f61c006fa3a4a01d5957a1e52"
+    },
+    {
+      "path": "packages/ssconvert/src/io/independent.test.ts",
+      "sha256": "67aa95f4bb62bda9876e6f3616e03dc5b66f62c494e83a6b26b21564602ffc7c"
+    },
+    {
+      "path": "packages/ssconvert/src/io/index.ts",
+      "sha256": "ec6c2be4f642fcc67bfd5188756e180cdde5d78c13a64578bdb2d200d70ed97c"
+    },
+    {
+      "path": "packages/ssconvert/src/io/io.test.ts",
+      "sha256": "b13e304f370f6df07ed016faa5bc55d59f4ebfea36f680127edbcb0f29e2e198"
+    },
+    {
+      "path": "packages/ssconvert/src/io/names.test.ts",
+      "sha256": "cc56ad31a502c2823fcacddce6a32a6c939808eb2cae5ae831d15fdd7a09917f"
+    },
+    {
+      "path": "packages/ssconvert/src/io/names.ts",
+      "sha256": "44f87dbf7fc10b52562cdf66203583e434c19aa09c827daf6587da217e9fe71d"
+    },
+    {
+      "path": "packages/ssconvert/src/io/publication.ts",
+      "sha256": "12b8fb009cf1835431b50af40de58bc65684d1a553e57bcd3d30672d901ce65d"
+    },
+    {
+      "path": "packages/ssconvert/src/rendering.ts",
+      "sha256": "9dd91fc5acf344799a8ddc83ade6a45ca9ca863f1653dc20843d5af17a66713d"
+    },
+    {
+      "path": "packages/ssconvert/src/resource-uri.ts",
+      "sha256": "c3a7620b358c774c08ae65bc1f89b5b31eef69d901fb088aaa21ac159518a5cf"
+    },
+    {
+      "path": "packages/ssconvert/src/solver.ts",
+      "sha256": "56b6138314dfc07bc6cc135ef1f16799428bd8ce7a752c6e9768d409e7400f44"
+    },
+    {
+      "path": "packages/ssconvert/src/stress.test.ts",
+      "sha256": "9b73521e5fb173f72a82156f0d618fb90257f222e82de58f322726ced1cf8bfb"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook.test.ts",
+      "sha256": "3ebb8b83b20195d22ecb6c479f2c5890c6ae7346c883c1987137626d283329f9"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook.ts",
+      "sha256": "e6eb6446fa3906827a0180ed3b7920c39938eaab63b9aef4f0d492fe97d40672"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/case-fold.ts",
+      "sha256": "9d54c4bdef0f785adb7dc1db22b3819ec163b063d09c004000c78b3118372097"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/dimensions.ts",
+      "sha256": "cc6c963e16029257dabb0498c30672143e220f4511aa448da5e6566054321c80"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/expressions.ts",
+      "sha256": "42cb92ef4fc71fd0a511d34c1edc3e6604a6908291bf9974c453bd61006d6346"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/independent-boundaries.test.ts",
+      "sha256": "a425ce8689ce5eec92c9f72c489e0265b0f1d3387c69cfaeff6a8d6b04560e88"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/merge.ts",
+      "sha256": "f45f746b35ff8b1b2afbcaeb68e500f6db09fc232a8cc953beac467ebe737b9f"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/model.ts",
+      "sha256": "78a204818e2d5892347c85e41aee61feb22a1ebf2f6684216b20c99a2de20a82"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/ownership.test.ts",
+      "sha256": "04481e0d6d3ecdf5c39b06a06e4e97362cdc1581e1cf03ec968623fe9ff94aa1"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/range-selection.test.ts",
+      "sha256": "dc33b014cd59651c2c6790cbbed11591d26ba92802c81849dd3b741ed9ca5a38"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/stress.test.ts",
+      "sha256": "0b7fe0908dcae1273f073cc1461abb9a4dccc655c6df91bddf2b74244d91d3f3"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/unicode-sheet-name.ts",
+      "sha256": "7c80b016f62035bdfb6911a787a3c73cf979488cdfa9cc87562d6e6929650e54"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/updates-independent.test.ts",
+      "sha256": "ff030b85543f5482a3d80b2d1f1459877169eb4e87c06f2514336490b61fc6cc"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/updates-review.test.ts",
+      "sha256": "b5400a3fd5537d99d69af80f5b779bf96df7c6b7663e964270b5a35ca4164795"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/updates.test.ts",
+      "sha256": "3f33b8471b7d469062372ae06c2ebe93b7b68b85a8caf8913a40192f610aede1"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/updates/formula.ts",
+      "sha256": "1504c8e26bbda5090f5d9c203f69771443bb153b3fb4c07354d5d80b8328ecf5"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/updates/index.ts",
+      "sha256": "f25ae7f0091a73717954f17442360f2467b07a957cb97976f3039d08e15f0260"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/updates/inference.ts",
+      "sha256": "085750ee7182e8b07c440876110bb1dac4dc8b49d24a7fe591353b34e356935b"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/updates/recalculation.ts",
+      "sha256": "dde58af804200f526f914719f8447ada81f3192b5c6d1340522b9dcdbd6fac4a"
+    }
+  ],
+  "integrationMetadataManifestSha256": "f6757164a61316fe07c4d4443d7c9fa9138dc1401f2315f993c1739c7235c46b",
+  "integrationMetadata": [
+    {
+      "path": "package-lock.json",
+      "sha256": "0550972c7f7be4707a61c1d5b439ceaf856e4bce3e63ee4203edf10ce1c0651b"
+    },
+    {
+      "path": "package.json",
+      "sha256": "447bbd8621f98145458fad6d4baca8bd816ab91a3894859f30170e3fd55cac66"
+    },
+    {
+      "path": "packages/safe-bash/package.json",
+      "sha256": "1a706dedef3d81380534c8e758e7bab62e9deeeeedab42377cc2d923f89f0ed7"
+    },
+    {
+      "path": "packages/safe-bash/scripts/build.mjs",
+      "sha256": "1b4c63eb92db830373213779b0e054fa408a9250d024a7335def2bb35efcdcb8"
+    },
+    {
+      "path": "packages/safe-bash/scripts/integration-inputs.test.mjs",
+      "sha256": "38af3da5c34151e89b28b3631b0bf62395cbec238e869b145c253a33018b2bf9"
+    },
+    {
+      "path": "packages/safe-bash/src/index.ts",
+      "sha256": "323dd506c3065b4222572c0850a5b13d66cedfc7e6af4d48206767ff308c57d0"
+    },
+    {
+      "path": "packages/ssconvert/package.json",
+      "sha256": "2f2c1472756e79f1e7c9d806eebe69e308dfc84a69681b6c95db2c189711b186"
+    },
+    {
+      "path": "packages/ssconvert/scripts/generate-providers.mjs",
+      "sha256": "2852b47cda0251eea5b98335ef0b4583e6626721dd9f45290f8c48a67bced346"
+    },
+    {
+      "path": "packages/ssconvert/tsconfig.json",
+      "sha256": "904e636d6d42489e0d2280f4ad9e639b7c89615e6eb67a799ea80ecbf32154f6"
+    },
+    {
+      "path": "packages/ssconvert/tsconfig.test.json",
+      "sha256": "88920282bbd59bbd4c0512a65d369aa66af884a5bafdc1ce370ad3296bb2c2ef"
+    },
+    {
+      "path": "tests/integration/standalone-package-metadata.test.ts",
+      "sha256": "b452a9458b97db75d06679892ffa90bc7bd5291763b94c1f1b3d2b278db9b09b"
+    }
+  ]
+}

@@ -378,6 +378,10 @@
     "./commands/csvkit": {
       "types": "./dist/commands/csvkit/index.d.ts",
       "import": "./dist/commands/csvkit/index.js"
+    },
+    "./commands/ssconvert": {
+      "types": "./dist/commands/ssconvert/index.d.ts",
+      "import": "./dist/commands/ssconvert/index.js"
     }
   },
   "files": [
@@ -470,7 +474,8 @@
     "@poe-code/package-lint": "*",
     "safe-bash-command-fmt": "*",
     "@poe-code/csvkit": "*",
-    "@poe-code/safe-python": "*"
+    "@poe-code/safe-python": "*",
+    "@poe-code/ssconvert": "*"
   },
   "poeCode": {
     "packageLint": {

@@ -1,0 +1,3036 @@
+{
+  "classification": "Original small fixtures plus synthetic binary64 cases; no upstream source",
+  "seed": "0x596e1261",
+  "seededNormalExponents": [
+    1,
+    10,
+    600,
+    900,
+    980,
+    1000,
+    1005,
+    1010,
+    1013,
+    1014,
+    1015,
+    1020,
+    1023,
+    1027,
+    1069,
+    1075,
+    1076,
+    1080,
+    1082,
+    1200,
+    1400,
+    1800,
+    2000,
+    2046
+  ],
+  "cases": [
+    {
+      "id": "if-lazy",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=IF(TRUE,7,1/0)",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=IF(TRUE,7,1/0)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "if-invalid-text",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=IF(\"invalid\",1/0,7)",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=IF(\"invalid\",1/0,7)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "if-absent",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=IF(FALSE,1/0)",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=IF(FALSE,1/0)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "if-omitted",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=IF(FALSE,1/0,)",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=IF(FALSE,1/0,)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "numeric-text",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=\"2\"+3",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=\"2\"+3</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "text-error-left",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=\"invalid\"+(1/0)",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=\"invalid\"+(1/0)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "unicode-compare",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=\"Straße\"=\"STRASSE\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=\"Straße\"=\"STRASSE\"</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "blank-reference",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A2+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=A2+1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "sum-types",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=SUM(TRUE,\"2\",{3,\"4\";5,FALSE})",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=SUM(TRUE,\"2\",{3,\"4\";5,FALSE})</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "product-types",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=PRODUCT(TRUE,\"2\")",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=PRODUCT(TRUE,\"2\")</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "sum-cancel",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=SUM(1e308,1e308,-1e308)",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=SUM(1e308,1e308,-1e308)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "product-scaled",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=PRODUCT(1e308,1e308,1e-308,1e-308)",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=PRODUCT(1e308,1e308,1e-308,1e-308)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "power-int32",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1)^2147483648",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1)^2147483648</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "power-positive-control",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=1^2147483648",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=1^2147483648</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "zero-negative",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=0/-3",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=0/-3</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "zero-domain",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=0^0",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=0^0</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "native-version",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=GNUMERIC_VERSION()",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=GNUMERIC_VERSION()</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "array-power-min",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=SUM({2,3,4}^{1,1})",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 0,
+                  "startColumn": 0,
+                  "endColumn": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" Rows=\"1\" Cols=\"1\">=SUM({2,3,4}^{1,1})</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "array-power-domains",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "={-1,-1,1}^{2147483648,2147483647,2147483648}",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 0,
+                  "startColumn": 0,
+                  "endColumn": 2
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" Rows=\"1\" Cols=\"3\">={-1,-1,1}^{2147483648,2147483647,2147483648}</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "array-if-shape",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=IF({TRUE,FALSE},{1},RAND())",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 0,
+                  "startColumn": 0,
+                  "endColumn": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" Rows=\"1\" Cols=\"2\">=IF({TRUE,FALSE},{1},RAND())</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "array-if-string",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=IF(\"invalid\",1/0,7)",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 0,
+                  "startColumn": 0,
+                  "endColumn": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" Rows=\"1\" Cols=\"1\">=IF(\"invalid\",1/0,7)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "array-broadcast",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "={2;3}",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 1,
+                  "startColumn": 0,
+                  "endColumn": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>0</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" Rows=\"2\" Cols=\"2\">={2;3}</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "table-row-timing",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=D1+E1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              },
+              {
+                "row": 0,
+                "column": 3,
+                "value": {
+                  "kind": "number",
+                  "value": 10
+                }
+              },
+              {
+                "row": 0,
+                "column": 4,
+                "value": {
+                  "kind": "number",
+                  "value": 20
+                }
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "formula": "=D1*2",
+                "value": {
+                  "kind": "number",
+                  "value": 20
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 20
+                },
+                "formulaDirty": true
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                }
+              }
+            ],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=TABLE(D1,E1)",
+                "range": {
+                  "startRow": 1,
+                  "endRow": 1,
+                  "startColumn": 1,
+                  "endColumn": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>4</gnm:MaxCol><gnm:MaxRow>1</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=D1+E1+1</gnm:Cell><gnm:Cell Row=\"0\" Col=\"3\" ValueType=\"40\">10</gnm:Cell><gnm:Cell Row=\"0\" Col=\"4\" ValueType=\"40\">20</gnm:Cell><gnm:Cell Row=\"1\" Col=\"0\" ValueType=\"40\" Value=\"20\">=D1*2</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\" ValueType=\"40\">2</gnm:Cell><gnm:Cell Row=\"1\" Col=\"1\" Rows=\"1\" Cols=\"1\">=TABLE(D1,E1)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "table-missing-column",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=D1+E1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              },
+              {
+                "row": 0,
+                "column": 3,
+                "value": {
+                  "kind": "number",
+                  "value": 10
+                }
+              },
+              {
+                "row": 0,
+                "column": 4,
+                "value": {
+                  "kind": "number",
+                  "value": 20
+                }
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "formula": "=D1*2",
+                "value": {
+                  "kind": "number",
+                  "value": 20
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 20
+                },
+                "formulaDirty": true
+              }
+            ],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=TABLE(D1,E1)",
+                "range": {
+                  "startRow": 1,
+                  "endRow": 1,
+                  "startColumn": 1,
+                  "endColumn": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>4</gnm:MaxCol><gnm:MaxRow>1</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=D1+E1+1</gnm:Cell><gnm:Cell Row=\"0\" Col=\"3\" ValueType=\"40\">10</gnm:Cell><gnm:Cell Row=\"0\" Col=\"4\" ValueType=\"40\">20</gnm:Cell><gnm:Cell Row=\"1\" Col=\"0\" ValueType=\"40\" Value=\"20\">=D1*2</gnm:Cell><gnm:Cell Row=\"1\" Col=\"1\" Rows=\"1\" Cols=\"1\">=TABLE(D1,E1)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "table-qualifier",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=D1+E1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              },
+              {
+                "row": 0,
+                "column": 3,
+                "value": {
+                  "kind": "number",
+                  "value": 10
+                }
+              },
+              {
+                "row": 0,
+                "column": 4,
+                "value": {
+                  "kind": "number",
+                  "value": 20
+                }
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "formula": "=D1*2",
+                "value": {
+                  "kind": "number",
+                  "value": 20
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 20
+                },
+                "formulaDirty": true
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                }
+              }
+            ],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=TABLE(Other!D1,Other!E1)",
+                "range": {
+                  "startRow": 1,
+                  "endRow": 1,
+                  "startColumn": 1,
+                  "endColumn": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "other",
+            "name": "Other",
+            "cells": [
+              {
+                "row": 0,
+                "column": 3,
+                "value": {
+                  "kind": "number",
+                  "value": 100
+                }
+              },
+              {
+                "row": 0,
+                "column": 4,
+                "value": {
+                  "kind": "number",
+                  "value": 200
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Sheet1</gnm:SheetName><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Other</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Sheet1</gnm:Name><gnm:MaxCol>4</gnm:MaxCol><gnm:MaxRow>1</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=D1+E1+1</gnm:Cell><gnm:Cell Row=\"0\" Col=\"3\" ValueType=\"40\">10</gnm:Cell><gnm:Cell Row=\"0\" Col=\"4\" ValueType=\"40\">20</gnm:Cell><gnm:Cell Row=\"1\" Col=\"0\" ValueType=\"40\" Value=\"20\">=D1*2</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\" ValueType=\"40\">2</gnm:Cell><gnm:Cell Row=\"1\" Col=\"1\" Rows=\"1\" Cols=\"1\">=TABLE(Other!D1,Other!E1)</gnm:Cell></gnm:Cells></gnm:Sheet><gnm:Sheet><gnm:Name>Other</gnm:Name><gnm:MaxCol>4</gnm:MaxCol><gnm:MaxRow>0</gnm:MaxRow><gnm:Cells><gnm:Cell Row=\"0\" Col=\"3\" ValueType=\"40\">100</gnm:Cell><gnm:Cell Row=\"0\" Col=\"4\" ValueType=\"40\">200</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+    },
+    {
+      "id": "array-scalar-left-text",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=\"invalid\"+RAND()",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 0,
+                  "startColumn": 0,
+                  "endColumn": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" Rows=\"1\" Cols=\"1\">=\"invalid\"+RAND()</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "array-scalar-left-error",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=(1/0)+RAND()",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 0,
+                  "startColumn": 0,
+                  "endColumn": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" Rows=\"1\" Cols=\"1\">=(1/0)+RAND()</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "array-scalar-numeric-positive",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [],
+            "formulaGroups": [
+              {
+                "id": "a",
+                "kind": "array",
+                "expression": "=2+3",
+                "range": {
+                  "startRow": 0,
+                  "endRow": 0,
+                  "startColumn": 0,
+                  "endColumn": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" Rows=\"1\" Cols=\"1\">=2+3</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "noniterative-cycle",
+      "book": {
+        "iteration": {
+          "enabled": false,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"3\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "iterative-cycle",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"3\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "concat-large",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1e308)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1e308)&amp;\"\"</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "concat-third",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1/3)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1/3)&amp;\"\"</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "concat-small",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=1e-7&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=1e-7&amp;\"\"</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "concat-twenty",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=1e20&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=1e20&amp;\"\"</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "iteration-cap-1",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 1,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"1\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "iteration-cap-2",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 2,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"2\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "iteration-cap-4",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 4,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"4\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "iteration-cap-10",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 10,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"10\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "self-halving",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 100,
+          "tolerance": 1
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1/2",
+                "value": {
+                  "kind": "number",
+                  "value": 100
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 100
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"1\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"100\">=A1/2</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "multicell-ab",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=B1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"3\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=B1+1</ns0:Cell><ns0:Cell Row=\"0\" Col=\"1\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "multicell-ba",
+      "book": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 1,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              },
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=B1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"3\" IterationTolerance=\"0\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"1\" ValueType=\"40\" Value=\"0\">=A1+1</ns0:Cell><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=B1+1</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-00",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(2.4381829432470754e-308)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "0011884c9bcd273b",
+        "literal": "2.4381829432470754e-308"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(2.4381829432470754e-308)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-01",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-2.1681592735981328e-305)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "80ae735ebdc04325",
+        "literal": "-2.1681592735981328e-305"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-2.1681592735981328e-305)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-02",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(4.646077826995007e-128)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "25801a40a675c89f",
+        "literal": "4.646077826995007e-128"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(4.646077826995007e-128)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-03",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(9.691969108168342e-38)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "38407d72aaf2be29",
+        "literal": "9.691969108168342e-38"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(9.691969108168342e-38)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-04",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.7012656994158933e-13)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3d47f174a5de6e43",
+        "literal": "1.7012656994158933e-13"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.7012656994158933e-13)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-05",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.508386564247153e-7)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3e843ec6da6f076d",
+        "literal": "1.508386564247153e-7"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.508386564247153e-7)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-06",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(6.856312383576034e-6)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3edcc1e8cc1f3c27",
+        "literal": "6.856312383576034e-6"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(6.856312383576034e-6)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-07",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-2.101467594373334e-4)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "bf2b8b5aeb14e2f1",
+        "literal": "-2.101467594373334e-4"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-2.101467594373334e-4)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-08",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1.1900926670106611e-3)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "bf537f9c4560964b",
+        "literal": "-1.1900926670106611e-3"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1.1900926670106611e-3)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-09",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-3.3527284940172105e-3)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "bf6b772e677e54b5",
+        "literal": "-3.3527284940172105e-3"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-3.3527284940172105e-3)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-10",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(5.461278527896392e-3)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3f765e90cabf20af",
+        "literal": "5.461278527896392e-3"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(5.461278527896392e-3)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-11",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1.2763246079635396e-1)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "bfc05642ae83a0b9",
+        "literal": "-1.2763246079635396e-1"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1.2763246079635396e-1)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-12",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.551456993209247e+0)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3ff8d2c4916fbf53",
+        "literal": "1.551456993209247e+0"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.551456993209247e+0)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-13",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1.7736675381495832e+1)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "c031bc96c1ff4afd",
+        "literal": "-1.7736675381495832e+1"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1.7736675381495832e+1)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-14",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.2122493029948086e+14)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "42db90383a239637",
+        "literal": "1.2122493029948086e+14"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.2122493029948086e+14)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-15",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(6.331169412093825e+15)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "43367e2a3fd21781",
+        "literal": "6.331169412093825e+15"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(6.331169412093825e+15)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-16",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(9.312697214046902e+15)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "43408aeca4ac095b",
+        "literal": "9.312697214046902e+15"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(9.312697214046902e+15)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-17",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(2.2232977726513373e+17)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "4388aefe09270a45",
+        "literal": "2.2232977726513373e+17"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(2.2232977726513373e+17)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-18",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.115608915814277e+18)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "43aef6e0cbdebcbf",
+        "literal": "1.115608915814277e+18"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.115608915814277e+18)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-19",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-3.069420818738011e+53)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "cb09a3125bf76749",
+        "literal": "-3.069420818738011e+53"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-3.069420818738011e+53)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-20",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-4.4791992848212544e+113)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "d78748140db99463",
+        "literal": "-4.4791992848212544e+113"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-4.4791992848212544e+113)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-21",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.08955718653829e+234)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "7085ee6662ceb28d",
+        "literal": "1.08955718653829e+234"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.08955718653829e+234)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-22",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.8519318845793205e+294)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "7d07328883c6b447",
+        "literal": "1.8519318845793205e+294"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.8519318845793205e+294)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-23",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1.4266069842177737e+308)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "ffe964fa7eceb011",
+        "literal": "-1.4266069842177737e+308"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1.4266069842177737e+308)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-24",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(4.1254236061822346e-308)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "001daa3c4fc0806b",
+        "literal": "4.1254236061822346e-308"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(4.1254236061822346e-308)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-25",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1.3603010896937903e-305)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "80a31acecff363d5",
+        "literal": "-1.3603010896937903e-305"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1.3603010896937903e-305)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-26",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-8.911974265020528e-128)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "a58ee33000759ccf",
+        "literal": "-8.911974265020528e-128"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-8.911974265020528e-128)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-27",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.4923005788241808e-37)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "384963e2bf9711d9",
+        "literal": "1.4923005788241808e-37"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.4923005788241808e-37)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-28",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1.7278934890185656e-13)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "bd48516472eced73",
+        "literal": "-1.7278934890185656e-13"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1.7278934890185656e-13)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-29",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-2.2224305294388692e-7)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "be8dd43691363e1d",
+        "literal": "-2.2224305294388692e-7"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-2.2224305294388692e-7)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-30",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(4.925622587669668e-6)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3ed4a8d8d3c99657",
+        "literal": "4.925622587669668e-6"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(4.925622587669668e-6)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "seeded-text-31",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1.3160079718175114e-4)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "bf213fca3d73aca1",
+        "literal": "-1.3160079718175114e-4"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1.3160079718175114e-4)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-threshold-neg4",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1e-4)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3f1a36e2eb1c432d",
+        "literal": "1e-4"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1e-4)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-threshold-neg5",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1e-5)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3ee4f8b588e368f1",
+        "literal": "1e-5"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1e-5)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-threshold-pos16",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1e+16)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "4341c37937e08000",
+        "literal": "1e+16"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1e+16)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-threshold-pos17",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1e+17)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "4376345785d8a000",
+        "literal": "1e+17"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1e+17)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-fraction-tricky",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(8.455124082255701e-1)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3feb0e7009b61ce0",
+        "literal": "8.455124082255701e-1"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(8.455124082255701e-1)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-fraction-digits",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.2345678901234567e+0)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3ff3c0ca428c59fb",
+        "literal": "1.2345678901234567e+0"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.2345678901234567e+0)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-fraction-rounding",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.005e+0)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3ff0147ae147ae14",
+        "literal": "1.005e+0"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.005e+0)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-fraction-sum",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(3.0000000000000004e-1)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3fd3333333333334",
+        "literal": "3.0000000000000004e-1"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(3.0000000000000004e-1)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-large-even",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.0000000000000002e+16)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "4341c37937e08001",
+        "literal": "1.0000000000000002e+16"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.0000000000000002e+16)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-safe-integer",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(9.007199254740991e+15)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "433fffffffffffff",
+        "literal": "9.007199254740991e+15"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(9.007199254740991e+15)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-adjacent-one",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.0000000000000002e+0)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "3ff0000000000001",
+        "literal": "1.0000000000000002e+0"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.0000000000000002e+0)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-min-subnormal",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(5e-324)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "0000000000000001",
+        "literal": "5e-324"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(5e-324)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-max-finite",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1.7976931348623157e+308)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "7fefffffffffffff",
+        "literal": "1.7976931348623157e+308"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1.7976931348623157e+308)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-small-subnormal",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(1e-320)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "00000000000007e8",
+        "literal": "1e-320"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(1e-320)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-negative-subnormal",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-5e-324)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "8000000000000001",
+        "literal": "-5e-324"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-5e-324)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    },
+    {
+      "id": "text-negative-threshold",
+      "book": {
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=(-1e+17)&\"\"",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 0
+                },
+                "formulaDirty": true
+              }
+            ]
+          }
+        ]
+      },
+      "generator": {
+        "seed": "0x596e1261",
+        "algorithm": "uint32 LCG a1664525 c1013904223; stated normal binary64 exponents plus independent explicit boundaries",
+        "binary64Hex": "c376345785d8a000",
+        "literal": "-1e+17"
+      },
+      "nativeXml": "<?xml version='1.0' encoding='utf-8'?>\n<ns0:Workbook xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\"><ns0:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\" /><ns0:Calculation ManualRecalc=\"0\" EnableIteration=\"0\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\" /><ns0:SheetNameIndex><ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"65536\">Sheet1</ns0:SheetName></ns0:SheetNameIndex><ns0:Sheets><ns0:Sheet><ns0:Name>Sheet1</ns0:Name><ns0:MaxCol>0</ns0:MaxCol><ns0:MaxRow>0</ns0:MaxRow><ns0:Cells><ns0:Cell Row=\"0\" Col=\"0\" ValueType=\"40\" Value=\"0\">=(-1e+17)&amp;&quot;&quot;</ns0:Cell></ns0:Cells></ns0:Sheet></ns0:Sheets></ns0:Workbook>"
+    }
+  ]
+}

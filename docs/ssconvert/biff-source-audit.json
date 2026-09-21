@@ -1,0 +1,4162 @@
+{
+  "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "revisions": {
+    "2": [
+      "0009",
+      "0809:0200",
+      "0809:0007",
+      "0809:0000"
+    ],
+    "3": [
+      "0209",
+      "0809:0300"
+    ],
+    "4": [
+      "0409",
+      "0809:0400"
+    ],
+    "8": [
+      "0809:0600"
+    ],
+    "5/7": [
+      "0809:0500"
+    ]
+  },
+  "sourceFiles": {
+    "boot.c": "d0af9996619f770d51b15fba9258c8db5105a9fce0b7ff43401e89a43608328c",
+    "plugin.xml.in": "c816444d2c8359a245d63f8c0810f6b48228b8e2f851fdef3b94bb70b71194d3",
+    "biff-types.h": "c45f27c74559eabf2c28ed46c930e689d9009bc4f6d5453710e7696e5348aa7b",
+    "ms-excel-read.c": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216",
+    "ms-biff.c": "a6c14f0ec72854c0468dbbc0a6a67c103c0bf78ec7a385f94e4eba6b7b24462b",
+    "ms-formula-read.c": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5",
+    "ms-escher.c": "06f643d4ec1366f7e8ab34418f46bf601b41a46b0f8775af79d144d81336a2a9",
+    "ms-chart.c": "a6b9c8ecc0f92b3a7923fc74a0ce4e103ec91afe0cdadee3367f145e85b1360c"
+  },
+  "readerCaseLines": {
+    "BIFF_BOF_v0": [
+      1423,
+      7275
+    ],
+    "BIFF_BOF_v2": [
+      1424,
+      7276
+    ],
+    "BIFF_BOF_v4": [
+      1425,
+      7277
+    ],
+    "BIFF_BOF_v8": [
+      1426,
+      7278
+    ],
+    "BIFF_LEFT_MARGIN": [
+      6579,
+      6801
+    ],
+    "BIFF_RIGHT_MARGIN": [
+      6580,
+      6802
+    ],
+    "BIFF_TOP_MARGIN": [
+      6581,
+      6803
+    ],
+    "BIFF_BOTTOM_MARGIN": [
+      6582,
+      6804
+    ],
+    "BIFF_DIMENSIONS_v0": [
+      6710,
+      7366
+    ],
+    "BIFF_DIMENSIONS_v2": [
+      6711,
+      7373
+    ],
+    "BIFF_BLANK_v0": [
+      6713
+    ],
+    "BIFF_BLANK_v2": [
+      6714
+    ],
+    "BIFF_INTEGER": [
+      6718
+    ],
+    "BIFF_NUMBER_v0": [
+      6721
+    ],
+    "BIFF_NUMBER_v2": [
+      6724
+    ],
+    "BIFF_LABEL_v0": [
+      6728
+    ],
+    "BIFF_LABEL_v2": [
+      6729
+    ],
+    "BIFF_BOOLERR_v0": [
+      6733
+    ],
+    "BIFF_BOOLERR_v2": [
+      6734
+    ],
+    "BIFF_FORMULA_v0": [
+      6738
+    ],
+    "BIFF_FORMULA_v2": [
+      6739
+    ],
+    "BIFF_FORMULA_v4": [
+      6740
+    ],
+    "BIFF_ROW_v0": [
+      6742
+    ],
+    "BIFF_ROW_v2": [
+      6743
+    ],
+    "BIFF_EOF": [
+      6744,
+      7282
+    ],
+    "BIFF_INDEX_v0": [
+      6747
+    ],
+    "BIFF_INDEX_v2": [
+      6748
+    ],
+    "BIFF_CALCCOUNT": [
+      6750
+    ],
+    "BIFF_CALCMODE": [
+      6751
+    ],
+    "BIFF_PRECISION": [
+      6753,
+      7303
+    ],
+    "BIFF_REFMODE": [
+      6764
+    ],
+    "BIFF_DELTA": [
+      6765
+    ],
+    "BIFF_ITERATION": [
+      6766
+    ],
+    "BIFF_OBJPROTECT": [
+      6767,
+      7321
+    ],
+    "BIFF_PROTECT": [
+      6768,
+      7322
+    ],
+    "BIFF_PASSWORD": [
+      6770,
+      7326
+    ],
+    "BIFF_HEADER": [
+      6779
+    ],
+    "BIFF_FOOTER": [
+      6780
+    ],
+    "BIFF_EXTERNCOUNT": [
+      6782,
+      7298
+    ],
+    "BIFF_EXTERNSHEET": [
+      6783,
+      7299
+    ],
+    "BIFF_VERTICALPAGEBREAKS": [
+      6787
+    ],
+    "BIFF_HORIZONTALPAGEBREAKS": [
+      6788
+    ],
+    "BIFF_NOTE": [
+      6790
+    ],
+    "BIFF_SELECTION": [
+      6791,
+      7363
+    ],
+    "BIFF_EXTERNNAME_v0": [
+      6792,
+      7339
+    ],
+    "BIFF_EXTERNNAME_v2": [
+      6793,
+      7340
+    ],
+    "BIFF_DEFAULTROWHEIGHT_v0": [
+      6796
+    ],
+    "BIFF_DEFAULTROWHEIGHT_v2": [
+      6797
+    ],
+    "BIFF_PRINTHEADERS": [
+      6808
+    ],
+    "BIFF_PRINTGRIDLINES": [
+      6812
+    ],
+    "BIFF_WINDOW1": [
+      6816,
+      7289
+    ],
+    "BIFF_WINDOW2_v0": [
+      6817
+    ],
+    "BIFF_WINDOW2_v2": [
+      6818
+    ],
+    "BIFF_BACKUP": [
+      6821,
+      7316
+    ],
+    "BIFF_PANE": [
+      6822
+    ],
+    "BIFF_PLS": [
+      6824
+    ],
+    "BIFF_DEFCOLWIDTH": [
+      6826
+    ],
+    "BIFF_OBJ": [
+      6828,
+      7377
+    ],
+    "BIFF_SAVERECALC": [
+      6830
+    ],
+    "BIFF_TAB_COLOR": [
+      6831
+    ],
+    "BIFF_COLINFO": [
+      6832
+    ],
+    "BIFF_RK": [
+      6834
+    ],
+    "BIFF_IMDATA": [
+      6836
+    ],
+    "BIFF_GUTS": [
+      6842
+    ],
+    "BIFF_WSBOOL": [
+      6843
+    ],
+    "BIFF_GRIDSET": [
+      6844
+    ],
+    "BIFF_HCENTER": [
+      6846
+    ],
+    "BIFF_VCENTER": [
+      6847
+    ],
+    "BIFF_COUNTRY": [
+      6849,
+      7355
+    ],
+    "BIFF_STANDARDWIDTH": [
+      6850
+    ],
+    "BIFF_FILTERMODE": [
+      6851
+    ],
+    "BIFF_AUTOFILTERINFO": [
+      6852
+    ],
+    "BIFF_AUTOFILTER": [
+      6853
+    ],
+    "BIFF_SCL": [
+      6854,
+      7378
+    ],
+    "BIFF_SETUP": [
+      6855
+    ],
+    "BIFF_GCW": [
+      6856
+    ],
+    "BIFF_SCENMAN": [
+      6857
+    ],
+    "BIFF_SCENARIO": [
+      6858
+    ],
+    "BIFF_MULRK": [
+      6859
+    ],
+    "BIFF_MULBLANK": [
+      6860
+    ],
+    "BIFF_RSTRING": [
+      6862
+    ],
+    "BIFF_DBCELL": [
+      6864
+    ],
+    "BIFF_BG_PIC": [
+      6866
+    ],
+    "BIFF_MERGECELLS": [
+      6867
+    ],
+    "BIFF_MS_O_DRAWING": [
+      6869,
+      7380
+    ],
+    "BIFF_MS_O_DRAWING_GROUP": [
+      6870,
+      7381
+    ],
+    "BIFF_MS_O_DRAWING_SELECTION": [
+      6871,
+      7382
+    ],
+    "BIFF_PHONETIC": [
+      6874
+    ],
+    "BIFF_LABELSST": [
+      6876
+    ],
+    "BIFF_XF_OLD_v0": [
+      6880,
+      7293
+    ],
+    "BIFF_XF_OLD_v2": [
+      6881,
+      7294
+    ],
+    "BIFF_XF_OLD_v4": [
+      6882,
+      7295
+    ],
+    "BIFF_XF_INDEX": [
+      6885
+    ],
+    "BIFF_NAME_v0": [
+      6889,
+      7341
+    ],
+    "BIFF_NAME_v2": [
+      6890,
+      7342
+    ],
+    "BIFF_FONT_v0": [
+      6891,
+      7287
+    ],
+    "BIFF_FONT_v2": [
+      6892,
+      7288
+    ],
+    "BIFF_FORMAT_v0": [
+      6893,
+      7313
+    ],
+    "BIFF_FORMAT_v4": [
+      6894,
+      7314
+    ],
+    "BIFF_STYLE": [
+      6895,
+      7333
+    ],
+    "BIFF_1904": [
+      6896,
+      7361
+    ],
+    "BIFF_FILEPASS": [
+      6897,
+      7329
+    ],
+    "BIFF_CONDFMT": [
+      6906
+    ],
+    "BIFF_CF": [
+      6909
+    ],
+    "BIFF_DVAL": [
+      6912
+    ],
+    "BIFF_HLINK": [
+      6913
+    ],
+    "BIFF_CODENAME": [
+      6914,
+      7414
+    ],
+    "BIFF_DV": [
+      6916
+    ],
+    "BIFF_SXVIEWEX9": [
+      6921
+    ],
+    "BIFF_SHEETPROTECTION": [
+      6927
+    ],
+    "BIFF_CHART_units": [
+      6939
+    ],
+    "BIFF_SXVIEW": [
+      6947
+    ],
+    "BIFF_SXVD": [
+      6948
+    ],
+    "BIFF_SXVDEX": [
+      6949
+    ],
+    "BIFF_SXVI": [
+      6950
+    ],
+    "BIFF_SXIVD": [
+      6951
+    ],
+    "BIFF_BOUNDSHEET": [
+      7290
+    ],
+    "BIFF_PALETTE": [
+      7291
+    ],
+    "BIFF_XF": [
+      7296
+    ],
+    "BIFF_CODEPAGE": [
+      7317
+    ],
+    "BIFF_WINDOWPROTECT": [
+      7336
+    ],
+    "BIFF_XCT": [
+      7343
+    ],
+    "BIFF_WRITEACCESS": [
+      7345
+    ],
+    "BIFF_HIDEOBJ": [
+      7348
+    ],
+    "BIFF_FNGROUPCOUNT": [
+      7349
+    ],
+    "BIFF_MMS": [
+      7350
+    ],
+    "BIFF_OBPROJ": [
+      7353
+    ],
+    "BIFF_BOOKBOOL": [
+      7354
+    ],
+    "BIFF_INTERFACEHDR": [
+      7356
+    ],
+    "BIFF_INTERFACEEND": [
+      7357
+    ],
+    "BIFF_TOOLBARHDR": [
+      7358
+    ],
+    "BIFF_TOOLBAREND": [
+      7359
+    ],
+    "BIFF_TABIDCONF": [
+      7379
+    ],
+    "BIFF_ADDMENU": [
+      7386
+    ],
+    "BIFF_SST": [
+      7392
+    ],
+    "BIFF_EXTSST": [
+      7393
+    ],
+    "BIFF_DSF": [
+      7395
+    ],
+    "BIFF_XL5MODIFY": [
+      7396
+    ],
+    "BIFF_XL9FILE": [
+      7407
+    ],
+    "BIFF_RECALCID": [
+      7411
+    ],
+    "BIFF_UNCALCED": [
+      7412
+    ],
+    "BIFF_REFRESHALL": [
+      7413
+    ],
+    "BIFF_PROT4REVPASS": [
+      7415
+    ],
+    "BIFF_USESELFS": [
+      7417
+    ],
+    "BIFF_TABID": [
+      7418
+    ],
+    "BIFF_PROT4REV": [
+      7419
+    ],
+    "BIFF_SUPBOOK": [
+      7423
+    ],
+    "BIFF_SXStreamID": [
+      7425
+    ]
+  },
+  "definedOpcodes": {
+    "0": [
+      "DIMENSIONS_v0"
+    ],
+    "1": [
+      "BLANK_v0"
+    ],
+    "2": [
+      "INTEGER"
+    ],
+    "3": [
+      "NUMBER_v0"
+    ],
+    "4": [
+      "LABEL_v0"
+    ],
+    "5": [
+      "BOOLERR_v0"
+    ],
+    "6": [
+      "FORMULA_v0"
+    ],
+    "7": [
+      "STRING_v0"
+    ],
+    "8": [
+      "ROW_v0"
+    ],
+    "9": [
+      "BOF_v0"
+    ],
+    "10": [
+      "EOF"
+    ],
+    "11": [
+      "INDEX_v0"
+    ],
+    "12": [
+      "CALCCOUNT"
+    ],
+    "13": [
+      "CALCMODE"
+    ],
+    "14": [
+      "PRECISION"
+    ],
+    "15": [
+      "REFMODE"
+    ],
+    "16": [
+      "DELTA"
+    ],
+    "17": [
+      "ITERATION"
+    ],
+    "18": [
+      "PROTECT"
+    ],
+    "19": [
+      "PASSWORD"
+    ],
+    "20": [
+      "HEADER"
+    ],
+    "21": [
+      "FOOTER"
+    ],
+    "22": [
+      "EXTERNCOUNT"
+    ],
+    "23": [
+      "EXTERNSHEET"
+    ],
+    "24": [
+      "NAME_v0"
+    ],
+    "25": [
+      "WINDOWPROTECT"
+    ],
+    "26": [
+      "VERTICALPAGEBREAKS"
+    ],
+    "27": [
+      "HORIZONTALPAGEBREAKS"
+    ],
+    "28": [
+      "NOTE"
+    ],
+    "29": [
+      "SELECTION"
+    ],
+    "30": [
+      "FORMAT_v0"
+    ],
+    "31": [
+      "FORMATCOUNT"
+    ],
+    "32": [
+      "COLUMNDEFAULT"
+    ],
+    "33": [
+      "ARRAY_v0"
+    ],
+    "34": [
+      "1904"
+    ],
+    "35": [
+      "EXTERNNAME_v0"
+    ],
+    "36": [
+      "COLWIDTH"
+    ],
+    "37": [
+      "DEFAULTROWHEIGHT_v0"
+    ],
+    "38": [
+      "LEFT_MARGIN"
+    ],
+    "39": [
+      "RIGHT_MARGIN"
+    ],
+    "40": [
+      "TOP_MARGIN"
+    ],
+    "41": [
+      "BOTTOM_MARGIN"
+    ],
+    "42": [
+      "PRINTHEADERS"
+    ],
+    "43": [
+      "PRINTGRIDLINES"
+    ],
+    "47": [
+      "FILEPASS"
+    ],
+    "49": [
+      "FONT_v0"
+    ],
+    "50": [
+      "FONTCOUNT"
+    ],
+    "51": [
+      "PRINTSIZE"
+    ],
+    "54": [
+      "TABLE_v0"
+    ],
+    "55": [
+      "TABLE2"
+    ],
+    "56": [
+      "WNDESK"
+    ],
+    "57": [
+      "ZOOM"
+    ],
+    "58": [
+      "BEGINPREF"
+    ],
+    "59": [
+      "ENDPREF"
+    ],
+    "60": [
+      "CONTINUE"
+    ],
+    "61": [
+      "WINDOW1"
+    ],
+    "62": [
+      "WINDOW2_v0"
+    ],
+    "63": [
+      "PANE_V2"
+    ],
+    "64": [
+      "BACKUP"
+    ],
+    "65": [
+      "PANE"
+    ],
+    "66": [
+      "CODEPAGE"
+    ],
+    "67": [
+      "XF_OLD_v0"
+    ],
+    "68": [
+      "XF_INDEX"
+    ],
+    "69": [
+      "FONT_COLOR"
+    ],
+    "77": [
+      "PLS"
+    ],
+    "80": [
+      "DCON"
+    ],
+    "81": [
+      "DCONREF"
+    ],
+    "82": [
+      "DCONNAME"
+    ],
+    "85": [
+      "DEFCOLWIDTH"
+    ],
+    "89": [
+      "XCT"
+    ],
+    "90": [
+      "CRN"
+    ],
+    "91": [
+      "FILESHARING"
+    ],
+    "92": [
+      "WRITEACCESS"
+    ],
+    "93": [
+      "OBJ"
+    ],
+    "94": [
+      "UNCALCED"
+    ],
+    "95": [
+      "SAVERECALC"
+    ],
+    "96": [
+      "TEMPLATE"
+    ],
+    "97": [
+      "INTL"
+    ],
+    "99": [
+      "OBJPROTECT"
+    ],
+    "125": [
+      "COLINFO"
+    ],
+    "127": [
+      "IMDATA"
+    ],
+    "128": [
+      "GUTS"
+    ],
+    "129": [
+      "WSBOOL"
+    ],
+    "130": [
+      "GRIDSET"
+    ],
+    "131": [
+      "HCENTER"
+    ],
+    "132": [
+      "VCENTER"
+    ],
+    "133": [
+      "BOUNDSHEET"
+    ],
+    "134": [
+      "WRITEPROT"
+    ],
+    "135": [
+      "ADDIN"
+    ],
+    "136": [
+      "EDG"
+    ],
+    "137": [
+      "PUB"
+    ],
+    "140": [
+      "COUNTRY"
+    ],
+    "141": [
+      "HIDEOBJ"
+    ],
+    "142": [
+      "BUNDLESOFFSET"
+    ],
+    "143": [
+      "BUNDLEHEADER"
+    ],
+    "144": [
+      "SORT"
+    ],
+    "145": [
+      "SUB"
+    ],
+    "146": [
+      "PALETTE"
+    ],
+    "148": [
+      "LHRECORD"
+    ],
+    "149": [
+      "LHNGRAPH"
+    ],
+    "150": [
+      "SOUND"
+    ],
+    "151": [
+      "SYNC"
+    ],
+    "152": [
+      "LPR"
+    ],
+    "153": [
+      "STANDARDWIDTH"
+    ],
+    "154": [
+      "FNGROUPNAME"
+    ],
+    "155": [
+      "FILTERMODE"
+    ],
+    "156": [
+      "FNGROUPCOUNT"
+    ],
+    "157": [
+      "AUTOFILTERINFO"
+    ],
+    "158": [
+      "AUTOFILTER"
+    ],
+    "160": [
+      "SCL"
+    ],
+    "161": [
+      "SETUP"
+    ],
+    "164": [
+      "TOOLBARVER"
+    ],
+    "169": [
+      "COORDLIST"
+    ],
+    "171": [
+      "GCW"
+    ],
+    "174": [
+      "SCENMAN"
+    ],
+    "175": [
+      "SCENARIO"
+    ],
+    "176": [
+      "SXVIEW"
+    ],
+    "177": [
+      "SXVD"
+    ],
+    "178": [
+      "SXVI"
+    ],
+    "179": [
+      "SXSI"
+    ],
+    "180": [
+      "SXIVD"
+    ],
+    "181": [
+      "SXLI"
+    ],
+    "182": [
+      "SXPI"
+    ],
+    "183": [
+      "FACENUM"
+    ],
+    "184": [
+      "DOCROUTE"
+    ],
+    "185": [
+      "RECIPNAME"
+    ],
+    "186": [
+      "SSLIST"
+    ],
+    "187": [
+      "MASKIMDATA"
+    ],
+    "189": [
+      "MULRK"
+    ],
+    "190": [
+      "MULBLANK"
+    ],
+    "191": [
+      "TOOLBARHDR"
+    ],
+    "192": [
+      "TOOLBAREND"
+    ],
+    "193": [
+      "MMS"
+    ],
+    "194": [
+      "ADDMENU"
+    ],
+    "195": [
+      "DELMENU"
+    ],
+    "196": [
+      "TIPHISTORY"
+    ],
+    "197": [
+      "SXDI"
+    ],
+    "198": [
+      "SXDB"
+    ],
+    "199": [
+      "SXFDB"
+    ],
+    "200": [
+      "SXDDB"
+    ],
+    "201": [
+      "SXNUM"
+    ],
+    "202": [
+      "SXBOOL"
+    ],
+    "203": [
+      "SXERR"
+    ],
+    "204": [
+      "SXINT"
+    ],
+    "205": [
+      "SXSTRING"
+    ],
+    "206": [
+      "SXDTR"
+    ],
+    "207": [
+      "SXNIL"
+    ],
+    "208": [
+      "SXTBL"
+    ],
+    "209": [
+      "SXTBRGIITM"
+    ],
+    "210": [
+      "SXTBPG"
+    ],
+    "211": [
+      "OBPROJ"
+    ],
+    "213": [
+      "SXStreamID"
+    ],
+    "214": [
+      "RSTRING"
+    ],
+    "215": [
+      "DBCELL"
+    ],
+    "216": [
+      "SXNUMGROUP"
+    ],
+    "218": [
+      "BOOKBOOL"
+    ],
+    "220": [
+      "PARAMQRY",
+      "SXEXT"
+    ],
+    "221": [
+      "SCENPROTECT"
+    ],
+    "222": [
+      "OLESIZE"
+    ],
+    "223": [
+      "UDDESC"
+    ],
+    "224": [
+      "XF"
+    ],
+    "225": [
+      "INTERFACEHDR"
+    ],
+    "226": [
+      "INTERFACEEND"
+    ],
+    "227": [
+      "SXVS"
+    ],
+    "229": [
+      "MERGECELLS"
+    ],
+    "233": [
+      "BG_PIC"
+    ],
+    "234": [
+      "TABIDCONF"
+    ],
+    "235": [
+      "MS_O_DRAWING_GROUP"
+    ],
+    "236": [
+      "MS_O_DRAWING"
+    ],
+    "237": [
+      "MS_O_DRAWING_SELECTION"
+    ],
+    "239": [
+      "PHONETIC"
+    ],
+    "240": [
+      "SXRULE"
+    ],
+    "241": [
+      "SXEX"
+    ],
+    "242": [
+      "SXFILT"
+    ],
+    "246": [
+      "SXNAME"
+    ],
+    "247": [
+      "SXSELECT"
+    ],
+    "248": [
+      "SXPAIR"
+    ],
+    "249": [
+      "SXFMLA"
+    ],
+    "251": [
+      "SXFORMAT"
+    ],
+    "252": [
+      "SST"
+    ],
+    "253": [
+      "LABELSST"
+    ],
+    "255": [
+      "EXTSST"
+    ],
+    "256": [
+      "SXVDEX"
+    ],
+    "259": [
+      "SXFORMULA"
+    ],
+    "290": [
+      "SXDBEX"
+    ],
+    "311": [
+      "CHTRINSERT"
+    ],
+    "312": [
+      "CHTRINFO"
+    ],
+    "315": [
+      "CHTRCELLCONTENT"
+    ],
+    "317": [
+      "TABID"
+    ],
+    "320": [
+      "CHTRMOVERANGE"
+    ],
+    "333": [
+      "CHTRINSERTTAB"
+    ],
+    "351": [
+      "LABELRANGES"
+    ],
+    "352": [
+      "USESELFS"
+    ],
+    "353": [
+      "DSF"
+    ],
+    "354": [
+      "XL5MODIFY"
+    ],
+    "406": [
+      "CHTRHEADER"
+    ],
+    "421": [
+      "FILESHARING2"
+    ],
+    "425": [
+      "USERDBVIEW"
+    ],
+    "426": [
+      "USERSVIEWBEGIN"
+    ],
+    "427": [
+      "USERSVIEWEND"
+    ],
+    "429": [
+      "QSI"
+    ],
+    "430": [
+      "SUPBOOK"
+    ],
+    "431": [
+      "PROT4REV"
+    ],
+    "432": [
+      "CONDFMT"
+    ],
+    "433": [
+      "CF"
+    ],
+    "434": [
+      "DVAL"
+    ],
+    "437": [
+      "DCONBIN"
+    ],
+    "438": [
+      "TXO"
+    ],
+    "439": [
+      "REFRESHALL"
+    ],
+    "440": [
+      "HLINK"
+    ],
+    "442": [
+      "CODENAME"
+    ],
+    "443": [
+      "SXFDBTYPE"
+    ],
+    "444": [
+      "PROT4REVPASS"
+    ],
+    "446": [
+      "DV"
+    ],
+    "448": [
+      "XL9FILE"
+    ],
+    "449": [
+      "RECALCID"
+    ],
+    "512": [
+      "DIMENSIONS_v2"
+    ],
+    "513": [
+      "BLANK_v2"
+    ],
+    "515": [
+      "NUMBER_v2"
+    ],
+    "516": [
+      "LABEL_v2"
+    ],
+    "517": [
+      "BOOLERR_v2"
+    ],
+    "518": [
+      "FORMULA_v2"
+    ],
+    "519": [
+      "STRING_v2"
+    ],
+    "520": [
+      "ROW_v2"
+    ],
+    "521": [
+      "BOF_v2"
+    ],
+    "523": [
+      "INDEX_v2"
+    ],
+    "536": [
+      "NAME_v2"
+    ],
+    "545": [
+      "ARRAY_v2"
+    ],
+    "547": [
+      "EXTERNNAME_v2"
+    ],
+    "549": [
+      "DEFAULTROWHEIGHT_v2"
+    ],
+    "561": [
+      "FONT_v2"
+    ],
+    "566": [
+      "TABLE_v2"
+    ],
+    "574": [
+      "WINDOW2_v2"
+    ],
+    "579": [
+      "XF_OLD_v2"
+    ],
+    "638": [
+      "RK"
+    ],
+    "659": [
+      "STYLE"
+    ],
+    "1030": [
+      "FORMULA_v4"
+    ],
+    "1033": [
+      "BOF_v4"
+    ],
+    "1054": [
+      "FORMAT_v4"
+    ],
+    "1091": [
+      "XF_OLD_v4"
+    ],
+    "1212": [
+      "SHRFMLA"
+    ],
+    "2048": [
+      "LINK_TIP"
+    ],
+    "2049": [
+      "WEBPUB"
+    ],
+    "2050": [
+      "QSISXTAG"
+    ],
+    "2051": [
+      "DBQUERYEXT"
+    ],
+    "2052": [
+      "EXTSTRING"
+    ],
+    "2053": [
+      "TXTQUERY"
+    ],
+    "2054": [
+      "QSIR"
+    ],
+    "2055": [
+      "QSIF"
+    ],
+    "2057": [
+      "BOF_v8"
+    ],
+    "2058": [
+      "OLEDBCONN"
+    ],
+    "2059": [
+      "WOPT"
+    ],
+    "2060": [
+      "SXVIEWEX"
+    ],
+    "2061": [
+      "SXTH"
+    ],
+    "2062": [
+      "SXPIEX"
+    ],
+    "2063": [
+      "SXVDTEX"
+    ],
+    "2064": [
+      "SXVIEWEX9"
+    ],
+    "2066": [
+      "CONTINUEFRT"
+    ],
+    "2067": [
+      "REALTIMEDATA"
+    ],
+    "2146": [
+      "TAB_COLOR",
+      "SHEETEXT"
+    ],
+    "2147": [
+      "BOOKEXT"
+    ],
+    "2148": [
+      "SXADDL"
+    ],
+    "2149": [
+      "CRASHRECERR"
+    ],
+    "2150": [
+      "HFPICTURE"
+    ],
+    "2151": [
+      "SHEETPROTECTION"
+    ],
+    "2152": [
+      "RANGEPROTECTION"
+    ],
+    "4097": [
+      "CHART_units"
+    ],
+    "4098": [
+      "CHART_chart"
+    ],
+    "4099": [
+      "CHART_series"
+    ],
+    "4102": [
+      "CHART_dataformat"
+    ],
+    "4103": [
+      "CHART_lineformat"
+    ],
+    "4105": [
+      "CHART_markerformat"
+    ],
+    "4106": [
+      "CHART_areaformat"
+    ],
+    "4107": [
+      "CHART_pieformat"
+    ],
+    "4108": [
+      "CHART_attachedlabel"
+    ],
+    "4109": [
+      "CHART_seriestext"
+    ],
+    "4116": [
+      "CHART_chartformat"
+    ],
+    "4117": [
+      "CHART_legend"
+    ],
+    "4118": [
+      "CHART_serieslist"
+    ],
+    "4119": [
+      "CHART_bar"
+    ],
+    "4120": [
+      "CHART_line"
+    ],
+    "4121": [
+      "CHART_pie"
+    ],
+    "4122": [
+      "CHART_area"
+    ],
+    "4123": [
+      "CHART_scatter"
+    ],
+    "4124": [
+      "CHART_chartline"
+    ],
+    "4125": [
+      "CHART_axis"
+    ],
+    "4126": [
+      "CHART_tick"
+    ],
+    "4127": [
+      "CHART_valuerange"
+    ],
+    "4128": [
+      "CHART_catserrange"
+    ],
+    "4129": [
+      "CHART_axislineformat"
+    ],
+    "4130": [
+      "CHART_chartformatlink"
+    ],
+    "4132": [
+      "CHART_defaulttext"
+    ],
+    "4133": [
+      "CHART_text"
+    ],
+    "4134": [
+      "CHART_fontx"
+    ],
+    "4135": [
+      "CHART_objectlink"
+    ],
+    "4146": [
+      "CHART_frame"
+    ],
+    "4147": [
+      "CHART_begin"
+    ],
+    "4148": [
+      "CHART_end"
+    ],
+    "4149": [
+      "CHART_plotarea"
+    ],
+    "4154": [
+      "CHART_3d"
+    ],
+    "4156": [
+      "CHART_picf"
+    ],
+    "4157": [
+      "CHART_dropbar"
+    ],
+    "4158": [
+      "CHART_radar"
+    ],
+    "4159": [
+      "CHART_surf"
+    ],
+    "4160": [
+      "CHART_radararea"
+    ],
+    "4161": [
+      "CHART_axisparent"
+    ],
+    "4163": [
+      "CHART_legendxn"
+    ],
+    "4164": [
+      "CHART_shtprops"
+    ],
+    "4165": [
+      "CHART_sertocrt"
+    ],
+    "4166": [
+      "CHART_axesused"
+    ],
+    "4168": [
+      "CHART_sbaseref"
+    ],
+    "4170": [
+      "CHART_serparent"
+    ],
+    "4171": [
+      "CHART_serauxtrend"
+    ],
+    "4174": [
+      "CHART_ifmt"
+    ],
+    "4175": [
+      "CHART_pos"
+    ],
+    "4176": [
+      "CHART_alruns"
+    ],
+    "4177": [
+      "CHART_ai"
+    ],
+    "4187": [
+      "CHART_serauxerrbar"
+    ],
+    "4188": [
+      "CHART_clrtclient"
+    ],
+    "4189": [
+      "CHART_serfmt"
+    ],
+    "4191": [
+      "CHART_3dbarshape"
+    ],
+    "4192": [
+      "CHART_fbi"
+    ],
+    "4193": [
+      "CHART_boppop"
+    ],
+    "4194": [
+      "CHART_axcext"
+    ],
+    "4195": [
+      "CHART_dat"
+    ],
+    "4196": [
+      "CHART_plotgrowth"
+    ],
+    "4197": [
+      "CHART_siindex"
+    ],
+    "4198": [
+      "CHART_gelframe"
+    ],
+    "4199": [
+      "CHART_boppopcustom"
+    ],
+    "4288": [
+      "CHART_trendlimits"
+    ]
+  },
+  "formulaFunctionDescriptors": 381,
+  "coverageMeaning": "Each defined opcode has a source-inspected candidate disposition, not a parity result. Context/revision may change handling. Native-measured cases and all remaining mismatches are recorded in biff-verification.json; unsupported/unmeasured records are not passes.",
+  "implementationDispositions": {
+    "0": {
+      "names": [
+        "DIMENSIONS_v0"
+      ],
+      "handler": "bounds-only",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "DIMENSIONS/WINDOW1 minimum lengths checked; full native geometry/selection not imported."
+    },
+    "1": {
+      "names": [
+        "BLANK_v0"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "2": {
+      "names": [
+        "INTEGER"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "3": {
+      "names": [
+        "NUMBER_v0"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "4": {
+      "names": [
+        "LABEL_v0"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "5": {
+      "names": [
+        "BOOLERR_v0"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "6": {
+      "names": [
+        "FORMULA_v0"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "7": {
+      "names": [
+        "STRING_v0"
+      ],
+      "handler": "strings",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "SST and formula cache strings consume CONTINUE records; standalone CONTINUE falls through to retention."
+    },
+    "8": {
+      "names": [
+        "ROW_v0"
+      ],
+      "handler": "geometry",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Merged ranges and selected row/column metadata; complete default geometry unmeasured."
+    },
+    "9": {
+      "names": [
+        "BOF_v0"
+      ],
+      "handler": "structure",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "BOF/EOF scopes, declared sheet names/order and visibility; BIFF4 bundle naming and mixed DSF remain incomplete."
+    },
+    "10": {
+      "names": [
+        "EOF"
+      ],
+      "handler": "structure",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "BOF/EOF scopes, declared sheet names/order and visibility; BIFF4 bundle naming and mixed DSF remain incomplete."
+    },
+    "11": {
+      "names": [
+        "INDEX_v0"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "12": {
+      "names": [
+        "CALCCOUNT"
+      ],
+      "handler": "calculation",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Date system, calculation mode/iteration and sheet reference mode."
+    },
+    "13": {
+      "names": [
+        "CALCMODE"
+      ],
+      "handler": "calculation",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Date system, calculation mode/iteration and sheet reference mode."
+    },
+    "14": {
+      "names": [
+        "PRECISION"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "15": {
+      "names": [
+        "REFMODE"
+      ],
+      "handler": "calculation",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Date system, calculation mode/iteration and sheet reference mode."
+    },
+    "16": {
+      "names": [
+        "DELTA"
+      ],
+      "handler": "calculation",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Date system, calculation mode/iteration and sheet reference mode."
+    },
+    "17": {
+      "names": [
+        "ITERATION"
+      ],
+      "handler": "calculation",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Date system, calculation mode/iteration and sheet reference mode."
+    },
+    "18": {
+      "names": [
+        "PROTECT"
+      ],
+      "handler": "protection",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected sheet protection flag/raw records; no security/decryption guarantee; handling depends on scope."
+    },
+    "19": {
+      "names": [
+        "PASSWORD"
+      ],
+      "handler": "protection",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected sheet protection flag/raw records; no security/decryption guarantee; handling depends on scope."
+    },
+    "20": {
+      "names": [
+        "HEADER"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "21": {
+      "names": [
+        "FOOTER"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "22": {
+      "names": [
+        "EXTERNCOUNT"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "23": {
+      "names": [
+        "EXTERNSHEET"
+      ],
+      "handler": "external-references",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected internal/legacy declarations; unsupported external evaluation and sheet spans remain incomplete."
+    },
+    "24": {
+      "names": [
+        "NAME_v0"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "25": {
+      "names": [
+        "WINDOWPROTECT"
+      ],
+      "handler": "protection",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected sheet protection flag/raw records; no security/decryption guarantee; handling depends on scope."
+    },
+    "26": {
+      "names": [
+        "VERTICALPAGEBREAKS"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "27": {
+      "names": [
+        "HORIZONTALPAGEBREAKS"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "28": {
+      "names": [
+        "NOTE"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "29": {
+      "names": [
+        "SELECTION"
+      ],
+      "handler": "metadata-retained",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Recognized metadata envelope retained without semantic reconstruction or per-record loss warning."
+    },
+    "30": {
+      "names": [
+        "FORMAT_v0"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "31": {
+      "names": [
+        "FORMATCOUNT"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "32": {
+      "names": [
+        "COLUMNDEFAULT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "33": {
+      "names": [
+        "ARRAY_v0"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "34": {
+      "names": [
+        "1904"
+      ],
+      "handler": "calculation",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Date system, calculation mode/iteration and sheet reference mode."
+    },
+    "35": {
+      "names": [
+        "EXTERNNAME_v0"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "36": {
+      "names": [
+        "COLWIDTH"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "37": {
+      "names": [
+        "DEFAULTROWHEIGHT_v0"
+      ],
+      "handler": "metadata-retained",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Recognized metadata envelope retained without semantic reconstruction or per-record loss warning."
+    },
+    "38": {
+      "names": [
+        "LEFT_MARGIN"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "39": {
+      "names": [
+        "RIGHT_MARGIN"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "40": {
+      "names": [
+        "TOP_MARGIN"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "41": {
+      "names": [
+        "BOTTOM_MARGIN"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "42": {
+      "names": [
+        "PRINTHEADERS"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "43": {
+      "names": [
+        "PRINTGRIDLINES"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "47": {
+      "names": [
+        "FILEPASS"
+      ],
+      "handler": "encryption-rejected",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "FILEPASS rejected with exit 1; native diagnostic envelope differs; no XOR/RC4 decryption."
+    },
+    "49": {
+      "names": [
+        "FONT_v0"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "50": {
+      "names": [
+        "FONTCOUNT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "51": {
+      "names": [
+        "PRINTSIZE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "54": {
+      "names": [
+        "TABLE_v0"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "55": {
+      "names": [
+        "TABLE2"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "56": {
+      "names": [
+        "WNDESK"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "57": {
+      "names": [
+        "ZOOM"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "58": {
+      "names": [
+        "BEGINPREF"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "59": {
+      "names": [
+        "ENDPREF"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "60": {
+      "names": [
+        "CONTINUE"
+      ],
+      "handler": "strings",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "SST and formula cache strings consume CONTINUE records; standalone CONTINUE falls through to retention."
+    },
+    "61": {
+      "names": [
+        "WINDOW1"
+      ],
+      "handler": "bounds-only",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "DIMENSIONS/WINDOW1 minimum lengths checked; full native geometry/selection not imported."
+    },
+    "62": {
+      "names": [
+        "WINDOW2_v0"
+      ],
+      "handler": "metadata-retained",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Recognized metadata envelope retained without semantic reconstruction or per-record loss warning."
+    },
+    "63": {
+      "names": [
+        "PANE_V2"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "64": {
+      "names": [
+        "BACKUP"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "65": {
+      "names": [
+        "PANE"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "66": {
+      "names": [
+        "CODEPAGE"
+      ],
+      "handler": "encoding",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Global CODEPAGE replaces initial -E decoder; worksheet CODEPAGE is retained with warning."
+    },
+    "67": {
+      "names": [
+        "XF_OLD_v0"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "68": {
+      "names": [
+        "XF_INDEX"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "69": {
+      "names": [
+        "FONT_COLOR"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "77": {
+      "names": [
+        "PLS"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "80": {
+      "names": [
+        "DCON"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "81": {
+      "names": [
+        "DCONREF"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "82": {
+      "names": [
+        "DCONNAME"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "85": {
+      "names": [
+        "DEFCOLWIDTH"
+      ],
+      "handler": "metadata-retained",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Recognized metadata envelope retained without semantic reconstruction or per-record loss warning."
+    },
+    "89": {
+      "names": [
+        "XCT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "90": {
+      "names": [
+        "CRN"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "91": {
+      "names": [
+        "FILESHARING"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "92": {
+      "names": [
+        "WRITEACCESS"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "93": {
+      "names": [
+        "OBJ"
+      ],
+      "handler": "object-linkage",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "OBJ assists NOTE/TXO comment linkage; object/drawing content retained with warning."
+    },
+    "94": {
+      "names": [
+        "UNCALCED"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "95": {
+      "names": [
+        "SAVERECALC"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "96": {
+      "names": [
+        "TEMPLATE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "97": {
+      "names": [
+        "INTL"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "99": {
+      "names": [
+        "OBJPROTECT"
+      ],
+      "handler": "protection",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected sheet protection flag/raw records; no security/decryption guarantee; handling depends on scope."
+    },
+    "125": {
+      "names": [
+        "COLINFO"
+      ],
+      "handler": "geometry",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Merged ranges and selected row/column metadata; complete default geometry unmeasured."
+    },
+    "127": {
+      "names": [
+        "IMDATA"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "128": {
+      "names": [
+        "GUTS"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "129": {
+      "names": [
+        "WSBOOL"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "130": {
+      "names": [
+        "GRIDSET"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "131": {
+      "names": [
+        "HCENTER"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "132": {
+      "names": [
+        "VCENTER"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "133": {
+      "names": [
+        "BOUNDSHEET"
+      ],
+      "handler": "structure",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "BOF/EOF scopes, declared sheet names/order and visibility; BIFF4 bundle naming and mixed DSF remain incomplete."
+    },
+    "134": {
+      "names": [
+        "WRITEPROT"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "135": {
+      "names": [
+        "ADDIN"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "136": {
+      "names": [
+        "EDG"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "137": {
+      "names": [
+        "PUB"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "140": {
+      "names": [
+        "COUNTRY"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "141": {
+      "names": [
+        "HIDEOBJ"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "142": {
+      "names": [
+        "BUNDLESOFFSET"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "143": {
+      "names": [
+        "BUNDLEHEADER"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "144": {
+      "names": [
+        "SORT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "145": {
+      "names": [
+        "SUB"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "146": {
+      "names": [
+        "PALETTE"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "148": {
+      "names": [
+        "LHRECORD"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "149": {
+      "names": [
+        "LHNGRAPH"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "150": {
+      "names": [
+        "SOUND"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "151": {
+      "names": [
+        "SYNC"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "152": {
+      "names": [
+        "LPR"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "153": {
+      "names": [
+        "STANDARDWIDTH"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "154": {
+      "names": [
+        "FNGROUPNAME"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "155": {
+      "names": [
+        "FILTERMODE"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "156": {
+      "names": [
+        "FNGROUPCOUNT"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "157": {
+      "names": [
+        "AUTOFILTERINFO"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "158": {
+      "names": [
+        "AUTOFILTER"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "160": {
+      "names": [
+        "SCL"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "161": {
+      "names": [
+        "SETUP"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "164": {
+      "names": [
+        "TOOLBARVER"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "169": {
+      "names": [
+        "COORDLIST"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "171": {
+      "names": [
+        "GCW"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "174": {
+      "names": [
+        "SCENMAN"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "175": {
+      "names": [
+        "SCENARIO"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "176": {
+      "names": [
+        "SXVIEW"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "177": {
+      "names": [
+        "SXVD"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "178": {
+      "names": [
+        "SXVI"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "179": {
+      "names": [
+        "SXSI"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "180": {
+      "names": [
+        "SXIVD"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "181": {
+      "names": [
+        "SXLI"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "182": {
+      "names": [
+        "SXPI"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "183": {
+      "names": [
+        "FACENUM"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "184": {
+      "names": [
+        "DOCROUTE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "185": {
+      "names": [
+        "RECIPNAME"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "186": {
+      "names": [
+        "SSLIST"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "187": {
+      "names": [
+        "MASKIMDATA"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "189": {
+      "names": [
+        "MULRK"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "190": {
+      "names": [
+        "MULBLANK"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "191": {
+      "names": [
+        "TOOLBARHDR"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "192": {
+      "names": [
+        "TOOLBAREND"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "193": {
+      "names": [
+        "MMS"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "194": {
+      "names": [
+        "ADDMENU"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "195": {
+      "names": [
+        "DELMENU"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "196": {
+      "names": [
+        "TIPHISTORY"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "197": {
+      "names": [
+        "SXDI"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "198": {
+      "names": [
+        "SXDB"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "199": {
+      "names": [
+        "SXFDB"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "200": {
+      "names": [
+        "SXDDB"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "201": {
+      "names": [
+        "SXNUM"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "202": {
+      "names": [
+        "SXBOOL"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "203": {
+      "names": [
+        "SXERR"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "204": {
+      "names": [
+        "SXINT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "205": {
+      "names": [
+        "SXSTRING"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "206": {
+      "names": [
+        "SXDTR"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "207": {
+      "names": [
+        "SXNIL"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "208": {
+      "names": [
+        "SXTBL"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "209": {
+      "names": [
+        "SXTBRGIITM"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "210": {
+      "names": [
+        "SXTBPG"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "211": {
+      "names": [
+        "OBPROJ"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "213": {
+      "names": [
+        "SXStreamID"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "214": {
+      "names": [
+        "RSTRING"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "215": {
+      "names": [
+        "DBCELL"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "216": {
+      "names": [
+        "SXNUMGROUP"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "218": {
+      "names": [
+        "BOOKBOOL"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "220": {
+      "names": [
+        "PARAMQRY",
+        "SXEXT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "221": {
+      "names": [
+        "SCENPROTECT"
+      ],
+      "handler": "protection",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected sheet protection flag/raw records; no security/decryption guarantee; handling depends on scope."
+    },
+    "222": {
+      "names": [
+        "OLESIZE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "223": {
+      "names": [
+        "UDDESC"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "224": {
+      "names": [
+        "XF"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "225": {
+      "names": [
+        "INTERFACEHDR"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "226": {
+      "names": [
+        "INTERFACEEND"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "227": {
+      "names": [
+        "SXVS"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "229": {
+      "names": [
+        "MERGECELLS"
+      ],
+      "handler": "geometry",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Merged ranges and selected row/column metadata; complete default geometry unmeasured."
+    },
+    "233": {
+      "names": [
+        "BG_PIC"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "234": {
+      "names": [
+        "TABIDCONF"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "235": {
+      "names": [
+        "MS_O_DRAWING_GROUP"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "236": {
+      "names": [
+        "MS_O_DRAWING"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "237": {
+      "names": [
+        "MS_O_DRAWING_SELECTION"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "239": {
+      "names": [
+        "PHONETIC"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "240": {
+      "names": [
+        "SXRULE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "241": {
+      "names": [
+        "SXEX"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "242": {
+      "names": [
+        "SXFILT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "246": {
+      "names": [
+        "SXNAME"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "247": {
+      "names": [
+        "SXSELECT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "248": {
+      "names": [
+        "SXPAIR"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "249": {
+      "names": [
+        "SXFMLA"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "251": {
+      "names": [
+        "SXFORMAT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "252": {
+      "names": [
+        "SST"
+      ],
+      "handler": "strings",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "SST and formula cache strings consume CONTINUE records; standalone CONTINUE falls through to retention."
+    },
+    "253": {
+      "names": [
+        "LABELSST"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "255": {
+      "names": [
+        "EXTSST"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "256": {
+      "names": [
+        "SXVDEX"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "259": {
+      "names": [
+        "SXFORMULA"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "290": {
+      "names": [
+        "SXDBEX"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "311": {
+      "names": [
+        "CHTRINSERT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "312": {
+      "names": [
+        "CHTRINFO"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "315": {
+      "names": [
+        "CHTRCELLCONTENT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "317": {
+      "names": [
+        "TABID"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "320": {
+      "names": [
+        "CHTRMOVERANGE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "333": {
+      "names": [
+        "CHTRINSERTTAB"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "351": {
+      "names": [
+        "LABELRANGES"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "352": {
+      "names": [
+        "USESELFS"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "353": {
+      "names": [
+        "DSF"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "354": {
+      "names": [
+        "XL5MODIFY"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "406": {
+      "names": [
+        "CHTRHEADER"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "421": {
+      "names": [
+        "FILESHARING2"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "425": {
+      "names": [
+        "USERDBVIEW"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "426": {
+      "names": [
+        "USERSVIEWBEGIN"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "427": {
+      "names": [
+        "USERSVIEWEND"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "429": {
+      "names": [
+        "QSI"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "430": {
+      "names": [
+        "SUPBOOK"
+      ],
+      "handler": "external-references",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected internal/legacy declarations; unsupported external evaluation and sheet spans remain incomplete."
+    },
+    "431": {
+      "names": [
+        "PROT4REV"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "432": {
+      "names": [
+        "CONDFMT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "433": {
+      "names": [
+        "CF"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "434": {
+      "names": [
+        "DVAL"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "437": {
+      "names": [
+        "DCONBIN"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "438": {
+      "names": [
+        "TXO"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "439": {
+      "names": [
+        "REFRESHALL"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "440": {
+      "names": [
+        "HLINK"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "442": {
+      "names": [
+        "CODENAME"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "443": {
+      "names": [
+        "SXFDBTYPE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "444": {
+      "names": [
+        "PROT4REVPASS"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "446": {
+      "names": [
+        "DV"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "448": {
+      "names": [
+        "XL9FILE"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "449": {
+      "names": [
+        "RECALCID"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "512": {
+      "names": [
+        "DIMENSIONS_v2"
+      ],
+      "handler": "bounds-only",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "DIMENSIONS/WINDOW1 minimum lengths checked; full native geometry/selection not imported."
+    },
+    "513": {
+      "names": [
+        "BLANK_v2"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "515": {
+      "names": [
+        "NUMBER_v2"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "516": {
+      "names": [
+        "LABEL_v2"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "517": {
+      "names": [
+        "BOOLERR_v2"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "518": {
+      "names": [
+        "FORMULA_v2"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "519": {
+      "names": [
+        "STRING_v2"
+      ],
+      "handler": "strings",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "SST and formula cache strings consume CONTINUE records; standalone CONTINUE falls through to retention."
+    },
+    "520": {
+      "names": [
+        "ROW_v2"
+      ],
+      "handler": "geometry",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Merged ranges and selected row/column metadata; complete default geometry unmeasured."
+    },
+    "521": {
+      "names": [
+        "BOF_v2"
+      ],
+      "handler": "structure",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "BOF/EOF scopes, declared sheet names/order and visibility; BIFF4 bundle naming and mixed DSF remain incomplete."
+    },
+    "523": {
+      "names": [
+        "INDEX_v2"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "536": {
+      "names": [
+        "NAME_v2"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "545": {
+      "names": [
+        "ARRAY_v2"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "547": {
+      "names": [
+        "EXTERNNAME_v2"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "549": {
+      "names": [
+        "DEFAULTROWHEIGHT_v2"
+      ],
+      "handler": "metadata-retained",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Recognized metadata envelope retained without semantic reconstruction or per-record loss warning."
+    },
+    "561": {
+      "names": [
+        "FONT_v2"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "566": {
+      "names": [
+        "TABLE_v2"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "574": {
+      "names": [
+        "WINDOW2_v2"
+      ],
+      "handler": "print-comments-view",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected print/view/comment fields; raw metadata retained, not exhaustive native semantic coverage."
+    },
+    "579": {
+      "names": [
+        "XF_OLD_v2"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "638": {
+      "names": [
+        "RK"
+      ],
+      "handler": "values",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Cells, RK/multiple cells and labels; invalid-XF behavior differs; rich-label extension bytes are retained."
+    },
+    "659": {
+      "names": [
+        "STYLE"
+      ],
+      "handler": "ignored",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Skipped auxiliary/index/settings records; no semantic parity claim."
+    },
+    "1030": {
+      "names": [
+        "FORMULA_v4"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "1033": {
+      "names": [
+        "BOF_v4"
+      ],
+      "handler": "structure",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "BOF/EOF scopes, declared sheet names/order and visibility; BIFF4 bundle naming and mixed DSF remain incomplete."
+    },
+    "1054": {
+      "names": [
+        "FORMAT_v4"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "1091": {
+      "names": [
+        "XF_OLD_v4"
+      ],
+      "handler": "styles",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Selected formats/XF/font/palette mappings; full native style inheritance and locale parity unmeasured."
+    },
+    "1212": {
+      "names": [
+        "SHRFMLA"
+      ],
+      "handler": "formulas-and-names",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Bounded token/group/name translation and caches; unsupported tokens retain caches/raw bytes with warnings."
+    },
+    "2048": {
+      "names": [
+        "LINK_TIP"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2049": {
+      "names": [
+        "WEBPUB"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2050": {
+      "names": [
+        "QSISXTAG"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2051": {
+      "names": [
+        "DBQUERYEXT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2052": {
+      "names": [
+        "EXTSTRING"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2053": {
+      "names": [
+        "TXTQUERY"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2054": {
+      "names": [
+        "QSIR"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2055": {
+      "names": [
+        "QSIF"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2057": {
+      "names": [
+        "BOF_v8"
+      ],
+      "handler": "structure",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "BOF/EOF scopes, declared sheet names/order and visibility; BIFF4 bundle naming and mixed DSF remain incomplete."
+    },
+    "2058": {
+      "names": [
+        "OLEDBCONN"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2059": {
+      "names": [
+        "WOPT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2060": {
+      "names": [
+        "SXVIEWEX"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2061": {
+      "names": [
+        "SXTH"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2062": {
+      "names": [
+        "SXPIEX"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2063": {
+      "names": [
+        "SXVDTEX"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2064": {
+      "names": [
+        "SXVIEWEX9"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2066": {
+      "names": [
+        "CONTINUEFRT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2067": {
+      "names": [
+        "REALTIMEDATA"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2146": {
+      "names": [
+        "TAB_COLOR",
+        "SHEETEXT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2147": {
+      "names": [
+        "BOOKEXT"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2148": {
+      "names": [
+        "SXADDL"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2149": {
+      "names": [
+        "CRASHRECERR"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2150": {
+      "names": [
+        "HFPICTURE"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "2151": {
+      "names": [
+        "SHEETPROTECTION"
+      ],
+      "handler": "metadata-retained",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Recognized metadata envelope retained without semantic reconstruction or per-record loss warning."
+    },
+    "2152": {
+      "names": [
+        "RANGEPROTECTION"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4097": {
+      "names": [
+        "CHART_units"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4098": {
+      "names": [
+        "CHART_chart"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4099": {
+      "names": [
+        "CHART_series"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4102": {
+      "names": [
+        "CHART_dataformat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4103": {
+      "names": [
+        "CHART_lineformat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4105": {
+      "names": [
+        "CHART_markerformat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4106": {
+      "names": [
+        "CHART_areaformat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4107": {
+      "names": [
+        "CHART_pieformat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4108": {
+      "names": [
+        "CHART_attachedlabel"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4109": {
+      "names": [
+        "CHART_seriestext"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4116": {
+      "names": [
+        "CHART_chartformat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4117": {
+      "names": [
+        "CHART_legend"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4118": {
+      "names": [
+        "CHART_serieslist"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4119": {
+      "names": [
+        "CHART_bar"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4120": {
+      "names": [
+        "CHART_line"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4121": {
+      "names": [
+        "CHART_pie"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4122": {
+      "names": [
+        "CHART_area"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4123": {
+      "names": [
+        "CHART_scatter"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4124": {
+      "names": [
+        "CHART_chartline"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4125": {
+      "names": [
+        "CHART_axis"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4126": {
+      "names": [
+        "CHART_tick"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4127": {
+      "names": [
+        "CHART_valuerange"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4128": {
+      "names": [
+        "CHART_catserrange"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4129": {
+      "names": [
+        "CHART_axislineformat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4130": {
+      "names": [
+        "CHART_chartformatlink"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4132": {
+      "names": [
+        "CHART_defaulttext"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4133": {
+      "names": [
+        "CHART_text"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4134": {
+      "names": [
+        "CHART_fontx"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4135": {
+      "names": [
+        "CHART_objectlink"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4146": {
+      "names": [
+        "CHART_frame"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4147": {
+      "names": [
+        "CHART_begin"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4148": {
+      "names": [
+        "CHART_end"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4149": {
+      "names": [
+        "CHART_plotarea"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4154": {
+      "names": [
+        "CHART_3d"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4156": {
+      "names": [
+        "CHART_picf"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4157": {
+      "names": [
+        "CHART_dropbar"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4158": {
+      "names": [
+        "CHART_radar"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4159": {
+      "names": [
+        "CHART_surf"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4160": {
+      "names": [
+        "CHART_radararea"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4161": {
+      "names": [
+        "CHART_axisparent"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4163": {
+      "names": [
+        "CHART_legendxn"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4164": {
+      "names": [
+        "CHART_shtprops"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4165": {
+      "names": [
+        "CHART_sertocrt"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4166": {
+      "names": [
+        "CHART_axesused"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4168": {
+      "names": [
+        "CHART_sbaseref"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4170": {
+      "names": [
+        "CHART_serparent"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4171": {
+      "names": [
+        "CHART_serauxtrend"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4174": {
+      "names": [
+        "CHART_ifmt"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4175": {
+      "names": [
+        "CHART_pos"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4176": {
+      "names": [
+        "CHART_alruns"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4177": {
+      "names": [
+        "CHART_ai"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4187": {
+      "names": [
+        "CHART_serauxerrbar"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4188": {
+      "names": [
+        "CHART_clrtclient"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4189": {
+      "names": [
+        "CHART_serfmt"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4191": {
+      "names": [
+        "CHART_3dbarshape"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4192": {
+      "names": [
+        "CHART_fbi"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4193": {
+      "names": [
+        "CHART_boppop"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4194": {
+      "names": [
+        "CHART_axcext"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4195": {
+      "names": [
+        "CHART_dat"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4196": {
+      "names": [
+        "CHART_plotgrowth"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4197": {
+      "names": [
+        "CHART_siindex"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4198": {
+      "names": [
+        "CHART_gelframe"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4199": {
+      "names": [
+        "CHART_boppopcustom"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    },
+    "4288": {
+      "names": [
+        "CHART_trendlimits"
+      ],
+      "handler": "retained-uninterpreted",
+      "status": "NOT_AN_OPCODE_PARITY_PASS",
+      "detail": "Default retained original bytes with loss warning in workbook/worksheet scope; chart/unsupported BOF scopes retain without per-record warning. No semantic reconstruction."
+    }
+  }
+}

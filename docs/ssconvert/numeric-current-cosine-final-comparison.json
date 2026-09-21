@@ -1,0 +1,8 @@
+{
+  "seed": 6192908,
+  "cases": 2048,
+  "passes": 2048,
+  "mismatches": 0,
+  "failures": [],
+  "reference": "held native v2 fields; original previously matching baseline bits preserved"
+}

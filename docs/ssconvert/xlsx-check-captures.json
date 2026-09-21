@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 1,
+  "task": "xlsx-read",
+  "captureRole": "Task-owned temporary logs and inspected visual evidence; hashes, diagnostic excerpts and final guarded root lint summary retained before cleanup.",
+  "entries": [
+    {
+      "path": "out/xlsx-axes-filters-red.log",
+      "bytes": 6048,
+      "sha256": "c20b5a8d2873bc6e0f42425db7b0b999a892bef9a6978ab5f9c7bc6dfd4668e4",
+      "excerpt": "\n\n@@ -2,12 +2,10 @@\n    {\n      \"collapsed\": true,\n      \"hidden\": true,\n      \"index\": 1,\n      \"outlineLevel\": 2,\n-     \"sizePoints\": 97.5,\n    },\n    {\n      \"index\": 2,\n-     \"sizePoints\": 97.5,\n    },\n  ]\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:108:35\n\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > retains the native custom-filter field rather than claiming value-list filtering\nAssertionError: expected '<?xml version=\"1.0\" encoding=\"UTF-8\"?…' to contain '<gnm:Filter Area=\"A1:B2\">'\n\n- Expected\n+ Received\n\n- <gnm:Filter Area=\"A1:B2\">\n+ <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n+ <gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n+   <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n+   <gnm:DateConvention>1904</gnm:DateConvention>\n+   <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" gnm:DateConvention=\"Apple:1904\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n+   <gnm:SheetNameIndex>\n+     <gnm:SheetName gnm:Cols=\"16384\" gnm:Rows=\"1048576\">Résumé</gnm:SheetName>\n+   </gnm:SheetNameIndex>\n+   <gnm:Sheets>\n+     <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n+       <gnm:Name>Résumé</gnm:Name>\n+       <gnm:MaxCol>0</gnm:MaxCol>\n+       <gnm:MaxRow>0</gnm:MaxRow>\n+       <gnm:Zoom>1</gnm:Zoom>\n+       <gnm:Cols/>\n+       <gnm:Rows/>\n+       <gnm:Cells/>\n+     </gnm:Sheet>\n+   </gnm:Sheets>\n+   <gnm:UIData SelectedTab=\"0\"/>\n+ </gnm:Workbook>\n+\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:119:15\n\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed | 14 passed (16)\n   Start at  10:59:23\n   Duration  1.63s (transform 586ms, setup 41ms, import 682ms, tests 834ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-build-final.log",
+      "bytes": 2354,
+      "sha256": "fbf07bf7a839233f668e7929b0802c5d5c0a5651db4ef3e66b00c468b9781a43"
+    },
+    {
+      "path": "out/xlsx-build-verified.log",
+      "bytes": 2354,
+      "sha256": "6ee69e2472f08160b6aae5d6cb6eb179c4cd928a9b11ba77ee727d56e8943ff4"
+    },
+    {
+      "path": "out/xlsx-build.log",
+      "bytes": 716,
+      "sha256": "648daf0944bd6b81abe6938bfb9686040049b1e77b426f395240f42b8eefbbcc"
+    },
+    {
+      "path": "out/xlsx-check-build.log",
+      "bytes": 716,
+      "sha256": "648daf0944bd6b81abe6938bfb9686040049b1e77b426f395240f42b8eefbbcc"
+    },
+    {
+      "path": "out/xlsx-check-lint.log",
+      "bytes": 132,
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "path": "out/xlsx-check-unit.log",
+      "bytes": 12099,
+      "sha256": "c995f6ef55977ca834a67569313d20f8662423c97e92f7e24f273816e20b1cca"
+    },
+    {
+      "path": "out/xlsx-cli.png",
+      "bytes": 100347,
+      "sha256": "984725b51bf4c3b6a6465fcfcdf56bd0e5e78d0fae964a7ad957e5bf2c47aa8c"
+    },
+    {
+      "path": "out/xlsx-duplicate-root-red.log",
+      "bytes": 6169,
+      "sha256": "9567c5172754d716e9407f72fd5df8fb2633758ac71bedc369706cf21be322ea",
+      "excerpt": "zed Error: { code: 'io', exitCode: 1 }\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > reuses the native duplicate sheet identity and last relationship\nSsconvertError: E Invalid XLSX: missing worksheet relationship\n ❯ invalid packages/ssconvert/src/codecs/xlsx.ts:47:50\n     45|   await visit(root, \"START\", []);\n     46| }\n     47| function invalid(message: string): never { throw new SsconvertError(\"i…\n       |                                                  ^\n     48| function limit(message: string): never { throw new SsconvertError(\"res…\n     49| function children(node: XmlElement | undefined, name: string): XmlElem…\n ❯ readXlsx packages/ssconvert/src/codecs/xlsx.ts:228:43\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:151:16\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > uses native conversion failure diagnostics for unsupported workbook root namespaces\nSsconvertError: E Invalid XLSX: unsupported workbook namespace\n ❯ invalid packages/ssconvert/src/codecs/xlsx.ts:47:50\n     45|   await visit(root, \"START\", []);\n     46| }\n     47| function invalid(message: string): never { throw new SsconvertError(\"i…\n       |                                                  ^\n     48| function limit(message: string): never { throw new SsconvertError(\"res…\n     49| function children(node: XmlElement | undefined, name: string): XmlElem…\n ❯ rootIs packages/ssconvert/src/codecs/xlsx.ts:167:78\n ❯ Object.readXlsx [as read] packages/ssconvert/src/codecs/xlsx.ts:202:96\n ❯ read packages/ssconvert/src/engine.ts:224:21\n ❯ packages/ssconvert/src/engine.ts:509:26\n ❯ packages/ssconvert/src/engine.ts:151:18\n ❯ session packages/ssconvert/src/engine.ts:167:14\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:158:20\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed | 20 passed (22)\n   Start at  11:05:50\n   Duration  1.84s (transform 646ms, setup 51ms, import 753ms, tests 953ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-final-build.log",
+      "bytes": 2354,
+      "sha256": "7bfdd06bf85ab9fd9ab24985ce0ee7eaab4a7b51f259cf16a2f8d413901fc48a",
+      "excerpt": "guard-package-dist.mjs && tsc\n\n\n> @poe-code/safe-fs@0.0.0-dev build\n> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs\n\n\n> @poe-code/safe-playwright@0.0.0-dev build\n> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json\n\n\n> @poe-platform/op@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json\n\n{\"nativeAssets\":\"/Users/kjopek/Workspace/poe-code-5/packages/safe-fs/dist/native/fs-seek\",\"targets\":[]}\n\n> toolcraft-schema@0.0.1 build\n> rm -rf dist && tsc\n\n\n> @poe-code/safe-python@0.0.0-dev build\n> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json\n\n\n> @poe-code/ssconvert@0.0.1 build\n> node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> pptx@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-contracts@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> toolcraft-design@0.0.2 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> toolcraft-design@0.0.2 postbuild\n> node scripts/smoke-built-exports.mjs\n\n\n> @poe-code/package-lint@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> @poe-code/pandoc@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-command-exiftool@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> safe-bash-command-wkhtmltopdf@0.0.1 build\n> node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> @poe-code/csvkit@0.0.1 build\n> node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc\n\n\n> @poe-platform/safe-bash@0.0.0 build\n> node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs\n\n\n> @poe-platform/safe-bash@0.0.0 postbuild\n> node scripts/build-optional-cli.mjs\n\n{\"workspaces\":85,\"builds\":18,\"edges\":237,\"layers\":10,\"noBuild\":[],\"manifestless\":[\"packages/braintrust\",\"packages/safe-bash-optional\"]}\n"
+    },
+    {
+      "path": "out/xlsx-final-lint.log",
+      "bytes": 132,
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "path": "out/xlsx-final-safe-tests.log",
+      "bytes": 11654,
+      "sha256": "1fdea40c5f2ad41bb7cf663493783b92f59cae1902ddeac75f5bfa860c0bcc5c",
+      "excerpt": "nation namespace effects\n  ---\n  duration_ms: 1.285583\n  type: 'test'\n  ...\n# Subtest: ssconvert hidden codec accessor denial matches SDK and preserves destination\nok 43 - ssconvert hidden codec accessor denial matches SDK and preserves destination\n  ---\n  duration_ms: 1.823916\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual fd stdout preserves data bytes and warnings without VFS effects\nok 44 - ssconvert virtual fd stdout preserves data bytes and warnings without VFS effects\n  ---\n  duration_ms: 3.551791\n  type: 'test'\n  ...\n# Subtest: ssconvert virtual image enum listing and invalid expressions use stderr\nok 45 - ssconvert virtual image enum listing and invalid expressions use stderr\n  ---\n  duration_ms: 9.171417\n  type: 'test'\n  ...\n# Subtest: ssconvert actual virtual merge preserves notices and native duplicate names\nok 46 - ssconvert actual virtual merge preserves notices and native duplicate names\n  ---\n  duration_ms: 3.285708\n  type: 'test'\n  ...\n# Subtest: ssconvert native publication breaks hardlinks and preserves terminal symlinks and mode\nok 47 - ssconvert native publication breaks hardlinks and preserves terminal symlinks and mode\n  ---\n  duration_ms: 6.560417\n  type: 'test'\n  ...\n# Subtest: ssconvert loading diagnostics retain the resolved virtual filename\nok 48 - ssconvert loading diagnostics retain the resolved virtual filename\n  ---\n  duration_ms: 1.152333\n  type: 'test'\n  ...\n# Subtest: ssconvert shares date/finance/calendar clocks and 1900 metadata with SDK and replay\nok 49 - ssconvert shares date/finance/calendar clocks and 1900 metadata with SDK and replay\n  ---\n  duration_ms: 22.371\n  type: 'test'\n  ...\n# Subtest: ssconvert shares date/finance/calendar clocks and 1904 metadata with SDK and replay\nok 50 - ssconvert shares date/finance/calendar clocks and 1904 metadata with SDK and replay\n  ---\n  duration_ms: 5.909875\n  type: 'test'\n  ...\n1..50\n# tests 50\n# suites 0\n# pass 50\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1818.537167\n"
+    },
+    {
+      "path": "out/xlsx-final-test.log",
+      "bytes": 12112,
+      "sha256": "c78f41a0ff85b2568d9b6f5464a0955b91c17c05a07efddce063ec87c70d41e3",
+      "excerpt": "onometry.test.ts (3 tests) 3ms\n ✓ packages/ssconvert/src/codecs/text-export-stress.test.ts (15 tests) 8ms\n ✓ packages/ssconvert/src/formulas/numeric-function-inventory.test.ts (1 test) 5ms\n ✓ packages/ssconvert/src/formatting/number-format.test.ts (21 tests) 17ms\n ✓ packages/ssconvert/src/io/io.test.ts (4 tests) 6ms\n ✓ packages/ssconvert/src/formulas/legacy.test.ts (5 tests) 19ms\n ✓ packages/ssconvert/src/encoding-current-independent.test.ts (29 tests) 6ms\n ✓ packages/ssconvert/src/codecs/text-stress-current.test.ts (11 tests) 6ms\n ✓ packages/ssconvert/src/formulas/numeric-excel.test.ts (15 tests) 7ms\n ✓ packages/ssconvert/src/formulas/conventions-independent.test.ts (7 tests) 9ms\n ✓ packages/ssconvert/src/formulas-regression.test.ts (3 tests) 7ms\n ✓ packages/ssconvert/src/cli/export-options-stress.test.ts (27 tests) 10ms\n ✓ packages/ssconvert/src/formulas/odf-sheet-regression.test.ts (7 tests) 7ms\n ✓ packages/ssconvert/src/cli/export-options.test.ts (13 tests) 8ms\n ✓ packages/ssconvert/src/io/authority-cleanup-stress.test.ts (8 tests) 7ms\n ✓ packages/ssconvert/src/cli/inherited.test.ts (12 tests) 6ms\n ✓ packages/ssconvert/src/workbook/ownership.test.ts (4 tests) 4ms\n ✓ packages/ssconvert/src/formulas/numeric-native-writer.test.ts (7 tests) 5ms\n ✓ packages/ssconvert/src/formatting/scientific-precision.test.ts (4 tests) 6ms\n ✓ packages/ssconvert/src/io/binding.test.ts (1 test) 4ms\n ✓ packages/ssconvert/src/codecs/provider-discovery.test.ts (1 test) 5ms\n ✓ packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts (11 tests) 6ms\n ✓ packages/ssconvert/src/cli/group-aliases.test.ts (3 tests) 4ms\n ✓ packages/ssconvert/src/codecs.test.ts (2 tests) 3ms\n ✓ packages/ssconvert/src/codecs/export-options-stress.test.ts (3 tests) 3ms\n ✓ packages/ssconvert/src/io/names.test.ts (1 test) 3ms\n\n Test Files  147 passed (147)\n      Tests  4031 passed (4031)\n   Start at  11:07:17\n   Duration  25.04s (transform 3.23s, setup 2.52s, import 20.71s, tests 9.79s, environment 11ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-green.log",
+      "bytes": 4064,
+      "sha256": "b3e503325bf7635225a91d90e560845c3e4a3b593398988b05080866e22eed97"
+    },
+    {
+      "path": "out/xlsx-header-red.log",
+      "bytes": 5843,
+      "sha256": "1a8418207cc13045b341c69b3e5e54a9238263632856a9f0dba2a45371f1635f",
+      "excerpt": "ader Left=\"Header &amp;[PAGE]\"…'\n\n- Expected\n+ Received\n\n- <gnm:Header Left=\"Header &amp;[PAGE]\" Middle=\"\" Right=\"\"/>\n+ <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n+ <gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n+   <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n+   <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n+   <gnm:SheetNameIndex>\n+     <gnm:SheetName gnm:Cols=\"16384\" gnm:Rows=\"1048576\">S</gnm:SheetName>\n+   </gnm:SheetNameIndex>\n+   <gnm:Sheets>\n+     <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n+       <gnm:Name>S</gnm:Name>\n+       <gnm:MaxCol>0</gnm:MaxCol>\n+       <gnm:MaxRow>0</gnm:MaxRow>\n+       <gnm:Zoom>1</gnm:Zoom>\n+       <gnm:PrintInformation>\n+         <gnm:Header Left=\"\" Middle=\"Header &amp;[PAGE]\" Right=\"\"/>\n+         <gnm:Footer Left=\"\" Middle=\"Footer\" Right=\"\"/>\n+       </gnm:PrintInformation>\n+       <gnm:Cols/>\n+       <gnm:Rows/>\n+       <gnm:Cells/>\n+     </gnm:Sheet>\n+   </gnm:Sheets>\n+   <gnm:UIData SelectedTab=\"0\"/>\n+ </gnm:Workbook>\n+\n\n ❯ packages/ssconvert/src/codecs/xlsx-independent.test.ts:120:15\n    118| it(\"exports unqualified odd header/footer text in native Left section\"…\n    119|   const { xml } = await load('<sheetData/><headerFooter><oddHeader>Hea…\n    120|   expect(xml).toContain('<gnm:Header Left=\"Header &amp;[PAGE]\" Middle=…\n       |               ^\n    121|   expect(xml).toContain('<gnm:Footer Left=\"Footer\" Middle=\"\" Right=\"\"/…\n    122| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 17 passed (18)\n   Start at  11:03:20\n   Duration  2.17s (transform 968ms, setup 57ms, import 1.11s, tests 892ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-hyperlink-red.log",
+      "bytes": 6136,
+      "sha256": "9eae584827b47acc380a88a8df0dd352482708ac8d8dfb8648d2a7efe2845fb0",
+      "excerpt": "\n- Expected\n+ Received\n\n- type=\"GnmHLinkURL\" target=\"https://example.com/\" tip=\"tip\"\n+ <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n+ <gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n+   <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n+   <gnm:DateConvention>1904</gnm:DateConvention>\n+   <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" gnm:DateConvention=\"Apple:1904\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n+   <gnm:SheetNameIndex>\n+     <gnm:SheetName gnm:Cols=\"16384\" gnm:Rows=\"1048576\">Résumé</gnm:SheetName>\n+   </gnm:SheetNameIndex>\n+   <gnm:Sheets>\n+     <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n+       <gnm:Name>Résumé</gnm:Name>\n+       <gnm:MaxCol>0</gnm:MaxCol>\n+       <gnm:MaxRow>0</gnm:MaxRow>\n+       <gnm:Zoom>1</gnm:Zoom>\n+       <gnm:Cols/>\n+       <gnm:Rows>\n+         <gnm:RowInfo No=\"0\" Unit=\"0\"/>\n+       </gnm:Rows>\n+       <gnm:Cells>\n+         <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"60\">original</gnm:Cell>\n+       </gnm:Cells>\n+     </gnm:Sheet>\n+   </gnm:Sheets>\n+   <gnm:UIData SelectedTab=\"0\"/>\n+ </gnm:Workbook>\n+\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:134:15\n    132|   expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: \"string\", va…\n    133|   const xml = new TextDecoder().decode(await writeGnumeric(book, [], c…\n    134|   expect(xml).toContain('type=\"GnmHLinkURL\" target=\"https://example.co…\n       |               ^\n    135|   expect(xml).toContain('type=\"GnmHLinkCurWB\" target=\"S!C3\"');\n    136| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 17 passed (18)\n   Start at  11:02:13\n   Duration  1.71s (transform 651ms, setup 41ms, import 773ms, tests 803ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-inherited-axis-red.log",
+      "bytes": 3636,
+      "sha256": "8b1732f5e3360a02819ea770782ea7b85973de44e804bf23af35334f4d50a7bd",
+      "excerpt": "alue-list filtering 32ms\n   ✓ imports namespace-qualified core document properties through root relationships 59ms\n   ✓ imports hyperlinks as owned styles without fetching external targets 50ms\n   ✓ charges cell/metadata comparisons against the workbook work budget 47ms\n   × applies inherited column/row styles with explicit cell precedence 57ms\nFAIL packages/ssconvert/src/codecs/xlsx.test.ts > applies inherited column/row styles with explicit cell precedence\nAssertionError: expected [ undefined, undefined, 'General' ] to deeply equal [ '0.00', '0%', 'General' ]\n\n- Expected\n+ Received\n\n  [\n-   \"0.00\",\n-   \"0%\",\n+   undefined,\n+   undefined,\n    \"General\",\n  ]\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:147:52\n    145|   data[\"xl/_rels/workbook.xml.rels\"] = data[\"xl/_rels/workbook.xml.rel…\n    146|   const book = await readXlsx(await fixture({ ...data, \"xl/styles.xml\"…\n    147|   expect(book.sheets[0]!.cells.map(c => c.format)).toEqual([\"0.00\", \"0…\n       |                                                    ^\n    148| });\n    149|\n\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > applies inherited column/row styles with explicit cell precedence\nAssertionError: expected [ undefined, undefined, 'General' ] to deeply equal [ '0.00', '0%', 'General' ]\n\n- Expected\n+ Received\n\n  [\n-   \"0.00\",\n-   \"0%\",\n+   undefined,\n+   undefined,\n    \"General\",\n  ]\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:147:52\n    145|   data[\"xl/_rels/workbook.xml.rels\"] = data[\"xl/_rels/workbook.xml.rel…\n    146|   const book = await readXlsx(await fixture({ ...data, \"xl/styles.xml\"…\n    147|   expect(book.sheets[0]!.cells.map(c => c.format)).toEqual([\"0.00\", \"0…\n       |                                                    ^\n    148| });\n    149|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 19 passed (20)\n   Start at  11:04:13\n   Duration  2.69s (transform 1.26s, setup 67ms, import 1.50s, tests 1.00s, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-invalid-name-red.log",
+      "bytes": 3732,
+      "sha256": "9b4b577da2431f795ca78487c9ecf786aba615d6c92861cf5f9aceeed90c5348",
+      "excerpt": " relationships 41ms\n   ✓ imports hyperlinks as owned styles without fetching external targets 41ms\n   ✓ charges cell/metadata comparisons against the workbook work budget 39ms\n   ✓ applies inherited column/row styles with explicit cell precedence 43ms\n   ✓ reuses the native duplicate sheet identity and last relationship 32ms\n   ✓ uses native conversion failure diagnostics for unsupported workbook root namespaces 38ms\n   × warns for an invalid ordinary name while preserving its previous valid expression 38ms\nFAIL packages/ssconvert/src/codecs/xlsx.test.ts > warns for an invalid ordinary name while preserving its previous valid expression\nAssertionError: expected [] to deeply equal [ Array(1) ]\n\n- Expected\n+ Received\n\n- [\n-   \"At A1: '!#REF!' Invalid expression\n- \",\n- ]\n+ []\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:168:20\n    166|   const book = await readXlsx(await fixture(parts('', workbook)), { ..…\n    167|   expect(book.names).toEqual([{ name: \"Print_Area\", expression: \"=S!$A…\n    168|   expect(messages).toEqual([\"At A1: '!#REF!' Invalid expression\\n\"]);\n       |                    ^\n    169| });\n    170|\n\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > warns for an invalid ordinary name while preserving its previous valid expression\nAssertionError: expected [] to deeply equal [ Array(1) ]\n\n- Expected\n+ Received\n\n- [\n-   \"At A1: '!#REF!' Invalid expression\n- \",\n- ]\n+ []\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:168:20\n    166|   const book = await readXlsx(await fixture(parts('', workbook)), { ..…\n    167|   expect(book.names).toEqual([{ name: \"Print_Area\", expression: \"=S!$A…\n    168|   expect(messages).toEqual([\"At A1: '!#REF!' Invalid expression\\n\"]);\n       |                    ^\n    169| });\n    170|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 22 passed (23)\n   Start at  11:06:53\n   Duration  1.94s (transform 695ms, setup 44ms, import 823ms, tests 988ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-lint-current.log",
+      "bytes": 132,
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "path": "out/xlsx-lint-final.log",
+      "bytes": 132,
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "path": "out/xlsx-lint-second.log",
+      "bytes": 971,
+      "sha256": "4e6312ebe27a8ff346f6d5fb525ae15eeb28dab94d2fa554a8af1a58e3d4d82a"
+    },
+    {
+      "path": "out/xlsx-lint-third.log",
+      "bytes": 132,
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "path": "out/xlsx-lint-verified.log",
+      "bytes": 132,
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "path": "out/xlsx-lint.log",
+      "bytes": 132,
+      "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "path": "out/xlsx-metadata-red.log",
+      "bytes": 6441,
+      "sha256": "1036ff222a0dbdfaed72fdc94607fbdbff4bb3d90a7bde258f49c28a8622ea4f",
+      "excerpt": "readXlsx(await fixture(parts('', workbook)), cont…\n     83|   expect(book.dateSystem).toBe(\"1904\");\n     84|   expect(book.names).toEqual([{ name: \"Global\", expression: \"=1+2\" },\n       |                      ^\n     85|     { name: \"Print_Area\", expression: \"=S!$A$1:$B$2\", sheet: \"sheet-1\"…\n     86| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > exports interpreted comments, print settings and sheet protection\nAssertionError: expected '<?xml version=\"1.0\" encoding=\"UTF-8\"?…' to contain 'Protected=\"1\"'\n\n- Expected\n+ Received\n\n- Protected=\"1\"\n+ <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n+ <gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n+   <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n+   <gnm:DateConvention>1904</gnm:DateConvention>\n+   <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" gnm:DateConvention=\"Apple:1904\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n+   <gnm:SheetNameIndex>\n+     <gnm:SheetName gnm:Cols=\"16384\" gnm:Rows=\"1048576\">Résumé</gnm:SheetName>\n+   </gnm:SheetNameIndex>\n+   <gnm:Sheets>\n+     <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n+       <gnm:Name>Résumé</gnm:Name>\n+       <gnm:MaxCol>0</gnm:MaxCol>\n+       <gnm:MaxRow>0</gnm:MaxRow>\n+       <gnm:Zoom>1</gnm:Zoom>\n+       <gnm:Cols/>\n+       <gnm:Rows/>\n+       <gnm:Cells/>\n+     </gnm:Sheet>\n+   </gnm:Sheets>\n+   <gnm:UIData SelectedTab=\"0\"/>\n+ </gnm:Workbook>\n+\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:93:18\n\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed | 11 passed (13)\n   Start at  10:56:09\n   Duration  1.42s (transform 590ms, setup 36ms, import 685ms, tests 624ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-metadata-work-red.log",
+      "bytes": 187975,
+      "sha256": "626fbe69238ee2c5b586cd7db3dfe5a3f48c7215f30869e993f6b747b9dec3dd",
+      "excerpt": "      },\n+                 \"children\": [],\n+                 \"name\": \"hyperlink\",\n+                 \"namespace\": \"http://schemas.openxmlformats.org/spreadsheetml/2006/main\",\n+                 \"text\": \"\",\n+               },\n+               {\n+                 \"attributes\": {\n+                   \"location\": \"S!A1\",\n+                   \"ref\": \"A1:J1\",\n+                 },\n+                 \"children\": [],\n+                 \"name\": \"hyperlink\",\n+                 \"namespace\": \"http://schemas.openxmlformats.org/spreadsheetml/2006/main\",\n+                 \"text\": \"\",\n+               },\n+               {\n+                 \"attributes\": {\n+                   \"location\": \"S!A1\",\n+                   \"ref\": \"A1:J1\",\n+                 },\n+                 \"children\": [],\n+                 \"name\": \"hyperlink\",\n+                 \"namespace\": \"http://schemas.openxmlformats.org/spreadsheetml/2006/main\",\n+                 \"text\": \"\",\n+               },\n+             ],\n+             \"name\": \"hyperlinks\",\n+             \"namespace\": \"http://schemas.openxmlformats.org/spreadsheetml/2006/main\",\n+             \"text\": \"\",\n+           },\n+           \"disposition\": \"retained\",\n+           \"kind\": \"hyperlinks\",\n+           \"source\": \"xl/worksheets/sheet1.xml\",\n+         },\n+       ],\n+       \"view\": {\n+         \"gnumeric\": {},\n+       },\n+       \"visibility\": \"visible\",\n+     },\n+   ],\n  }\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:141:70\n    139|   const links = Array.from({ length: 10 }, () => '<hyperlink ref=\"A1:J…\n    140|   await expect(readXlsx(await fixture(parts(`<sheetData><row>${cells}<…\n    141|     { ...context, limits: { ...context.limits, workbookWork: 100 } }))…\n       |                                                                      ^\n    142| });\n    143|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 18 passed (19)\n   Start at  11:02:48\n   Duration  1.70s (transform 618ms, setup 38ms, import 739ms, tests 841ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-names-red.log",
+      "bytes": 2094,
+      "sha256": "2d47d6b5ddfe99fa667396c9bc02dbdf9adb394bf1a5bde0b2eebb41f24598c2",
+      "excerpt": "\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts (12 tests | 1 failed) 561ms\n   ✓ imports an OOXML template using injected memfs bytes (store) 55ms\n   ✓ imports an OOXML template using injected memfs bytes (deflate) 53ms\n   ✓ resolves shared strings and custom formats through workbook relationships 57ms\n   ✓ uses the native workbook-member probe rather than extension or content type 13ms\n   ✓ rejects external workbook relationships, traversal, entities and aggregate inflation 146ms\n   ✓ copies borrowed bytes and observes cancellation 34ms\n   ✓ imports source-supported namespace http://schemas.openxmlformats.org/spreadsheetml/2006/main 32ms\n   ✓ imports source-supported namespace http://schemas.openxmlformats.org/spreadsheetml/2006/7/main 33ms\n   ✓ imports source-supported namespace http://schemas.openxmlformats.org/spreadsheetml/2006/5/main 33ms\n   ✓ imports source-supported namespace http://schemas.microsoft.com/office/excel/2006/2 33ms\n   ✓ imports source-supported namespace http://schemas.microsoft.com/office/spreadsheetml/2009/9/main 33ms\n   × imports workbook scoped names, native reserved names and date1904 on 38ms\nFAIL packages/ssconvert/src/codecs/xlsx.test.ts > imports workbook scoped names, native reserved names and date1904 on\nAssertionError: expected '1900' to be '1904' // Object.is equality\n\nExpected: \"1904\"\nReceived: \"1900\"\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:83:27\n\n\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > imports workbook scoped names, native reserved names and date1904 on\nAssertionError: expected '1900' to be '1904' // Object.is equality\n\nExpected: \"1904\"\nReceived: \"1900\"\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:83:27\n\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 11 passed (12)\n   Start at  10:55:10\n   Duration  1.37s (transform 589ms, setup 38ms, import 695ms, tests 561ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-print-precision-red.log",
+      "bytes": 5679,
+      "sha256": "7967ff8a3ead9bc1d6cdce7fab18f6eee629d04d19c12242d355e25af611c383",
+      "excerpt": "…' to contain 'Points=\"8.889\"'\n\n- Expected\n+ Received\n\n- Points=\"8.889\"\n+ <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n+ <gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n+   <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n+   <gnm:DateConvention>1904</gnm:DateConvention>\n+   <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" gnm:DateConvention=\"Apple:1904\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n+   <gnm:SheetNameIndex>\n+     <gnm:SheetName gnm:Cols=\"16384\" gnm:Rows=\"1048576\">Résumé</gnm:SheetName>\n+   </gnm:SheetNameIndex>\n+   <gnm:Sheets>\n+     <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n+       <gnm:Name>Résumé</gnm:Name>\n+       <gnm:MaxCol>0</gnm:MaxCol>\n+       <gnm:MaxRow>0</gnm:MaxRow>\n+       <gnm:Zoom>1</gnm:Zoom>\n+       <gnm:PrintInformation>\n+         <gnm:Margins>\n+           <gnm:top Points=\"8.88883\" PrefUnit=\"mm\"/>\n+         </gnm:Margins>\n+       </gnm:PrintInformation>\n+       <gnm:Cols/>\n+       <gnm:Rows/>\n+       <gnm:Cells/>\n+     </gnm:Sheet>\n+   </gnm:Sheets>\n+   <gnm:UIData SelectedTab=\"0\"/>\n+ </gnm:Workbook>\n+\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:104:76\n    102| it(\"uses the source writer's four significant digits for imported prin…\n    103|   const book = await readXlsx(await fixture(parts('<sheetData/><pageMa…\n    104|   expect(new TextDecoder().decode(await writeGnumeric(book, [], contex…\n       |                                                                            ^\n    105| });\n    106|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 13 passed (14)\n   Start at  10:58:08\n   Duration  1.57s (transform 590ms, setup 35ms, import 703ms, tests 743ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-props-red.log",
+      "bytes": 2861,
+      "sha256": "0bd622b18154d5e83b8ee7df15c12034c211e8f228464ba9897f04cebec5a781",
+      "excerpt": "://schemas.openxmlformats.org/spreadsheetml/2006/7/main 32ms\n   ✓ imports source-supported namespace http://schemas.openxmlformats.org/spreadsheetml/2006/5/main 32ms\n   ✓ imports source-supported namespace http://schemas.microsoft.com/office/excel/2006/2 33ms\n   ✓ imports source-supported namespace http://schemas.microsoft.com/office/spreadsheetml/2009/9/main 31ms\n   ✓ imports workbook scoped names, native reserved names and date1904 on 35ms\n   ✓ exports interpreted comments, print settings and sheet protection 53ms\n   ✓ uses the source writer's four significant digits for imported print points 33ms\n   ✓ imports row sizing, source column width conversion and measured view effects 39ms\n   ✓ retains the native custom-filter field rather than claiming value-list filtering 31ms\n   × imports namespace-qualified core document properties through root relationships 44ms\nFAIL packages/ssconvert/src/codecs/xlsx.test.ts > imports namespace-qualified core document properties through root relationships\nAssertionError: expected undefined to match object { 'dc:title': 'Original', …(3) }\n\n- Expected:\n{\n  \"dc:creator\": \"Bob\",\n  \"dc:keywords\": [\n    \"one\",\n    \"two\",\n  ],\n  \"dc:title\": \"Original\",\n  \"meta:initial-creator\": \"Ada\",\n}\n\n+ Received:\nundefined\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:126:27\n\n\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > imports namespace-qualified core document properties through root relationships\nAssertionError: expected undefined to match object { 'dc:title': 'Original', …(3) }\n\n- Expected:\n{\n  \"dc:creator\": \"Bob\",\n  \"dc:keywords\": [\n    \"one\",\n    \"two\",\n  ],\n  \"dc:title\": \"Original\",\n  \"meta:initial-creator\": \"Ada\",\n}\n\n+ Received:\nundefined\n\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:126:27\n\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 16 passed (17)\n   Start at  11:01:24\n   Duration  1.59s (transform 598ms, setup 39ms, import 711ms, tests 754ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-red.log",
+      "bytes": 3429,
+      "sha256": "911351b74e374406bdcda2eb5286ce40132aa673a7f2bad1a0f3b2067a3c59ee",
+      "excerpt": "s/xlsx.test.ts > imports an OOXML template using injected memfs bytes (deflate)\nSsconvertError: E Unsupported file format for file \"book.xltx\"\n ❯ read packages/ssconvert/src/engine.ts:223:29\n    221|     const importContext = { ...context, ...(filename === undefined ? {…\n    222|     const codec = forced ?? await registry.probe(bytes, filename, impo…\n    223|     if (!codec?.read) throw new SsconvertError(\"io\", `E Unsupported fi…\n       |                             ^\n    224|     const decoded = await codec.read(bytes, importContext, encoding);\n    225|     check(context);\n ❯ packages/ssconvert/src/engine.ts:474:12\n ❯ packages/ssconvert/src/engine.ts:151:18\n ❯ session packages/ssconvert/src/engine.ts:167:14\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:35:18\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\nSerialized Error: { code: 'io', exitCode: 1 }\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > imports an OOXML template using injected memfs bytes (store)\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > imports an OOXML template using injected memfs bytes (deflate)\nSsconvertError: E Unsupported file format for file \"book.xltx\"\n ❯ read packages/ssconvert/src/engine.ts:223:29\n    221|     const importContext = { ...context, ...(filename === undefined ? {…\n    222|     const codec = forced ?? await registry.probe(bytes, filename, impo…\n    223|     if (!codec?.read) throw new SsconvertError(\"io\", `E Unsupported fi…\n       |                             ^\n    224|     const decoded = await codec.read(bytes, importContext, encoding);\n    225|     check(context);\n ❯ packages/ssconvert/src/engine.ts:474:12\n ❯ packages/ssconvert/src/engine.ts:151:18\n ❯ session packages/ssconvert/src/engine.ts:167:14\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:35:18\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n\n Test Files  1 failed (1)\n      Tests  2 failed (2)\n   Start at  10:45:41\n   Duration  931ms (transform 633ms, setup 53ms, import 738ms, tests 51ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-rich-red.log",
+      "bytes": 2611,
+      "sha256": "2a0c2315c4d4d52e78196dd45ba402f08fd6168a1495cbbc7e9158b3b9b5ac90",
+      "excerpt": " 14ms\n   ✓ rejects external workbook relationships, traversal, entities and aggregate inflation 145ms\n   ✓ copies borrowed bytes and observes cancellation 33ms\nFAIL packages/ssconvert/src/codecs/xlsx.test.ts > resolves shared strings and custom formats through workbook relationships\nSsconvertError: E Invalid Gnumeric XML: unsupported rich text attribute\n ❯ invalid packages/ssconvert/src/codecs/gnumeric.ts:24:50\n     22|\n     23| function limit(message: string): never { throw new SsconvertError(\"res…\n     24| function invalid(message: string): never { throw new SsconvertError(\"i…\n       |                                                  ^\n     25|\n     26| async function transform(bytes: Uint8Array, compressed: boolean, maxim…\n ❯ richFormat packages/ssconvert/src/codecs/gnumeric.ts:189:89\n ❯ writeGnumeric packages/ssconvert/src/codecs/gnumeric.ts:573:40\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:52:41\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\nSerialized Error: { code: 'io', exitCode: 1 }\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  packages/ssconvert/src/codecs/xlsx.test.ts > resolves shared strings and custom formats through workbook relationships\nSsconvertError: E Invalid Gnumeric XML: unsupported rich text attribute\n ❯ invalid packages/ssconvert/src/codecs/gnumeric.ts:24:50\n     22|\n     23| function limit(message: string): never { throw new SsconvertError(\"res…\n     24| function invalid(message: string): never { throw new SsconvertError(\"i…\n       |                                                  ^\n     25|\n     26| async function transform(bytes: Uint8Array, compressed: boolean, maxim…\n ❯ richFormat packages/ssconvert/src/codecs/gnumeric.ts:189:89\n ❯ writeGnumeric packages/ssconvert/src/codecs/gnumeric.ts:573:40\n ❯ packages/ssconvert/src/codecs/xlsx.test.ts:52:41\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  1 failed | 5 passed (6)\n   Start at  10:49:52\n   Duration  1.13s (transform 570ms, setup 38ms, import 657ms, tests 360ms, environment 0ms)\n\n"
+    },
+    {
+      "path": "out/xlsx-root-eslint.log",
+      "bytes": 2257661,
+      "sha256": "53be92e54b4e8c8157226c4a6580d876ec1059db49440e3cf665114665216fa5",
+      "guardResult": {
+        "complete": true,
+        "exitCode": 0,
+        "errorCount": 0,
+        "warningCount": 4,
+        "scope": {
+          "configured": 16756,
+          "linted": 16756,
+          "ignored": 2044,
+          "unconfigured": 38768,
+          "ignoredDirectories": 166,
+          "heldExcluded": 5
+        },
+        "counters": {
+          "metadataOperations": 3714171,
+          "directories": 7570,
+          "entries": 94519,
+          "configurationBytes": 24085389,
+          "subjectBytes": 125424640,
+          "subjects": 16756,
+          "opens": 18817,
+          "closes": 18817,
+          "readCalls": 19193,
+          "readBytes": 149510029,
+          "receiptChecks": 206,
+          "failed": false,
+          "reading": false,
+          "used": true,
+          "bootstrap": true,
+          "receiptsComplete": true,
+          "lastMetadata": {
+            "method": "realpathSync",
+            "path": "/Users/kjopek/Workspace/poe-code-5/.claude/skills/poe-code-experiment-plan",
+            "descriptor": null,
+            "admitted": true,
+            "completed": true
+          },
+          "lastInput": {
+            "path": "e2e/vitest.config.ts",
+            "phase": "subject"
+          }
+        },
+        "timings": {
+          "traversalMs": 259590,
+          "parsingMs": 88614,
+          "initializationMs": 16174
+        },
+        "cacheHits": 0
+      },
+      "guardResultKeys": [
+        "complete",
+        "exitCode",
+        "errorCount",
+        "warningCount",
+        "scope",
+        "counters",
+        "bootstrapCounters",
+        "receipts",
+        "gaps",
+        "failure",
+        "directoryPins",
+        "unprocessed",
+        "timings",
+        "cacheHits"
+      ],
+      "diagnostics": "> poe-code@0.0.0-dev lint:eslint\n> node --max-old-space-size=1024 scripts/lint-eslint.mjs\n\n\n/Users/kjopek/Workspace/poe-code-5/packages/docx/src/operation-types.test.ts\n  20:14  warning  'operation' is assigned a value but only used as a type. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars\n\n/Users/kjopek/Workspace/poe-code-5/packages/safe-bash/tests/commands/docx/table-model.test.ts\n  22:7  warning  'w' is assigned a value but never used. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars\n\n/Users/kjopek/Workspace/poe-code-5/packages/safe-bash/tests/commands/zip-review.test.ts\n  164:23  warning  'path' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars\n  164:29  warning  'options' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars\n\n✖ 4 problems (0 errors, 4 warnings)"
+    },
+    {
+      "path": "out/xlsx-safe-build.log",
+      "bytes": 2354,
+      "sha256": "7bfdd06bf85ab9fd9ab24985ce0ee7eaab4a7b51f259cf16a2f8d413901fc48a"
+    },
+    {
+      "path": "out/xlsx-safe-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/xlsx-safe-test.log",
+      "bytes": 9874,
+      "sha256": "916519a93b65dc854db7845da4017592b45b0f40944d2099dc14dc9de4d9e412"
+    },
+    {
+      "path": "out/xlsx-safe-typecheck.log",
+      "bytes": 686,
+      "sha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3",
+      "excerpt": "\n> @poe-platform/safe-bash@0.0.0 typecheck\n> node scripts/typecheck.mjs\n\ntypecheck: Public SafeFS must preserve shared SafeJS runtime identity\n+ actual - expected\n\n+ undefined\n- './packages/safe-js/dist/safe-fs.js'\n\n{\"status\":\"typecheck-failed\",\"builds\":0,\"currentConsumerGroups\":0,\"heldEvidenceInputs\":4,\"runtimeExecutions\":0,\"cleaned\":true}\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/kjopek/Workspace/poe-code-5/packages/safe-bash\nnpm error workspace @poe-platform/safe-bash@0.0.0\nnpm error location /Users/kjopek/Workspace/poe-code-5/packages/safe-bash\nnpm error command failed\nnpm error command sh -c node scripts/typecheck.mjs\n"
+    },
+    {
+      "path": "out/xlsx-unit-final.log",
+      "bytes": 12107,
+      "sha256": "04186b534b6048d24e25f38b1602da37f0741bac24071110c68bb427dfa34f85"
+    },
+    {
+      "path": "out/xlsx-unit-second.log",
+      "bytes": 14826,
+      "sha256": "6ac1fbeaa72c734e24f218f3f5fd8bad94da71a6587c70598a48fdec954738e5"
+    },
+    {
+      "path": "out/xlsx-unit-verified.log",
+      "bytes": 12102,
+      "sha256": "db519848c4180d6b31c1bab434cb95027704d169eda6b1ae37d042a6930a28a4"
+    },
+    {
+      "path": "out/xlsx-unit.log",
+      "bytes": 24246,
+      "sha256": "413dff05395f66815a25ddcc9aa065cb7ed0a956002c167e3a2fcd5b6c2fee1a"
+    }
+  ]
+}

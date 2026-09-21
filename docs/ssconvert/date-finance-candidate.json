@@ -1,0 +1,31 @@
+{
+  "note": "Current verification candidate inputs, including preserved shared engine/integration inputs; not a claim that every listed file was authored in this task.",
+  "files": {
+    "packages/safe-bash/src/commands/ssconvert/index.ts": "a23b63a408e964f86ef7b5caa5e4cea452d64c09899efd317518913e68473d61",
+    "packages/safe-bash/tests/commands/ssconvert.test.ts": "6229bdbdec05a3a8752c3ad2cf8236528d993140554f907860803b62e2fd5bad",
+    "packages/ssconvert/LICENSE": "42f95f847aa7f97dd10cd58d6cb7749c3b22e4f17af0317c9b3e951d6ea44f95",
+    "packages/ssconvert/package.json": "019e5460206b86532baff268369250ed3fd27257304c8113083663cfcffe5834",
+    "packages/ssconvert/src/formulas/conventions.ts": "c4ca92918c528f0ac4124cee53557d1bfcfef47f32cb6ad71a9a602c155d048d",
+    "packages/ssconvert/src/formulas/date-calendar-independent.test.ts": "2dc0deadb215c95a652e44d5a17431977b68dd8af772e84437a30f4f6a3c6aef",
+    "packages/ssconvert/src/formulas/date-finance-conversion.test.ts": "2a8b43b2cff718563c5505d59bc4f5c98c27992f212122ef75fc74e1463b8260",
+    "packages/ssconvert/src/formulas/date-finance-export-names.ts": "f1c35879f8ac969100a1c5829e13bc79b7aa78c7c75cf3c4fc5e91bf5c32d376",
+    "packages/ssconvert/src/formulas/date-finance-function-descriptors.ts": "a8b65969ea5f203a5e72817dde46f62add149cd0148c58dd570bbe59873ddab4",
+    "packages/ssconvert/src/formulas/date-finance-functions.test.ts": "e7d5e143cec9284a2d968d9b3890ae9dd6f0657e32a993069a005d1f515dca3d",
+    "packages/ssconvert/src/formulas/date-finance-inventory.test.ts": "cf64171745c3d5b453e50dbed33c82a7021cdcd8f7b0b4b909acec83ffe17611",
+    "packages/ssconvert/src/formulas/derivatives-functions.test.ts": "a280fc745620eadce17e921e7746f1138548c584411a2d06ac91db17547c2f28",
+    "packages/ssconvert/src/formulas/derivatives-independent.test.ts": "71fc262a70bf0089c8d570235db010b1a7cdb7753937967f10720b0b7c13774d",
+    "packages/ssconvert/src/formulas/evaluator.ts": "458c43a7a89a6c41847ad41e9d6e76d0a3f5f66f3b40282f6377b861202d4763",
+    "packages/ssconvert/src/formulas/financial-independent.test.ts": "3a4f306b5aad7e44a94c222239fcff3b52b2d1f1e28814548f80c89dba90e491",
+    "packages/ssconvert/src/formulas/function-descriptors.ts": "af5c92ca04702a3fc0607e5d362e6e4dfbda80eb699c2318a54a5fd813425d4c",
+    "packages/ssconvert/src/formulas/function-export-names.ts": "640de739ab9527b5483b51ec0cb13fb4cc89e4adc53365bcd1d8a457b8026d89",
+    "packages/ssconvert/src/formulas/functions/calendars.ts": "ab55a55befc051fad02ffde3c553a4fd9593108e754ce35213f4511790ed9224",
+    "packages/ssconvert/src/formulas/functions/dates.ts": "b0f57f1d3b65ef76ef9151892af01bcabfd6d599660d393d12b41ef88bd39a89",
+    "packages/ssconvert/src/formulas/functions/derivatives.ts": "85e5e9d4917e2abb3a0f1904cdc89e64f42898232267330bd40183a419e7b264",
+    "packages/ssconvert/src/formulas/functions/financial-goal-seek.ts": "400ed0be9f2c8dcb47da94994a8bf0b04c2bea1822ea2708fdd63318eb6a2876",
+    "packages/ssconvert/src/formulas/functions/financial.ts": "3d6b59e4d8f2fc94d79155e78d9fae15c1c39478b5b2e40733148189ac9e5150",
+    "packages/ssconvert/src/formulas/functions/normal-distribution.ts": "4f9236feaf473ac92bee890bea842e6ca2733731e6cb4f2b1ef2a43f43c5c2ac",
+    "packages/ssconvert/src/formulas/functions/registry.ts": "18e1e8e2cae868248e98b156091b6e439e4ecd149af6c319a40463c6d485b29b",
+    "packages/ssconvert/src/formulas/serialization.ts": "e51ff996d2d0ba7187148a426bb2d646b5be0086d72951fcd51a5e60253f1018"
+  },
+  "nativeExactParityClaim": false
+}

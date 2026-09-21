@@ -1,0 +1,1654 @@
+{
+  "task": "analysis-time-series-distributions",
+  "date": "2026-09-21",
+  "kind": "current-periodic-sampling-follow-up",
+  "candidate": {
+    "gitHead": "b97c4938a469ee70e09bd08a0e5fcf7e868ca04c",
+    "branch": "main",
+    "state": "dirty working tree, not immutable committed archive",
+    "changedInputs": [
+      {
+        "path": "packages/ssconvert/src/analysis/statistical.ts",
+        "sha256": "2b352d950810f4da134214b0101004be0e3bc55a10efe4a5884cbc9b81d6b598"
+      },
+      {
+        "path": "packages/ssconvert/src/analysis/distributions-independent-stress.test.ts",
+        "sha256": "aedd86747825921e5093fbfa57a1654a5935c39a362f33e858cdea4048b1cbb3"
+      }
+    ]
+  },
+  "primarySource": {
+    "archive": "out/ssconvert-lifecycle/gnumeric-1.12.61.tar.xz",
+    "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+  },
+  "profile": {
+    "path": "docs/ssconvert/analysis-tool-profile.json",
+    "sha256": "7422a6609adb53f97ca79c4231af3dcdbbf795520aff7860f705a4518e002677",
+    "freshlyVerified": "archive digest and bounded native deterministic matrix; retained dependency/plugin inventory not freshly re-enumerated"
+  },
+  "regression": {
+    "input": [
+      11,
+      22,
+      33
+    ],
+    "properties": [
+      "data:A1:A3",
+      "periodic:yes",
+      "offset:4294967295",
+      "period:2",
+      "size:2",
+      "number:1"
+    ],
+    "preFixExpected": "=index(Input!$A$1:$A$3,1,1)",
+    "preFixActual": "=index(Input!$A$1:$A$3,2,1431655766)",
+    "failureEstablishedBeforeFix": true,
+    "repair": "uint32 increment/predecessor wrapping and gint coordinate conversion"
+  },
+  "native": {
+    "oracle": "separate colima ssconvert-statistics-qa; never product dependency or fallback",
+    "input": [
+      11,
+      22,
+      33
+    ],
+    "cells": [
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:no",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-3,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:no",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:no",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,715827883)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-2147483648,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,715827883)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2147483647,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,3,715827882)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2147483646,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:no",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-3,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-3,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655765)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-2147483648,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,715827883)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2147483647,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,715827883)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2147483646,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,3,715827882)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-3,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655765)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "Area 1",
+            "Area 1"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "22",
+            "22"
+          ],
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,3,715827883)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-2147483647,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,715827883)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-2147483648,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,715827883)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2147483647,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,1)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "22",
+            "22"
+          ],
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-2147483647,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,3,715827883)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-2147483648,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,715827883)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,2147483647,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,715827883)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "exitCode": 0,
+        "stderr": "",
+        "cells": [
+          {
+            "row": 0,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 0,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3)"
+          },
+          {
+            "row": 1,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,0,1)"
+          },
+          {
+            "row": 1,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,1,1431655766)"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-1,1)"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,3,1431655765)"
+          },
+          {
+            "row": 3,
+            "column": 0,
+            "formula": "=index(Input!$A$1:$A$3,-2,1)"
+          },
+          {
+            "row": 3,
+            "column": 1,
+            "formula": "=index(Input!$A$1:$A$3,2,1431655765)"
+          }
+        ],
+        "recalcExport": {
+          "exitCode": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "values": [
+          [
+            "11",
+            "11"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ],
+          [
+            "#REF!",
+            "#REF!"
+          ]
+        ]
+      }
+    ],
+    "productComparisons": [
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:no",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:no",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:no",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:no",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:no",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:yes",
+          "row-major:no"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:0",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:1",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:2147483648",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      },
+      {
+        "properties": [
+          "data:A1:A3",
+          "group-by:area",
+          "periodic:yes",
+          "number:2",
+          "size:3",
+          "period:4294967295",
+          "offset:4294967295",
+          "labels:yes",
+          "row-major:yes"
+        ],
+        "mismatches": []
+      }
+    ],
+    "passes": 16,
+    "mismatches": 0,
+    "stochasticCoverage": "No new stochastic qualification. Previous bounded frequency measurements retained in analysis-time-series-distributions-verification.json."
+  },
+  "checks": [
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": "passed",
+      "declaredBuildClosure": 18
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "passed",
+      "scope": "ESLint and production/test TypeScript"
+    },
+    {
+      "command": "npm test --workspace=@poe-code/ssconvert -- --maxWorkers=1",
+      "status": "passed",
+      "tests": 6029,
+      "files": 296,
+      "freshExecution": true
+    },
+    {
+      "command": "npx vitest run packages/ssconvert/src/analysis --maxWorkers=1",
+      "status": "passed independently",
+      "tests": 153,
+      "files": 9
+    },
+    {
+      "command": "node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/ssconvert*.test.ts",
+      "status": "passed",
+      "tests": 98,
+      "skipped": 0
+    },
+    {
+      "command": "npm run typecheck --workspace=@poe-platform/safe-bash",
+      "status": "failed",
+      "exitCode": 2,
+      "diagnostic": "Public SafeFS must preserve shared SafeJS runtime identity: actual undefined, expected ./packages/safe-js/dist/safe-fs.js",
+      "runtimeExecutions": 0,
+      "cleanup": true
+    },
+    {
+      "command": "npx tsx scripts/screenshot.ts -o out/ssconvert-distributions-stress/current-boundaries.png -- node out/ssconvert-distributions-stress/visual-current.mjs",
+      "status": "passed and visually inspected",
+      "scope": "actual shared runCommand CSV output for unsigned/signed/zero periodic boundaries",
+      "sha256": "96510170c395b8249ce3c173ed4f83864294dba6a39865ca038853b975192721"
+    }
+  ],
+  "historicalFailures": [
+    {
+      "scope": "First complete ssconvert workspace test started before production fix",
+      "status": "failed",
+      "passed": 6022,
+      "failed": 1,
+      "files": 296,
+      "reason": "pre-fix unsigned wrap regression; final complete rerun separately passed"
+    },
+    {
+      "scope": "native comparison harness",
+      "status": "failed before product execution",
+      "reason": "missing mandatory engine limits, corrected and full16 matrix subsequently completed"
+    },
+    {
+      "scope": "visual QA harness",
+      "status": "failed",
+      "reason": "export options attempted to name a not-yet-created Sampling (1) sheet; corrected to maintained split export and inspected final screenshot"
+    }
+  ],
+  "remainingUnsupported": [
+    "analysis chart construction for moving/smoothing/histogram/frequency/normality switches",
+    "predetermined histogram/frequency hidden-command bin storage",
+    "analysis sheet spans"
+  ],
+  "remainingUnverified": [
+    "all previously listed style/normality-comment/Spencer/smoothing-edge and structural native-reference-update gaps",
+    "arbitrary host realms, packed and browser consumers",
+    "full root npm test, repository-wide lint and root npm run build",
+    "complete export consumer matrix and immutable committed candidate"
+  ],
+  "earlierCoverage": "docs/ssconvert/analysis-time-series-distributions-verification.json",
+  "qaProcedure": "docs/plans/ssconvert-analysis-distributions-boundary-qa.md",
+  "independentReview": "docs/plans/ssconvert-analysis-distributions-independent-qa.md",
+  "scratch": [
+    {
+      "path": "out/ssconvert-distributions-stress/analysis-final-green.log",
+      "sha256": "26845ea5bb7e6508159f86d532b48c60edb4448cd83ee80153b6f99a2380d9ba"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/analysis-green.log",
+      "sha256": "e41180c8e017a9e4589cd4ee341040bada3bd6b25b5fcf9dd6fdc00fe7e0655c"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/boundary.gnumeric",
+      "sha256": "b9bfb06b7fb136ab59670ea5e83c92743f69e6571f62b5b154725af0acc9abd8"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/check-Sampling (1).csv",
+      "sha256": "7695dec4054b4ef80ee8ab440d97b8808f4fc5441d6972fc22c9fc5e3e22950c"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/check-input.csv.csv",
+      "sha256": "03b5032e062d5c6146f641a9d607bb063335ba3dcea067d4fca4e2832d441b12"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/compare.ts",
+      "sha256": "3a0a333f5d040afef66a4d8ed74900b9fb78fa766cf746fec2158c7fa41b24e0"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/comparison.json",
+      "sha256": "cfde4809070048c94a91fe3d27d64eed50b798d90b7c6339ec7ce613e6f5c594"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/current-boundaries.png",
+      "sha256": "96510170c395b8249ce3c173ed4f83864294dba6a39865ca038853b975192721"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/independent-green.log",
+      "sha256": "ad85922230a81fabc40d3587cac9c4c752b3fa0e73e8ba6ac74c7ba375698e8e"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/input.csv",
+      "sha256": "03b5032e062d5c6146f641a9d607bb063335ba3dcea067d4fca4e2832d441b12"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/native-boundaries.json",
+      "sha256": "b8b20080f604eaf67f779d62eca93adac6a2964adb7ed60e7b0cd1dc3402e823"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/sampling-coordinates-red.log",
+      "sha256": "2e962425cb751e20d86b629d052717f6a0989288faeb91ffce3d725711097af5"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/sampling-uint32-red.log",
+      "sha256": "623add699282b3fd61334f089809d66c7befcc2de6dff3dd2a098e43de6c0a22"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/signed-oracle.json",
+      "sha256": "3f955353f9091567f9b9376251d34f7e05f0256b3204e382d780c8dd70772053"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/signed.gnumeric",
+      "sha256": "6310c758d12fc354b475585b4bff20e70dca5809916115174b4612a296a032e8"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/visual-current.mjs",
+      "sha256": "73d2df12e1bc001b18eb8e3e28dc25ae1592340aef578e876996c26e3b0cdb2f"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/wrap-oracle.json",
+      "sha256": "58fc517c1f2de8a64f0fb2e1b6d2ef26cbc5dd1be3c3d41fae6817b0f4c1e048"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/wrap.gnumeric",
+      "sha256": "2f7372447760d81ca9dabd3a4649c52069ac436edf72adf2f9336f06b4397ab3"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/zero-oracle.json",
+      "sha256": "95ccdbe0079906eaf173372f31373fec2246beb25673763344c76dafb6a58877"
+    },
+    {
+      "path": "out/ssconvert-distributions-stress/zero.gnumeric",
+      "sha256": "4885e55b534a85c5d89dc6ccb7187ba1ff770b817263833c562cb3c2ce074a95"
+    }
+  ],
+  "delivery": {
+    "readmeEdits": false,
+    "localCommits": [],
+    "push": false,
+    "publication": false
+  }
+}

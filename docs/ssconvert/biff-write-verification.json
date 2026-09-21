@@ -1,0 +1,1548 @@
+{
+  "task": "xls-biff-write",
+  "date": "2026-09-20",
+  "status": "Three distinct writers implemented; full requested Gnumeric parity remains incomplete",
+  "delivery": {
+    "committed": false,
+    "pushed": false,
+    "published": false,
+    "readmesEdited": false
+  },
+  "source": {
+    "archive": "out/ssconvert-lifecycle/gnumeric-1.12.61.tar.xz",
+    "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "primarySourceOnlyInOut": true
+  },
+  "referenceProfile": "ssconvert version '1.12.61'\ndatadir := '/out/ssconvert-statistics-oracle/prefix/share/gnumeric/1.12.61'\nlibdir := '/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61'\nID                                | Description\nGnumeric_Excel:excel_biff7        | MS Excel? 5.0/95\nGnumeric_Excel:excel_biff8        | MS Excel? 97/2000/XP\nGnumeric_Excel:excel_dsf          | MS Excel? 97/2000/XP & 5.0/95\nGnumeric_Excel:xlsx               | ECMA 376 1st edition (2006); [MS Excel? 2007]\nGnumeric_Excel:xlsx2              | ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel? 2010]\nGnumeric_OpenCalc:odf             | ODF 1.2 extended conformance (*.ods)\nGnumeric_OpenCalc:openoffice      | ODF 1.2 strict conformance (*.ods)\nGnumeric_XmlIO:sax                | Gnumeric XML (*.gnumeric)\nGnumeric_XmlIO:sax:0              | Gnumeric XML uncompressed (*.xml)\nGnumeric_dif:dif                  | Data Interchange Format (*.dif)\nGnumeric_glpk:glpk                | GLPK Linear Program Solver\nGnumeric_html:html32              | HTML 3.2 (*.html)\nGnumeric_html:html40              | HTML 4.0 (*.html)\nGnumeric_html:html40frag          | HTML (*.html) fragment\nGnumeric_html:latex               | LaTeX 2e (*.tex)\nGnumeric_html:latex_table         | LaTeX 2e (*.tex) table fragment\nGnumeric_html:latex_table_visible | LaTeX 2e (*.tex) table fragment of visible rows\nGnumeric_html:roff                | TROFF (*.me)\nGnumeric_html:xhtml               | XHTML (*.html)\nGnumeric_html:xhtml_range         | XHTML range - for export to clipboard\nGnumeric_lpsolve:lpsolve          | LPSolve Linear Program Solver\nGnumeric_pdf:pdf_assistant        | PDF export\nGnumeric_stf:stf_assistant        | Text (configurable)\nGnumeric_stf:stf_csv              | Comma separated values (CSV)\nGnumeric_sylk:sylk                | MultiPlan (SYLK)\nLANG=\nLANGUAGE=\nLC_CTYPE=\"C\"\nLC_NUMERIC=\"C\"\nLC_TIME=\"C\"\nLC_COLLATE=\"C\"\nLC_MONETARY=\"C\"\nLC_MESSAGES=\"C\"\nLC_PAPER=\"C\"\nLC_NAME=\"C\"\nLC_ADDRESS=\"C\"\nLC_TELEPHONE=\"C\"\nLC_MEASUREMENT=\"C\"\nLC_IDENTIFICATION=\"C\"\nLC_ALL=C\n\tlinux-vdso.so.1 (0x0000fb041eb89000)\n\tlibspreadsheet-1.12.61.so => /out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so (0x0000fb041e5d0000)\n\tlibgoffice-0.10.so.10 => /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10 (0x0000fb041e3e0000)\n\tlibgsf-1.so.114 => /lib/aarch64-linux-gnu/libgsf-1.so.114 (0x0000fb041e370000)\n\tlibgtk-3.so.0 => /lib/aarch64-linux-gnu/libgtk-3.so.0 (0x0000fb041db10000)\n\tlibgobject-2.0.so.0 => /lib/aarch64-linux-gnu/libgobject-2.0.so.0 (0x0000fb041da80000)\n\tlibglib-2.0.so.0 => /lib/aarch64-linux-gnu/libglib-2.0.so.0 (0x0000fb041d8f0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000fb041d730000)\n\tlibxml2.so.2 => /lib/aarch64-linux-gnu/libxml2.so.2 (0x0000fb041d560000)\n\tlibgmodule-2.0.so.0 => /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 (0x0000fb041d530000)\n\tlibgdk-3.so.0 => /lib/aarch64-linux-gnu/libgdk-3.so.0 (0x0000fb041d400000)\n\tlibpangocairo-1.0.so.0 => /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0 (0x0000fb041d3d0000)\n\tlibpango-1.0.so.0 => /lib/aarch64-linux-gnu/libpango-1.0.so.0 (0x0000fb041d340000)\n\tlibatk-1.0.so.0 => /lib/aarch64-linux-gnu/libatk-1.0.so.0 (0x0000fb041d2f0000)\n\tlibcairo.so.2 => /lib/aarch64-linux-gnu/libcairo.so.2 (0x0000fb041d190000)\n\tlibgdk_pixbuf-2.0.so.0 => /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x0000fb041d140000)\n\tlibgio-2.0.so.0 => /lib/aarch64-linux-gnu/libgio-2.0.so.0 (0x0000fb041cf10000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000fb041ce60000)\n\tlibxslt.so.1 => /lib/aarch64-linux-gnu/libxslt.so.1 (0x0000fb041ce00000)\n\tlibrsvg-2.so.2 => /lib/aarch64-linux-gnu/librsvg-2.so.2 (0x0000fb041c890000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000fb041c850000)\n\tlibbz2.so.1.0 => /lib/aarch64-linux-gnu/libbz2.so.1.0 (0x0000fb041c820000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000fb041eb40000)\n\tlibharfbuzz.so.0 => /lib/aarch64-linux-gnu/libharfbuzz.so.0 (0x0000fb041c6c0000)\n\tlibpangoft2-1.0.so.0 => /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0 (0x0000fb041c680000)\n\tlibfontconfig.so.1 => /lib/aarch64-linux-gnu/libfontconfig.so.1 (0x0000fb041c610000)\n\tlibfribidi.so.0 => /lib/aarch64-linux-gnu/libfribidi.so.0 (0x0000fb041c5d0000)\n\tlibcairo-gobject.so.2 => /lib/aarch64-linux-gnu/libcairo-gobject.so.2 (0x0000fb041c5a0000)\n\tlibepoxy.so.0 => /lib/aarch64-linux-gnu/libepoxy.so.0 (0x0000fb041c430000)\n\tlibXi.so.6 => /lib/aarch64-linux-gnu/libXi.so.6 (0x0000fb041c400000)\n\tlibX11.so.6 => /lib/aarch64-linux-gnu/libX11.so.6 (0x0000fb041c290000)\n\tlibatk-bridge-2.0.so.0 => /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0 (0x0000fb041c230000)\n\tlibcloudproviders.so.0 => /lib/aarch64-linux-gnu/libcloudproviders.so.0 (0x0000fb041c1f0000)\n\tlibXfixes.so.3 => /lib/aarch64-linux-gnu/libXfixes.so.3 (0x0000fb041c1c0000)\n\tlibffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000fb041c190000)\n\tlibatomic.so.1 => /lib/aarch64-linux-gnu/libatomic.so.1 (0x0000fb041c160000)\n\tlibpcre2-8.so.0 => /lib/aarch64-linux-gnu/libpcre2-8.so.0 (0x0000fb041c0a0000)\n\tliblzma.so.5 => /lib/aarch64-linux-gnu/liblzma.so.5 (0x0000fb041c050000)\n\tlibxkbcommon.so.0 => /lib/aarch64-linux-gnu/libxkbcommon.so.0 (0x0000fb041bfe0000)\n\tlibwayland-client.so.0 => /lib/aarch64-linux-gnu/libwayland-client.so.0 (0x0000fb041bfb0000)\n\tlibwayland-cursor.so.0 => /lib/aarch64-linux-gnu/libwayland-cursor.so.0 (0x0000fb041bf80000)\n\tlibwayland-egl.so.1 => /lib/aarch64-linux-gnu/libwayland-egl.so.1 (0x0000fb041bf50000)\n\tlibXext.so.6 => /lib/aarch64-linux-gnu/libXext.so.6 (0x0000fb041bf10000)\n\tlibXcursor.so.1 => /lib/aarch64-linux-gnu/libXcursor.so.1 (0x0000fb041bee0000)\n\tlibXdamage.so.1 => /lib/aarch64-linux-gnu/libXdamage.so.1 (0x0000fb041beb0000)\n\tlibXcomposite.so.1 => /lib/aarch64-linux-gnu/libXcomposite.so.1 (0x0000fb041be80000)\n\tlibXrandr.so.2 => /lib/aarch64-linux-gnu/libXrandr.so.2 (0x0000fb041be50000)\n\tlibXinerama.so.1 => /lib/aarch64-linux-gnu/libXinerama.so.1 (0x0000fb041be20000)\n\tlibthai.so.0 => /lib/aarch64-linux-gnu/libthai.so.0 (0x0000fb041bdf0000)\n\tlibpng16.so.16 => /lib/aarch64-linux-gnu/libpng16.so.16 (0x0000fb041bd90000)\n\tlibfreetype.so.6 => /lib/aarch64-linux-gnu/libfreetype.so.6 (0x0000fb041bcb0000)\n\tlibXrender.so.1 => /lib/aarch64-linux-gnu/libXrender.so.1 (0x0000fb041bc80000)\n\tlibxcb.so.1 => /lib/aarch64-linux-gnu/libxcb.so.1 (0x0000fb041bc30000)\n\tlibxcb-render.so.0 => /lib/aarch64-linux-gnu/libxcb-render.so.0 (0x0000fb041bc00000)\n\tlibxcb-shm.so.0 => /lib/aarch64-linux-gnu/libxcb-shm.so.0 (0x0000fb041bbd0000)\n\tlibpixman-1.so.0 => /lib/aarch64-linux-gnu/libpixman-1.so.0 (0x0000fb041bb20000)\n\tlibjpeg.so.62 => /lib/aarch64-linux-gnu/libjpeg.so.62 (0x0000fb041baa0000)\n\tlibmount.so.1 => /lib/aarch64-linux-gnu/libmount.so.1 (0x0000fb041ba00000)\n\tlibselinux.so.1 => /lib/aarch64-linux-gnu/libselinux.so.1 (0x0000fb041b9a0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000fb041b960000)\n\tlibdav1d.so.7 => /lib/aarch64-linux-gnu/libdav1d.so.7 (0x0000fb041b860000)\n\tlibgraphite2.so.3 => /lib/aarch64-linux-gnu/libgraphite2.so.3 (0x0000fb041b820000)\n\tlibexpat.so.1 => /lib/aarch64-linux-gnu/libexpat.so.1 (0x0000fb041b7d0000)\n\tlibatspi.so.0 => /lib/aarch64-linux-gnu/libatspi.so.0 (0x0000fb041b770000)\n\tlibdbus-1.so.3 => /lib/aarch64-linux-gnu/libdbus-1.so.3 (0x0000fb041b6f0000)\n\tlibdatrie.so.1 => /lib/aarch64-linux-gnu/libdatrie.so.1 (0x0000fb041b6c0000)\n\tlibbrotlidec.so.1 => /lib/aarch64-linux-gnu/libbrotlidec.so.1 (0x0000fb041b690000)\n\tlibXau.so.6 => /lib/aarch64-linux-gnu/libXau.so.6 (0x0000fb041b660000)\n\tlibXdmcp.so.6 => /lib/aarch64-linux-gnu/libXdmcp.so.6 (0x0000fb041b630000)\n\tlibblkid.so.1 => /lib/aarch64-linux-gnu/libblkid.so.1 (0x0000fb041b5b0000)\n\tlibsystemd.so.0 => /lib/aarch64-linux-gnu/libsystemd.so.0 (0x0000fb041b480000)\n\tlibbrotlicommon.so.1 => /lib/aarch64-linux-gnu/libbrotlicommon.so.1 (0x0000fb041b440000)\n\tlibcap.so.2 => /lib/aarch64-linux-gnu/libcap.so.2 (0x0000fb041b410000)\nlibglib2.0-0t64:arm64\t2.84.4-3~deb13u5\nlibgsf-1-114:arm64\t1.14.53-1\nlibgtk-3-0t64:arm64\t3.24.49-3\n104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c  /out/ssconvert-statistics-oracle/prefix/bin/ssconvert\n",
+  "candidateHashes": {
+    "packages/ssconvert/src/codecs/biff.ts": "ec1ab7103264585a3039c42535632cfe833375238bdbe441b67db27477c500f6",
+    "packages/ssconvert/src/codecs/biff-metadata.ts": "c1e976d89153627efc4ffd5c0e69b26f98c8c717576d4e2f0b367cb8ac824636",
+    "packages/ssconvert/src/codecs/biff-write.ts": "c0ffe7de34f171cfc15bfba9cc02b66515878fafe6b77db989886e3baefd0ca5",
+    "packages/ssconvert/src/codecs/biff-write-binary.ts": "5dca4bd5408f6052a0f0c8207ada3191378423ee92aafbce8d29a766f2e50244",
+    "packages/ssconvert/src/codecs/biff-write-formulas.ts": "4d36d9f81e8cc51f53f94a04b837445ff0a8f2c29ef1de117476605e80cc6206",
+    "packages/ssconvert/src/codecs/biff-write-styles.ts": "837dd1c05d275596992de6f4c3401924c5e2e0d254885c81d30115acbf1b2abd",
+    "packages/ssconvert/src/codecs/biff-write-metadata.ts": "b9e5301ba96f3397f464a7ba5a4b4b69c42f72e8669712dd9e1e2ab377c1d4e0",
+    "packages/ssconvert/src/codecs/biff-write.test.ts": "38a284135e62c0a9871c932a2da17c28fe0d98dc02beb465cec58129e5ab13b6",
+    "packages/ssconvert/src/codecs/biff-write-stress.test.ts": "54092ff58ebdd75b96374b2ed54b41d248c1a392d543a2637c871142d88bc9d6",
+    "packages/ssconvert/src/codecs/providers/excel.ts": "fb6f1d332e071f2cff5a7aab3ba6925bf9beca0dcf898862520e4b2e901999a4",
+    "packages/ssconvert/src/codecs/registry.test.ts": "a68fbd8b58e1d3d13dc495560142e3afa5a3173d7a4d8acdb159e992dba14f30",
+    "packages/ssconvert/src/codecs/independent-stress.test.ts": "3d56e9ff034776e117b23e190877c780ef03f7a1db607704f1fe250b77a52f4b",
+    "packages/ssconvert/src/codecs/command.test.ts": "e56aeef84d73a693968160ecc6bf460ae064efa718851c975a4767595a7a5218",
+    "packages/ssconvert/src/cli/diagnostics.test.ts": "293ecf512e0df722923ce622811ab84bdd2ae6185d247107a424b68a13c0205f",
+    "packages/ssconvert/src/cli/independent-parser.test.ts": "69ce05eb14c92afcaf60b125c73f10f1420fe67d49b04419124a3d8ee3f8214b",
+    "packages/safe-bash/tests/commands/ssconvert-biff.test.ts": "dcc1790e95d03d19b4853cfd7d07f5473b8ca89415c36d05d4e3f552204e90d5"
+  },
+  "fixtures": {
+    "advanced": {
+      "origin": "Original small authored two-sheet XML fixture; native and candidate export the same input",
+      "sha256": "cd00967b14c462357cf452fb950f39a3cc740735fffc71f84c8f2b0db49be173",
+      "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:DateConvention>1904</gnm:DateConvention>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" gnm:DateConvention=\"Apple:1904\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Other</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Names>\n    <gnm:Name>\n      <gnm:name>Answer</gnm:name>\n      <gnm:value>42</gnm:value>\n      <gnm:position>A1</gnm:position>\n    </gnm:Name>\n  </gnm:Names>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>1</gnm:MaxCol>\n      <gnm:MaxRow>5</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Local</gnm:name>\n          <gnm:value>5</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\">\n          <gnm:Style Fore=\"1234:5656:9A9A\" WrapText=\"1\" HAlign=\"GNM_HALIGN_RIGHT\" Format=\"0.000\">\n            <gnm:Font Unit=\"14\" Bold=\"1\">Courier New</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"5\" endCol=\"0\" endRow=\"5\">\n          <gnm:Style>\n            <gnm:HyperLink type=\"GnmHLinkURL\" target=\"https://example.com/Ω\" tip=\"go\"/>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols>\n        <gnm:ColInfo No=\"1\" Unit=\"72\" Hidden=\"1\"/>\n      </gnm:Cols>\n      <gnm:Rows>\n        <gnm:RowInfo No=\"2\" Unit=\"24\" Hidden=\"1\"/>\n      </gnm:Rows>\n      <gnm:Objects>\n        <gnm:CellComment ObjectBound=\"B3\" Text=\"note Ω\" Author=\"Me\"/>\n      </gnm:Objects>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</gnm:Cell>\n        <gnm:Cell Row=\"0\" Col=\"1\">=1+2</gnm:Cell>\n        <gnm:Cell Row=\"1\" Col=\"0\">=IFERROR(1,2)</gnm:Cell>\n        <gnm:Cell Row=\"1\" Col=\"1\">=FOO(1)</gnm:Cell>\n        <gnm:Cell Row=\"2\" Col=\"0\" Rows=\"2\" Cols=\"1\">=ROW(A1:A2)</gnm:Cell>\n        <gnm:Cell Row=\"4\" Col=\"0\">=SUM({1,2;3,4})</gnm:Cell>\n        <gnm:Cell Row=\"4\" Col=\"1\">=Other!$A$1</gnm:Cell>\n        <gnm:Cell Row=\"5\" Col=\"0\" ValueType=\"60\">link</gnm:Cell>\n      </gnm:Cells>\n      <gnm:MergedRegions>\n        <gnm:Merge>A7:B8</gnm:Merge>\n      </gnm:MergedRegions>\n    </gnm:Sheet>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n      <gnm:Name>Other</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Cols/>\n      <gnm:Rows/>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell>\n      </gnm:Cells>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n"
+    },
+    "basic": {
+      "excel_biff7": {
+        "issues": "[]",
+        "streams": {
+          "Book": {
+            "biff": 50,
+            "date": 1,
+            "rows": [
+              [
+                "hello ?",
+                3.0
+              ],
+              [
+                42.0,
+                "yes"
+              ]
+            ],
+            "names": [
+              "Answer"
+            ],
+            "comments": {
+              "(2, 1)": {
+                "text": "note ?",
+                "author": ""
+              }
+            }
+          }
+        }
+      },
+      "excel_biff8": {
+        "issues": "[]",
+        "streams": {
+          "Workbook": {
+            "biff": 80,
+            "date": 1,
+            "rows": [
+              [
+                "hello Ω",
+                3.0
+              ],
+              [
+                42.0,
+                "yes"
+              ]
+            ],
+            "names": [
+              "Answer"
+            ],
+            "comments": {
+              "(2, 1)": {
+                "text": "note Ω",
+                "author": "Me"
+              }
+            }
+          }
+        }
+      },
+      "excel_dsf": {
+        "issues": "[]",
+        "streams": {
+          "Book": {
+            "biff": 50,
+            "date": 1,
+            "rows": [
+              [
+                "hello ?",
+                3.0
+              ],
+              [
+                42.0,
+                "yes"
+              ]
+            ],
+            "names": [
+              "Answer"
+            ],
+            "comments": {
+              "(2, 1)": {
+                "text": "note ?",
+                "author": ""
+              }
+            }
+          },
+          "Workbook": {
+            "biff": 80,
+            "date": 1,
+            "rows": [
+              [
+                "hello Ω",
+                3.0
+              ],
+              [
+                42.0,
+                "yes"
+              ]
+            ],
+            "names": [
+              "Answer"
+            ],
+            "comments": {
+              "(2, 1)": {
+                "text": "note Ω",
+                "author": "Me"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "advancedIndependentReaders": {
+    "7": {
+      "cfb_issues": [],
+      "sha256": "08c042da1354ed1d4167e1fd1abbe6984ac26f5e480da7e93dcd14020fa5784b",
+      "streams": {
+        "Book": {
+          "biff_version": 50,
+          "date_mode": 1,
+          "names": [
+            "Answer",
+            "Local",
+            "_xlfn.IFERROR"
+          ],
+          "sheets": [
+            {
+              "name": "S",
+              "values": [
+                [
+                  1.0,
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "link",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ]
+              ],
+              "merges": [
+                [
+                  6,
+                  8,
+                  0,
+                  2
+                ]
+              ],
+              "comments": {
+                "(2, 1)": {
+                  "text": "note ?",
+                  "author": ""
+                }
+              },
+              "hyperlinks": []
+            },
+            {
+              "name": "Other",
+              "values": [
+                [
+                  7.0
+                ]
+              ],
+              "merges": [],
+              "comments": {},
+              "hyperlinks": []
+            }
+          ],
+          "sha256": "d9e167167885cdac0bed545e1fe2a1b9a7872997d985becc60ca4442bb4578dd"
+        }
+      }
+    },
+    "8": {
+      "cfb_issues": [],
+      "sha256": "7b627ebe96cfde2caace09a87c97e3d690a454c9a6126306b796bb6830f7d1f4",
+      "streams": {
+        "Workbook": {
+          "biff_version": 80,
+          "date_mode": 1,
+          "names": [
+            "Answer",
+            "Local",
+            "_xlfn.IFERROR"
+          ],
+          "sheets": [
+            {
+              "name": "S",
+              "values": [
+                [
+                  1.0,
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "link",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ]
+              ],
+              "merges": [
+                [
+                  6,
+                  8,
+                  0,
+                  2
+                ]
+              ],
+              "comments": {
+                "(2, 1)": {
+                  "text": "note Ω",
+                  "author": "Me"
+                }
+              },
+              "hyperlinks": [
+                {
+                  "type": "url",
+                  "target": "https://example.com/Ω",
+                  "tip": "go"
+                }
+              ]
+            },
+            {
+              "name": "Other",
+              "values": [
+                [
+                  7.0
+                ]
+              ],
+              "merges": [],
+              "comments": {},
+              "hyperlinks": []
+            }
+          ],
+          "sha256": "fbfdaeb44ebedf219292d89688267b417d60e450cf67ff1c6d8c2dec09986fc5"
+        }
+      }
+    },
+    "dsf": {
+      "cfb_issues": [],
+      "sha256": "348b07a7e19ca538e6c8436d5c2375384fa93659a82e123f71e85a4959d34fdb",
+      "streams": {
+        "Book": {
+          "biff_version": 50,
+          "date_mode": 1,
+          "names": [
+            "Answer",
+            "Local",
+            "_xlfn.IFERROR"
+          ],
+          "sheets": [
+            {
+              "name": "S",
+              "values": [
+                [
+                  1.0,
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "link",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ]
+              ],
+              "merges": [
+                [
+                  6,
+                  8,
+                  0,
+                  2
+                ]
+              ],
+              "comments": {
+                "(2, 1)": {
+                  "text": "note ?",
+                  "author": ""
+                }
+              },
+              "hyperlinks": []
+            },
+            {
+              "name": "Other",
+              "values": [
+                [
+                  7.0
+                ]
+              ],
+              "merges": [],
+              "comments": {},
+              "hyperlinks": []
+            }
+          ],
+          "sha256": "d9e167167885cdac0bed545e1fe2a1b9a7872997d985becc60ca4442bb4578dd"
+        },
+        "Workbook": {
+          "biff_version": 80,
+          "date_mode": 1,
+          "names": [
+            "Answer",
+            "Local",
+            "_xlfn.IFERROR"
+          ],
+          "sheets": [
+            {
+              "name": "S",
+              "values": [
+                [
+                  1.0,
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "link",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ],
+                [
+                  "",
+                  ""
+                ]
+              ],
+              "merges": [
+                [
+                  6,
+                  8,
+                  0,
+                  2
+                ]
+              ],
+              "comments": {
+                "(2, 1)": {
+                  "text": "note Ω",
+                  "author": "Me"
+                }
+              },
+              "hyperlinks": [
+                {
+                  "type": "url",
+                  "target": "https://example.com/Ω",
+                  "tip": "go"
+                }
+              ]
+            },
+            {
+              "name": "Other",
+              "values": [
+                [
+                  7.0
+                ]
+              ],
+              "merges": [],
+              "comments": {},
+              "hyperlinks": []
+            }
+          ],
+          "sha256": "6e69ac5c33f3c50fa20ea5259d8cd98824411621d3f52f08a65c071cb6ec6575"
+        }
+      }
+    }
+  },
+  "nativeReopen": [
+    {
+      "input": "advanced-8-Workbook.raw",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/advanced-8-Workbook.raw",
+        "/out/xls-biff-write/advanced-8-Workbook.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "advanced-8-Workbook.native.xml"
+    },
+    {
+      "input": "advanced-dsf-Workbook.raw",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/advanced-dsf-Workbook.raw",
+        "/out/xls-biff-write/advanced-dsf-Workbook.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "advanced-dsf-Workbook.native.xml"
+    },
+    {
+      "input": "advanced-7-Book.raw",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/advanced-7-Book.raw",
+        "/out/xls-biff-write/advanced-7-Book.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "advanced-7-Book.native.xml"
+    },
+    {
+      "input": "advanced-dsf-Book.raw",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/advanced-dsf-Book.raw",
+        "/out/xls-biff-write/advanced-dsf-Book.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "advanced-dsf-Book.native.xml"
+    },
+    {
+      "input": "advanced-7.xls",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/advanced-7.xls",
+        "/out/xls-biff-write/advanced-7.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "advanced-7.native.xml"
+    },
+    {
+      "input": "advanced-8.xls",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/advanced-8.xls",
+        "/out/xls-biff-write/advanced-8.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "advanced-8.native.xml"
+    },
+    {
+      "input": "advanced-dsf.xls",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/advanced-dsf.xls",
+        "/out/xls-biff-write/advanced-dsf.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "advanced-dsf.native.xml"
+    }
+  ],
+  "nativeReferenceReopen": [
+    {
+      "input": "reference-7.xls",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/reference-7.xls",
+        "/out/xls-biff-write/reference-7.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "reference-7.native.xml"
+    },
+    {
+      "input": "reference-8.xls",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/reference-8.xls",
+        "/out/xls-biff-write/reference-8.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "reference-8.native.xml"
+    },
+    {
+      "input": "reference-dsf.xls",
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "exec",
+        "-e",
+        "LC_ALL=C",
+        "-e",
+        "TZ=UTC",
+        "-e",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "-e",
+        "GSETTINGS_BACKEND=memory",
+        "-e",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "ssconvert-statistics-qa",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write/reference-dsf.xls",
+        "/out/xls-biff-write/reference-dsf.native.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "output": "reference-dsf.native.xml"
+    }
+  ],
+  "nativeDifferential": {
+    "7": {
+      "matched_fields": [
+        "sheet",
+        "cells",
+        "merges",
+        "comments",
+        "links",
+        "named",
+        "fonts",
+        "rows",
+        "columns"
+      ],
+      "differences": [],
+      "sheet_count_equal": true
+    },
+    "8": {
+      "matched_fields": [
+        "sheet",
+        "cells",
+        "merges",
+        "comments",
+        "links",
+        "named",
+        "fonts",
+        "rows",
+        "columns"
+      ],
+      "differences": [],
+      "sheet_count_equal": true
+    },
+    "dsf": {
+      "matched_fields": [
+        "sheet",
+        "cells",
+        "merges",
+        "comments",
+        "links",
+        "named",
+        "fonts",
+        "rows",
+        "columns"
+      ],
+      "differences": [],
+      "sheet_count_equal": true
+    }
+  },
+  "directFactoryCacheDifferential": {
+    "7": {
+      "Book": {
+        "cache_differences": [
+          {
+            "sheet": "S",
+            "row": 0,
+            "column": 1,
+            "native": [
+              2,
+              3.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 1,
+            "native": [
+              5,
+              29
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 2,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 3,
+            "column": 0,
+            "native": [
+              2,
+              2.0
+            ],
+            "candidate": [
+              0,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 0,
+            "native": [
+              2,
+              10.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 1,
+            "native": [
+              2,
+              7.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          }
+        ]
+      }
+    },
+    "8": {
+      "Workbook": {
+        "cache_differences": [
+          {
+            "sheet": "S",
+            "row": 0,
+            "column": 1,
+            "native": [
+              2,
+              3.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 1,
+            "native": [
+              5,
+              29
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 2,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 3,
+            "column": 0,
+            "native": [
+              2,
+              2.0
+            ],
+            "candidate": [
+              0,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 0,
+            "native": [
+              2,
+              10.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 1,
+            "native": [
+              2,
+              7.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          }
+        ]
+      }
+    },
+    "dsf": {
+      "Book": {
+        "cache_differences": [
+          {
+            "sheet": "S",
+            "row": 0,
+            "column": 1,
+            "native": [
+              2,
+              3.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 1,
+            "native": [
+              5,
+              29
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 2,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 3,
+            "column": 0,
+            "native": [
+              2,
+              2.0
+            ],
+            "candidate": [
+              0,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 0,
+            "native": [
+              2,
+              10.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 1,
+            "native": [
+              2,
+              7.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          }
+        ]
+      },
+      "Workbook": {
+        "cache_differences": [
+          {
+            "sheet": "S",
+            "row": 0,
+            "column": 1,
+            "native": [
+              2,
+              3.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 1,
+            "column": 1,
+            "native": [
+              5,
+              29
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 2,
+            "column": 0,
+            "native": [
+              2,
+              1.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 3,
+            "column": 0,
+            "native": [
+              2,
+              2.0
+            ],
+            "candidate": [
+              0,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 0,
+            "native": [
+              2,
+              10.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          },
+          {
+            "sheet": "S",
+            "row": 4,
+            "column": 1,
+            "native": [
+              2,
+              7.0
+            ],
+            "candidate": [
+              1,
+              ""
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sharedEngineVerification": {
+    "excel_biff7": {
+      "native_export": {
+        "command": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "-e",
+          "LC_ALL=C",
+          "-e",
+          "TZ=UTC",
+          "-e",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "-e",
+          "GSETTINGS_BACKEND=memory",
+          "-e",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "ssconvert-statistics-qa",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_Excel:excel_biff7",
+          "/out/xls-biff-write/engine-known.xml",
+          "/out/xls-biff-write/engine-reference-excel_biff7.xls"
+        ],
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "streams": {
+        "Book": {
+          "revision": 50,
+          "date_mode": 1,
+          "native_reopen": {
+            "command": [
+              "docker",
+              "--context",
+              "colima",
+              "exec",
+              "-e",
+              "LC_ALL=C",
+              "-e",
+              "TZ=UTC",
+              "-e",
+              "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+              "-e",
+              "GSETTINGS_BACKEND=memory",
+              "-e",
+              "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+              "ssconvert-statistics-qa",
+              "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+              "-T",
+              "Gnumeric_XmlIO:sax:0",
+              "/out/xls-biff-write/engine-excel_biff7-Book.raw",
+              "/out/xls-biff-write/engine-excel_biff7-Book.native.xml"
+            ],
+            "exit": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "cache_differences": [],
+          "cache_cells_measured": 17
+        }
+      },
+      "cfb_issues": []
+    },
+    "excel_biff8": {
+      "native_export": {
+        "command": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "-e",
+          "LC_ALL=C",
+          "-e",
+          "TZ=UTC",
+          "-e",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "-e",
+          "GSETTINGS_BACKEND=memory",
+          "-e",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "ssconvert-statistics-qa",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_Excel:excel_biff8",
+          "/out/xls-biff-write/engine-known.xml",
+          "/out/xls-biff-write/engine-reference-excel_biff8.xls"
+        ],
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "streams": {
+        "Workbook": {
+          "revision": 80,
+          "date_mode": 1,
+          "native_reopen": {
+            "command": [
+              "docker",
+              "--context",
+              "colima",
+              "exec",
+              "-e",
+              "LC_ALL=C",
+              "-e",
+              "TZ=UTC",
+              "-e",
+              "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+              "-e",
+              "GSETTINGS_BACKEND=memory",
+              "-e",
+              "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+              "ssconvert-statistics-qa",
+              "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+              "-T",
+              "Gnumeric_XmlIO:sax:0",
+              "/out/xls-biff-write/engine-excel_biff8-Workbook.raw",
+              "/out/xls-biff-write/engine-excel_biff8-Workbook.native.xml"
+            ],
+            "exit": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "cache_differences": [],
+          "cache_cells_measured": 17
+        }
+      },
+      "cfb_issues": []
+    },
+    "excel_dsf": {
+      "native_export": {
+        "command": [
+          "docker",
+          "--context",
+          "colima",
+          "exec",
+          "-e",
+          "LC_ALL=C",
+          "-e",
+          "TZ=UTC",
+          "-e",
+          "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+          "-e",
+          "GSETTINGS_BACKEND=memory",
+          "-e",
+          "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+          "ssconvert-statistics-qa",
+          "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_Excel:excel_dsf",
+          "/out/xls-biff-write/engine-known.xml",
+          "/out/xls-biff-write/engine-reference-excel_dsf.xls"
+        ],
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "streams": {
+        "Book": {
+          "revision": 50,
+          "date_mode": 1,
+          "native_reopen": {
+            "command": [
+              "docker",
+              "--context",
+              "colima",
+              "exec",
+              "-e",
+              "LC_ALL=C",
+              "-e",
+              "TZ=UTC",
+              "-e",
+              "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+              "-e",
+              "GSETTINGS_BACKEND=memory",
+              "-e",
+              "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+              "ssconvert-statistics-qa",
+              "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+              "-T",
+              "Gnumeric_XmlIO:sax:0",
+              "/out/xls-biff-write/engine-excel_dsf-Book.raw",
+              "/out/xls-biff-write/engine-excel_dsf-Book.native.xml"
+            ],
+            "exit": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "cache_differences": [],
+          "cache_cells_measured": 17
+        },
+        "Workbook": {
+          "revision": 80,
+          "date_mode": 1,
+          "native_reopen": {
+            "command": [
+              "docker",
+              "--context",
+              "colima",
+              "exec",
+              "-e",
+              "LC_ALL=C",
+              "-e",
+              "TZ=UTC",
+              "-e",
+              "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+              "-e",
+              "GSETTINGS_BACKEND=memory",
+              "-e",
+              "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+              "ssconvert-statistics-qa",
+              "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+              "-T",
+              "Gnumeric_XmlIO:sax:0",
+              "/out/xls-biff-write/engine-excel_dsf-Workbook.raw",
+              "/out/xls-biff-write/engine-excel_dsf-Workbook.native.xml"
+            ],
+            "exit": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "cache_differences": [],
+          "cache_cells_measured": 17
+        }
+      },
+      "cfb_issues": []
+    }
+  },
+  "sharedEngineRun": "{\"profile\":\"gnumeric-1.12.61\",\"exitCode\":0,\"diagnostics\":[],\"artifacts\":[{\"bytes\":5632}],\"usage\":{\"inputBytes\":3397,\"outputBytes\":5632}}\n{\"profile\":\"gnumeric-1.12.61\",\"exitCode\":0,\"diagnostics\":[],\"artifacts\":[{\"bytes\":5632}],\"usage\":{\"inputBytes\":3397,\"outputBytes\":5632}}\n{\"profile\":\"gnumeric-1.12.61\",\"exitCode\":0,\"diagnostics\":[],\"artifacts\":[{\"bytes\":9728}],\"usage\":{\"inputBytes\":3397,\"outputBytes\":9728}}\n{\"unknownFunctionFailure\":\"SsconvertError: Unsupported ssconvert feature: formula function FOO\"}\n",
+  "readerVersions": {
+    "xlrd": "2.0.2",
+    "olefile": "0.47"
+  },
+  "knownFunctionFixture": {
+    "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.gnumeric.org/v9.xsd\">\n  <gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/>\n  <gnm:DateConvention>1904</gnm:DateConvention>\n  <gnm:Calculation ManualRecalc=\"0\" EnableIteration=\"1\" MaxIterations=\"100\" IterationTolerance=\"0.001\" gnm:DateConvention=\"Apple:1904\" FloatRadix=\"2\" FloatDigits=\"53\"/>\n  <gnm:SheetNameIndex>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">S</gnm:SheetName>\n    <gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"65536\">Other</gnm:SheetName>\n  </gnm:SheetNameIndex>\n  <gnm:Names>\n    <gnm:Name>\n      <gnm:name>Answer</gnm:name>\n      <gnm:value>42</gnm:value>\n      <gnm:position>A1</gnm:position>\n    </gnm:Name>\n  </gnm:Names>\n  <gnm:Sheets>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n      <gnm:Name>S</gnm:Name>\n      <gnm:MaxCol>1</gnm:MaxCol>\n      <gnm:MaxRow>5</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Names>\n        <gnm:Name>\n          <gnm:name>Local</gnm:name>\n          <gnm:value>5</gnm:value>\n          <gnm:position>A1</gnm:position>\n        </gnm:Name>\n      </gnm:Names>\n      <gnm:Styles>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"0\" endRow=\"0\">\n          <gnm:Style Fore=\"1234:5656:9A9A\" WrapText=\"1\" HAlign=\"GNM_HALIGN_RIGHT\" Format=\"0.000\">\n            <gnm:Font Unit=\"14\" Bold=\"1\">Courier New</gnm:Font>\n          </gnm:Style>\n        </gnm:StyleRegion>\n        <gnm:StyleRegion startCol=\"0\" startRow=\"5\" endCol=\"0\" endRow=\"5\">\n          <gnm:Style>\n            <gnm:HyperLink type=\"GnmHLinkURL\" target=\"https://example.com/Ω\" tip=\"go\"/>\n          </gnm:Style>\n        </gnm:StyleRegion>\n      </gnm:Styles>\n      <gnm:Cols>\n        <gnm:ColInfo No=\"1\" Unit=\"72\" Hidden=\"1\"/>\n      </gnm:Cols>\n      <gnm:Rows>\n        <gnm:RowInfo No=\"2\" Unit=\"24\" Hidden=\"1\"/>\n      </gnm:Rows>\n      <gnm:Objects>\n        <gnm:CellComment ObjectBound=\"B3\" Text=\"note Ω\" Author=\"Me\"/>\n      </gnm:Objects>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</gnm:Cell>\n        <gnm:Cell Row=\"0\" Col=\"1\">=1+2</gnm:Cell>\n        <gnm:Cell Row=\"1\" Col=\"0\">=IFERROR(1,2)</gnm:Cell>\n        <gnm:Cell Row=\"1\" Col=\"1\">=SUM(1)</gnm:Cell>\n        <gnm:Cell Row=\"2\" Col=\"0\" Rows=\"2\" Cols=\"1\">=ROW(A1:A2)</gnm:Cell>\n        <gnm:Cell Row=\"4\" Col=\"0\">=SUM({1,2;3,4})</gnm:Cell>\n        <gnm:Cell Row=\"4\" Col=\"1\">=Other!$A$1</gnm:Cell>\n        <gnm:Cell Row=\"5\" Col=\"0\" ValueType=\"60\">link</gnm:Cell>\n      </gnm:Cells>\n      <gnm:MergedRegions>\n        <gnm:Merge>A7:B8</gnm:Merge>\n      </gnm:MergedRegions>\n    </gnm:Sheet>\n    <gnm:Sheet DisplayFormulas=\"0\" HideZero=\"0\" HideGrid=\"0\" HideColHeader=\"0\" HideRowHeader=\"0\" DisplayOutlines=\"1\" OutlineSymbolsBelow=\"1\" OutlineSymbolsRight=\"1\" Visibility=\"GNM_SHEET_VISIBILITY_VISIBLE\">\n      <gnm:Name>Other</gnm:Name>\n      <gnm:MaxCol>0</gnm:MaxCol>\n      <gnm:MaxRow>0</gnm:MaxRow>\n      <gnm:Zoom>1</gnm:Zoom>\n      <gnm:Cols/>\n      <gnm:Rows/>\n      <gnm:Cells>\n        <gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell>\n      </gnm:Cells>\n    </gnm:Sheet>\n  </gnm:Sheets>\n  <gnm:UIData SelectedTab=\"0\"/>\n</gnm:Workbook>\n",
+    "sha256": "ba6f2b231f25c80e7bceef02c12f4208abd6799ada32e9dcd21a56b3e7e06f69"
+  },
+  "longLabel": {
+    "native_diagnostic": "Truncating string of 65536 bytes\n",
+    "candidate_diagnostic": "{\"code\":\"biff-loss-warning\",\"severity\":\"warning\",\"message\":\"Truncating string of 65536 bytes\"}\n",
+    "native_reopen_diagnostic": "",
+    "candidate_native_reopened_length": 65535,
+    "native_xlrd_length": 2072,
+    "candidate_xlrd_length": 2072
+  },
+  "truncationWarning": {
+    "columnNativeExit": 0,
+    "nativeDiagnostic": "W Some content will be lost when saving.  This format only supports 256 columns, and this workbook has 300\nexit=0\n",
+    "rowNativeDifferential": "unmeasured; source and unit coverage only"
+  },
+  "checks": {
+    "ssconvertUnit": {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "uncached": true,
+      "summary": "Test Files  163 passed (163)\n      Tests  4317 passed (4317)\n   Start at  13:45:33\n   Duration  23.93s (transform 3.14s, setup 1.94s, import 18.54s, tests 12.99s, environment 10ms)",
+      "exitCode": 0
+    },
+    "ssconvertLint": {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "summary": "> @poe-code/ssconvert@0.0.1 lint\n> node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json",
+      "exitCode": 0
+    },
+    "workspaceBuild": {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "summary": "{\"workspaces\":85,\"builds\":18,\"edges\":237,\"layers\":10,\"noBuild\":[],\"manifestless\":[\"packages/braintrust\",\"packages/safe-bash-optional\"]}",
+      "exitCode": 0
+    },
+    "focusedSafeBash": {
+      "command": "node packages/safe-bash/scripts/test-reporting.mjs --import tsx packages/safe-bash/tests/commands/ssconvert-biff.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts packages/safe-bash/tests/commands/ssconvert-encoding.test.ts packages/safe-bash/tests/commands/ssconvert-text.test.ts",
+      "summary": "ℹ tests 52\nℹ suites 0\nℹ pass 52\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1970.971417",
+      "exitCode": 0
+    },
+    "fullSafeBash": {
+      "command": "npm test --workspace=@poe-platform/safe-bash -- --import tsx tests/commands/ssconvert-biff.test.ts tests/commands/ssconvert.test.ts tests/commands/ssconvert-encoding.test.ts tests/commands/ssconvert-text.test.ts",
+      "note": "Maintained wrapper appends all discovered files; this is not a focused run. TODO/unavailable comparator cases are not passes.",
+      "summary": "ℹ tests 44933\nℹ suites 43\nℹ pass 44100\nℹ fail 0\nℹ cancelled 0\nℹ skipped 831\nℹ todo 2\nℹ duration_ms 1270047.959416",
+      "exitCode": 0,
+      "counts": {
+        "tests": 44933,
+        "passed": 44100,
+        "failed": 0,
+        "skipped": 831,
+        "todo": 2
+      },
+      "todoMismatches": [
+        "csvformat recycled Buffer numeric/null cells differ from native float serialization",
+        "XLSX named shell descriptor path /dev/fd/3 is unavailable in VFS"
+      ]
+    }
+  },
+  "screenshots": [
+    {
+      "fixture": "exporters.png",
+      "sha256": "670903985a13a6d6ed5888cc95e48b2027363739f3dcde3d075dce8be1ae3cb2",
+      "visuallyInspected": true
+    },
+    {
+      "fixture": "truncation.png",
+      "sha256": "c46cb7b2d08890bde3d12fd85a76f71c562096147a6c44c738edd3006b0338fa",
+      "visuallyInspected": true
+    }
+  ],
+  "remainingMismatches": [
+    "Non-comment objects/charts are not reconstructed; unsupported metadata warns. Full native graph/drawing variants remain unimplemented.",
+    "Rich-text runs are not written. Native RSTRING and comment markup fidelity remain unimplemented.",
+    "External-workbook formulas/links and external file hyperlink monikers are unsupported. BIFF8 URL/email/current-workbook hyperlinks are implemented; BIFF7 hyperlink support is absent as in measured native reference.",
+    "Only captured default WINDOWS_LANGUAGE/codepage1252 behavior is implemented for BIFF7; imported/alternate codepages are not supported.",
+    "Palette assignment is input-order rather than native hash-order, and excess-color GLib envelopes/warning ordering can differ.",
+    "Exact native bytes/order/default fonts/XFs/property streams/workbook-print/protection/data validation/conditional formatting/pivot/VBA records are incomplete or unmeasured.",
+    "Large formula/name/array records reject rather than implementing general native CONTINUE. Oversized formula strings/names/comments/header/footer and BIFF8 SST overflow/truncation/failure diagnostics remain incomplete; only BIFF7 cell LABEL overflow is freshly measured.",
+    "Formula reference overflow failure/translation and full array/shared/data-table variants are unmeasured. Shared formulas materialize individually as the native writer does.",
+    "Existing evaluator rejects unknown FOO before writer execution; direct writer addin translation passes, shared engine conversion of that input does not. Direct-factory advanced input lacks cached values/follower cells and differs from native calculated caches at seven positions per stream; shared-engine supported-function fixture caches all match.",
+    "Existing product importer lacks NAME_X, array-literal and some old external-reference translations; factory/native/independent-reader verification does not establish product semantic replay of every emitted formula.",
+    "Row loss-warning native differential remains unmeasured; version limits/clipping and warning unit/source coverage are not native parity evidence.",
+    "Loss comparison expands emitted payloads to hex even without queried raw records; output admission bounds it, but byte-level comparison work admission/RSS guarantees are not qualified.",
+    "Arbitrary concurrent cancellation preemption, foreign realms/browser/workerd/host-isolation variants and checkpoint restoration are not qualified by these Node/injected I/O checks.",
+    "Long continued BIFF7 LABEL: native reopening preserves 65535 bytes, but xlrd2.0.2 reads only 2072 bytes from both native and candidate. This is a measured independent-reader limitation, not a full text interoperability pass."
+  ],
+  "failingBeforeEvidence": {
+    "red-final.log": "Test Files  2 failed (2)\n      Tests  13 failed | 45 passed (58)\n   Start at  13:35:51\n   Duration  1.02s (transform 1.01s, setup 80ms, import 1.20s, tests 112ms, environment 0ms)",
+    "red-scl.log": "Test Files  2 failed (2)\n      Tests  4 failed | 58 passed (62)\n   Start at  13:37:48\n   Duration  1.28s (transform 1.16s, setup 127ms, import 1.45s, tests 126ms, environment 0ms)",
+    "red-long-label.log": "Test Files  1 failed (1)\n      Tests  1 failed | 31 passed (32)\n   Start at  13:42:06\n   Duration  1.28s (transform 891ms, setup 54ms, import 1.04s, tests 76ms, environment 0ms)",
+    "initialUnavailableExporters": {
+      "cases": 4,
+      "status": "Concrete preimplementation command/SDK regressions reported unavailable exporter/default saver; recorded during initial implementation turn"
+    }
+  },
+  "independentStress": {
+    "tests": 35,
+    "status": "passed",
+    "rootWriterTests": 32,
+    "evidence": "docs/plans/xls-biff-write-independent-stress.md"
+  },
+  "cleanup": "Task-owned out/xls-biff-write temporary inputs, outputs, logs, screenshots and QA reader installation purged after recording evidence; prior authenticated archive/source and unrelated out data preserved"
+}

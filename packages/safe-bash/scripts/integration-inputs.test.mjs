@@ -2359,6 +2359,11 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/docx-registration.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/selectors.test.ts"));
   assert.ok(files.includes("tests/commands/pandoc.test.ts"));
+  assert.ok(files.includes("tests/commands/ssconvert.test.ts"));
+  assert.ok(files.includes("tests/commands/ssconvert-cancellation-stress.test.ts"));
+  assert.ok(files.includes("tests/commands/ssconvert-plugin-stress.test.ts"));
+  assert.ok(files.includes("tests/commands/ssconvert-text.test.ts"));
+  assert.ok(files.includes("tests/commands/ssconvert-database.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit-request-workflows.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit-september-user-stress.test.ts"));
@@ -2468,6 +2473,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/regex-execution/provider.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/bounded-provider.test.ts"));
   assert.ok(files.includes("tests/commands/grep-only-matching.test.ts"));
+  assert.ok(files.includes("tests/commands/ssconvert-odf.test.ts"));
   assert.ok(files.includes("tests/commands/grep-utf8-subjects.test.ts"));
   assert.ok(files.includes("tests/commands/grep-insensitive.test.ts"));
   assert.ok(files.includes("tests/commands/grep-bre-literals.test.ts"));

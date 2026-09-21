@@ -1,0 +1,1556 @@
+{
+  "task": "analysis-regression-anova-moments",
+  "reference": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "profileSha256": "7422a6609adb53f97ca79c4231af3dcdbbf795520aff7860f705a4518e002677",
+    "oracleBindingsMatch": true,
+    "members": [
+      {
+        "path": "src/ssconvert.c",
+        "sha256": "0d600c72a05645e6940730bf6e733636ec25f814c20a218cb5e5255da5b198df"
+      },
+      {
+        "path": "src/tools/analysis-tools.c",
+        "sha256": "13722e08af30e56cc0c4dd9397853b49a850516b821f8c6e43985dd5b284a90b"
+      },
+      {
+        "path": "src/tools/analysis-anova.c",
+        "sha256": "d6ed1c39bf10bff7054159e94e5cfd6834c6f01c482e72adb23be1910eb70502"
+      },
+      {
+        "path": "src/tools/analysis-regression.c",
+        "sha256": "d0c89a3c4820cfe141cdc74fcecd2bbeeec954421179bd720c3202385271c5a4"
+      },
+      {
+        "path": "src/tools/analysis-principal-components.c",
+        "sha256": "50f8e552dea5097b45e29a0fcbb2af623c4d6f5e54d8b30897a923091883d833"
+      },
+      {
+        "path": "test/t7200-regression.pl",
+        "sha256": "b049b6ea6b0f6946495c2e0f4589618971aa6614430d0fa6092dced2a6269906"
+      },
+      {
+        "path": "test/t7201-anova.pl",
+        "sha256": "83e7f447c1cfb7cf0cd459f45f52c4ae65b4957fccee116291bf89fa80a2d603"
+      },
+      {
+        "path": "test/t7203-descriptive-statistics.pl",
+        "sha256": "eabef1c527a28b0cc459885feb8808b357fdb41e04b36636333264dee0f7ffda"
+      },
+      {
+        "path": "test/t7204-correlation.pl",
+        "sha256": "c3ba4b5d959edb148fb3bdbea00cfb1b4ed140846e0b783cc700be3e75b3ad4a"
+      },
+      {
+        "path": "test/t7205-covariance.pl",
+        "sha256": "f5ce37290dce8187fcf6d337d04d3734e2f5104274eef4809180cee1a9e507df"
+      },
+      {
+        "path": "test/t7212-principal-components.pl",
+        "sha256": "25b6e1bc094f94e395b7dffd0527aab33bff4a1eda0ab60145a7dae2a13f5b80"
+      }
+    ]
+  },
+  "oracleRole": "Separate Gnumeric 1.12.61 QA only; no product dependency or fallback",
+  "retainedProfile": "docs/ssconvert/analysis-tool-profile.json",
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+    "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+    "GSETTINGS_BACKEND": "memory",
+    "HOME": "/out/analysis-tool-protocol/home",
+    "XDG_CONFIG_HOME": "/out/analysis-tool-protocol/config",
+    "XDG_DATA_HOME": "/out/analysis-tool-protocol/data",
+    "XDG_CACHE_HOME": "/out/analysis-tool-protocol/cache",
+    "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share"
+  },
+  "dependenciesMatch": true,
+  "retainedPluginInventory": [
+    {
+      "id": "GOffice_plot_distrib",
+      "active": true
+    },
+    {
+      "id": "GOffice_smoothing",
+      "active": true
+    },
+    {
+      "id": "GOffice_plot_radar",
+      "active": true
+    },
+    {
+      "id": "GOffice_plot_barcol",
+      "active": true
+    },
+    {
+      "id": "GOffice_plot_xy",
+      "active": true
+    },
+    {
+      "id": "GOffice_plot_pie",
+      "active": true
+    },
+    {
+      "id": "GOffice_reg_logfit",
+      "active": true
+    },
+    {
+      "id": "GOffice_reg_linear",
+      "active": true
+    },
+    {
+      "id": "GOffice_plot_surface",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_derivatives",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnlookup",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_r",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_sc",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_sylk",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_numtheory",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fndatabase",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fninfo",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_mps",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnhebdate",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnstat",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnerlang",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fneng",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_lpsolve",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_Excel",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_lotus",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_html",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_applix",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fncomplex",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnflt",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_glpk",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_QPro",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_xbase",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnlogical",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnfinancial",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnstring",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_dif",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnrandom",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_UIHello",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_oleo",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnmath",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_nlsolve",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fndate",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_plan_perfect",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnTimeSeriesAnalysis",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_OpenCalc",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_fnchristiandate",
+      "active": true
+    },
+    {
+      "id": "Gnumeric_sample_datasource",
+      "active": true
+    }
+  ],
+  "tools": {
+    "regression": {
+      "input": "pair",
+      "outputName": "Regression",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "alpha",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.05,
+          "nativeType": "gdouble",
+          "observedDefault": "0.050000"
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "nativeType": "gnm_tool_group_by_t",
+          "observedDefault": "((gnm_tool_group_by_t) GNM_TOOL_GROUPED_BY_COL)"
+        },
+        {
+          "name": "intercept",
+          "type": "boolean",
+          "default": true,
+          "nativeType": "gboolean",
+          "observedDefault": "TRUE"
+        },
+        {
+          "name": "multiple-regression",
+          "type": "boolean",
+          "default": true,
+          "nativeType": "gboolean",
+          "observedDefault": "TRUE"
+        },
+        {
+          "name": "multiple-y",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "residual",
+          "type": "boolean",
+          "default": true,
+          "nativeType": "gboolean",
+          "observedDefault": "TRUE"
+        }
+      ],
+      "inputDefaults": {
+        "x": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "y": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "malformedSuppliedRange": null,
+        "source": "src/ssconvert.c:1010-1016; src/value.c:498-548"
+      }
+    },
+    "anova": {
+      "input": "data",
+      "outputName": "Single Factor ANOVA",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "nativeType": "gnm_tool_group_by_t",
+          "observedDefault": "((gnm_tool_group_by_t) GNM_TOOL_GROUPED_BY_COL)"
+        },
+        {
+          "name": "alpha",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.05,
+          "nativeType": "gdouble",
+          "observedDefault": "0.050000"
+        }
+      ]
+    },
+    "anova2": {
+      "input": "data",
+      "outputName": "Two Factor ANOVA",
+      "properties": [
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "nativeType": "gnm_tool_group_by_t",
+          "observedDefault": "((gnm_tool_group_by_t) GNM_TOOL_GROUPED_BY_COL)"
+        },
+        {
+          "name": "alpha",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.05,
+          "nativeType": "gdouble",
+          "observedDefault": "0.050000"
+        },
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "replication",
+          "type": "int",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "default": 1,
+          "nativeType": "gint",
+          "observedDefault": "1"
+        }
+      ],
+      "conditionalOutputName": {
+        "replication:1": "Two Factor ANOVA",
+        "replication:other": "Two Factor ANOVA with Replication"
+      }
+    },
+    "descriptive-statistics": {
+      "input": "data",
+      "outputName": "Descriptive Statistics",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "nativeType": "gnm_tool_group_by_t",
+          "observedDefault": "((gnm_tool_group_by_t) GNM_TOOL_GROUPED_BY_COL)"
+        },
+        {
+          "name": "do-summary-statistics",
+          "type": "boolean",
+          "default": true,
+          "nativeType": "gboolean",
+          "observedDefault": "TRUE"
+        },
+        {
+          "name": "do-confidence-level",
+          "type": "boolean",
+          "default": true,
+          "nativeType": "gboolean",
+          "observedDefault": "TRUE"
+        },
+        {
+          "name": "do-kth-largest",
+          "type": "boolean",
+          "default": true,
+          "nativeType": "gboolean",
+          "observedDefault": "TRUE"
+        },
+        {
+          "name": "do-kth-smallest",
+          "type": "boolean",
+          "default": true,
+          "nativeType": "gboolean",
+          "observedDefault": "TRUE"
+        },
+        {
+          "name": "use-ssmedian",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "k-smallest",
+          "type": "int",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "default": 1,
+          "nativeType": "gint",
+          "observedDefault": "1"
+        },
+        {
+          "name": "k-largest",
+          "type": "int",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "default": 1,
+          "nativeType": "gint",
+          "observedDefault": "1"
+        },
+        {
+          "name": "confidence-level",
+          "type": "double",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.95,
+          "nativeType": "gdouble",
+          "observedDefault": "0.950000"
+        }
+      ]
+    },
+    "correlation": {
+      "input": "data",
+      "outputName": "Correlation",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "nativeType": "gnm_tool_group_by_t",
+          "observedDefault": "((gnm_tool_group_by_t) GNM_TOOL_GROUPED_BY_COL)"
+        }
+      ]
+    },
+    "covariance": {
+      "input": "data",
+      "outputName": "Covariance",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "nativeType": "gnm_tool_group_by_t",
+          "observedDefault": "((gnm_tool_group_by_t) GNM_TOOL_GROUPED_BY_COL)"
+        }
+      ]
+    },
+    "principal-components": {
+      "input": "data",
+      "outputName": "Principal Components Analysis",
+      "properties": [
+        {
+          "name": "labels",
+          "type": "boolean",
+          "default": false,
+          "nativeType": "gboolean",
+          "observedDefault": "FALSE"
+        },
+        {
+          "name": "group-by",
+          "type": "enum",
+          "default": 1,
+          "enum": {
+            "row": 0,
+            "col": 1,
+            "area": 2,
+            "bin": 3
+          },
+          "nativeType": "gnm_tool_group_by_t",
+          "observedDefault": "((gnm_tool_group_by_t) GNM_TOOL_GROUPED_BY_COL)"
+        }
+      ]
+    }
+  },
+  "numericalTolerance": {
+    "relative": 1e-12,
+    "absolute": 1e-12
+  },
+  "fixture": {
+    "rows": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        9
+      ]
+    ],
+    "inputSha256": "63eaabb43f5116ddd42b43771d4cd94dec9a7ab847dfc455ab2ab765ccf60624",
+    "origin": "Original small Version-14 in-memory-equivalent data; no copied sample workbook"
+  },
+  "commands": [
+    {
+      "name": "regression",
+      "tool": "regression",
+      "properties": [
+        "x:A1:A4",
+        "y:B1:B4"
+      ],
+      "materialized": false,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=regression",
+        "--tool-test=x:A1:A4",
+        "--tool-test=y:B1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/regression.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "regression",
+      "tool": "regression",
+      "properties": [
+        "x:A1:A4",
+        "y:B1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=regression",
+        "--tool-test=x:A1:A4",
+        "--tool-test=y:B1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-values-regression.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:86585): CRITICAL **: 12:03:53.893: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86585): CRITICAL **: 12:03:53.894: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86585): CRITICAL **: 12:03:53.894: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86585): CRITICAL **: 12:03:53.894: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86585): CRITICAL **: 12:03:53.894: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86585): CRITICAL **: 12:03:53.894: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n"
+    },
+    {
+      "name": "anova",
+      "tool": "anova",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": false,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/anova.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "anova",
+      "tool": "anova",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova",
+        "--tool-test=data:A1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-values-anova.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "anova2",
+      "tool": "anova2",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": false,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova2",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/anova2.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "anova2",
+      "tool": "anova2",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova2",
+        "--tool-test=data:A1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-values-anova2.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "descriptive-statistics",
+      "tool": "descriptive-statistics",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": false,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=descriptive-statistics",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/descriptive-statistics.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "descriptive-statistics",
+      "tool": "descriptive-statistics",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=descriptive-statistics",
+        "--tool-test=data:A1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-values-descriptive-statistics.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "correlation",
+      "tool": "correlation",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": false,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=correlation",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/correlation.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "correlation",
+      "tool": "correlation",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=correlation",
+        "--tool-test=data:A1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-values-correlation.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "covariance",
+      "tool": "covariance",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": false,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=covariance",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/covariance.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "covariance",
+      "tool": "covariance",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=covariance",
+        "--tool-test=data:A1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-values-covariance.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "principal-components",
+      "tool": "principal-components",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": false,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=principal-components",
+        "--tool-test=data:A1:B4",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/principal-components.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "principal-components",
+      "tool": "principal-components",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=principal-components",
+        "--tool-test=data:A1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-values-principal-components.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "regression-missing",
+      "tool": "regression",
+      "properties": [
+        "data:A1:B4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=regression",
+        "--tool-test=data:A1:B4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-regression-missing.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:86675): CRITICAL **: 12:03:55.697: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:86675): CRITICAL **: 12:03:55.697: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:86675): CRITICAL **: 12:03:55.697: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:86675): CRITICAL **: 12:03:55.702: range_init_value: assertion 'v != NULL && VALUE_IS_CELLRANGE (v)' failed\n\n** (ssconvert:86675): CRITICAL **: 12:03:55.702: gnm_cell_set_value: assertion '!gnm_cell_is_nonsingleton_array (cell)' failed\n"
+    },
+    {
+      "name": "regression-simple",
+      "tool": "regression",
+      "properties": [
+        "x:A1:A4",
+        "y:B1:B4",
+        "multiple-regression:no"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=regression",
+        "--tool-test=x:A1:A4",
+        "--tool-test=y:B1:B4",
+        "--tool-test=multiple-regression:no",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-regression-simple.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "regression-no-intercept",
+      "tool": "regression",
+      "properties": [
+        "x:A1:A4",
+        "y:B1:B4",
+        "intercept:no"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=regression",
+        "--tool-test=x:A1:A4",
+        "--tool-test=y:B1:B4",
+        "--tool-test=intercept:no",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-regression-no-intercept.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:86688): CRITICAL **: 12:03:55.901: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86688): CRITICAL **: 12:03:55.901: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86688): CRITICAL **: 12:03:55.901: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86688): CRITICAL **: 12:03:55.901: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86688): CRITICAL **: 12:03:55.901: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n\n** (ssconvert:86688): CRITICAL **: 12:03:55.901: parse_pos_init_evalpos: assertion 'ep != NULL' failed\n"
+    },
+    {
+      "name": "anova2-absolute",
+      "tool": "anova2",
+      "properties": [
+        "data:$A$1:$B$4"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova2",
+        "--tool-test=data:$A$1:$B$4",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-anova2-absolute.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "anova2-replicated",
+      "tool": "anova2",
+      "properties": [
+        "data:$A$1:$B$4",
+        "replication:2"
+      ],
+      "materialized": true,
+      "argv": [
+        "docker",
+        "exec",
+        "ssconvert-statistics-qa",
+        "env",
+        "LC_ALL=C",
+        "LANG=C",
+        "TZ=UTC",
+        "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+        "GSETTINGS_SCHEMA_DIR=/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND=memory",
+        "HOME=/out/analysis-tool-protocol/home",
+        "XDG_CONFIG_HOME=/out/analysis-tool-protocol/config",
+        "XDG_DATA_HOME=/out/analysis-tool-protocol/data",
+        "XDG_CACHE_HOME=/out/analysis-tool-protocol/cache",
+        "XDG_DATA_DIRS=/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--tool-test=anova2",
+        "--tool-test=data:$A$1:$B$4",
+        "--tool-test=replication:2",
+        "--tool-test=formulas:no",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/ssconvert-moments/input.xml",
+        "/out/ssconvert-moments/native-anova2-replicated.xml"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "regression",
+      "materialized": false,
+      "equalCells": 89,
+      "mismatches": []
+    },
+    {
+      "name": "regression",
+      "materialized": true,
+      "equalCells": 98,
+      "mismatches": []
+    },
+    {
+      "name": "anova",
+      "materialized": false,
+      "equalCells": 38,
+      "mismatches": [
+        {
+          "row": 10,
+          "column": 6,
+          "native": [
+            null,
+            "=finv(0.050000000000000003,C11,C12)",
+            1,
+            1
+          ],
+          "product": [
+            null,
+            "=finv(0.05,C11,C12)",
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "anova",
+      "materialized": true,
+      "equalCells": 39,
+      "mismatches": []
+    },
+    {
+      "name": "anova2",
+      "materialized": false,
+      "equalCells": 63,
+      "mismatches": [
+        {
+          "row": 14,
+          "column": 6,
+          "native": [
+            null,
+            "=finv(0.050000000000000003,C15,C17)",
+            1,
+            1
+          ],
+          "product": [
+            null,
+            "=finv(0.05,C15,C17)",
+            1,
+            1
+          ]
+        },
+        {
+          "row": 15,
+          "column": 6,
+          "native": [
+            null,
+            "=finv(0.050000000000000003,C16,C17)",
+            1,
+            1
+          ],
+          "product": [
+            null,
+            "=finv(0.05,C16,C17)",
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "anova2",
+      "materialized": true,
+      "equalCells": 65,
+      "mismatches": []
+    },
+    {
+      "name": "descriptive-statistics",
+      "materialized": false,
+      "equalCells": 59,
+      "mismatches": []
+    },
+    {
+      "name": "descriptive-statistics",
+      "materialized": true,
+      "equalCells": 59,
+      "mismatches": []
+    },
+    {
+      "name": "correlation",
+      "materialized": false,
+      "equalCells": 8,
+      "mismatches": []
+    },
+    {
+      "name": "correlation",
+      "materialized": true,
+      "equalCells": 8,
+      "mismatches": []
+    },
+    {
+      "name": "covariance",
+      "materialized": false,
+      "equalCells": 8,
+      "mismatches": []
+    },
+    {
+      "name": "covariance",
+      "materialized": true,
+      "equalCells": 8,
+      "mismatches": []
+    },
+    {
+      "name": "principal-components",
+      "materialized": false,
+      "equalCells": 27,
+      "mismatches": [
+        {
+          "row": 14,
+          "column": 1,
+          "native": [
+            null,
+            "=mmult(mmult(sqrt(1/B8:C8)*munit(2),B11:C12),sqrt(B10:C10)*munit(2))",
+            2,
+            2
+          ],
+          "product": [
+            null,
+            "=mmult(mmult(sqrt(1/(B8:C8))*munit(2),B11:C12),sqrt(B10:C10)*munit(2))",
+            2,
+            2
+          ]
+        },
+        {
+          "row": 17,
+          "column": 1,
+          "native": [
+            null,
+            "=B10/sum($B$10:$C$10)",
+            1,
+            1
+          ],
+          "product": [
+            null,
+            "=B10/sum(B10:C10)",
+            1,
+            1
+          ]
+        },
+        {
+          "row": 17,
+          "column": 2,
+          "native": [
+            null,
+            "=C10/sum($B$10:$C$10)",
+            1,
+            1
+          ],
+          "product": [
+            null,
+            "=C10/sum(B10:C10)",
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "principal-components",
+      "materialized": true,
+      "equalCells": 38,
+      "mismatches": []
+    },
+    {
+      "name": "regression-missing",
+      "materialized": true,
+      "equalCells": 58,
+      "mismatches": []
+    },
+    {
+      "name": "regression-simple",
+      "materialized": true,
+      "equalCells": 17,
+      "mismatches": []
+    },
+    {
+      "name": "regression-no-intercept",
+      "materialized": true,
+      "equalCells": 98,
+      "mismatches": []
+    },
+    {
+      "name": "anova2-absolute",
+      "materialized": true,
+      "equalCells": 65,
+      "mismatches": []
+    },
+    {
+      "name": "anova2-replicated",
+      "materialized": true,
+      "equalCells": 93,
+      "mismatches": []
+    }
+  ],
+  "notes": [
+    "Empty native string cells and absent product cells are ignored only in this coordinate comparison; not an all-model identity assertion.",
+    "Formula-expression text and array anchor dimensions are compared separately from materialized statistical values.",
+    "Full style regions/comments/blank-cell geometry are not qualified by this receipt.",
+    "Native materialized regression GLib critical diagnostics differ from the product empty diagnostic channel."
+  ],
+  "candidate": [
+    {
+      "path": "packages/ssconvert/src/analysis/run.ts",
+      "sha256": "e0fe5959d6e0ae9e27402fcc05f48ba6b126761ec312db20c88ab2563ec11a81"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/protocol.ts",
+      "sha256": "b5327f7f10578ba838aae6fa76838a462fb4818716090c32f10c30ea4ddf7860"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/statistical.ts",
+      "sha256": "6ddfea182a4390329942c95b3951ee775e1ce914142e414eaa39b9838f032148"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/moments.test.ts",
+      "sha256": "9773489512fb4e3fefc4e503db6dae9975a482eeeb3312ec2737446e734d4818"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/moments-stress.test.ts",
+      "sha256": "83d5dcac85fa6367db133d2b736e2030b41189edf89981b323fcb905e3825fdc"
+    },
+    {
+      "path": "packages/ssconvert/src/analysis/moments-bounds.test.ts",
+      "sha256": "b6079745a523c21d75458dedf637445b206478ccf38982da2b16fc831adcfc96"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "sha256": "fb313a389d9eab85754d8abd405efc269a3488e013547d9df9352fc0130dc3a4"
+    }
+  ]
+}

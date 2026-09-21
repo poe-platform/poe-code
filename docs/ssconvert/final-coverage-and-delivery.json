@@ -1,0 +1,1539 @@
+{
+  "kind": "ssconvert-final-coverage-and-delivery-audit",
+  "auditDate": "2026-09-21",
+  "target": "ssconvert / TypeScript ESM / Gnumeric 1.12.61",
+  "status": "blocked-complete-parity-not-established",
+  "source": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "archiveHashVerified": true,
+    "retainedAcquisition": "out/ssconvert-lifecycle/gnumeric-1.12.61.tar.xz",
+    "sourceFileHashesVerified": 245,
+    "sourceHashMismatches": 0,
+    "referenceProfile": "docs/ssconvert/reference-profile.json",
+    "primaryProfile": "Debian trixie aarch64; GOffice 0.10.61; GLib 2.84.4; GTK/GDK 3.24.49; libgsf 1.14.53; Pango 1.56.3; Cairo 1.18.4; C/UTC",
+    "nativeRole": "separate QA oracle only; no native ssconvert executed in this audit. Repository-wide gates include other commands' maintained native/external controls.",
+    "referenceProfileBinding": {
+      "censusRecordedSha256": "111b2a50a5df70f73734f536660a74317a193ff8c026823156918fcfc6402fdc",
+      "currentSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+      "matchesHistoricalCensusBinding": false,
+      "status": "historical binding does not authenticate current profile; retained rather than silently rebased"
+    },
+    "pluginManifestHashesVerified": 47,
+    "pluginManifestHashMismatches": 0,
+    "pluginManifestsMissing": 0
+  },
+  "countingRules": {
+    "fullSemanticFeatureDenominator": "unresolved: lexical census does not establish preprocessed CLI-observable semantic closure",
+    "categoryUnit": "10110 selected register obligations, partitioned by task; overlapping descriptions across different register sections; not 10110 distinct source features",
+    "implementedMeans": "complete evidence for the entire register obligation; partial implementation/probe does not promote it",
+    "failedZeroMeans": "no whole-obligation current failure classification; historical failing cases reported separately, not zero product mismatches",
+    "unmeasuredMeans": "full qualification unmeasured, even if implementation and scoped passing tests exist",
+    "unsupportedZeroMeans": "no entire register obligation newly classified unsupported; does not assert every subcase is supported",
+    "noSummedGlobalPassRate": true
+  },
+  "categories": [
+    {
+      "category": "CLI/parser",
+      "tasks": [
+        "glib-compatible-cli-parser",
+        "inherited-help-and-version",
+        "export-options-grammar",
+        "conversion-lifecycle-and-output-inference",
+        "listing-and-diagnostics",
+        "cell-updates-and-recalc",
+        "split-and-template-expansion",
+        "sheet-selection-and-range",
+        "merge-workbooks",
+        "resize-workbooks",
+        "clipboard-export"
+      ],
+      "unit": "source-register obligations; not distinct semantic features",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 194,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure"
+    },
+    {
+      "category": "formats/versions/records",
+      "tasks": [
+        "configurable-text-export",
+        "text-import-csv-tsv",
+        "legacy-text-importers",
+        "dif-sylk-codecs",
+        "xls-biff-read",
+        "excel-spreadsheetml-read",
+        "xls-biff-write",
+        "xlsx-read",
+        "xlsx-write",
+        "mps-and-linear-program-export",
+        "html-import",
+        "html-xhtml-export",
+        "legacy-binary-importers",
+        "ods-sxc-read",
+        "ods-strict-and-extended-write",
+        "database-file-codecs",
+        "gnumeric-xml-codecs"
+      ],
+      "unit": "source-register obligations; not distinct semantic features",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 6594,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure",
+      "countingNote": "includes all 22 format entries without a task field"
+    },
+    {
+      "category": "workbook objects/styles",
+      "tasks": [
+        "bounded-workbook-model",
+        "chart-and-object-model",
+        "number-date-style-formatting"
+      ],
+      "unit": "source-register obligations; not distinct semantic features",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 448,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure"
+    },
+    {
+      "category": "functions/numerics",
+      "tasks": [
+        "calculation-core",
+        "functions-date-finance-calendars",
+        "functions-math-engineering-complex",
+        "functions-statistics-random-timeseries",
+        "functions-logical-text-lookup"
+      ],
+      "unit": "source-register obligations; not distinct semantic features",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 1649,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure"
+    },
+    {
+      "category": "graphics/printing",
+      "tasks": [
+        "print-layout",
+        "pdf-export-options",
+        "graph-image-exports"
+      ],
+      "unit": "source-register obligations; not distinct semantic features",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 36,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure"
+    },
+    {
+      "category": "optimization/analysis",
+      "tasks": [
+        "solver-model-and-validation",
+        "analysis-tool-protocol",
+        "goal-seek",
+        "analysis-regression-anova-moments",
+        "analysis-statistical-tests-and-utilities",
+        "analysis-time-series-distributions",
+        "javascript-optimizer"
+      ],
+      "unit": "source-register obligations; not distinct semantic features",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 758,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure"
+    },
+    {
+      "category": "capabilities",
+      "tasks": [
+        "format-provider-registry",
+        "unassigned",
+        "canonical-differential-corpus"
+      ],
+      "unit": "source-register obligations; not distinct semantic features",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 431,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure",
+      "countingNote": "remaining unassigned entries are 57 service declarations"
+    },
+    {
+      "category": "service adapters",
+      "tasks": [],
+      "unit": "named injected I/O profiles; deployed-service acceptance unmeasured",
+      "implemented": 0,
+      "failed": 0,
+      "unmeasured": 5,
+      "unsupported": 0,
+      "blocker": "F-semantic-evidence-closure",
+      "profiles": [
+        "VFS paths",
+        "file URI mapping",
+        "fd descriptors",
+        "named scheme adapters",
+        "HTTP authorized transport"
+      ]
+    }
+  ],
+  "sourceObligations": [
+    {
+      "pointer": "#/cliOptionDescriptors",
+      "count": 32,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/exportOptionKeys",
+      "count": 3,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/formats",
+      "count": 22,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/features",
+      "count": 19,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/services",
+      "count": 57,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/functionDescriptors",
+      "count": 653,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/analysisTypes",
+      "count": 40,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/properties",
+      "count": 192,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/analysisTools",
+      "count": 31,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/sourceFiles",
+      "count": 242,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/dispatchCases",
+      "count": 4811,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/xmlDispatchNodes",
+      "count": 2130,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/sourceDiagnostics",
+      "count": 1685,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    },
+    {
+      "pointer": "#/sourceEnumerations",
+      "count": 193,
+      "quantifier": "every index 0 through count-1, including nested version/record/property/member obligations",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure",
+      "existingEvidence": "retain each source locator, task, QA case and historical blockers in coverage.json; final overlay supersedes historical whole-feature product-unimplemented labels"
+    }
+  ],
+  "additionalSourceObligations": {
+    "sourceFunctions": {
+      "count": 6203,
+      "pointer": "coverage.json#/sourceFiles/*/functions/*",
+      "status": "unmeasured-full-qualification",
+      "blocker": "F-semantic-evidence-closure"
+    },
+    "scope": "All other census sections, generated parser aliases, manifest functions, builtin contracts, upstream fixtures/tests/support, legal and extension registers retain their explicit blockers. This overlay does not prove the census is a complete semantic feature denominator."
+  },
+  "implementationInventory": {
+    "functionNames": 658,
+    "implementedNameLabels": 647,
+    "labelCounts": {
+      "implemented-and-independently-reviewed": 127,
+      "implemented-parity-incomplete": 190,
+      "implemented-source-tested": 118,
+      "implemented-with-recorded-parity-limits": 212,
+      "outside-task": 9,
+      "disabled-in-captured-stable-profile": 2
+    },
+    "semanticPassCount": "not derivable from function-name labels",
+    "sourceDescriptors": 653,
+    "sourceManifestFunctions": 651,
+    "denominatorsNotInterchangeable": true,
+    "evidence": "docs/ssconvert/function-coverage.json",
+    "staleOptionalLabels": "PERL_ADDER, PY_BITAND and ASCII PY_CAPWORDS implementations have later coverage; outside-task labels are historical, not a current unsupported verdict."
+  },
+  "historicalFailures": {
+    "exactNumericalCases": {
+      "directLN1P": 1,
+      "higherQBessel": 47,
+      "capturedLog1pPrimitive": 6,
+      "capturedAcosPrimitive": 2,
+      "total": 56
+    },
+    "evidence": [
+      "docs/ssconvert/numeric-current-verification.md",
+      "docs/ssconvert/numeric-verification.md",
+      "docs/ssconvert/function-coverage.json#/numericTask/currentFollowup"
+    ],
+    "scope": "separate recorded cohorts, not 56 failed functions; not recaptured against this dirty candidate"
+  },
+  "optionalProfiles": {
+    "count": 14,
+    "implemented": 0,
+    "failed": 0,
+    "unmeasured": 14,
+    "unsupported": 0,
+    "unit": "whole matching-profile capability qualification",
+    "evidence": "docs/ssconvert/optional-runtime-extension-coverage.json",
+    "source": "coverage.json#/optionalRuntimeExtensions/capabilities",
+    "blocker": "F-optional-profile-qualification",
+    "capabilities": [
+      "PERL_ADDER",
+      "PERL_DATE",
+      "PERL_SED",
+      "PY_BITAND",
+      "PY_CAPWORDS",
+      "PY_PRINTF",
+      "EXECSQL / READDBTABLE",
+      "ATL_LAST",
+      "Gnumeric_GnomeGlossary:po",
+      "Perl/Python loaders",
+      "Excel external function plugins",
+      "Guile",
+      "GNOME-DB / UIHello / Python console",
+      "GOffice external extensions"
+    ],
+    "additionalFormatAndSolverProfiles": "Psiconv unchanged source fails captured build; GLPK/LPSolve/Nlsolve availability is not solution accuracy. Format version matrices remain covered by existing format blockers.",
+    "knownUnsupportedSubcase": "ASCII PY_CAPWORDS port explicitly refuses non-ASCII; not a whole-profile pass or unsupported whole Python profile"
+  },
+  "compiledEvidence": {
+    "independentReport": "docs/plans/ssconvert-final-independent-qa.md",
+    "realProviders": true,
+    "nativeFallbackUsed": false,
+    "customMockCodecUsed": false,
+    "passedBoundaries": [
+      "exact CSV SDK/command bytes and diagnostics",
+      "Gnumeric XML checkpoint replay",
+      "invalid-option status/diagnostic and target preservation",
+      "pre-cancellation reason identity and no sink call",
+      "built package/public export consumer",
+      "both usage examples with verified IDs"
+    ],
+    "engineSharing": "Safe Bash imports createEngine/runCommand from poe-code/ssconvert",
+    "isolationInspection": "bounded runtime-tree text inspection only; transitive dependency and trusted JavaScript isolation not proven",
+    "candidate": "live dirty workspace; not authenticated frozen candidate",
+    "testBindings": {
+      "ordering": "full relative path sorted by JavaScript string ordering; binding = sha256(concatenation of path, NUL, hex content hash, NUL)",
+      "domainTests": {
+        "count": 317,
+        "sha256": "5fb1d117813646b9dfc42432906dc9acd328011c9a5480603c6177f8a3b77888"
+      },
+      "commandTests": {
+        "count": 14,
+        "sha256": "fa62393a0a6bc625f172d02a3908ecb2e069dfff97db0773c095b17d92f14408",
+        "scope": "14 direct tests/commands/ssconvert*.test.ts files; not a complete outward consumer inventory"
+      },
+      "compiledEntries": [
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "d0c56a1047c278ad9a2115be72a273eaefacbf42561ed933fd27799b514a17e6"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "b831e7617095fea7d0a50c205328c4859a0afcd7eb05c693a174fa8a74fe25f8"
+        }
+      ]
+    },
+    "additionalParserProbe": {
+      "argv": [
+        "-O",
+        "separator=;",
+        "-O",
+        "separator=,",
+        "in.csv",
+        "out.csv"
+      ],
+      "observedExportOptions": "separator=,",
+      "assertion": "last scalar wins; usage docs corrected to distinguish ordered SDK array",
+      "nativeRole": "source/parser contract; no native oracle executed"
+    }
+  },
+  "gates": {
+    "build": {
+      "command": "npm run build -- --no-cache",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    "domainTest": {
+      "command": "npm run test --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "files": 317,
+      "tests": 6275,
+      "skips": 0,
+      "status": "passed fresh direct workspace route"
+    },
+    "domainLint": {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "status": "passed"
+    },
+    "rootTestInitial": {
+      "command": "npm test -- --no-cache",
+      "exitCode": 1,
+      "failed": "pipeline-concurrency same explicit task timed out at unchanged 5000ms",
+      "scope": "first shared root batch: 99 files passed, 1 failed; 1866 tests passed, 1 failed; later stages not reached"
+    },
+    "focusedRecheck": {
+      "command": "npx vitest run --config vitest.root.config.ts src/sdk/pipeline-concurrency.test.ts",
+      "exitCode": 0,
+      "tests": 20,
+      "status": "pass; does not clear full gate"
+    },
+    "rootTestRecheck": {
+      "command": "npm test -- --no-cache",
+      "status": "failed",
+      "exitCode": 1,
+      "failed": "packages/ssconvert/src/codecs/pdf-independent.test.ts:16 row override test timed out at unchanged 5000ms",
+      "domainResult": {
+        "filesPassed": 316,
+        "filesFailed": 1,
+        "testsPassed": 6274,
+        "testsFailed": 1,
+        "totalTests": 6275
+      },
+      "sharedScopes": "all declared shared workspace batches passed, with recorded skips/TODOs; root runner later stopped at ssconvert",
+      "posttestReached": false,
+      "noTimeoutOrAssertionChanges": true,
+      "repairDisposition": "isolated case passed; no deterministic runtime repair validated. Full gate remains failed; no third full rerun or runtime edits to conceal it."
+    },
+    "rootLint": {
+      "command": "npm run lint",
+      "status": "failed-incomplete",
+      "exitCode": 2,
+      "errors": 0,
+      "warnings": 4,
+      "reason": "guarded lint observed repository-root directory identity/size drift (1376 -> 1408); descendant coverage gaps retained. This is a completeness failure, not lint acceptance."
+    },
+    "safeBashScoped": {
+      "command": "npm run test --workspace=@poe-platform/safe-bash -- --test-name-pattern=ssconvert",
+      "exitCode": 0,
+      "status": "passed-partial-filter",
+      "reportedTestRecords": 1441,
+      "reportedSkips": 0,
+      "scope": "1348 authenticated discovered files loaded with name filter. Reported records are not a semantic feature denominator; differently named cases remain unmeasured by this route.",
+      "durationMs": 745681.428042
+    },
+    "publicConsumer": {
+      "command": "node --import tsx packages/ssconvert/tests/public-consumer.mts",
+      "exitCode": 0,
+      "finalRecheck": "exit 0 after full route's workspace rebuilds"
+    },
+    "workflowsChanged": false,
+    "workflowRule": "use lint:workflows; no workflow unit tests",
+    "visual": "no runtime or visual CLI change; rendering/screenshot qualification remains open",
+    "rootLintRecheck": {
+      "command": "npm run lint",
+      "status": "passed",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 4,
+      "lintCoverageComplete": true,
+      "coverageGaps": 0,
+      "types": "passed",
+      "workflows": "passed",
+      "diagnosticsCache": "maintained default cache with input/authentication checks; not an uncached ESLint claim"
+    },
+    "pdfFocusedRecheck": {
+      "command": "npx vitest run packages/ssconvert/src/codecs/pdf-independent.test.ts",
+      "status": "passed",
+      "exitCode": 0,
+      "tests": 22,
+      "testDurationMs": 383,
+      "fullRouteDurationSeconds": 1.09,
+      "clearsFailedFullGate": false
+    },
+    "safeBashFull": {
+      "command": "maintained @poe-platform/safe-bash test:unit stage inside npm test -- --no-cache",
+      "status": "passed",
+      "reportedTests": 45000,
+      "passed": 44167,
+      "failed": 0,
+      "skipped": 831,
+      "todo": 2,
+      "runnerChecksPassed": 558,
+      "scope": "all 1348 authenticated discovered TypeScript test files; skips/TODOs and unavailable external controls are not feature passes"
+    },
+    "safeJsFull": {
+      "status": "passed",
+      "filesPassed": 1467,
+      "filesSkipped": 3,
+      "testsPassed": 31121,
+      "testsSkipped": 48,
+      "scope": "maintained full root route workspace stage; not ssconvert semantic evidence"
+    },
+    "safePythonFull": {
+      "status": "passed",
+      "filesPassed": 1153,
+      "testsPassed": 84610,
+      "scope": "maintained full root route workspace stage; not ssconvert semantic evidence"
+    },
+    "posttestManual": {
+      "command": "npm run test:stress:lint",
+      "status": "passed-separately",
+      "exitCode": 0,
+      "tests": 2,
+      "clearsFailedFullGate": false
+    },
+    "rootTestPostconditions": "failed route stopped before all declared test stages completed; no successful full npm test or automatic posttest claimed"
+  },
+  "blockers": [
+    {
+      "id": "F-semantic-evidence-closure",
+      "status": "open",
+      "reason": "No source-entry-to-executed-semantic-case map closes every version, record, writer/setter, diagnostic, namespace effect, function domain, print or analysis obligation. Retain all 37 census blockers; replace stale B-product-not-implemented with this evidence blocker for qualification, not with a pass."
+    },
+    {
+      "id": "F-census-semantic-denominator",
+      "status": "open",
+      "reason": "Macro-expanded dispatch and conditional dependency/plugin closure plus undistributed/generated fixtures remain unresolved; a full CLI-observable feature total cannot honestly be reported."
+    },
+    {
+      "id": "F-optional-profile-qualification",
+      "status": "open",
+      "reason": "All 14 matching optional capability oracles unmeasured; service injection/mocks and disabled native profiles are not passes."
+    },
+    {
+      "id": "F-current-candidate-differential",
+      "status": "open",
+      "reason": "Historical cohorts use older hashes and profiles. Fresh compiled boundary probes and unit tests do not recapture every historical differential or authenticate a complete current consumer/service inventory."
+    },
+    {
+      "id": "F-gates",
+      "status": "open",
+      "reason": "Full maintained uncached npm test failed twice at unchanged 5000ms: first pipeline coordination, then PDF row layout. Both isolated files passed; this does not clear the full gate. npm posttest was not reached. Root build/domain direct test/domain lint/root lint passed. Timeout cause and a complete successful full test route remain unresolved."
+    },
+    {
+      "id": "F-README-approval",
+      "status": "open",
+      "reason": "User explicitly prohibits README edits without permission; usage-draft updated and executable examples verified, README requirement remains unmet."
+    },
+    {
+      "id": "F-profile-binding",
+      "status": "open",
+      "reason": "coverage.json retains an earlier reference-profile SHA-256; current profile differs. Current historical profile/candidate receipt closure must be requalified, not silently authenticated by updating a hash."
+    },
+    {
+      "id": "F-packed-export-dependency-closure",
+      "status": "open",
+      "reason": "Compiled root ssconvert subexport points to unbundled workspace dist. dist/codecs/xlsx.js retains bare @poe-code/office-package and @poe-code/safe-fs/xml imports; root package declares those as devDependencies, does not ship their dist in files, and inspected bundle script only explicitly bundles CSV SDK. Live workspace public-consumer success does not establish standalone packed imports.",
+      "evidence": [
+        "package.json#/exports/~1ssconvert",
+        "package.json#/devDependencies",
+        "packages/ssconvert/dist/codecs/xlsx.js:1-2",
+        "scripts/bundle.mjs:220-234"
+      ],
+      "classification": "concrete dependency-closure evidence; actual packed standalone execution unmeasured, not a fabricated runtime failure"
+    }
+  ],
+  "delivery": {
+    "localChanges": "audit/usage/spec documentation and metadata only; no deterministic runtime repair validated or implemented",
+    "localCommits": [],
+    "commitAuthorized": false,
+    "pushAuthorized": false,
+    "publishAuthorized": false,
+    "verifiedRemoteMainDelivery": false,
+    "successfulRelease": false,
+    "futureExplicitAuthorization": "Atomic owned-file Conventional Commits on main; manually run appropriate checks; push directly to main only when explicitly requested; monitor GitHub publication to success before claiming release.",
+    "readmeEdited": false,
+    "branch": "main"
+  },
+  "canonicalDifferential": {
+    "register": "docs/ssconvert/canonical-differential-register.json",
+    "verification": "docs/ssconvert/canonical-differential-verification.json",
+    "denominator": 2364,
+    "categories": {
+      "option": 320,
+      "short-option": 70,
+      "parser": 11,
+      "action-precedence": 72,
+      "help": 16,
+      "group-alias": 69,
+      "file_opener": 20,
+      "file_saver": 27,
+      "solver": 3,
+      "function-manifest": 651,
+      "function-descriptor": 653,
+      "property": 192,
+      "analysis": 31,
+      "workbook-profile": 6,
+      "print-chart": 19,
+      "upstream-research": 204
+    },
+    "stateCounts": {
+      "unmeasured": 2364
+    },
+    "versionProfile": "blocked",
+    "implemented": 0,
+    "failed": 0,
+    "unmeasured": 2364,
+    "unsupported": 0,
+    "unit": "declared canonical differential obligations, overlapping manifest/descriptor requirements; not exhaustive state space",
+    "verificationHistorical": {
+      "passed": 0,
+      "missing": 2363,
+      "blocked": 1,
+      "mismatched": 0
+    },
+    "blocker": "F-current-candidate-differential",
+    "nativeProfileStatus": "blocked; retained Linux oracle cannot execute on Darwin and Docker was unavailable in canonical capture",
+    "censusBinding": {
+      "recordedSha256": "1e602015a9a35ac250c6b18a9f7a3ef60f4f23e1570fe88b1e2052dd25a36420",
+      "currentSha256": "61e6106d6457c4c6bfea3eff24e3ee87c05fd278b9e6347701524f6ca1016632",
+      "matches": false,
+      "note": "Audit adds qualification metadata to current coverage.json. Historical canonical receipt remains unchanged and does not certify it."
+    }
+  },
+  "currentUnitCaseEvidence": {
+    "countingRule": "Each passed file assigned once by path family; root engine/public/canonical files counted as capabilities. Category counts are executed unit cases, not source semantic feature passes.",
+    "categories": {
+      "workbook objects/styles": {
+        "files": 32,
+        "tests": 387,
+        "paths": [
+          "packages/ssconvert/src/workbook/updates-independent.test.ts",
+          "packages/ssconvert/src/objects/data-links.test.ts",
+          "packages/ssconvert/src/workbook/updates.test.ts",
+          "packages/ssconvert/src/objects/model.test.ts",
+          "packages/ssconvert/src/workbook/merge-independent.test.ts",
+          "packages/ssconvert/src/workbook.test.ts",
+          "packages/ssconvert/src/workbook/resize-stress.test.ts",
+          "packages/ssconvert/src/workbook/merge-current-independent.test.ts",
+          "packages/ssconvert/src/formatting/independent-review.test.ts",
+          "packages/ssconvert/src/workbook/range-selection.test.ts",
+          "packages/ssconvert/src/workbook/stress.test.ts",
+          "packages/ssconvert/src/workbook/merge.test.ts",
+          "packages/ssconvert/src/objects/data-independent.test.ts",
+          "packages/ssconvert/src/workbook/resize-current-review.test.ts",
+          "packages/ssconvert/src/formatting/locale.test.ts",
+          "packages/ssconvert/src/workbook/numeric-zero.test.ts",
+          "packages/ssconvert/src/workbook/independent-boundaries.test.ts",
+          "packages/ssconvert/src/workbook/updates-review.test.ts",
+          "packages/ssconvert/src/objects/styles.test.ts",
+          "packages/ssconvert/src/objects/registry-independent.test.ts",
+          "packages/ssconvert/src/formatting/scientific-scaling-independent.test.ts",
+          "packages/ssconvert/src/workbook/resize-guidance.test.ts",
+          "packages/ssconvert/src/formatting/cell-text-independent.test.ts",
+          "packages/ssconvert/src/workbook/resize.test.ts",
+          "packages/ssconvert/src/formatting/number-format.test.ts",
+          "packages/ssconvert/src/formatting/cell-text.test.ts",
+          "packages/ssconvert/src/workbook/resize-names-current.test.ts",
+          "packages/ssconvert/src/formatting/scientific-precision.test.ts",
+          "packages/ssconvert/src/objects/layout.test.ts",
+          "packages/ssconvert/src/workbook/ownership.test.ts",
+          "packages/ssconvert/src/workbook/resize-parse.test.ts",
+          "packages/ssconvert/src/objects/graph-export.test.ts"
+        ]
+      },
+      "graphics/printing": {
+        "files": 17,
+        "tests": 244,
+        "paths": [
+          "packages/ssconvert/src/rendering/graph-images.test.ts",
+          "packages/ssconvert/src/rendering/images/codecs.test.ts",
+          "packages/ssconvert/src/rendering/graph-publication.test.ts",
+          "packages/ssconvert/src/rendering/chart/layout.test.ts",
+          "packages/ssconvert/src/rendering/chart/marker.test.ts",
+          "packages/ssconvert/src/rendering/chart/line-independent.test.ts",
+          "packages/ssconvert/src/rendering/images/scene.test.ts",
+          "packages/ssconvert/src/rendering/print/header-footer.test.ts",
+          "packages/ssconvert/src/rendering/chart/pie.test.ts",
+          "packages/ssconvert/src/rendering/chart/axis.test.ts",
+          "packages/ssconvert/src/rendering/print/layout.test.ts",
+          "packages/ssconvert/src/rendering/images/factory.test.ts",
+          "packages/ssconvert/src/rendering/print/native-independent.test.ts",
+          "packages/ssconvert/src/rendering/chart/error-bar-independent.test.ts",
+          "packages/ssconvert/src/rendering/print/pagination.test.ts",
+          "packages/ssconvert/src/rendering/chart/error-bar.test.ts",
+          "packages/ssconvert/src/rendering/chart/line.test.ts"
+        ]
+      },
+      "functions/numerics": {
+        "files": 81,
+        "tests": 2644,
+        "paths": [
+          "packages/ssconvert/src/formulas/statistics-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/date-finance-inventory.test.ts",
+          "packages/ssconvert/src/formulas/functions-regression.test.ts",
+          "packages/ssconvert/src/formulas/database-independent.test.ts",
+          "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
+          "packages/ssconvert/src/formulas/financial-independent.test.ts",
+          "packages/ssconvert/src/formulas/calculation-stress-review.test.ts",
+          "packages/ssconvert/src/formulas/text-independent.test.ts",
+          "packages/ssconvert/src/formulas/calculation-independent.test.ts",
+          "packages/ssconvert/src/formulas/function-inventory.test.ts",
+          "packages/ssconvert/src/formulas/statistics-inventory.test.ts",
+          "packages/ssconvert/src/formulas/dependencies-independent.test.ts",
+          "packages/ssconvert/src/formulas/statistics-random.test.ts",
+          "packages/ssconvert/src/formulas/complex-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/derivatives-independent.test.ts",
+          "packages/ssconvert/src/formulas/special-numeric-independent.test.ts",
+          "packages/ssconvert/src/formulas/lookup-independent.test.ts",
+          "packages/ssconvert/src/formulas/optional-runtime.test.ts",
+          "packages/ssconvert/src/formulas/function-contracts.test.ts",
+          "packages/ssconvert/src/formulas/conditional-math-independent.test.ts",
+          "packages/ssconvert/src/formulas/math-functions.test.ts",
+          "packages/ssconvert/src/formulas/statistics-functions.test.ts",
+          "packages/ssconvert/src/formulas/date-finance-stress.test.ts",
+          "packages/ssconvert/src/formulas/numeric-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/date-finance-functions.test.ts",
+          "packages/ssconvert/src/formulas/complex-scientific-independent.test.ts",
+          "packages/ssconvert/src/formulas/info-independent.test.ts",
+          "packages/ssconvert/src/formulas/boolean-matching-review.test.ts",
+          "packages/ssconvert/src/formulas/statistics-boundaries.test.ts",
+          "packages/ssconvert/src/formulas/gamma-current-independent.test.ts",
+          "packages/ssconvert/src/formulas/reduce-pi-independent.test.ts",
+          "packages/ssconvert/src/formulas/numeric-table-regression.test.ts",
+          "packages/ssconvert/src/formulas/numeric-functions.test.ts",
+          "packages/ssconvert/src/formulas/bessel-current-independent.test.ts",
+          "packages/ssconvert/src/formulas/scientific-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/text-format-review.test.ts",
+          "packages/ssconvert/src/formulas/evaluation.test.ts",
+          "packages/ssconvert/src/formulas/logical-independent.test.ts",
+          "packages/ssconvert/src/formulas/statistics-extended.test.ts",
+          "packages/ssconvert/src/formulas/database-precision-review.test.ts",
+          "packages/ssconvert/src/formulas/conventions-independent.test.ts",
+          "packages/ssconvert/src/formulas/text-search-review.test.ts",
+          "packages/ssconvert/src/formulas/date-calendar-independent.test.ts",
+          "packages/ssconvert/src/formulas/matrix-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/math-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/complex-functions.test.ts",
+          "packages/ssconvert/src/formulas/roman-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/numeric-diagnostics.test.ts",
+          "packages/ssconvert/src/formulas/statistics-stress-review.test.ts",
+          "packages/ssconvert/src/formulas/derivatives-functions.test.ts",
+          "packages/ssconvert/src/formulas/engineering-extra-independent.test.ts",
+          "packages/ssconvert/src/formulas/conditional-math.test.ts",
+          "packages/ssconvert/src/formulas/special-numeric.test.ts",
+          "packages/ssconvert/src/formulas/numeric-excel.test.ts",
+          "packages/ssconvert/src/formulas/date-text-source-regression.test.ts",
+          "packages/ssconvert/src/formulas/syntax.test.ts",
+          "packages/ssconvert/src/formulas/roman-functions.test.ts",
+          "packages/ssconvert/src/formulas/text-delimiter-review.test.ts",
+          "packages/ssconvert/src/formulas/complex-scientific.test.ts",
+          "packages/ssconvert/src/formulas/matrix-functions.test.ts",
+          "packages/ssconvert/src/formulas/date-finance-conversion.test.ts",
+          "packages/ssconvert/src/formulas/numeric-current-independent.test.ts",
+          "packages/ssconvert/src/formulas/references-independent.test.ts",
+          "packages/ssconvert/src/formulas/python-capwords.test.ts",
+          "packages/ssconvert/src/formulas/integration-boundaries.test.ts",
+          "packages/ssconvert/src/formulas/scientific-functions.test.ts",
+          "packages/ssconvert/src/formulas/workbook-independent.test.ts",
+          "packages/ssconvert/src/formulas/workbook-references.test.ts",
+          "packages/ssconvert/src/formulas/engineering-extra.test.ts",
+          "packages/ssconvert/src/formulas/legacy-independent.test.ts",
+          "packages/ssconvert/src/formulas/odf-independent-review.test.ts",
+          "packages/ssconvert/src/formulas/number-format-regression.test.ts",
+          "packages/ssconvert/src/formulas/numeric-function-inventory.test.ts",
+          "packages/ssconvert/src/formulas/statistics-aliases.test.ts",
+          "packages/ssconvert/src/formulas/optional-absence.test.ts",
+          "packages/ssconvert/src/formulas/numeric-odf.test.ts",
+          "packages/ssconvert/src/formulas/odf-sheet-regression.test.ts",
+          "packages/ssconvert/src/formulas/legacy.test.ts",
+          "packages/ssconvert/src/formulas/numeric-native-writer.test.ts",
+          "packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts",
+          "packages/ssconvert/src/formulas/functions/captured-trigonometry.test.ts"
+        ]
+      },
+      "formats/versions/records": {
+        "files": 116,
+        "tests": 1983,
+        "paths": [
+          "packages/ssconvert/src/codecs/xlsx-current-stress.test.ts",
+          "packages/ssconvert/src/codecs/odf-write.test.ts",
+          "packages/ssconvert/src/codecs/xlsx-write-followup-stress.test.ts",
+          "packages/ssconvert/src/codecs/odf-write-stress.test.ts",
+          "packages/ssconvert/src/codecs/xlsx-write.test.ts",
+          "packages/ssconvert/src/codecs/xlsx.test.ts",
+          "packages/ssconvert/src/codecs/odf-candidate-stress.test.ts",
+          "packages/ssconvert/src/codecs/xlsx-independent.test.ts",
+          "packages/ssconvert/src/codecs/pdf-print-independent.test.ts",
+          "packages/ssconvert/src/codecs/xlsx-write-metadata.test.ts",
+          "packages/ssconvert/src/codecs/odf-stress.test.ts",
+          "packages/ssconvert/src/codecs/xlsx-write-stress.test.ts",
+          "packages/ssconvert/src/codecs/model-program.test.ts",
+          "packages/ssconvert/src/codecs/pdf-independent.test.ts",
+          "packages/ssconvert/src/codecs/odf.test.ts",
+          "packages/ssconvert/src/codecs/odf-date-write-regression.test.ts",
+          "packages/ssconvert/src/encoding/native-differential.test.ts",
+          "packages/ssconvert/src/codecs/pdf-clipping-stress.test.ts",
+          "packages/ssconvert/src/codecs/latex-roff.test.ts",
+          "packages/ssconvert/src/codecs/pdf-print-settings.test.ts",
+          "packages/ssconvert/src/codecs/odf-current-stress.test.ts",
+          "packages/ssconvert/src/codecs/document-scope.test.ts",
+          "packages/ssconvert/src/codecs/pdf.test.ts",
+          "packages/ssconvert/src/codecs/biff-write-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff-write.test.ts",
+          "packages/ssconvert/src/codecs/psion-embedded-independent-stress.test.ts",
+          "packages/ssconvert/src/codecs/html-write.test.ts",
+          "packages/ssconvert/src/codecs/text-export.test.ts",
+          "packages/ssconvert/src/codecs/gnumeric.test.ts",
+          "packages/ssconvert/src/codecs/model-program-independent.test.ts",
+          "packages/ssconvert/src/codecs/html-independent.test.ts",
+          "packages/ssconvert/src/codecs/dif-sylk.test.ts",
+          "packages/ssconvert/src/codecs/spreadsheetml.test.ts",
+          "packages/ssconvert/src/codecs/gnumeric-independent.test.ts",
+          "packages/ssconvert/src/codecs/dif-sylk-stress.test.ts",
+          "packages/ssconvert/src/codecs/html.test.ts",
+          "packages/ssconvert/src/codecs/biff-write-current.test.ts",
+          "packages/ssconvert/src/codecs/text.test.ts",
+          "packages/ssconvert/src/codecs/legacy-text-independent.test.ts",
+          "packages/ssconvert/src/codecs/gnumeric-followup-independent.test.ts",
+          "packages/ssconvert/src/codecs/html-write-stress.test.ts",
+          "packages/ssconvert/src/codecs/legacy-text.test.ts",
+          "packages/ssconvert/src/codecs/legacy-gnumeric-export.test.ts",
+          "packages/ssconvert/src/encoding-budget-independent.test.ts",
+          "packages/ssconvert/src/codecs/biff-write-current-review.test.ts",
+          "packages/ssconvert/src/codecs/encoding-regression.test.ts",
+          "packages/ssconvert/src/codecs/html-write-independent.test.ts",
+          "packages/ssconvert/src/codecs/database.test.ts",
+          "packages/ssconvert/src/codecs/legacy-binary.test.ts",
+          "packages/ssconvert/src/codecs/text-sampling.test.ts",
+          "packages/ssconvert/src/codecs/spreadsheetml-stress.test.ts",
+          "packages/ssconvert/src/codecs/text-independent.test.ts",
+          "packages/ssconvert/src/codecs/export-options.test.ts",
+          "packages/ssconvert/src/codecs/command.test.ts",
+          "packages/ssconvert/src/codecs/text-export-independent.test.ts",
+          "packages/ssconvert/src/codecs/legacy-text-candidate-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff-names.test.ts",
+          "packages/ssconvert/src/codecs/text-export-boundary.test.ts",
+          "packages/ssconvert/src/codecs/document-export-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff-names-stress.test.ts",
+          "packages/ssconvert/src/codecs/database-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff-stress.test.ts",
+          "packages/ssconvert/src/codecs/legacy-gnumeric-export-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff-groups.test.ts",
+          "packages/ssconvert/src/codecs/document-export-current-stress.test.ts",
+          "packages/ssconvert/src/codecs/registry.test.ts",
+          "packages/ssconvert/src/codecs/xlsx-write-filters.test.ts",
+          "packages/ssconvert/src/codecs/glossary.test.ts",
+          "packages/ssconvert/src/codecs/independent-stress.test.ts",
+          "packages/ssconvert/src/codecs/document-style-current.test.ts",
+          "packages/ssconvert/src/codecs/ascii-stress.test.ts",
+          "packages/ssconvert/src/codecs/text-export-stress.test.ts",
+          "packages/ssconvert/src/codecs/lotus-psion-stress.test.ts",
+          "packages/ssconvert/src/codecs/lotus-works-stress.test.ts",
+          "packages/ssconvert/src/codecs/psion-layout-stress.test.ts",
+          "packages/ssconvert/src/codecs/psion-sketch-final-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff.test.ts",
+          "packages/ssconvert/src/codecs/database-numeric-current.test.ts",
+          "packages/ssconvert/src/encoding/import-capability.test.ts",
+          "packages/ssconvert/src/codecs/psion-page-independent-stress.test.ts",
+          "packages/ssconvert/src/codecs/dif-sylk-independent.test.ts",
+          "packages/ssconvert/src/codecs/psion-formula.test.ts",
+          "packages/ssconvert/src/codecs/database-current-review.test.ts",
+          "packages/ssconvert/src/codecs/psion-layout.test.ts",
+          "packages/ssconvert/src/encoding-independent-stress.test.ts",
+          "packages/ssconvert/src/codecs/psion-formula-stress.test.ts",
+          "packages/ssconvert/src/codecs/psion-structures.test.ts",
+          "packages/ssconvert/src/codecs/lotus-metadata.test.ts",
+          "packages/ssconvert/src/codecs/spreadsheetml-current-independent.test.ts",
+          "packages/ssconvert/src/codecs/xlsx-styles.test.ts",
+          "packages/ssconvert/src/codecs/psion-embedded.test.ts",
+          "packages/ssconvert/src/codecs/biff-metadata.test.ts",
+          "packages/ssconvert/src/codecs/psion-sketch-color-independent.test.ts",
+          "packages/ssconvert/src/codecs/psion-word.test.ts",
+          "packages/ssconvert/src/codecs/biff-metadata-stress.test.ts",
+          "packages/ssconvert/src/codecs/qpro-pln-stress.test.ts",
+          "packages/ssconvert/src/codecs/qpro-diagnostics-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff-groups-stress.test.ts",
+          "packages/ssconvert/src/codecs/gnumeric-resize-style.test.ts",
+          "packages/ssconvert/src/codecs/psion-number-formats.test.ts",
+          "packages/ssconvert/src/codecs/lotus-metadata-stress.test.ts",
+          "packages/ssconvert/src/codecs/lotus-unknown-version-stress.test.ts",
+          "packages/ssconvert/src/encoding-current-independent.test.ts",
+          "packages/ssconvert/src/codecs/text-stress-current.test.ts",
+          "packages/ssconvert/src/codecs/psion-sketch-independent-stress.test.ts",
+          "packages/ssconvert/src/codecs/lotus-works.test.ts",
+          "packages/ssconvert/src/codecs/odf-metadata.test.ts",
+          "packages/ssconvert/src/codecs/psion-page-styled.test.ts",
+          "packages/ssconvert/src/codecs/pln-budgets.test.ts",
+          "packages/ssconvert/src/codecs/psion-sketch.test.ts",
+          "packages/ssconvert/src/codecs/html-overlap.test.ts",
+          "packages/ssconvert/src/codecs/qpro-diagnostics.test.ts",
+          "packages/ssconvert/src/codecs/export-options-stress.test.ts",
+          "packages/ssconvert/src/codecs/lotus-lmbcs12-stress.test.ts",
+          "packages/ssconvert/src/codecs/biff-budget-admission.test.ts",
+          "packages/ssconvert/src/codecs/provider-discovery.test.ts"
+        ]
+      },
+      "capabilities": {
+        "files": 30,
+        "tests": 411,
+        "paths": [
+          "packages/ssconvert/src/analysis/statistical-current-independent.test.ts",
+          "packages/ssconvert/src/public-sdk-independent.test.ts",
+          "packages/ssconvert/src/analysis/tests-utilities.test.ts",
+          "packages/ssconvert/src/analysis/tests-utilities-independent.test.ts",
+          "packages/ssconvert/src/analysis/moments-stress.test.ts",
+          "packages/ssconvert/src/analysis/moments.test.ts",
+          "packages/ssconvert/src/public-sdk.test.ts",
+          "packages/ssconvert/src/public-xlsx-current-independent.test.ts",
+          "packages/ssconvert/src/public-xlsx-boundary.test.ts",
+          "packages/ssconvert/src/analysis/distributions.test.ts",
+          "packages/ssconvert/src/analysis/distributions-independent-stress.test.ts",
+          "packages/ssconvert/src/canonical/independent.test.ts",
+          "packages/ssconvert/src/analysis/protocol.test.ts",
+          "packages/ssconvert/src/resource-budgets-stress.test.ts",
+          "packages/ssconvert/src/engine.test.ts",
+          "packages/ssconvert/src/stress.test.ts",
+          "packages/ssconvert/src/resource-budget-validation-review.test.ts",
+          "packages/ssconvert/src/merge-workbooks.test.ts",
+          "packages/ssconvert/src/analysis/runner-independent-stress.test.ts",
+          "packages/ssconvert/src/resource-budgets.test.ts",
+          "packages/ssconvert/src/canonical/report.test.ts",
+          "packages/ssconvert/src/canonical/gates.test.ts",
+          "packages/ssconvert/src/analysis/moments-bounds.test.ts",
+          "packages/ssconvert/src/canonical/stress-current.test.ts",
+          "packages/ssconvert/src/analysis/current-stress.test.ts",
+          "packages/ssconvert/src/analysis/protocol-independent-stress.test.ts",
+          "packages/ssconvert/src/canonical/capture-validation.test.ts",
+          "packages/ssconvert/src/formulas-regression.test.ts",
+          "packages/ssconvert/src/analysis/inventory.test.ts",
+          "packages/ssconvert/src/codecs.test.ts"
+        ]
+      },
+      "optimization/analysis": {
+        "files": 12,
+        "tests": 119,
+        "paths": [
+          "packages/ssconvert/src/solver/optimizer-independent-stress.test.ts",
+          "packages/ssconvert/src/solver/algorithms.test.ts",
+          "packages/ssconvert/src/solver/optimizer-boundary-independent.test.ts",
+          "packages/ssconvert/src/solver/goal-seek.test.ts",
+          "packages/ssconvert/src/solver/newton-independent.test.ts",
+          "packages/ssconvert/src/solver/newton.test.ts",
+          "packages/ssconvert/src/solver/goal-seek-review.test.ts",
+          "packages/ssconvert/src/solver/model.test.ts",
+          "packages/ssconvert/src/solver/goal-seek-stress.test.ts",
+          "packages/ssconvert/src/solver/optimizer-report-independent.test.ts",
+          "packages/ssconvert/src/solver/model-current-review.test.ts",
+          "packages/ssconvert/src/solver/run.test.ts"
+        ]
+      },
+      "CLI/parser": {
+        "files": 24,
+        "tests": 465,
+        "paths": [
+          "packages/ssconvert/src/conversion/sheet-span-followup-independent.test.ts",
+          "packages/ssconvert/src/conversion/clipboard.test.ts",
+          "packages/ssconvert/src/conversion/clipboard-lifecycle.test.ts",
+          "packages/ssconvert/src/cli/diagnostics-independent.test.ts",
+          "packages/ssconvert/src/conversion/sheet-selection.test.ts",
+          "packages/ssconvert/src/conversion/clipboard-objects.test.ts",
+          "packages/ssconvert/src/conversion/lifecycle-followup-stress.test.ts",
+          "packages/ssconvert/src/cli/inherited-independent-review.test.ts",
+          "packages/ssconvert/src/cli/diagnostics.test.ts",
+          "packages/ssconvert/src/conversion/independent-stress.test.ts",
+          "packages/ssconvert/src/cli/listing-review.test.ts",
+          "packages/ssconvert/src/cli/independent-parser.test.ts",
+          "packages/ssconvert/src/conversion-lifecycle.test.ts",
+          "packages/ssconvert/src/cli/inherited-stress.test.ts",
+          "packages/ssconvert/src/conversion/split-independent.test.ts",
+          "packages/ssconvert/src/conversion/sheet-range-independent.test.ts",
+          "packages/ssconvert/src/cli/export-options-independent.test.ts",
+          "packages/ssconvert/src/conversion/split-current-review.test.ts",
+          "packages/ssconvert/src/conversion/split.test.ts",
+          "packages/ssconvert/src/cli.test.ts",
+          "packages/ssconvert/src/cli/inherited.test.ts",
+          "packages/ssconvert/src/cli/export-options-stress.test.ts",
+          "packages/ssconvert/src/cli/export-options.test.ts",
+          "packages/ssconvert/src/cli/group-aliases.test.ts"
+        ]
+      },
+      "service adapters": {
+        "files": 5,
+        "tests": 22,
+        "paths": [
+          "packages/ssconvert/src/io/io.test.ts",
+          "packages/ssconvert/src/io/independent.test.ts",
+          "packages/ssconvert/src/io/authority-cleanup-stress.test.ts",
+          "packages/ssconvert/src/io/binding.test.ts",
+          "packages/ssconvert/src/io/names.test.ts"
+        ]
+      }
+    }
+  },
+  "functionNameReconciliation": {
+    "manifestUnique": 651,
+    "descriptorUnique": 653,
+    "registerUnique": 658,
+    "manifestNamesMissing": [],
+    "descriptorNamesMissing": [
+      "LOGMDETERM"
+    ],
+    "descriptorMissingExplanation": "plugins/fn-math/functions.c:3944-3947 wraps LOGMDETERM in #if 0; not a released callable function. Retained census also captured #NAME? absence. Do not implement a disabled descriptor to inflate parity.",
+    "registerNamesOutsideManifest": [
+      "SUM",
+      "PRODUCT",
+      "GNUMERIC_VERSION",
+      "TABLE",
+      "NUMBER_MATCH",
+      "DERIV",
+      "IF"
+    ],
+    "note": "Seven builtin names; NUMBER_MATCH and DERIV debug-only dispositions retained. Name presence is not semantic parity."
+  },
+  "auditCompleted": true,
+  "semanticParityEstablished": false,
+  "temporaryLogs": {
+    "records": [
+      {
+        "name": "build.log",
+        "bytes": 14655,
+        "sha256": "d4424d222201c0cfa89aecd3b63d91110a8b7b595855a9392aef1f056582699c"
+      },
+      {
+        "name": "lint-recheck.log",
+        "bytes": 2263437,
+        "sha256": "c7d69a6fb1ec978e1e3942ca3f7ecf7b4324e18f4a56cea93ba7d536d55a7e91"
+      },
+      {
+        "name": "lint.log",
+        "bytes": 2264883,
+        "sha256": "e54512ae4ed765766245e61cdcde65ba08d4612328f5834d821b054bafc6483d"
+      },
+      {
+        "name": "pdf-recheck.log",
+        "bytes": 298,
+        "sha256": "e2b73a6fe445a5e3fccdb6e0388bfd50fe87242c919423ddafe55dc42fd3fa80"
+      },
+      {
+        "name": "pipeline-recheck.log",
+        "bytes": 281,
+        "sha256": "b6c6281fe13d54cabd43f575e185b217eb082d823f470bbb71e73f98b3d709f1"
+      },
+      {
+        "name": "posttest.log",
+        "bytes": 570,
+        "sha256": "d86370b31235c0e6ee8592097d27269e12bae5f230ec660abc0b7215f34bad8f"
+      },
+      {
+        "name": "safe-bash-test.log",
+        "bytes": 709,
+        "sha256": "44de1570d1cf154fb660bd2edb2bda3966318b596342529929c200912b79ef94"
+      },
+      {
+        "name": "scoped-lint.log",
+        "bytes": 165,
+        "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+      },
+      {
+        "name": "scoped-test.log",
+        "bytes": 25580,
+        "sha256": "55b9fb6adf3156edd02ec4cfce61289e18a27eacf6f20bd95b4f7f96148f3644"
+      },
+      {
+        "name": "test-recheck.log",
+        "bytes": 1006920,
+        "sha256": "440fc4cc02ee318e2dbf2556f5d82339d3824fbc039dc9287c1bab326765b249"
+      },
+      {
+        "name": "test.log",
+        "bytes": 10692,
+        "sha256": "5e7322d2e1bac6f917b23d457c8669b9d5a67814455d5429b53a076594231216"
+      }
+    ],
+    "disposition": "owned temporary raw logs purged after results and hashes recorded; pre-existing source archives and other out evidence preserved"
+  },
+  "currentVerification": {
+    "auditDate": "2026-09-21",
+    "task": "final-coverage-and-delivery",
+    "status": "blocked-complete-parity-not-established",
+    "gitHead": "b97c4938a469ee70e09bd08a0e5fcf7e868ca04c",
+    "candidateScope": "Uncommitted live worktree; content bindings cover the explicitly listed domain/command/output/integration inputs, not the complete transitive dependency or consumer closure.",
+    "sourceRecheck": {
+      "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+      "registeredSourceAndAdditionalArtifacts": 245,
+      "pluginManifests": 47,
+      "mismatches": 0,
+      "currentReferenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+      "historicalProfileBindingMatches": false,
+      "nativeSsconvertExecuted": false
+    },
+    "sourceCategoryReconciliation": {
+      "selectedObligations": 10110,
+      "unassignedObligations": 0,
+      "semanticFeatureDenominatorResolved": false,
+      "wholeQualificationTotalsUnchanged": true
+    },
+    "gates": {
+      "nominalBuild": {
+        "command": "npm run build -- --no-cache",
+        "exitCode": 0,
+        "status": "passed-with-zero-shared-cache-hits",
+        "cache": "SHARED",
+        "cacheHits": 0,
+        "cacheMisses": 48,
+        "uncachedFlagReachesWorkspaceRunner": false
+      },
+      "explicitUncachedBuild": {
+        "command": "TURBO_FORCE=true npm run build -- --no-cache",
+        "exitCode": 0,
+        "status": "passed-cache-disabled",
+        "workspaces": 85,
+        "declaredBuilds": 84,
+        "proof": "buildWorkspaces disables its cache for TURBO_FORCE=true; completed receipt contains no shared-cache accounting. Root suffix stages completed."
+      },
+      "domainTestInitial": {
+        "command": "npm run test --workspace=@poe-code/ssconvert",
+        "exitCode": 1,
+        "status": "failed",
+        "filesPassed": 316,
+        "filesFailed": 1,
+        "testsPassed": 6274,
+        "testsFailed": 1,
+        "totalTests": 6275,
+        "skips": 0,
+        "failure": "statistics-independent-review.test.ts logarithmic R.QTUKEY(-1000,3,10,1,TRUE,TRUE) timed out at unchanged 5000ms; observed 5852ms",
+        "durationSeconds": 147.18
+      },
+      "statisticsFocusedRecheck": {
+        "command": "npx vitest run packages/ssconvert/src/formulas/statistics-independent-review.test.ts",
+        "exitCode": 0,
+        "status": "passed-subset-only",
+        "testsPassed": 52,
+        "testDurationSeconds": 3.4,
+        "fullRouteDurationSeconds": 4.3,
+        "clearsFailedDomainOrBroadGate": false
+      },
+      "domainLint": {
+        "command": "npm run lint --workspace=@poe-code/ssconvert",
+        "exitCode": 0,
+        "status": "passed"
+      },
+      "repositoryLint": {
+        "command": "npm run lint",
+        "exitCode": 0,
+        "status": "passed",
+        "receipt": {
+          "complete": true,
+          "exitCode": 0,
+          "errorCount": 0,
+          "warningCount": 4,
+          "scope": {
+            "configured": 17054,
+            "linted": 17054,
+            "ignored": 2044,
+            "unconfigured": 38974,
+            "ignoredDirectories": 166,
+            "heldExcluded": 5
+          },
+          "counters": {
+            "metadataOperations": 3738470,
+            "opens": 19115,
+            "closes": 19115
+          },
+          "unprocessed": {
+            "directories": [],
+            "entries": [],
+            "descendantsUnknown": false
+          },
+          "timings": {
+            "traversalMs": 294897,
+            "parsingMs": 2236,
+            "initializationMs": 22077
+          },
+          "cacheHits": 17025
+        },
+        "types": "passed",
+        "workflows": "passed",
+        "cacheQualification": "Maintained default diagnostics cache; fresh guarded input/authentication traversal. Not an uncached ESLint claim."
+      },
+      "rootTest": {
+        "command": "npm test -- --no-cache",
+        "exitCode": 1,
+        "status": "failed",
+        "failure": "SafeJS in-operator.test.ts keeps lint and completed checkpoint replay consistent: unchanged 5000ms timeout",
+        "safeJs": {
+          "filesPassed": 1466,
+          "filesFailed": 1,
+          "filesSkipped": 3,
+          "totalFiles": 1470,
+          "testsPassed": 31120,
+          "testsFailed": 1,
+          "testsSkipped": 48,
+          "totalTests": 31169,
+          "durationSeconds": 2143.68
+        },
+        "notReached": [
+          "later SafePython unit task",
+          "ssconvert workspace unit task in this broad run",
+          "remaining workspace unit tasks",
+          "npm posttest"
+        ],
+        "focusedRerunClearsBroadGate": false
+      },
+      "workflowsChanged": false,
+      "visual": {
+        "status": "not-run-no-runtime-or-visible-CLI-change",
+        "clearsRenderingOrScreenshotQualification": false
+      },
+      "safeBashFull": {
+        "command": "maintained @poe-platform/safe-bash test:unit inside npm test -- --no-cache",
+        "status": "passed",
+        "runnerChecksPassed": 558,
+        "authenticatedDiscoveredFiles": 1348,
+        "reportedTests": 45000,
+        "passed": 44167,
+        "failed": 0,
+        "skipped": 831,
+        "todo": 2,
+        "scope": "Reported maintained test records, not ssconvert features; unavailable external comparisons remain unverified."
+      },
+      "finalUncachedBuild": {
+        "command": "TURBO_FORCE=true npm run build -- --no-cache",
+        "exitCode": 0,
+        "status": "passed-cache-disabled-root-suffix-restored"
+      },
+      "finalPublicConsumer": {
+        "command": "node --import tsx packages/ssconvert/tests/public-consumer.mts",
+        "exitCode": 0,
+        "status": "passed"
+      },
+      "finalDomainLint": {
+        "command": "npm run lint --workspace=@poe-code/ssconvert",
+        "exitCode": 0,
+        "status": "passed"
+      },
+      "usageExamples": {
+        "status": "passed",
+        "examplesPassed": 2,
+        "engine": "actual compiled public workspace exports",
+        "fixtures": "original in-memory CSV, injected streams and MemoryFileSystem"
+      },
+      "safeJsFocused": {
+        "command": "npx vitest run packages/safe-js/src/interp/in-operator.test.ts",
+        "exitCode": 0,
+        "status": "passed-subset-only",
+        "testsPassed": 29,
+        "testDurationSeconds": 0.847,
+        "routeDurationSeconds": 3.31,
+        "clearsBroadFailure": false
+      }
+    },
+    "independentQA": {
+      "report": "docs/plans/ssconvert-final-delivery-current-independent-qa.md",
+      "checksPassed": 11,
+      "validatedProductFailures": 1,
+      "publicConsumerExitCode": 0,
+      "postBuildRecheckPassed": true,
+      "initialRunnerAttempts": "Three incomplete runner/expectation attempts retained in the QA report; not product failures or passes.",
+      "nativeFallbackUsed": false,
+      "performance": {
+        "deterministicCase": "advancedDistributionValue('tukey','q',-1000,[3,10,1],true,true,host)",
+        "ticks": 557149,
+        "distinctCdfEvaluations": 88,
+        "isolatedBoundedSeconds": "1.9–2.3 in independent investigation; not a performance guarantee",
+        "proposedOptimization": "Reuse identical endpoint density inside range quadrature; proposal only, no runtime edit, regression or qualification claimed.",
+        "timeoutResolved": false
+      },
+      "cwdMismatch": {
+        "status": "open",
+        "category": "CLI/parser",
+        "wholeRegisterObligationAttribution": "Not attributed: dispatch-priority source span does not cover relative URI construction; retained as a separate failed semantic case, not a new complete denominator.",
+        "case": "PWD=/fake ssconvert in.csv out.invalid with cwd=/work",
+        "observed": "exit 2 diagnostic URI file:///fake/out.invalid; explicit-export negative control writes /work/fake.csv",
+        "expected": "distinct forged PWD must resolve diagnostic identity under actual cwd in captured POSIX GLib source profile",
+        "sources": [
+          {
+            "path": "gio/gfile.c",
+            "sha256": "24f605cce114cfaea7fbaea7fdf5ea26af0add1ab4eda82b955df458a05df548"
+          },
+          {
+            "path": "glib/gfileutils.c",
+            "sha256": "dc714490f4bfcf231722f365954be42629aebd37a6aac239d9277400e5d71b3e"
+          }
+        ],
+        "sourceBaseUrl": "https://gitlab.gnome.org/GNOME/glib/-/raw/2.84.4/",
+        "nativeOracleExecuted": false,
+        "unverified": [
+          "distribution patches",
+          "symlink-equivalent logical PWD",
+          "Windows semantics"
+        ],
+        "runtimeFixMade": false
+      },
+      "safeJsInvestigation": {
+        "status": "unresolved",
+        "stageProbePassed": true,
+        "stageMilliseconds": {
+          "lint": 12.63,
+          "firstRun": 59.94,
+          "dump": 20.97,
+          "parse": 2,
+          "replay": 89.03,
+          "total": 184.57
+        },
+        "snapshotUtf8Bytes": 991108,
+        "timeoutReproduced": false,
+        "runtimeRepairMade": false,
+        "qualification": "Bounded elapsed measurement only; does not clear actual maintained broad timeout."
+      }
+    },
+    "delivery": {
+      "localChanges": "Audit/usage/QA documentation only; no runtime or integration edits by this audit.",
+      "localCommits": [],
+      "readmeEdited": false,
+      "readmeApprovalRequired": true,
+      "pushAuthorized": false,
+      "publishAuthorized": false,
+      "verifiedRemoteMainDelivery": false,
+      "successfulRelease": false
+    },
+    "bindingInventory": {
+      "readServices": 20,
+      "writeServices": 27,
+      "scope": "Actual compiled default engine; bindings are not full format implementation totals."
+    },
+    "runtimeCells": [
+      {
+        "cell": "Node.js 22.22.2 / Darwin arm64 / ESM",
+        "status": "bounded compiled probes passed; scoped and broad gates failed by recorded timeouts"
+      },
+      {
+        "cell": "Node.js Linux aarch64 matching captured native profile",
+        "status": "unverified; native oracle capture is not JavaScript runtime qualification"
+      },
+      {
+        "cell": "Other Node.js >=22 versions",
+        "status": "unverified"
+      },
+      {
+        "cell": "Browser/Worker and cross-realm dependency isolation",
+        "status": "unverified"
+      }
+    ],
+    "optionalQualification": {
+      "capabilityRows": {
+        "implemented": 0,
+        "failed": 0,
+        "unmeasured": 14,
+        "unsupported": 0
+      },
+      "namedProfiles": {
+        "implemented": 0,
+        "failed": 0,
+        "unmeasured": 12,
+        "unsupported": 0
+      },
+      "note": "Native build failures and incomplete Paradox usability are reference availability limits, not measured product-profile failures. ASCII PY_CAPWORDS non-ASCII refusal remains a separate unsupported subcase.",
+      "profiles": [
+        {
+          "id": "gnumeric-1.12.61-optional-none",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-optional-perl-samples",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-optional-python-samples",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-optional-python-glossary",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-optional-gda",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-optional-gnomedb-ui",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-optional-sample-datasource",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-optional-excel-formats",
+          "referenceStatus": "defined; exact isolated activation and differential capture unresolved",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-psiconv-attempt",
+          "referenceStatus": "unavailable",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-core-without-file-plugins",
+          "referenceStatus": "runtime captured; Paradox conversion probes failed or produced empty output; usable-format qualification incomplete",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-paradox-only",
+          "referenceStatus": "runtime captured; Paradox conversion probes failed or produced empty output; usable-format qualification incomplete",
+          "productQualification": "unmeasured"
+        },
+        {
+          "id": "gnumeric-1.12.61-psiconv-fresh-attempt",
+          "referenceStatus": "unavailable; unchanged released plugin compilation failed",
+          "productQualification": "unmeasured"
+        }
+      ]
+    },
+    "candidateBinding": {
+      "initial": {
+        "count": 1700,
+        "sha256": "e8c446cd0fb58096b208008e6a1c6f3a4831f8104e03899036b01c685c2c8b08"
+      },
+      "duringUnitDependencyRebuild": {
+        "sha256": "8b436f8914683dcd3c3c376cfe6985dd1fb771bc06479e42299110f87f49d9ff",
+        "changes": "Four declaration-only files; maintained bundler rewrite reproduced original hashes exactly; no source/test/JavaScript drift.",
+        "rewriteEvidence": [
+          {
+            "path": "packages/ssconvert/dist/codecs/odf-metadata.d.ts",
+            "sha256": "87521604defc533dd32721317a3a4400eca0433482f1215f63727b73fb27c879"
+          },
+          {
+            "path": "packages/ssconvert/dist/codecs/spreadsheetml-metadata.d.ts",
+            "sha256": "916250988bf4b037ca8d0c25b3428e4defcce62447a26ebbcc2d67577586aa34"
+          },
+          {
+            "path": "packages/ssconvert/dist/codecs/xlsx-metadata.d.ts",
+            "sha256": "2e051ae00a1c950b1ce35f53cfd535ae24b5d11bea97566e0718e874a0f61c00"
+          },
+          {
+            "path": "packages/ssconvert/dist/codecs/xlsx-styles.d.ts",
+            "sha256": "f3a015457d1463fce641c65339dddc1397aecb17f09f8496907393f8fbf8a2cc"
+          }
+        ]
+      },
+      "final": {
+        "count": 1700,
+        "sha256": "e8c446cd0fb58096b208008e6a1c6f3a4831f8104e03899036b01c685c2c8b08",
+        "matchesInitial": true
+      },
+      "entrypoints": {
+        "domain": "d0c56a1047c278ad9a2115be72a273eaefacbf42561ed933fd27799b514a17e6",
+        "command": "b831e7617095fea7d0a50c205328c4859a0afcd7eb05c693a174fa8a74fe25f8"
+      },
+      "fullTransitiveClosureVerified": false
+    },
+    "temporaryLogs": {
+      "status": "hashed-results-recorded-purged-after-audit",
+      "files": [
+        {
+          "path": "out/ssconvert-final-delivery-current/build-uncached.log",
+          "bytes": 14564,
+          "sha256": "ede2af0a8fdadc456fa70c31b4b397ed4cde6040581fbbb8c946cc572dbb90b8"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/build.log",
+          "bytes": 14659,
+          "sha256": "0bc83d9701c62b5bd9e249751a85377b797602c4ce4768a758d1d4c9a77ed0eb"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/domain-lint.log",
+          "bytes": 165,
+          "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/domain-test.log",
+          "bytes": 35168,
+          "sha256": "40caa36a0a2f86123f4567ed31c2f1a86d6e1d22ff34872ed2f723d385003b04"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/final-build.log",
+          "bytes": 14565,
+          "sha256": "c0232a830cd2ea468fc42f7b4e18a334d879da3d26a34f2765cf0f4f14074d55"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/final-domain-lint.log",
+          "bytes": 165,
+          "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/root-lint.log",
+          "bytes": 2263448,
+          "sha256": "8d58649407712547b66b33d985a7bc54e0e18946a790e1974e1a52c4126ac79d"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/root-test.log",
+          "bytes": 991896,
+          "sha256": "e858f587639c953a38bd091199a1f99ce9bf5b5b74db0a149392675e7f8b3ccf"
+        },
+        {
+          "path": "out/ssconvert-final-delivery-current/statistics-recheck.log",
+          "bytes": 436,
+          "sha256": "988fdffc05a35b8a3ac7e7f4ae3b0058fee4ec029225bba854102f2468590101"
+        }
+      ]
+    }
+  }
+}

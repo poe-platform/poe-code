@@ -1,0 +1,894 @@
+{
+  "task": "print-layout",
+  "status": "incomplete",
+  "source": {
+    "version": "1.12.61",
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "authenticatedPrintC": "fee11181a89822062f3dac39fde3734e554338fae5237e0ce9e96114882da71b"
+  },
+  "nativeQa": {
+    "profile": "docs/ssconvert/chart-rendering-verification.json",
+    "profileFileSha256": "538f3cb9562e9c47b874bdcbaf30507fb318561021631a524da1098c41df9b05",
+    "role": "separate QA oracle only",
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+    "environment": {
+      "locale": "C",
+      "timezone": "UTC",
+      "HOME": "/out/ssconvert-print-layout/home",
+      "XDG_CONFIG_HOME": "/out/ssconvert-print-layout/config",
+      "XDG_DATA_HOME": "/out/ssconvert-print-layout/data",
+      "XDG_CACHE_HOME": "/out/ssconvert-print-layout/cache"
+    },
+    "freshLibraryPluginHashCapture": false
+  },
+  "nativeCaptures": [
+    {
+      "name": "base",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_pdf:pdf_assistant",
+        "/out/ssconvert-print-layout/base.gnumeric",
+        "/out/ssconvert-print-layout/base.pdf"
+      ],
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": ""
+    },
+    {
+      "name": "hidden",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_pdf:pdf_assistant",
+        "/out/ssconvert-print-layout/hidden.gnumeric",
+        "/out/ssconvert-print-layout/hidden.pdf"
+      ],
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": ""
+    },
+    {
+      "name": "repeat",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_pdf:pdf_assistant",
+        "/out/ssconvert-print-layout/repeat.gnumeric",
+        "/out/ssconvert-print-layout/repeat.pdf"
+      ],
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": ""
+    },
+    {
+      "name": "landscape",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_pdf:pdf_assistant",
+        "/out/ssconvert-print-layout/landscape.gnumeric",
+        "/out/ssconvert-print-layout/landscape.pdf"
+      ],
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": ""
+    },
+    {
+      "name": "fit",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_pdf:pdf_assistant",
+        "/out/ssconvert-print-layout/fit.gnumeric",
+        "/out/ssconvert-print-layout/fit.pdf"
+      ],
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": ""
+    }
+  ],
+  "differential": {
+    "cases": [
+      {
+        "name": "base",
+        "pages": 4,
+        "perPageCellMembership": "passed",
+        "productGeometry": {
+          "widthPoints": 612,
+          "heightPoints": 792,
+          "scaleX": 1,
+          "scaleY": 1,
+          "pages": [
+            {
+              "number": 1,
+              "area": {
+                "startRow": 0,
+                "endRow": 1,
+                "startColumn": 0,
+                "endColumn": 1
+              },
+              "rows": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 2,
+              "area": {
+                "startRow": 2,
+                "endRow": 3,
+                "startColumn": 0,
+                "endColumn": 1
+              },
+              "rows": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 3,
+              "area": {
+                "startRow": 0,
+                "endRow": 1,
+                "startColumn": 2,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 4,
+              "area": {
+                "startRow": 2,
+                "endRow": 3,
+                "startColumn": 2,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            }
+          ]
+        }
+      },
+      {
+        "name": "hidden",
+        "pages": 4,
+        "perPageCellMembership": "passed",
+        "productGeometry": {
+          "widthPoints": 612,
+          "heightPoints": 792,
+          "scaleX": 1,
+          "scaleY": 1,
+          "pages": [
+            {
+              "number": 1,
+              "area": {
+                "startRow": 0,
+                "endRow": 2,
+                "startColumn": 0,
+                "endColumn": 1
+              },
+              "rows": {
+                "start": 0,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 2,
+              "area": {
+                "startRow": 3,
+                "endRow": 3,
+                "startColumn": 0,
+                "endColumn": 1
+              },
+              "rows": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 3,
+              "area": {
+                "startRow": 0,
+                "endRow": 2,
+                "startColumn": 2,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 0,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 4,
+              "area": {
+                "startRow": 3,
+                "endRow": 3,
+                "startColumn": 2,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            }
+          ]
+        }
+      },
+      {
+        "name": "repeat",
+        "pages": 6,
+        "perPageCellMembership": "passed",
+        "productGeometry": {
+          "widthPoints": 612,
+          "heightPoints": 792,
+          "scaleX": 1,
+          "scaleY": 1,
+          "pages": [
+            {
+              "number": 1,
+              "area": {
+                "startRow": 0,
+                "endRow": 1,
+                "startColumn": 0,
+                "endColumn": 1
+              },
+              "rows": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 2,
+              "area": {
+                "startRow": 2,
+                "endRow": 2,
+                "startColumn": 0,
+                "endColumn": 1
+              },
+              "rows": {
+                "start": 2,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 1,
+                "sizePoints": 240,
+                "repeatPoints": 240
+              },
+              "columns": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 3,
+              "area": {
+                "startRow": 3,
+                "endRow": 3,
+                "startColumn": 0,
+                "endColumn": 1
+              },
+              "rows": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 1,
+                "sizePoints": 240,
+                "repeatPoints": 240
+              },
+              "columns": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 4,
+              "area": {
+                "startRow": 0,
+                "endRow": 1,
+                "startColumn": 2,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 0,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 480,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 5,
+              "area": {
+                "startRow": 2,
+                "endRow": 2,
+                "startColumn": 2,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 2,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 1,
+                "sizePoints": 240,
+                "repeatPoints": 240
+              },
+              "columns": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 6,
+              "area": {
+                "startRow": 3,
+                "endRow": 3,
+                "startColumn": 2,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 1,
+                "sizePoints": 240,
+                "repeatPoints": 240
+              },
+              "columns": {
+                "start": 2,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 400,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            }
+          ]
+        }
+      },
+      {
+        "name": "landscape",
+        "pages": 8,
+        "perPageCellMembership": "passed",
+        "productGeometry": {
+          "widthPoints": 792,
+          "heightPoints": 612,
+          "scaleX": 1,
+          "scaleY": 1,
+          "pages": [
+            {
+              "number": 1,
+              "area": {
+                "startRow": 0,
+                "endRow": 0,
+                "startColumn": 0,
+                "endColumn": 2
+              },
+              "rows": {
+                "start": 0,
+                "end": 0,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 600,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 2,
+              "area": {
+                "startRow": 1,
+                "endRow": 1,
+                "startColumn": 0,
+                "endColumn": 2
+              },
+              "rows": {
+                "start": 1,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 600,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 3,
+              "area": {
+                "startRow": 2,
+                "endRow": 2,
+                "startColumn": 0,
+                "endColumn": 2
+              },
+              "rows": {
+                "start": 2,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 600,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 4,
+              "area": {
+                "startRow": 3,
+                "endRow": 3,
+                "startColumn": 0,
+                "endColumn": 2
+              },
+              "rows": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 600,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 5,
+              "area": {
+                "startRow": 0,
+                "endRow": 0,
+                "startColumn": 3,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 0,
+                "end": 0,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 200,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 6,
+              "area": {
+                "startRow": 1,
+                "endRow": 1,
+                "startColumn": 3,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 1,
+                "end": 1,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 200,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 7,
+              "area": {
+                "startRow": 2,
+                "endRow": 2,
+                "startColumn": 3,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 2,
+                "end": 2,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 200,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            },
+            {
+              "number": 8,
+              "area": {
+                "startRow": 3,
+                "endRow": 3,
+                "startColumn": 3,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 240,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 3,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 200,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            }
+          ]
+        }
+      },
+      {
+        "name": "fit",
+        "pages": 1,
+        "perPageCellMembership": "passed",
+        "productGeometry": {
+          "widthPoints": 612,
+          "heightPoints": 792,
+          "scaleX": 0.5835411471321695,
+          "scaleY": 0.5835411471321695,
+          "pages": [
+            {
+              "number": 1,
+              "area": {
+                "startRow": 0,
+                "endRow": 3,
+                "startColumn": 0,
+                "endColumn": 3
+              },
+              "rows": {
+                "start": 0,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 960,
+                "repeatPoints": 0
+              },
+              "columns": {
+                "start": 0,
+                "end": 3,
+                "repeatStart": 0,
+                "repeatCount": 0,
+                "sizePoints": 800,
+                "repeatPoints": 0
+              },
+              "originX": 72,
+              "originY": 72
+            }
+          ]
+        }
+      }
+    ],
+    "nativePageTexts": [
+      {
+        "name": "base",
+        "pageTexts": [
+          "R1C1 R1C2\nR2C1 R2C2",
+          "R3C1 R3C2\nR4C1 R4C2",
+          "R1C3 R1C4\nR2C3 R2C4",
+          "R3C3 R3C4\nR4C3 R4C4"
+        ]
+      },
+      {
+        "name": "hidden",
+        "pageTexts": [
+          "R1C1 R1C2\nR3C1 R3C2",
+          "R4C1 R4C2",
+          "R1C3 R1C4\nR3C3 R3C4",
+          "R4C3 R4C4"
+        ]
+      },
+      {
+        "name": "repeat",
+        "pageTexts": [
+          "R1C1 R1C2\nR2C1 R2C2",
+          "R1C1 R1C2\nR3C1 R3C2",
+          "R1C1 R1C2\nR4C1 R4C2",
+          "R1C3 R1C4\nR2C3 R2C4",
+          "R1C3 R1C4\nR3C3 R3C4",
+          "R1C3 R1C4\nR4C3 R4C4"
+        ]
+      },
+      {
+        "name": "landscape",
+        "pageTexts": [
+          "R1C1 R1C2 R1C3",
+          "R2C1 R2C2 R2C3",
+          "R3C1 R3C2 R3C3",
+          "R4C1 R4C2 R4C3",
+          "R1C4",
+          "R2C4",
+          "R3C4",
+          "R4C4"
+        ]
+      },
+      {
+        "name": "fit",
+        "pageTexts": [
+          "R1C1 R1C2 R1C3 R1C4\nR2C1 R2C2 R2C3 R2C4\nR3C1 R3C2 R3C3 R3C4\nR4C1 R4C2 R4C3 R4C4"
+        ]
+      }
+    ],
+    "glyphPaintFidelity": "unmeasured",
+    "nativeLetterPoints": [
+      611.999983,
+      791.999983
+    ],
+    "explicitProductLetterPoints": [
+      612,
+      792
+    ]
+  },
+  "checks": {
+    "selectedUncachedBuildClosure": {
+      "status": "passed",
+      "builds": 3
+    },
+    "packageUnitFresh": {
+      "status": "passed",
+      "files": 266,
+      "tests": 5633
+    },
+    "packageLintProductionAndTestTypes": {
+      "status": "passed"
+    },
+    "printTests": {
+      "status": "passed",
+      "tests": 19,
+      "independentAgentRegressions": 8
+    },
+    "rootWorkspaceUnitSelectorAttempt": {
+      "status": "rejected-before-execution",
+      "reason": "Unsupported unit runner option --workspace"
+    }
+  },
+  "visual": {
+    "nativeRepeatedTitleFirstPage": "inspected",
+    "nativePngSha256": "2cba68fb4b7720121118894bbee59648e343940abf20a9f9c17fa2d73a850635",
+    "inspectionTool": "PDFKit thumbnail",
+    "pairedProductImage": "unavailable: no workbook painter",
+    "imageMagickAttempt": "failed: Ghostscript absent"
+  },
+  "remaining": [
+    "workbook sheet/row/column selection and print extent resolution",
+    "hidden sheet admission and do_not_print",
+    "formatted cell text in print scenes",
+    "explicit licensed font data/shaping/metrics, wrap and rotation",
+    "merges/borders/fills/styles and objects",
+    "gridline and heading painting",
+    "native paper catalog/custom syntax/precision",
+    "headers/footers/locale/time/date expansion and numbering policy",
+    "native oversized-cell diagnostics",
+    "stored automatic break namespace effects",
+    "RTL and workbook reference clamping",
+    "codec round-trip preservation gaps enumerated in QA",
+    "PDF serialization and command/SDK workbook print integration",
+    "paired product/native screenshot fidelity"
+  ],
+  "delivery": {
+    "localCommit": false,
+    "push": false,
+    "publication": false,
+    "readmeEdit": false
+  },
+  "qaProcedure": "docs/plans/ssconvert-print-layout-qa.md"
+}

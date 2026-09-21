@@ -1,0 +1,7589 @@
+{
+  "classification": "Raw exact outcomes, no tolerances or output normalization",
+  "nativeProfileSha256": "e51823b6952ad99436a875f4a86cd81043c2a01ccb092aad6bb2ab7719b27e28",
+  "moduleInputManifestSha256": "9bb7798cb1d72f1b0608a76300b6e378bbef6bc5e4068d5dc4119910c767aa12",
+  "ordinary": [
+    {
+      "id": "if-lazy",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          55,
+          10
+        ],
+        "inputSha256": "e01bb5b7287e0f8936f9175ad46fdfec31174bf1ccd4638cc7448857ed6f5c45"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "if-invalid-text",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          55,
+          10
+        ],
+        "inputSha256": "c468c5649331386ed064270f92befe073da1fdba6cf89223fb80eef4e1423e91"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "if-absent",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          70,
+          65,
+          76,
+          83,
+          69,
+          10
+        ],
+        "inputSha256": "c0dc9285d5511b56ad91b91210f09b9a36e98120daaf4e74752ae42c5f8e4d7e"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          70,
+          65,
+          76,
+          83,
+          69,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          70,
+          65,
+          76,
+          83,
+          69,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "if-omitted",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "inputSha256": "6759b4fb9c4ae7c691ac918eb0ab8cc3457647a0aef834c342bea1824f511b8c"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "numeric-text",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "inputSha256": "709ef7320a93fd0726b7456cdfa2d7b90ff742971097d947acfff59342134512"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-error-left",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "inputSha256": "4617864e4319cc2c66d89c1f37deeef321f1c36dc367f043618d9692130289a9"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "unicode-compare",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          84,
+          82,
+          85,
+          69,
+          10
+        ],
+        "inputSha256": "736734f088da8516849c210495a334e353cf777968918ef6a001e818e4857934"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          84,
+          82,
+          85,
+          69,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          84,
+          82,
+          85,
+          69,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "blank-reference",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "inputSha256": "9b67d9747d27405cbf06e18d1bdb63f93fd5a596411fb778f4d99e54bf1a1ed2"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "sum-types",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          50,
+          10
+        ],
+        "inputSha256": "de8c354e2d0b8bc861fd6697c2fed64761363fe0f38057f3576851f3fb705577"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "product-types",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "inputSha256": "a08d6a6e585eb991760cb8e8ced4ccace172acc2fe75176d3cf4839468894250"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "sum-cancel",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "inputSha256": "f933f90cae569841e1581b53cb92a6d176cbd06abecc9e6a164e98435d436ce1"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          101,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          101,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "product-scaled",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          10
+        ],
+        "inputSha256": "c590f6dacaaa8d7fede93c095004d3f09a1e35998ca25fb7620840927256b8ae"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          57,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "power-int32",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          10
+        ],
+        "inputSha256": "e2c0823b6de25cb1c35dc62e8297fdd7e72a8a1296043d4d541f111cf9fcc98e"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "power-positive-control",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "inputSha256": "0e88f1c7fa14dfb6dc54cd91b504332693795f881f0550fccd6597980aecaf9c"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "zero-negative",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "inputSha256": "23cdb11a5d3b0be900cc2e591323e0d64d4dae9ac0a631ba507de2aaa2f24576"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "zero-domain",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          10
+        ],
+        "inputSha256": "b932a71239f370d12f031bcd132e14135f7920f89abf297897cd2ef11ac22a98"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "native-version",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          49,
+          50,
+          46,
+          54,
+          49,
+          10
+        ],
+        "inputSha256": "28b6bb1b585e58c52cb4a26847c8be3c68efe81e36670a5400014dbd0f1c86a3"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          49,
+          50,
+          46,
+          54,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          49,
+          50,
+          46,
+          54,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-power-min",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "inputSha256": "3a881772689477a9e0f610600753842f7b4963b5d87034ab838ac690da520bb4"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-power-domains",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          44,
+          45,
+          49,
+          44,
+          49,
+          10
+        ],
+        "inputSha256": "8a14fedb4a6e293c2878a6c833a2bed37bc913d4f92007f255038fb0f28000c3"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          44,
+          45,
+          49,
+          44,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          78,
+          85,
+          77,
+          33,
+          44,
+          45,
+          49,
+          44,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-if-shape",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          44,
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "inputSha256": "180b0fa1516db07bef90c4484e97d319802d9d6d2e7217827d3dc622bd0163bb"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          44,
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          44,
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-if-string",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "inputSha256": "1cf08f7061558f11b613bd5a6d2d1cde1fe49a845b30fac2eab579d27e71e70d"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-broadcast",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          44,
+          50,
+          10,
+          51,
+          44,
+          51,
+          10
+        ],
+        "inputSha256": "1fcb5df4fb64af6b9ac76240cb3f8dde389a46e889c1d139e258b7e4051df7c7"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          44,
+          50,
+          10,
+          51,
+          44,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          44,
+          50,
+          10,
+          51,
+          44,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "table-row-timing",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          50,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          55,
+          44,
+          44,
+          44,
+          10
+        ],
+        "inputSha256": "1586d32139e4bd4b983ea3b47c72565e5148e55504112bbc15db3d91f3864526"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          50,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          55,
+          44,
+          44,
+          44,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          50,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          55,
+          44,
+          44,
+          44,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "table-missing-column",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          48,
+          44,
+          44,
+          44,
+          10
+        ],
+        "inputSha256": "ee4520b25fbbeb869ed64356456e01210d4c92ce240253039b45f34555fc136d"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          48,
+          44,
+          44,
+          44,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          48,
+          44,
+          44,
+          44,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "table-qualifier",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          50,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          55,
+          44,
+          44,
+          44,
+          10
+        ],
+        "inputSha256": "81f9ac9fbf583ecc7055fb4b26425b836b608bb271094528443f8164fc0519ea"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          50,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          55,
+          44,
+          44,
+          44,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          49,
+          44,
+          50,
+          44,
+          44,
+          49,
+          48,
+          44,
+          50,
+          48,
+          10,
+          50,
+          48,
+          44,
+          55,
+          44,
+          44,
+          44,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-scalar-left-text",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "inputSha256": "dbee22f0468e3bfa5d17632577c5f52f81a2d96227f64a70f51dded080988663"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          86,
+          65,
+          76,
+          85,
+          69,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-scalar-left-error",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          68,
+          73,
+          86,
+          47,
+          48,
+          33,
+          10
+        ],
+        "inputSha256": "81fd1eb3a43ce40c36263f9fdeca9a02633e40134c44d18a2a964ef06aeb60d2"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          68,
+          73,
+          86,
+          47,
+          48,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          35,
+          68,
+          73,
+          86,
+          47,
+          48,
+          33,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "array-scalar-numeric-positive",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "inputSha256": "9989e26e6999f3bd431edb143ac858eba9be8ee011d5cff4b4610734aaf077eb"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "noniterative-cycle",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "inputSha256": "7ff99420f2d024125a75ec2c36a14fad2f0fbcccf718d773dfef66b1e79963b7"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "iterative-cycle",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "798e211b9c9abfe60330e62bd209e53d0e2a23bc6c119a27e3133ecdc27172d3"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "concat-large",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "inputSha256": "11db25d403cc6ba69d577789af55b122bf85900b14a7d2b6772593d0a73db491"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "concat-third",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          10
+        ],
+        "inputSha256": "ecf152598c2926896480ec944f1d40426c4e19eb2fb9536d1755c4ef5f97a710"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "concat-small",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "inputSha256": "62465f552a6b915f58c354eec0fda59888c51138456bcc043bee0101fd0c2ae5"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "concat-twenty",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          50,
+          48,
+          10
+        ],
+        "inputSha256": "6be60e5282bfdba8c53b4a94727092cdb0d079e30d745086022961853daca5f4"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          50,
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          50,
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "iteration-cap-1",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "b77d9735a35a70fc8c459e6b6ba8f958057734a1f99ad48e6f4fcdb6307af7e7"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "iteration-cap-2",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "5a2c4a01b7070473badb8f00fc4be17134a930a5107463a6604a8a097772cd42"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "iteration-cap-4",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "b27d558426f5df07a5f8be793ecb8280795b20a45a407522b2ecaf72fb4a07cc"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "iteration-cap-10",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "84a74228455c440e4a11fbd24ac34193817e46b03c5163eebb90fe1ea37e3660"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "self-halving",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          46,
+          50,
+          53,
+          10
+        ],
+        "inputSha256": "66e5b00d464c2fca7353870a6df5aff52f563d10db553b007b70b7ffce52af5f"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "multicell-ab",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          44,
+          51,
+          10
+        ],
+        "inputSha256": "7ef9238b15f78e65eaccca956ea4c424433c05d141a535b5e1a5d616777db41a"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          44,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          44,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "multicell-ba",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          44,
+          52,
+          10
+        ],
+        "inputSha256": "51810519b459bbdb2576afa156d8a5663669797bafecb839905027487d1e0964"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          44,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          44,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": false,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-00",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          46,
+          52,
+          51,
+          56,
+          49,
+          56,
+          50,
+          57,
+          52,
+          51,
+          50,
+          52,
+          55,
+          48,
+          55,
+          53,
+          52,
+          69,
+          45,
+          51,
+          48,
+          56,
+          10
+        ],
+        "inputSha256": "d29539bf1da0e73d2b3ab7162218fe3b538469467aeecb1a3f71ec3f4e1167ae"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          46,
+          52,
+          51,
+          56,
+          49,
+          56,
+          50,
+          57,
+          52,
+          51,
+          50,
+          52,
+          55,
+          48,
+          55,
+          53,
+          52,
+          69,
+          45,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          46,
+          52,
+          51,
+          56,
+          49,
+          56,
+          50,
+          57,
+          52,
+          51,
+          50,
+          52,
+          55,
+          48,
+          55,
+          53,
+          52,
+          69,
+          45,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-01",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          50,
+          46,
+          49,
+          54,
+          56,
+          49,
+          53,
+          57,
+          50,
+          55,
+          51,
+          53,
+          57,
+          56,
+          49,
+          51,
+          50,
+          56,
+          69,
+          45,
+          51,
+          48,
+          53,
+          10
+        ],
+        "inputSha256": "b28e2b5d82b697f2583f894e44be2bbcd68314c7a8cd49dc15a2e87b384283a0"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          50,
+          46,
+          49,
+          54,
+          56,
+          49,
+          53,
+          57,
+          50,
+          55,
+          51,
+          53,
+          57,
+          56,
+          49,
+          51,
+          50,
+          56,
+          69,
+          45,
+          51,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          50,
+          46,
+          49,
+          54,
+          56,
+          49,
+          53,
+          57,
+          50,
+          55,
+          51,
+          53,
+          57,
+          56,
+          49,
+          51,
+          50,
+          56,
+          69,
+          45,
+          51,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-02",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          54,
+          52,
+          54,
+          48,
+          55,
+          55,
+          56,
+          50,
+          54,
+          57,
+          57,
+          53,
+          48,
+          48,
+          55,
+          69,
+          45,
+          49,
+          50,
+          56,
+          10
+        ],
+        "inputSha256": "2445413a72f7785c0e085b0c27f8128fff0237c076f1dadfb4ea24eb2246d0d4"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          54,
+          52,
+          54,
+          48,
+          55,
+          55,
+          56,
+          50,
+          54,
+          57,
+          57,
+          53,
+          48,
+          48,
+          55,
+          69,
+          45,
+          49,
+          50,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          54,
+          52,
+          54,
+          48,
+          55,
+          55,
+          56,
+          50,
+          54,
+          57,
+          57,
+          53,
+          48,
+          48,
+          55,
+          69,
+          45,
+          49,
+          50,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-03",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          46,
+          54,
+          57,
+          49,
+          57,
+          54,
+          57,
+          49,
+          48,
+          56,
+          49,
+          54,
+          56,
+          51,
+          52,
+          50,
+          69,
+          45,
+          51,
+          56,
+          10
+        ],
+        "inputSha256": "df0bab88dadeb39e088d9e341d6aa954a8299725cd5a0a1fbcd19199c5197f0c"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          46,
+          54,
+          57,
+          49,
+          57,
+          54,
+          57,
+          49,
+          48,
+          56,
+          49,
+          54,
+          56,
+          51,
+          52,
+          50,
+          69,
+          45,
+          51,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          46,
+          54,
+          57,
+          49,
+          57,
+          54,
+          57,
+          49,
+          48,
+          56,
+          49,
+          54,
+          56,
+          51,
+          52,
+          50,
+          69,
+          45,
+          51,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-04",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          55,
+          48,
+          49,
+          50,
+          54,
+          53,
+          54,
+          57,
+          57,
+          52,
+          49,
+          53,
+          56,
+          57,
+          51,
+          51,
+          69,
+          45,
+          49,
+          51,
+          10
+        ],
+        "inputSha256": "b819146a1399641c98d30b5f04705818867f76dcee12edf1b2255e62b326703f"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          55,
+          48,
+          49,
+          50,
+          54,
+          53,
+          54,
+          57,
+          57,
+          52,
+          49,
+          53,
+          56,
+          57,
+          51,
+          51,
+          69,
+          45,
+          49,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          55,
+          48,
+          49,
+          50,
+          54,
+          53,
+          54,
+          57,
+          57,
+          52,
+          49,
+          53,
+          56,
+          57,
+          51,
+          51,
+          69,
+          45,
+          49,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-05",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          53,
+          48,
+          56,
+          51,
+          56,
+          54,
+          53,
+          54,
+          52,
+          50,
+          52,
+          55,
+          49,
+          53,
+          51,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "inputSha256": "22d4c34a075679cc5a817667a39c93f1061ffab75860d4caae570cc9ab7e2102"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          53,
+          48,
+          56,
+          51,
+          56,
+          54,
+          53,
+          54,
+          52,
+          50,
+          52,
+          55,
+          49,
+          53,
+          51,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          53,
+          48,
+          56,
+          51,
+          56,
+          54,
+          53,
+          54,
+          52,
+          50,
+          52,
+          55,
+          49,
+          53,
+          51,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-06",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          46,
+          56,
+          53,
+          54,
+          51,
+          49,
+          50,
+          51,
+          56,
+          51,
+          53,
+          55,
+          54,
+          48,
+          51,
+          52,
+          69,
+          45,
+          48,
+          54,
+          10
+        ],
+        "inputSha256": "a0b483d65de581e16dcc434236f5a223687cd09da468623bbcc8ac58af463276"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          46,
+          56,
+          53,
+          54,
+          51,
+          49,
+          50,
+          51,
+          56,
+          51,
+          53,
+          55,
+          54,
+          48,
+          51,
+          52,
+          69,
+          45,
+          48,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          46,
+          56,
+          53,
+          54,
+          51,
+          49,
+          50,
+          51,
+          56,
+          51,
+          53,
+          55,
+          54,
+          48,
+          51,
+          52,
+          69,
+          45,
+          48,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-07",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          48,
+          50,
+          49,
+          48,
+          49,
+          52,
+          54,
+          55,
+          53,
+          57,
+          52,
+          51,
+          55,
+          51,
+          51,
+          51,
+          52,
+          10
+        ],
+        "inputSha256": "f39ef3baa974b37a044ae404e07189f04ee45ea4b786affc08bfb85e65dea65c"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          48,
+          50,
+          49,
+          48,
+          49,
+          52,
+          54,
+          55,
+          53,
+          57,
+          52,
+          51,
+          55,
+          51,
+          51,
+          51,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          48,
+          50,
+          49,
+          48,
+          49,
+          52,
+          54,
+          55,
+          53,
+          57,
+          52,
+          51,
+          55,
+          51,
+          51,
+          51,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-08",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          49,
+          49,
+          57,
+          48,
+          48,
+          57,
+          50,
+          54,
+          54,
+          55,
+          48,
+          49,
+          48,
+          54,
+          54,
+          49,
+          49,
+          10
+        ],
+        "inputSha256": "6b7d66bc3859dc62a4044a2fd00547ce810f209c1ce04d670d63d4600a574b9b"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          49,
+          49,
+          57,
+          48,
+          48,
+          57,
+          50,
+          54,
+          54,
+          55,
+          48,
+          49,
+          48,
+          54,
+          54,
+          49,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          49,
+          49,
+          57,
+          48,
+          48,
+          57,
+          50,
+          54,
+          54,
+          55,
+          48,
+          49,
+          48,
+          54,
+          54,
+          49,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-09",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          51,
+          51,
+          53,
+          50,
+          55,
+          50,
+          56,
+          52,
+          57,
+          52,
+          48,
+          49,
+          55,
+          50,
+          49,
+          48,
+          53,
+          10
+        ],
+        "inputSha256": "a82c2d464898c2f9af60297c6ef36e5e560eee20665de5d702a1faaafd75af53"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          51,
+          51,
+          53,
+          50,
+          55,
+          50,
+          56,
+          52,
+          57,
+          52,
+          48,
+          49,
+          55,
+          50,
+          49,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          51,
+          51,
+          53,
+          50,
+          55,
+          50,
+          56,
+          52,
+          57,
+          52,
+          48,
+          49,
+          55,
+          50,
+          49,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-10",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          48,
+          48,
+          53,
+          52,
+          54,
+          49,
+          50,
+          55,
+          56,
+          53,
+          50,
+          55,
+          56,
+          57,
+          54,
+          51,
+          57,
+          50,
+          10
+        ],
+        "inputSha256": "c5b6d70ee34d79241d8d2a0edc06da06ee4a0b851d52ac8e5a7e497e5a785006"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          48,
+          48,
+          53,
+          52,
+          54,
+          49,
+          50,
+          55,
+          56,
+          53,
+          50,
+          55,
+          56,
+          57,
+          54,
+          51,
+          57,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          48,
+          48,
+          53,
+          52,
+          54,
+          49,
+          50,
+          55,
+          56,
+          53,
+          50,
+          55,
+          56,
+          57,
+          54,
+          51,
+          57,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-11",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          49,
+          50,
+          55,
+          54,
+          51,
+          50,
+          52,
+          54,
+          48,
+          55,
+          57,
+          54,
+          51,
+          53,
+          51,
+          57,
+          54,
+          10
+        ],
+        "inputSha256": "51f9a7ea695a18067c674c446bf027401944e171b696327c29280b0da97f7159"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          49,
+          50,
+          55,
+          54,
+          51,
+          50,
+          52,
+          54,
+          48,
+          55,
+          57,
+          54,
+          51,
+          53,
+          51,
+          57,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          49,
+          50,
+          55,
+          54,
+          51,
+          50,
+          52,
+          54,
+          48,
+          55,
+          57,
+          54,
+          51,
+          53,
+          51,
+          57,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-12",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          53,
+          53,
+          49,
+          52,
+          53,
+          54,
+          57,
+          57,
+          51,
+          50,
+          48,
+          57,
+          50,
+          52,
+          55,
+          10
+        ],
+        "inputSha256": "6e4deab660b031482df9ebda3c66fe3fe087b9511d488d4c9f8eb9e600d0dc41"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          53,
+          53,
+          49,
+          52,
+          53,
+          54,
+          57,
+          57,
+          51,
+          50,
+          48,
+          57,
+          50,
+          52,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          53,
+          53,
+          49,
+          52,
+          53,
+          54,
+          57,
+          57,
+          51,
+          50,
+          48,
+          57,
+          50,
+          52,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-13",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          55,
+          46,
+          55,
+          51,
+          54,
+          54,
+          55,
+          53,
+          51,
+          56,
+          49,
+          52,
+          57,
+          53,
+          56,
+          51,
+          50,
+          10
+        ],
+        "inputSha256": "d95d0d444035244054f3d5d7e94278ee9815a0e987db4b8d997eb18a0e40212a"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          55,
+          46,
+          55,
+          51,
+          54,
+          54,
+          55,
+          53,
+          51,
+          56,
+          49,
+          52,
+          57,
+          53,
+          56,
+          51,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          55,
+          46,
+          55,
+          51,
+          54,
+          54,
+          55,
+          53,
+          51,
+          56,
+          49,
+          52,
+          57,
+          53,
+          56,
+          51,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-14",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          50,
+          49,
+          50,
+          50,
+          52,
+          57,
+          51,
+          48,
+          50,
+          57,
+          57,
+          52,
+          56,
+          48,
+          46,
+          56,
+          54,
+          10
+        ],
+        "inputSha256": "1ea2c432fa6c0990881671c4a40d877e66c27047ed433ccad9b31534976fa741"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          50,
+          49,
+          50,
+          50,
+          52,
+          57,
+          51,
+          48,
+          50,
+          57,
+          57,
+          52,
+          56,
+          48,
+          46,
+          56,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          50,
+          49,
+          50,
+          50,
+          52,
+          57,
+          51,
+          48,
+          50,
+          57,
+          57,
+          52,
+          56,
+          48,
+          46,
+          56,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-15",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          51,
+          51,
+          49,
+          49,
+          54,
+          57,
+          52,
+          49,
+          50,
+          48,
+          57,
+          51,
+          56,
+          50,
+          53,
+          10
+        ],
+        "inputSha256": "936c3377631f140c116c97c2c3947b7f184c4e8a70cdba3c40ae6660c844295a"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          51,
+          51,
+          49,
+          49,
+          54,
+          57,
+          52,
+          49,
+          50,
+          48,
+          57,
+          51,
+          56,
+          50,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          51,
+          51,
+          49,
+          49,
+          54,
+          57,
+          52,
+          49,
+          50,
+          48,
+          57,
+          51,
+          56,
+          50,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-16",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          51,
+          49,
+          50,
+          54,
+          57,
+          55,
+          50,
+          49,
+          52,
+          48,
+          52,
+          54,
+          57,
+          48,
+          50,
+          10
+        ],
+        "inputSha256": "3e3892e8b452d3bda7eebf22202b0a52ef9513213888db9381b3a8d9efd77729"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          51,
+          49,
+          50,
+          54,
+          57,
+          55,
+          50,
+          49,
+          52,
+          48,
+          52,
+          54,
+          57,
+          48,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          51,
+          49,
+          50,
+          54,
+          57,
+          55,
+          50,
+          49,
+          52,
+          48,
+          52,
+          54,
+          57,
+          48,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-17",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          46,
+          50,
+          50,
+          51,
+          50,
+          57,
+          55,
+          55,
+          55,
+          50,
+          54,
+          53,
+          49,
+          51,
+          51,
+          55,
+          51,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "inputSha256": "894010296e5ee599cff434b71320a500d9dc4700b6d8be7dd077e526f44ed764"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          46,
+          50,
+          50,
+          51,
+          50,
+          57,
+          55,
+          55,
+          55,
+          50,
+          54,
+          53,
+          49,
+          51,
+          51,
+          55,
+          51,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          46,
+          50,
+          50,
+          51,
+          50,
+          57,
+          55,
+          55,
+          55,
+          50,
+          54,
+          53,
+          49,
+          51,
+          51,
+          55,
+          51,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-18",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          49,
+          49,
+          53,
+          54,
+          48,
+          56,
+          57,
+          49,
+          53,
+          56,
+          49,
+          52,
+          50,
+          55,
+          55,
+          69,
+          43,
+          49,
+          56,
+          10
+        ],
+        "inputSha256": "8c6235d4020deeeac0167e84f95758ff5ebcee25a471fc54fdd6870f41885cd3"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          49,
+          49,
+          53,
+          54,
+          48,
+          56,
+          57,
+          49,
+          53,
+          56,
+          49,
+          52,
+          50,
+          55,
+          55,
+          69,
+          43,
+          49,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          49,
+          49,
+          53,
+          54,
+          48,
+          56,
+          57,
+          49,
+          53,
+          56,
+          49,
+          52,
+          50,
+          55,
+          55,
+          69,
+          43,
+          49,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-19",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          51,
+          46,
+          48,
+          54,
+          57,
+          52,
+          50,
+          48,
+          56,
+          49,
+          56,
+          55,
+          51,
+          56,
+          48,
+          49,
+          49,
+          69,
+          43,
+          53,
+          51,
+          10
+        ],
+        "inputSha256": "fd1bfbbd516e15c2b2922eae52025aaf72e4930ad7ff4ac22ac6264b904cbcbf"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          51,
+          46,
+          48,
+          54,
+          57,
+          52,
+          50,
+          48,
+          56,
+          49,
+          56,
+          55,
+          51,
+          56,
+          48,
+          49,
+          49,
+          69,
+          43,
+          53,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          51,
+          46,
+          48,
+          54,
+          57,
+          52,
+          50,
+          48,
+          56,
+          49,
+          56,
+          55,
+          51,
+          56,
+          48,
+          49,
+          49,
+          69,
+          43,
+          53,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-20",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          52,
+          46,
+          52,
+          55,
+          57,
+          49,
+          57,
+          57,
+          50,
+          56,
+          52,
+          56,
+          50,
+          49,
+          50,
+          53,
+          52,
+          52,
+          69,
+          43,
+          49,
+          49,
+          51,
+          10
+        ],
+        "inputSha256": "624bc0c055f5753806583824d5e8b55968b5145c54ff0ab1378a7cf51a60cbed"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          52,
+          46,
+          52,
+          55,
+          57,
+          49,
+          57,
+          57,
+          50,
+          56,
+          52,
+          56,
+          50,
+          49,
+          50,
+          53,
+          52,
+          52,
+          69,
+          43,
+          49,
+          49,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          52,
+          46,
+          52,
+          55,
+          57,
+          49,
+          57,
+          57,
+          50,
+          56,
+          52,
+          56,
+          50,
+          49,
+          50,
+          53,
+          52,
+          52,
+          69,
+          43,
+          49,
+          49,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-21",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          56,
+          57,
+          53,
+          53,
+          55,
+          49,
+          56,
+          54,
+          53,
+          51,
+          56,
+          50,
+          57,
+          69,
+          43,
+          50,
+          51,
+          52,
+          10
+        ],
+        "inputSha256": "b021e04da32770ad3b66dc8da17b3fdc0b7550174ba3c94fa4e2069d530e7571"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          56,
+          57,
+          53,
+          53,
+          55,
+          49,
+          56,
+          54,
+          53,
+          51,
+          56,
+          50,
+          57,
+          69,
+          43,
+          50,
+          51,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          56,
+          57,
+          53,
+          53,
+          55,
+          49,
+          56,
+          54,
+          53,
+          51,
+          56,
+          50,
+          57,
+          69,
+          43,
+          50,
+          51,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-22",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          56,
+          53,
+          49,
+          57,
+          51,
+          49,
+          56,
+          56,
+          52,
+          53,
+          55,
+          57,
+          51,
+          50,
+          48,
+          53,
+          69,
+          43,
+          50,
+          57,
+          52,
+          10
+        ],
+        "inputSha256": "91ceb7725df2a149bb740a499ec7800aaa237b3a74d17add322fbef2bb8e0936"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          56,
+          53,
+          49,
+          57,
+          51,
+          49,
+          56,
+          56,
+          52,
+          53,
+          55,
+          57,
+          51,
+          50,
+          48,
+          53,
+          69,
+          43,
+          50,
+          57,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          56,
+          53,
+          49,
+          57,
+          51,
+          49,
+          56,
+          56,
+          52,
+          53,
+          55,
+          57,
+          51,
+          50,
+          48,
+          53,
+          69,
+          43,
+          50,
+          57,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-23",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          52,
+          50,
+          54,
+          54,
+          48,
+          54,
+          57,
+          56,
+          52,
+          50,
+          49,
+          55,
+          55,
+          55,
+          51,
+          55,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "inputSha256": "ef18fd33a8e7d1d552b8ec27a8bb6d68d22b09c7f94ce8fd40fabf4551226f17"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          52,
+          50,
+          54,
+          54,
+          48,
+          54,
+          57,
+          56,
+          52,
+          50,
+          49,
+          55,
+          55,
+          55,
+          51,
+          55,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          52,
+          50,
+          54,
+          54,
+          48,
+          54,
+          57,
+          56,
+          52,
+          50,
+          49,
+          55,
+          55,
+          55,
+          51,
+          55,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-24",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          49,
+          50,
+          53,
+          52,
+          50,
+          51,
+          54,
+          48,
+          54,
+          49,
+          56,
+          50,
+          50,
+          51,
+          52,
+          54,
+          69,
+          45,
+          51,
+          48,
+          56,
+          10
+        ],
+        "inputSha256": "b273a76cb9e1c1df4829de111ddf8d9dd9c81532d76f95e34fd2b96b958e375b"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          49,
+          50,
+          53,
+          52,
+          50,
+          51,
+          54,
+          48,
+          54,
+          49,
+          56,
+          50,
+          50,
+          51,
+          52,
+          54,
+          69,
+          45,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          49,
+          50,
+          53,
+          52,
+          50,
+          51,
+          54,
+          48,
+          54,
+          49,
+          56,
+          50,
+          50,
+          51,
+          52,
+          54,
+          69,
+          45,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-25",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          51,
+          54,
+          48,
+          51,
+          48,
+          49,
+          48,
+          56,
+          57,
+          54,
+          57,
+          51,
+          55,
+          57,
+          48,
+          51,
+          69,
+          45,
+          51,
+          48,
+          53,
+          10
+        ],
+        "inputSha256": "5cea8a6214ef75f4a74a82e78c42d8fe8ff03c531eeab6e5c06e4ffdf89fa194"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          51,
+          54,
+          48,
+          51,
+          48,
+          49,
+          48,
+          56,
+          57,
+          54,
+          57,
+          51,
+          55,
+          57,
+          48,
+          51,
+          69,
+          45,
+          51,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          51,
+          54,
+          48,
+          51,
+          48,
+          49,
+          48,
+          56,
+          57,
+          54,
+          57,
+          51,
+          55,
+          57,
+          48,
+          51,
+          69,
+          45,
+          51,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-26",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          56,
+          46,
+          57,
+          49,
+          49,
+          57,
+          55,
+          52,
+          50,
+          54,
+          53,
+          48,
+          50,
+          48,
+          53,
+          50,
+          56,
+          69,
+          45,
+          49,
+          50,
+          56,
+          10
+        ],
+        "inputSha256": "345f26f88d6e6b2286d266273b5e050310efc70301aa3dff1074735a84b46583"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          56,
+          46,
+          57,
+          49,
+          49,
+          57,
+          55,
+          52,
+          50,
+          54,
+          53,
+          48,
+          50,
+          48,
+          53,
+          50,
+          56,
+          69,
+          45,
+          49,
+          50,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          56,
+          46,
+          57,
+          49,
+          49,
+          57,
+          55,
+          52,
+          50,
+          54,
+          53,
+          48,
+          50,
+          48,
+          53,
+          50,
+          56,
+          69,
+          45,
+          49,
+          50,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-27",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          52,
+          57,
+          50,
+          51,
+          48,
+          48,
+          53,
+          55,
+          56,
+          56,
+          50,
+          52,
+          49,
+          56,
+          48,
+          56,
+          69,
+          45,
+          51,
+          55,
+          10
+        ],
+        "inputSha256": "11983a4cd8422039cf7dded9e6b09bd81a0364743e36e23834705478c9d067b9"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          52,
+          57,
+          50,
+          51,
+          48,
+          48,
+          53,
+          55,
+          56,
+          56,
+          50,
+          52,
+          49,
+          56,
+          48,
+          56,
+          69,
+          45,
+          51,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          52,
+          57,
+          50,
+          51,
+          48,
+          48,
+          53,
+          55,
+          56,
+          56,
+          50,
+          52,
+          49,
+          56,
+          48,
+          56,
+          69,
+          45,
+          51,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-28",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          55,
+          50,
+          55,
+          56,
+          57,
+          51,
+          52,
+          56,
+          57,
+          48,
+          49,
+          56,
+          53,
+          54,
+          53,
+          54,
+          69,
+          45,
+          49,
+          51,
+          10
+        ],
+        "inputSha256": "24b4bfa376bc8f9c9970f748df97b32e1b944d481ed1993b378150c8842b503c"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          55,
+          50,
+          55,
+          56,
+          57,
+          51,
+          52,
+          56,
+          57,
+          48,
+          49,
+          56,
+          53,
+          54,
+          53,
+          54,
+          69,
+          45,
+          49,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          46,
+          55,
+          50,
+          55,
+          56,
+          57,
+          51,
+          52,
+          56,
+          57,
+          48,
+          49,
+          56,
+          53,
+          54,
+          53,
+          54,
+          69,
+          45,
+          49,
+          51,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-29",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          50,
+          46,
+          50,
+          50,
+          50,
+          52,
+          51,
+          48,
+          53,
+          50,
+          57,
+          52,
+          51,
+          56,
+          56,
+          54,
+          57,
+          50,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "inputSha256": "c24dc961aeebc53a326e47050b3a334fa62f1144ab4845ce4d4eccd95ae950b1"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          50,
+          46,
+          50,
+          50,
+          50,
+          52,
+          51,
+          48,
+          53,
+          50,
+          57,
+          52,
+          51,
+          56,
+          56,
+          54,
+          57,
+          50,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          50,
+          46,
+          50,
+          50,
+          50,
+          52,
+          51,
+          48,
+          53,
+          50,
+          57,
+          52,
+          51,
+          56,
+          56,
+          54,
+          57,
+          50,
+          69,
+          45,
+          48,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-30",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          57,
+          50,
+          53,
+          54,
+          50,
+          50,
+          53,
+          56,
+          55,
+          54,
+          54,
+          57,
+          54,
+          54,
+          56,
+          69,
+          45,
+          48,
+          54,
+          10
+        ],
+        "inputSha256": "6d1847db0f6823598b3c36c25792d47805b91258ebcbafa33ca0354050703674"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          57,
+          50,
+          53,
+          54,
+          50,
+          50,
+          53,
+          56,
+          55,
+          54,
+          54,
+          57,
+          54,
+          54,
+          56,
+          69,
+          45,
+          48,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          46,
+          57,
+          50,
+          53,
+          54,
+          50,
+          50,
+          53,
+          56,
+          55,
+          54,
+          54,
+          57,
+          54,
+          54,
+          56,
+          69,
+          45,
+          48,
+          54,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "seeded-text-31",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          48,
+          49,
+          51,
+          49,
+          54,
+          48,
+          48,
+          55,
+          57,
+          55,
+          49,
+          56,
+          49,
+          55,
+          53,
+          49,
+          49,
+          52,
+          10
+        ],
+        "inputSha256": "4658c4f952fd694bd59f792eda6cfcff6a0de610667a5d065a487a8e0f487b43"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          48,
+          49,
+          51,
+          49,
+          54,
+          48,
+          48,
+          55,
+          57,
+          55,
+          49,
+          56,
+          49,
+          55,
+          53,
+          49,
+          49,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          48,
+          46,
+          48,
+          48,
+          48,
+          49,
+          51,
+          49,
+          54,
+          48,
+          48,
+          55,
+          57,
+          55,
+          49,
+          56,
+          49,
+          55,
+          53,
+          49,
+          49,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-threshold-neg4",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          48,
+          48,
+          48,
+          49,
+          10
+        ],
+        "inputSha256": "0d811848bfec54102d1e2e44ce4996522878db9bc036f8b45496bbadcaab6ad9"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          48,
+          48,
+          48,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          48,
+          48,
+          48,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-threshold-neg5",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          48,
+          53,
+          10
+        ],
+        "inputSha256": "485d909ec18367456957fcb44b6097dcdf9b4240f810be6a28c992add476f7bc"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-threshold-pos16",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          10
+        ],
+        "inputSha256": "d44b235dde45cd6dbc297f3d0119f3aef0a8c34a90ae98e78b4dbbcf2f600a3e"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-threshold-pos17",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "inputSha256": "e97318e206f70ffd05526eebafedca9bb717ac966f407eecf1df6664cf177f17"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-fraction-tricky",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          56,
+          52,
+          53,
+          53,
+          49,
+          50,
+          52,
+          48,
+          56,
+          50,
+          50,
+          53,
+          53,
+          55,
+          48,
+          49,
+          10
+        ],
+        "inputSha256": "84cf3cfaf1b06a4847cbaf226c1d6ffc13ef5727d5f6588cd04135756f35bbc7"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          56,
+          52,
+          53,
+          53,
+          49,
+          50,
+          52,
+          48,
+          56,
+          50,
+          50,
+          53,
+          53,
+          55,
+          48,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          56,
+          52,
+          53,
+          53,
+          49,
+          50,
+          52,
+          48,
+          56,
+          50,
+          50,
+          53,
+          53,
+          55,
+          48,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-fraction-digits",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          10
+        ],
+        "inputSha256": "d1bec7de7f31d27221abee8f25e140567455d24f74080b3f2fb42bb137f62430"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-fraction-rounding",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          48,
+          53,
+          10
+        ],
+        "inputSha256": "ea2d4eb94f32ae7f41711ccd5663816eeeda400a89b86d6b6572433d646c7690"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          48,
+          53,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-fraction-sum",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          51,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          52,
+          10
+        ],
+        "inputSha256": "1f321a3774856db87d994157530e048da2c0dd1c2dea4dae09f623f8944e846e"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          51,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          48,
+          46,
+          51,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-large-even",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          50,
+          10
+        ],
+        "inputSha256": "b2d82877d0f2e81c85e58891413e0e66851248461d1d07f4c610e6afeddc719c"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-safe-integer",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          48,
+          48,
+          55,
+          49,
+          57,
+          57,
+          50,
+          53,
+          52,
+          55,
+          52,
+          48,
+          57,
+          57,
+          49,
+          10
+        ],
+        "inputSha256": "945e3b305bc1100bc80a81fa3696c53b8883411596c15b7d219a8c134f51b839"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          48,
+          48,
+          55,
+          49,
+          57,
+          57,
+          50,
+          53,
+          52,
+          55,
+          52,
+          48,
+          57,
+          57,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          57,
+          48,
+          48,
+          55,
+          49,
+          57,
+          57,
+          50,
+          53,
+          52,
+          55,
+          52,
+          48,
+          57,
+          57,
+          49,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-adjacent-one",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          50,
+          10
+        ],
+        "inputSha256": "e781b1e12d4f06845eefba2aa3af7f230f80a21440cf560684a6bea3218f9b05"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          48,
+          50,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-min-subnormal",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          69,
+          45,
+          51,
+          50,
+          52,
+          10
+        ],
+        "inputSha256": "ca48700aff5f623b64e79858859150ca53d008b82ecbef4db0456c9775663134"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          69,
+          45,
+          51,
+          50,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          53,
+          69,
+          45,
+          51,
+          50,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-max-finite",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          55,
+          57,
+          55,
+          54,
+          57,
+          51,
+          49,
+          51,
+          52,
+          56,
+          54,
+          50,
+          51,
+          49,
+          53,
+          55,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "inputSha256": "15028d45aa5731e68c7fac62b3cde9ba31d2f47d73d6c539188578fe46736ba4"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          55,
+          57,
+          55,
+          54,
+          57,
+          51,
+          49,
+          51,
+          52,
+          56,
+          54,
+          50,
+          51,
+          49,
+          53,
+          55,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          46,
+          55,
+          57,
+          55,
+          54,
+          57,
+          51,
+          49,
+          51,
+          52,
+          56,
+          54,
+          50,
+          51,
+          49,
+          53,
+          55,
+          69,
+          43,
+          51,
+          48,
+          56,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-small-subnormal",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          51,
+          50,
+          48,
+          10
+        ],
+        "inputSha256": "56338a35471a32d1c702e20acd5f704cf962448ce47353e1f3ff3918c57d761e"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          51,
+          50,
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          69,
+          45,
+          51,
+          50,
+          48,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-negative-subnormal",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          53,
+          69,
+          45,
+          51,
+          50,
+          52,
+          10
+        ],
+        "inputSha256": "141cd7fb34d445ce966f8544c50955a706221f1339c30855884ca3d84ac14243"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          53,
+          69,
+          45,
+          51,
+          50,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          53,
+          69,
+          45,
+          51,
+          50,
+          52,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    },
+    {
+      "id": "text-negative-threshold",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "inputSha256": "231419336869bcc71b2909129ae82e8636c3fe83a15fe8f3446cabcf1336d844"
+      },
+      "javascriptCLI": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "javascriptSDK": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          45,
+          49,
+          69,
+          43,
+          49,
+          55,
+          10
+        ],
+        "randomDraws": 0
+      },
+      "equalStatus": true,
+      "equalStdout": true,
+      "equalStderr": true,
+      "equalBytes": true,
+      "equalCliSdkBytes": true
+    }
+  ],
+  "cyclePhases": [
+    {
+      "id": "noniterative-cycle",
+      "nativeAutomatic": {
+        "id": "noniterative-cycle",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/noniterative-cycle.gnumeric",
+          "/out/native-results/noniterative-cycle-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          10
+        ]
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            49,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            49,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/noniterative-cycle.gnumeric",
+          "/out/native-results/noniterative-cycle.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "id": "noniterative-cycle",
+        "bytes": [
+          50,
+          10
+        ],
+        "inputSha256": "7ff99420f2d024125a75ec2c36a14fad2f0fbcccf718d773dfef66b1e79963b7",
+        "outputSha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": false,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iterative-cycle",
+      "nativeAutomatic": {
+        "id": "iterative-cycle",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iterative-cycle.gnumeric",
+          "/out/native-results/iterative-cycle-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ]
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iterative-cycle.gnumeric",
+          "/out/native-results/iterative-cycle.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "id": "iterative-cycle",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "798e211b9c9abfe60330e62bd209e53d0e2a23bc6c119a27e3133ecdc27172d3",
+        "outputSha256": "7de1555df0c2700329e815b93b32c571c3ea54dc967b89e81ab73b9972b72d1d"
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-1",
+      "nativeAutomatic": {
+        "id": "iteration-cap-1",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-1.gnumeric",
+          "/out/native-results/iteration-cap-1-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "inputSha256": "b77d9735a35a70fc8c459e6b6ba8f958057734a1f99ad48e6f4fcdb6307af7e7"
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "id": "iteration-cap-1",
+        "recalc": true,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-1.gnumeric",
+          "/out/native-results/iteration-cap-1-recalc-True.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "b77d9735a35a70fc8c459e6b6ba8f958057734a1f99ad48e6f4fcdb6307af7e7"
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 1,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-2",
+      "nativeAutomatic": {
+        "id": "iteration-cap-2",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-2.gnumeric",
+          "/out/native-results/iteration-cap-2-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "inputSha256": "5a2c4a01b7070473badb8f00fc4be17134a930a5107463a6604a8a097772cd42"
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "id": "iteration-cap-2",
+        "recalc": true,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-2.gnumeric",
+          "/out/native-results/iteration-cap-2-recalc-True.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "5a2c4a01b7070473badb8f00fc4be17134a930a5107463a6604a8a097772cd42"
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 2,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-4",
+      "nativeAutomatic": {
+        "id": "iteration-cap-4",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-4.gnumeric",
+          "/out/native-results/iteration-cap-4-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "inputSha256": "b27d558426f5df07a5f8be793ecb8280795b20a45a407522b2ecaf72fb4a07cc"
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "id": "iteration-cap-4",
+        "recalc": true,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-4.gnumeric",
+          "/out/native-results/iteration-cap-4-recalc-True.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "b27d558426f5df07a5f8be793ecb8280795b20a45a407522b2ecaf72fb4a07cc"
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 4,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-10",
+      "nativeAutomatic": {
+        "id": "iteration-cap-10",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-10.gnumeric",
+          "/out/native-results/iteration-cap-10-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          10
+        ],
+        "inputSha256": "84a74228455c440e4a11fbd24ac34193817e46b03c5163eebb90fe1ea37e3660"
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "id": "iteration-cap-10",
+        "recalc": true,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/iteration-cap-10.gnumeric",
+          "/out/native-results/iteration-cap-10-recalc-True.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          10
+        ],
+        "inputSha256": "84a74228455c440e4a11fbd24ac34193817e46b03c5163eebb90fe1ea37e3660"
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 10,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "self-halving",
+      "nativeAutomatic": {
+        "id": "self-halving",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/self-halving.gnumeric",
+          "/out/native-results/self-halving-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          53,
+          10
+        ]
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            53,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            53,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "id": "self-halving",
+        "recalc": true,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/self-halving.gnumeric",
+          "/out/native-results/self-halving-recalc-True.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          54,
+          46,
+          50,
+          53,
+          10
+        ]
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            54,
+            46,
+            50,
+            53,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            54,
+            46,
+            50,
+            53,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 100,
+          "tolerance": 1
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=A1/2",
+                "value": {
+                  "kind": "number",
+                  "value": 25
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 25
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "multicell-ab",
+      "nativeAutomatic": {
+        "id": "multicell-ab",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/multicell-ab.gnumeric",
+          "/out/native-results/multicell-ab-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          50,
+          44,
+          49,
+          10
+        ]
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            44,
+            49,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            50,
+            44,
+            49,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "id": "multicell-ab",
+        "recalc": true,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/multicell-ab.gnumeric",
+          "/out/native-results/multicell-ab-recalc-True.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          52,
+          44,
+          51,
+          10
+        ]
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            44,
+            51,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            52,
+            44,
+            51,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=B1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "formulaDirty": false
+              },
+              {
+                "row": 0,
+                "column": 1,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "multicell-ba",
+      "nativeAutomatic": {
+        "id": "multicell-ba",
+        "recalc": false,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/multicell-ba.gnumeric",
+          "/out/native-results/multicell-ba-recalc-False.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          49,
+          44,
+          50,
+          10
+        ]
+      },
+      "javascriptAutomatic": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            49,
+            44,
+            50,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            49,
+            44,
+            50,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "nativeExplicitAfterLoad": {
+        "id": "multicell-ba",
+        "recalc": true,
+        "argv": [
+          "/out/prefix/bin/ssconvert",
+          "--recalc",
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "sheet=Sheet1 format=raw separator=, quoting-mode=never eol=unix",
+          "/out/cases/multicell-ba.gnumeric",
+          "/out/native-results/multicell-ba-recalc-True.csv"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "bytes": [
+          51,
+          44,
+          52,
+          10
+        ]
+      },
+      "javascriptExplicitAfterCachedLoad": {
+        "cli": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            51,
+            44,
+            52,
+            10
+          ],
+          "randomDraws": 0
+        },
+        "sdk": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "bytes": [
+            51,
+            44,
+            52,
+            10
+          ],
+          "randomDraws": 0
+        }
+      },
+      "postLoadInput": {
+        "iteration": {
+          "enabled": true,
+          "maximum": 3,
+          "tolerance": 0
+        },
+        "sheets": [
+          {
+            "id": "s",
+            "name": "Sheet1",
+            "cells": [
+              {
+                "row": 0,
+                "column": 1,
+                "formula": "=A1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 2
+                },
+                "formulaDirty": false
+              },
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "=B1+1",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "cachedResult": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "formulaDirty": false
+              }
+            ]
+          }
+        ]
+      },
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    }
+  ]
+}

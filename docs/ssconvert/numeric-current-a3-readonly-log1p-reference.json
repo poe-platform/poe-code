@@ -1,0 +1,37 @@
+{
+  "calls": 7496,
+  "passes": 7490,
+  "mismatches": 6,
+  "distinctFailures": [
+    {
+      "name": "log1p",
+      "x": 0.33688260287586475,
+      "value": 0.290340487889032,
+      "native": 0.29034048788903205,
+      "candidate": 0.290340487889032,
+      "reference": 0.29034048788903205,
+      "nativeCorrectRounded": true,
+      "candidateCorrectRounded": false
+    },
+    {
+      "name": "log1p",
+      "x": 0.5970989573261564,
+      "value": 0.4681888318254626,
+      "native": 0.4681888318254626,
+      "candidate": 0.46818883182546256,
+      "reference": 0.4681888318254626,
+      "nativeCorrectRounded": true,
+      "candidateCorrectRounded": false
+    },
+    {
+      "name": "log1p",
+      "x": 0.22690015107295408,
+      "value": 0.20449078594886985,
+      "native": 0.20449078594886985,
+      "candidate": 0.20449078594886982,
+      "reference": 0.20449078594886985,
+      "nativeCorrectRounded": true,
+      "candidateCorrectRounded": false
+    }
+  ]
+}

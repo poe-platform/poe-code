@@ -1,0 +1,315 @@
+{
+  "nativeExitCode": 0,
+  "stderr": "",
+  "cases": [
+    {
+      "formula": "=EXP(0)",
+      "native": "1",
+      "engine": {
+        "kind": "number",
+        "value": 1
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.1)",
+      "native": "1.1051709180756477",
+      "engine": {
+        "kind": "number",
+        "value": 1.1051709180756477
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.125)",
+      "native": "1.1331484530668263",
+      "engine": {
+        "kind": "number",
+        "value": 1.1331484530668263
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.3)",
+      "native": "1.3498588075760032",
+      "engine": {
+        "kind": "number",
+        "value": 1.3498588075760032
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.33)",
+      "native": "1.3909681284637803",
+      "engine": {
+        "kind": "number",
+        "value": 1.3909681284637803
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.7)",
+      "native": "2.0137527074704766",
+      "engine": {
+        "kind": "number",
+        "value": 2.0137527074704766
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(1.1)",
+      "native": "3.0041660239464334",
+      "engine": {
+        "kind": "number",
+        "value": 3.0041660239464334
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-0.1)",
+      "native": "0.9048374180359595",
+      "engine": {
+        "kind": "number",
+        "value": 0.9048374180359595
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-0.3)",
+      "native": "0.7408182206817179",
+      "engine": {
+        "kind": "number",
+        "value": 0.7408182206817179
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-1.1)",
+      "native": "0.33287108369807955",
+      "engine": {
+        "kind": "number",
+        "value": 0.33287108369807955
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(10)",
+      "native": "22026.465794806718",
+      "engine": {
+        "kind": "number",
+        "value": 22026.465794806718
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(100)",
+      "native": "2.6881171418161356E+43",
+      "engine": {
+        "kind": "number",
+        "value": 2.6881171418161356e+43
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(700)",
+      "native": "1.0142320547350045E+304",
+      "engine": {
+        "kind": "number",
+        "value": 1.0142320547350045e+304
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(709.782712893384)",
+      "native": "1.7976931348622732E+308",
+      "engine": {
+        "kind": "number",
+        "value": 1.7976931348622732e+308
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-700)",
+      "native": "9.85967654375977E-305",
+      "engine": {
+        "kind": "number",
+        "value": 9.85967654375977e-305
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-744)",
+      "native": "1E-323",
+      "engine": {
+        "kind": "number",
+        "value": 1e-323
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-745)",
+      "native": "5E-324",
+      "engine": {
+        "kind": "number",
+        "value": 5e-324
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.1)",
+      "native": "0.09531017980432487",
+      "engine": {
+        "kind": "number",
+        "value": 0.09531017980432487
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.125)",
+      "native": "0.11778303565638346",
+      "engine": {
+        "kind": "number",
+        "value": 0.11778303565638346
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.3)",
+      "native": "0.26236426446749106",
+      "engine": {
+        "kind": "number",
+        "value": 0.26236426446749106
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.33688260287586475)",
+      "native": "0.29034048788903205",
+      "engine": {
+        "kind": "number",
+        "value": 0.290340487889032
+      },
+      "match": false
+    },
+    {
+      "formula": "=LN1P(0.5)",
+      "native": "0.4054651081081644",
+      "engine": {
+        "kind": "number",
+        "value": 0.4054651081081644
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.9)",
+      "native": "0.6418538861723948",
+      "engine": {
+        "kind": "number",
+        "value": 0.6418538861723948
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(1.1)",
+      "native": "0.7419373447293773",
+      "engine": {
+        "kind": "number",
+        "value": 0.7419373447293773
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(10)",
+      "native": "2.3978952727983707",
+      "engine": {
+        "kind": "number",
+        "value": 2.3978952727983707
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(100)",
+      "native": "4.61512051684126",
+      "engine": {
+        "kind": "number",
+        "value": 4.61512051684126
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(1e-300)",
+      "native": "1E-300",
+      "engine": {
+        "kind": "number",
+        "value": 1e-300
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.1)",
+      "native": "-0.10536051565782631",
+      "engine": {
+        "kind": "number",
+        "value": -0.10536051565782631
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.3)",
+      "native": "-0.35667494393873234",
+      "engine": {
+        "kind": "number",
+        "value": -0.35667494393873234
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.9)",
+      "native": "-2.302585092994046",
+      "engine": {
+        "kind": "number",
+        "value": -2.302585092994046
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.9999999999999999)",
+      "native": "-36.7368005696771",
+      "engine": {
+        "kind": "number",
+        "value": -36.7368005696771
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-1)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-2)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "match": true
+    }
+  ],
+  "passes": 33,
+  "mismatches": 1,
+  "settledCandidateAggregateSha256": "7ddece0475af378bbbeb93370871993fdf42152ebf7c70aa4cbd00e2b8d40211"
+}

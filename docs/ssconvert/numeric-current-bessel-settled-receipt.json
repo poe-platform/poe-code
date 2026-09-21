@@ -1,0 +1,56 @@
+{
+  "purpose": "Settled independent Bessel QA source binding; dirty candidate, root owns revision receipt",
+  "sourceSha256": {
+    "packages/ssconvert/src/formulas/functions/captured-bessel.ts": "467c46bc3522bf00eb9704657c15c5379cee6220b009a93c6ce199cc82afd566",
+    "packages/ssconvert/src/formulas/functions/captured-bessel-phase.ts": "f04f3f3702c283188f6ec40104e5172b7065371c0e98d4cf036fff4f62458fa8",
+    "packages/ssconvert/src/formulas/functions/captured-trigonometry.ts": "fd28d0283c3a1071a42bbf2c4a786548e0ba311d6d2d413b4ed8fc205aa71044",
+    "packages/ssconvert/src/formulas/functions/captured-log1p.ts": "3047fbff171e0a943a42c0348985a9e067219427b887d8ddf970db05c5ca7866",
+    "packages/ssconvert/src/formulas/functions/special-numeric.ts": "9502ddb7bfb1e08c36a2e60d14940a5a6e3bebff4103977e99cee12e95f6d053",
+    "packages/ssconvert/src/formulas/bessel-current-independent.test.ts": "77978f099764ee16f9843778a05a90dac88649240b49f161e42e075f8f8d0798"
+  },
+  "additionalSourceSha256": {
+    "out/ssconvert-bessel-glibc-2.41-s_log1p.c": "1bda067a394a58f1390ed1a6dd823941e50f9f0bc897d4854a9c896d5f296195",
+    "out/ssconvert-bessel-glibc-2.41-s_sin.c": "e708cfa50715bab9d4a1039d989dfe1da47b73686a9153e00e2ff54e44a9b1b6"
+  },
+  "main": {
+    "seed": 6197301,
+    "cases": 536,
+    "passes": 536,
+    "mismatches": 0
+  },
+  "largeOrderB1": {
+    "seed": 6192907,
+    "cases": 126,
+    "passes": 126,
+    "mismatches": 0
+  },
+  "phase": {
+    "seed": 6173304,
+    "cases": 120,
+    "passes": 120,
+    "mismatches": 0
+  },
+  "lowOrderA3": {
+    "seed": 6183305,
+    "cases": 120,
+    "passes": 120,
+    "mismatches": 0
+  },
+  "highQA3": {
+    "seed": 6183306,
+    "cases": 120,
+    "passes": 73,
+    "mismatches": 47
+  },
+  "trigonometry": {
+    "seed": 6192908,
+    "cases": 2048,
+    "passes": 2047,
+    "mismatches": 1
+  },
+  "focusedUnits": {
+    "passes": 252,
+    "failures": 0
+  },
+  "workspaceLint": "pass"
+}

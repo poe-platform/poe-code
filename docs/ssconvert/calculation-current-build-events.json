@@ -1,0 +1,34 @@
+[
+  {
+    "stage": "gnumeric configure attempt 1",
+    "exitStatus": 1,
+    "diagnostic": "configure: error: itstool not found",
+    "resolution": "install Debian itstool; retry configure"
+  },
+  {
+    "stage": "gnumeric configure attempt 2",
+    "exitStatus": 1,
+    "diagnostic": "configure: error: xmllint not found",
+    "resolution": "install Debian libxml2-utils; retry configure",
+    "log": "gnumeric-configure-xmllint-failure.log"
+  },
+  {
+    "stage": "initial JavaScript QA harness v1",
+    "classification": "harness error, not product defect",
+    "errors": [
+      "createEngine first probe omitted required explicit limits",
+      "SDK initial request used unrecognized recalculate instead of recalc",
+      "dist candidate potentially stale while root source timing repairs ongoing"
+    ],
+    "preservedCapture": "javascript-results-harness-v1.json"
+  },
+  {
+    "stage": "cycle control harness v1",
+    "classification": "incomplete harness run, not product failure",
+    "diagnostics": [
+      "Python SyntaxError from missing whitespace before else3",
+      "native follow-up attempted absent fixture; capture serialization TypeError before publication"
+    ],
+    "passes": 0
+  }
+]

@@ -1,0 +1,823 @@
+{
+  "kind": "ssconvert-canonical-current-generation-verification",
+  "version": 1,
+  "date": "2026-09-21",
+  "task": "canonical-differential-corpus",
+  "taskComplete": false,
+  "status": "hardened-gates-and-ten-original-native-cli-cases;complete-command-workbook-corpus-not-delivered",
+  "source": {
+    "version": "1.12.61",
+    "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "archive": "out/ssconvert-lifecycle-oracle/gnumeric-1.12.61.tar.xz",
+    "verified": true
+  },
+  "candidate": {
+    "gitHead": "b97c4938a469ee70e09bd08a0e5fcf7e868ca04c",
+    "dirty": true,
+    "manifest": "out/ssconvert-canonical-current/candidate-manifest.json",
+    "manifestHash": "34457a7a0f4735b01721c16d372ce0dfde143c1c833df9ca39521565f4b52496",
+    "files": 1681,
+    "postRunOriginalHashesVerified": true,
+    "postRunNewEntriesChecked": true,
+    "scope": "ssconvert src/tools/scripts/dist/configs and Safe Bash ssconvert adapter; not the entire repository"
+  },
+  "oracle": {
+    "container": "ssconvert-statistics-qa",
+    "image": "sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a",
+    "profile": "out/ssconvert-canonical-current/profile-settings.json",
+    "profileHash": "17f257a4be4e68fb448d0878a131fda4b03731797cd739e7686fb3dd8093b354",
+    "dependencies": 72,
+    "plugins": 115,
+    "resources": 90,
+    "settingsSchemas": 4,
+    "locale": "C",
+    "timezone": "UTC",
+    "settingsBackend": "memory",
+    "instrumentationNodeHash": "0f8949d1028f6d61506b2d5bc57e7e6fe893d7b1997509b7847294fc9c616584",
+    "qualifiedScope": "retained native binary/plugin/dependency/resource files; ten terminal/parser command cases",
+    "matrixComplete": false,
+    "oldBlockedProfilePreserved": true
+  },
+  "coverage": {
+    "denominator": 2364,
+    "passed": 10,
+    "missing": 2354,
+    "blocked": 0,
+    "mismatched": 0,
+    "cases": "out/ssconvert-canonical-current/cases-final.json",
+    "report": "out/ssconvert-canonical-current/report-final.json",
+    "normalizations": [],
+    "caveat": "These ten original cases are terminal/parser cases with empty candidate codec binding, not workbook or function/importer/exporter passes. Register is an obligation census, not exhaustive parser-state coverage."
+  },
+  "upstreamResearch": [
+    {
+      "case": "t9001-ssconvert-resize.pl",
+      "exitCode": 0,
+      "state": "passed-research"
+    },
+    {
+      "case": "t9005-ssconvert-merge.pl",
+      "exitCode": 0,
+      "state": "passed-research"
+    },
+    {
+      "case": "t9006-ssconvert-split.pl",
+      "exitCode": 0,
+      "state": "passed-research"
+    },
+    {
+      "case": "t9007-ssconvert-sheet.pl",
+      "exitCode": 77,
+      "state": "blocked",
+      "upstreamClassification": "skip",
+      "reason": "samples/formats.xls absent; never counted as pass"
+    }
+  ],
+  "checks": [
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert --no-cache",
+      "exitCode": 0,
+      "scope": "declared four-workspace build closure; final implementation"
+    },
+    {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "files": 317,
+      "tests": 6275,
+      "durationSeconds": 51.04,
+      "cache": "fresh maintained workspace execution"
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "scope": "ESLint plus implementation/test/consumer typechecks"
+    },
+    {
+      "command": "node --check packages/ssconvert/tools/capture-native.mjs; node --check packages/ssconvert/tools/report.mjs; node --check packages/ssconvert/tools/register.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "node packages/ssconvert/tools/report.mjs out/ssconvert-canonical-current/cases-final.json out/ssconvert-canonical-current/report-final.json out/ssconvert-canonical-current/register-settings.json",
+      "exitCode": 1,
+      "state": "incomplete-register-fails-closed"
+    }
+  ],
+  "regressions": {
+    "failingBeforeFix": true,
+    "originalFastMemfs": true,
+    "nativeUnitProcesses": 0,
+    "unitDiskFixtureWrites": 0,
+    "llmCalls": 0,
+    "repaired": [
+      "duplicate/invalid environment entries accepted as equal",
+      "duplicate namespace paths/negative or unsafe modes/NUL symlink targets accepted",
+      "blocked/incomplete profile accepted by reporter",
+      "input hash trusted without invocation/namespace recomputation",
+      "no new immutable profile generation selection",
+      "native argv0 not explicitly captured or controllable",
+      "native UTF8 decoder stripped BOM bytes from argv0/argv",
+      "schema/resource/build-input hash drift ignored"
+    ]
+  },
+  "independentStress": {
+    "agent": "/root/canonical_stress",
+    "canonicalFiles": 5,
+    "canonicalTests": 27,
+    "syntaxAndChangedESLint": true
+  },
+  "remaining": [
+    {
+      "state": "unmeasured",
+      "domain": "2354 register obligations and complete executable corpus",
+      "detail": "Every untested parser/action variant, remaining importer/exporter/function/property/analysis/solver/print/chart/workbook profile obligation remains unmeasured."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Structured semantic snapshots/round-trip/interoperability",
+      "detail": "No complete producer/recipe executor; reporter deliberately does not certify procedural gates from equal snapshots."
+    },
+    {
+      "state": "blocked",
+      "domain": "Native sheet-selection upstream research",
+      "detail": "Source-relevant test requires an absent formats.xls asset; no copied asset or pass substitution."
+    },
+    {
+      "state": "blocked",
+      "domain": "Invalid UTF8 arbitrary native argv",
+      "detail": "Native Node API accepts strings; malformed native argument bytes fail closed. UTF8 BOM bytes now preserved."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Optional dependency/runtime/locale/font/image-loader/solver matrix",
+      "detail": "Current native profile does not qualify all matrix cells. Other upstream research remains unmeasured."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Existing product mismatch requalification",
+      "detail": "Older numeric/format/runtime records unchanged; ten terminal/parser matches do not supersede them."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Safe Bash realm/host/budget/original-checkpoint-replay and visual integration",
+      "detail": "No product integration, capability or visible CLI change made; these full compatibility gates not run in this generation."
+    },
+    {
+      "state": "not-run",
+      "domain": "Repository-wide npm test/lint/build",
+      "detail": "Focused gate-only package change; maintained workspace routes executed; no claim of completed repository-wide gate."
+    }
+  ],
+  "plan": "docs/plans/ssconvert-canonical-current-generation-qa.md",
+  "changedFiles": [
+    {
+      "path": "packages/ssconvert/src/canonical/gates.ts",
+      "sha256": "11087d6f8038bbea5f8df926d0405e2f8648e366e08142895630726e87efe67f"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/capture-validation.test.ts",
+      "sha256": "6ac68b83bb12627ddada1eafad072bd5f760979f13be6a7f3a026f212d502ca4"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/independent.test.ts",
+      "sha256": "e88ecb0d1e61cbd6eb365800ef73ec7b028a52ff4e9e63a9f283cb335d539cd1"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/report.test.ts",
+      "sha256": "c5c03950c8a79e83f97d05ea4f50247f97f8db2c6472485e2873f0fe7ab0dac2"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/stress-current.test.ts",
+      "sha256": "24f977ef6e3d3cab56abd32f17c4c6a983ab307513b99e075303150dbd2d83be"
+    },
+    {
+      "path": "packages/ssconvert/tools/capture-native.mjs",
+      "sha256": "3bbc109385f84e077fca9ab381bd5f23184eb7fd23a3ac7cd89b2966c28a0099"
+    },
+    {
+      "path": "packages/ssconvert/tools/report.mjs",
+      "sha256": "7090048b78f56eb15376a70ff946a4f696662bd0d9c2741d7daaa82b5c16281b"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "out/ssconvert-canonical-current/candidate-manifest.json",
+      "sha256": "34457a7a0f4735b01721c16d372ce0dfde143c1c833df9ca39521565f4b52496"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/capture-candidate-argv0.mjs",
+      "sha256": "efa44f6b6b0a63aeac0fbca1c9b3635f348d213f95f53ee5131e57dcad549bbf"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/capture-candidate-final.mjs",
+      "sha256": "4d0db35e72fe6b47bb3a8168952b26b7e81cabe6773a6e2bfb0186d50ca845a1"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/capture-candidate-settings.mjs",
+      "sha256": "a03b4e26a87d3efd765335bb11a36627e5a7459a055602df301ef0dfe9b02533"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/capture-candidate.mjs",
+      "sha256": "f7dc37041ca90b94b3ca91cd195078ca94ba3f717b5aab5cf7a3616df4357ac0"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/capture-native-argv0.mjs",
+      "sha256": "e3dd4318eae0abb0f0f13a2de1692e9f98e3b65d422c667389e239f853b1c8b8"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/capture-native-final.mjs",
+      "sha256": "3bbc109385f84e077fca9ab381bd5f23184eb7fd23a3ac7cd89b2966c28a0099"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/capture-native.mjs",
+      "sha256": "8d85bffdf2221384f36b2f651c5228f4bed5b984ff5927d94a3b2b9e113907e7"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/candidate-argv0.json",
+      "sha256": "3fc1c14720093f72d9a2c0c80a2763643bf33d1bc8f6ae8bb141d20962769b7b"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/candidate-final.json",
+      "sha256": "bdc3093f3098726d3adb8600bf65620c403141d93f2358ec2523e53ab034cff6"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/candidate-settings.json",
+      "sha256": "bdc3093f3098726d3adb8600bf65620c403141d93f2358ec2523e53ab034cff6"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/candidate.json",
+      "sha256": "ce3fe116c3d4f3face44c88a337bd662f99fc42e4056c6eea009c11dc1399abc"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/native-argv0.json",
+      "sha256": "deb30f1ca6155cdbef23b777a5cdc45a624a89c64a8f4970a8c6eab9923ee1a6"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/native-final.json",
+      "sha256": "405b66f2d1380002d4b39f496ac8c6299497d11a1ffdf22bdb8642da2c56ada7"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/native-settings.json",
+      "sha256": "405b66f2d1380002d4b39f496ac8c6299497d11a1ffdf22bdb8642da2c56ada7"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/native.json",
+      "sha256": "424bd0c11ad10c06350fd0c804ce780f49b0cb96d7e73e1a61a50c800c09d78f"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/spec-argv0.json",
+      "sha256": "a544245ca580f08dc3fd529a9d1bd372325fcce86f6f1f4e9686bf77220f1265"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/spec-settings.json",
+      "sha256": "bc0d5c379636009d7584359384b629690b36764a7b8a99344e1bb9b1f56660b5"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-0/spec.json",
+      "sha256": "962b230dc75530ed236b0528614e66040d9010c69f9a977719df0e671a51ec84"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/candidate-argv0.json",
+      "sha256": "c3c76dfadb3f63fbee733d64ab3b62012bd70453ac954da50acfc804e38b9039"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/candidate-final.json",
+      "sha256": "db8270ea9b2b43ffc54c07922c1e36ac7cd49f2d4d40c897092832251dfd2221"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/candidate-settings.json",
+      "sha256": "db8270ea9b2b43ffc54c07922c1e36ac7cd49f2d4d40c897092832251dfd2221"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/candidate.json",
+      "sha256": "d3b254580383d2a876e77515e13f90164c8fa0a0b9eca3d7bc711bb072330a8d"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/native-argv0.json",
+      "sha256": "73a5b5ee3fca71f5bca49f33a83c489fffcf872451f2583d08595cbf9b40de6c"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/native-final.json",
+      "sha256": "f82c09a1b88d1d282206ebe4022f571f16a20fd6b7cc2112b880ccbff71c88dc"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/native-settings.json",
+      "sha256": "f82c09a1b88d1d282206ebe4022f571f16a20fd6b7cc2112b880ccbff71c88dc"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/native.json",
+      "sha256": "0c5e5fc1acaad7cadd6957ae71523693cd429ff7cc73beb089b8f1a6cedbd370"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/spec-argv0.json",
+      "sha256": "2d27a0b8115bfcf18afe9e286027984ef99100b2c8195c0b40ba1aff453fc49b"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/spec-settings.json",
+      "sha256": "d079f2a126c1ba99a9deb1640dc001db5d6563705309d6c74f20d4ae93a52ff3"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-1/spec.json",
+      "sha256": "af9665e67690ee794dd9dbcc300fd01347ae256d460d0b5a51167e29857387b5"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/candidate-argv0.json",
+      "sha256": "7abf3b252e756ef5bed052d7d5a32e39055f0c5ff8d02f2d00ee2291790bf2b4"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/candidate-final.json",
+      "sha256": "cd199ca2b2a933f1b1df6040512565dee4d819ee87b150d1ed5c4632aebbb99f"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/candidate-settings.json",
+      "sha256": "cd199ca2b2a933f1b1df6040512565dee4d819ee87b150d1ed5c4632aebbb99f"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/candidate.json",
+      "sha256": "da0a4c797d44ae9cfd00074f25d1a2bc9d8d0ae2ca2f54a20778aed174b3617b"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/native-argv0.json",
+      "sha256": "5ece7e748f17d73136d07ea3b6ecccb855674d1e183587ccd79d2748b1a80ec6"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/native-final.json",
+      "sha256": "14190b3be5c09d907013dd9b10d343c2a2d58e69a23b2bd38c5f18994a4c7af4"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/native-settings.json",
+      "sha256": "14190b3be5c09d907013dd9b10d343c2a2d58e69a23b2bd38c5f18994a4c7af4"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/native.json",
+      "sha256": "80471ae1478bab254cac1a6abd552b0f6704b98bcc9d8b8e57be34b90c626717"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/spec-argv0.json",
+      "sha256": "c3573aa85eb2b98a56b2ec62ce3b7db08deafb085370203c3be0961cc31548d1"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/spec-settings.json",
+      "sha256": "0ccb8348066209dd2ea4d99cd4b76dede858d26ee8eabb9b1a9616c02365f25d"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-2/spec.json",
+      "sha256": "6d429490797a3982c75a8636905908202be28c7d0d664b14bf8ad6ceaa9dfba3"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/candidate-argv0.json",
+      "sha256": "ae998abdb8f700744a49c1daa4d26d4723b0933cdfd3b03ac5b356f9d0a64f4c"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/candidate-final.json",
+      "sha256": "1fd26c2143dbdfab2b51730838808ad18707c87bf53df97154ded113b291b90c"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/candidate-settings.json",
+      "sha256": "1fd26c2143dbdfab2b51730838808ad18707c87bf53df97154ded113b291b90c"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/candidate.json",
+      "sha256": "ce79f4422cbc4cbe542daa522731995a8fa0fff6caa7fece9b6563398dd626d2"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/native-argv0.json",
+      "sha256": "0e2ca07aabec2af29c3d865177cc343b1f0b3b2c5710f903bf88bff51ed3337a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/native-final.json",
+      "sha256": "0c8c3f44eb82fd4ff3bd4fd1d8ea810f16d2b0f53ec4838135e5f2fe062bd99f"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/native-settings.json",
+      "sha256": "0c8c3f44eb82fd4ff3bd4fd1d8ea810f16d2b0f53ec4838135e5f2fe062bd99f"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/native.json",
+      "sha256": "61e870ffbc8bbd7a132df9b0e78cc8cf022e6b37b985b59486326b1f8873fa5d"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/spec-argv0.json",
+      "sha256": "4f85922e5119ab2b3c65eaef79504bff1bc9b3482f486b4d173d86db82225848"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/spec-settings.json",
+      "sha256": "0c9c30cb9c61767088e178d040c33ff79c2d47cbae32f95a58c343f71da25e72"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-3/spec.json",
+      "sha256": "6c5c520a2e7274a09a79f9ed4fcf4cc6a941c6e27b62b5398a31d800ef30d3e1"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/candidate-argv0.json",
+      "sha256": "2e0acb78ab311af7f25448896c147602485e566457cef7658ce655fd12653c2a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/candidate-final.json",
+      "sha256": "bc7f2c2cf781dc1b29f8f6fddaad547fc5a3ded02ad5c53766ef50e80ae51443"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/candidate-settings.json",
+      "sha256": "bc7f2c2cf781dc1b29f8f6fddaad547fc5a3ded02ad5c53766ef50e80ae51443"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/candidate.json",
+      "sha256": "a2ac416de66b9e4f04e7a7b1f6c5fe6ce554bf82990eff80fd1526f09816264e"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/native-argv0.json",
+      "sha256": "ada71af4ead69db9534b467ae09a8ea1282007f7316bc6e8669302803eeeca5e"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/native-final.json",
+      "sha256": "23fbae53886e2a1399e8e49ffc05cd3e8e73f92943df990d0036fa0db5e09da2"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/native-settings.json",
+      "sha256": "23fbae53886e2a1399e8e49ffc05cd3e8e73f92943df990d0036fa0db5e09da2"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/native.json",
+      "sha256": "55bbdfe2f75891b0ec9839eaec03889e84ba21e781908b3433871d0a9fed4c8a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/spec-argv0.json",
+      "sha256": "325445c53ff0cbc5c0f3c734e37cff047eaed6db23c7514c0eee81ef38208be2"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/spec-settings.json",
+      "sha256": "4a4326d48c1a6884ca0d1bc907c0afb62ecdc522aa8d300a0d5427a35c2aac04"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-4/spec.json",
+      "sha256": "c6ca1d65bc90ae0ebe289b4e9a08501a01e0140403cfe46a06fd95d811d7b267"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/candidate-argv0.json",
+      "sha256": "6be16a8b0a32473d8cb1566e2525f47b97621298b2f09bcb8be89e97a299fde9"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/candidate-final.json",
+      "sha256": "29e6d3d93731b57c8f73b3228af3a1d4a716167617225c05e7ce1bac8f9e750a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/candidate-settings.json",
+      "sha256": "29e6d3d93731b57c8f73b3228af3a1d4a716167617225c05e7ce1bac8f9e750a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/candidate.json",
+      "sha256": "d1fbd61750c95a0446ccd09578c395e894d18112c50384790bde5b711a0612ca"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/native-argv0.json",
+      "sha256": "904202ee3879047494424a947bdf3435697c3805f40d64199155041279e458a5"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/native-final.json",
+      "sha256": "dfc7b8a0adeab879bcef1ad32ecb1c59f87e5a2f9f617d321b061183155c8415"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/native-settings.json",
+      "sha256": "dfc7b8a0adeab879bcef1ad32ecb1c59f87e5a2f9f617d321b061183155c8415"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/native.json",
+      "sha256": "2b98e6f5e6469a61dc4fd87c4e0fe5c3a12698dce1793306fcfdeccd7d5f3851"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/spec-argv0.json",
+      "sha256": "cea884d53dd4431e003b5ccde51dd6fa9e15b4c3b5f138db4ef080fa5bbf3883"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/spec-settings.json",
+      "sha256": "25c80fb38d341577cd3989aafa1a6d54732dbd867a5c16158e8ebb250097f6ff"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-5/spec.json",
+      "sha256": "c08d4d7e6eca250484e3b608cbb25c0a968892fc1f6e69a2187dc61faa385cb7"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/candidate-argv0.json",
+      "sha256": "54be96fe6c45bfe1dfc9be7303c1ded4a160b458f20ed11dd5600072034c1406"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/candidate-final.json",
+      "sha256": "512e82e7368e50a9df213d47d6b99c8b6a735a60d0fb5c042fb11cf3f19b35c7"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/candidate-settings.json",
+      "sha256": "512e82e7368e50a9df213d47d6b99c8b6a735a60d0fb5c042fb11cf3f19b35c7"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/candidate.json",
+      "sha256": "bad94717827c35d5801912511b9c5f46d52d0f8232e58c8384e0759dd30a5a88"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/native-argv0.json",
+      "sha256": "bc69d16057a637f670821884091dd8bc9202bed987a27c0cad2a8c59ac751848"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/native-final.json",
+      "sha256": "4d09a3366096f1cc014341b44321edfa00f56a512d672202dc90e248e1421aeb"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/native-settings.json",
+      "sha256": "4d09a3366096f1cc014341b44321edfa00f56a512d672202dc90e248e1421aeb"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/native.json",
+      "sha256": "108b81c2cf713cea3c41f1c08525f43686f83cfe0f2f3c05a37685126b03c3dd"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/spec-argv0.json",
+      "sha256": "173f001e98e99f86c6e87d287aa91892f3e001da4be633c6fa7f76f5b0d887eb"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/spec-settings.json",
+      "sha256": "bf7560fd70eb31812c2c48d4f860240912b2b2bb115f3b0c406620cf81f5af10"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-6/spec.json",
+      "sha256": "9d7aa67731d569e1d1d628ba122dfc7e1f8d18b4c8083eedd52b64f7ddf5f239"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/candidate-argv0.json",
+      "sha256": "bbcf0fae880c90eaaedbd0f62acd3cfb33f33ba35ffd29d43888bed765e61c80"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/candidate-final.json",
+      "sha256": "0a2bbf2d5ed8edc4c5188c8088c2eadb56259de35790b77b69a3c21207f7f7f4"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/candidate-settings.json",
+      "sha256": "0a2bbf2d5ed8edc4c5188c8088c2eadb56259de35790b77b69a3c21207f7f7f4"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/candidate.json",
+      "sha256": "afe036be9ea9282bd751c4ac161645c17348cbc15233791edae1c502e65ddabc"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/native-argv0.json",
+      "sha256": "6d3e6acc8cd76f2c33c772c8e92221b288fed56ebd9b9e2dd25d0e27e2539263"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/native-final.json",
+      "sha256": "3f122118aa40581d828eee6e7ebbd846e783263f03eb1f0de3fd1d5f1a4a93a1"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/native-settings.json",
+      "sha256": "3f122118aa40581d828eee6e7ebbd846e783263f03eb1f0de3fd1d5f1a4a93a1"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/native.json",
+      "sha256": "69afca9683c90870d8067d60768e6faa7598cf99712552890e3ecea562870324"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/spec-argv0.json",
+      "sha256": "3d046912837694ee9dc1beec1077ad0db6c1a4af30ef3dd4db20c479ce30b488"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/spec-settings.json",
+      "sha256": "d3a31b1dea2ec14f9227364a8f9e2b4ef4cadb4a488cf53074580dce1b8deb5c"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-7/spec.json",
+      "sha256": "ef3f6e7be11d9796a43fa7744fb658f047a7131be0f97f666ffec16405bfcc97"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/candidate-argv0.json",
+      "sha256": "a9aa4d410724a8bbe0be9ed3ef0ce0179d77c3619c839a51c414b4f65b4c36de"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/candidate-final.json",
+      "sha256": "c98c5764c89c1cef3137dca42f37ae1bb82dd6e849663bb8c05134c458788cf5"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/candidate-settings.json",
+      "sha256": "c98c5764c89c1cef3137dca42f37ae1bb82dd6e849663bb8c05134c458788cf5"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/candidate.json",
+      "sha256": "9f691455e58517fe1b238df765a1f4cce80f58b3c7c049283b38ef61c193489d"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/native-argv0.json",
+      "sha256": "47fffca09980df5c92b709eae7dff4a7799f0ab2695c353d2080fea004d71a70"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/native-final.json",
+      "sha256": "9c2155ba3fd5a7010c561f969ce25963109d7347d94df27b074e04f7bc7911ce"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/native-settings.json",
+      "sha256": "9c2155ba3fd5a7010c561f969ce25963109d7347d94df27b074e04f7bc7911ce"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/native.json",
+      "sha256": "f5092525a01acc8b2688c9f2f06f0dc68765e001b53974252cda7db71cfdaf10"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/spec-argv0.json",
+      "sha256": "64b75eb92dd6d84f0cf6ceee1b69c62b9e6fd7fe57a35b44e091896cd367e48b"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/spec-settings.json",
+      "sha256": "e2bb350e9fe0563f8bc97f5b356c7ddd83af9410f2e7d16bb91d0c7f9cd844bd"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-8/spec.json",
+      "sha256": "81dfb5a2acde24c007dcfdc5738cd9a4264e7b7ccc8e20df89c528baf6f9c508"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/candidate-argv0.json",
+      "sha256": "6555fbb74d1f447b84af2bd4769d97fc9964069a02b9674ebcad0e0f8b147ed1"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/candidate-final.json",
+      "sha256": "6858a3733e8bf2cd4ad9484c1de3eefbf4f42aea301b01df40abd2bf433a9c22"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/candidate-settings.json",
+      "sha256": "6858a3733e8bf2cd4ad9484c1de3eefbf4f42aea301b01df40abd2bf433a9c22"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/candidate.json",
+      "sha256": "91e10887d926d6cea0b9029d9d1edbef5e00c5a62bf573c5e4993dcdef2957d7"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/native-argv0.json",
+      "sha256": "a723aba3ee929dd7ba4793e108a04437a7f289dc2bc63214362b23da0809cfb3"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/native-final.json",
+      "sha256": "760c6a536e848637c8f97b78a6de642c44d73ce740e456d7d1f033693e18b75c"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/native-settings.json",
+      "sha256": "760c6a536e848637c8f97b78a6de642c44d73ce740e456d7d1f033693e18b75c"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/native.json",
+      "sha256": "f41d5e43e56acc9c8dd4d2a71aa1c2b44962ff28cac1df925b888ccb28d0da0b"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/spec-argv0.json",
+      "sha256": "71480e5021d89a4affadf5e2129be53fe3cbde46019f2e0245095f9bc6a87b1a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/spec-settings.json",
+      "sha256": "404284a19529020fedc93e66895bac3654570fc6182d99f53fc7d47377bd8911"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/case-9/spec.json",
+      "sha256": "7dbbac7219e6fb6f2359bc608993c3e10a11b3279f63c1e5b5d77f5899e37f61"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/cases-argv0.json",
+      "sha256": "5300a9093decb80f028bbf2b7e2d3328956b73430d45225c6204f01309ac8192"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/cases-final.json",
+      "sha256": "573a7fd43818a88d456b0afd54a09b7c3c3a8dec50c59c22a02984229d65a9ce"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/cases-settings.json",
+      "sha256": "dee05a15bd41d924b02de89409b7b289e7f635462f06472331c8916154587a12"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/cases.json",
+      "sha256": "581ec17eb5be12846b3a1342308c91dbec6e88ee846fd7833ca19b69a4c85273"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/node-linux",
+      "sha256": "0f8949d1028f6d61506b2d5bc57e7e6fe893d7b1997509b7847294fc9c616584"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/prepare.mjs",
+      "sha256": "ddddc9e41990217f524613b9b67839e02c08c4ed67fbc8b6fe9bccf2307f8282"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/profile-settings.json",
+      "sha256": "17f257a4be4e68fb448d0878a131fda4b03731797cd739e7686fb3dd8093b354"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/profile.json",
+      "sha256": "da2029189104d881cd26aba8039432924b8fb8546cfbce19a3dc73ec4a80f543"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/register-settings.json",
+      "sha256": "b3d19cff57220d4be7113bc40952d7df847fe3b7fd5c53a02dece9c1ab0909a0"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/register.json",
+      "sha256": "b337ab60f35aaff823d98bd0b91c953e37d8d154d9530f38c6347bbdcc8290a5"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/report-argv0.json",
+      "sha256": "3f4286d2dd21a202937095d35253b4167e20a2d4742cb346353b4be4a1991e9a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/report-final.json",
+      "sha256": "da8d721a4e06d950b4d591a006e029f71e825d4481311c544d20cac56bf36e1d"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/report-settings.json",
+      "sha256": "b796036e46c23b824fcfcf3c0e61334c23fec524224bbe684df9319a5d0c8cf5"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/report.json",
+      "sha256": "9783cf3c0a010be3c6effdc8c3e95d847a211665edd5880ca80eafdb4836b785"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9001-ssconvert-resize.pl.stderr",
+      "sha256": "d8c46560395ba0a99ed6a9789b4e46f065dfffe5c7cf1f2933c7d71ea70b3b37"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9001-ssconvert-resize.pl.stdout",
+      "sha256": "a8d5c0a912cb4b051ce904c37125dc50d1170264551ade4526054fe6684f035e"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9005-ssconvert-merge.pl.stderr",
+      "sha256": "ebc9088733330cfaddae6db1b5fc378b3c95617a1b491f85e97d476f39e9a2b0"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9005-ssconvert-merge.pl.stdout",
+      "sha256": "5c0e14b94bea305cb4491c2e560deb8186b8d3f17e5d0c7872f26ce628dabe2a"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9006-ssconvert-split.pl.stderr",
+      "sha256": "386c195a80dffb968acb3028dca1509293bc4f5a1459a8aa3bc03f09642d25ce"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9006-ssconvert-split.pl.stdout",
+      "sha256": "72cc3e36ee1df6ebfa30c959d7b71d2ac88a3ea47648e275edf12e5ff2856ec1"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9007-ssconvert-sheet.pl.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/t9007-ssconvert-sheet.pl.stdout",
+      "sha256": "1f2a790b7113cd07576533d603e167a4cc81a640889c668004c9fbf86b8e5679"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/upstream-resize.gnumeric",
+      "sha256": "3e5ffd4a2021ca5bdc6e85068a9f320090da2f36fd7adbf6f3368228d830096b"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/upstream-resize.stderr",
+      "sha256": "03a05f555d518696a057661ead6a7673345943c5697c8b162c41ba735772b652"
+    },
+    {
+      "path": "out/ssconvert-canonical-current/upstream-resize.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "removedTemporaryLogs": [
+    {
+      "path": "out/ssconvert-canonical-current/unit-final.log",
+      "sha256": "6a5ce59057d9b1455924f61531554719669b6da6defaa6fa1163b6f602346f97",
+      "retained": false
+    },
+    {
+      "path": "out/ssconvert-canonical-current/lint-final.log",
+      "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5",
+      "retained": false
+    }
+  ],
+  "delivery": {
+    "localCommits": [],
+    "pushed": false,
+    "remoteMainVerified": false,
+    "released": false,
+    "readmeChanges": false,
+    "integrationExportChanges": false
+  },
+  "investigatedFailures": [
+    {
+      "domain": "initial native CLI generation",
+      "report": "out/ssconvert-canonical-current/report.json",
+      "mismatches": 10,
+      "resolution": "Absolute executable path became argv0 in native help/diagnostics. Added and tested explicit argv0 byte capture/transmission; recaptured under ssconvert, retaining original evidence."
+    },
+    {
+      "domain": "argv0-qualified generation without settings schemas",
+      "report": "out/ssconvert-canonical-current/report-argv0.json",
+      "mismatches": 1,
+      "resolution": "Double-dash conversion initialized GSettings without installed schema search path. Qualified new immutable settings profile with schema hashes and explicit backend/path. Captures preserve warnings; no normalization."
+    },
+    {
+      "domain": "first upstream resize research attempt",
+      "exitCode": 255,
+      "resolution": "Configuration critical diagnostics triggered upstream harness failure. Direct native resize returned 0 but emitted those diagnostics. Explicit schema/backend qualification removed configuration defect; upstream full resize case then passed."
+    },
+    {
+      "domain": "red regressions",
+      "expectedFailingRuns": true,
+      "resolution": "Each validated gate/transmission defect repaired before final fresh workspace checks."
+    }
+  ]
+}

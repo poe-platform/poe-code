@@ -1,0 +1,646 @@
+{
+  "seed": 6192908,
+  "comparison": "held native bits from v2; all other native fields previously verified equal baseline",
+  "results": [
+    {
+      "mask": 16,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 17,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 18,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 19,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 20,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 21,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 22,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 23,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 24,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 25,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 26,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 27,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 28,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 29,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 30,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 31,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 48,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 49,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 50,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 51,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 52,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 53,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 54,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 55,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 56,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 57,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 58,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 59,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 60,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 61,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 62,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 63,
+      "mismatches": 0,
+      "residual": 0.12283423768878389,
+      "failures": []
+    },
+    {
+      "mask": 0,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 1,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 2,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 3,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 4,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 5,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 6,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 7,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 8,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 9,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 10,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 11,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 12,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 13,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 14,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 15,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 32,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 33,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 34,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 35,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 36,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 37,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 38,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 39,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 40,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 41,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 42,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 43,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 44,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 45,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 46,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    },
+    {
+      "mask": 47,
+      "mismatches": 1,
+      "residual": 0.12283423768878388,
+      "failures": [
+        {
+          "x": 137330.13360794372,
+          "cosine": true,
+          "value": 0.12283423768878388,
+          "bits": "3fbf721089b3d1a0",
+          "expected": "3fbf721089b3d1a1"
+        }
+      ]
+    }
+  ]
+}

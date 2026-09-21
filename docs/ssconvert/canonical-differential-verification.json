@@ -1,0 +1,248 @@
+{
+  "kind": "ssconvert-canonical-differential-verification",
+  "version": 1,
+  "date": "2026-09-21",
+  "task": "canonical-differential-corpus",
+  "taskComplete": false,
+  "status": "gate-primitives-verified-complete-executable-corpus-not-delivered",
+  "source": {
+    "version": "1.12.61",
+    "url": "https://download.gnome.org/sources/gnumeric/1.12/gnumeric-1.12.61.tar.xz",
+    "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+  },
+  "profile": {
+    "path": "docs/ssconvert/canonical-reference-profile.json",
+    "sha256": "caa4dfc0731e2a019234f2ae1a7e474a6d8658299d24afea3f8ca011a0fffb6f"
+  },
+  "originalUnitCoverage": {
+    "files": 3,
+    "tests": 16,
+    "filesystem": "memfs",
+    "nativeProcesses": 0,
+    "diskFixtureWrites": 0,
+    "llmCalls": 0,
+    "verified": [
+      "missing/foreign/duplicate evidence rejection",
+      "capture byte/status/namespace/order comparisons",
+      "mandatory hash receipts and requirement accounting",
+      "original CLI/SDK byte and namespace parity",
+      "parser error before reads with exact diagnostics",
+      "cancellation before dispatch",
+      "native capture mocking: input hashes, malformed bytes/env, symlink escape, hardlink identities, snapshot failure, partial termination output",
+      "report self/hardlink comparisons, warning retention and unmeasured procedure accounting"
+    ]
+  },
+  "checks": [
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert --no-cache",
+      "exitCode": 0,
+      "scope": "declared workspace build dependency closure; 4 builds"
+    },
+    {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "cache": "fresh direct maintained workspace execution",
+      "files": 315,
+      "tests": 6264
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "warnings": 0,
+      "scope": "maintained ESLint and implementation/test/consumer typechecks"
+    },
+    {
+      "command": "npx vitest run packages/ssconvert/src/canonical",
+      "exitCode": 0,
+      "files": 3,
+      "tests": 16
+    },
+    {
+      "command": "node --check packages/ssconvert/tools/{capture-native,register,report}.mjs (each invoked separately)",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "node packages/ssconvert/tools/capture-native.mjs out/ssconvert-canonical-20260921/spec.json out/ssconvert-canonical-20260921/native-final.json",
+      "exitCode": 2,
+      "state": "blocked",
+      "reason": "Uncaptured dependency/plugin/locale profile"
+    },
+    {
+      "command": "node packages/ssconvert/tools/report.mjs out/ssconvert-canonical-20260921/cases-final.json out/ssconvert-canonical-20260921/report-verified.json",
+      "exitCode": 1,
+      "expected": "incomplete register fails closed"
+    },
+    {
+      "command": "perl -Itest test/t9001-ssconvert-resize.pl",
+      "cwd": "out/ssconvert-statistics-oracle/gnumeric-1.12.61",
+      "exitCode": 1,
+      "state": "blocked-research",
+      "reason": "Retained native Linux binary cannot execute on Darwin; upstream assets stayed under out"
+    }
+  ],
+  "differentialCoverage": {
+    "denominator": 2364,
+    "passed": 0,
+    "missing": 2363,
+    "blocked": 1,
+    "mismatched": 0,
+    "categories": {
+      "option": 320,
+      "short-option": 70,
+      "parser": 11,
+      "action-precedence": 72,
+      "help": 16,
+      "group-alias": 69,
+      "file_opener": 20,
+      "file_saver": 27,
+      "solver": 3,
+      "function-manifest": 651,
+      "function-descriptor": 653,
+      "property": 192,
+      "analysis": 31,
+      "workbook-profile": 6,
+      "print-chart": 19,
+      "upstream-research": 204
+    },
+    "caveat": "Denominator inventories obligations, not complete executable cases or an exhaustive state space. No native differential comparisons completed; zero measured mismatches does not establish parity."
+  },
+  "independentStress": {
+    "agent": "/root/canonical_stress",
+    "tests": 8,
+    "repairs": [
+      "unknown evidence state acceptance",
+      "unbound positive evidence",
+      "missing capture-field acceptance",
+      "input namespace hash omission",
+      "symlink output escape",
+      "byte/environment coercion",
+      "hardlink namespace identity",
+      "blocked snapshot failures",
+      "lost partial process output"
+    ],
+    "rootValidatedReportRepairs": [
+      "self-comparison and hardlink aliases",
+      "raw equality incorrectly certifying round-trip/interoperability"
+    ]
+  },
+  "remaining": [
+    {
+      "state": "blocked",
+      "domain": "Native command/workbook oracle profile",
+      "reason": "Docker unavailable; retained binary is Linux ARM64 on Darwin. Dependencies/plugins/locale/print/loader/solver external profiles not requalified."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Executable original cases for every register obligation",
+      "reason": "Register entries lack concrete canonical inputs/expected outputs; parser matrix is finite research inventory, not exhaustive form/state coverage."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Full importer/exporter/functions/properties/workbook/print/chart semantics",
+      "reason": "No complete native differential corpus or complete semantic snapshot producers executed. Manifest/descriptor entries are declarations, not function passes."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Reproducible round-trip/interoperability recipe execution",
+      "reason": "Reporter deliberately does not certify these gates from raw equal JSON. Qualified action/input/output-stage evidence and complete snapshot producers still required."
+    },
+    {
+      "state": "blocked",
+      "domain": "Arbitrary invalid-UTF8 native argv/env",
+      "reason": "Node native process API accepts strings. Byte coercion is rejected; invalid UTF8 argv blocks instead of claiming equivalence."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Upstream research closure",
+      "reason": "Resize research attempted and blocked. Remaining upstream families not run; no licensed code/assets copied into original unit fixtures."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Complete nondeterministic-field policy",
+      "reason": "Zero approved normalizations. Raw byte differences, warnings, caches, formulas, styles, ordering and namespace effects retained."
+    },
+    {
+      "state": "unmeasured",
+      "domain": "Prior recorded product mismatch requalification",
+      "reason": "Existing source/profile/formats/numeric/optional-runtime records preserved. They are not newly verified or superseded by these gates."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/ssconvert/canonical-differential-register.json",
+      "sha256": "7f75352d6b2b4324f978382524f785e0b689dce1a713eb629bb57b31e9f55aca"
+    },
+    {
+      "path": "docs/ssconvert/canonical-reference-profile.json",
+      "sha256": "caa4dfc0731e2a019234f2ae1a7e474a6d8658299d24afea3f8ca011a0fffb6f"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/gates.ts",
+      "sha256": "c9102f268197cccf48c7fc07483eac7e11aaf969b35b90a6dd052b9001cf1410"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/gates.test.ts",
+      "sha256": "7b68d15f77ba85defb08f4b1615df8e029512e91b4d493e6317476ec7872eadd"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/independent.test.ts",
+      "sha256": "57bb95064a1e361516f9a5e9eab3a2a80d8c88ff3341e6e236c93da013c2b440"
+    },
+    {
+      "path": "packages/ssconvert/src/canonical/report.test.ts",
+      "sha256": "9f55bcbef309ab9bb85bec0e3da0ac1f280041092e60e2cf51e6266315a12794"
+    },
+    {
+      "path": "packages/ssconvert/tools/capture-native.mjs",
+      "sha256": "8d85bffdf2221384f36b2f651c5228f4bed5b984ff5927d94a3b2b9e113907e7"
+    },
+    {
+      "path": "packages/ssconvert/tools/register.mjs",
+      "sha256": "b374837a0c05bd1dd693ddb6900065e59d5244d68f0b691ab45f83a45de61ec6"
+    },
+    {
+      "path": "packages/ssconvert/tools/report.mjs",
+      "sha256": "dddd692100d26de2a687d5478b81c073c2cdab29c3966ce6c150cd7381ebf0f6"
+    },
+    {
+      "path": "out/ssconvert-canonical-20260921/spec.json",
+      "sha256": "ddfa6bd263160a6e7447f16705c62544ad9d20e90c6599c896791828139da3df"
+    },
+    {
+      "path": "out/ssconvert-canonical-20260921/native-final.json",
+      "sha256": "11c9127402dae7a63f56cd38294545caed16332de750af69a959eebc17db8ccf"
+    },
+    {
+      "path": "out/ssconvert-canonical-20260921/cases-final.json",
+      "sha256": "cb6e36669282e526ed2913c654ed6cfd3813b65bb596f784bb417df022cbbdd9"
+    },
+    {
+      "path": "out/ssconvert-canonical-20260921/report-verified.json",
+      "sha256": "330354a1035ee3875fdf42945d233b407bf8727a48e6924d20fb26c86feb3d16"
+    },
+    {
+      "path": "out/ssconvert-canonical-upstream-research.log",
+      "sha256": "fbf6187ec317fe3c85708ab17e66bb1354f340890f5a1e9d20e1bd40971d8a5a"
+    }
+  ],
+  "plan": "docs/plans/ssconvert-canonical-differential-corpus-qa.md",
+  "integration": {
+    "productExportChanges": false,
+    "safeBashRuntimeChanges": false,
+    "budgetChanges": false,
+    "hostCapabilityChanges": false,
+    "realmReplayChanges": false,
+    "readmeChanges": false
+  },
+  "delivery": {
+    "localCommits": [],
+    "pushed": false,
+    "remoteMainVerified": false,
+    "published": false
+  },
+  "temporaryLogs": "Local build/unit/lint/TDD logs removed after recording status; requested QA captures and upstream research evidence retained under out"
+}

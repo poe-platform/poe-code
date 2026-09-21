@@ -1,0 +1,1122 @@
+{
+  "note": "Original small QA fixtures; native output hashes cover captured decoded XML text, not binary archives. Primary source stays in out.",
+  "cases": [
+    {
+      "name": "alias",
+      "mode": "auto",
+      "inputSha256": "059a3af47a5d814976222388ef00fca59e4c5d36389b76d975428db67f8b4993",
+      "inputBase64": "PHNzOldvcmtib29rIHhtbG5zOnNzPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6cz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6c3ByZWFkc2hlZXQiPjxzOldvcmtzaGVldCBzczpOYW1lPSJTIj48czpUYWJsZT48czpSb3c+PHM6Q2VsbD48czpEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvczpEYXRhPjwvczpDZWxsPjwvczpSb3c+PC9zOlRhYmxlPjwvczpXb3Jrc2hlZXQ+PC9zczpXb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/alias.xml",
+        "/out/spreadsheetml/alias-auto.gnumeric.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68115): WARNING **: 19:14:49.243: Damn.  Someone just declared the same namespace 'urn:schemas-microsoft-com:office:spreadsheet' with a different prefix 's:'\nUnexpected element 's:Worksheet' in state : \n\tWorkbook\nLoading file:///out/spreadsheetml/alias.xml failed\n",
+      "nativeOutputSha256": null
+    },
+    {
+      "name": "alias",
+      "mode": "forced",
+      "inputSha256": "059a3af47a5d814976222388ef00fca59e4c5d36389b76d975428db67f8b4993",
+      "inputBase64": "PHNzOldvcmtib29rIHhtbG5zOnNzPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6cz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6c3ByZWFkc2hlZXQiPjxzOldvcmtzaGVldCBzczpOYW1lPSJTIj48czpUYWJsZT48czpSb3c+PHM6Q2VsbD48czpEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvczpEYXRhPjwvczpDZWxsPjwvczpSb3c+PC9zOlRhYmxlPjwvczpXb3Jrc2hlZXQ+PC9zczpXb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/alias.xml",
+        "/out/spreadsheetml/alias-forced.gnumeric.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68117): WARNING **: 19:14:49.291: Damn.  Someone just declared the same namespace 'urn:schemas-microsoft-com:office:spreadsheet' with a different prefix 's:'\nUnexpected element 's:Worksheet' in state : \n\tWorkbook\nLoading file:///out/spreadsheetml/alias.xml failed\n",
+      "nativeOutputSha256": null
+    },
+    {
+      "name": "alternate",
+      "mode": "auto",
+      "inputSha256": "959366caf922da8ef47c9b710f10260ffd39ea755235ffaee1e2fba0ab3d1466",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL29mZmljZS9leGNlbC8yMDAzL3htbCIgeG1sbnM6c3M9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vb2ZmaWNlL2V4Y2VsLzIwMDMveG1sIiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/alternate.xml",
+        "/out/spreadsheetml/alternate-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "d54cb9b7f62694c29e8df86138a03131644cad2c1c88e6bc1ef5aade03145e09"
+    },
+    {
+      "name": "alternate",
+      "mode": "forced",
+      "inputSha256": "959366caf922da8ef47c9b710f10260ffd39ea755235ffaee1e2fba0ab3d1466",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL29mZmljZS9leGNlbC8yMDAzL3htbCIgeG1sbnM6c3M9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vb2ZmaWNlL2V4Y2VsLzIwMDMveG1sIiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/alternate.xml",
+        "/out/spreadsheetml/alternate-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "4a401b59920ed5fd19267e17d76a71d2efa3c6a860e70577b3281f76b650a3c4"
+    },
+    {
+      "name": "axes",
+      "mode": "auto",
+      "inputSha256": "2f9d0a71f2194a8a2d77d4fb1296601b650a659dda8a29298ee0373985a1e7c2",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Q29sdW1uIHNzOkluZGV4PSIyIiBzczpTcGFuPSIyIiBzczpXaWR0aD0iNDIiIHNzOkhpZGRlbj0iMSIvPjxSb3cgc3M6SW5kZXg9IjQiIHNzOlNwYW49IjMiIHNzOkhlaWdodD0iMjIiIHNzOkhpZGRlbj0iMSI+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj43PC9EYXRhPjwvQ2VsbD48L1Jvdz48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+ODwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/axes.xml",
+        "/out/spreadsheetml/axes-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "6ab34da9c4c02db962c001a1e3a83385e1a4e9dd79373163b40ca18118b0ebff"
+    },
+    {
+      "name": "axes",
+      "mode": "forced",
+      "inputSha256": "2f9d0a71f2194a8a2d77d4fb1296601b650a659dda8a29298ee0373985a1e7c2",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Q29sdW1uIHNzOkluZGV4PSIyIiBzczpTcGFuPSIyIiBzczpXaWR0aD0iNDIiIHNzOkhpZGRlbj0iMSIvPjxSb3cgc3M6SW5kZXg9IjQiIHNzOlNwYW49IjMiIHNzOkhlaWdodD0iMjIiIHNzOkhpZGRlbj0iMSI+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj43PC9EYXRhPjwvQ2VsbD48L1Jvdz48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+ODwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/axes.xml",
+        "/out/spreadsheetml/axes-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "6ab34da9c4c02db962c001a1e3a83385e1a4e9dd79373163b40ca18118b0ebff"
+    },
+    {
+      "name": "booleans",
+      "mode": "auto",
+      "inputSha256": "baa32ad53f1f15a94affa12681b02e4afecbbb1c725f0f316703abe7c425a3ff",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPjA8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPjE8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPlRSVUU8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPkZBTFNFPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJCb29sZWFuIj50cnVlPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJCb29sZWFuIj5mYWxzZTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iQm9vbGVhbiI+MjwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iQm9vbGVhbiI+PC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/booleans.xml",
+        "/out/spreadsheetml/booleans-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!A1 : Invalid content of ss:data element, received '0'\n\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!B1 : Invalid content of ss:data element, received '1'\n\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!G1 : Invalid content of ss:data element, received '2'\n\n** (ssconvert:68127): WARNING **: 19:14:49.529: S!H1 : Invalid content of ss:data element, received ''\n",
+      "nativeOutputSha256": "23ae1c7f46cc4b726649625b46c5476f3349286df20cf947230a2d02978d6373"
+    },
+    {
+      "name": "booleans",
+      "mode": "forced",
+      "inputSha256": "baa32ad53f1f15a94affa12681b02e4afecbbb1c725f0f316703abe7c425a3ff",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPjA8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPjE8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPlRSVUU8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvb2xlYW4iPkZBTFNFPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJCb29sZWFuIj50cnVlPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJCb29sZWFuIj5mYWxzZTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iQm9vbGVhbiI+MjwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iQm9vbGVhbiI+PC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/booleans.xml",
+        "/out/spreadsheetml/booleans-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!A1 : Invalid content of ss:data element, received '0'\n\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!B1 : Invalid content of ss:data element, received '1'\n\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!G1 : Invalid content of ss:data element, received '2'\n\n** (ssconvert:68129): WARNING **: 19:14:49.575: S!H1 : Invalid content of ss:data element, received ''\n",
+      "nativeOutputSha256": "23ae1c7f46cc4b726649625b46c5476f3349286df20cf947230a2d02978d6373"
+    },
+    {
+      "name": "dates",
+      "mode": "auto",
+      "inputSha256": "a57d00e02ed920675edbe65d797b7186a579f96e3fe2ff3415c9d59def5efff4",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IkRhdGVUaW1lIj4xOTAwLTAxLTAxVDAwOjAwOjAwPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJEYXRlVGltZSI+MTkwMC0wMi0yOFQxMjowMDowMDwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iRGF0ZVRpbWUiPjE5MDAtMDMtMDFUMDA6MDA6MDA8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkRhdGVUaW1lIj4yMDAwLTAyLTI5VDA2OjMwOjQ1LjU8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkRhdGVUaW1lIj4yMDAxLTAyLTI5VDAwOjAwOjAwPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJEYXRlVGltZSI+MjAwMC0wMS0wMTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iRGF0ZVRpbWUiPjE5MDQtMDEtMDFUMDA6MDA6MDBaPC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/dates.xml",
+        "/out/spreadsheetml/dates-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n(ssconvert:68131): GLib-CRITICAL **: 19:14:49.621: g_date_set_dmy: assertion 'g_date_valid_dmy (day, m, y)' failed\n",
+      "nativeOutputSha256": "e2e8096837702f378ab3d407cba5d2ae1b8816d2bc8a22354264309b7e90da90"
+    },
+    {
+      "name": "dates",
+      "mode": "forced",
+      "inputSha256": "a57d00e02ed920675edbe65d797b7186a579f96e3fe2ff3415c9d59def5efff4",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IkRhdGVUaW1lIj4xOTAwLTAxLTAxVDAwOjAwOjAwPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJEYXRlVGltZSI+MTkwMC0wMi0yOFQxMjowMDowMDwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iRGF0ZVRpbWUiPjE5MDAtMDMtMDFUMDA6MDA6MDA8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkRhdGVUaW1lIj4yMDAwLTAyLTI5VDA2OjMwOjQ1LjU8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkRhdGVUaW1lIj4yMDAxLTAyLTI5VDAwOjAwOjAwPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJEYXRlVGltZSI+MjAwMC0wMS0wMTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iRGF0ZVRpbWUiPjE5MDQtMDEtMDFUMDA6MDA6MDBaPC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/dates.xml",
+        "/out/spreadsheetml/dates-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n(ssconvert:68133): GLib-CRITICAL **: 19:14:49.665: g_date_set_dmy: assertion 'g_date_valid_dmy (day, m, y)' failed\n",
+      "nativeOutputSha256": "e2e8096837702f378ab3d407cba5d2ae1b8816d2bc8a22354264309b7e90da90"
+    },
+    {
+      "name": "duplicate",
+      "mode": "auto",
+      "inputSha256": "73a656f29440998ecb9f38a3cff454f8ebe22bbf7005804585d10f46634ed6ab",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MjwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/duplicate.xml",
+        "/out/spreadsheetml/duplicate-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "737d625e37cfe0e7a6b9ad1ccda162afc4d9f0b8887c8ced516e837566d9c080"
+    },
+    {
+      "name": "duplicate",
+      "mode": "forced",
+      "inputSha256": "73a656f29440998ecb9f38a3cff454f8ebe22bbf7005804585d10f46634ed6ab",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MjwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/duplicate.xml",
+        "/out/spreadsheetml/duplicate-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "737d625e37cfe0e7a6b9ad1ccda162afc4d9f0b8887c8ced516e837566d9c080"
+    },
+    {
+      "name": "empty",
+      "mode": "auto",
+      "inputSha256": "226fb34226c63e03933b513792b62eea24d791cac54462401592e19efd5ba1af",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/empty.xml",
+        "/out/spreadsheetml/empty-auto.gnumeric.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Loading file:///out/spreadsheetml/empty.xml failed\n",
+      "nativeOutputSha256": null
+    },
+    {
+      "name": "empty",
+      "mode": "forced",
+      "inputSha256": "226fb34226c63e03933b513792b62eea24d791cac54462401592e19efd5ba1af",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/empty.xml",
+        "/out/spreadsheetml/empty-forced.gnumeric.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Loading file:///out/spreadsheetml/empty.xml failed\n",
+      "nativeOutputSha256": null
+    },
+    {
+      "name": "errors",
+      "mode": "auto",
+      "inputSha256": "fde840c60ecd5d9d261b24ca1b516bdc80a9ceee7fd7c611bbd727c75ad7824f",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IkVycm9yIj4jRElWLzAhPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJFcnJvciI+I04vQTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iRXJyb3IiPiNCT0dVUyE8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkVycm9yIj48L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/errors.xml",
+        "/out/spreadsheetml/errors-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "266fff9cdeb11e18d193c41c8004a44b3d7bc4c6301450691ac0a8cc739c082a"
+    },
+    {
+      "name": "errors",
+      "mode": "forced",
+      "inputSha256": "fde840c60ecd5d9d261b24ca1b516bdc80a9ceee7fd7c611bbd727c75ad7824f",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IkVycm9yIj4jRElWLzAhPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJFcnJvciI+I04vQTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iRXJyb3IiPiNCT0dVUyE8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9IkVycm9yIj48L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/errors.xml",
+        "/out/spreadsheetml/errors-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "266fff9cdeb11e18d193c41c8004a44b3d7bc4c6301450691ac0a8cc739c082a"
+    },
+    {
+      "name": "formula-empty",
+      "mode": "auto",
+      "inputSha256": "bc43465e08b5f3197049bfa4f8c9add16a3a36937100042ebc275069c30f84b4",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOkZvcm11bGE9Ij0xKzIiLz48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjg8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/formula-empty.xml",
+        "/out/spreadsheetml/formula-empty-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "f90f60c5190aefb3feebd0748dcab4fff7814edda7d1928a2b76c419e068845e"
+    },
+    {
+      "name": "formula-empty",
+      "mode": "forced",
+      "inputSha256": "bc43465e08b5f3197049bfa4f8c9add16a3a36937100042ebc275069c30f84b4",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOkZvcm11bGE9Ij0xKzIiLz48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjg8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/formula-empty.xml",
+        "/out/spreadsheetml/formula-empty-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "da2b2af85282066df1215ccfefedcfc1994137b09892a46a6eeafb769dfce5bb"
+    },
+    {
+      "name": "formula-index",
+      "mode": "auto",
+      "inputSha256": "c6441558f2193c2773ad05af9a417e4d4dbb0d41f53f3d337a591efc04017e06",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93IHNzOkluZGV4PSIzIj48Q2VsbCBzczpJbmRleD0iNCIgc3M6Rm9ybXVsYT0iPVJDWy0xXSsxIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjk8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/formula-index.xml",
+        "/out/spreadsheetml/formula-index-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "b1e14cfa96d0603521f720797b00caaf397275b7a68daff75bd03a9410841d1f"
+    },
+    {
+      "name": "formula-index",
+      "mode": "forced",
+      "inputSha256": "c6441558f2193c2773ad05af9a417e4d4dbb0d41f53f3d337a591efc04017e06",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93IHNzOkluZGV4PSIzIj48Q2VsbCBzczpJbmRleD0iNCIgc3M6Rm9ybXVsYT0iPVJDWy0xXSsxIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjk8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/formula-index.xml",
+        "/out/spreadsheetml/formula-index-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "b1e14cfa96d0603521f720797b00caaf397275b7a68daff75bd03a9410841d1f"
+    },
+    {
+      "name": "ignored",
+      "mode": "auto",
+      "inputSha256": "92716c76833df9a476495565193d47ea961696ca850e690025ad27d91432d69e",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOkhSZWY9Imh0dHBzOi8vZXhhbXBsZS5jb20iPjxEYXRhIHNzOlR5cGU9IlN0cmluZyI+bGluazwvRGF0YT48Q29tbWVudCBzczpBdXRob3I9Ik1lIj48RGF0YT5ub3RlPC9EYXRhPjwvQ29tbWVudD48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48eDpFeGNlbFdvcmtib29rPjx4OkRhdGUxOTA0Lz48eDpXaW5kb3dIZWlnaHQ+NzAwPC94OldpbmRvd0hlaWdodD48L3g6RXhjZWxXb3JrYm9vaz48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/ignored.xml",
+        "/out/spreadsheetml/ignored-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Unexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\nUnexpected element 'x:Date1904' in state : \n\tWorkbook -> ExcelWorkbook\n",
+      "nativeOutputSha256": "49bc18560a16eb27d2adfd5907bc885d21f93d1bea8d6b7b621636ecb9eaf85c"
+    },
+    {
+      "name": "ignored",
+      "mode": "forced",
+      "inputSha256": "92716c76833df9a476495565193d47ea961696ca850e690025ad27d91432d69e",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOkhSZWY9Imh0dHBzOi8vZXhhbXBsZS5jb20iPjxEYXRhIHNzOlR5cGU9IlN0cmluZyI+bGluazwvRGF0YT48Q29tbWVudCBzczpBdXRob3I9Ik1lIj48RGF0YT5ub3RlPC9EYXRhPjwvQ29tbWVudD48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48eDpFeGNlbFdvcmtib29rPjx4OkRhdGUxOTA0Lz48eDpXaW5kb3dIZWlnaHQ+NzAwPC94OldpbmRvd0hlaWdodD48L3g6RXhjZWxXb3JrYm9vaz48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/ignored.xml",
+        "/out/spreadsheetml/ignored-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Unexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\nUnexpected element 'x:Date1904' in state : \n\tWorkbook -> ExcelWorkbook\n",
+      "nativeOutputSha256": "49bc18560a16eb27d2adfd5907bc885d21f93d1bea8d6b7b621636ecb9eaf85c"
+    },
+    {
+      "name": "malformed",
+      "mode": "auto",
+      "inputSha256": "1bcd7c5e0669d8908290b2afab7fc70b2b4b509327228b409b067a4c35c289e0",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/malformed.xml",
+        "/out/spreadsheetml/malformed-auto.gnumeric.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "\n(ssconvert:68159): XML-CRITICAL **: 19:14:50.260: Premature end of data in tag Workbook line 1\n\n\n** (ssconvert:68159): WARNING **: 19:14:50.260: Document likely damaged.\nE XML document not well formed!\n",
+      "nativeOutputSha256": null
+    },
+    {
+      "name": "malformed",
+      "mode": "forced",
+      "inputSha256": "1bcd7c5e0669d8908290b2afab7fc70b2b4b509327228b409b067a4c35c289e0",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/malformed.xml",
+        "/out/spreadsheetml/malformed-forced.gnumeric.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "\n(ssconvert:68161): XML-CRITICAL **: 19:14:50.304: Premature end of data in tag Workbook line 1\n\n\n** (ssconvert:68161): WARNING **: 19:14:50.304: Document likely damaged.\nE XML document not well formed!\n",
+      "nativeOutputSha256": null
+    },
+    {
+      "name": "merges",
+      "mode": "auto",
+      "inputSha256": "285a13241344cf2f7e3985830db04f3316ead4a90f91dd4d780afbeb4091af0e",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOk1lcmdlQWNyb3NzPSIxIj48RGF0YSBzczpUeXBlPSJTdHJpbmciPnVuc3R5bGVkPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjc8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PFN0eWxlcz48U3R5bGUgc3M6SUQ9InMiLz48L1N0eWxlcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93IHNzOkluZGV4PSIzIj48Q2VsbCBzczpNZXJnZUFjcm9zcz0iMSIgc3M6TWVyZ2VEb3duPSIxIiBzczpTdHlsZUlEPSJzIj48RGF0YSBzczpUeXBlPSJTdHJpbmciPnN0eWxlZDwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/merges.xml",
+        "/out/spreadsheetml/merges-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "02ebde658da60b2e55946b05da95c9f04aa75cbb4c99b4dea81f5749fe2e7771"
+    },
+    {
+      "name": "merges",
+      "mode": "forced",
+      "inputSha256": "285a13241344cf2f7e3985830db04f3316ead4a90f91dd4d780afbeb4091af0e",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOk1lcmdlQWNyb3NzPSIxIj48RGF0YSBzczpUeXBlPSJTdHJpbmciPnVuc3R5bGVkPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjc8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PFN0eWxlcz48U3R5bGUgc3M6SUQ9InMiLz48L1N0eWxlcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93IHNzOkluZGV4PSIzIj48Q2VsbCBzczpNZXJnZUFjcm9zcz0iMSIgc3M6TWVyZ2VEb3duPSIxIiBzczpTdHlsZUlEPSJzIj48RGF0YSBzczpUeXBlPSJTdHJpbmciPnN0eWxlZDwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/merges.xml",
+        "/out/spreadsheetml/merges-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "02ebde658da60b2e55946b05da95c9f04aa75cbb4c99b4dea81f5749fe2e7771"
+    },
+    {
+      "name": "names",
+      "mode": "auto",
+      "inputSha256": "8cf71b4c17315da18eec84268f172259eec24bcd290943eec47eb26ea77f14de",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48TmFtZXM+PE5hbWVkUmFuZ2Ugc3M6TmFtZT0iR2xvYmFsIiBzczpSZWZlcnNUbz0iPVMhUjFDMSIvPjwvTmFtZXM+PFdvcmtzaGVldCBzczpOYW1lPSJTIj48VGFibGU+PFJvdz48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjE8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PFdvcmtzaGVldCBzczpOYW1lPSJPdGhlciI+PE5hbWVzPjxOYW1lZFJhbmdlIHNzOk5hbWU9IkxvY2FsIiBzczpSZWZlcnNUbz0iPVMhUjFDMSIvPjwvTmFtZXM+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/names.xml",
+        "/out/spreadsheetml/names-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68167): WARNING **: 19:14:50.435: 'S!R1C1' Unknown sheet 'S'\n\n** (ssconvert:68167): WARNING **: 19:14:50.435: Global = =S!R1C1\n",
+      "nativeOutputSha256": "aea36c774a789979dace49222548042d632c08b3c4461f39755642a548cd5e34"
+    },
+    {
+      "name": "names",
+      "mode": "forced",
+      "inputSha256": "8cf71b4c17315da18eec84268f172259eec24bcd290943eec47eb26ea77f14de",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48TmFtZXM+PE5hbWVkUmFuZ2Ugc3M6TmFtZT0iR2xvYmFsIiBzczpSZWZlcnNUbz0iPVMhUjFDMSIvPjwvTmFtZXM+PFdvcmtzaGVldCBzczpOYW1lPSJTIj48VGFibGU+PFJvdz48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjE8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PFdvcmtzaGVldCBzczpOYW1lPSJPdGhlciI+PE5hbWVzPjxOYW1lZFJhbmdlIHNzOk5hbWU9IkxvY2FsIiBzczpSZWZlcnNUbz0iPVMhUjFDMSIvPjwvTmFtZXM+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/names.xml",
+        "/out/spreadsheetml/names-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68169): WARNING **: 19:14:50.476: 'S!R1C1' Unknown sheet 'S'\n\n** (ssconvert:68169): WARNING **: 19:14:50.476: Global = =S!R1C1\n",
+      "nativeOutputSha256": "aea36c774a789979dace49222548042d632c08b3c4461f39755642a548cd5e34"
+    },
+    {
+      "name": "numbers",
+      "mode": "auto",
+      "inputSha256": "9a4e4acd4ccb00e95dce0a12b1b31f0de1dc37e7d583a06de3f55130e2f14a7a",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4xLjI1PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPi0yZTM8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyYmFkPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPmJhZDwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4gMTI8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTIgPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPk5hTjwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj5JTkY8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MHgxMDwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/numbers.xml",
+        "/out/spreadsheetml/numbers-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!E1 : Invalid content of ss:data element, expected number, received '12bad'\n\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!F1 : Invalid content of ss:data element, expected number, received 'bad'\n\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!H1 : Invalid content of ss:data element, expected number, received '12 '\n\n** (ssconvert:68171): WARNING **: 19:14:50.521: S!K1 : Invalid content of ss:data element, expected number, received '0x10'\n",
+      "nativeOutputSha256": "6e611eae126a34c1cd421596973173121648d79c3a08bb8daea9f3ae4f1dea47"
+    },
+    {
+      "name": "numbers",
+      "mode": "forced",
+      "inputSha256": "9a4e4acd4ccb00e95dce0a12b1b31f0de1dc37e7d583a06de3f55130e2f14a7a",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4xLjI1PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPi0yZTM8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyYmFkPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPmJhZDwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4gMTI8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTIgPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPk5hTjwvRGF0YT48L0NlbGw+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj5JTkY8L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MHgxMDwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/numbers.xml",
+        "/out/spreadsheetml/numbers-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!E1 : Invalid content of ss:data element, expected number, received '12bad'\n\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!F1 : Invalid content of ss:data element, expected number, received 'bad'\n\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!H1 : Invalid content of ss:data element, expected number, received '12 '\n\n** (ssconvert:68173): WARNING **: 19:14:50.561: S!K1 : Invalid content of ss:data element, expected number, received '0x10'\n",
+      "nativeOutputSha256": "6e611eae126a34c1cd421596973173121648d79c3a08bb8daea9f3ae4f1dea47"
+    },
+    {
+      "name": "print",
+      "mode": "auto",
+      "inputSha256": "a04648cf378fb4d5c289c308bcb2635e8ebd054e40c8c91d15a8af9de7157b30",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48eDpXb3Jrc2hlZXRPcHRpb25zPjx4OlBhZ2VTZXR1cD48eDpMYXlvdXQgeDpPcmllbnRhdGlvbj0iTGFuZHNjYXBlIi8+PHg6SGVhZGVyIHg6RGF0YT0iVGl0bGUiLz48L3g6UGFnZVNldHVwPjx4OlByaW50Pjx4OlBhcGVyU2l6ZUluZGV4Pjk8L3g6UGFwZXJTaXplSW5kZXg+PC94OlByaW50PjwveDpXb3Jrc2hlZXRPcHRpb25zPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/print.xml",
+        "/out/spreadsheetml/print-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "e1e5ef29724e7f6f988ee9722d4c38d115fddb2b411aa11b44219cd19bd226c5"
+    },
+    {
+      "name": "print",
+      "mode": "forced",
+      "inputSha256": "a04648cf378fb4d5c289c308bcb2635e8ebd054e40c8c91d15a8af9de7157b30",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48eDpXb3Jrc2hlZXRPcHRpb25zPjx4OlBhZ2VTZXR1cD48eDpMYXlvdXQgeDpPcmllbnRhdGlvbj0iTGFuZHNjYXBlIi8+PHg6SGVhZGVyIHg6RGF0YT0iVGl0bGUiLz48L3g6UGFnZVNldHVwPjx4OlByaW50Pjx4OlBhcGVyU2l6ZUluZGV4Pjk8L3g6UGFwZXJTaXplSW5kZXg+PC94OlByaW50PjwveDpXb3Jrc2hlZXRPcHRpb25zPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/print.xml",
+        "/out/spreadsheetml/print-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "e1e5ef29724e7f6f988ee9722d4c38d115fddb2b411aa11b44219cd19bd226c5"
+    },
+    {
+      "name": "properties",
+      "mode": "auto",
+      "inputSha256": "ffed55de91172a88c63f5c259faf221021646358ac7811ab7d21840def35709d",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48bzpEb2N1bWVudFByb3BlcnRpZXM+PG86QXV0aG9yPkZpcnN0PC9vOkF1dGhvcj48bzpMYXN0QXV0aG9yPkxhc3Q8L286TGFzdEF1dGhvcj48bzpUaXRsZT5UaXRsZTwvbzpUaXRsZT48bzpLZXl3b3Jkcz5vbmUgIHR3bzwvbzpLZXl3b3Jkcz48bzpDb21wYW55PkM8L286Q29tcGFueT48bzpDcmVhdGVkPjIwMDAtMDEtMDFUMDA6MDA6MDBaPC9vOkNyZWF0ZWQ+PC9vOkRvY3VtZW50UHJvcGVydGllcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/properties.xml",
+        "/out/spreadsheetml/properties-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "4fee3a0886682c9cad8b4816c257b395b1aa422857a1bd0c5164429913307214"
+    },
+    {
+      "name": "properties",
+      "mode": "forced",
+      "inputSha256": "ffed55de91172a88c63f5c259faf221021646358ac7811ab7d21840def35709d",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48bzpEb2N1bWVudFByb3BlcnRpZXM+PG86QXV0aG9yPkZpcnN0PC9vOkF1dGhvcj48bzpMYXN0QXV0aG9yPkxhc3Q8L286TGFzdEF1dGhvcj48bzpUaXRsZT5UaXRsZTwvbzpUaXRsZT48bzpLZXl3b3Jkcz5vbmUgIHR3bzwvbzpLZXl3b3Jkcz48bzpDb21wYW55PkM8L286Q29tcGFueT48bzpDcmVhdGVkPjIwMDAtMDEtMDFUMDA6MDA6MDBaPC9vOkNyZWF0ZWQ+PC9vOkRvY3VtZW50UHJvcGVydGllcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/properties.xml",
+        "/out/spreadsheetml/properties-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "4fee3a0886682c9cad8b4816c257b395b1aa422857a1bd0c5164429913307214"
+    },
+    {
+      "name": "rich",
+      "mode": "auto",
+      "inputSha256": "e2eecb783ee29f4d849c36ab52d0cedcd2d7f1d545049f5632dd31241bcb11eb",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IlN0cmluZyI+YTxCIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy9UUi9SRUMtaHRtbDQwIj5iPC9CPmM8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/rich.xml",
+        "/out/spreadsheetml/rich-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "6fef0365bd7d41dca17a1a55ce2d9a2ed4bd378bb0f069f6df310e3d24ac1e47"
+    },
+    {
+      "name": "rich",
+      "mode": "forced",
+      "inputSha256": "e2eecb783ee29f4d849c36ab52d0cedcd2d7f1d545049f5632dd31241bcb11eb",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IlN0cmluZyI+YTxCIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy9UUi9SRUMtaHRtbDQwIj5iPC9CPmM8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/rich.xml",
+        "/out/spreadsheetml/rich-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "6fef0365bd7d41dca17a1a55ce2d9a2ed4bd378bb0f069f6df310e3d24ac1e47"
+    },
+    {
+      "name": "sparse",
+      "mode": "auto",
+      "inputSha256": "07a54385b57288405dcc55a102fd980fe4daf10eb68b0fddda70612ecc2af494",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93IHNzOkluZGV4PSIzIj48Q2VsbCBzczpJbmRleD0iMiI+PERhdGEgc3M6VHlwZT0iU3RyaW5nIj5hJmFtcDtiPC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpGb3JtdWxhPSI9UkNbLTFdJmFtcDsmcXVvdDshJnF1b3Q7Ij48RGF0YSBzczpUeXBlPSJTdHJpbmciPmEmYW1wO2IhPC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/sparse.xml",
+        "/out/spreadsheetml/sparse-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "742702447c4457716496d228d53d2262d385c79255ae8596254fc1ae748414dd"
+    },
+    {
+      "name": "sparse",
+      "mode": "forced",
+      "inputSha256": "07a54385b57288405dcc55a102fd980fe4daf10eb68b0fddda70612ecc2af494",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93IHNzOkluZGV4PSIzIj48Q2VsbCBzczpJbmRleD0iMiI+PERhdGEgc3M6VHlwZT0iU3RyaW5nIj5hJmFtcDtiPC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpGb3JtdWxhPSI9UkNbLTFdJmFtcDsmcXVvdDshJnF1b3Q7Ij48RGF0YSBzczpUeXBlPSJTdHJpbmciPmEmYW1wO2IhPC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/sparse.xml",
+        "/out/spreadsheetml/sparse-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "742702447c4457716496d228d53d2262d385c79255ae8596254fc1ae748414dd"
+    },
+    {
+      "name": "styles",
+      "mode": "auto",
+      "inputSha256": "b518dfae2f1f2dfb04e997b7f10094041e0a6dc3512b1abf3cd0cce93d1be4b8",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48U3R5bGVzPjxTdHlsZSBzczpJRD0iRGVmYXVsdCI+PEZvbnQgc3M6Qm9sZD0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJGaXhlZCIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJwYXJlbnQiPjxGb250IHNzOkl0YWxpYz0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJQZXJjZW50Ii8+PC9TdHlsZT48U3R5bGUgc3M6SUQ9ImNoaWxkIiBzczpQYXJlbnQ9InBhcmVudCI+PEZvbnQgc3M6Rm9udE5hbWU9Iklnbm9yZWQiLz48L1N0eWxlPjwvU3R5bGVzPjxXb3Jrc2hlZXQgc3M6TmFtZT0iUyI+PFRhYmxlPjxSb3c+PENlbGwgc3M6U3R5bGVJRD0iY2hpbGQiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MC41PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjAuNTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/styles.xml",
+        "/out/spreadsheetml/styles-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "0b8a280f43441402c63aa69d634675f470d6cd9f66db7aee1fd2c37d6686522a"
+    },
+    {
+      "name": "styles",
+      "mode": "forced",
+      "inputSha256": "b518dfae2f1f2dfb04e997b7f10094041e0a6dc3512b1abf3cd0cce93d1be4b8",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48U3R5bGVzPjxTdHlsZSBzczpJRD0iRGVmYXVsdCI+PEZvbnQgc3M6Qm9sZD0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJGaXhlZCIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJwYXJlbnQiPjxGb250IHNzOkl0YWxpYz0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJQZXJjZW50Ii8+PC9TdHlsZT48U3R5bGUgc3M6SUQ9ImNoaWxkIiBzczpQYXJlbnQ9InBhcmVudCI+PEZvbnQgc3M6Rm9udE5hbWU9Iklnbm9yZWQiLz48L1N0eWxlPjwvU3R5bGVzPjxXb3Jrc2hlZXQgc3M6TmFtZT0iUyI+PFRhYmxlPjxSb3c+PENlbGwgc3M6U3R5bGVJRD0iY2hpbGQiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MC41PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjAuNTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/styles.xml",
+        "/out/spreadsheetml/styles-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "0b8a280f43441402c63aa69d634675f470d6cd9f66db7aee1fd2c37d6686522a"
+    },
+    {
+      "name": "unknown",
+      "mode": "auto",
+      "inputSha256": "96f2b6de9673cc70d779e70ebf29d356fc6588be9b9fe86b5b95d2dd44524bc5",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhPm9uZTxVbmV4cGVjdGVkPmluc2lkZTwvVW5leHBlY3RlZD5lbmQ8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/unknown.xml",
+        "/out/spreadsheetml/unknown-auto.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Unexpected element 'Unexpected' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n",
+      "nativeOutputSha256": "67eef9e0adf2ea03c6ac0b1a581e53928257d1fa6a607e600f291ba156f68fe6"
+    },
+    {
+      "name": "unknown",
+      "mode": "forced",
+      "inputSha256": "96f2b6de9673cc70d779e70ebf29d356fc6588be9b9fe86b5b95d2dd44524bc5",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhPm9uZTxVbmV4cGVjdGVkPmluc2lkZTwvVW5leHBlY3RlZD5lbmQ8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/unknown.xml",
+        "/out/spreadsheetml/unknown-forced.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Unexpected element 'Unexpected' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n",
+      "nativeOutputSha256": "67eef9e0adf2ea03c6ac0b1a581e53928257d1fa6a607e600f291ba156f68fe6"
+    },
+    {
+      "name": "index-lexical",
+      "mode": "forced",
+      "inputSha256": "675af3b5e0f4c5a584c48336a2b7b6c019e32316774dda60651bcdf7546f29fc",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOkluZGV4PSIxZTIiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PENlbGwgc3M6SW5kZXg9IjB4MTAiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MjwvRGF0YT48L0NlbGw+PENlbGwgc3M6SW5kZXg9IisyIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjM8L0RhdGE+PC9DZWxsPjxDZWxsIHNzOkluZGV4PSIgMyI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj40PC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpJbmRleD0iIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjU8L0RhdGE+PC9DZWxsPjxDZWxsIHNzOkluZGV4PSIyICI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj42PC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpJbmRleD0iMCI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj43PC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpJbmRleD0iLTEiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+ODwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/index-lexical.xml",
+        "/out/spreadsheetml/index-lexical.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68225): WARNING **: 19:22:34.608: S!A1 : Invalid attribute 'Index', expected integer, received '1e2'\n\n** (ssconvert:68225): WARNING **: 19:22:34.608: S!B1 : Invalid attribute 'Index', expected integer, received '0x10'\n\n** (ssconvert:68225): WARNING **: 19:22:34.608: S!E1 : Invalid attribute 'Index', expected integer, received '2 '\n",
+      "nativeOutputSha256": "1a6881bf1855d9d2adfee45686a88fa8cbbf0415695ef4899dce57b3f2895f7f"
+    },
+    {
+      "name": "font-complete",
+      "mode": "forced",
+      "inputSha256": "1c84676bbbaf2bdd55eafa026697933be04911027b81a2813b00ba421e7215bf",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48U3R5bGVzPjxTdHlsZSBzczpJRD0icyI+PEZvbnQgc3M6Qm9sZD0iMSIgc3M6SXRhbGljPSIxIiBzczpTaXplPSIxNCIgc3M6Q29sb3I9IiMxMTIyMzMiIHNzOlVuZGVybGluZT0iRG91YmxlQWNjb3VudGluZyIgc3M6VmVydGljYWxBbGlnbj0iU3VwZXJzY3JpcHQiLz48QWxpZ25tZW50IHNzOkhvcml6b250YWw9IlJpZ2h0IiBzczpWZXJ0aWNhbD0iQ2VudGVyIiBzczpXcmFwVGV4dD0iMSIvPjxJbnRlcmlvciBzczpDb2xvcj0iI0FBQkJDQyIgc3M6UGF0dGVybj0iU29saWQiLz48Qm9yZGVycz48Qm9yZGVyIHNzOlBvc2l0aW9uPSJCb3R0b20iIHNzOkxpbmVTdHlsZT0iQ29udGludW91cyIgc3M6V2VpZ2h0PSIyIiBzczpDb2xvcj0iIzAwMDAwMCIvPjwvQm9yZGVycz48L1N0eWxlPjwvU3R5bGVzPjxXb3Jrc2hlZXQgc3M6TmFtZT0iUyI+PFRhYmxlPjxSb3c+PENlbGwgc3M6U3R5bGVJRD0icyI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj41PC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/font-complete.xml",
+        "/out/spreadsheetml/font-complete.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "93f2659a3a3e4f73693cf153bd292fb8fce40cf06adf76948b5394e0ec92fc84"
+    },
+    {
+      "name": "multiple-data",
+      "mode": "forced",
+      "inputSha256": "558db78d34479a8dbf27d7e70765f026a5db0096379009b9a4f24699059be8b5",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjI8L0RhdGE+PC9DZWxsPjxDZWxsIHNzOkZvcm11bGE9Ij0xKzIiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+OTwvRGF0YT48RGF0YSBzczpUeXBlPSJTdHJpbmciPnNlY29uZDwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/multiple-data.xml",
+        "/out/spreadsheetml/multiple-data.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "577b142cdf07f6f8e6801c608706f69682604ecd016d6771f1d87db6563506b7"
+    },
+    {
+      "name": "empty-types",
+      "mode": "forced",
+      "inputSha256": "18b8d381677048c933c22e0b27882fbb42e6a954ad015764a71e736e2728ca50",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IlN0cmluZyI+PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJCb29sZWFuIj48L0RhdGE+PC9DZWxsPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJEYXRlVGltZSI+PC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YSBzczpUeXBlPSJFcnJvciI+PC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/empty-types.xml",
+        "/out/spreadsheetml/empty-types.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68231): WARNING **: 19:22:34.778: S!B1 : Invalid content of ss:data element, received ''\n",
+      "nativeOutputSha256": "deffbd8cd87e45efa9f9a78df2494cd706e657deb62247d5352f5aaf963ede2b"
+    },
+    {
+      "name": "unknown-type",
+      "mode": "forced",
+      "inputSha256": "42508a311ab9dfa2140117a6e695c78b1071e660a1770e57884e222d4cfe515a",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9IkJvZ3VzIj5hPFVua25vd24vPmI8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/unknown-type.xml",
+        "/out/spreadsheetml/unknown-type.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68233): WARNING **: 19:22:34.831: S!A1 : Invalid attribute 'Type', unknown enum value 'Bogus'\nUnexpected element 'Unknown' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell -> Data\n",
+      "nativeOutputSha256": "745f7d604aa3d2686325da63229eedcccc9064960e0bc2da9d90c917197040fb"
+    },
+    {
+      "name": "integer-size",
+      "mode": "forced",
+      "inputSha256": "d1c115dfa3f7caa64c0f29cd6c25e4567a263a656f08ebf88d6b719c88eab048",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Q29sdW1uIHNzOkluZGV4PSIyIiBzczpXaWR0aD0iM2UxIi8+PFJvdyBzczpJbmRleD0iMyIgc3M6SGVpZ2h0PSI1ZTEiPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MjwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/integer-size.xml",
+        "/out/spreadsheetml/integer-size.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "496f7d2dced51aca2798c83ba2edfbcb9c7ef6c592b527bfc666bd719d39c4d9"
+    },
+    {
+      "name": "order",
+      "mode": "forced",
+      "inputSha256": "d6f3a3a154391272764058938d278d3610e67baa85162a1f9c88d2ad6b55ab16",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+YmFkPC9EYXRhPjwvQ2VsbD48Q2VsbD48RGF0YT50ZXh0PC9EYXRhPjxDb21tZW50Lz48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/order.xml",
+        "/out/spreadsheetml/order.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68237): WARNING **: 19:22:34.940: S!A1 : Invalid content of ss:data element, expected number, received 'bad'\nUnexpected element 'Comment' in state : \n\tWorkbook -> Worksheet -> Table -> Row -> Cell\n",
+      "nativeOutputSha256": "613eec328a23f409e6057e84cbe339525c8fe060fc108701f667cd3f97bbcd99"
+    },
+    {
+      "name": "column-zero",
+      "mode": "forced",
+      "inputSha256": "96bf0b96c0599038b4a069dbb65a5d8a21e4153fe0825b540139a72e4de77ffe",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Q29sdW1uIHNzOkluZGV4PSIzIiBzczpXaWR0aD0iMjAiLz48Q29sdW1uIHNzOkluZGV4PSIwIiBzczpXaWR0aD0iMzAiLz48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/column-zero.xml",
+        "/out/spreadsheetml/column-zero.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "3ff201446aab7d5373bd40f4d72b5d037c7afd64e337d40164d1cde4048d5e8c"
+    },
+    {
+      "name": "merge-overlap",
+      "mode": "forced",
+      "inputSha256": "895bd3342a32e82e020c4b4e9aaa09728041a1cd2ed087f808824b82137e75ec",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48U3R5bGVzPjxTdHlsZSBzczpJRD0icyIvPjwvU3R5bGVzPjxXb3Jrc2hlZXQgc3M6TmFtZT0iUyI+PFRhYmxlPjxSb3c+PENlbGwgc3M6U3R5bGVJRD0icyIgc3M6TWVyZ2VBY3Jvc3M9IjEiPjxEYXRhPmZpcnN0PC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpJbmRleD0iMiIgc3M6U3R5bGVJRD0icyIgc3M6TWVyZ2VBY3Jvc3M9IjEiPjxEYXRhPnNlY29uZDwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/merge-overlap.xml",
+        "/out/spreadsheetml/merge-overlap.gnumeric.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "E There is already a merged region that intersects\nS!B1:C1\n",
+      "nativeOutputSha256": null
+    },
+    {
+      "name": "named-formats",
+      "mode": "forced",
+      "inputSha256": "4a631c7109b5cb2519ac0535d1a00cd25f7fb91c61708b82be3d1c5ef554d805",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48U3R5bGVzPjxTdHlsZSBzczpJRD0iczAiPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJHZW5lcmFsIE51bWJlciIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzMSI+PE51bWJlckZvcm1hdCBzczpGb3JtYXQ9IkN1cnJlbmN5Ii8+PC9TdHlsZT48U3R5bGUgc3M6SUQ9InMyIj48TnVtYmVyRm9ybWF0IHNzOkZvcm1hdD0iRXVybyBDdXJyZW5jeSIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzMyI+PE51bWJlckZvcm1hdCBzczpGb3JtYXQ9IkZpeGVkIi8+PC9TdHlsZT48U3R5bGUgc3M6SUQ9InM0Ij48TnVtYmVyRm9ybWF0IHNzOkZvcm1hdD0iU3RhbmRhcmQiLz48L1N0eWxlPjxTdHlsZSBzczpJRD0iczUiPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJQZXJjZW50Ii8+PC9TdHlsZT48U3R5bGUgc3M6SUQ9InM2Ij48TnVtYmVyRm9ybWF0IHNzOkZvcm1hdD0iU2NpZW50aWZpYyIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzNyI+PE51bWJlckZvcm1hdCBzczpGb3JtYXQ9Illlcy9ObyIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzOCI+PE51bWJlckZvcm1hdCBzczpGb3JtYXQ9IlRydWUvRmFsc2UiLz48L1N0eWxlPjxTdHlsZSBzczpJRD0iczkiPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJPbi9PZmYiLz48L1N0eWxlPjxTdHlsZSBzczpJRD0iczEwIj48TnVtYmVyRm9ybWF0IHNzOkZvcm1hdD0iR2VuZXJhbCBEYXRlIi8+PC9TdHlsZT48U3R5bGUgc3M6SUQ9InMxMSI+PE51bWJlckZvcm1hdCBzczpGb3JtYXQ9IkxvbmcgRGF0ZSIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzMTIiPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJNZWRpdW0gRGF0ZSIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzMTMiPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJTaG9ydCBEYXRlIi8+PC9TdHlsZT48U3R5bGUgc3M6SUQ9InMxNCI+PE51bWJlckZvcm1hdCBzczpGb3JtYXQ9IkxvbmcgVGltZSIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzMTUiPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJNZWRpdW0gVGltZSIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJzMTYiPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJTaG9ydCBUaW1lIi8+PC9TdHlsZT48L1N0eWxlcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOlN0eWxlSUQ9InMwIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczEiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTIzLjI1PC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpTdHlsZUlEPSJzMiI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4xMjMuMjU8L0RhdGE+PC9DZWxsPjxDZWxsIHNzOlN0eWxlSUQ9InMzIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczQiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTIzLjI1PC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpTdHlsZUlEPSJzNSI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4xMjMuMjU8L0RhdGE+PC9DZWxsPjxDZWxsIHNzOlN0eWxlSUQ9InM2Ij48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczciPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTIzLjI1PC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpTdHlsZUlEPSJzOCI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4xMjMuMjU8L0RhdGE+PC9DZWxsPjxDZWxsIHNzOlN0eWxlSUQ9InM5Ij48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczEwIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczExIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczEyIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczEzIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczE0Ij48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczE1Ij48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PENlbGwgc3M6U3R5bGVJRD0iczE2Ij48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjEyMy4yNTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/named-formats.xml",
+        "/out/spreadsheetml/named-formats.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "07990f539f87107f0a99bbed4b2d89f0258b777f5bcd6524d74b3d4f89c869a7"
+    },
+    {
+      "name": "latin1",
+      "mode": "forced",
+      "inputSha256": "479861402c287685043c2075188333aa491ed4ce98e797bf2d0a0c9bff2bc469",
+      "inputBase64": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iSVNPLTg4NTktMSI/PjxXb3JrYm9vayB4bWxucz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6c3ByZWFkc2hlZXQiIHhtbG5zOnNzPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6eD0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6ZXhjZWwiIHhtbG5zOm89InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOm9mZmljZSI+PFdvcmtzaGVldCBzczpOYW1lPSJTIj48VGFibGU+PFJvdyBzczpJbmRleD0iMyI+PENlbGwgc3M6SW5kZXg9IjIiPjxEYXRhIHNzOlR5cGU9IlN0cmluZyI+UulzdW3pPC9EYXRhPjwvQ2VsbD48Q2VsbCBzczpGb3JtdWxhPSI9UkNbLTFdJmFtcDsmcXVvdDshJnF1b3Q7Ij48RGF0YSBzczpUeXBlPSJTdHJpbmciPlLpc3Vt6SE8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/latin1.xml",
+        "/out/spreadsheetml/latin1.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "40bf77a9f4bd6effaf2cd7ac057e6053d11686f255f499ab67d7196c5bc9617a"
+    },
+    {
+      "name": "selection",
+      "mode": "forced",
+      "inputSha256": "ae9f805469d41e50abc376644c0524eac7460eaed71f31bed18475f84c03fee4",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCI+PFdvcmtzaGVldCBzczpOYW1lPSJTIj48VGFibGU+PFJvdz48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjQ8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PHg6V29ya3NoZWV0T3B0aW9ucz48eDpQYW5lcz48eDpQYW5lPjx4Ok51bWJlcj4zPC94Ok51bWJlcj48eDpBY3RpdmVSb3c+MjwveDpBY3RpdmVSb3c+PHg6QWN0aXZlQ29sPjE8L3g6QWN0aXZlQ29sPjx4OlJhbmdlU2VsZWN0aW9uPlIzQzI6UjRDNCxSN0MxPC94OlJhbmdlU2VsZWN0aW9uPjwveDpQYW5lPjwveDpQYW5lcz48L3g6V29ya3NoZWV0T3B0aW9ucz48eDpBdXRvRmlsdGVyIHg6UmFuZ2U9IlIxQzE6UjRDMyIvPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/selection.xml",
+        "/out/spreadsheetml/selection.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "c04e0ff2bdd499355fbf49546291a31b9d95c79fd718da06e492c2b9b047a639"
+    },
+    {
+      "name": "print-default",
+      "mode": "forced",
+      "inputSha256": "8990bc63551924aac52d5fc0d1acb73fd3aedd59c6f6ba14137574cc496e1106",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0IiB4bWxuczp4PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpleGNlbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIj48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48V29ya3NoZWV0T3B0aW9ucyB4bWxucz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6ZXhjZWwiPjx4OlBhZ2VTZXR1cD48eDpMYXlvdXQgeDpPcmllbnRhdGlvbj0iTGFuZHNjYXBlIi8+PHg6SGVhZGVyIHg6RGF0YT0iVGl0bGUiLz48L3g6UGFnZVNldHVwPjx4OlByaW50Pjx4OlBhcGVyU2l6ZUluZGV4Pjk8L3g6UGFwZXJTaXplSW5kZXg+PC94OlByaW50PjwvV29ya3NoZWV0T3B0aW9ucz48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/print-default.xml",
+        "/out/spreadsheetml/print-default.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "588f84fc019785a3fa69cc562bfb2d6db3f558ef37f87797df6fca1e7d0f0405"
+    },
+    {
+      "name": "float-attrs",
+      "mode": "forced",
+      "inputSha256": "70160d57ad6dc89d5f3fa96e9e9659dd3c6d0bf623a951ae5a5ac7ad4a0896cc",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Q29sdW1uIHNzOldpZHRoPSIweDEwIi8+PENvbHVtbiBzczpXaWR0aD0iTmFOIi8+PENvbHVtbiBzczpXaWR0aD0iSU5GIi8+PFJvdz48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjE8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/float-attrs.xml",
+        "/out/spreadsheetml/float-attrs.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68256): WARNING **: 19:26:23.885: S!A1 : Invalid attribute 'Width', expected number, received '0x10'\n",
+      "nativeOutputSha256": "56d5e95ed61eaeaf1a5c67561016f3b1454951316209a8768ba4356ddc856e80"
+    },
+    {
+      "name": "formula-unknown",
+      "mode": "forced",
+      "inputSha256": "55571ecb9ba47138f8d4f3efa905320c66c0dc1aa04209c25670f0b08a503cb0",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOkZvcm11bGE9Ij1NaXNzaW5nIVIxQzEiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+NzwvRGF0YT48L0NlbGw+PENlbGwgc3M6Rm9ybXVsYT0iPVMhUjFDMSsxIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjg8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/formula-unknown.xml",
+        "/out/spreadsheetml/formula-unknown.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68258): WARNING **: 19:26:23.966: S!A1 : 'Missing!R1C1' Unknown sheet 'Missing'\n",
+      "nativeOutputSha256": "96ede81cfbe9a7a69cdbf777d990de28a66d77a77acbd6b416320a93e1f1d09f"
+    },
+    {
+      "name": "row-style-span",
+      "mode": "forced",
+      "inputSha256": "734b9f543e57a79d14422dd75a5abbad585d5c2669de0fe63ff61385c52a57c1",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48U3R5bGVzPjxTdHlsZSBzczpJRD0iYm9sZCI+PEZvbnQgc3M6Qm9sZD0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJGaXhlZCIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJpdGFsaWMiPjxGb250IHNzOkl0YWxpYz0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJQZXJjZW50Ii8+PC9TdHlsZT48L1N0eWxlcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93IHNzOlNwYW49IjMiIHNzOlN0eWxlSUQ9ImJvbGQiPjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PFJvdz48Q2VsbD48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjI8L0RhdGE+PC9DZWxsPjwvUm93PjxSb3c+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4zPC9EYXRhPjwvQ2VsbD48L1Jvdz48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+NDwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/row-style-span.xml",
+        "/out/spreadsheetml/row-style-span.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "cbbc9a02f8dfe58af67709fe85dd50a98a1175eb465a716c403d6fcf951835cc"
+    },
+    {
+      "name": "axis-overwrites",
+      "mode": "forced",
+      "inputSha256": "c55c21382c653f18cb3ab6ec9fc8e23acecbffff373fcfddbd3c7bb420b2bba1",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48U3R5bGVzPjxTdHlsZSBzczpJRD0iYm9sZCI+PEZvbnQgc3M6Qm9sZD0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJGaXhlZCIvPjwvU3R5bGU+PFN0eWxlIHNzOklEPSJpdGFsaWMiPjxGb250IHNzOkl0YWxpYz0iMSIvPjxOdW1iZXJGb3JtYXQgc3M6Rm9ybWF0PSJQZXJjZW50Ii8+PC9TdHlsZT48L1N0eWxlcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Q29sdW1uIHNzOkluZGV4PSIyIiBzczpTdHlsZUlEPSJib2xkIiBzczpXaWR0aD0iMjAiIHNzOkhpZGRlbj0iMSIvPjxDb2x1bW4gc3M6SW5kZXg9IjIiIHNzOlN0eWxlSUQ9Iml0YWxpYyIgc3M6V2lkdGg9IjMwIiBzczpIaWRkZW49IjAiLz48Um93IHNzOkhlaWdodD0iMjAiIHNzOkhpZGRlbj0iMSI+PENlbGw+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj4xPC9EYXRhPjwvQ2VsbD48L1Jvdz48Um93IHNzOkluZGV4PSIxIiBzczpIZWlnaHQ9IjMwIiBzczpIaWRkZW49IjAiPjxDZWxsIHNzOkluZGV4PSIyIj48RGF0YSBzczpUeXBlPSJOdW1iZXIiPjI8L0RhdGE+PC9DZWxsPjwvUm93PjwvVGFibGU+PC9Xb3Jrc2hlZXQ+PC9Xb3JrYm9vaz4=",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/axis-overwrites.xml",
+        "/out/spreadsheetml/axis-overwrites.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "b99cd470659cd26990691fae20fc79e99394a490195b3df7337c648869ba3323"
+    },
+    {
+      "name": "cell-attribute-order",
+      "mode": "forced",
+      "inputSha256": "6649f888d11785e6f22910e64f854eadc9be6f82f2a0c1fef09b92376338419a",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsIHNzOkZvcm11bGE9ImJhZCIgc3M6SW5kZXg9IjMiPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+NzwvRGF0YT48L0NlbGw+PENlbGwgc3M6SW5kZXg9IjUiIHNzOkZvcm11bGE9ImJhZCI+PERhdGEgc3M6VHlwZT0iTnVtYmVyIj44PC9EYXRhPjwvQ2VsbD48L1Jvdz48L1RhYmxlPjwvV29ya3NoZWV0PjwvV29ya2Jvb2s+",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/cell-attribute-order.xml",
+        "/out/spreadsheetml/cell-attribute-order.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "\n** (ssconvert:68264): WARNING **: 19:26:24.218: S!A1 : Invalid formula 'bad' does not begin with '='\n\n** (ssconvert:68264): WARNING **: 19:26:24.218: S!E1 : Invalid formula 'bad' does not begin with '='\n",
+      "nativeOutputSha256": "38c95b48a5dcc1028329ae76d6002d5a36e2b2401a1c3bc7002a283880171df2"
+    },
+    {
+      "name": "properties-all",
+      "mode": "forced",
+      "inputSha256": "b1c6a626bd080183218ee98459b6bc5fde0687fc9fcb8e76461f81b6966bb1d0",
+      "inputBase64": "PFdvcmtib29rIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpzcHJlYWRzaGVldCIgeG1sbnM6c3M9InVybjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOnNwcmVhZHNoZWV0Ij48RG9jdW1lbnRQcm9wZXJ0aWVzIHhtbG5zPSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpvZmZpY2UiPjxDYXRlZ29yeT5DYXQ8L0NhdGVnb3J5PjxNYW5hZ2VyPk08L01hbmFnZXI+PFN1YmplY3Q+U3ViPC9TdWJqZWN0PjxEZXNjcmlwdGlvbj5EZXNjPC9EZXNjcmlwdGlvbj48SHlwZXJsaW5rQmFzZT5CYXNlPC9IeXBlcmxpbmtCYXNlPjxDcmVhdGVkPmJhZDwvQ3JlYXRlZD48TGFzdFNhdmVkPjIwMDAtMDEtMDJUMDM6MDQ6MDVaPC9MYXN0U2F2ZWQ+PExhc3RQcmludGVkPjIwMDAtMDEtMDNUMDQ6MDU6MDZaPC9MYXN0UHJpbnRlZD48L0RvY3VtZW50UHJvcGVydGllcz48V29ya3NoZWV0IHNzOk5hbWU9IlMiPjxUYWJsZT48Um93PjxDZWxsPjxEYXRhIHNzOlR5cGU9Ik51bWJlciI+MTwvRGF0YT48L0NlbGw+PC9Sb3c+PC9UYWJsZT48L1dvcmtzaGVldD48L1dvcmtib29rPg==",
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel_xml",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/spreadsheetml/properties-all.xml",
+        "/out/spreadsheetml/properties-all.gnumeric.xml"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "nativeOutputSha256": "cc12018213d622ddaec8569fdda34d563be20d35762b6e9d267cd77edfd76ff6"
+    }
+  ]
+}

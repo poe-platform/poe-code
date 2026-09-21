@@ -1,0 +1,43 @@
+# Current XLSX different-agent stress QA
+
+Run original small ZIP fixtures entirely in memory through `createEngine`, using injected memfs read/write authority. Do not run native programs or write host fixtures in unit tests. Root owns exports, integration, Git and maintained workspace gates.
+
+1. Inspect Gnumeric 1.12.61 `plugins/excel/xlsx-read.c:xlsx_cell_val_end` and `xlsx-utils.c:xlsx_relaxed_strtol` from the primary source retained under `out`. Construct decimal, signed/padded, malformed, non-ASCII whitespace and out-of-range shared-string references independently of the implementation.
+2. Require the invalid-reference regression to fail before changing the importer. Recover as blank with the positional native warning, preserve following cells, and admit only the source-supported decimal syntax. Empty numeric cache handling is a separate existing control.
+3. Cancel inside the awaited warning callback with a frozen non-Error reason. Assert identity, cleanup registration before byte reads, repeated cleanup safety and unchanged checkpoint destination bytes. Repeat with diagnostic-byte admission exhaustion and assert no callback or write.
+4. Read original bytes, change the memfs input, restore the owned checkpoint bytes and replay. Check immutable snapshots and absence of document-cache leakage across invocations. Reject pre-aborted and disposed-engine calls before filesystem authority is exercised.
+5. Run the focused current stress and existing XLSX codec/helper suites. Root runs maintained uncached cross-workspace gates and CLI/screenshots. Root separately captures fresh native cases with the explicitly selected `colima` Docker context; default-context failure alone is not oracle unavailability.
+
+## Execution receipt
+
+The independent reviewer reproduced 10 failures with six passing syntax controls before the repair: malformed/out-of-range references either terminated import or silently became index zero. Source evidence requires warning recovery and strictly decimal `strtol` syntax with ASCII whitespace. The reserved shared-string branch in `xlsx.ts` now follows that rule without regular expressions.
+
+The final new stress suite passes 20 cases. Before its last four negative/replay controls were added, the four focused XLSX suites passed 64 tests; this earlier count is not a final complete-package gate. Final ESLint/typecheck receipts are reported to root separately after settlement. Root's maintained build/test/lint and independent native captures remain separate evidence.
+
+Final reviewer test SHA-256: `850170193debc45f84fd2e931846c7d80d8c0f7adb8a389757f63ee0c9ed238a`. Importer SHA-256 at focused final stress settlement: `02833817dbdee6654a896714aaf384cb9fc158058438cb3f935808e3dd06e871`. These identify a dirty workspace candidate, not a Git revision or release.
+
+No failures remain in the new 20-case suite. No fresh native pass is claimed by this reviewer; root owns its captures. Unit timings are bounded execution observations under concurrent repository load, not a performance qualification. Cross-realm admission, complete namespace matrix, every source handler, advanced charts/images/pivots/validations/conditional formatting, actual encryption/macros and checkpoint execution in an external SafeJS runtime remain unmeasured here. Retained XML records do not establish functional import or lossless editing. CLI/screenshots and broader workspace gates are outside this reviewer-owned cohort.
+
+## Source-bound namespace follow-up
+
+Root separately measured default DrawingML cells under a non-scanning row as accepted by native, and DrawingML sheet declarations/page margins under scanning parents as ignored. The reviewer read the actual libgsf 1.14.53 `gsf_xml_in_start_element` and `lookup_child`, and reviewed root's scan-flag and exact warning-byte adjustments. The four focused XLSX suites then passed 70 tests. Scoped ESLint and test TypeScript checks for the initial reviewer candidate also completed successfully.
+
+Namespace URI identity and prefix registration are separate native mechanisms. A declaration on a non-scanning row does not register a new prefix, even when its URI is a recognized spreadsheet URI. The reviewer requested fresh native negative controls for unknown `u:mystery`, unknown-prefixed `u:c` and freshly declared spreadsheet-prefixed `p:c` under such a row; these are not assumed passes. Root owns the resulting captures and any coordinated repair. Warning registration/silencing must distinguish those cases from an unknown prefix declared on a scanning worksheet.
+
+Importer SHA-256 at the 70-test follow-up: `109a64962f174e15c0194d18545855b2fae9d725194184de759b8c7d4fbb68e5`; schema: `de066a30331c194c32320334617fa025415d93cdd76920a806f8e1647e8daf27`; metadata helper: `3a7f2ee8592b72e76bcec6eb112102d4aeb3bb60cd47c356ad6b37eeda5711e0`. Later changes require fresh candidate verification.
+
+Root's fresh native capture validated unscanned `u:mystery` and `u:c` warnings, with the latter subtree dropped and B1 retained. It also validated retained inline text under a default DrawingML cell beneath a non-scanning row. Three original independent regressions were added to the reviewer suite: two failed with missing diagnostics and the inline-text control passed (23 total, 2 failed / 21 passed). Their scoped ESLint check passed. Root is coordinating product repair; these red results are preserved as pre-repair evidence rather than counted as passes.
+
+## Final centralized-admission green receipt
+
+Root replaced separate warning/semantic namespace predicates with one schema-recognition traversal, admitting accepted children and canonicalizing their namespaces. The reviewer checked it against the inspected libgsf namespace-scan, literal-prefix registration and default-namespace traversal rules. On that candidate, all four focused XLSX suites passed **73/73 tests**, including all 23 reviewer cases. Scoped ESLint for importer/schema/metadata/styles/reviewer tests passed. No product or test changes were required by this final reviewer follow-up.
+
+The reviewer also executed three additional original in-memory SDK cases from the prefix-registration/cancellation procedure above: newly declared spreadsheet prefix below a non-scanning row warns and drops its cell; the same prefix declared on the scanning worksheet imports its cell; cancellation inside an unknown-prefix recognition warning preserves the frozen reason identity and permits repeated registered cleanup. All three passed. An initial manual assertion compared null-prototype SDK values against ordinary-prototype literals with Node's strict structural equality; that harness assertion was corrected to compare primitive kind/value tuples. It was not a product defect or an additional semantic pass. No native programs, host fixture writes or LLM calls were used in these cases.
+
+Final reviewed importer SHA-256: `40e7d58266ae10c02836da72ad130b47b0679357eaf76498ae459fe9db87acfe`; metadata helper: `0742fcacda4086172516e4ac3eaa6b684419ea07d12f97faa15ac25b201729cd`; styles helper: `d7d1a1713fbd272027ba469068d6382e5547e36eb72e7228081a9bbcbe6165b4`; reviewer test: `384be86b3c661efb11b673fe4f4ec363a699ec275820f2bf545504488df8a97d`. Schema remains `de066a30331c194c32320334617fa025415d93cdd76920a806f8e1647e8daf27`. These source-bound focused receipts supersede the earlier red/default-namespace candidates, while preserving their failures. They do not replace root's complete-package, safe-bash integration, native cohort or broader gate receipts; the unmeasured categories listed above remain unverified by this reviewer.
+
+## Exact command diagnostic follow-up
+
+Root's replay of the original native command cohort found a duplicate newline in invalid defined-name diagnostics. The reviewer inspected the narrowly scoped repair: the existing newline-bearing message remains unchanged, and explicit locale-encoded diagnostic bytes prevent the command writer from appending another newline. The actual `runCommand`/memfs regression asserts status zero, exactly one diagnostic newline and output publication.
+
+On this final diagnostic candidate, all four focused XLSX suites passed **74/74 tests**. Scoped importer/root XLSX-test ESLint passed. Final importer SHA-256: `2a0bd3eb7e5976f94ea6c2cb9509c1af83ac880741ab65aafe42e28465718445`; root XLSX-test SHA-256: `cd16aac8f16f99422022e2c0e18608922707191f47450d21d463c6ffa149e91e`. Other hashes from the previous receipt remain unchanged. No reviewer source/test edits were needed, and no new defect was validated. Root separately reported the full package run as 148 files / 4059 passing tests; that root-owned result is not the reviewer's focused gate or a broader repository gate.

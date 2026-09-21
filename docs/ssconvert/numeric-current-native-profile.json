@@ -1,0 +1,401 @@
+{
+  "purpose": "Fresh separate QA oracle, never a product dependency or fallback",
+  "architecture": "aarch64",
+  "gnumericVersion": "ssconvert version '1.12.61'\ndatadir := '/out/prefix/share/gnumeric/1.12.61'\nlibdir := '/out/prefix/lib/gnumeric/1.12.61'",
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "gofficeArchiveSha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15",
+  "binarySha256": "c4a0bb36004f427e69625691bb3b9886a976cd38c38a528ad9db5ed03289e72a",
+  "environment": {
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "GSETTINGS_BACKEND": "memory",
+    "GSETTINGS_SCHEMA_DIR": "/out/prefix/share/glib-2.0/schemas",
+    "LD_LIBRARY_PATH": "/out/prefix/lib"
+  },
+  "packages": [
+    "libc6\t2.41-12+deb13u4",
+    "libglib2.0-0t64\t2.84.4-3~deb13u5",
+    "libgmp10\t2:6.3.0+dfsg-3",
+    "libgsf-1-114\t1.14.53-1",
+    "libmpfr6\t4.2.2-1",
+    "libxml2\t2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+  ],
+  "linkedLibraries": [
+    {
+      "path": "/out/prefix/lib/libspreadsheet-1.12.61.so",
+      "sha256": "f6f41b1321c8e852ade29ad41096af786b5939aac0eda745f532de136d4f073e"
+    },
+    {
+      "path": "/out/prefix/lib/libgoffice-0.10.so.10",
+      "sha256": "43b3bf1bdfab16ae5515b6674420e1727deb592b16fbc159fe5cf94976384ed5"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgsf-1.so.114",
+      "sha256": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgtk-3.so.0",
+      "sha256": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgobject-2.0.so.0",
+      "sha256": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libglib-2.0.so.0",
+      "sha256": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libc.so.6",
+      "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxml2.so.2",
+      "sha256": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgmodule-2.0.so.0",
+      "sha256": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgdk-3.so.0",
+      "sha256": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0",
+      "sha256": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpango-1.0.so.0",
+      "sha256": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatk-1.0.so.0",
+      "sha256": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcairo.so.2",
+      "sha256": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0",
+      "sha256": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgio-2.0.so.0",
+      "sha256": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libm.so.6",
+      "sha256": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxslt.so.1",
+      "sha256": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/librsvg-2.so.2",
+      "sha256": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libz.so.1",
+      "sha256": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libbz2.so.1.0",
+      "sha256": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46"
+    },
+    {
+      "path": "/lib/ld-linux-aarch64.so.1",
+      "sha256": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libharfbuzz.so.0",
+      "sha256": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0",
+      "sha256": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libfontconfig.so.1",
+      "sha256": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libfribidi.so.0",
+      "sha256": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcairo-gobject.so.2",
+      "sha256": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libepoxy.so.0",
+      "sha256": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXi.so.6",
+      "sha256": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libX11.so.6",
+      "sha256": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0",
+      "sha256": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcloudproviders.so.0",
+      "sha256": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXfixes.so.3",
+      "sha256": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libffi.so.8",
+      "sha256": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatomic.so.1",
+      "sha256": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpcre2-8.so.0",
+      "sha256": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/liblzma.so.5",
+      "sha256": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxkbcommon.so.0",
+      "sha256": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libwayland-client.so.0",
+      "sha256": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libwayland-cursor.so.0",
+      "sha256": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libwayland-egl.so.1",
+      "sha256": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXext.so.6",
+      "sha256": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXcursor.so.1",
+      "sha256": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXdamage.so.1",
+      "sha256": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXcomposite.so.1",
+      "sha256": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXrandr.so.2",
+      "sha256": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXinerama.so.1",
+      "sha256": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libthai.so.0",
+      "sha256": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpng16.so.16",
+      "sha256": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libfreetype.so.6",
+      "sha256": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXrender.so.1",
+      "sha256": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxcb.so.1",
+      "sha256": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxcb-render.so.0",
+      "sha256": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libxcb-shm.so.0",
+      "sha256": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libpixman-1.so.0",
+      "sha256": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libjpeg.so.62",
+      "sha256": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libmount.so.1",
+      "sha256": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libselinux.so.1",
+      "sha256": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "sha256": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libdav1d.so.7",
+      "sha256": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libgraphite2.so.3",
+      "sha256": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libexpat.so.1",
+      "sha256": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libatspi.so.0",
+      "sha256": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libdbus-1.so.3",
+      "sha256": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libdatrie.so.1",
+      "sha256": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libbrotlidec.so.1",
+      "sha256": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXau.so.6",
+      "sha256": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libXdmcp.so.6",
+      "sha256": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libblkid.so.1",
+      "sha256": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libsystemd.so.0",
+      "sha256": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libbrotlicommon.so.1",
+      "sha256": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e"
+    },
+    {
+      "path": "/lib/aarch64-linux-gnu/libcap.so.2",
+      "sha256": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec"
+    }
+  ],
+  "plugins": [
+    {
+      "group": "fn-math",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "0c4085d04b4830c97c3aa44ba3a06ccfe053d065c4fac44da6027d827e5d3f1b"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "52ff2d50c0d5f54dff5c5ee2689a3d692db29291f10c9fee5541153feebbc2d4"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "971a835f16d9c26130875f07b1eece000a3405ac05244305f0472bff4823430c"
+        }
+      ]
+    },
+    {
+      "group": "fn-eng",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "667fdc61806328d730d9d3ae9c7be0e8eed44336e828f3841e947b7b4f14e997"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "d0d14ce7619755b64907a791e3993f58e73e447b68cdfc4cc7c967c961df65b3"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "d06c9e7d9aec1849fa9ea5d9bd267f4af20f227a98c708dc57ed3b63f17f93cc"
+        }
+      ]
+    },
+    {
+      "group": "fn-complex",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "5ba08001706968c751e6a6955212966f6cdbc583e53294c31b7e37283d09995f"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "1715d90ff85cd9683898572be94eb6c36d9fd67c411d34c203df3a4645e47fd0"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "a5574fbeca4886d4b2d1833c87d426ecbbe0dcfb3cd3aa4889f05ec26a1131a3"
+        }
+      ]
+    },
+    {
+      "group": "fn-flt",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "d973e2b1689906038452f9a99226424713c69f325ba2c714f271bee6c021363f"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "ccd52b8e8037856a154f21e29e4b194bf4c89a9343cb48b18adf9874a45814ec"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "4377e08837429c637fd528229634443a84d1e1b1ff442e942a427d44026b9f8d"
+        }
+      ]
+    },
+    {
+      "group": "fn-numtheory",
+      "files": [
+        {
+          "name": "plugin.la",
+          "sha256": "91a461b7a1d82950882138e6003b8500d0971c97723dd1f7b08ce9aab02f49e4"
+        },
+        {
+          "name": "plugin.so",
+          "sha256": "f4d3fc37f9709fc774408dc48fadfdda1efef947fefb52e1d72f772111f6fc5d"
+        },
+        {
+          "name": "plugin.xml",
+          "sha256": "4540ff972f2b5c35e1c709ca522bb385333d1fb9832ebcb9a355c87000075978"
+        }
+      ]
+    }
+  ],
+  "historicalProfileAssumedEquivalent": false
+}

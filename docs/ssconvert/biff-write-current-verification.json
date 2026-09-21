@@ -1,0 +1,2742 @@
+{
+  "task": "xls-biff-write current-candidate requalification",
+  "date": "2026-09-20",
+  "status": "incomplete-full-native-parity",
+  "delivery": {
+    "localCommits": [],
+    "push": false,
+    "release": false,
+    "readmeEdits": false,
+    "preservedExistingEdits": true
+  },
+  "gitHead": "b97c4938a469ee70e09bd08a0e5fcf7e868ca04c",
+  "candidate": {
+    "sha256": "87243720a920a1ca63084ae8f39a1ad56924804516d17aa942a3a58af96cb693",
+    "files": {
+      "package.json": "447bbd8621f98145458fad6d4baca8bd816ab91a3894859f30170e3fd55cac66",
+      "packages/safe-bash/package.json": "1a706dedef3d81380534c8e758e7bab62e9deeeeedab42377cc2d923f89f0ed7",
+      "packages/safe-bash/src/commands/ssconvert/index.ts": "a23b63a408e964f86ef7b5caa5e4cea452d64c09899efd317518913e68473d61",
+      "packages/ssconvert/package.json": "cc8cda67acf90e69ba3fb9774845f0145acdcc232cbce908536616c6aec3f210",
+      "packages/ssconvert/src/cli.test.ts": "48a1ce6c8a724958ca79768d826b2a0843854e510811b22e0a632954700bd65e",
+      "packages/ssconvert/src/cli.ts": "01130a4bf1dd369284b0c0b29d4378ff770b618a514c4ee9240028f0394a4ce0",
+      "packages/ssconvert/src/cli/diagnostics-independent.test.ts": "ebc1772cf809e6bfedbac8f3c5365330f127e89c05d44e94fe67200d9a6c3a5c",
+      "packages/ssconvert/src/cli/diagnostics.test.ts": "293ecf512e0df722923ce622811ab84bdd2ae6185d247107a424b68a13c0205f",
+      "packages/ssconvert/src/cli/export-options-independent.test.ts": "b3a2055a27c80cec5bacdd14c83c49db7baad0c0d063b3d3694f7599fccefc42",
+      "packages/ssconvert/src/cli/export-options-stress.test.ts": "d60732c3ab9e715df0dfce8bc7add85999bd0a54426ce7c699cadeb9b8a38c09",
+      "packages/ssconvert/src/cli/export-options.test.ts": "21fc32c654f949fad674eb235a45dd47c3f693898de731ec61d0761a876c561b",
+      "packages/ssconvert/src/cli/export-options.ts": "495f88d51b8f4e878e2f97d2a695a90d36f79514bb36aa071f8c363450e179a8",
+      "packages/ssconvert/src/cli/group-aliases.test.ts": "2cefe461c471575b2ac9dc0c67ebacd60b3807fdc7697d44c3dd91591b33d249",
+      "packages/ssconvert/src/cli/independent-parser.test.ts": "69ce05eb14c92afcaf60b125c73f10f1420fe67d49b04419124a3d8ee3f8214b",
+      "packages/ssconvert/src/cli/inherited-independent-review.test.ts": "283b1bcda9d5a7368b820bb8ea5287a8ef59dae4af18c2daf364d9864a93a66e",
+      "packages/ssconvert/src/cli/inherited-stress.test.ts": "19f493e7573c21a6eab82f8391cb9e0cd6e1ed256dcf5c62e2a9c38de3ed1b24",
+      "packages/ssconvert/src/cli/inherited.test.ts": "75730ceeab9581ca5b32e53816cef1e1b1c31982714f8ec93b3c761cbcde2d7f",
+      "packages/ssconvert/src/cli/listing-review.test.ts": "90a27c46c88bfc4d6124b62850ce3a358155bd57cc1d87f4abfba92fa7f568cc",
+      "packages/ssconvert/src/cli/parser.ts": "1d73eb1df82496acabc1bbacaa348e84be21db6cb4bb1b5dbc3db769b61b00ba",
+      "packages/ssconvert/src/cli/reference.ts": "b580a608c7477c6dcc624b3e714f08f7fbb0d1ef1432f2105a3f119c50236557",
+      "packages/ssconvert/src/cli/unicode-alphanumeric.ts": "010fa25f6e14b705e3ac93d234cddfd50b60e9e526ca793e4d1dc878e13ef251",
+      "packages/ssconvert/src/codecs.test.ts": "6b471335df4ea6bf13ab1779d9508843769e35d9c0f38d91851b664daf636d28",
+      "packages/ssconvert/src/codecs.ts": "f2872ca7326df45fd047c2937834b2dc49626b7525208f31e9f9ee30ff0a5f77",
+      "packages/ssconvert/src/codecs/ascii-stress.test.ts": "6f2229aafb5357b9fa67efb83b4e030eed5749a0ef64bdbe080961630bfe80fa",
+      "packages/ssconvert/src/codecs/biff-binary.ts": "cb404dc22f88d59d274941619dabc85d83d4f910d976c10dcb42ea775202e0f2",
+      "packages/ssconvert/src/codecs/biff-fixtures.test-support.ts": "135ef0028ac42b87c43e7a34b63ed4d44fe0767cb30ab280ba1525c739fc623b",
+      "packages/ssconvert/src/codecs/biff-formulas.ts": "35288c3bc5abe8f2acf7909edf2e364397dd49ee96cb6b49b078dddf0b869bea",
+      "packages/ssconvert/src/codecs/biff-groups-stress.test.ts": "23e4f72d33cff6909c2e2f0aaa125b2e521331d5e7fa69a684838d8d5beaf151",
+      "packages/ssconvert/src/codecs/biff-groups.test.ts": "794efb16621838dce499471d5476780673569b7611f510f0820b801b0bfaf449",
+      "packages/ssconvert/src/codecs/biff-metadata-stress.test.ts": "861c2837b7f50168f395ba74200a3b0ca8c085173a7e0ebd1dd34b9c348f4b1c",
+      "packages/ssconvert/src/codecs/biff-metadata.test.ts": "0fb2de5f97fba5b63d01716adc7c9a6a057b02b45bbd4222dbf79aa6d2bffe79",
+      "packages/ssconvert/src/codecs/biff-metadata.ts": "345040ae910a47fe5a867628d93b5dcb6e8fdebc2478139016ded92839967e50",
+      "packages/ssconvert/src/codecs/biff-names-stress.test.ts": "e10160675c4f202616a8d1883e60497bb9cf8cc642a2861db17f0f176f5b8441",
+      "packages/ssconvert/src/codecs/biff-names.test.ts": "1a3a8a589297a8ea20b7cfd83e2013be7d4a6d27776362028342aeba3ffab3f2",
+      "packages/ssconvert/src/codecs/biff-source.ts": "54ba331ed1fe8a0b34b49e11407645c48bb0404fa26af6e9849255e8042dee07",
+      "packages/ssconvert/src/codecs/biff-stress.test.ts": "d6edc326554dabac6850c0a9d8f71bc2cb990969c12e80dd1834651c1680ffa8",
+      "packages/ssconvert/src/codecs/biff-strings.ts": "cf6cea1bdfbf006a6486e43d723cfd4ee0f944d69bfec7d0ab1dd8f195f68578",
+      "packages/ssconvert/src/codecs/biff-write-binary.ts": "5dca4bd5408f6052a0f0c8207ada3191378423ee92aafbce8d29a766f2e50244",
+      "packages/ssconvert/src/codecs/biff-write-current-review.test.ts": "25830e30f5e5e1cdf12d3205da50187ceb368fde30fa76b67eedbadb60a6f12b",
+      "packages/ssconvert/src/codecs/biff-write-current.test.ts": "ee60ad9e94e02a687c9705f042b582a0bb52482396348245cead3debf1323997",
+      "packages/ssconvert/src/codecs/biff-write-formulas.ts": "4d36d9f81e8cc51f53f94a04b837445ff0a8f2c29ef1de117476605e80cc6206",
+      "packages/ssconvert/src/codecs/biff-write-metadata.ts": "834606693ca84cddc0c5147e83dbf6485feba431943264ebb19205a7c8c3f63c",
+      "packages/ssconvert/src/codecs/biff-write-stress.test.ts": "54092ff58ebdd75b96374b2ed54b41d248c1a392d543a2637c871142d88bc9d6",
+      "packages/ssconvert/src/codecs/biff-write-styles.ts": "830ae2b0629ce205b780891f94c30960493c6ab5c0e4927dc0fd609493789b40",
+      "packages/ssconvert/src/codecs/biff-write.test.ts": "1b48cd8e924c0e7c4adcd40674eec592ed54824e64100db2708450ce2ec2dd63",
+      "packages/ssconvert/src/codecs/biff-write.ts": "caa89ec6b606d086c74980fa4504c3797f2a33818d75b1bd25851a0fd8a3d938",
+      "packages/ssconvert/src/codecs/biff.test.ts": "90935905fb945c80460c4eaef279b72a8febd9252376f75148e90c3f3e07c1b7",
+      "packages/ssconvert/src/codecs/biff.ts": "7acb2af8e03759fb128c41f3c2b58fe17c83554a276938d3d8cb1fdfaaafe792",
+      "packages/ssconvert/src/codecs/command.test.ts": "e56aeef84d73a693968160ecc6bf460ae064efa718851c975a4767595a7a5218",
+      "packages/ssconvert/src/codecs/encoding-regression.test.ts": "38fb74d773d0512f59189449b3184da8d967176608e583cc72255708244c3336",
+      "packages/ssconvert/src/codecs/export-options-stress.test.ts": "43643997619920acc7def78352e1da4b07db477b5fb62f8d0d5a2b8224c499e0",
+      "packages/ssconvert/src/codecs/export-options.test.ts": "549f2493524d11fa2f60a51a0bad1af8ded86c0da51e530a8d5d036302d49d0a",
+      "packages/ssconvert/src/codecs/export-options.ts": "04ad9fb745d2abc8fb0e12bcec886f45ad0c90d24d99ddd4ab586c259a3a55e2",
+      "packages/ssconvert/src/codecs/gnumeric-followup-independent.test.ts": "2e2a86554807163faa866f0b154fc6a7601570eec638a258ae74739b2b812329",
+      "packages/ssconvert/src/codecs/gnumeric-independent.test.ts": "be3b2747a6b4509e2d06c54d0e775f26213b00d01dfc83dc324dcc6c7a263fbb",
+      "packages/ssconvert/src/codecs/gnumeric-number.ts": "1d934c7f2ea2c654a3cf71cbd665ef6d8617e06b807c72faf21b173e69a92d99",
+      "packages/ssconvert/src/codecs/gnumeric-schema.ts": "234a1d34af93987feaab3d83b0121d1c58ddf86630accc3db42749073f902c3d",
+      "packages/ssconvert/src/codecs/gnumeric.test.ts": "af53180e0ae4e8945749e71828926925091efcab0210ac87a6397a9a400df6d1",
+      "packages/ssconvert/src/codecs/gnumeric.ts": "fe79c1e70e78fa96dc93cfdbcaf89a71022eb1d2e9686eb6952fb3529ca60720",
+      "packages/ssconvert/src/codecs/independent-stress.test.ts": "3d56e9ff034776e117b23e190877c780ef03f7a1db607704f1fe250b77a52f4b",
+      "packages/ssconvert/src/codecs/native-text-charsets.ts": "ed144eda7075190bdae01d482916d1cfc8fec1b1cb7921b1dc0393548efa953d",
+      "packages/ssconvert/src/codecs/ordering.ts": "8a5912eac1b684e56e537b62d67db317b535342057598bf2b1630f5d55c3ea32",
+      "packages/ssconvert/src/codecs/provider-discovery.test.ts": "09a4232c3b9d403220ff7e05b596837828a7f994eb4733bd10326bc7d84d535f",
+      "packages/ssconvert/src/codecs/providers.generated.ts": "5e2e50dc9234f93264bab9ca1a5f70568d7cf9db77b3af0e3277cd8b8c61e380",
+      "packages/ssconvert/src/codecs/providers/applix.ts": "490a9cafc10ade92c8bb7d9f8f1fc660df40df802ad6cb8b2f551292ec4e0b3e",
+      "packages/ssconvert/src/codecs/providers/dif.ts": "0fa8a17f1056ec1fa419f588d73b004f49242f2c913f3e9c6f3fd3310aee7762",
+      "packages/ssconvert/src/codecs/providers/excel.ts": "fb6f1d332e071f2cff5a7aab3ba6925bf9beca0dcf898862520e4b2e901999a4",
+      "packages/ssconvert/src/codecs/providers/glpk.ts": "0e1246d21d553328fbd7f97560fec40655138d305e6fe720e8157eff07decb36",
+      "packages/ssconvert/src/codecs/providers/gnome-glossary.ts": "894b8fb8b76ebb0461267ada26ef7a63dd21e100a31bc3264b3d1eb6f28cb58a",
+      "packages/ssconvert/src/codecs/providers/html.ts": "a447a3f1fb488e17fbcc7491868ee6d8169b1654679131b0b01f9d9b063bd569",
+      "packages/ssconvert/src/codecs/providers/lotus-123.ts": "fa67e29e40926e97ba2e1c3c1cfdeee8d0576cb965f55ad57011a64ce9625034",
+      "packages/ssconvert/src/codecs/providers/lpsolve.ts": "d5675a70c6d66f3a0ee0c19bd5d459b47839aaa263f686655e51ee547b18bfc6",
+      "packages/ssconvert/src/codecs/providers/mps.ts": "552291602ea0645ef12dbb09d37b9bf24fdef3cb56e5ac5d0e663bfedc0c6f9a",
+      "packages/ssconvert/src/codecs/providers/oleo.ts": "c72875677d6dae4f27acbed8040cf9cad76ed1843d31f6181f7be27fb0cb796b",
+      "packages/ssconvert/src/codecs/providers/openoffice.ts": "a68e3312cac7661fb0cb6d4d3305a2a58e1ef35905c083e6782b007bc866e223",
+      "packages/ssconvert/src/codecs/providers/paradox.ts": "0a5c75e93f468e831b8ea3e174b424d0406fd8756d5fbb21d6b735b5b2252480",
+      "packages/ssconvert/src/codecs/providers/pdf.ts": "b63c061626a88e9113c35457d5be353ecde15fdb96aee571b6d661433b7e64e8",
+      "packages/ssconvert/src/codecs/providers/plan-perfect.ts": "352759a30e0638d928eaa1fc82f039c705eee931f13330069ed03a5ee411716d",
+      "packages/ssconvert/src/codecs/providers/psiconv.ts": "4b1a760d88a9b2be35795f4387ce14123165ec5730f36463b3a6d85ad208f6eb",
+      "packages/ssconvert/src/codecs/providers/qpro.ts": "8d7df3d76479016372d37f526c80c4a05e3aaa1f095b1404aa2ecd9bfcbba2d0",
+      "packages/ssconvert/src/codecs/providers/sc.ts": "a4abdff87f6cda13e434c61881ad201461bb8deb8916fdf4bec870def65f39b4",
+      "packages/ssconvert/src/codecs/providers/stf.ts": "94760c56ab92a377e8ab8632421a5ecccc133088bd2a3ab547f7c13afe7792e9",
+      "packages/ssconvert/src/codecs/providers/sylk.ts": "33e9081ab11cc6c8cb85ac9a63adb6bae9c202bb3b6bc41653aeefbdd9bc9a62",
+      "packages/ssconvert/src/codecs/providers/xbase.ts": "6bfc70b2efb96ab5479f7a3bd5f86cc12cb7e2fd0a9c97030505d3e0e347a9fd",
+      "packages/ssconvert/src/codecs/providers/xml.ts": "19d1f04fa382554e1dedbfc3d232433bb80dca3a7fdb213ba2048b609647f32f",
+      "packages/ssconvert/src/codecs/registry.test.ts": "a68fbd8b58e1d3d13dc495560142e3afa5a3173d7a4d8acdb159e992dba14f30",
+      "packages/ssconvert/src/codecs/registry.ts": "39ec51abadc0eaff3dc32da4d75c89cde9ef737755506b98f48d780351e3cd5b",
+      "packages/ssconvert/src/codecs/text-export-boundary.test.ts": "54a47373681ebc6aed353f555c934da7d378fe232eed22c6f1853c04791a7d4a",
+      "packages/ssconvert/src/codecs/text-export-independent.test.ts": "0c51b3825e529269bb7b666461b983101d107d9d36562fc10f8ca7c20404ce77",
+      "packages/ssconvert/src/codecs/text-export-stress.test.ts": "5dadfb06d0aba15e7635ee726f26115e6ed855c7ef1c645f2f39347da7190128",
+      "packages/ssconvert/src/codecs/text-export.test.ts": "04af2509ec3ef13b4c8e2d2a9b5c52bdf022a56e759929687eed3a06523e2806",
+      "packages/ssconvert/src/codecs/text-export.ts": "ba1c58ff83a921b9f1d2b331f10cc1469b74f785aa5b9df8cf912ce7c769ca18",
+      "packages/ssconvert/src/codecs/text-independent.test.ts": "871484fe14c0f763e9f58bcd633988904b211c922e5fe9ef3b05f6e0d8eccfe4",
+      "packages/ssconvert/src/codecs/text-sampling.test.ts": "e476c8a775abdf0cb942bc77b8a625cdeb006f5898c7a77a960f40bafcffc954",
+      "packages/ssconvert/src/codecs/text-stress-current.test.ts": "acf5b3875635d632823b23e5f2c639823a4bda3a27e95418f838da7cf01e703f",
+      "packages/ssconvert/src/codecs/text-values.ts": "c9acc06102071a280f2142791933bdc6db15749adbf48a9b19e2782bf38e8e36",
+      "packages/ssconvert/src/codecs/text.test.ts": "8503e657d3c3a4ca551feded086385a503b82c408524cb0343f9d87d8468e232",
+      "packages/ssconvert/src/codecs/text.ts": "1480d361fcd81c0d1743aed025a9f081144bf7f8488cf0c2d449cfe4419eff32",
+      "packages/ssconvert/src/codecs/types.ts": "ca654c556bac81e265d4d85205d61847543a50bcc3fdd963d1765fc848121ab2",
+      "packages/ssconvert/src/codecs/write-failure.ts": "8cb4482e6d9b0c6fc8aae8fded19a2ef93a2640201ed2911f0eeb34273731eac",
+      "packages/ssconvert/src/codecs/xlsx-current-stress.test.ts": "384be86b3c661efb11b673fe4f4ec363a699ec275820f2bf545504488df8a97d",
+      "packages/ssconvert/src/codecs/xlsx-independent.test.ts": "41c9dd0bdbe54d4589500ba1a9f3b3886ddd5e29440f19d750e32a57764d413a",
+      "packages/ssconvert/src/codecs/xlsx-metadata.ts": "0742fcacda4086172516e4ac3eaa6b684419ea07d12f97faa15ac25b201729cd",
+      "packages/ssconvert/src/codecs/xlsx-schema.ts": "de066a30331c194c32320334617fa025415d93cdd76920a806f8e1647e8daf27",
+      "packages/ssconvert/src/codecs/xlsx-styles.test.ts": "1c8800ada110b26d79962b321c8838e07acbcfc48a60dd96db76a5a693fe7258",
+      "packages/ssconvert/src/codecs/xlsx-styles.ts": "d7d1a1713fbd272027ba469068d6382e5547e36eb72e7228081a9bbcbe6165b4",
+      "packages/ssconvert/src/codecs/xlsx-write-filters.test.ts": "c24fb4c5a86cbe6bd9fb48b6ba310656787e43a336c6e86cd8d06fb583e8a3b2",
+      "packages/ssconvert/src/codecs/xlsx-write-followup-stress.test.ts": "0271c2827f5b9628d40741cf418abec2d19836e0eae4be6cc72b4ae0a1dfc88c",
+      "packages/ssconvert/src/codecs/xlsx-write-metadata.test.ts": "080442be93702fce6a1d8160c85329c184b4eeeb6506fa216e9b6de388219f58",
+      "packages/ssconvert/src/codecs/xlsx-write-metadata.ts": "27b2689cab82d567ac82b6d8087e21643d7af4468ce18de107b8e07d88a0f41f",
+      "packages/ssconvert/src/codecs/xlsx-write-stress.test.ts": "bf9750c82c56083feb9789cb82466bf2261eef5760c0f6d4d865ca9bbc14caf5",
+      "packages/ssconvert/src/codecs/xlsx-write-styles.ts": "44451d605de8d7119372df7c4e9b024732df0c2b3dcc800877ab4efa97a3945f",
+      "packages/ssconvert/src/codecs/xlsx-write-support.ts": "4a2cf4fdc24a2ee729fc1f8d7fbaac8b72bc03238dc5f07bf4e2e5565a59d34e",
+      "packages/ssconvert/src/codecs/xlsx-write.test.ts": "3e4ac0271a2d39be5af5dee03b57615a0924ecfb48b63905f09be79b25990066",
+      "packages/ssconvert/src/codecs/xlsx.test.ts": "cd16aac8f16f99422022e2c0e18608922707191f47450d21d463c6ffa149e91e",
+      "packages/ssconvert/src/codecs/xlsx.ts": "8f8e7d83d71d82f1d190a22782f0d612163c82743d149ad94f7baa5677729b3e",
+      "packages/ssconvert/src/contracts.ts": "e294a1daa735ae0eefb75302b0dd80317c5ea52ae4325fa805ee1e8885b41340",
+      "packages/ssconvert/src/conversion-lifecycle.test.ts": "d86883d2818fc52e87b802480ffd327426a9924001879c792c92d36b3d64cb7a",
+      "packages/ssconvert/src/conversion/c-number.ts": "8a0b630b98e0c1bc972f7bf1c4da123e40083425b4cf0bc53d080a6869195f84",
+      "packages/ssconvert/src/conversion/image-options.ts": "ec6a62b777263fd928ea177f12f51feb2c64cf442e5501ca312e8851c8a053cc",
+      "packages/ssconvert/src/conversion/independent-stress.test.ts": "e25728bbdc548a0637aba0174e3662da6a3d5d017dd3aa0e4499c97276591773",
+      "packages/ssconvert/src/conversion/lifecycle-followup-stress.test.ts": "a7b6be93b58c4016b86b55d5f532e07f5b09e87a14534ce71d762cbfaffaf17f",
+      "packages/ssconvert/src/conversion/output.ts": "b9176ef721eb09a96d58c7057dd732cd0946e13170a3bf278cbb6d30ca6440af",
+      "packages/ssconvert/src/conversion/resize.ts": "b0cf2ecb3de38066d8cec13ce21e650e552bd92e19427840e29b2e1a383780a3",
+      "packages/ssconvert/src/conversion/sheet-range-independent.test.ts": "169ebed3db1f1c2a5e6576cebf9cf9cd7e236d6b9ceff29f4af4d10b7a9aa6e8",
+      "packages/ssconvert/src/conversion/sheet-selection.test.ts": "e5712ced77cd5609bd51d96b76bbbe57c7a2776b4a817248994a7b559211efa5",
+      "packages/ssconvert/src/conversion/sheet-span-followup-independent.test.ts": "48bf19b1dff56c849fe764e28413036bdb826e55b9ed63c82acd2797bd714bd9",
+      "packages/ssconvert/src/conversion/transforms.ts": "249b8972441312f0cacf85c4a2da8807aebeec843a4d35885ea70dc7189430ef",
+      "packages/ssconvert/src/conversion/updates.ts": "a9395e81094f6c77f5de8ee7e10c9f0dd7166c974c32f15f87bc11c5fa6df90b",
+      "packages/ssconvert/src/encoding-budget-independent.test.ts": "5ebaab4f8234f6e8edecb756a7c045d9c2d90bc19fedaa7c382ccf4e4bf85a62",
+      "packages/ssconvert/src/encoding-current-independent.test.ts": "b68a1ab8608454a5bf92d08b1d3861e7e69fb65ed0f8c7dc4d10ad1eff6012c3",
+      "packages/ssconvert/src/encoding-independent-stress.test.ts": "57abb93892f08e4dcd34d2138a86c0fa04c226801892822718f8051a242f9c36",
+      "packages/ssconvert/src/encoding/biff-dbcs-tables.ts": "1a7e4561f6e8082926a0f8dc4b58a2653bf846fb41f8d7ea6b99d9b01a44cccd",
+      "packages/ssconvert/src/encoding/decode.ts": "48c001087a7ab76020e24932ddb5054b835a9320875cd8c2f7dd51d34e2ad1bf",
+      "packages/ssconvert/src/encoding/encode.ts": "7c532287fbd0b7cec2d359da49be6afc8554617604903ab3f8c45444dd784556",
+      "packages/ssconvert/src/encoding/import-capability.test.ts": "96bc9ad7cb35aa86c56fc42d2ebe408a39bca8b86c4ad1af562eb4261bcaff72",
+      "packages/ssconvert/src/encoding/names.ts": "6d3a6c18c5f7b8b07af1686ff16b07bff82b4ead21f3e7aa01b589ca458d5509",
+      "packages/ssconvert/src/encoding/native-differential.test.ts": "6c756ec1bbfd82b2926d5f349e3ed34429762a36062a3097fe307f91e5712589",
+      "packages/ssconvert/src/encoding/tables.ts": "a13bbb840cc5a3783b4abd13cdfafbeefd224eadf8c3403167743da394636ff7",
+      "packages/ssconvert/src/encoding/target-transliteration-tables.ts": "e9e8dd29205cd8486b438f5140d536ce1b593c5536be43297ab6dd366d4ee055",
+      "packages/ssconvert/src/encoding/transliteration-tables.ts": "c1495774dfbadc2cdb2200193b424ba5bf06490fd7e0bb186a1a7fe8cb16d301",
+      "packages/ssconvert/src/encoding/ucs2-transliteration-tables.ts": "4a6d9f35717da11b8e588918c96b6d275b4339817d6bd622247dacbdf4c615fc",
+      "packages/ssconvert/src/engine.test.ts": "4ed73b5a35c262c7fa5b133be8c17cdf3e1f4775c4062bf3bbcbb7f068df4966",
+      "packages/ssconvert/src/engine.ts": "a2fbfd957179198fe53951f7870beb226fad0dea6c6f49e845bf8f29f81d9bb0",
+      "packages/ssconvert/src/formatting.ts": "6e972061b82929db6a046b494ac7ee5c354281ac6618a79d350c9d938dc37f18",
+      "packages/ssconvert/src/formatting/cell-text-independent.test.ts": "ad305d0c302bc8a672a18cd859a708845206f1c028ea0e8905f9596a09dcb74e",
+      "packages/ssconvert/src/formatting/cell-text.test.ts": "44bef1086a03131934fde95aae006c37f0df901912eda65188ba676e91695d73",
+      "packages/ssconvert/src/formatting/cell-text.ts": "12b188071e2739ad11043e09a9e451ce8bc108e79eef71ebc00516bed79dc2d1",
+      "packages/ssconvert/src/formatting/independent-review.test.ts": "cc062391b82e3b1f35e9694efba8bc55445ff803bac39c60549360e52b59c25c",
+      "packages/ssconvert/src/formatting/locale.test.ts": "1f488ff7a14b42ebbfbb7b15aff0f7361d5cbb4d5ae9adbe2509292174e7caef",
+      "packages/ssconvert/src/formatting/locale.ts": "6a0ee6028f81d0dca75cd21b77b776e67a37273b31cb9ba8b6dc014d8c398907",
+      "packages/ssconvert/src/formatting/number-format.test.ts": "0d2137dd7bf48c759b8c743a551110f102b326bba742178137974a6239e34727",
+      "packages/ssconvert/src/formatting/number-format.ts": "399bc8930ebc07d000de6523675d49347542ce8ddf181eb451c81d0aa6239413",
+      "packages/ssconvert/src/formatting/numeric.ts": "4ac84bbf6c79c29178254e1c3107b9c340d6673f813c8f00cc44f0a904bca07f",
+      "packages/ssconvert/src/formatting/scientific-precision.test.ts": "64389082c3017c736fb29f44c7d9c21f05f89b00960ebf5cbae54c6a94671058",
+      "packages/ssconvert/src/formatting/scientific-scaling-independent.test.ts": "11ebbade99056a6a5d2639cc0292257e15d2f6197f009ef9796a119b139331c5",
+      "packages/ssconvert/src/formatting/sections.ts": "bdd08bea755605c6e167ed0a070ac8e6f0189c6d786bf7a9f1cdd5a48ad22308",
+      "packages/ssconvert/src/formulas-regression.test.ts": "b4bb50374b73df029c10a2c61628b4759e0bb6937af560f4d18a13face1d6879",
+      "packages/ssconvert/src/formulas.ts": "e5264b4431e08812406514d91aecba631f3e4afb986b2ef64218a8d73be932db",
+      "packages/ssconvert/src/formulas/ast.ts": "2965bfa296b53dd3bc534615537191b0b3ff6a6f85cbc44d535a65a05640c0f1",
+      "packages/ssconvert/src/formulas/bessel-current-independent.test.ts": "0f1abc7ef97d2e70950e23d4a3ad5212097e55cfca9e035bfef6e05a3e763abe",
+      "packages/ssconvert/src/formulas/boolean-matching-review.test.ts": "db8943ab88730390a35689dd806fa03a6f94b3a8022d5404500566fb554326cf",
+      "packages/ssconvert/src/formulas/calculation-independent.test.ts": "61589424895f63869092b76f83c370ba06571b2936fa36c7f452b21728c74e6b",
+      "packages/ssconvert/src/formulas/calculation-stress-review.test.ts": "c2ef224da411cd5bf9492c394c20c301bdf046e8a6a0e09837710bab8aefee11",
+      "packages/ssconvert/src/formulas/complex-functions.test.ts": "7b05ed105f4d7709d4cca1326f2b7d2997b5cdaa46788d839150b55359a6c4d2",
+      "packages/ssconvert/src/formulas/complex-independent-review.test.ts": "270f91658b5442a8bfc5122607b2b8098ede5adb3b791887ead991c8c5fe19bd",
+      "packages/ssconvert/src/formulas/complex-scientific-independent.test.ts": "bd6c9e377c6ece0c2e38477345243d876054877b5f5d194be2ddfc0277c029bf",
+      "packages/ssconvert/src/formulas/complex-scientific.test.ts": "aa0286d4f214654c3671a273208b10783cbeca2a9ea5dd77546e6d62aa9a60d7",
+      "packages/ssconvert/src/formulas/conditional-math-independent.test.ts": "33a85348a470eab2e6acdbb34b020a97e3db1c0dbc9447af0d500a6ab62090da",
+      "packages/ssconvert/src/formulas/conditional-math.test.ts": "3ebeea8ecdfb743576a36e800d8ef0bb80dee74b6b8d19da963330e9a3c9d32f",
+      "packages/ssconvert/src/formulas/conventions-independent.test.ts": "1b4bb7f4a1138536a8ea9e04b7af35e18044aba33976185de01f0ce054a8ed36",
+      "packages/ssconvert/src/formulas/conventions.ts": "22e7c0bcc72bee4ca3f0cfc23fa35288820e8eba0cc04bde0980f7d0755162a0",
+      "packages/ssconvert/src/formulas/database-independent.test.ts": "be94229da5862a8348ece79c56787f05fd5b4b62dce2408e74cdb2d244728534",
+      "packages/ssconvert/src/formulas/database-precision-review.test.ts": "235c379aa088933a528101338908d8079044b5d58a18114a9c14b79fe31fdadf",
+      "packages/ssconvert/src/formulas/date-calendar-independent.test.ts": "2dc0deadb215c95a652e44d5a17431977b68dd8af772e84437a30f4f6a3c6aef",
+      "packages/ssconvert/src/formulas/date-finance-conversion.test.ts": "2a8b43b2cff718563c5505d59bc4f5c98c27992f212122ef75fc74e1463b8260",
+      "packages/ssconvert/src/formulas/date-finance-export-names.ts": "f1c35879f8ac969100a1c5829e13bc79b7aa78c7c75cf3c4fc5e91bf5c32d376",
+      "packages/ssconvert/src/formulas/date-finance-function-descriptors.ts": "a8b65969ea5f203a5e72817dde46f62add149cd0148c58dd570bbe59873ddab4",
+      "packages/ssconvert/src/formulas/date-finance-functions.test.ts": "e7d5e143cec9284a2d968d9b3890ae9dd6f0657e32a993069a005d1f515dca3d",
+      "packages/ssconvert/src/formulas/date-finance-inventory.test.ts": "cf64171745c3d5b453e50dbed33c82a7021cdcd8f7b0b4b909acec83ffe17611",
+      "packages/ssconvert/src/formulas/date-finance-stress.test.ts": "7d757c44adcce49e69aae04ba33c37ffb4f15dbfb8ecf781a656708b2f82f204",
+      "packages/ssconvert/src/formulas/date-text-source-regression.test.ts": "76c99ea9b72fa5d2272a5dc9af999a65e2e3df4464eb2a12bac3dc994e26763f",
+      "packages/ssconvert/src/formulas/dependencies-independent.test.ts": "d366a5584b65e117bc3ee9c8697883dfbe829c1de7a3bbe9a2001657885f612b",
+      "packages/ssconvert/src/formulas/dependencies.ts": "3a360acc3c5ebe8758a7cec25b2638e4a5adc4ef368edc4d22b4b617880afc10",
+      "packages/ssconvert/src/formulas/derivatives-functions.test.ts": "a280fc745620eadce17e921e7746f1138548c584411a2d06ac91db17547c2f28",
+      "packages/ssconvert/src/formulas/derivatives-independent.test.ts": "71fc262a70bf0089c8d570235db010b1a7cdb7753937967f10720b0b7c13774d",
+      "packages/ssconvert/src/formulas/diagnostics.ts": "63bfef1fff3a77f53df56baa0f27869429f46154f215bee242af67dace559847",
+      "packages/ssconvert/src/formulas/engineering-extra-independent.test.ts": "f0f6f1c682ea7403b695c843f2f4ac7b72cfad3d933041732928c29d474c20bd",
+      "packages/ssconvert/src/formulas/engineering-extra.test.ts": "9bddac12005eeadfb445e0acf0b095c565846856d4c5dafded7ab1796e3ba381",
+      "packages/ssconvert/src/formulas/evaluation.test.ts": "c2a5c15c9d2361c417a02aaa1344358ac8fcf04842878acf8a12d63a6aa034fc",
+      "packages/ssconvert/src/formulas/evaluator.ts": "458c43a7a89a6c41847ad41e9d6e76d0a3f5f66f3b40282f6377b861202d4763",
+      "packages/ssconvert/src/formulas/financial-independent.test.ts": "3a4f306b5aad7e44a94c222239fcff3b52b2d1f1e28814548f80c89dba90e491",
+      "packages/ssconvert/src/formulas/function-contracts.test.ts": "09e84488f4ef08edd755a4726f804154ddbb21411ab7aa5122e1ff81c5bf8cb0",
+      "packages/ssconvert/src/formulas/function-descriptors.ts": "8fc95f719122ec644e0dc9cc6fb4d8143912bfff84312180bb6974255e452d13",
+      "packages/ssconvert/src/formulas/function-export-names.ts": "c492e683a5b2df5c16083ba5ee6ccb6dc7618ce8ea0a4d6d9587ba0a883c01cd",
+      "packages/ssconvert/src/formulas/function-inventory.test.ts": "b414f1623fd045506710ef83e3dfbd5ddc4f491dd68e2da70fe7a25dc1ebd772",
+      "packages/ssconvert/src/formulas/functions-regression.test.ts": "aed6dab476d7f3ce1f51163bfa92f3aff7f8acb7fa8319686ab7c9a51776b857",
+      "packages/ssconvert/src/formulas/functions/calendars.ts": "1ccd76504cfe3c7342eda669c14c9c0bea48780c180e8bf8c39a0e5bdb64c6b4",
+      "packages/ssconvert/src/formulas/functions/captured-bessel-i.ts": "49b2c34036bef7ae728b9117d3bea231d8625de1e15f418424ad8768375a3d05",
+      "packages/ssconvert/src/formulas/functions/captured-bessel-k.ts": "16007b5f49a725d057c01562c6f2d3751b71744c10e91c6fcba3585fc31bf20d",
+      "packages/ssconvert/src/formulas/functions/captured-bessel-phase.ts": "f04f3f3702c283188f6ec40104e5172b7065371c0e98d4cf036fff4f62458fa8",
+      "packages/ssconvert/src/formulas/functions/captured-bessel.ts": "5d729901cb1ee39ba78c5736565c5aae695b92247540f9e90d62db88ad42f75d",
+      "packages/ssconvert/src/formulas/functions/captured-log1p.ts": "3047fbff171e0a943a42c0348985a9e067219427b887d8ddf970db05c5ca7866",
+      "packages/ssconvert/src/formulas/functions/captured-trigonometry.test.ts": "e19055d9d39c493f079575d9f2153735f2ee0abd76d7ec6a10203b0d3a58cb4c",
+      "packages/ssconvert/src/formulas/functions/captured-trigonometry.ts": "c44506cb46583c1e1170fac85176ab418790b6fd9a7b09a67e5ae4b803e3d6c9",
+      "packages/ssconvert/src/formulas/functions/common.ts": "65321bbc9f89087efa66eab1ef950f390676a35dc52076e29272826c0aa38796",
+      "packages/ssconvert/src/formulas/functions/complex-scientific.ts": "85e3fa915f9a1343a18335d0afcf4dad5ef4027ec7c2f995b527de05f103062f",
+      "packages/ssconvert/src/formulas/functions/complex.ts": "7aade72af8c0e0a84e65da22587d4470c749187a3ff69d57a77903629bbd8256",
+      "packages/ssconvert/src/formulas/functions/conditional-math.ts": "66612ae719ce2b16f8d8271d15c16d7fe1fa33821779e62a8e3728df5ffd4de3",
+      "packages/ssconvert/src/formulas/functions/conversion-units.ts": "a0f6b1f10ec681ac2c8b37e289446a44e1680b21de527e3fe70b9367c8d27292",
+      "packages/ssconvert/src/formulas/functions/database.ts": "ad88505900fc242a9c7f130e95b9643a6aa708d3f4b64c2ce1722f026bafaeea",
+      "packages/ssconvert/src/formulas/functions/dates.ts": "b0ece782354ae46a2f9785fc096ceea4e7221e72849f50178150c3a6c4fb6d1e",
+      "packages/ssconvert/src/formulas/functions/derivatives.ts": "f030a251c78dcb6a57894e3f402aa8ed95eacab771b298a90d8d9a30bcd0ddb2",
+      "packages/ssconvert/src/formulas/functions/distributions.ts": "de3a5572e68ff1c9026b63b806093e324020b96ff9e2e079bf3e4861989fcc35",
+      "packages/ssconvert/src/formulas/functions/engineering-extra.ts": "8f1263725c5befcbe14a8c4638537335bdf0b7a3360d91e20148e4a5dd9b78d8",
+      "packages/ssconvert/src/formulas/functions/engineering.ts": "808998e39aef4b9289f2b200cb780a36b7f1cac63fa7003644a2a5118f56e08d",
+      "packages/ssconvert/src/formulas/functions/erlang.ts": "882a4672518827b9457d88d1cc4a528b841590c8f0f2d1c605528b79e0d04186",
+      "packages/ssconvert/src/formulas/functions/financial-goal-seek.ts": "400ed0be9f2c8dcb47da94994a8bf0b04c2bea1822ea2708fdd63318eb6a2876",
+      "packages/ssconvert/src/formulas/functions/financial.ts": "3d6b59e4d8f2fc94d79155e78d9fae15c1c39478b5b2e40733148189ac9e5150",
+      "packages/ssconvert/src/formulas/functions/floating-point.ts": "0029bdd1f6cdcbee4fd3dfe73b959ca71770a448e01dc6284df9e5bba13f580a",
+      "packages/ssconvert/src/formulas/functions/info.ts": "16e203201cde80291d3a523ebacee7d424a5bb862f16637bed9209f7d051f77e",
+      "packages/ssconvert/src/formulas/functions/landau.ts": "7115f8bffa9e108b115b8985d3d0e84a4b158172eb0bd727baf57d417cf4dc4a",
+      "packages/ssconvert/src/formulas/functions/logical.ts": "988dd8151f7d52c4000b6ac5ddba494c602bb61fe359b190e5aab57e2a73948f",
+      "packages/ssconvert/src/formulas/functions/lookup.ts": "3c1bd1254051a6c0ae7d12deca6385317a768a8ff28d0a85eb600a5b2e0d918d",
+      "packages/ssconvert/src/formulas/functions/math.ts": "3fd7f6097619b6cb0670f320cf88cbc9158f92d3202c54c49d598a2294c27e2f",
+      "packages/ssconvert/src/formulas/functions/matrix-qr.ts": "e844d52eb0f9b5db65662fcb6e1abf07a5d53a57c30162f60e975e7447be96aa",
+      "packages/ssconvert/src/formulas/functions/matrix.ts": "8ceef381e96aa3d250814c7c80a6726aa36a2252ffd95c6fcbe7a5f7c5ed6410",
+      "packages/ssconvert/src/formulas/functions/normal-distribution.ts": "6b769f65f329d98718cc4b25a21a8f10a29f8fbdd6cbb8cd5b2e67713134f290",
+      "packages/ssconvert/src/formulas/functions/number-theory.ts": "4045f906d1c989f3fc80f51a5928047e6389149a054eec1f703b5fe1c25482cc",
+      "packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts": "57e5aa291a33b9f8cb8a35f31849a40d15fadaeed94fd2ac6d1d7f498f704718",
+      "packages/ssconvert/src/formulas/functions/numeric-arithmetic.ts": "f222df962ce910644e5f3d960e7f9dfb93153df6e2d2b4a7d1903d3536378460",
+      "packages/ssconvert/src/formulas/functions/probability.ts": "acdacfe272bdfb10f256c65434b2e442a747fc009f6a502e1750540285e6851e",
+      "packages/ssconvert/src/formulas/functions/random-source.ts": "10a0d34adbceb62201fdc7583c3890d92f2a8d4f7a75a35b204072af33f0e231",
+      "packages/ssconvert/src/formulas/functions/random.ts": "643db6e377fad76bbd44bcab3583535fc4235ac2de06399767ec7c9ad2f5515a",
+      "packages/ssconvert/src/formulas/functions/reduce-pi.ts": "fedea1fc84a4177f2418744de4a8babdc14ae241e8b51242abdfd08a9b9ff011",
+      "packages/ssconvert/src/formulas/functions/registry.ts": "43cd1d21b579cf793b8ab1f28744eb64fafcf715cc10c93edc6d2c6f3fb26dcb",
+      "packages/ssconvert/src/formulas/functions/roman.ts": "de917055700a6096d805ae64ac4bdd9591ded09a905b05c3dc7e4a4f4202fe50",
+      "packages/ssconvert/src/formulas/functions/scientific.ts": "7d130b1ddc0bed7279fcd1290061842b5a410807eb4fc8734c778f49f8ce11ce",
+      "packages/ssconvert/src/formulas/functions/special-numeric.ts": "fcd6292e3392e387e61cc761c73d19adb9910ba1c306f8489d2426eac02e22a7",
+      "packages/ssconvert/src/formulas/functions/statistical-regression.ts": "945b1c5b0cc58862f7553786c4df43d3485ed6a817f274df9ead631f5f3b07d8",
+      "packages/ssconvert/src/formulas/functions/statistical-tests.ts": "a75c8576809a25f26e504a25aa6c76263c21130bb3905deec9ddb525d566909c",
+      "packages/ssconvert/src/formulas/functions/statistics-advanced-distributions.ts": "fc2e02a0e4b76337459f2e9a4512fa8ae7f6b61f4028b0bdb03e073e8de9fa25",
+      "packages/ssconvert/src/formulas/functions/statistics-beta.ts": "b0382a95c20ec0c8c46b128be07c860f7b15f85052d00141be8ec3968b9f3733",
+      "packages/ssconvert/src/formulas/functions/statistics-inverse.ts": "d34a41a0f81a938d88cd05666a7d5f78f472f776657e4c1ed929bb73e7664e25",
+      "packages/ssconvert/src/formulas/functions/statistics-range.ts": "8bd11f98e27a3a7de43b937d66c6bdfcaf798d0b81060983fc554170bbdc3322",
+      "packages/ssconvert/src/formulas/functions/statistics.ts": "bfee4191c98a4db62aa22ba9d78fafecb01bacf2100a619ca363ff808c649d2d",
+      "packages/ssconvert/src/formulas/functions/text.ts": "b3125b27b9daec894ca9a33f45a461c90f0a52d46c3aca623ecd9414cd8eb4ed",
+      "packages/ssconvert/src/formulas/functions/time-series.ts": "ace65c02f9adbf766fd06b12885a48c67c6f16a01fc2320cb042e35ac1f4b266",
+      "packages/ssconvert/src/formulas/functions/types.ts": "0c2af066a3e60e9f1a79ba795d632f9c39bafaded1ccb416e1fda6a0506cc83d",
+      "packages/ssconvert/src/formulas/functions/unicode.ts": "ee38a0083dd027aa318b1716a76144c36d813d585552cad4df7b8ed700ba4841",
+      "packages/ssconvert/src/formulas/gamma-current-independent.test.ts": "115ecd485293a2cb7fbae16ee4cb27d5d684f75ba30e02af362e14748cecd80a",
+      "packages/ssconvert/src/formulas/info-independent.test.ts": "466f9499e15a181de45fdefd3f2862dea9ff43f60e26292240e0420b43fccf31",
+      "packages/ssconvert/src/formulas/integration-boundaries.test.ts": "fdf9214ee5ce3029b890f059df04c424d8ceed4024c8047f3b765fed8f4fc378",
+      "packages/ssconvert/src/formulas/legacy-independent.test.ts": "a70216aa4cd20be0e7b510d8cea406e5c45d03f171959d836d3e765563ffed66",
+      "packages/ssconvert/src/formulas/legacy.test.ts": "6f7b7e7879edf7b524954bc6bf529fc5e7caca2eb7a671b73a9a0c450440555b",
+      "packages/ssconvert/src/formulas/local-references.ts": "f029f97ad7895cf28461d52c8bfc2ea607875c4aae6679ac3723be03b9676ee9",
+      "packages/ssconvert/src/formulas/logical-independent.test.ts": "4fa2aaf5f001366e05558bb21679d604d2ab08f5e052de4589da2d6bef5da93e",
+      "packages/ssconvert/src/formulas/lookup-independent.test.ts": "10ba9bcd484bbda19fc00f5381b18d1a9877a51300f59a54228c97f7adbbd427",
+      "packages/ssconvert/src/formulas/math-functions.test.ts": "225d89f9bcf3a8fd1968e828dc2c70be1bdfa5e7cf666bf1974f2df8d21a7a64",
+      "packages/ssconvert/src/formulas/math-independent-review.test.ts": "9bfa82087d9694cd4ab003355ac9a232290202bf4a1e37043aeb900e3209e081",
+      "packages/ssconvert/src/formulas/matrix-functions.test.ts": "39939612f4635f3b29c4b8cbe5ef9788d409932ce6a2c33401887cd3b9e7d413",
+      "packages/ssconvert/src/formulas/matrix-independent-review.test.ts": "6b44c4127179de2c8bb5a67199383c093257d004b5f085f17bd8265793dccc25",
+      "packages/ssconvert/src/formulas/number-format-regression.test.ts": "a2fdb445381cc03ed52b301a5b23a755718b7287691330419b45c9726065ed47",
+      "packages/ssconvert/src/formulas/numeric-current-independent.test.ts": "c724b0e323ead3b792adecd4d6b146a4bb41822bce6e47e7cbda4d88f16e4f99",
+      "packages/ssconvert/src/formulas/numeric-diagnostics.test.ts": "cf749803ffe7e76150b42b708029e4182e62653b353d9b39a09d3884c3cb6e6e",
+      "packages/ssconvert/src/formulas/numeric-excel.test.ts": "4b7bb484fc49bcf2b551df12d4aab7ee7eefc77d9491732863d28b878e214102",
+      "packages/ssconvert/src/formulas/numeric-function-descriptors.ts": "807ee034b41e7d88b756de1fc1aa61229567e8992041d0a7929bf9b18260a1b7",
+      "packages/ssconvert/src/formulas/numeric-function-inventory.test.ts": "6231b745304a383b5669536e8474693249c14be5d12b433f59c12824f4e1b1c0",
+      "packages/ssconvert/src/formulas/numeric-functions.test.ts": "dbe30ab8555b8fc5fdc9349483483f590eec0cf5ca44bb3a94e5b607eafe4c28",
+      "packages/ssconvert/src/formulas/numeric-independent-review.test.ts": "4c2eca3d206d2663e1d8a947da7f2b1d9169c352d0808582a83fd3de0b856bdf",
+      "packages/ssconvert/src/formulas/numeric-native-writer.test.ts": "5a5d4a4c4898462a5f87f0325028a75ff5acac98753938e47c9f59f11b3c3090",
+      "packages/ssconvert/src/formulas/numeric-odf.test.ts": "30c1f5200b5751a620690f87ef4e22e61b3974d41418268dc859bbc53ba65537",
+      "packages/ssconvert/src/formulas/numeric-table-regression.test.ts": "7bccee711d15490875b66e99ee276305d46f02f2e9f017bd03b0ef2a65de8705",
+      "packages/ssconvert/src/formulas/odf-independent-review.test.ts": "3c9a202b5bb2b20525472ee203f0d85ddb10d890f42d89ad6b7f3d887601d160",
+      "packages/ssconvert/src/formulas/odf-sheet-regression.test.ts": "6f970546a875ceaa5b753666e528489dba7ce717ffc498d768fd566ed9399a8f",
+      "packages/ssconvert/src/formulas/parser.ts": "61a1e64dd6a1777139d902499837e3cae25981fd40f75a1b8d24242615973613",
+      "packages/ssconvert/src/formulas/reduce-pi-independent.test.ts": "157fb46aac8b370e6014d89e0b36da26e6bd51fe45083963b4ceab0a786edb57",
+      "packages/ssconvert/src/formulas/references-independent.test.ts": "58d1a2e942e772dfb43ef4bf8bc21983c9bf3b60464885012504d3c7dae272b3",
+      "packages/ssconvert/src/formulas/rewriting.ts": "c07aa05f46dc1ba770a3a946e71cd4c1a3462a3243e4c2ed99e92ef57b57e287",
+      "packages/ssconvert/src/formulas/roman-functions.test.ts": "5a08cf32ebe01f1d7e67fba43cdb1bb5738c334284e2f3884cf04768578384da",
+      "packages/ssconvert/src/formulas/roman-independent-review.test.ts": "d7a37f25d521bd23fbee1a493166552f390bd068d20877d51bcb0e4320be22c3",
+      "packages/ssconvert/src/formulas/scientific-functions.test.ts": "8b0ef2adfbf378dec28145ae5fb04113375006ac742a596d886ad26f702ab558",
+      "packages/ssconvert/src/formulas/scientific-independent-review.test.ts": "79afe00f96848b70198cdcc4affed7bdb946dfad830c6c7dd33fc4a012e1c5a6",
+      "packages/ssconvert/src/formulas/serialization.ts": "ce5e8590e6f209da26ba2602923a1089b1df6ef0e631b03ba4397b80d2564e1b",
+      "packages/ssconvert/src/formulas/special-numeric-independent.test.ts": "2e3fa581cf78001ff5592d4cf3492fb6d9ca382303c9a8dc11c2764a2519e463",
+      "packages/ssconvert/src/formulas/special-numeric.test.ts": "d5a0e0f66626cb63b39df831533ad12c2f8d7233428c97fa8a35a9f9f4537866",
+      "packages/ssconvert/src/formulas/statistics-aliases.test.ts": "273280d5e35afb2ac83eead41baa1534b0f8fa0bff4d0006e6841d109c06ef3c",
+      "packages/ssconvert/src/formulas/statistics-boundaries.test.ts": "61258b9d9fdfc5d57d08d03eceae3b266c25de66a61d87d50274893d38742ad3",
+      "packages/ssconvert/src/formulas/statistics-export-names.ts": "5096c58ef98c16ed262be11745e6093a94ded1ddfaf80ce62bb1f54972dbd01d",
+      "packages/ssconvert/src/formulas/statistics-extended.test.ts": "83bd9ac4a41de55af0b9df7f64cf2c2770571401ec4d440e27a101c3e43d1719",
+      "packages/ssconvert/src/formulas/statistics-function-descriptors.ts": "08b495cd10c34c14b1630f9331945703ec0a1a3766485c5d40c41b7d73f15e7c",
+      "packages/ssconvert/src/formulas/statistics-functions.test.ts": "5f62d6c98ce13c27305ca56ba53ba584ec308bec06dcf95784de44a8fefbbeea",
+      "packages/ssconvert/src/formulas/statistics-independent-review.test.ts": "12fa40e9552066eecc9ffb234269a2bcb3fb3d56db03e7433b62e24c64b78877",
+      "packages/ssconvert/src/formulas/statistics-inventory.test.ts": "2303a8d9ad06551681f1f12b9da540281ccf317743236481830ee20062918521",
+      "packages/ssconvert/src/formulas/statistics-random.test.ts": "f8ebbc31d0bb4a69269935494e875e561e090b06530eb556b49c4475c81e4b56",
+      "packages/ssconvert/src/formulas/statistics-stress-review.test.ts": "1848533b11e712427f6fdc827c12b51f8eba9702c6a5725bca137daf5a7ec39e",
+      "packages/ssconvert/src/formulas/syntax.test.ts": "a7ac64b3ddc4fabc0d4bb7f9f969f43a2217033ca8f598a90580b2d06851c4ce",
+      "packages/ssconvert/src/formulas/text-delimiter-review.test.ts": "3677f47755202abbf5c78c7719fbf757454791f27bf3d96e76f69c294c459b6a",
+      "packages/ssconvert/src/formulas/text-format-review.test.ts": "df0c13d9669abec4197e65dbdfe009a6ee91d47090c4c0672f7bd3a3469aca5d",
+      "packages/ssconvert/src/formulas/text-independent.test.ts": "e373dedf3e19bc1c956c45c2235718caa20f0a6779a04da0f671ed2161a149b7",
+      "packages/ssconvert/src/formulas/text-search-review.test.ts": "ef2376d8f1cde8730dfb8f4fdfcd622c56f10e651feee722ffc2296fa2b5ddeb",
+      "packages/ssconvert/src/formulas/values.ts": "cfeba9366118300f754682902b48fc3a5a8a36d686984e852965e4b4b740087c",
+      "packages/ssconvert/src/formulas/workbook-independent.test.ts": "3c2647c50b9d564758f2870213895f02c1e439f28ffe020125497525f6c98425",
+      "packages/ssconvert/src/formulas/workbook-references.test.ts": "80fe311fdc3a4887a760233cff6388f113c3db0f9cec883be0980c63e0f5ceb2",
+      "packages/ssconvert/src/formulas/workbook.ts": "80afbc6e3d71f35b8a7ebb0d992e2faeeff4e4cf0b543e2efa13614e2b423b52",
+      "packages/ssconvert/src/index.ts": "b4ab5fe96f00a35d116d4108f7a0bbecc07b03c4efde339964fbe4cbb9f19076",
+      "packages/ssconvert/src/io-errors.ts": "4411c74f1f2aca79a17fe6bf13be6b8752c7ca57ce7119537a378da3b5fbedfb",
+      "packages/ssconvert/src/io/authority-cleanup-stress.test.ts": "43181911281a679db8605f2dd1a3e21f8c0f75e6cd5942016004a5563dffb648",
+      "packages/ssconvert/src/io/binding.test.ts": "d59bf5780ff03073228126eb1e8f328f9df9069f61c006fa3a4a01d5957a1e52",
+      "packages/ssconvert/src/io/independent.test.ts": "67aa95f4bb62bda9876e6f3616e03dc5b66f62c494e83a6b26b21564602ffc7c",
+      "packages/ssconvert/src/io/index.ts": "ec6c2be4f642fcc67bfd5188756e180cdde5d78c13a64578bdb2d200d70ed97c",
+      "packages/ssconvert/src/io/io.test.ts": "b13e304f370f6df07ed016faa5bc55d59f4ebfea36f680127edbcb0f29e2e198",
+      "packages/ssconvert/src/io/names.test.ts": "cc56ad31a502c2823fcacddce6a32a6c939808eb2cae5ae831d15fdd7a09917f",
+      "packages/ssconvert/src/io/names.ts": "44f87dbf7fc10b52562cdf66203583e434c19aa09c827daf6587da217e9fe71d",
+      "packages/ssconvert/src/io/publication.ts": "12b8fb009cf1835431b50af40de58bc65684d1a553e57bcd3d30672d901ce65d",
+      "packages/ssconvert/src/locale/runtime.ts": "947c45f4a4820b2e40c64d62fbd0ab190e6777dc7f4fb73545a9e30ab9bf743d",
+      "packages/ssconvert/src/rendering.ts": "9dd91fc5acf344799a8ddc83ade6a45ca9ca863f1653dc20843d5af17a66713d",
+      "packages/ssconvert/src/resource-uri.ts": "c3a7620b358c774c08ae65bc1f89b5b31eef69d901fb088aaa21ac159518a5cf",
+      "packages/ssconvert/src/solver.ts": "56b6138314dfc07bc6cc135ef1f16799428bd8ce7a752c6e9768d409e7400f44",
+      "packages/ssconvert/src/stress.test.ts": "9b73521e5fb173f72a82156f0d618fb90257f222e82de58f322726ced1cf8bfb",
+      "packages/ssconvert/src/workbook.test.ts": "3ebb8b83b20195d22ecb6c479f2c5890c6ae7346c883c1987137626d283329f9",
+      "packages/ssconvert/src/workbook.ts": "6fdda8dce453b74660314212017c691d7481dae171818c918ef91eb9f6a2b1b6",
+      "packages/ssconvert/src/workbook/case-fold.ts": "9d54c4bdef0f785adb7dc1db22b3819ec163b063d09c004000c78b3118372097",
+      "packages/ssconvert/src/workbook/dimensions.ts": "cc6c963e16029257dabb0498c30672143e220f4511aa448da5e6566054321c80",
+      "packages/ssconvert/src/workbook/expressions.ts": "42cb92ef4fc71fd0a511d34c1edc3e6604a6908291bf9974c453bd61006d6346",
+      "packages/ssconvert/src/workbook/independent-boundaries.test.ts": "a425ce8689ce5eec92c9f72c489e0265b0f1d3387c69cfaeff6a8d6b04560e88",
+      "packages/ssconvert/src/workbook/merge.ts": "f45f746b35ff8b1b2afbcaeb68e500f6db09fc232a8cc953beac467ebe737b9f",
+      "packages/ssconvert/src/workbook/model.ts": "7280fe070bf233528ceb20525aa69e175640f7ed98a0a3058b248ce8b64af594",
+      "packages/ssconvert/src/workbook/numeric-zero.test.ts": "d69d717370f4fe541acbe3b5885c911a646f328f8af6dd7b5ad85cbe24d77396",
+      "packages/ssconvert/src/workbook/ownership.test.ts": "04481e0d6d3ecdf5c39b06a06e4e97362cdc1581e1cf03ec968623fe9ff94aa1",
+      "packages/ssconvert/src/workbook/range-selection.test.ts": "dc33b014cd59651c2c6790cbbed11591d26ba92802c81849dd3b741ed9ca5a38",
+      "packages/ssconvert/src/workbook/stress.test.ts": "0b7fe0908dcae1273f073cc1461abb9a4dccc655c6df91bddf2b74244d91d3f3",
+      "packages/ssconvert/src/workbook/unicode-sheet-name.ts": "7c80b016f62035bdfb6911a787a3c73cf979488cdfa9cc87562d6e6929650e54",
+      "packages/ssconvert/src/workbook/updates-independent.test.ts": "ff030b85543f5482a3d80b2d1f1459877169eb4e87c06f2514336490b61fc6cc",
+      "packages/ssconvert/src/workbook/updates-review.test.ts": "b5400a3fd5537d99d69af80f5b779bf96df7c6b7663e964270b5a35ca4164795",
+      "packages/ssconvert/src/workbook/updates.test.ts": "3f33b8471b7d469062372ae06c2ebe93b7b68b85a8caf8913a40192f610aede1",
+      "packages/ssconvert/src/workbook/updates/formula.ts": "1504c8e26bbda5090f5d9c203f69771443bb153b3fb4c07354d5d80b8328ecf5",
+      "packages/ssconvert/src/workbook/updates/index.ts": "f25ae7f0091a73717954f17442360f2467b07a957cb97976f3039d08e15f0260",
+      "packages/ssconvert/src/workbook/updates/inference.ts": "085750ee7182e8b07c440876110bb1dac4dc8b49d24a7fe591353b34e356935b",
+      "packages/ssconvert/src/workbook/updates/recalculation.ts": "dde58af804200f526f914719f8447ada81f3192b5c6d1340522b9dcdbd6fac4a"
+    },
+    "verifiedAfterFinalGates": true
+  },
+  "source": {
+    "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "path": "out/ssconvert-lifecycle/gnumeric-1.12.61.tar.xz",
+    "acquisition": "retained primary source reused only inside out; SHA independently reverified"
+  },
+  "referenceProfile": {
+    "sourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "GSETTINGS_BACKEND": "memory"
+    },
+    "version": {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--version"
+      ],
+      "exitCode": 0,
+      "stdout": "ssconvert version '1.12.61'\ndatadir := '/out/ssconvert-statistics-oracle/prefix/share/gnumeric/1.12.61'\nlibdir := '/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61'\n",
+      "stderr": ""
+    },
+    "exporters": {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--list-exporters"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "ID                                | Description\nGnumeric_Excel:excel_biff7        | MS Excel? 5.0/95\nGnumeric_Excel:excel_biff8        | MS Excel? 97/2000/XP\nGnumeric_Excel:excel_dsf          | MS Excel? 97/2000/XP & 5.0/95\nGnumeric_Excel:xlsx               | ECMA 376 1st edition (2006); [MS Excel? 2007]\nGnumeric_Excel:xlsx2              | ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel? 2010]\nGnumeric_OpenCalc:odf             | ODF 1.2 extended conformance (*.ods)\nGnumeric_OpenCalc:openoffice      | ODF 1.2 strict conformance (*.ods)\nGnumeric_XmlIO:sax                | Gnumeric XML (*.gnumeric)\nGnumeric_XmlIO:sax:0              | Gnumeric XML uncompressed (*.xml)\nGnumeric_dif:dif                  | Data Interchange Format (*.dif)\nGnumeric_glpk:glpk                | GLPK Linear Program Solver\nGnumeric_html:html32              | HTML 3.2 (*.html)\nGnumeric_html:html40              | HTML 4.0 (*.html)\nGnumeric_html:html40frag          | HTML (*.html) fragment\nGnumeric_html:latex               | LaTeX 2e (*.tex)\nGnumeric_html:latex_table         | LaTeX 2e (*.tex) table fragment\nGnumeric_html:latex_table_visible | LaTeX 2e (*.tex) table fragment of visible rows\nGnumeric_html:roff                | TROFF (*.me)\nGnumeric_html:xhtml               | XHTML (*.html)\nGnumeric_html:xhtml_range         | XHTML range - for export to clipboard\nGnumeric_lpsolve:lpsolve          | LPSolve Linear Program Solver\nGnumeric_pdf:pdf_assistant        | PDF export\nGnumeric_stf:stf_assistant        | Text (configurable)\nGnumeric_stf:stf_csv              | Comma separated values (CSV)\nGnumeric_sylk:sylk                | MultiPlan (SYLK)\n"
+    },
+    "dependencies": {
+      "argv": [
+        "ldd",
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert"
+      ],
+      "exitCode": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000fc084f5f8000)\n\tlibspreadsheet-1.12.61.so => /out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so (0x0000fc084f040000)\n\tlibgoffice-0.10.so.10 => /out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10 (0x0000fc084ee50000)\n\tlibgsf-1.so.114 => /lib/aarch64-linux-gnu/libgsf-1.so.114 (0x0000fc084ede0000)\n\tlibgtk-3.so.0 => /lib/aarch64-linux-gnu/libgtk-3.so.0 (0x0000fc084e580000)\n\tlibgobject-2.0.so.0 => /lib/aarch64-linux-gnu/libgobject-2.0.so.0 (0x0000fc084e4f0000)\n\tlibglib-2.0.so.0 => /lib/aarch64-linux-gnu/libglib-2.0.so.0 (0x0000fc084e360000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000fc084e1a0000)\n\tlibxml2.so.2 => /lib/aarch64-linux-gnu/libxml2.so.2 (0x0000fc084dfd0000)\n\tlibgmodule-2.0.so.0 => /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 (0x0000fc084dfa0000)\n\tlibgdk-3.so.0 => /lib/aarch64-linux-gnu/libgdk-3.so.0 (0x0000fc084de70000)\n\tlibpangocairo-1.0.so.0 => /lib/aarch64-linux-gnu/libpangocairo-1.0.so.0 (0x0000fc084de40000)\n\tlibpango-1.0.so.0 => /lib/aarch64-linux-gnu/libpango-1.0.so.0 (0x0000fc084ddb0000)\n\tlibatk-1.0.so.0 => /lib/aarch64-linux-gnu/libatk-1.0.so.0 (0x0000fc084dd60000)\n\tlibcairo.so.2 => /lib/aarch64-linux-gnu/libcairo.so.2 (0x0000fc084dc00000)\n\tlibgdk_pixbuf-2.0.so.0 => /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x0000fc084dbb0000)\n\tlibgio-2.0.so.0 => /lib/aarch64-linux-gnu/libgio-2.0.so.0 (0x0000fc084d980000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000fc084d8d0000)\n\tlibxslt.so.1 => /lib/aarch64-linux-gnu/libxslt.so.1 (0x0000fc084d870000)\n\tlibrsvg-2.so.2 => /lib/aarch64-linux-gnu/librsvg-2.so.2 (0x0000fc084d300000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000fc084d2c0000)\n\tlibbz2.so.1.0 => /lib/aarch64-linux-gnu/libbz2.so.1.0 (0x0000fc084d290000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000fc084f5b0000)\n\tlibharfbuzz.so.0 => /lib/aarch64-linux-gnu/libharfbuzz.so.0 (0x0000fc084d130000)\n\tlibpangoft2-1.0.so.0 => /lib/aarch64-linux-gnu/libpangoft2-1.0.so.0 (0x0000fc084d0f0000)\n\tlibfontconfig.so.1 => /lib/aarch64-linux-gnu/libfontconfig.so.1 (0x0000fc084d080000)\n\tlibfribidi.so.0 => /lib/aarch64-linux-gnu/libfribidi.so.0 (0x0000fc084d040000)\n\tlibcairo-gobject.so.2 => /lib/aarch64-linux-gnu/libcairo-gobject.so.2 (0x0000fc084d010000)\n\tlibepoxy.so.0 => /lib/aarch64-linux-gnu/libepoxy.so.0 (0x0000fc084cea0000)\n\tlibXi.so.6 => /lib/aarch64-linux-gnu/libXi.so.6 (0x0000fc084ce70000)\n\tlibX11.so.6 => /lib/aarch64-linux-gnu/libX11.so.6 (0x0000fc084cd00000)\n\tlibatk-bridge-2.0.so.0 => /lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0 (0x0000fc084cca0000)\n\tlibcloudproviders.so.0 => /lib/aarch64-linux-gnu/libcloudproviders.so.0 (0x0000fc084cc60000)\n\tlibXfixes.so.3 => /lib/aarch64-linux-gnu/libXfixes.so.3 (0x0000fc084cc30000)\n\tlibffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000fc084cc00000)\n\tlibatomic.so.1 => /lib/aarch64-linux-gnu/libatomic.so.1 (0x0000fc084cbd0000)\n\tlibpcre2-8.so.0 => /lib/aarch64-linux-gnu/libpcre2-8.so.0 (0x0000fc084cb10000)\n\tliblzma.so.5 => /lib/aarch64-linux-gnu/liblzma.so.5 (0x0000fc084cac0000)\n\tlibxkbcommon.so.0 => /lib/aarch64-linux-gnu/libxkbcommon.so.0 (0x0000fc084ca50000)\n\tlibwayland-client.so.0 => /lib/aarch64-linux-gnu/libwayland-client.so.0 (0x0000fc084ca20000)\n\tlibwayland-cursor.so.0 => /lib/aarch64-linux-gnu/libwayland-cursor.so.0 (0x0000fc084c9f0000)\n\tlibwayland-egl.so.1 => /lib/aarch64-linux-gnu/libwayland-egl.so.1 (0x0000fc084c9c0000)\n\tlibXext.so.6 => /lib/aarch64-linux-gnu/libXext.so.6 (0x0000fc084c980000)\n\tlibXcursor.so.1 => /lib/aarch64-linux-gnu/libXcursor.so.1 (0x0000fc084c950000)\n\tlibXdamage.so.1 => /lib/aarch64-linux-gnu/libXdamage.so.1 (0x0000fc084c920000)\n\tlibXcomposite.so.1 => /lib/aarch64-linux-gnu/libXcomposite.so.1 (0x0000fc084c8f0000)\n\tlibXrandr.so.2 => /lib/aarch64-linux-gnu/libXrandr.so.2 (0x0000fc084c8c0000)\n\tlibXinerama.so.1 => /lib/aarch64-linux-gnu/libXinerama.so.1 (0x0000fc084c890000)\n\tlibthai.so.0 => /lib/aarch64-linux-gnu/libthai.so.0 (0x0000fc084c860000)\n\tlibpng16.so.16 => /lib/aarch64-linux-gnu/libpng16.so.16 (0x0000fc084c800000)\n\tlibfreetype.so.6 => /lib/aarch64-linux-gnu/libfreetype.so.6 (0x0000fc084c720000)\n\tlibXrender.so.1 => /lib/aarch64-linux-gnu/libXrender.so.1 (0x0000fc084c6f0000)\n\tlibxcb.so.1 => /lib/aarch64-linux-gnu/libxcb.so.1 (0x0000fc084c6a0000)\n\tlibxcb-render.so.0 => /lib/aarch64-linux-gnu/libxcb-render.so.0 (0x0000fc084c670000)\n\tlibxcb-shm.so.0 => /lib/aarch64-linux-gnu/libxcb-shm.so.0 (0x0000fc084c640000)\n\tlibpixman-1.so.0 => /lib/aarch64-linux-gnu/libpixman-1.so.0 (0x0000fc084c590000)\n\tlibjpeg.so.62 => /lib/aarch64-linux-gnu/libjpeg.so.62 (0x0000fc084c510000)\n\tlibmount.so.1 => /lib/aarch64-linux-gnu/libmount.so.1 (0x0000fc084c470000)\n\tlibselinux.so.1 => /lib/aarch64-linux-gnu/libselinux.so.1 (0x0000fc084c410000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000fc084c3d0000)\n\tlibdav1d.so.7 => /lib/aarch64-linux-gnu/libdav1d.so.7 (0x0000fc084c2d0000)\n\tlibgraphite2.so.3 => /lib/aarch64-linux-gnu/libgraphite2.so.3 (0x0000fc084c290000)\n\tlibexpat.so.1 => /lib/aarch64-linux-gnu/libexpat.so.1 (0x0000fc084c240000)\n\tlibatspi.so.0 => /lib/aarch64-linux-gnu/libatspi.so.0 (0x0000fc084c1e0000)\n\tlibdbus-1.so.3 => /lib/aarch64-linux-gnu/libdbus-1.so.3 (0x0000fc084c160000)\n\tlibdatrie.so.1 => /lib/aarch64-linux-gnu/libdatrie.so.1 (0x0000fc084c130000)\n\tlibbrotlidec.so.1 => /lib/aarch64-linux-gnu/libbrotlidec.so.1 (0x0000fc084c100000)\n\tlibXau.so.6 => /lib/aarch64-linux-gnu/libXau.so.6 (0x0000fc084c0d0000)\n\tlibXdmcp.so.6 => /lib/aarch64-linux-gnu/libXdmcp.so.6 (0x0000fc084c0a0000)\n\tlibblkid.so.1 => /lib/aarch64-linux-gnu/libblkid.so.1 (0x0000fc084c020000)\n\tlibsystemd.so.0 => /lib/aarch64-linux-gnu/libsystemd.so.0 (0x0000fc084bef0000)\n\tlibbrotlicommon.so.1 => /lib/aarch64-linux-gnu/libbrotlicommon.so.1 (0x0000fc084beb0000)\n\tlibcap.so.2 => /lib/aarch64-linux-gnu/libcap.so.2 (0x0000fc084be80000)\n",
+      "stderr": ""
+    },
+    "packages": {
+      "argv": [
+        "dpkg-query",
+        "-W"
+      ],
+      "exitCode": 0,
+      "stdout": "adduser\t3.152\nadwaita-icon-theme\t48.1-1\napt\t3.0.3\nat-spi2-common\t2.56.2-1+deb13u2\nat-spi2-core\t2.56.2-1+deb13u2\nautoconf\t2.72-3.1\nautomake\t1:1.17-4\nautotools-dev\t20240727.1\nbase-files\t13.8+deb13u7\nbase-passwd\t3.6.7\nbash\t5.2.37-2+b10\nbash-completion\t1:2.16.0-7\nbinutils\t2.44-3\nbinutils-aarch64-linux-gnu\t2.44-3\nbinutils-common:arm64\t2.44-3\nbison\t2:3.8.2+dfsg-1+b2\nbsdutils\t1:2.41.5-0+deb13u1\nbuild-essential\t12.12\nbzip2\t1.0.8-6\nbzip2-doc\t1.0.8-6\nca-certificates\t20250419\ncoreutils\t9.7-3\ncpp\t4:14.2.0-1\ncpp-14\t14.2.0-19\ncpp-14-aarch64-linux-gnu\t14.2.0-19\ncpp-aarch64-linux-gnu\t4:14.2.0-1\ncurl\t8.14.1-2+deb13u5\ndash\t0.5.12-12\ndbus\t1.16.2-2\ndbus-bin\t1.16.2-2\ndbus-daemon\t1.16.2-2\ndbus-session-bus-common\t1.16.2-2\ndbus-system-bus-common\t1.16.2-2\ndbus-user-session\t1.16.2-2\ndconf-gsettings-backend:arm64\t0.40.0-5\ndconf-service\t0.40.0-5\ndebconf\t1.5.91\ndebian-archive-keyring\t2025.1\ndebianutils\t5.23.2\ndiffutils\t1:3.10-4\ndmsetup\t2:1.02.205-2\ndpkg\t1.22.22\ndpkg-dev\t1.22.22\nfakeroot\t1.37.1.1-1\nfile\t1:5.46-5\nfindutils\t4.10.0-3\nfontconfig\t2.15.0-2.3\nfontconfig-config\t2.15.0-2.3\nfonts-dejavu-core\t2.37-8\nfonts-dejavu-mono\t2.37-8\ng++\t4:14.2.0-1\ng++-14\t14.2.0-19\ng++-14-aarch64-linux-gnu\t14.2.0-19\ng++-aarch64-linux-gnu\t4:14.2.0-1\ngcc\t4:14.2.0-1\ngcc-14\t14.2.0-19\ngcc-14-aarch64-linux-gnu\t14.2.0-19\ngcc-14-base:arm64\t14.2.0-19\ngcc-aarch64-linux-gnu\t4:14.2.0-1\ngettext\t0.23.1-2\ngettext-base\t0.23.1-2\ngir1.2-atk-1.0:arm64\t2.56.2-1+deb13u2\ngir1.2-atspi-2.0:arm64\t2.56.2-1+deb13u2\ngir1.2-cloudproviders-0.3.0:arm64\t0.3.6-2\ngir1.2-freedesktop:arm64\t1.84.0-1\ngir1.2-freedesktop-dev:arm64\t1.84.0-1\ngir1.2-gdkpixbuf-2.0:arm64\t2.42.12+dfsg-4+deb13u1\ngir1.2-glib-2.0:arm64\t2.84.4-3~deb13u5\ngir1.2-glib-2.0-dev:arm64\t2.84.4-3~deb13u5\ngir1.2-goffice-0.10\t0.10.57-2+b1\ngir1.2-gsf-1:arm64\t1.14.53-1\ngir1.2-gtk-3.0:arm64\t3.24.49-3\ngir1.2-harfbuzz-0.0:arm64\t10.2.0-1+deb13u1\ngir1.2-pango-1.0:arm64\t1.56.3-1\ngir1.2-rsvg-2.0:arm64\t2.60.0+dfsg-1\ngirepository-tools:arm64\t2.84.4-3~deb13u5\ngrep\t3.11-4+b1\ngsettings-desktop-schemas\t48.0-1\ngtk-update-icon-cache\t4.18.6+ds-2\ngzip\t1.13-1+deb13u1\nhicolor-icon-theme\t0.18-2\nhostname\t3.25\nicu-devtools\t76.1-4\ninit-system-helpers\t1.69~deb13u1\nintltool\t0.51.0-7\nitstool\t2.0.6-4\nkrb5-locales\t1.21.3-5+deb13u1\nlibacl1:arm64\t2.3.2-2+b1\nlibalgorithm-diff-perl\t1.201-1\nlibalgorithm-diff-xs-perl\t0.04-9\nlibalgorithm-merge-perl\t0.08-5\nlibapparmor1:arm64\t4.1.0-1\nlibapt-pkg7.0:arm64\t3.0.3\nlibasan8:arm64\t14.2.0-19\nlibatk-bridge2.0-0t64:arm64\t2.56.2-1+deb13u2\nlibatk-bridge2.0-dev:arm64\t2.56.2-1+deb13u2\nlibatk1.0-0t64:arm64\t2.56.2-1+deb13u2\nlibatk1.0-dev:arm64\t2.56.2-1+deb13u2\nlibatomic1:arm64\t14.2.0-19\nlibatspi2.0-0t64:arm64\t2.56.2-1+deb13u2\nlibatspi2.0-dev:arm64\t2.56.2-1+deb13u2\nlibattr1:arm64\t1:2.5.2-3\nlibaudit-common\t1:4.0.2-2+deb13u1\nlibaudit1:arm64\t1:4.0.2-2+deb13u1\nlibauthen-sasl-perl\t2.1700-1\nlibavahi-client3:arm64\t0.8-16\nlibavahi-common-data:arm64\t0.8-16\nlibavahi-common3:arm64\t0.8-16\nlibbinutils:arm64\t2.44-3\nlibblkid-dev:arm64\t2.41.5-0+deb13u1\nlibblkid1:arm64\t2.41.5-0+deb13u1\nlibbrotli-dev:arm64\t1.1.0-2+b7\nlibbrotli1:arm64\t1.1.0-2+b7\nlibbsd0:arm64\t0.12.2-2\nlibbz2-1.0:arm64\t1.0.8-6\nlibbz2-dev:arm64\t1.0.8-6\nlibc-bin\t2.41-12+deb13u4\nlibc-dev-bin\t2.41-12+deb13u4\nlibc6:arm64\t2.41-12+deb13u4\nlibc6-dev:arm64\t2.41-12+deb13u4\nlibcairo-gobject2:arm64\t1.18.4-1+b1\nlibcairo-script-interpreter2:arm64\t1.18.4-1+b1\nlibcairo2:arm64\t1.18.4-1+b1\nlibcairo2-dev:arm64\t1.18.4-1+b1\nlibcap-dev:arm64\t1:2.75-10+deb13u1+b3\nlibcap-ng0:arm64\t0.8.5-4+b1\nlibcap2:arm64\t1:2.75-10+deb13u1+b3\nlibcc1-0:arm64\t14.2.0-19\nlibclone-perl:arm64\t0.47-1+b1\nlibcloudproviders-dev:arm64\t0.3.6-2\nlibcloudproviders0:arm64\t0.3.6-2\nlibcolord2:arm64\t1.4.7-3\nlibcom-err2:arm64\t1.47.2-3+b12\nlibcrypt-dev:arm64\t1:4.4.38-1\nlibcrypt1:arm64\t1:4.4.38-1\nlibcryptsetup12:arm64\t2:2.7.5-2\nlibctf-nobfd0:arm64\t2.44-3\nlibctf0:arm64\t2.44-3\nlibcups2t64:arm64\t2.4.10-3+deb13u2\nlibcurl4t64:arm64\t8.14.1-2+deb13u5\nlibdata-dump-perl\t1.25-1\nlibdatrie-dev:arm64\t0.2.13-3+b1\nlibdatrie1:arm64\t0.2.13-3+b1\nlibdav1d-dev:arm64\t1.5.1-1\nlibdav1d7:arm64\t1.5.1-1\nlibdb5.3t64:arm64\t5.3.28+dfsg2-9\nlibdbus-1-3:arm64\t1.16.2-2\nlibdbus-1-dev:arm64\t1.16.2-2\nlibdconf1:arm64\t0.40.0-5\nlibdebconfclient0:arm64\t0.280\nlibdeflate-dev:arm64\t1.23-2\nlibdeflate0:arm64\t1.23-2\nlibdevmapper1.02.1:arm64\t2:1.02.205-2\nlibdpkg-perl\t1.22.22\nlibdrm-amdgpu1:arm64\t2.4.124-2\nlibdrm-common\t2.4.124-2\nlibdrm2:arm64\t2.4.124-2\nlibedit2:arm64\t3.1-20250104-1\nlibegl-dev:arm64\t1.7.0-1+b2\nlibegl-mesa0:arm64\t25.0.7-2+deb13u1\nlibegl1:arm64\t1.7.0-1+b2\nlibegl1-mesa-dev:arm64\t25.0.7-2+deb13u1\nlibelf1t64:arm64\t0.192-4\nlibencode-locale-perl\t1.05-3\nlibepoxy-dev:arm64\t1.5.10-2\nlibepoxy0:arm64\t1.5.10-2\nlibexpat1:arm64\t2.8.3-1~deb13u1\nlibexpat1-dev:arm64\t2.8.3-1~deb13u1\nlibfakeroot:arm64\t1.37.1.1-1\nlibffi-dev:arm64\t3.4.8-2\nlibffi8:arm64\t3.4.8-2\nlibfile-fcntllock-perl\t0.22-4+b4\nlibfile-listing-perl\t6.16-1\nlibfont-afm-perl\t1.20-4\nlibfontconfig-dev:arm64\t2.15.0-2.3\nlibfontconfig1:arm64\t2.15.0-2.3\nlibfreetype-dev:arm64\t2.13.3+dfsg-1+deb13u1\nlibfreetype6:arm64\t2.13.3+dfsg-1+deb13u1\nlibfribidi-dev:arm64\t1.0.16-1\nlibfribidi0:arm64\t1.0.16-1\nlibgbm1:arm64\t25.0.7-2+deb13u1\nlibgcc-14-dev:arm64\t14.2.0-19\nlibgcc-s1:arm64\t14.2.0-19\nlibgcrypt20:arm64\t1.11.0-7+deb13u1\nlibgdbm-compat4t64:arm64\t1.24-2\nlibgdbm6t64:arm64\t1.24-2\nlibgdk-pixbuf-2.0-0:arm64\t2.42.12+dfsg-4+deb13u1\nlibgdk-pixbuf-2.0-dev:arm64\t2.42.12+dfsg-4+deb13u1\nlibgdk-pixbuf2.0-bin\t2.42.12+dfsg-4+deb13u1\nlibgdk-pixbuf2.0-common\t2.42.12+dfsg-4+deb13u1\nlibgio-2.0-dev:arm64\t2.84.4-3~deb13u5\nlibgio-2.0-dev-bin\t2.84.4-3~deb13u5\nlibgirepository-2.0-0:arm64\t2.84.4-3~deb13u5\nlibgl-dev:arm64\t1.7.0-1+b2\nlibgl1:arm64\t1.7.0-1+b2\nlibgl1-mesa-dri:arm64\t25.0.7-2+deb13u1\nlibgles-dev:arm64\t1.7.0-1+b2\nlibgles1:arm64\t1.7.0-1+b2\nlibgles2:arm64\t1.7.0-1+b2\nlibglib2.0-0t64:arm64\t2.84.4-3~deb13u5\nlibglib2.0-bin\t2.84.4-3~deb13u5\nlibglib2.0-data\t2.84.4-3~deb13u5\nlibglib2.0-dev:arm64\t2.84.4-3~deb13u5\nlibglib2.0-dev-bin\t2.84.4-3~deb13u5\nlibglvnd-core-dev:arm64\t1.7.0-1+b2\nlibglvnd-dev:arm64\t1.7.0-1+b2\nlibglvnd0:arm64\t1.7.0-1+b2\nlibglx-dev:arm64\t1.7.0-1+b2\nlibglx-mesa0:arm64\t25.0.7-2+deb13u1\nlibglx0:arm64\t1.7.0-1+b2\nlibgmp-dev:arm64\t2:6.3.0+dfsg-3\nlibgmp10:arm64\t2:6.3.0+dfsg-3\nlibgmpxx4ldbl:arm64\t2:6.3.0+dfsg-3\nlibgnutls30t64:arm64\t3.8.9-3+deb13u4\nlibgoffice-0.10-10-common\t0.10.57-2\nlibgoffice-0.10-10t64\t0.10.57-2+b1\nlibgoffice-0.10-dev\t0.10.57-2+b1\nlibgomp1:arm64\t14.2.0-19\nlibgpg-error-l10n\t1.51-4\nlibgpg-error0:arm64\t1.51-4\nlibgpm2:arm64\t1.20.7-11+b2\nlibgprofng0:arm64\t2.44-3\nlibgraphite2-3:arm64\t1.3.14-2+deb13u1\nlibgraphite2-dev:arm64\t1.3.14-2+deb13u1\nlibgsf-1-114:arm64\t1.14.53-1\nlibgsf-1-common\t1.14.53-1\nlibgsf-1-dev:arm64\t1.14.53-1\nlibgssapi-krb5-2:arm64\t1.21.3-5+deb13u1\nlibgtk-3-0t64:arm64\t3.24.49-3\nlibgtk-3-bin\t3.24.49-3\nlibgtk-3-common\t3.24.49-3\nlibgtk-3-dev:arm64\t3.24.49-3\nlibharfbuzz-cairo0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-dev:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-gobject0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-icu0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz-subset0:arm64\t10.2.0-1+deb13u1\nlibharfbuzz0b:arm64\t10.2.0-1+deb13u1\nlibhogweed6t64:arm64\t3.10.1-1\nlibhtml-form-perl\t6.12-1\nlibhtml-format-perl\t2.16-2\nlibhtml-parser-perl:arm64\t3.83-2~deb13u1\nlibhtml-tagset-perl\t3.24-1\nlibhtml-tree-perl\t5.07-3\nlibhttp-cookies-perl\t6.11-1\nlibhttp-daemon-perl\t6.16-1+deb13u1\nlibhttp-date-perl\t6.06-1\nlibhttp-message-perl\t7.00-2\nlibhttp-negotiate-perl\t6.01-2\nlibhwasan0:arm64\t14.2.0-19\nlibice-dev:arm64\t2:1.1.1-1\nlibice6:arm64\t2:1.1.1-1\nlibicu-dev:arm64\t76.1-4\nlibicu76:arm64\t76.1-4\nlibidn2-0:arm64\t2.3.8-2\nlibio-compress-brotli-perl\t0.004001-2+b3\nlibio-html-perl\t1.004-3\nlibio-socket-ssl-perl\t2.089-1\nlibisl23:arm64\t0.27-1\nlibitm1:arm64\t14.2.0-19\nlibjansson4:arm64\t2.14-2+b3\nlibjbig-dev:arm64\t2.1-6.1+b2\nlibjbig0:arm64\t2.1-6.1+b2\nlibjpeg-dev:arm64\t1:2.1.5-4\nlibjpeg62-turbo:arm64\t1:2.1.5-4\nlibjpeg62-turbo-dev:arm64\t1:2.1.5-4\nlibjson-c5:arm64\t0.18+ds-1\nlibk5crypto3:arm64\t1.21.3-5+deb13u1\nlibkeyutils1:arm64\t1.6.3-6\nlibkmod2:arm64\t34.2-2\nlibkrb5-3:arm64\t1.21.3-5+deb13u1\nlibkrb5support0:arm64\t1.21.3-5+deb13u1\nliblastlog2-2:arm64\t2.41.5-0+deb13u1\nliblcms2-2:arm64\t2.16-2+deb13u2\nlibldap-common\t2.6.10+dfsg-1\nlibldap2:arm64\t2.6.10+dfsg-1\nliblerc-dev:arm64\t4.0.0+ds-5\nliblerc4:arm64\t4.0.0+ds-5\nlibllvm19:arm64\t1:19.1.7-3+b1\nliblocale-gettext-perl\t1.07-7+b1\nliblsan0:arm64\t14.2.0-19\nliblwp-mediatypes-perl\t6.04-2\nliblwp-protocol-https-perl\t6.14-1\nliblz4-1:arm64\t1.10.0-4\nliblzma-dev:arm64\t5.8.1-1+deb13u1\nliblzma5:arm64\t5.8.1-1+deb13u1\nliblzo2-2:arm64\t2.10-3+b1\nlibmagic-mgc\t1:5.46-5\nlibmagic1t64:arm64\t1:5.46-5\nlibmailtools-perl\t2.22-1\nlibmd0:arm64\t1.1.0-2+b1\nlibmount-dev:arm64\t2.41.5-0+deb13u1\nlibmount1:arm64\t2.41.5-0+deb13u1\nlibmpc3:arm64\t1.3.1-1+b3\nlibmpfr6:arm64\t4.2.2-1\nlibncursesw6:arm64\t6.5+20250216-2\nlibnet-http-perl\t6.23-1\nlibnet-smtp-ssl-perl\t1.04-2\nlibnet-ssleay-perl:arm64\t1.94-3\nlibnettle8t64:arm64\t3.10.1-1\nlibnghttp2-14:arm64\t1.64.0-1.1+deb13u1\nlibnghttp3-9:arm64\t1.8.0-1\nlibnss-systemd:arm64\t257.13-1~deb13u1\nlibopengl-dev:arm64\t1.7.0-1+b2\nlibopengl0:arm64\t1.7.0-1+b2\nlibp11-kit0:arm64\t0.25.5-3\nlibpam-modules:arm64\t1.7.0-5\nlibpam-modules-bin\t1.7.0-5\nlibpam-runtime\t1.7.0-5\nlibpam-systemd:arm64\t257.13-1~deb13u1\nlibpam0g:arm64\t1.7.0-5\nlibpango-1.0-0:arm64\t1.56.3-1\nlibpango1.0-dev:arm64\t1.56.3-1\nlibpangocairo-1.0-0:arm64\t1.56.3-1\nlibpangoft2-1.0-0:arm64\t1.56.3-1\nlibpangoxft-1.0-0:arm64\t1.56.3-1\nlibpcre2-16-0:arm64\t10.46-1~deb13u2\nlibpcre2-32-0:arm64\t10.46-1~deb13u2\nlibpcre2-8-0:arm64\t10.46-1~deb13u2\nlibpcre2-dev:arm64\t10.46-1~deb13u2\nlibpcre2-posix3:arm64\t10.46-1~deb13u2\nlibperl5.40:arm64\t5.40.1-6+deb13u1\nlibpixman-1-0:arm64\t0.44.0-3\nlibpixman-1-dev:arm64\t0.44.0-3\nlibpkgconf3:arm64\t1.8.1-4\nlibpng-dev:arm64\t1.6.48-1+deb13u5\nlibpng-tools\t1.6.48-1+deb13u5\nlibpng16-16t64:arm64\t1.6.48-1+deb13u5\nlibproc2-0:arm64\t2:4.0.4-9\nlibpsl5t64:arm64\t0.21.2-1.1+b1\nlibpython3-stdlib:arm64\t3.13.5-1\nlibpython3.13-minimal:arm64\t3.13.5-2+deb13u5\nlibpython3.13-stdlib:arm64\t3.13.5-2+deb13u5\nlibreadline8t64:arm64\t8.2-6\nlibrsvg2-2:arm64\t2.60.0+dfsg-1\nlibrsvg2-common:arm64\t2.60.0+dfsg-1\nlibrsvg2-dev:arm64\t2.60.0+dfsg-1\nlibrtmp1:arm64\t2.4+20151223.gitfa8646d.1-2+b5\nlibsasl2-2:arm64\t2.1.28+dfsg1-9\nlibsasl2-modules:arm64\t2.1.28+dfsg1-9\nlibsasl2-modules-db:arm64\t2.1.28+dfsg1-9\nlibseccomp2:arm64\t2.6.0-2\nlibselinux1:arm64\t3.8.1-1\nlibselinux1-dev:arm64\t3.8.1-1\nlibsemanage-common\t3.8.1-1\nlibsemanage2:arm64\t3.8.1-1\nlibsensors-config\t1:3.6.2-2\nlibsensors5:arm64\t1:3.6.2-2\nlibsepol-dev:arm64\t3.8.1-1\nlibsepol2:arm64\t3.8.1-1\nlibsframe1:arm64\t2.44-3\nlibsharpyuv-dev:arm64\t1.5.0-0.1\nlibsharpyuv0:arm64\t1.5.0-0.1\nlibsm-dev:arm64\t2:1.2.6-1\nlibsm6:arm64\t2:1.2.6-1\nlibsmartcols1:arm64\t2.41.5-0+deb13u1\nlibsqlite3-0:arm64\t3.46.1-7+deb13u2\nlibssh2-1t64:arm64\t1.11.1-1+deb13u2\nlibssl3t64:arm64\t3.5.7-1~deb13u2\nlibstdc++-14-dev:arm64\t14.2.0-19\nlibstdc++6:arm64\t14.2.0-19\nlibsysprof-capture-4-dev:arm64\t48.0-2\nlibsystemd-dev:arm64\t257.13-1~deb13u1\nlibsystemd-shared:arm64\t257.13-1~deb13u1\nlibsystemd0:arm64\t257.13-1~deb13u1\nlibtasn1-6:arm64\t4.20.0-2+deb13u1\nlibthai-data\t0.1.29-2\nlibthai-dev:arm64\t0.1.29-2+b1\nlibthai0:arm64\t0.1.29-2+b1\nlibtiff-dev:arm64\t4.7.0-3+deb13u3\nlibtiff6:arm64\t4.7.0-3+deb13u3\nlibtiffxx6:arm64\t4.7.0-3+deb13u3\nlibtimedate-perl\t2.3300-2\nlibtinfo6:arm64\t6.5+20250216-2\nlibtry-tiny-perl\t0.32-1\nlibtsan2:arm64\t14.2.0-19\nlibubsan1:arm64\t14.2.0-19\nlibudev1:arm64\t257.13-1~deb13u1\nlibunistring5:arm64\t1.3-2\nliburi-perl\t5.30-1\nlibuuid1:arm64\t2.41.5-0+deb13u1\nlibvulkan1:arm64\t1.4.309.0-1\nlibwayland-bin\t1.23.1-3\nlibwayland-client0:arm64\t1.23.1-3\nlibwayland-cursor0:arm64\t1.23.1-3\nlibwayland-dev:arm64\t1.23.1-3\nlibwayland-egl1:arm64\t1.23.1-3\nlibwayland-server0:arm64\t1.23.1-3\nlibwebp-dev:arm64\t1.5.0-0.1\nlibwebp7:arm64\t1.5.0-0.1\nlibwebpdecoder3:arm64\t1.5.0-0.1\nlibwebpdemux2:arm64\t1.5.0-0.1\nlibwebpmux3:arm64\t1.5.0-0.1\nlibwww-perl\t6.78-1\nlibwww-robotrules-perl\t6.02-1\nlibx11-6:arm64\t2:1.8.12-1\nlibx11-data\t2:1.8.12-1\nlibx11-dev:arm64\t2:1.8.12-1\nlibx11-xcb1:arm64\t2:1.8.12-1\nlibxau-dev:arm64\t1:1.0.11-1\nlibxau6:arm64\t1:1.0.11-1\nlibxcb-dri3-0:arm64\t1.17.0-2+b1\nlibxcb-glx0:arm64\t1.17.0-2+b1\nlibxcb-present0:arm64\t1.17.0-2+b1\nlibxcb-randr0:arm64\t1.17.0-2+b1\nlibxcb-render0:arm64\t1.17.0-2+b1\nlibxcb-render0-dev:arm64\t1.17.0-2+b1\nlibxcb-shm0:arm64\t1.17.0-2+b1\nlibxcb-shm0-dev:arm64\t1.17.0-2+b1\nlibxcb-sync1:arm64\t1.17.0-2+b1\nlibxcb-xfixes0:arm64\t1.17.0-2+b1\nlibxcb1:arm64\t1.17.0-2+b1\nlibxcb1-dev:arm64\t1.17.0-2+b1\nlibxcomposite-dev:arm64\t1:0.4.6-1\nlibxcomposite1:arm64\t1:0.4.6-1\nlibxcursor-dev:arm64\t1:1.2.3-1\nlibxcursor1:arm64\t1:1.2.3-1\nlibxdamage-dev:arm64\t1:1.1.6-1+b2\nlibxdamage1:arm64\t1:1.1.6-1+b2\nlibxdmcp-dev:arm64\t1:1.1.5-1\nlibxdmcp6:arm64\t1:1.1.5-1\nlibxext-dev:arm64\t2:1.3.4-1+b3\nlibxext6:arm64\t2:1.3.4-1+b3\nlibxfixes-dev:arm64\t1:6.0.0-2+b4\nlibxfixes3:arm64\t1:6.0.0-2+b4\nlibxft-dev:arm64\t2.3.6-1+b4\nlibxft2:arm64\t2.3.6-1+b4\nlibxi-dev:arm64\t2:1.8.2-1\nlibxi6:arm64\t2:1.8.2-1\nlibxinerama-dev:arm64\t2:1.1.4-3+b4\nlibxinerama1:arm64\t2:1.1.4-3+b4\nlibxkbcommon-dev:arm64\t1.7.0-2\nlibxkbcommon0:arm64\t1.7.0-2\nlibxml-parser-perl\t2.47-2~deb13u1\nlibxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxml2-dev:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxml2-utils\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\nlibxrandr-dev:arm64\t2:1.5.4-1+b3\nlibxrandr2:arm64\t2:1.5.4-1+b3\nlibxrender-dev:arm64\t1:0.9.12-1\nlibxrender1:arm64\t1:0.9.12-1\nlibxshmfence1:arm64\t1.3.3-1\nlibxslt1-dev:arm64\t1.1.35-1.2+deb13u3\nlibxslt1.1:arm64\t1.1.35-1.2+deb13u3\nlibxtst-dev:arm64\t2:1.2.5-1\nlibxtst6:arm64\t2:1.2.5-1\nlibxxf86vm1:arm64\t1:1.1.4-1+b4\nlibxxhash0:arm64\t0.8.3-2\nlibz3-4:arm64\t4.13.3-1\nlibzstd-dev:arm64\t1.5.7+dfsg-1\nlibzstd1:arm64\t1.5.7+dfsg-1\nlinux-libc-dev\t6.12.107-1\nlinux-sysctl-defaults\t4.12.1\nlogin\t1:4.16.0-2+really2.41.5-0+deb13u1\nlogin.defs\t1:4.17.4-2\nm4\t1.4.19-8\nmake\t4.4.1-2\nmanpages\t6.9.1-1\nmanpages-dev\t6.9.1-1\nmawk\t1.3.4.20250131-1\nmedia-types\t13.0.0\nmesa-libgallium:arm64\t25.0.7-2+deb13u1\nmesa-vulkan-drivers:arm64\t25.0.7-2+deb13u1\nmount\t2.41.5-0+deb13u1\nnative-architecture\t0.2.6\nncurses-base\t6.5+20250216-2\nncurses-bin\t6.5+20250216-2\nnetbase\t6.5\nopenssl\t3.5.7-1~deb13u2\nopenssl-provider-legacy\t3.5.7-1~deb13u2\npango1.0-tools\t1.56.3-1\npasswd\t1:4.17.4-2\npatch\t2.8-2\nperl\t5.40.1-6+deb13u1\nperl-base\t5.40.1-6+deb13u1\nperl-modules-5.40\t5.40.1-6+deb13u1\nperl-openssl-defaults:arm64\t7+b2\npkg-config:arm64\t1.8.1-4\npkgconf:arm64\t1.8.1-4\npkgconf-bin\t1.8.1-4\nprocps\t2:4.0.4-9\npsmisc\t23.7-2\npublicsuffix\t20250328.1952-0.1\npython3\t3.13.5-1\npython3-libxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\npython3-minimal\t3.13.5-1\npython3-packaging\t25.0-1\npython3.13\t3.13.5-2+deb13u5\npython3.13-minimal\t3.13.5-2+deb13u5\nreadline-common\t8.2-6\nrpcsvc-proto\t1.4.3-1+b1\nsed\t4.9-2+deb13u1\nsgml-base\t1.31+nmu1\nshared-mime-info\t2.4-5+b2\nsq\t1.3.1-2+b2\nsqv\t1.3.0-3+b2\nsystemd\t257.13-1~deb13u1\nsystemd-cryptsetup\t257.13-1~deb13u1\nsystemd-sysv\t257.13-1~deb13u1\nsystemd-timesyncd\t257.13-1~deb13u1\nsysvinit-utils\t3.14-4\ntar\t1.35+dfsg-3.1\ntzdata\t2026c-0+deb13u1\nutil-linux\t2.41.5-0+deb13u1\nuuid-dev:arm64\t2.41.5-0+deb13u1\nwayland-protocols\t1.44-1\nx11-common\t1:7.7+24+deb13u1\nx11proto-dev\t2024.1-1\nxdg-user-dirs\t0.18-2\nxkb-data\t2.42-1\nxml-core\t0.19\nxorg-sgml-doctools\t1:1.11-1.1\nxtrans-dev\t1.4.0-1\nxz-utils\t5.8.1-1+deb13u1\nzlib1g:arm64\t1:1.3.dfsg+really1.3.1-1+b1\nzlib1g-dev:arm64\t1:1.3.dfsg+really1.3.1-1+b1\n",
+      "stderr": ""
+    },
+    "locale": {
+      "argv": [
+        "locale"
+      ],
+      "exitCode": 0,
+      "stdout": "LANG=C\nLANGUAGE=\nLC_CTYPE=\"C\"\nLC_NUMERIC=\"C\"\nLC_TIME=\"C\"\nLC_COLLATE=\"C\"\nLC_MONETARY=\"C\"\nLC_MESSAGES=\"C\"\nLC_PAPER=\"C\"\nLC_NAME=\"C\"\nLC_ADDRESS=\"C\"\nLC_TELEPHONE=\"C\"\nLC_MEASUREMENT=\"C\"\nLC_IDENTIFICATION=\"C\"\nLC_ALL=C\n",
+      "stderr": ""
+    },
+    "plugins": [
+      "lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/sc/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/sylk/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/mps/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/excel/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/lotus/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/html/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/applix/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/glpk/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/qpro/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/xbase/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/dif/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/uihello/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/oleo/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml",
+      "lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml"
+    ],
+    "pluginFileHashes": {
+      "lib/gnumeric/1.12.61/plugins/applix/applix.so": "348c2c6de75503112f102ae0e9879c1456acbfba64190fa22de766d70cfb1bc0",
+      "lib/gnumeric/1.12.61/plugins/applix/plugin.xml": "6d35f6abb0886d915ba6e4b7cfc17e23678804e82cbb92018b277d12321c686a",
+      "lib/gnumeric/1.12.61/plugins/dif/dif.so": "ce2bb506c9141701087990d7034db960ea1190170d6c95ab730992d56d4d132d",
+      "lib/gnumeric/1.12.61/plugins/dif/plugin.xml": "c4df295133bbea7ec076e0334c7c8578258e34e1ccbd492eaa52ab21bd3553d6",
+      "lib/gnumeric/1.12.61/plugins/excel/excel.so": "a05993275c1b71e9868f94e2ac4d8c3841b66a0ac740f81876b60d6f8f5cbaff",
+      "lib/gnumeric/1.12.61/plugins/excel/plugin.xml": "04af00f442424ae635c43d758c9da5a9cef93731015519e5a01c0da7a635aff2",
+      "lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so": "b280e9472a27da3f0b27c2afb361435fd852932c4401c6a39ea39dad90ccf531",
+      "lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml": "a17f4faa5ccea0be71c413b1ab15617ab935a0492bc79c376aadc611c978fb46",
+      "lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so": "6e8c8e5b8bce0f887056b08972d09f989487c81d61fb4b38bd7cd235db9c9297",
+      "lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml": "a5574fbeca4886d4b2d1833c87d426ecbbe0dcfb3cd3aa4889f05ec26a1131a3",
+      "lib/gnumeric/1.12.61/plugins/fn-database/plugin.so": "4c36bd1826baf15f3883201d07bfa71660ccf8ba9d8271c160353b13cea74663",
+      "lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml": "7ebcf83d399b971cfa949a512515f149707e66fd70e63a977035766d56f16e44",
+      "lib/gnumeric/1.12.61/plugins/fn-date/plugin.so": "59084bdf99bf7f76a5c935fa3af279735ab8953c1abd3d648c9b7cc68bf16e32",
+      "lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml": "ebe04a5845a58a9b5838d81974053e79ffb9ef22f505827d3673a9606dee66e5",
+      "lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so": "55d65febcf43c8616292c33c28da480e9373ef244d6f8df0d96ff53f7152c76b",
+      "lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml": "512e2debdc09f8ab5adaab5c7f99b5c414a31d7b4285dfe81c5b7b382c7a5093",
+      "lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so": "19e5ee7134bc95a97ca4184ace498e0545f925cb27bede5e5e060938e2589b55",
+      "lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml": "d06c9e7d9aec1849fa9ea5d9bd267f4af20f227a98c708dc57ed3b63f17f93cc",
+      "lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so": "d5b7dc22506e4df4d973caa66e34783e7fa65e86463d6ce6f68ca37320cc5c0c",
+      "lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml": "98edcc7806bf6e51ad0a27ca299b207750ecfd2367460ef13dc42a3ab8c83bda",
+      "lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so": "5dc2d0075524ee9827fdd5cdbf6b972d709720192f38b751ad3a70b7f5ce53c3",
+      "lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml": "b26fadcf27e9783fa243775f74851730675703f8a25fa1c3c16cd775803505d3",
+      "lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so": "e729844b1d3121f68c5021b8af21759d8a1221ca62b64b618a2130e1745f1662",
+      "lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml": "4377e08837429c637fd528229634443a84d1e1b1ff442e942a427d44026b9f8d",
+      "lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so": "2b4e8d8a9cc17e463b881e2c41a0e83d29f4b13967b445ac0e0cf2e9bdbf40bf",
+      "lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml": "1bc6f5cf11d2ff63acf624460e792028348a3b779bd9d912f05c3cf3f2b536c3",
+      "lib/gnumeric/1.12.61/plugins/fn-info/plugin.so": "4d81b0554b309d9d2f31e61511a8a7582e9c64675e52eef6cc288c6b1476b780",
+      "lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml": "9871ad45a606d789ea8a88c8ebf0f3c24c8ad36a48085c0d3640855537d593d1",
+      "lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so": "65718f54f1212261ff7e67af59d032e9a2f33ee3f37f84581fe892d45ff40384",
+      "lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml": "5389636fe217178ea53c2f786576f03171f7272cda505116d1ff120353557712",
+      "lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so": "bd0ce3d30b658d0e95f5ae2249ee0403bdcf3726c2dd8dc55f63fb276d6a135e",
+      "lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml": "73f79393f3e38c493080afe204a0bea3b8ee936d6342aa680800f6dfc5b507a6",
+      "lib/gnumeric/1.12.61/plugins/fn-math/plugin.so": "f3d671b4922af29747ba4b2e21e66d7c65932f71f9ec5184116c64dbff5a6d4e",
+      "lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml": "971a835f16d9c26130875f07b1eece000a3405ac05244305f0472bff4823430c",
+      "lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so": "a6dc2dd1b4c30f198ccd1f7e9c53c49c763fbcab0c0d057df55f08b390599eaa",
+      "lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml": "4540ff972f2b5c35e1c709ca522bb385333d1fb9832ebcb9a355c87000075978",
+      "lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml": "8bb27356e050e4ac7598412725bc400431ce3e6c7a481e55e6ebbf8bc351b959",
+      "lib/gnumeric/1.12.61/plugins/fn-r/rstat.so": "3535ccac0e9cc587f91f7db3cc3c8f44bbd2b625cb749fb78bf901455e26efd9",
+      "lib/gnumeric/1.12.61/plugins/fn-random/plugin.so": "c48dae4fa48c0c809a9419a9468176ede20331606457abddf627637eb533cb4a",
+      "lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml": "e9802b5951b077a533f7c90ae6feae5b2a22aa38191911a04b58c45bbdbfa634",
+      "lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so": "5dcd44c84a3527d4cd068dd16bb0fd541b4231a9dedb9cdb2284951fa3ec641d",
+      "lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml": "9dc90aaf8202a8dae7000c7a740df897f7cf477932652bb14c60d86515d34606",
+      "lib/gnumeric/1.12.61/plugins/fn-string/plugin.so": "c732be449bff7f24e647a1f4f414ac4e030cc3843d1b5a9904bdfd46e97fcbb5",
+      "lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml": "4c576c6678566525258e4ed3102db586429e9e4b178b3c14ef3ab62be773b3bf",
+      "lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so": "48f887054d6e1f79b0e0b955c939405f3a01ba9d3979fec71508d5dfea1fff9d",
+      "lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml": "b1efca176c3e4acb7988b62619d942b345dc4651441e45d8faad2db52f22d351",
+      "lib/gnumeric/1.12.61/plugins/glpk/glpk.so": "04adbe36684f17e3ce102711acbf66f18a8a5ca8fe04e5a512c6abc2a519d98f",
+      "lib/gnumeric/1.12.61/plugins/glpk/plugin.xml": "f9ff2f40013f2ba14c5f2cf363591508fed7c681ac4e7b426f889e754fa37ea6",
+      "lib/gnumeric/1.12.61/plugins/html/html.so": "71bf428a6f3ec0658bdcf74612b95812756a643e4f25250e1e6f748b3582591e",
+      "lib/gnumeric/1.12.61/plugins/html/plugin.xml": "0e24fe00f38781cdb1a63056cd382747edcd41c8decb7b355cb8ac8485de31cd",
+      "lib/gnumeric/1.12.61/plugins/lotus/lotus.so": "bca6888c17287b4f2ced2500ee0e4d8c923c9c2ff1d62dc1ff6aca66b503990b",
+      "lib/gnumeric/1.12.61/plugins/lotus/plugin.xml": "a38de08bb20b878d566708a305d242ff898b8df6fbfd467af43362d46cd38f5b",
+      "lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so": "d809c1d0ee1b61c5491ef3f6e3afdd5698c414574a8d772c18bf2dc9d2846b18",
+      "lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml": "48a4d9c2142d9eb0bf8ecf0136841e9e500cf5c0bd88471e1802159232f1a0f3",
+      "lib/gnumeric/1.12.61/plugins/mps/mps.so": "74b5678f1ffec05cf286d457e93c35cb2a1d2d2f21e34a15064555fb42d9d422",
+      "lib/gnumeric/1.12.61/plugins/mps/plugin.xml": "b4af2d3924241b0e15ad39afb433cf802135d92a6c8b5bde328e409cf4814f9d",
+      "lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so": "b47bfcca71629899e366feec39f44e500b32a25190f9694d21ec438135dd500f",
+      "lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml": "e8e43964a2956c5c2d671aa84f529142868fc6a8a4bf4e959f3cc1562a7a73c8",
+      "lib/gnumeric/1.12.61/plugins/oleo/oleo.so": "44cb7683310e17461a72f9792f4375fbe4ecfc1cd84927308f9479815cf64648",
+      "lib/gnumeric/1.12.61/plugins/oleo/plugin.xml": "04785baf2b561c260c0b5d6b86f0f3ce372d4e52446fba12aabe723a8b61862f",
+      "lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so": "ac1b2e6acad6f55c720292f0b0dd209b14e3a612cab383e5b79932bb690e1bbb",
+      "lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml": "261ac77c377ed815456a8f6934cc12a9a6edca868e08cfe331a17fdadce73c0f",
+      "lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so": "1958e242327971eb12e3ad69a766ed476685381328d4c25b2623b38524d641d4",
+      "lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml": "725750f75463e7e23bcef0d258e6d608f8acb3b40420dd34c41c5aabc3d6c0ac",
+      "lib/gnumeric/1.12.61/plugins/qpro/plugin.xml": "2ad3b9c8436d47d497fe8394626a19efb085f53afaa420637ec758401039a9f3",
+      "lib/gnumeric/1.12.61/plugins/qpro/qpro.so": "74af19745326b8914157cc0d4eb6b618fa2ea54cf258beaacdbca4d174965c1e",
+      "lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml": "82285e2a1f04ca5e9ff50b3c534710fd3de52faad19ad1bb2fdf65adfafbd2ac",
+      "lib/gnumeric/1.12.61/plugins/sample_datasource/sample_datasource.so": "1b5a5de477433485f48370ecaafe25cfa5e52d1bf7115604e626f67a44bb5cbe",
+      "lib/gnumeric/1.12.61/plugins/sc/plugin.xml": "ac9c8c8ca7b20045cd6e297b985f47ed0109468752357adf99e81275c3e6674c",
+      "lib/gnumeric/1.12.61/plugins/sc/sc.so": "59f1b38cef69b1ab53d602fb20cbfaf283bf6f4a7a32b34bd12e927162a509e9",
+      "lib/gnumeric/1.12.61/plugins/sylk/plugin.xml": "5b0dff2a02ef7efa50773c1c775766c9cb9c8ae8a70645a9fe1c7b1cf8aa3c54",
+      "lib/gnumeric/1.12.61/plugins/sylk/sylk.so": "0503460780cca51af150ed45fb00143848d5ab51437b0ffcc6fe511587a8805c",
+      "lib/gnumeric/1.12.61/plugins/uihello/plugin.so": "a5220d7da2a9382e8103f78d754de34b0f23dea3cd337517bc9167c127f88976",
+      "lib/gnumeric/1.12.61/plugins/uihello/plugin.xml": "54f9eb2f628c6d4d069a89426ad5e9b9e4229340d0a9dc628e63f991befb6a37",
+      "lib/gnumeric/1.12.61/plugins/xbase/plugin.xml": "77dee717114afeecce37ea4d348fff0c2ffe230b345607e0e10819578ec6780a",
+      "lib/gnumeric/1.12.61/plugins/xbase/xbase.so": "4fce665663c65b5c78b6895c47ef5f965cb4d5222255b80d6ec7f5ca7eeb016f"
+    },
+    "dependencyFileHashes": {
+      "/out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so": "b429e875c714d8eab593a878b0b2fb15e35a8bdec332301a9c63d4d9cc6009a0",
+      "/out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42",
+      "/lib/aarch64-linux-gnu/libgsf-1.so.114": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28",
+      "/lib/aarch64-linux-gnu/libgtk-3.so.0": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4",
+      "/lib/aarch64-linux-gnu/libgobject-2.0.so.0": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f",
+      "/lib/aarch64-linux-gnu/libglib-2.0.so.0": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1",
+      "/lib/aarch64-linux-gnu/libc.so.6": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13",
+      "/lib/aarch64-linux-gnu/libxml2.so.2": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d",
+      "/lib/aarch64-linux-gnu/libgmodule-2.0.so.0": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08",
+      "/lib/aarch64-linux-gnu/libgdk-3.so.0": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0",
+      "/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5",
+      "/lib/aarch64-linux-gnu/libpango-1.0.so.0": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233",
+      "/lib/aarch64-linux-gnu/libatk-1.0.so.0": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5",
+      "/lib/aarch64-linux-gnu/libcairo.so.2": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6",
+      "/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c",
+      "/lib/aarch64-linux-gnu/libgio-2.0.so.0": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77",
+      "/lib/aarch64-linux-gnu/libm.so.6": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+      "/lib/aarch64-linux-gnu/libxslt.so.1": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042",
+      "/lib/aarch64-linux-gnu/librsvg-2.so.2": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7",
+      "/lib/aarch64-linux-gnu/libz.so.1": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65",
+      "/lib/aarch64-linux-gnu/libbz2.so.1.0": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46",
+      "/lib/ld-linux-aarch64.so.1": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6",
+      "/lib/aarch64-linux-gnu/libharfbuzz.so.0": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c",
+      "/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2",
+      "/lib/aarch64-linux-gnu/libfontconfig.so.1": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad",
+      "/lib/aarch64-linux-gnu/libfribidi.so.0": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720",
+      "/lib/aarch64-linux-gnu/libcairo-gobject.so.2": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13",
+      "/lib/aarch64-linux-gnu/libepoxy.so.0": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e",
+      "/lib/aarch64-linux-gnu/libXi.so.6": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761",
+      "/lib/aarch64-linux-gnu/libX11.so.6": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0",
+      "/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3",
+      "/lib/aarch64-linux-gnu/libcloudproviders.so.0": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c",
+      "/lib/aarch64-linux-gnu/libXfixes.so.3": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5",
+      "/lib/aarch64-linux-gnu/libffi.so.8": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490",
+      "/lib/aarch64-linux-gnu/libatomic.so.1": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e",
+      "/lib/aarch64-linux-gnu/libpcre2-8.so.0": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75",
+      "/lib/aarch64-linux-gnu/liblzma.so.5": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84",
+      "/lib/aarch64-linux-gnu/libxkbcommon.so.0": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380",
+      "/lib/aarch64-linux-gnu/libwayland-client.so.0": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670",
+      "/lib/aarch64-linux-gnu/libwayland-cursor.so.0": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43",
+      "/lib/aarch64-linux-gnu/libwayland-egl.so.1": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c",
+      "/lib/aarch64-linux-gnu/libXext.so.6": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651",
+      "/lib/aarch64-linux-gnu/libXcursor.so.1": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43",
+      "/lib/aarch64-linux-gnu/libXdamage.so.1": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e",
+      "/lib/aarch64-linux-gnu/libXcomposite.so.1": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48",
+      "/lib/aarch64-linux-gnu/libXrandr.so.2": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2",
+      "/lib/aarch64-linux-gnu/libXinerama.so.1": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6",
+      "/lib/aarch64-linux-gnu/libthai.so.0": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7",
+      "/lib/aarch64-linux-gnu/libpng16.so.16": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e",
+      "/lib/aarch64-linux-gnu/libfreetype.so.6": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e",
+      "/lib/aarch64-linux-gnu/libXrender.so.1": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102",
+      "/lib/aarch64-linux-gnu/libxcb.so.1": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210",
+      "/lib/aarch64-linux-gnu/libxcb-render.so.0": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0",
+      "/lib/aarch64-linux-gnu/libxcb-shm.so.0": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0",
+      "/lib/aarch64-linux-gnu/libpixman-1.so.0": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197",
+      "/lib/aarch64-linux-gnu/libjpeg.so.62": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87",
+      "/lib/aarch64-linux-gnu/libmount.so.1": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538",
+      "/lib/aarch64-linux-gnu/libselinux.so.1": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952",
+      "/lib/aarch64-linux-gnu/libgcc_s.so.1": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0",
+      "/lib/aarch64-linux-gnu/libdav1d.so.7": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b",
+      "/lib/aarch64-linux-gnu/libgraphite2.so.3": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402",
+      "/lib/aarch64-linux-gnu/libexpat.so.1": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48",
+      "/lib/aarch64-linux-gnu/libatspi.so.0": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52",
+      "/lib/aarch64-linux-gnu/libdbus-1.so.3": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af",
+      "/lib/aarch64-linux-gnu/libdatrie.so.1": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45",
+      "/lib/aarch64-linux-gnu/libbrotlidec.so.1": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e",
+      "/lib/aarch64-linux-gnu/libXau.so.6": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26",
+      "/lib/aarch64-linux-gnu/libXdmcp.so.6": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298",
+      "/lib/aarch64-linux-gnu/libblkid.so.1": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741",
+      "/lib/aarch64-linux-gnu/libsystemd.so.0": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f",
+      "/lib/aarch64-linux-gnu/libbrotlicommon.so.1": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e",
+      "/lib/aarch64-linux-gnu/libcap.so.2": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec"
+    },
+    "uname": "Linux ba43b94e9cee 6.8.0-117-generic #117-Ubuntu SMP PREEMPT_DYNAMIC Thu May  7 17:26:37 UTC 2026 aarch64 GNU/Linux\n"
+  },
+  "fixtures": {
+    "input.xml": {
+      "sha256": "3cf049a3746c9ddefae0fcaf12709c4417d0171abe3f2053af9c5c9b454316dd",
+      "bytes": 136676
+    },
+    "limits.xml": {
+      "sha256": "85928b3330aee765182b608c81700923f591a176c82d41d131d986c25328f7fc",
+      "bytes": 1290
+    },
+    "row-limits.xml": {
+      "sha256": "e6ecc37ddc02e141bc6edd2205f530611e9fb4be2738b1180391a1c73994156c",
+      "bytes": 1224
+    },
+    "recipe": {
+      "input.xml": {
+        "sheets": [
+          "S",
+          "T"
+        ],
+        "dateSystem": "1904",
+        "calculationMode": "manual",
+        "name": "Answer=42",
+        "SCells": [
+          "A1=\"hello \u03a9\"",
+          "B1=42 (format0.000)",
+          "A2=SUM(B1,8)",
+          "A3=IF(TRUE,\"yes\",\"no\")",
+          "A4=FALSE",
+          "A5=#N/A"
+        ],
+        "styledRows6Through11": {
+          "rotations": [
+            -1,
+            46,
+            226,
+            270,
+            315,
+            360
+          ],
+          "font": "Serif",
+          "bold": true,
+          "underline": "4 on even index,3 on odd index",
+          "text": "rot followed by rotation"
+        },
+        "TCells": [
+          "A1=S!B1"
+        ],
+        "merge": "A15:B16",
+        "zoom": 1.5,
+        "comment": {
+          "anchor": "B1",
+          "text": "original note \u03a9",
+          "author": "writer"
+        },
+        "pageBreaks": {
+          "horizontal": "manual1..1400",
+          "vertical": "manual1..1400"
+        }
+      },
+      "limits.xml": {
+        "sheetSize": [
+          1048576,
+          16384
+        ],
+        "cells": [
+          "A1=1",
+          "A16385=2",
+          "A65537=3",
+          "IW1=4"
+        ]
+      },
+      "row-limits.xml": "same as limits.xml, excluding IW1"
+    }
+  },
+  "readerVersions": {
+    "xlrd": "2.0.2",
+    "olefile": "0.47"
+  },
+  "commandResults": {
+    "excel_biff7": {
+      "exitCode": 0,
+      "stderr": ""
+    },
+    "recalc-excel_biff7": {
+      "exitCode": 0,
+      "stderr": ""
+    },
+    "excel_biff8": {
+      "exitCode": 0,
+      "stderr": ""
+    },
+    "recalc-excel_biff8": {
+      "exitCode": 0,
+      "stderr": ""
+    },
+    "excel_dsf": {
+      "exitCode": 0,
+      "stderr": ""
+    },
+    "recalc-excel_dsf": {
+      "exitCode": 0,
+      "stderr": ""
+    }
+  },
+  "nativeReopen": {
+    "excel_biff7.xls": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "excel_biff8.xls": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "excel_dsf.xls": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "excel_dsf-Book.biff": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "excel_dsf-Workbook.biff": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "recalc-excel_biff7.xls": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "recalc-excel_biff8.xls": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "recalc-excel_dsf.xls": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "recalc-excel_dsf-Book.biff": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "recalc-excel_dsf-Workbook.biff": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "independentReaders": {
+    "excel_biff7.xls": {
+      "biffVersion": 50,
+      "dateMode": 1,
+      "nativeDifferences": [
+        [
+          0,
+          1,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            50.0
+          ]
+        ],
+        [
+          0,
+          2,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            1,
+            "yes"
+          ]
+        ],
+        [
+          0,
+          3,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        [
+          0,
+          4,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            5,
+            42
+          ]
+        ],
+        [
+          1,
+          0,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            42.0
+          ]
+        ]
+      ],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            90,
+            33,
+            1
+          ],
+          [
+            90,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": {
+        "streams": [
+          [
+            "Book"
+          ]
+        ],
+        "issues": []
+      }
+    },
+    "recalc-excel_biff7.xls": {
+      "biffVersion": 50,
+      "dateMode": 1,
+      "nativeDifferences": [],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            90,
+            33,
+            1
+          ],
+          [
+            90,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": {
+        "streams": [
+          [
+            "Book"
+          ]
+        ],
+        "issues": []
+      }
+    },
+    "excel_biff8.xls": {
+      "biffVersion": 80,
+      "dateMode": 1,
+      "nativeDifferences": [
+        [
+          0,
+          1,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            50.0
+          ]
+        ],
+        [
+          0,
+          2,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            1,
+            "yes"
+          ]
+        ],
+        [
+          0,
+          3,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        [
+          0,
+          4,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            5,
+            42
+          ]
+        ],
+        [
+          1,
+          0,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            42.0
+          ]
+        ]
+      ],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            46,
+            33,
+            1
+          ],
+          [
+            46,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            224,
+            34,
+            1
+          ],
+          [
+            224,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            135,
+            34,
+            1
+          ],
+          [
+            135,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": {
+        "streams": [
+          [
+            "Workbook"
+          ]
+        ],
+        "issues": []
+      }
+    },
+    "recalc-excel_biff8.xls": {
+      "biffVersion": 80,
+      "dateMode": 1,
+      "nativeDifferences": [],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            46,
+            33,
+            1
+          ],
+          [
+            46,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            224,
+            34,
+            1
+          ],
+          [
+            224,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            135,
+            34,
+            1
+          ],
+          [
+            135,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": {
+        "streams": [
+          [
+            "Workbook"
+          ]
+        ],
+        "issues": []
+      }
+    },
+    "excel_dsf.xls": {
+      "biffVersion": 80,
+      "dateMode": 1,
+      "nativeDifferences": [
+        [
+          0,
+          1,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            50.0
+          ]
+        ],
+        [
+          0,
+          2,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            1,
+            "yes"
+          ]
+        ],
+        [
+          0,
+          3,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        [
+          0,
+          4,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            5,
+            42
+          ]
+        ],
+        [
+          1,
+          0,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            42.0
+          ]
+        ]
+      ],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            46,
+            33,
+            1
+          ],
+          [
+            46,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            224,
+            34,
+            1
+          ],
+          [
+            224,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            135,
+            34,
+            1
+          ],
+          [
+            135,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": {
+        "streams": [
+          [
+            "Book"
+          ],
+          [
+            "Workbook"
+          ]
+        ],
+        "issues": []
+      }
+    },
+    "excel_dsf-Book.biff": {
+      "biffVersion": 50,
+      "dateMode": 1,
+      "nativeDifferences": [
+        [
+          0,
+          1,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            50.0
+          ]
+        ],
+        [
+          0,
+          2,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            1,
+            "yes"
+          ]
+        ],
+        [
+          0,
+          3,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        [
+          0,
+          4,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            5,
+            42
+          ]
+        ],
+        [
+          1,
+          0,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            42.0
+          ]
+        ]
+      ],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            90,
+            33,
+            1
+          ],
+          [
+            90,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": null
+    },
+    "excel_dsf-Workbook.biff": {
+      "biffVersion": 80,
+      "dateMode": 1,
+      "nativeDifferences": [
+        [
+          0,
+          1,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            50.0
+          ]
+        ],
+        [
+          0,
+          2,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            1,
+            "yes"
+          ]
+        ],
+        [
+          0,
+          3,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        [
+          0,
+          4,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            5,
+            42
+          ]
+        ],
+        [
+          1,
+          0,
+          0,
+          [
+            1,
+            ""
+          ],
+          [
+            2,
+            42.0
+          ]
+        ]
+      ],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            46,
+            33,
+            1
+          ],
+          [
+            46,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            224,
+            34,
+            1
+          ],
+          [
+            224,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            135,
+            34,
+            1
+          ],
+          [
+            135,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": null
+    },
+    "recalc-excel_dsf.xls": {
+      "biffVersion": 80,
+      "dateMode": 1,
+      "nativeDifferences": [],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            46,
+            33,
+            1
+          ],
+          [
+            46,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            224,
+            34,
+            1
+          ],
+          [
+            224,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            135,
+            34,
+            1
+          ],
+          [
+            135,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": {
+        "streams": [
+          [
+            "Book"
+          ],
+          [
+            "Workbook"
+          ]
+        ],
+        "issues": []
+      }
+    },
+    "recalc-excel_dsf-Book.biff": {
+      "biffVersion": 50,
+      "dateMode": 1,
+      "nativeDifferences": [],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            90,
+            33,
+            1
+          ],
+          [
+            90,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            180,
+            34,
+            1
+          ],
+          [
+            180,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1038,
+          1038
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": null
+    },
+    "recalc-excel_dsf-Workbook.biff": {
+      "biffVersion": 80,
+      "dateMode": 1,
+      "nativeDifferences": [],
+      "styles": [
+        [
+          6,
+          [
+            255,
+            34,
+            1
+          ],
+          [
+            255,
+            34,
+            1
+          ]
+        ],
+        [
+          7,
+          [
+            46,
+            33,
+            1
+          ],
+          [
+            46,
+            33,
+            1
+          ]
+        ],
+        [
+          8,
+          [
+            224,
+            34,
+            1
+          ],
+          [
+            224,
+            34,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            180,
+            33,
+            1
+          ],
+          [
+            180,
+            33,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            135,
+            34,
+            1
+          ],
+          [
+            135,
+            34,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0,
+            33,
+            1
+          ],
+          [
+            0,
+            33,
+            1
+          ]
+        ]
+      ],
+      "pagebreaks": [
+        [
+          0,
+          "horizontal_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          0,
+          "vertical_page_breaks",
+          1370,
+          1370
+        ],
+        [
+          1,
+          "horizontal_page_breaks",
+          0,
+          0
+        ],
+        [
+          1,
+          "vertical_page_breaks",
+          0,
+          0
+        ]
+      ],
+      "cfb": null
+    }
+  },
+  "metadataNativeReopen": {
+    "excel_biff7": {
+      "names": [
+        {
+          "name": "Answer",
+          "expression": "42",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "sheet": "s1",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"S\"",
+          "sheet": "s1",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "sheet": "s2",
+          "position": {
+            "sheet": "s2",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"T\"",
+          "sheet": "s2",
+          "position": {
+            "sheet": "s2",
+            "row": 0,
+            "column": 0
+          }
+        }
+      ],
+      "dateSystem": "1904",
+      "sheets": [
+        {
+          "name": "S",
+          "merges": [
+            {
+              "startRow": 14,
+              "startColumn": 0,
+              "endRow": 15,
+              "endColumn": 1
+            }
+          ],
+          "objects": [
+            [
+              {
+                "name": "CellComment",
+                "attributes": {
+                  "ObjectBound": "B1",
+                  "ObjectOffset": "1 0 1 0",
+                  "Direction": "17",
+                  "Print": "1",
+                  "Text": "original note ?"
+                }
+              }
+            ]
+          ]
+        },
+        {
+          "name": "T",
+          "merges": [],
+          "objects": []
+        }
+      ]
+    },
+    "excel_biff8": {
+      "names": [
+        {
+          "name": "Answer",
+          "expression": "42",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "sheet": "s1",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"S\"",
+          "sheet": "s1",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "sheet": "s2",
+          "position": {
+            "sheet": "s2",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"T\"",
+          "sheet": "s2",
+          "position": {
+            "sheet": "s2",
+            "row": 0,
+            "column": 0
+          }
+        }
+      ],
+      "dateSystem": "1904",
+      "sheets": [
+        {
+          "name": "S",
+          "merges": [
+            {
+              "startRow": 14,
+              "startColumn": 0,
+              "endRow": 15,
+              "endColumn": 1
+            }
+          ],
+          "objects": [
+            [
+              {
+                "name": "CellComment",
+                "attributes": {
+                  "ObjectBound": "B1",
+                  "ObjectOffset": "1 0 1 0",
+                  "Direction": "17",
+                  "Print": "1",
+                  "Author": "writer",
+                  "Text": "original note \u03a9"
+                }
+              }
+            ]
+          ]
+        },
+        {
+          "name": "T",
+          "merges": [],
+          "objects": []
+        }
+      ]
+    },
+    "excel_dsf": {
+      "names": [
+        {
+          "name": "Answer",
+          "expression": "42",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "sheet": "s1",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"S\"",
+          "sheet": "s1",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "sheet": "s2",
+          "position": {
+            "sheet": "s2",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"T\"",
+          "sheet": "s2",
+          "position": {
+            "sheet": "s2",
+            "row": 0,
+            "column": 0
+          }
+        }
+      ],
+      "dateSystem": "1904",
+      "sheets": [
+        {
+          "name": "S",
+          "merges": [
+            {
+              "startRow": 14,
+              "startColumn": 0,
+              "endRow": 15,
+              "endColumn": 1
+            }
+          ],
+          "objects": [
+            [
+              {
+                "name": "CellComment",
+                "attributes": {
+                  "ObjectBound": "B1",
+                  "ObjectOffset": "1 0 1 0",
+                  "Direction": "17",
+                  "Print": "1",
+                  "Author": "writer",
+                  "Text": "original note \u03a9"
+                }
+              }
+            ]
+          ]
+        },
+        {
+          "name": "T",
+          "merges": [],
+          "objects": []
+        }
+      ]
+    }
+  },
+  "limitsDifferential": {
+    "limits-7": {
+      "exitCode": 0,
+      "stderr": "W Some content will be lost when saving.  This format only supports 256 columns, and this workbook has 256\n",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "W Some content will be lost when saving.  This format only supports 256 columns, and this workbook has 256\n"
+      },
+      "matches": true
+    },
+    "limits-8": {
+      "exitCode": 0,
+      "stderr": "W Some content will be lost when saving.  This format only supports 256 columns, and this workbook has 256\n",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "W Some content will be lost when saving.  This format only supports 256 columns, and this workbook has 256\n"
+      },
+      "matches": true
+    },
+    "limits-dsf": {
+      "exitCode": 0,
+      "stderr": "W Some content will be lost when saving.  This format only supports 256 columns, and this workbook has 256\n",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "W Some content will be lost when saving.  This format only supports 256 columns, and this workbook has 256\n"
+      },
+      "matches": true
+    },
+    "row-limits-7": {
+      "exitCode": 0,
+      "stderr": "W Some content will be lost when saving.  This format only supports 16384 rows, and this workbook has 65536\n",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "W Some content will be lost when saving.  This format only supports 16384 rows, and this workbook has 65536\n"
+      },
+      "matches": true
+    },
+    "row-limits-8": {
+      "exitCode": 0,
+      "stderr": "W Some content will be lost when saving.  This format only supports 65536 rows, and this workbook has 65536\n",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "W Some content will be lost when saving.  This format only supports 65536 rows, and this workbook has 65536\n"
+      },
+      "matches": true
+    },
+    "row-limits-dsf": {
+      "exitCode": 0,
+      "stderr": "W Some content will be lost when saving.  This format only supports 16384 rows, and this workbook has 65536\n",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "W Some content will be lost when saving.  This format only supports 16384 rows, and this workbook has 65536\n"
+      },
+      "matches": true
+    }
+  },
+  "negativeControls": {
+    "nativeCorruptCfb": {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "-I",
+        "Gnumeric_Excel:excel",
+        "-T",
+        "Gnumeric_XmlIO:sax:0",
+        "/out/xls-biff-write-current/corrupt.xls",
+        "/out/xls-biff-write-current/should-not-exist.xml"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "E Inconsistent block allocation table\n"
+    },
+    "xlrdCorruptCfb": {
+      "rejected": "array index out of range"
+    },
+    "nativeNegativeDestinationCreated": false
+  },
+  "failingBeforeEvidence": {
+    "pagebreakCaps": {
+      "failed": 3,
+      "passed": 2
+    },
+    "rotation": {
+      "failed": 9,
+      "passed": 7
+    },
+    "accountingUnderlines": {
+      "failed": 2
+    },
+    "replayStyleDecode": {
+      "failed": 5,
+      "passed": 5
+    },
+    "nativePagebreakOpcodes": {
+      "failed": 6,
+      "passed": 6
+    },
+    "extentWarnings": {
+      "failed": 3,
+      "passed": 12
+    }
+  },
+  "checks": {
+    "ssconvertLint": {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "runtimeTypes": true,
+      "testTypes": true,
+      "eslint": true
+    },
+    "ssconvertTestsConcurrent": {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "exitCode": 1,
+      "filesPassed": 164,
+      "filesFailed": 1,
+      "passed": 4361,
+      "failed": 1,
+      "failure": "QTukey case exceeded unchanged5000ms timeout under concurrent test/build/lint and competing workspace work; observed6450ms, not dismissed or counted as pass"
+    },
+    "ssconvertTestsFinal": {
+      "command": "npm test --workspace=@poe-code/ssconvert -- --maxWorkers=1",
+      "exitCode": 0,
+      "files": 165,
+      "passed": 4362,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 46.05,
+      "timeoutIncreased": false,
+      "execution": "fresh full workspace suite, same membership; not a focused rerun",
+      "qtukeyObservedMs": 3067
+    },
+    "buildFinal": {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "exitCode": 0,
+      "builds": 18,
+      "nativeNpmStages": true
+    },
+    "safeBashFinal": {
+      "command": "node packages/safe-bash/scripts/test-reporting.mjs --import tsx --test-concurrency=1 <four ssconvert command test files>",
+      "exitCode": 0,
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 3231.578542
+    },
+    "initialWorkspaceRace": {
+      "exitCode": 1,
+      "passed": 4338,
+      "failed": 2,
+      "reason": "tests observed newly added failing-before underline cases before independent worker runtime repair; final candidate rerun separately"
+    },
+    "initialSafeBashInvocation": {
+      "exitCode": 1,
+      "failedFileLoads": 4,
+      "reason": "maintained reporter was invoked without --import tsx; corrected import on subsequent complete selected runs"
+    },
+    "rootNpmTest": {
+      "status": "not-run",
+      "reason": "current repairs stay in BIFF codec and importer; maintained full ssconvert workspace and safe-bash integration selection/build closure cover focused scope"
+    },
+    "repositoryLint": {
+      "status": "not-run"
+    },
+    "rootBuild": {
+      "status": "not-run"
+    }
+  },
+  "screenshots": {
+    "help.png": {
+      "sha256": "e71c1564d48b153d685c68d3ab047db9d2239473dce791c6493d108847e07e08",
+      "inspected": true
+    },
+    "diagnostic.png": {
+      "sha256": "661d6e68933d25025f5554c8ab3d29e48bff208dd2b8790846f7b55bb0723934",
+      "inspected": true
+    }
+  },
+  "coverage": {
+    "freshDeterministic": "15 root regression cases and30 independent current review cases; existing full workspace includes32 writer and35 writer stress cases, including FAT/DIFAT complete allocation, injected budgets/errors/cancellation/ownership, memfs effects, CLI/SDK and workbook XML replay",
+    "nativeReader": "ten current native reopen cells exit0 without diagnostics; six original limit/diagnostic cells match exact status/stderr; explicit-recalc reader comparison matches measured13 populated cell values,6 styles,merges,date1904,pagebreak arrays for BIFF7,BIFF8,DSF and both DSF streams; olefile finds no parsing issues in six whole containers",
+    "boundaries": "Node22 injected byte I/O and memfs command/SDK effects qualified by maintained selection; host realm/browser/workerd/full shell checkpoint restoration remain unverified",
+    "performance": "observed check durations only; no deterministic performance/RSS guarantee"
+  },
+  "remainingMismatches": [
+    "Non-comment objects/charts are not reconstructed; unsupported metadata warns. Full native graph/drawing variants remain unimplemented.",
+    "Rich-text runs are not written. Native RSTRING and comment markup fidelity remain unimplemented.",
+    "External-workbook formulas/links and external file hyperlink monikers are unsupported. BIFF8 URL/email/current-workbook hyperlinks are implemented; BIFF7 hyperlink support is absent as in measured native reference.",
+    "Only captured default WINDOWS_LANGUAGE/codepage1252 behavior is implemented for BIFF7; imported/alternate codepages are not supported.",
+    "Palette assignment is input-order rather than native hash-order, and excess-color GLib envelopes/warning ordering can differ.",
+    "Exact native bytes/order/default fonts/XFs/property streams/workbook-print/protection/data validation/conditional formatting/pivot/VBA records are incomplete or unmeasured.",
+    "Large formula/name/array records reject rather than implementing general native CONTINUE. Oversized formula strings/names/comments/header/footer and BIFF8 SST overflow/truncation/failure diagnostics remain incomplete; only BIFF7 cell LABEL overflow is freshly measured.",
+    "Formula reference overflow failure/translation and full array/shared/data-table variants are unmeasured. Shared formulas materialize individually as the native writer does.",
+    "Existing evaluator rejects unknown FOO before writer execution; direct writer addin translation passes, shared engine conversion of that input does not. Direct-factory advanced input lacks cached values/follower cells and differs from native calculated caches at seven positions per stream; shared-engine supported-function fixture caches all match.",
+    "Existing product importer lacks NAME_X, array-literal and some old external-reference translations; factory/native/independent-reader verification does not establish product semantic replay of every emitted formula.",
+    "Loss comparison expands emitted payloads to hex even without queried raw records; output admission bounds it, but byte-level comparison work admission/RSS guarantees are not qualified.",
+    "Arbitrary concurrent cancellation preemption, foreign realms/browser/workerd/host-isolation variants and checkpoint restoration are not qualified by these Node/injected I/O checks.",
+    "Long continued BIFF7 LABEL: native reopening preserves 65535 bytes, but xlrd2.0.2 reads only 2072 bytes from both native and candidate. This is a measured independent-reader limitation, not a full text interoperability pass.",
+    "Current original manual-calculation XML with missing formula caches differs at five formula positions per stream without --recalc; explicit --recalc matches all measured native cell types/values/styles. Native reopening success does not fix missing original caches.",
+    "Empty explicitly declared page-break objects are source-recognized but native behavior remains unmeasured; generic print/protection/validation/chart records are not qualified by the page-break repair.",
+    "First-extent-warning filtering matches six current CLI differential cells and source error_info_list defaults; mixed extent/formula/import/object warnings and full GOffice error-stack envelopes remain unmeasured."
+  ],
+  "cleanup": {
+    "status": "completed",
+    "scope": "only this turn owned out/xls-biff-write-current scratch purged after profile/results/hashes/recipes reduced; previous source/oracle artifacts, borrowed oracle container, unrelated edits and competing workspace processes preserved"
+  }
+}

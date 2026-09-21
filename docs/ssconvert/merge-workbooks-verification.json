@@ -1,0 +1,536 @@
+{
+  "task": "merge-workbooks",
+  "classification": "scoped verification; not full native parity or full repository acceptance",
+  "sourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "candidateSha256": {
+    "packages/ssconvert/src/engine.ts": "be55ac4cafcce26f9eeaf75528ddff6b157b0a667a34a0f44d178aed3e8d88af",
+    "packages/ssconvert/src/rendering.ts": "a60c8ad4388949982987d9b04add63d485e6e340651ce4bb71844c28ab3ab39e",
+    "packages/ssconvert/src/formulas/workbook.ts": "4001b87ae7dcf9203364541316e9e5339982e8a0b2952480a411af4b1a84f1ec",
+    "packages/ssconvert/src/formulas/evaluator.ts": "e47ee0ace0cfedec6f83ebd7e214c90e5eeca3e15d76af71c1e6d31d672a7658",
+    "packages/ssconvert/src/formulas/dependencies.ts": "645f439195136343b36483454c396879caa091b0f682505f0c6e626d57edf419",
+    "packages/ssconvert/src/workbook/merge.ts": "39abc21362bece4dc93a65014fabce169f3fc08c41b16af8641299090589f214",
+    "packages/ssconvert/src/workbook/merge.test.ts": "2fedce135c2e079f6e98ece90a3374b7c528f24b776de99d03d06523f18e0b38",
+    "packages/ssconvert/src/workbook/merge-independent.test.ts": "c4e080f5ef0fadf983084af61c7180e3628c229dd41e2c6102527c7d821f8ef4",
+    "packages/ssconvert/src/merge-workbooks.test.ts": "2b7850a141764a8feb788ec7e70526d345ad29c5801c4170e3fdeee8df8fe822",
+    "packages/ssconvert/src/conversion-lifecycle.test.ts": "b227817d7b4b255a6cc4680e283b27a174146ed3648d36922d527efd3fb2eb54",
+    "packages/ssconvert/src/workbook/updates.test.ts": "7b9b61407c59cbd0d9c5f0cb979d42bce8c2d78d85f92a71dacdc4ebebfb9fd3",
+    "packages/ssconvert/src/cli/diagnostics-independent.test.ts": "9b9658d847d7971d4c1f63f0c13071d67a9b7a9fd890df358a17ceddceea654c",
+    "packages/ssconvert/src/conversion/sheet-selection.test.ts": "b9f9e2309047a22ff11d5e3bb6e9cfd18278e1751ff837fd10c025e058e00542",
+    "packages/ssconvert/src/formulas/workbook-independent.test.ts": "0b7a61edbe6aa18e274215cd44145884eee32f280740ab7b8684534f9e5ba45b",
+    "packages/safe-bash/tests/commands/ssconvert-model.test.ts": "d5381f367229fd357f305b86bf2ae056ed71ae265c200579a557b07a8ade5012"
+  },
+  "initialRegressions": {
+    "workbookMerge": "4 failures/5 tests before repairs: record rejection, dynamic flag dropped, unsorted conflict, empty-suffix expectation later corrected against source/native",
+    "twoInputSDK": "resolved and published with one input before repair",
+    "chartDataset": "retained Data reference failed renamed-sheet expectation before repair",
+    "unicodeOrdering": "supplementary UTF16 order and compatibility normalization each reproduced failing before repair",
+    "caseNames": "case-distinct global merge aborted and forced recalculation selected10 instead of20 before repair",
+    "finalNativeMismatches": "zero-graph/no-renderer status1 vs native0 and C Unicode stderr vs native question-mark fallback each failed before repair",
+    "independentRepairRegressions": "empty-book cancellation, GnmGraph alias, dropped objects each failed before repair"
+  },
+  "nativeDifferential": [
+    {
+      "label": "normal",
+      "status": 0,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/one.xml\nAdding sheets from file:///out/ssconvert-merge/two.xml\n",
+      "namespacePublished": true,
+      "semanticSheets": [
+        {
+          "name": "Data",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "=Data!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Data(2)",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "='Data(2)'!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "names",
+      "status": 1,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/name-one.xml\nAdding sheets from file:///out/ssconvert-merge/name-two.xml\nName conflict during merge: 'Alpha' appears twice at workbook scope.\n",
+      "namespacePublished": false
+    },
+    {
+      "label": "sheet",
+      "status": 1,
+      "stderr": "ssconvert: Unknown sheet \"Data\"\n",
+      "namespacePublished": false
+    },
+    {
+      "label": "active",
+      "status": 1,
+      "stderr": "ssconvert: Unknown sheet \"Data\"\n",
+      "namespacePublished": false
+    },
+    {
+      "label": "explicit",
+      "status": 1,
+      "stderr": "--export-file-per-sheet and --merge-to are incompatible\n",
+      "namespacePublished": false
+    },
+    {
+      "label": "empty",
+      "status": 0,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/empty.xml\nAdding sheets from file:///out/ssconvert-merge/empty.xml\n",
+      "namespacePublished": true,
+      "semanticSheets": [
+        {
+          "name": "Data()",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "='Data()'!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Data(1)",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "='Data(1)'!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "forced",
+      "status": 0,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/one.xml\nAdding sheets from file:///out/ssconvert-merge/two.xml\n",
+      "namespacePublished": true,
+      "semanticSheets": [
+        {
+          "name": "Data",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "=Data!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Data(2)",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "='Data(2)'!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "chart",
+      "status": 0,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/one.xml\nAdding sheets from file:///out/ssconvert-merge/chart.xml\n",
+      "namespacePublished": true,
+      "semanticSheets": [
+        {
+          "name": "Data",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "=Data!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Data(2)",
+          "size": {
+            "rows": 65536,
+            "columns": 256
+          },
+          "cells": [
+            {
+              "row": 0,
+              "column": 0,
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            },
+            {
+              "row": 0,
+              "column": 1,
+              "formula": "='Data(2)'!A1",
+              "value": {
+                "kind": "blank"
+              }
+            }
+          ]
+        }
+      ],
+      "chartDimensions": [
+        "'Data(2)'!$A$1:$A$2"
+      ]
+    },
+    {
+      "label": "graph-no-renderer",
+      "exitCode": 0,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/one.xml\nAdding sheets from file:///out/ssconvert-merge/two.xml\n",
+      "publication": false
+    },
+    {
+      "label": "unicode-C",
+      "exitCode": 1,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/unicode.xml\nAdding sheets from file:///out/ssconvert-merge/unicode.xml\nName conflict during merge: '?' appears twice at workbook scope.\n",
+      "publication": false
+    },
+    {
+      "label": "case",
+      "locale": "C",
+      "status": 0,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/case-one.xml\nAdding sheets from file:///out/ssconvert-merge/case-two.xml\n",
+      "secondSheetCsv": "7,20\n",
+      "names": [
+        {
+          "name": "Clash",
+          "expression": "10",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        },
+        {
+          "name": "clash",
+          "expression": "20",
+          "position": {
+            "sheet": "s1",
+            "row": 0,
+            "column": 0
+          }
+        }
+      ]
+    },
+    {
+      "label": "normalize",
+      "locale": "C.UTF-8",
+      "status": 1,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/normalize.xml\nAdding sheets from file:///out/ssconvert-merge/normalize.xml\nName conflict during merge: 'Ａ' appears twice at workbook scope.\n"
+    },
+    {
+      "label": "scope",
+      "status": 0,
+      "stderr": "Adding sheets from file:///out/ssconvert-merge/scope-one.xml\nAdding sheets from file:///out/ssconvert-merge/scope-two.xml\n",
+      "names": [
+        {
+          "name": "GlobalOne",
+          "expression": "Data!$A$1"
+        },
+        {
+          "name": "GlobalTwo",
+          "expression": "'Data(2)'!$A$1"
+        },
+        {
+          "name": "Local",
+          "expression": "'Data(2)'!$A$1",
+          "sheet": "s2"
+        },
+        {
+          "name": "Local",
+          "expression": "Data!$A$1",
+          "sheet": "s1"
+        }
+      ]
+    }
+  ],
+  "nativeFixtures": {
+    "case-one.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>Clash</gnm:name><gnm:value>10</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Clash</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "unicode.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>𐐀</gnm:name><gnm:value>1</gnm:value><gnm:position>A1</gnm:position></gnm:Name><gnm:Name><gnm:name>Ａ</gnm:name><gnm:value>1</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "name-one.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>Zulu</gnm:name><gnm:value>1</gnm:value><gnm:position>A1</gnm:position></gnm:Name><gnm:Name><gnm:name>Alpha</gnm:name><gnm:value>2</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "empty.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data()</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Data()</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">='Data()'!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "two.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "chart.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Objects><gnm:SheetObjectGraph ObjectBound=\"A1:D10\"><GogObject type=\"GogGraph\"><GogObject role=\"Chart\" type=\"GogChart\"><GogObject role=\"Plot\" type=\"GogBarColPlot\"><GogObject role=\"Series\" type=\"GogBarColSeries\"><data><dimension id=\"1\" type=\"GnmGODataVector\">Data!$A$1:$A$2</dimension></data></GogObject></GogObject></GogObject></GogObject></gnm:SheetObjectGraph></gnm:Objects><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "normalize.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>Zulu</gnm:name><gnm:value>1</gnm:value><gnm:position>A1</gnm:position></gnm:Name><gnm:Name><gnm:name>Ａ</gnm:name><gnm:value>1</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "one.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "case-two.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>clash</gnm:name><gnm:value>20</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=clash</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "name-two.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>Zulu</gnm:name><gnm:value>1</gnm:value><gnm:position>A1</gnm:position></gnm:Name><gnm:Name><gnm:name>Alpha</gnm:name><gnm:value>2</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "scope-two.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>GlobalTwo</gnm:name><gnm:value>Data!$A$1</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Names><gnm:Name><gnm:name>Local</gnm:name><gnm:value>Data!$A$1</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "scope-one.xml": "<?xml version=\"1.0\"?><gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:Version Epoch=\"1\" Major=\"12\" Minor=\"61\" Full=\"1.12.61\"/><gnm:SheetNameIndex><gnm:SheetName gnumeric:Cols=\"256\" gnumeric:Rows=\"65536\" xmlns:gnumeric=\"http://www.gnumeric.org/v10.dtd\">Data</gnm:SheetName></gnm:SheetNameIndex><gnm:Names><gnm:Name><gnm:name>GlobalOne</gnm:name><gnm:value>Data!$A$1</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Sheets><gnm:Sheet><gnm:Name>Data</gnm:Name><gnm:Names><gnm:Name><gnm:name>Local</gnm:name><gnm:value>Data!$A$1</gnm:value><gnm:position>A1</gnm:position></gnm:Name></gnm:Names><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">7</gnm:Cell><gnm:Cell Row=\"0\" Col=\"1\">=Data!A1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+  },
+  "independentReview": {
+    "agent": "merge_stress",
+    "finalScopedPasses": 34,
+    "independentTests": 16,
+    "latestImplementationRepairFiles": [
+      "workbook/merge.ts",
+      "rendering.ts"
+    ],
+    "coverage": [
+      "counter wrap/overflow",
+      "Unicode sheet collisions",
+      "stable IDs and namespace separation",
+      "3D/shared formulas",
+      "retained object snapshot ownership",
+      "cancellation identity/work/storage caps",
+      "graph absence, alias, disposition, metadata and source admission",
+      "UTF8 and C conflict diagnostics",
+      "exact case-sensitive direct/INDIRECT lookup",
+      "local shadows",
+      "selective named dependency invalidation",
+      "JSON replay"
+    ]
+  },
+  "screenshot": {
+    "tool": "npm run screenshot -- --output out/ssconvert-merge/cli.png node out/ssconvert-merge/cli-capture.mjs",
+    "sha256": "62151fddf824b51262d76016701a76333da1c04d964cf72fcb311f54be87b76a",
+    "inspected": true,
+    "observations": "Clear CLI lines; merge status0 with both unconditional adding messages; sheet option rejection status1; graph mode on graph-free merge status0 without output artifacts. Task scratch purged after reduction."
+  },
+  "remaining": [
+    {
+      "status": "unsupported",
+      "case": "incoming detached sheets",
+      "effect": "explicit merge reference records error; no verified native parity"
+    },
+    {
+      "status": "unsupported",
+      "case": "actual graph/image rendering without injected rendering capability",
+      "effect": "graph export error; graph-free merge now verified successful"
+    },
+    {
+      "status": "unmeasured",
+      "case": "unknown/malformed/non-Gnumeric retained graph dialects",
+      "effect": "unknown Objects conservatively require renderer; not a native graph-count pass"
+    },
+    {
+      "status": "unmeasured",
+      "case": "cross-input external workbook formula links",
+      "effect": "local workbook/sheet rehoming verified; exploratory external fixtures were invalid native references and are not coverage"
+    },
+    {
+      "status": "unmeasured",
+      "case": "non-chart object expression callbacks and all chart dimension types/historical graph dialects",
+      "effect": "one native GnmGODataVector dataset transfer measured; broad live ownership/native rendering not claimed"
+    },
+    {
+      "status": "source-and-unit-only",
+      "case": "maximum 16777216 rows by16384 columns",
+      "effect": "size suggestion reviewed and max dimensions tested in memory; largest native workbook not executed"
+    },
+    {
+      "status": "unmeasured",
+      "case": "other locale profiles and Unicode-version edge cases",
+      "effect": "captured C/C.UTF-8 checks do not imply all locale collation/folding parity"
+    },
+    {
+      "status": "unmeasured",
+      "case": "equal collation-key first-conflict ties",
+      "effect": "native name collection hash iteration order not emulated"
+    },
+    {
+      "status": "measured-serialization-difference",
+      "case": "case-distinct global-name XML order",
+      "effect": "native case fixture emits clash then Clash; engine preserves input name order Clash then clash. Namespace/value semantics verified; raw Gnumeric archive/XML byte parity not claimed"
+    },
+    {
+      "status": "not-run",
+      "case": "full repository/unit/release/archive/host-isolation/replay gate",
+      "effect": "scoped checks do not establish broader host isolation, checkpoint or release acceptance"
+    }
+  ],
+  "delivery": {
+    "localCommit": null,
+    "remoteMain": "not pushed",
+    "release": "not published",
+    "readmes": "unchanged",
+    "unrelatedChanges": "preserved; original tracked dirty files untouched"
+  },
+  "verifiedAt": "2026-09-21T03:03:33.158892+00:00",
+  "checks": [
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": 0,
+      "scope": "maintained safe-bash build dependency closure; postbuild included"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert --no-cache",
+      "status": 0,
+      "scope": "final changed package build closure after independent implementation edits"
+    },
+    {
+      "command": "npm run test --workspace=@poe-code/ssconvert -- --no-cache",
+      "status": 0,
+      "testFiles": 232,
+      "tests": 5281
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": 0,
+      "scope": "ESLint source, production no-emit and test no-emit TypeScript checks"
+    },
+    {
+      "command": "node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/ssconvert*.test.ts",
+      "status": 0,
+      "tests": 82,
+      "skipped": 0
+    },
+    {
+      "command": "node --test packages/safe-bash/scripts/integration-inputs.test.mjs",
+      "status": 0,
+      "tests": 120,
+      "skipped": 0
+    },
+    {
+      "command": "../../node_modules/.bin/eslint tests/commands/ssconvert-model.test.ts",
+      "cwd": "packages/safe-bash",
+      "status": 0
+    },
+    {
+      "command": "npm run typecheck --workspace=@poe-platform/safe-bash",
+      "status": 2,
+      "scope": "not completed: root public SafeFS/SafeJS export identity prerequisite assertion",
+      "diagnostic": "\n> @poe-platform/safe-bash@0.0.0 typecheck\n> node scripts/typecheck.mjs\n\ntypecheck: Public SafeFS must preserve shared SafeJS runtime identity\n+ actual - expected\n\n+ undefined\n- './packages/safe-js/dist/safe-fs.js'\n\n{\"status\":\"typecheck-failed\",\"builds\":0,\"currentConsumerGroups\":0,\"heldEvidenceInputs\":4,\"runtimeExecutions\":0,\"cleaned\":true}\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/kjopek/Workspace/poe-code-5/packages/safe-bash\nnpm error workspace @poe-platform/safe-bash@0.0.0\nnpm error location /Users/kjopek/Workspace/poe-code-5/packages/safe-bash\nnpm error command failed\nnpm error command sh -c node scripts/typecheck.mjs\n"
+    }
+  ],
+  "scratch": "Owned out/ssconvert-merge scratch purged after record reduction; primary archive/source never acquired outside out.",
+  "nativeOutputExistence": {
+    "normal.gnumeric": true,
+    "names.gnumeric": false,
+    "sheet.csv": false,
+    "active.csv": false,
+    "explicit.gnumeric": false,
+    "graph.png": false,
+    "empty.gnumeric": true,
+    "forced.gnumeric": true,
+    "chart.gnumeric": true,
+    "unicode.gnumeric": false,
+    "normalize.gnumeric": false,
+    "case.gnumeric": true,
+    "scope.gnumeric": true
+  },
+  "scratchInventoryBeforePurge": {
+    "scope": "/Users/kjopek/Workspace/poe-code-5/out/ssconvert-merge",
+    "files": 2293,
+    "directories": 98,
+    "symlinks": 0,
+    "specialEntries": 0,
+    "classification": "authenticated primary source archive/extraction and task-owned generated fixtures, oracle/check logs, QA entrypoint and screenshot; reduced to maintained records",
+    "nativeOutputExistenceVerified": true
+  }
+}

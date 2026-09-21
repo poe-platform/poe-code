@@ -1,0 +1,721 @@
+{
+  "kind": "ssconvert-encoding-locale-reference-profile",
+  "scope": "Separate native QA oracle only; no native product dependency or fallback",
+  "sourceUrl": "https://download.gnome.org/sources/gnumeric/1.12/gnumeric-1.12.61.tar.xz",
+  "sourcePath": "out/ssconvert-lifecycle/gnumeric-1.12.61.tar.xz",
+  "sourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "oracleContainer": "ssconvert-statistics-qa",
+  "oracleSocket": "unix:///Users/kjopek/.colima/default/docker.sock",
+  "reference": {
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "GSETTINGS_BACKEND": "memory",
+      "XDG_DATA_DIRS": "/out/ssconvert-statistics-oracle/prefix/share:/usr/local/share:/usr/share",
+      "HOME": "/out/ssconvert-encodings/home",
+      "XDG_CONFIG_HOME": "/out/ssconvert-encodings/config",
+      "XDG_DATA_HOME": "/out/ssconvert-encodings/data",
+      "XDG_CACHE_HOME": "/out/ssconvert-encodings/cache"
+    },
+    "version": "",
+    "locales": "C\nC.utf8\nPOSIX\n",
+    "dependencies": "libc6:arm64\t2.41-12+deb13u4\nlibglib2.0-0t64:arm64\t2.84.4-3~deb13u5\nlibgsf-1-114:arm64\t1.14.53-1\nlibxml2:arm64\t2.12.7+dfsg+really2.9.14-2.1+deb13u3\n",
+    "plugins": [
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.xml",
+        "sha256": "512e2debdc09f8ab5adaab5c7f99b5c414a31d7b4285dfe81c5b7b382c7a5093"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.xml",
+        "sha256": "73f79393f3e38c493080afe204a0bea3b8ee936d6342aa680800f6dfc5b507a6"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-r/plugin.xml",
+        "sha256": "8bb27356e050e4ac7598412725bc400431ce3e6c7a481e55e6ebbf8bc351b959"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sc/plugin.xml",
+        "sha256": "ac9c8c8ca7b20045cd6e297b985f47ed0109468752357adf99e81275c3e6674c"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sylk/plugin.xml",
+        "sha256": "5b0dff2a02ef7efa50773c1c775766c9cb9c8ae8a70645a9fe1c7b1cf8aa3c54"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.xml",
+        "sha256": "4540ff972f2b5c35e1c709ca522bb385333d1fb9832ebcb9a355c87000075978"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-database/plugin.xml",
+        "sha256": "7ebcf83d399b971cfa949a512515f149707e66fd70e63a977035766d56f16e44"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-info/plugin.xml",
+        "sha256": "9871ad45a606d789ea8a88c8ebf0f3c24c8ad36a48085c0d3640855537d593d1"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/mps/plugin.xml",
+        "sha256": "b4af2d3924241b0e15ad39afb433cf802135d92a6c8b5bde328e409cf4814f9d"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.xml",
+        "sha256": "1bc6f5cf11d2ff63acf624460e792028348a3b779bd9d912f05c3cf3f2b536c3"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.xml",
+        "sha256": "9dc90aaf8202a8dae7000c7a740df897f7cf477932652bb14c60d86515d34606"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/plugin.xml",
+        "sha256": "98edcc7806bf6e51ad0a27ca299b207750ecfd2367460ef13dc42a3ab8c83bda"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.xml",
+        "sha256": "d06c9e7d9aec1849fa9ea5d9bd267f4af20f227a98c708dc57ed3b63f17f93cc"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/lpsolve/plugin.xml",
+        "sha256": "48a4d9c2142d9eb0bf8ecf0136841e9e500cf5c0bd88471e1802159232f1a0f3"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/excel/plugin.xml",
+        "sha256": "04af00f442424ae635c43d758c9da5a9cef93731015519e5a01c0da7a635aff2"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/lotus/plugin.xml",
+        "sha256": "a38de08bb20b878d566708a305d242ff898b8df6fbfd467af43362d46cd38f5b"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/html/plugin.xml",
+        "sha256": "0e24fe00f38781cdb1a63056cd382747edcd41c8decb7b355cb8ac8485de31cd"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/applix/plugin.xml",
+        "sha256": "6d35f6abb0886d915ba6e4b7cfc17e23678804e82cbb92018b277d12321c686a"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.xml",
+        "sha256": "a5574fbeca4886d4b2d1833c87d426ecbbe0dcfb3cd3aa4889f05ec26a1131a3"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.xml",
+        "sha256": "4377e08837429c637fd528229634443a84d1e1b1ff442e942a427d44026b9f8d"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/glpk/plugin.xml",
+        "sha256": "f9ff2f40013f2ba14c5f2cf363591508fed7c681ac4e7b426f889e754fa37ea6"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/qpro/plugin.xml",
+        "sha256": "2ad3b9c8436d47d497fe8394626a19efb085f53afaa420637ec758401039a9f3"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/xbase/plugin.xml",
+        "sha256": "77dee717114afeecce37ea4d348fff0c2ffe230b345607e0e10819578ec6780a"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.xml",
+        "sha256": "5389636fe217178ea53c2f786576f03171f7272cda505116d1ff120353557712"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.xml",
+        "sha256": "b26fadcf27e9783fa243775f74851730675703f8a25fa1c3c16cd775803505d3"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-string/plugin.xml",
+        "sha256": "4c576c6678566525258e4ed3102db586429e9e4b178b3c14ef3ab62be773b3bf"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/dif/plugin.xml",
+        "sha256": "c4df295133bbea7ec076e0334c7c8578258e34e1ccbd492eaa52ab21bd3553d6"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.xml",
+        "sha256": "e9802b5951b077a533f7c90ae6feae5b2a22aa38191911a04b58c45bbdbfa634"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/uihello/plugin.xml",
+        "sha256": "54f9eb2f628c6d4d069a89426ad5e9b9e4229340d0a9dc628e63f991befb6a37"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/oleo/plugin.xml",
+        "sha256": "04785baf2b561c260c0b5d6b86f0f3ce372d4e52446fba12aabe723a8b61862f"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-math/plugin.xml",
+        "sha256": "971a835f16d9c26130875f07b1eece000a3405ac05244305f0472bff4823430c"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/nlsolve/plugin.xml",
+        "sha256": "e8e43964a2956c5c2d671aa84f529142868fc6a8a4bf4e959f3cc1562a7a73c8"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-date/plugin.xml",
+        "sha256": "ebe04a5845a58a9b5838d81974053e79ffb9ef22f505827d3673a9606dee66e5"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/plan_perfect/plugin.xml",
+        "sha256": "725750f75463e7e23bcef0d258e6d608f8acb3b40420dd34c41c5aabc3d6c0ac"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.xml",
+        "sha256": "b1efca176c3e4acb7988b62619d942b345dc4651441e45d8faad2db52f22d351"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/openoffice/plugin.xml",
+        "sha256": "261ac77c377ed815456a8f6934cc12a9a6edca868e08cfe331a17fdadce73c0f"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.xml",
+        "sha256": "a17f4faa5ccea0be71c413b1ab15617ab935a0492bc79c376aadc611c978fb46"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/sample_datasource/plugin.xml",
+        "sha256": "82285e2a1f04ca5e9ff50b3c534710fd3de52faad19ad1bb2fdf65adfafbd2ac"
+      }
+    ],
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "libraryBindings": [
+      {
+        "name": "libspreadsheet-1.12.61.so",
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so",
+        "size": 16102240,
+        "sha256": "b429e875c714d8eab593a878b0b2fb15e35a8bdec332301a9c63d4d9cc6009a0"
+      },
+      {
+        "name": "libgoffice-0.10.so.10",
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10.0.61",
+        "size": 7608912,
+        "sha256": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42"
+      },
+      {
+        "name": "libgsf-1.so.114",
+        "path": "/usr/lib/aarch64-linux-gnu/libgsf-1.so.114.0.53",
+        "size": 335400,
+        "sha256": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28"
+      },
+      {
+        "name": "libgobject-2.0.so.0",
+        "path": "/usr/lib/aarch64-linux-gnu/libgobject-2.0.so.0.8400.4",
+        "size": 462784,
+        "sha256": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f"
+      },
+      {
+        "name": "libglib-2.0.so.0",
+        "path": "/usr/lib/aarch64-linux-gnu/libglib-2.0.so.0.8400.4",
+        "size": 1511048,
+        "sha256": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1"
+      },
+      {
+        "name": "libc.so.6",
+        "path": "/usr/lib/aarch64-linux-gnu/libc.so.6",
+        "size": 1716616,
+        "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13"
+      },
+      {
+        "name": "libxml2.so.2",
+        "path": "/usr/lib/aarch64-linux-gnu/libxml2.so.2.9.14",
+        "size": 1774360,
+        "sha256": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d"
+      },
+      {
+        "name": "libgmodule-2.0.so.0",
+        "path": "/usr/lib/aarch64-linux-gnu/libgmodule-2.0.so.0.8400.4",
+        "size": 67672,
+        "sha256": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08"
+      },
+      {
+        "name": "libgio-2.0.so.0",
+        "path": "/usr/lib/aarch64-linux-gnu/libgio-2.0.so.0.8400.4",
+        "size": 2231760,
+        "sha256": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77"
+      }
+    ],
+    "tzdata": "tzdata\t2026c-0+deb13u1\n"
+  },
+  "coverage": {
+    "singleByteCodepages": [
+      "ascii",
+      "iso-8859-1",
+      "iso-8859-2",
+      "iso-8859-3",
+      "iso-8859-4",
+      "iso-8859-5",
+      "iso-8859-6",
+      "iso-8859-7",
+      "iso-8859-8",
+      "iso-8859-9",
+      "iso-8859-10",
+      "iso-8859-11",
+      "iso-8859-13",
+      "iso-8859-14",
+      "iso-8859-15",
+      "iso-8859-16",
+      "cp437",
+      "cp850",
+      "cp852",
+      "cp855",
+      "cp857",
+      "cp858",
+      "cp860",
+      "cp861",
+      "cp862",
+      "cp863",
+      "cp864",
+      "cp865",
+      "cp866",
+      "cp869",
+      "windows-1250",
+      "windows-1251",
+      "windows-1252",
+      "windows-1253",
+      "windows-1254",
+      "windows-1255",
+      "windows-1256",
+      "windows-1257",
+      "windows-1258",
+      "koi8-r",
+      "koi8-u",
+      "macintosh",
+      "mac-cyrillic",
+      "tis-620"
+    ],
+    "byteDecodeMeasurements": 11264,
+    "invalidByteCounts": {
+      "ascii": 128,
+      "iso-8859-1": 0,
+      "iso-8859-2": 0,
+      "iso-8859-3": 7,
+      "iso-8859-4": 0,
+      "iso-8859-5": 0,
+      "iso-8859-6": 45,
+      "iso-8859-7": 3,
+      "iso-8859-8": 36,
+      "iso-8859-9": 0,
+      "iso-8859-10": 0,
+      "iso-8859-11": 8,
+      "iso-8859-13": 0,
+      "iso-8859-14": 0,
+      "iso-8859-15": 0,
+      "iso-8859-16": 0,
+      "cp437": 0,
+      "cp850": 0,
+      "cp852": 0,
+      "cp855": 0,
+      "cp857": 3,
+      "cp858": 0,
+      "cp860": 0,
+      "cp861": 0,
+      "cp862": 0,
+      "cp863": 0,
+      "cp864": 6,
+      "cp865": 0,
+      "cp866": 0,
+      "cp869": 9,
+      "windows-1250": 5,
+      "windows-1251": 1,
+      "windows-1252": 5,
+      "windows-1253": 17,
+      "windows-1254": 7,
+      "windows-1255": 23,
+      "windows-1256": 0,
+      "windows-1257": 12,
+      "windows-1258": 9,
+      "koi8-r": 0,
+      "koi8-u": 0,
+      "macintosh": 0,
+      "mac-cyrillic": 0,
+      "tis-620": 41
+    },
+    "declaredAliases": 238,
+    "asciiTransliteration": {
+      "C": {
+        "measured": 1111936,
+        "nonDefaultReplacements": 1784
+      },
+      "C.UTF-8": {
+        "measured": 1111936,
+        "nonDefaultReplacements": 3443
+      }
+    },
+    "targetTransliteration": {
+      "C": {
+        "targets": 44,
+        "measuredPerTarget": 1111936,
+        "sparseDifferences": 219
+      },
+      "C.UTF-8": {
+        "targets": 44,
+        "measuredPerTarget": 1111936,
+        "sparseDifferences": 5047
+      }
+    },
+    "ucs2AstralTransliteration": {
+      "C": {
+        "measured": 1048576,
+        "sparseDifferences": 0
+      },
+      "C.UTF-8": {
+        "measured": 1048576,
+        "sparseDifferences": 1042
+      }
+    },
+    "additionalMeasuredNames": [
+      "ansi_x3.4-1968",
+      "ibm437",
+      "ibm850",
+      "ibm852",
+      "ibm855",
+      "ibm857",
+      "ibm858",
+      "ibm860",
+      "ibm861",
+      "ibm862",
+      "ibm863",
+      "ibm864",
+      "ibm865",
+      "ibm866",
+      "ibm869",
+      "mac-uk",
+      "ucs2",
+      "ucs4",
+      "cp1250",
+      "cp1251",
+      "cp1252",
+      "cp1253",
+      "cp1254",
+      "cp1255",
+      "cp1256",
+      "cp1257",
+      "cp1258"
+    ]
+  },
+  "candidate": {
+    "node": "v22.22.2",
+    "icu": "78.2",
+    "unicode": "17.0",
+    "tz": "2025c"
+  },
+  "captureHashes": {
+    "ucs2-transliteration.json": "e6393a4f6dbce049cc38f3c0c84d6f8dac6bbec0512ac7fdf30a2179003952a6",
+    "timezone-audit.json": "9b6505be8620864bb069da270da0f34d130fa4642fb43588a142994b67e0440b",
+    "timezone-audit-corrected.json": "420ff4a0a2e296dff6c967f994ec50cd003c530839d83acfcebe199bf326ec8e",
+    "canonical-aliases.json": "a82220da5647bc77f23f4c95498af7b52035404ddc115c571ff10d961246c23c",
+    "target-transliteration.json": "3208fcaf6e3ec94997ae953801e375559db15fdd1266ae478c4052d1781e9af3",
+    "ascii-transliteration.json": "3e9fb2da11bffe8795822a8e84c3d5a80d721df8fc37b29e95d328fdc3759faf",
+    "iconv-capture.json": "7eb28e72387938685bf8494034c633343a2c6b23c835b3eae7886e19b483f0df",
+    "primary-source-binding.json": "9cabebb14498e3fece93f4f1c321600772572062034b4ad2e581840a4d92c846",
+    "codepage-cohort.json": "ebcad8b750f0a822ad4b8278bf97a90e63de8461a57c2b5ad186a732874d5788",
+    "native-capture.json": "d1e89d09ff4b5ec9441b8ca943057fea8dce695f4246c4e12dcd7b4d12b67f14",
+    "native-library-binding.json": "7dbc8b19fa8701600b990a93f639ac68e748767fb8e22d268580c31611520fed"
+  },
+  "sourceMembers": [
+    {
+      "path": "src/ssconvert.c",
+      "sha256": "0d600c72a05645e6940730bf6e733636ec25f814c20a218cb5e5255da5b198df",
+      "archiveEqual": true
+    },
+    {
+      "path": "src/libgnumeric.c",
+      "sha256": "1791e7e9bf707446c2806f157e9ab9918823d70d357072845a5d39a57b94a520",
+      "archiveEqual": true
+    },
+    {
+      "path": "src/stf-export.c",
+      "sha256": "ae28de25758e79e70d414ce415878de90a99d573d6c7b20c932f7e1f6ff59f6d",
+      "archiveEqual": true
+    },
+    {
+      "path": "src/stf.c",
+      "sha256": "17137fef41e3d7dd905a8c09cbdad9fa460ac559f1f6d3a9ee4d18edbed3da42",
+      "archiveEqual": true
+    },
+    {
+      "path": "src/stf-parse.c",
+      "sha256": "7ffcf2060519d651022f0d52c267451c616ac24291e9cc2553f5da26204a611a",
+      "archiveEqual": true
+    }
+  ],
+  "canonicalAliasAudit": {
+    "profile": "glibc 2.41 pinned ssconvert oracle",
+    "gconvSourceHashes": [
+      {
+        "path": "/usr/lib/aarch64-linux-gnu/gconv/gconv-modules",
+        "sha256": "ca370833ebc1ec0283a3e6b66cea63d5b1d2e118272e963d2a25c891564aa89d"
+      },
+      {
+        "path": "/usr/lib/aarch64-linux-gnu/gconv/gconv-modules.d/gconv-modules-extra.conf",
+        "sha256": "efd92404c912b44689b96e311c2d827944c54df21f1509985d122495bda6f9aa"
+      }
+    ],
+    "cases": [
+      {
+        "captured": "ascii",
+        "nativeCanonical": "ascii",
+        "decodeCases": 256,
+        "encodeCases": 128
+      },
+      {
+        "captured": "iso-8859-1",
+        "nativeCanonical": "iso-8859-1",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-2",
+        "nativeCanonical": "iso-8859-2",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-3",
+        "nativeCanonical": "iso-8859-3",
+        "decodeCases": 256,
+        "encodeCases": 249
+      },
+      {
+        "captured": "iso-8859-4",
+        "nativeCanonical": "iso-8859-4",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-5",
+        "nativeCanonical": "iso-8859-5",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-6",
+        "nativeCanonical": "iso-8859-6",
+        "decodeCases": 256,
+        "encodeCases": 211
+      },
+      {
+        "captured": "iso-8859-7",
+        "nativeCanonical": "iso-8859-7",
+        "decodeCases": 256,
+        "encodeCases": 253
+      },
+      {
+        "captured": "iso-8859-8",
+        "nativeCanonical": "iso-8859-8",
+        "decodeCases": 256,
+        "encodeCases": 220
+      },
+      {
+        "captured": "iso-8859-9",
+        "nativeCanonical": "iso-8859-9",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-10",
+        "nativeCanonical": "iso-8859-10",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-11",
+        "nativeCanonical": "iso-8859-11",
+        "decodeCases": 256,
+        "encodeCases": 248
+      },
+      {
+        "captured": "iso-8859-13",
+        "nativeCanonical": "iso-8859-13",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-14",
+        "nativeCanonical": "iso-8859-14",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-15",
+        "nativeCanonical": "iso-8859-15",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "iso-8859-16",
+        "nativeCanonical": "iso-8859-16",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp437",
+        "nativeCanonical": "ibm437",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp850",
+        "nativeCanonical": "ibm850",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp852",
+        "nativeCanonical": "ibm852",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp855",
+        "nativeCanonical": "ibm855",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp857",
+        "nativeCanonical": "ibm857",
+        "decodeCases": 256,
+        "encodeCases": 253
+      },
+      {
+        "captured": "cp858",
+        "nativeCanonical": "ibm858",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp860",
+        "nativeCanonical": "ibm860",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp861",
+        "nativeCanonical": "ibm861",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp862",
+        "nativeCanonical": "ibm862",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp863",
+        "nativeCanonical": "ibm863",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp864",
+        "nativeCanonical": "ibm864",
+        "decodeCases": 256,
+        "encodeCases": 250
+      },
+      {
+        "captured": "cp865",
+        "nativeCanonical": "ibm865",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp866",
+        "nativeCanonical": "ibm866",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "cp869",
+        "nativeCanonical": "ibm869",
+        "decodeCases": 256,
+        "encodeCases": 247
+      },
+      {
+        "captured": "windows-1250",
+        "nativeCanonical": "cp1250",
+        "decodeCases": 256,
+        "encodeCases": 251
+      },
+      {
+        "captured": "windows-1251",
+        "nativeCanonical": "cp1251",
+        "decodeCases": 256,
+        "encodeCases": 255
+      },
+      {
+        "captured": "windows-1252",
+        "nativeCanonical": "cp1252",
+        "decodeCases": 256,
+        "encodeCases": 251
+      },
+      {
+        "captured": "windows-1253",
+        "nativeCanonical": "cp1253",
+        "decodeCases": 256,
+        "encodeCases": 239
+      },
+      {
+        "captured": "windows-1254",
+        "nativeCanonical": "cp1254",
+        "decodeCases": 256,
+        "encodeCases": 249
+      },
+      {
+        "captured": "windows-1255",
+        "nativeCanonical": "cp1255",
+        "decodeCases": 256,
+        "encodeCases": 233
+      },
+      {
+        "captured": "windows-1256",
+        "nativeCanonical": "cp1256",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "windows-1257",
+        "nativeCanonical": "cp1257",
+        "decodeCases": 256,
+        "encodeCases": 244
+      },
+      {
+        "captured": "windows-1258",
+        "nativeCanonical": "cp1258",
+        "decodeCases": 256,
+        "encodeCases": 247
+      },
+      {
+        "captured": "koi8-r",
+        "nativeCanonical": "koi8-r",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "koi8-u",
+        "nativeCanonical": "koi8-u",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "macintosh",
+        "nativeCanonical": "macintosh",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "mac-cyrillic",
+        "nativeCanonical": "mac-uk",
+        "decodeCases": 256,
+        "encodeCases": 256
+      },
+      {
+        "captured": "tis-620",
+        "nativeCanonical": "tis-620",
+        "decodeCases": 256,
+        "encodeCases": 215
+      }
+    ]
+  }
+}

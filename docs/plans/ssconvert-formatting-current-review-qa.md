@@ -1,0 +1,8 @@
+# Independent scientific precision QA
+
+1. Use the separate `ssconvert-statistics-qa` Docker container with the exact image and native prefix recorded in `docs/ssconvert/number-format-current-independent-profile.json`. Do not use native tools in product code or unit tests.
+2. Reconstruct the two original XML inputs from the recorded input hex below `out/number-date-style-formatting-current-review`. Run the recorded native exporter command with C locale, UTC, memory settings backend and explicit library/schema prefix. Compare exit status, diagnostics and complete output bytes to the captured hex.
+3. Independently apply the shared TypeScript formatter to every recorded literal value/pattern and compare the exact resulting string with each native row. Include scientific precisions 2/100/101/120/127/128, fixed/scientific precisions 0/1/17/128/256, engineering formats, signed/subnormal/maximum values, power neighbours and carry boundaries.
+4. Run the in-memory independent regression file and maintained formatter/TEXT suite. Exercise output byte limit and one-less rejection, cancellation identity during scanning, work exhaustion and an ambient Intl negative control. Unit tests must never execute the native oracle or write files.
+5. Root runs final maintained uncached workspace/closure gates and CLI/SDK/realm/checkpoint/replay integration. Record those results separately from this formatter review. Preserve unsupported finite-font display and unmeasured width/locale/runtime cells as gaps.
+6. Bind the exact dirty candidate source hashes, capture bytes/status and qualification to the durable profile. Remove only this review's owned scratch after reduction. No README changes, staging, commits, pushes or publication by this agent.

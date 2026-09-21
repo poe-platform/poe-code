@@ -1,0 +1,290 @@
+{
+  "scope": "Separate native QA only; no native calls in unit tests",
+  "fixtures": {
+    "styles": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Styles><gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"255\" endRow=\"255\"><gnm:Style Format=\"0.00\"/></gnm:StyleRegion></gnm:Styles></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "arraygone": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Cells><gnm:Cell Row=\"199\" Col=\"0\" Rows=\"2\" Cols=\"2\">=1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "arraysplit": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Cells><gnm:Cell Row=\"126\" Col=\"0\" Rows=\"4\" Cols=\"2\">=1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "mergesplit": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:MergedRegions><gnm:Merge>A127:B130</gnm:Merge></gnm:MergedRegions></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "objects": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Objects><gnm:CellComment ObjectBound=\"A200\" Text=\"gone\"/><gnm:SheetObjectFilled Type=\"101\" ObjectBound=\"A120:B200\"/></gnm:Objects></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "refs": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">Small</gnm:SheetName><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">Other</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>Small</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\">=A200</gnm:Cell></gnm:Cells></gnm:Sheet><gnm:Sheet><gnm:Name>Other</gnm:Name><gnm:Cells><gnm:Cell Row=\"0\" Col=\"0\">=Small!A200</gnm:Cell><gnm:Cell Row=\"1\" Col=\"0\">=SUM(Small!A1:A200)</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "print-loaded": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Names><gnm:Name><gnm:name>Print_Area</gnm:name><gnm:value>S!$A$1:$IV$256</gnm:value></gnm:Name></gnm:Names><gnm:PrintInformation><gnm:Margins><gnm:top Points=\"72\" PrefUnit=\"mm\"/></gnm:Margins><gnm:repeat_top value=\"A120:A200\"/><gnm:repeat_left value=\"D1:IV1\"/></gnm:PrintInformation><gnm:Styles><gnm:StyleRegion startCol=\"0\" startRow=\"0\" endCol=\"255\" endRow=\"255\"><gnm:Style Format=\"0.00\"/></gnm:StyleRegion></gnm:Styles></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "col-first": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Cells><gnm:Cell Row=\"199\" Col=\"126\" Rows=\"2\" Cols=\"4\">=1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>",
+    "col-removed": "<gnm:Workbook xmlns:gnm=\"http://www.gnumeric.org/v10.dtd\"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols=\"256\" gnm:Rows=\"256\">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Cells><gnm:Cell Row=\"126\" Col=\"199\" Rows=\"4\" Cols=\"2\">=1</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>"
+  },
+  "parseAndDimensions": [
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=128x128tail",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh0.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 128x128\n",
+      "sheet": "S",
+      "rows": 128,
+      "columns": 128
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=1x1",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh1.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 1x1\n\n** (ssconvert:82744): CRITICAL **: 03:40:24.980: gnm_sheet_resize: assertion 'gnm_sheet_valid_size (cols, rows)' failed\n\n(ssconvert:82744): GLib-GObject-CRITICAL **: 03:40:24.980: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n",
+      "sheet": "S",
+      "rows": 256,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=129x128",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh2.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 129x128\n\n** (ssconvert:82751): CRITICAL **: 03:40:25.069: gnm_sheet_resize: assertion 'gnm_sheet_valid_size (cols, rows)' failed\n\n(ssconvert:82751): GLib-GObject-CRITICAL **: 03:40:25.069: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n",
+      "sheet": "S",
+      "rows": 256,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=-128x128",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh3.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to -128x128\n\n** (ssconvert:82757): CRITICAL **: 03:40:25.157: gnm_sheet_resize: assertion 'gnm_sheet_valid_size (cols, rows)' failed\n\n(ssconvert:82757): GLib-GObject-CRITICAL **: 03:40:25.157: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n",
+      "sheet": "S",
+      "rows": 256,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=128X128",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh4.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\n",
+      "sheet": "S",
+      "rows": 256,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=128 x128",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh5.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\n",
+      "sheet": "S",
+      "rows": 256,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=+128x +128",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh6.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 128x128\n",
+      "sheet": "S",
+      "rows": 128,
+      "columns": 128
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=256x256",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh7.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 256x256\n\n(ssconvert:82785): GLib-GObject-CRITICAL **: 03:40:25.531: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n",
+      "sheet": "S",
+      "rows": 256,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=8192x256",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh8.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 8192x256\n",
+      "sheet": "S",
+      "rows": 8192,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=65536x128",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh9.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 65536x128\n",
+      "sheet": "S",
+      "rows": 65536,
+      "columns": 128
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=8192x128",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh10.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 8192x128\n",
+      "sheet": "S",
+      "rows": 8192,
+      "columns": 128
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=1048576x256",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh11.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 1048576x256\n",
+      "sheet": "S",
+      "rows": 1048576,
+      "columns": 256
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=65536x512",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh12.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 65536x512\n",
+      "sheet": "S",
+      "rows": 65536,
+      "columns": 512
+    },
+    {
+      "argv": [
+        "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+        "--verbose",
+        "--resize=1048576x16384",
+        "/out/ssconvert-resize/styles.gnumeric",
+        "/out/ssconvert-resize/fresh13.gnumeric"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 1048576x16384\n",
+      "sheet": "S",
+      "rows": 1048576,
+      "columns": 16384
+    }
+  ],
+  "transformCases": [
+    {
+      "case": "arraygone",
+      "status": 0,
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 128x128\n",
+      "index": "<ns0:SheetNameIndex xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n    <ns0:SheetName ns0:Cols=\"128\" ns0:Rows=\"128\">S</ns0:SheetName>\n  </ns0:SheetNameIndex>\n  ",
+      "cells": "<ns0:Cells xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\" />\n      ",
+      "objects": ""
+    },
+    {
+      "case": "arraysplit",
+      "status": 0,
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 128x128\n\n(ssconvert:82568): GLib-GObject-CRITICAL **: 03:27:10.105: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n",
+      "index": "<ns0:SheetNameIndex xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n    <ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"256\">S</ns0:SheetName>\n  </ns0:SheetNameIndex>\n  ",
+      "cells": "<ns0:Cells xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n        <ns0:Cell Row=\"126\" Col=\"0\" Rows=\"4\" Cols=\"2\">=1</ns0:Cell>\n      </ns0:Cells>\n      ",
+      "objects": ""
+    },
+    {
+      "case": "mergesplit",
+      "status": 0,
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 128x128\n\n** (ssconvert:82575): CRITICAL **: 03:27:10.191: go_cmd_context_error: assertion 'GO_IS_CMD_CONTEXT (context)' failed\nResizing of sheet S failed\n\n(ssconvert:82575): GLib-GObject-CRITICAL **: 03:27:10.191: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n",
+      "index": "<ns0:SheetNameIndex xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n    <ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"256\">S</ns0:SheetName>\n  </ns0:SheetNameIndex>\n  ",
+      "cells": "<ns0:Cells xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\" />\n      ",
+      "objects": ""
+    },
+    {
+      "case": "objects",
+      "status": 0,
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 128x128\n",
+      "index": "<ns0:SheetNameIndex xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n    <ns0:SheetName ns0:Cols=\"128\" ns0:Rows=\"128\">S</ns0:SheetName>\n  </ns0:SheetNameIndex>\n  ",
+      "cells": "<ns0:Cells xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\" />\n      ",
+      "objects": "<ns0:Objects xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n        <ns0:SheetObjectFilled ObjectBound=\"A120:B200\" ObjectOffset=\"0 0 0 0\" Direction=\"255\" Print=\"1\" Type=\"101\">\n          <Style type=\"GOStyle\">\n            <outline auto-dash=\"1\" auto-width=\"1\" auto-color=\"1\" />\n            <fill type=\"pattern\" auto-type=\"1\" is-auto=\"1\" auto-fore=\"1\">\n              <pattern type=\"solid\" fore=\"0:0:0:FF\" back=\"FF:FF:FF:FF\" auto-pattern=\"1\" />\n            </fill>\n          </Style>\n        </ns0:SheetObjectFilled>\n      </ns0:Objects>\n      "
+    },
+    {
+      "case": "styles",
+      "status": 0,
+      "stderr": "Using exporter Gnumeric_XmlIO:sax\nResizing to 128x128\n",
+      "index": "<ns0:SheetNameIndex xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n    <ns0:SheetName ns0:Cols=\"128\" ns0:Rows=\"128\">S</ns0:SheetName>\n  </ns0:SheetNameIndex>\n  ",
+      "cells": "<ns0:Cells xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\" />\n      ",
+      "objects": ""
+    }
+  ],
+  "arrayDeletionOrder": [
+    {
+      "case": "col-first",
+      "status": 0,
+      "stderr": "\n** (ssconvert:82709): CRITICAL **: 03:39:53.631: go_undo_undo_with_data: assertion 'GO_IS_UNDO (u)' failed\n\n(ssconvert:82709): GLib-GObject-CRITICAL **: 03:39:53.631: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n\n(ssconvert:82709): GLib-GObject-CRITICAL **: 03:39:53.631: g_object_unref: assertion 'G_IS_OBJECT (object)' failed\n",
+      "dimensions": "<ns0:SheetNameIndex xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n    <ns0:SheetName ns0:Cols=\"256\" ns0:Rows=\"256\">S</ns0:SheetName>\n  </ns0:SheetNameIndex>\n  "
+    },
+    {
+      "case": "col-removed",
+      "status": 0,
+      "stderr": "",
+      "dimensions": "<ns0:SheetNameIndex xmlns:ns0=\"http://www.gnumeric.org/v10.dtd\">\n    <ns0:SheetName ns0:Cols=\"128\" ns0:Rows=\"128\">S</ns0:SheetName>\n  </ns0:SheetNameIndex>\n  "
+    }
+  ],
+  "printRepeatPreservation": {
+    "status": 0,
+    "stderr": "",
+    "repeat": [
+      "<gnm:repeat_top value=\"A120:A200\"/>",
+      "<gnm:repeat_left value=\"D1:IV1\"/>"
+    ]
+  }
+}

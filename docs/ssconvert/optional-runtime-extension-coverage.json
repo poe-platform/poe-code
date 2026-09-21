@@ -1,0 +1,2468 @@
+{
+  "task": "optional-runtime-extension-profiles",
+  "status": "partial; all unqualified optional capabilities retained",
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "sourceManifestAudit": [
+    {
+      "directory": "gda",
+      "id": "Gnumeric_gdaif",
+      "source": "plugins/gda/plugin.xml.in",
+      "sha256": "e9687e2da81cc67c15df9a2418ec77182e2f168931e27d7c6fd7699f91b8484a",
+      "loader": {
+        "type": "Gnumeric_Builtin:module"
+      },
+      "explicitEnabling": false,
+      "services": [
+        {
+          "attributes": {
+            "type": "function_group",
+            "id": "gdaif"
+          },
+          "functions": [
+            "execSQL",
+            "readDBTable"
+          ],
+          "declaration": "<service type=\"function_group\" id=\"gdaif\">\n\t\t\t<_category>Database</_category>\n\t\t\t<functions>\n\t\t\t\t<function name=\"execSQL\" />\n\t\t\t\t<function name=\"readDBTable\" />\n\t\t\t</functions>\n\t\t</service>\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "ui",
+            "id": "gdaif",
+            "file": "ui.xml"
+          },
+          "functions": [],
+          "declaration": "<service type=\"ui\" id=\"gdaif\" file=\"ui.xml\">\n\t\t\t<actions>\n\t\t\t\t<action name=\"ViewDataSources\">\n\t\t\t\t\t<_label>Data Bases...</_label>\n\t\t\t\t</action>\n\t\t\t</actions>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "e9687e2da81cc67c15df9a2418ec77182e2f168931e27d7c6fd7699f91b8484a",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "gnome-db",
+      "id": "Gnumeric_GnomeDB",
+      "source": "plugins/gnome-db/plugin.xml.in",
+      "sha256": "84e3d953b0e460aff57055cdb1debfab09d1b1d2358b9bbf45981689b2df4b6f",
+      "loader": {
+        "type": "Gnumeric_Builtin:module"
+      },
+      "explicitEnabling": false,
+      "services": [
+        {
+          "attributes": {
+            "type": "ui",
+            "id": "gnome_db",
+            "file": "ui.xml"
+          },
+          "functions": [],
+          "declaration": "<service type=\"ui\" id=\"gnome_db\" file=\"ui.xml\">\n\t\t\t<actions>\n\t\t\t\t<action name=\"ViewDataSources\">\n\t\t\t\t\t<_label>Data Bases...</_label>\n\t\t\t\t</action>\n\t\t\t</actions>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "84e3d953b0e460aff57055cdb1debfab09d1b1d2358b9bbf45981689b2df4b6f",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "excel",
+      "id": "Gnumeric_Excel",
+      "source": "plugins/excel/plugin.xml.in",
+      "sha256": "c816444d2c8359a245d63f8c0810f6b48228b8e2f851fdef3b94bb70b71194d3",
+      "loader": {
+        "type": "Gnumeric_Builtin:module"
+      },
+      "explicitEnabling": false,
+      "services": [
+        {
+          "attributes": {
+            "type": "file_opener",
+            "id": "excel",
+            "priority": "100",
+            "probe": "TRUE"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_opener\" id=\"excel\" priority=\"100\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ (*.xls)</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xls</suffix>\n\t\t\t\t<suffix>xlw</suffix>\n\t\t\t\t<suffix>xlt</suffix>\n\t\t\t</suffixes>\n\t\t\t<mime-types>\n\t\t\t\t<mime-type>application/vnd.ms-excel</mime-type>\n\t\t\t\t<mime-type>application/excel</mime-type>\n\t\t\t\t<mime-type>application/msexcel</mime-type>\n\t\t\t\t<mime-type>application/x-excel</mime-type>\n\t\t\t\t<mime-type>application/x-ms-excel</mime-type>\n\t\t\t\t<mime-type>application/x-msexcel</mime-type>\n\t\t\t\t<mime-type>application/x-xls</mime-type>\n\t\t\t\t<mime-type>application/xls</mime-type>\n\t\t\t\t<mime-type>application/x-dos_ms_excel</mime-type>\n\t\t\t\t<mime-type>zz-application/zz-winassoc-xls</mime-type>\n\t\t\t</mime-types>\n\t\t</service>\n\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_saver",
+            "id": "excel_biff8",
+            "file_extension": "xls",
+            "format_level": "auto",
+            "overwrite_files": "TRUE",
+            "default_saver_priority": "1",
+            "mime_type": "application/vnd.ms-excel"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_saver\" id=\"excel_biff8\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" default_saver_priority=\"1\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t     \n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 97/2000/XP</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_saver",
+            "id": "excel_biff7",
+            "file_extension": "xls",
+            "format_level": "auto",
+            "overwrite_files": "TRUE",
+            "mime_type": "application/vnd.ms-excel"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_saver\" id=\"excel_biff7\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 5.0/95</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_saver",
+            "id": "excel_dsf",
+            "file_extension": "xls",
+            "format_level": "auto",
+            "overwrite_files": "TRUE",
+            "mime_type": "application/vnd.ms-excel"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_saver\" id=\"excel_dsf\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 97/2000/XP &amp; 5.0/95</_description>\n\t\t\t</information>\n\t\t</service>\n\n\t\t\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_opener",
+            "id": "excel_xml",
+            "priority": "1",
+            "probe": "TRUE"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_opener\" id=\"excel_xml\" priority=\"1\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 2003 SpreadsheetML</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xml</suffix>\n\t\t\t</suffixes>\n\t\t</service>\n\n\t\t\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_opener",
+            "id": "xlsx",
+            "priority": "100",
+            "probe": "TRUE"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_opener\" id=\"xlsx\" priority=\"100\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>ECMA 376 / Office Open XML [MS Excel™ 2007/2010] (*.xlsx)</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xlsx</suffix>\n\t\t\t\t<suffix>xltx</suffix>\n\t\t\t\t<suffix>xlsb</suffix>\n\t\t\t\t<suffix>xlsm</suffix>\n\t\t\t\t<suffix>xltm</suffix>\n\t\t\t</suffixes>\n\t\t\t<mime-types>\n\t\t\t\t<mime-type>application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</mime-type>\n\t\t\t\t<mime-type>application/vnd.openxmlformats-officedocument.spreadsheetml.template</mime-type>\n\n\t\t\t</mime-types>\n \t\t</service>\n\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_saver",
+            "id": "xlsx",
+            "file_extension": "xlsx",
+            "format_level": "auto",
+            "overwrite_files": "TRUE",
+            "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_saver\" id=\"xlsx\" file_extension=\"xlsx\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\">\n\t\t\t<information>\n\t\t\t\t<_description> ECMA 376 1st edition (2006); [MS Excel™ 2007]</_description>\n\t\t\t</information>\n\t\t</service>\n\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_saver",
+            "id": "xlsx2",
+            "file_extension": "xlsx",
+            "format_level": "auto",
+            "overwrite_files": "TRUE",
+            "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_saver\" id=\"xlsx2\" file_extension=\"xlsx\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\">\n\t\t\t<information>\n\t\t\t\t<_description>ISO/IEC 29500:2008 &amp; ECMA 376 2nd edition (2008); [MS Excel™ 2010]</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "file_opener",
+            "id": "excel_enc",
+            "priority": "200",
+            "probe": "FALSE",
+            "encoding_dependent": "TRUE"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_opener\" id=\"excel_enc\" priority=\"200\" probe=\"FALSE\" encoding_dependent=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ (*.xls) requiring encoding specification</_description>\n\t\t\t</information>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "c816444d2c8359a245d63f8c0810f6b48228b8e2f851fdef3b94bb70b71194d3",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "perl-func",
+      "id": "Gnumeric_PerlFunc",
+      "source": "plugins/perl-func/plugin.xml.in",
+      "sha256": "2a077031602e31e8051ddb07bc397e78aa91d59fbf0e278937ed5d9bef65ab33",
+      "loader": {
+        "type": "Gnumeric_PerlLoader:perl"
+      },
+      "explicitEnabling": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "function_group",
+            "id": "test"
+          },
+          "functions": [
+            "perl_adder",
+            "perl_date",
+            "perl_sed"
+          ],
+          "declaration": "<service type=\"function_group\" id=\"test\">\n\t\t\t<_category>Perl</_category>\n\t\t\t<functions>\n\t\t\t\t<function name=\"perl_adder\" />\n\t\t\t\t<function name=\"perl_date\" />\n\t\t\t\t<function name=\"perl_sed\" />\n\t\t\t</functions>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "2a077031602e31e8051ddb07bc397e78aa91d59fbf0e278937ed5d9bef65ab33",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "perl-loader",
+      "id": "Gnumeric_PerlLoader",
+      "source": "plugins/perl-loader/plugin.xml.in",
+      "sha256": "16209ced8831905a04e2bbf3a89cbc31c5d7432dd2da898ec29ff231e16298e1",
+      "loader": {
+        "type": "Gnumeric_Builtin:module"
+      },
+      "explicitEnabling": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "plugin_loader",
+            "id": "perl"
+          },
+          "functions": [],
+          "declaration": "<service type=\"plugin_loader\" id=\"perl\" />\n\t"
+        }
+      ],
+      "archiveMemberSha256": "16209ced8831905a04e2bbf3a89cbc31c5d7432dd2da898ec29ff231e16298e1",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "py-func",
+      "id": "Gnumeric_PyFunc",
+      "source": "plugins/py-func/plugin.xml.in",
+      "sha256": "1fd2fb2b7bd6265666c443289e72430dda265e9ec768fc07aa74268147f64b3c",
+      "loader": {
+        "type": "Gnumeric_PythonLoader:python"
+      },
+      "explicitEnabling": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "function_group",
+            "id": "test"
+          },
+          "functions": [
+            "py_printf",
+            "py_capwords",
+            "py_bitand"
+          ],
+          "declaration": "<service type=\"function_group\" id=\"test\">\n\t\t\t<_category>Python</_category>\n\t\t\t<functions>\n\t\t\t\t<function name=\"py_printf\" />\n\t\t\t\t<function name=\"py_capwords\" />\n\t\t\t\t<function name=\"py_bitand\" />\n\t\t\t</functions>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "1fd2fb2b7bd6265666c443289e72430dda265e9ec768fc07aa74268147f64b3c",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "python-loader",
+      "id": "Gnumeric_PythonLoader",
+      "source": "plugins/python-loader/plugin.xml.in",
+      "sha256": "d1911ce2e62317b76570ec703b5b1ff2027079330de5118c03e7c17c36ba2585",
+      "loader": {
+        "type": "Gnumeric_Builtin:module"
+      },
+      "explicitEnabling": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "plugin_loader",
+            "id": "python"
+          },
+          "functions": [],
+          "declaration": "<service type=\"plugin_loader\" id=\"python\" />\n\t\t"
+        },
+        {
+          "attributes": {
+            "type": "ui",
+            "id": "console",
+            "file": "ui-console-menu.xml"
+          },
+          "functions": [],
+          "declaration": "<service type=\"ui\" id=\"console\" file=\"ui-console-menu.xml\">\n\t\t\t<actions>\n\t\t\t\t<action name=\"ShowConsole\">\n\t\t\t\t\t<_label>Python console</_label>\n\t\t\t\t</action>\n\t\t\t</actions>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "d1911ce2e62317b76570ec703b5b1ff2027079330de5118c03e7c17c36ba2585",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "gnome-glossary",
+      "id": "Gnumeric_GnomeGlossary",
+      "source": "plugins/gnome-glossary/plugin.xml.in",
+      "sha256": "04f66605b126854b94d868a71bf28c523b93da1fd985061f1dc69b0b88c7bc7a",
+      "loader": {
+        "type": "Gnumeric_PythonLoader:python"
+      },
+      "explicitEnabling": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "file_saver",
+            "id": "po",
+            "file_extension": "po",
+            "format_level": "write_only"
+          },
+          "functions": [],
+          "declaration": "<service type=\"file_saver\" id=\"po\" file_extension=\"po\" format_level=\"write_only\">\n\t\t\t<information>\n\t\t\t\t<_description>Gnome Glossary PO file format</_description>\n\t\t\t</information>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "04f66605b126854b94d868a71bf28c523b93da1fd985061f1dc69b0b88c7bc7a",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "sample_datasource",
+      "id": "Gnumeric_sample_datasource",
+      "source": "plugins/sample_datasource/plugin.xml.in",
+      "sha256": "3181e305c4d265257e01e6befcb75ce9c78e32c4d457f6d814424b4622148027",
+      "loader": {
+        "type": "Gnumeric_Builtin:module"
+      },
+      "explicitEnabling": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "function_group",
+            "id": "ATL"
+          },
+          "functions": [
+            "atl_last"
+          ],
+          "declaration": "<service type=\"function_group\" id=\"ATL\">\n\t\t\t<_category>Finance</_category>\n\t\t\t<functions>\n\t\t\t\t<function name=\"atl_last\" />\n\t\t\t</functions>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "3181e305c4d265257e01e6befcb75ce9c78e32c4d457f6d814424b4622148027",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "directory": "uihello",
+      "id": "Gnumeric_UIHello",
+      "source": "plugins/uihello/plugin.xml.in",
+      "sha256": "b42ce37e5e66c5070941145ed465a555c33f0701be838c7a5ca7a0d00402f1d6",
+      "loader": {
+        "type": "Gnumeric_Builtin:module"
+      },
+      "explicitEnabling": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "ui",
+            "id": "hello",
+            "file": "hello.xml"
+          },
+          "functions": [],
+          "declaration": "<service type=\"ui\" id=\"hello\" file=\"hello.xml\">\n\t\t\t<actions>\n\t\t\t\t<action name=\"HelloWorld\" icon=\"gtk-add\">\n\t\t\t\t\t<label>Testing Testing 123</label>\n\t\t\t\t</action>\n\t\t\t\t<action name=\"HelloMenu\">\n\t\t\t\t\t<label>Make a Menu</label>\n\t\t\t\t</action>\n\n\t\t\t</actions>\n\t\t</service>\n\t"
+        }
+      ],
+      "archiveMemberSha256": "b42ce37e5e66c5070941145ed465a555c33f0701be838c7a5ca7a0d00402f1d6",
+      "matchesAuthenticatedArchive": true
+    }
+  ],
+  "sourceModuleEvidence": [
+    {
+      "source": "plugins/perl-func/perl_func.pl",
+      "sha256": "73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71",
+      "archiveMemberSha256": "73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/py-func/py_func.py",
+      "sha256": "514e02e416c9664d8d5f0ad04ff58e51468c636e75ed7edc197fb73c88263b4f",
+      "archiveMemberSha256": "514e02e416c9664d8d5f0ad04ff58e51468c636e75ed7edc197fb73c88263b4f",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/gda/plugin-gda.c",
+      "sha256": "41d41467cab8d10f56332d1bf76bb5dd15d74257712e8666d11e32260409f4e5",
+      "archiveMemberSha256": "41d41467cab8d10f56332d1bf76bb5dd15d74257712e8666d11e32260409f4e5",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/sample_datasource/sample_datasource.c",
+      "sha256": "3a9b524a516ba549b5356ac180749ea1bcdc12129c01e7fdcc7a07ad878466c8",
+      "archiveMemberSha256": "3a9b524a516ba549b5356ac180749ea1bcdc12129c01e7fdcc7a07ad878466c8",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/gnome-glossary/gnome_glossary.py",
+      "sha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
+      "archiveMemberSha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/Makefile.am",
+      "sha256": "6418f867dbaa444cb1d8b0b79885115b64c3f78b1db100b6931e1487ecd44a93",
+      "archiveMemberSha256": "6418f867dbaa444cb1d8b0b79885115b64c3f78b1db100b6931e1487ecd44a93",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "configure.ac",
+      "sha256": "27ca6e5dbb41b688024004312d0841601522b04f7025895bd75d9fcfa1d961f3",
+      "archiveMemberSha256": "27ca6e5dbb41b688024004312d0841601522b04f7025895bd75d9fcfa1d961f3",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "src/gnm-plugin.c",
+      "sha256": "e56d17b3570766f1f8a784759fcc63fe9fbf173a17477eb226778b4fd2e300f7",
+      "archiveMemberSha256": "e56d17b3570766f1f8a784759fcc63fe9fbf173a17477eb226778b4fd2e300f7",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/perl-loader/perl-gnumeric.c",
+      "sha256": "24fca5f164eadd7b24c9e470e8429a0b7e0a5014addd429380e1958bb8ca8cfc",
+      "archiveMemberSha256": "24fca5f164eadd7b24c9e470e8429a0b7e0a5014addd429380e1958bb8ca8cfc",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/perl-loader/perl-loader.c",
+      "sha256": "e821a9a56ee97d33f9abe993a71796bbda16d41df94faa7c47de4a6f9322c76d",
+      "archiveMemberSha256": "e821a9a56ee97d33f9abe993a71796bbda16d41df94faa7c47de4a6f9322c76d",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/python-loader/py-gnumeric.c",
+      "sha256": "639f259fd15d493696f39f90a2cb10562c318ddd55e064f10e33826f98bce856",
+      "archiveMemberSha256": "639f259fd15d493696f39f90a2cb10562c318ddd55e064f10e33826f98bce856",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/python-loader/boot.c",
+      "sha256": "27e8eaf20b2c7ee5f4548cfc607eac62412652662f9cea59a175d0917c300758",
+      "archiveMemberSha256": "27e8eaf20b2c7ee5f4548cfc607eac62412652662f9cea59a175d0917c300758",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/uihello/uihello.c",
+      "sha256": "040ed4c4c39344d0c34a35cf653e707ed94e3ce448a034b2ccc404e62b52d5d5",
+      "archiveMemberSha256": "040ed4c4c39344d0c34a35cf653e707ed94e3ce448a034b2ccc404e62b52d5d5",
+      "matchesAuthenticatedArchive": true
+    },
+    {
+      "source": "plugins/gnome-db/plugin-gnomedb.c",
+      "sha256": "4c3d33239ba899639306e0764be50aa375f251998aad62e33f82946b2e77e241",
+      "archiveMemberSha256": "4c3d33239ba899639306e0764be50aa375f251998aad62e33f82946b2e77e241",
+      "matchesAuthenticatedArchive": true
+    }
+  ],
+  "profiles": [
+    {
+      "id": "gnumeric-1.12.61-optional-none",
+      "optionalPluginDirectories": [],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-none/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-none/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-none/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-none/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "glpk",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "plan-perfect",
+        "qpro",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa glpk html lotus-123 lpsolve mps nlsolve oleo openoffice paradox plan-perfect qpro sc sylk xbase",
+        "--without-python",
+        "--without-perl",
+        "--without-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    },
+    {
+      "id": "gnumeric-1.12.61-optional-perl-samples",
+      "optionalPluginDirectories": [
+        "perl-loader",
+        "perl-func"
+      ],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-perl-samples/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-perl-samples/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-perl-samples/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-perl-samples/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_PerlFunc",
+        "Gnumeric_PerlLoader",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "glpk",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "perl-func",
+        "perl-loader",
+        "plan-perfect",
+        "qpro",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa glpk html lotus-123 lpsolve mps nlsolve oleo openoffice paradox perl-func perl-loader plan-perfect qpro sc sylk xbase",
+        "--without-python",
+        "--with-perl",
+        "--without-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    },
+    {
+      "id": "gnumeric-1.12.61-optional-python-samples",
+      "optionalPluginDirectories": [
+        "python-loader",
+        "py-func"
+      ],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-python-samples/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-python-samples/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-python-samples/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-python-samples/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_PyFunc",
+        "Gnumeric_PythonLoader",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "glpk",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "plan-perfect",
+        "py-func",
+        "python-loader",
+        "qpro",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa glpk html lotus-123 lpsolve mps nlsolve oleo openoffice paradox plan-perfect py-func python-loader qpro sc sylk xbase",
+        "--with-python",
+        "--without-perl",
+        "--without-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    },
+    {
+      "id": "gnumeric-1.12.61-optional-python-glossary",
+      "optionalPluginDirectories": [
+        "python-loader",
+        "gnome-glossary"
+      ],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-python-glossary/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-python-glossary/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-python-glossary/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-python-glossary/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_GnomeGlossary",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_PythonLoader",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "glpk",
+        "gnome-glossary",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "plan-perfect",
+        "python-loader",
+        "qpro",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa glpk gnome-glossary html lotus-123 lpsolve mps nlsolve oleo openoffice paradox plan-perfect python-loader qpro sc sylk xbase",
+        "--with-python",
+        "--without-perl",
+        "--without-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    },
+    {
+      "id": "gnumeric-1.12.61-optional-gda",
+      "optionalPluginDirectories": [
+        "gda"
+      ],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-gda/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-gda/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-gda/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-gda/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_gdaif",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "gda",
+        "glpk",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "plan-perfect",
+        "qpro",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa gda glpk html lotus-123 lpsolve mps nlsolve oleo openoffice paradox plan-perfect qpro sc sylk xbase",
+        "--without-python",
+        "--without-perl",
+        "--with-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    },
+    {
+      "id": "gnumeric-1.12.61-optional-gnomedb-ui",
+      "optionalPluginDirectories": [
+        "gnome-db"
+      ],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-gnomedb-ui/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-gnomedb-ui/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-gnomedb-ui/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-gnomedb-ui/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_GnomeDB",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "glpk",
+        "gnome-db",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "plan-perfect",
+        "qpro",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa glpk gnome-db html lotus-123 lpsolve mps nlsolve oleo openoffice paradox plan-perfect qpro sc sylk xbase",
+        "--without-python",
+        "--without-perl",
+        "--with-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    },
+    {
+      "id": "gnumeric-1.12.61-optional-sample-datasource",
+      "optionalPluginDirectories": [
+        "sample_datasource"
+      ],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-sample-datasource/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-sample-datasource/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-sample-datasource/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-sample-datasource/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sample_datasource",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "glpk",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "plan-perfect",
+        "qpro",
+        "sample_datasource",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa glpk html lotus-123 lpsolve mps nlsolve oleo openoffice paradox plan-perfect qpro sample_datasource sc sylk xbase",
+        "--without-python",
+        "--without-perl",
+        "--without-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    },
+    {
+      "id": "gnumeric-1.12.61-optional-excel-formats",
+      "optionalPluginDirectories": [
+        "excel"
+      ],
+      "baseProfile": "requalification.freshRuntime",
+      "locale": "C",
+      "timezone": "UTC",
+      "env": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "LD_LIBRARY_PATH": "/opt/ssconvert-reference/lib",
+        "PKG_CONFIG_PATH": "/opt/ssconvert-reference/lib/pkgconfig",
+        "GSETTINGS_SCHEMA_DIR": "/opt/ssconvert-reference/share/glib-2.0/schemas",
+        "GSETTINGS_BACKEND": "memory",
+        "XDG_DATA_DIRS": "/opt/ssconvert-reference/share:/usr/local/share:/usr/share",
+        "HOME": "/evidence/gnumeric-1.12.61-optional-excel-formats/home",
+        "XDG_CONFIG_HOME": "/evidence/gnumeric-1.12.61-optional-excel-formats/config",
+        "XDG_DATA_HOME": "/evidence/gnumeric-1.12.61-optional-excel-formats/data",
+        "XDG_CACHE_HOME": "/evidence/gnumeric-1.12.61-optional-excel-formats/cache"
+      },
+      "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
+      "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
+      "status": "defined; exact isolated activation and differential capture unresolved",
+      "nativeFallback": false,
+      "enabledPluginIds": [
+        "GOffice_plot_barcol",
+        "GOffice_plot_distrib",
+        "GOffice_plot_pie",
+        "GOffice_plot_radar",
+        "GOffice_plot_surface",
+        "GOffice_plot_xy",
+        "GOffice_reg_linear",
+        "GOffice_reg_logfit",
+        "GOffice_smoothing",
+        "Gnumeric_Excel",
+        "Gnumeric_OpenCalc",
+        "Gnumeric_QPro",
+        "Gnumeric_applix",
+        "Gnumeric_derivatives",
+        "Gnumeric_dif",
+        "Gnumeric_fnTimeSeriesAnalysis",
+        "Gnumeric_fnchristiandate",
+        "Gnumeric_fncomplex",
+        "Gnumeric_fndatabase",
+        "Gnumeric_fndate",
+        "Gnumeric_fneng",
+        "Gnumeric_fnerlang",
+        "Gnumeric_fnfinancial",
+        "Gnumeric_fnflt",
+        "Gnumeric_fnhebdate",
+        "Gnumeric_fninfo",
+        "Gnumeric_fnlogical",
+        "Gnumeric_fnlookup",
+        "Gnumeric_fnmath",
+        "Gnumeric_fnrandom",
+        "Gnumeric_fnstat",
+        "Gnumeric_fnstring",
+        "Gnumeric_glpk",
+        "Gnumeric_html",
+        "Gnumeric_lotus",
+        "Gnumeric_lpsolve",
+        "Gnumeric_mps",
+        "Gnumeric_nlsolve",
+        "Gnumeric_numtheory",
+        "Gnumeric_oleo",
+        "Gnumeric_paradox",
+        "Gnumeric_plan_perfect",
+        "Gnumeric_r",
+        "Gnumeric_sc",
+        "Gnumeric_sylk",
+        "Gnumeric_xbase"
+      ],
+      "sourceBuildPluginDirectories": [
+        "applix",
+        "dif",
+        "excel",
+        "fn-christian-date",
+        "fn-complex",
+        "fn-database",
+        "fn-date",
+        "fn-derivatives",
+        "fn-eng",
+        "fn-erlang",
+        "fn-financial",
+        "fn-flt",
+        "fn-hebrew-date",
+        "fn-info",
+        "fn-logical",
+        "fn-lookup",
+        "fn-math",
+        "fn-numtheory",
+        "fn-r",
+        "fn-random",
+        "fn-stat",
+        "fn-string",
+        "fn-tsa",
+        "glpk",
+        "html",
+        "lotus-123",
+        "lpsolve",
+        "mps",
+        "nlsolve",
+        "oleo",
+        "openoffice",
+        "paradox",
+        "plan-perfect",
+        "qpro",
+        "sc",
+        "sylk",
+        "xbase"
+      ],
+      "configureArguments": [
+        "--prefix=/opt/ssconvert-reference",
+        "--disable-introspection",
+        "--disable-component",
+        "--enable-plugins=applix dif excel fn-christian-date fn-complex fn-database fn-date fn-derivatives fn-eng fn-erlang fn-financial fn-flt fn-hebrew-date fn-info fn-logical fn-lookup fn-math fn-numtheory fn-r fn-random fn-stat fn-string fn-tsa glpk html lotus-123 lpsolve mps nlsolve oleo openoffice paradox plan-perfect qpro sc sylk xbase",
+        "--without-python",
+        "--without-perl",
+        "--without-gda"
+      ],
+      "activationProtocol": "Install only enumerated source plugins; explicitly enable enumerated plugin IDs in isolated settings; confirm runtime inventory exactly before formula/format QA. GOffice IDs retain base captured plugin versions. Dependency/config/activation capture missing means unresolved.",
+      "baseDependencyIdentity": "reference-profile.json#requalification.freshRuntime.metadata and linkedLibraries; exact optional dependency identities still required"
+    }
+  ],
+  "capabilities": [
+    {
+      "capability": "PERL_ADDER",
+      "status": "implemented; oracle unresolved",
+      "implementation": "perlSampleFunctions; shared ff coercion/array evaluation",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "PERL_DATE",
+      "status": "unresolved",
+      "implementation": "requires injected time/zone and source loader result conversion",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "PERL_SED",
+      "status": "unresolved",
+      "implementation": "requires bounded compatible Perl pattern/substitution interpreter; JS RegExp is not a compatibility claim",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "PY_BITAND",
+      "status": "implemented; oracle unresolved",
+      "implementation": "pythonSampleFunctions; delegates to shared Gnumeric BITAND",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "PY_CAPWORDS",
+      "status": "partial ASCII implementation; Unicode and oracle unresolved",
+      "implementation": "pythonSampleFunctions; ASCII Python whitespace/whole-word capitalization; non-ASCII explicitly unsupported; matching Python Unicode tables require qualification",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "PY_PRINTF",
+      "status": "unresolved",
+      "implementation": "requires Python percent-format compatibility interpreter and exception/result conversion",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "EXECSQL / READDBTABLE",
+      "status": "unresolved",
+      "implementation": "requires explicit injected data source capability, SQL behavior, arrays and exact database diagnostics",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "ATL_LAST",
+      "status": "unresolved",
+      "implementation": "requires injected FIFO protocol, dependency watch lifecycle, diagnostics and ordering",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "Gnumeric_GnomeGlossary:po",
+      "status": "existing separate format coverage; optional loader/profile unresolved",
+      "implementation": "format service, not GUI; gnome-glossary Python binding/header/time/filename and stdout effects need comparison",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "Perl/Python loaders",
+      "status": "partial trusted JS port contract; native/interpreted loading unresolved",
+      "implementation": "do not load arbitrary language modules or launch subprocesses",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "Excel external function plugins",
+      "status": "unresolved external port boundary",
+      "implementation": "plugins/Makefile.am comments out excelplugins; no shipped directory/manifest; existing excel plugin declares format services only",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "Guile",
+      "status": "source-disabled; external ports unresolved",
+      "implementation": "configure.ac:379-405 entire block wrapped in ifelse; no shipped Guile plugin service manifest",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "GNOME-DB / UIHello / Python console",
+      "status": "UI services; ssconvert effect qualification unresolved",
+      "implementation": "GUI service declarations do not establish zero module initialization effects",
+      "oracle": "unmeasured in matching activated optional profile"
+    },
+    {
+      "capability": "GOffice external extensions",
+      "status": "unresolved per-port effects",
+      "implementation": "rendering/chart/image/component services may affect ssconvert graph/print exports; do not classify as all GUI-only",
+      "oracle": "unmeasured in matching activated optional profile"
+    }
+  ],
+  "tests": {
+    "initialFailure": "Unsupported ssconvert feature: formula function PERL_ADDER",
+    "unitNativeUtilities": false,
+    "unitDiskFixtures": false
+  },
+  "extensionContract": "docs/ssconvert/optional-runtime-extensions.md",
+  "nativeAbsentPluginControl": {
+    "status": 0,
+    "command": [
+      "docker",
+      "--context",
+      "colima",
+      "exec",
+      "-e",
+      "LC_ALL=C",
+      "-e",
+      "TZ=UTC",
+      "-e",
+      "LD_LIBRARY_PATH=/out/ssconvert-statistics-oracle/prefix/lib",
+      "ssconvert-statistics-qa",
+      "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+      "--recalc",
+      "-T",
+      "Gnumeric_stf:stf_csv",
+      "/out/ssconvert-optional-runtime-qa/control.gnumeric",
+      "fd://1"
+    ],
+    "stdout": {
+      "hex": "234e414d453f2c234e414d453f0a",
+      "length": 14,
+      "sha256": "3b6c44fdf3a09684ff673f2990ef465d41f830f195263bd0ae153f77870987d4"
+    },
+    "stderr": {
+      "hex": "0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3932363a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3932373a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3932373a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3932373a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3932373a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3932373a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3933393a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3933393a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3933393a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3933393a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3933393a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3933393a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3934303a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939343a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939353a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939353a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6164645f6d6f6e69746f723a20617373657274696f6e20276e6f6465207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a20435249544943414c202a2a3a2031333a33313a35332e3939363a20676f5f636f6e665f6765745f6e6f64653a20617373657274696f6e2027706172656e74207c7c206b657927206661696c65640a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a0a2a2a20287373636f6e766572743a3838383937293a205741524e494e47202a2a3a2031333a33313a35332e3939363a20756e6b6e6f776e20474f436f6e664d6f6e69746f722069642e0a",
+      "length": 6950,
+      "sha256": "f783858018ef3191e487205a26379e09dd53b4cd1eef33143e4c1ac33cf6498b"
+    },
+    "fixture": {
+      "hex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e53686565743c2f4e616d653e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230223e3d5045524c5f41444445522831372c3232293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2231223e3d50595f424954414e442831322c36293c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e",
+      "length": 218,
+      "sha256": "a1d12dfdd0352812b884d72c383f590d160c63df819439ede24a62b78f2d9118"
+    },
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "scope": "QA-only existing statistics oracle; installed plugin tree lacks Perl/Python loaders and samples; not an activated optional profile pass",
+    "stdoutText": "#NAME?,#NAME?\n",
+    "environmentWarningLimitation": "Raw stderr preserved: GOConf configuration assertion/warning output indicates this inherited oracle environment is not a clean qualified optional runtime profile. No stderr parity claim or warnings suppressed."
+  },
+  "knownMismatches": [
+    "Absent optional function status and #NAME? cell values repaired and unit-covered against the native control. Native GOConf environment warning bytes are not reproduced and matching-profile stderr parity remains unqualified.",
+    "Remaining Perl/Python callable samples and compatibility interpreters are not implemented.",
+    "GDA data-source and ATL FIFO lifecycle/environment behavior are not implemented.",
+    "Trusted scalar JS ports do not reproduce general plugin loader lifecycle, namespace replacement or array-producing services.",
+    "Exact optional dependency/plugin activation and locale profiles remain unqualified."
+  ],
+  "supplementaryGOfficeServices": [
+    {
+      "id": "GOffice_lasem",
+      "source": "plugins/lasem/plugin.xml.in",
+      "sourceSha256": "db18e18b802ec7bee2090dcb275b430205aa9da3a57f8fdd2bdfb3f8248caab4",
+      "capturedActivation": false,
+      "services": [
+        {
+          "attributes": {
+            "type": "component_engine",
+            "id": "GoLasemComponent"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "component_type",
+            "id": "GoLasemComponent"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_barcol",
+      "source": "plugins/plot_barcol/plugin.xml.in",
+      "sourceSha256": "54a8b804599cbd9e451291ddb2e2019e7d9c87e10a4ae99a5e9d2d1f1a1bb9a4",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_barcol/linegraph.xpm",
+            "file": "linegraph.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_barcol/area.xpm",
+            "file": "area.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_barcol/bar.xpm",
+            "file": "bar.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_barcol/column.xpm",
+            "file": "column.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_barcol/dropbar.xpm",
+            "file": "dropbar.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_barcol/minmax.xpm",
+            "file": "minmax.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogLinePlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogAreaPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogBarColPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogDropBarPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogMinMaxPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_type",
+            "id": "1.5d"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_distrib",
+      "source": "plugins/plot_distrib/plugin.xml.in",
+      "sourceSha256": "7b9e42cb19ff852f83433478c458f4a34f08fe44cea779ff48fad37b28465255",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_distrib/dist.xpm",
+            "file": "dist.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogBoxPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogHistogramPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogProbabilityPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_type",
+            "id": "boxplot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_pie",
+      "source": "plugins/plot_pie/plugin.xml.in",
+      "sourceSha256": "1466c1c143e6fb127e57f7030ad30368532be8e482a9c2289ac068782d567a06",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_pie/pie.xpm",
+            "file": "pie.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_pie/doughnut.xpm",
+            "file": "doughnut.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogRingPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogPiePlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_type",
+            "id": "pie"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_radar",
+      "source": "plugins/plot_radar/plugin.xml.in",
+      "sourceSha256": "61b5262b70f96a6310739dffec74baf55d683ef98fe6294fba9f1eb5e6ee19a4",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_radar/radar.xpm",
+            "file": "radar.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_radar/polar.xpm",
+            "file": "polar.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogRadarPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogRadarAreaPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogPolarPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogColorPolarPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_type",
+            "id": "radar"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_surface",
+      "source": "plugins/plot_surface/plugin.xml.in",
+      "sourceSha256": "910278a9e63c04cf521cf67cf8a771bed5ae6e0e80625698dfa2508c02215287",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_surface/surface.xpm",
+            "file": "surface.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_surface/contour.xpm",
+            "file": "contour.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_surface/matrix.xpm",
+            "file": "matrix.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogContourPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "XLContourPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYZContourPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYContourPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogSurfacePlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "XLSurfacePlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYZSurfacePlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYSurfacePlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogMatrixPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYMatrixPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYZMatrixPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_type",
+            "id": "surface"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_xy",
+      "source": "plugins/plot_xy/plugin.xml.in",
+      "sourceSha256": "18c3295f5308549e4cc5d0a711e0e3ed91c3272f2830c78bf71bbd8639f992ed",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_xy/bubble.xpm",
+            "file": "bubble.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_xy/color.xpm",
+            "file": "color.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_xy/dropbar.xpm",
+            "file": "dropbar.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_xy/minmax.xpm",
+            "file": "minmax.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "resource",
+            "id": "go:plot_xy/scatter.xpm",
+            "file": "scatter.xpm"
+          },
+          "commandEffects": "resource declaration; command effects unresolved"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogBubblePlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYColorPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_type",
+            "id": "plot_xy"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYDropBarPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "plot_engine",
+            "id": "GogXYMinMaxPlot"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_reg_linear",
+      "source": "plugins/reg_linear/plugin.xml.in",
+      "sourceSha256": "46ea7b5ecad7addbaf0f27ae44201eaff9628af9a94f562affe713958a6fe14d",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogLinRegCurve"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogExpRegCurve"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogPowerRegCurve"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogLogRegCurve"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogPolynomRegCurve"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_type",
+            "id": "linreg"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_reg_logfit",
+      "source": "plugins/reg_logfit/plugin.xml.in",
+      "sourceSha256": "8a0d536cc4511f528041619734de9ba05055f567508c6ed0f535cf0e501d4b28",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogLogFitCurve"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_type",
+            "id": "logfit"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_smoothing",
+      "source": "plugins/smoothing/plugin.xml.in",
+      "sourceSha256": "535b07988c96e536a1c5a7e3b838b480fa75b4640e1f2c0ced0ed9bb5c057cfc",
+      "capturedActivation": true,
+      "services": [
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogMovingAvg"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_engine",
+            "id": "GogExpSmooth"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        },
+        {
+          "attributes": {
+            "type": "trendline_type",
+            "id": "smoothing"
+          },
+          "commandEffects": "unresolved graph/print/component effects"
+        }
+      ]
+    }
+  ],
+  "buildConditions": {
+    "gda": "configure.ac:287-314 requires libgda-6.0 and libgda-ui-6.0 >= 6.0.0; installed libgda 5 does not qualify this plugin",
+    "gnome-db": "nested GDA success then libgnomedb-4.0 >= 3.99.6",
+    "perl": "WITH_PERL; explicit-enabling PerlLoader/PerlFunc manifests",
+    "python": "WITH_PYTHON; explicit-enabling loader and samples/glossary; supplied build explicitly --without-python",
+    "guile": "configure.ac:379-405 ifelse disabled block, no corresponding shipped plugin",
+    "excelplugins": "plugins/Makefile.am:12 commented-out loader directory, absent shipped manifest"
+  },
+  "guiOnlySourceClassification": [
+    {
+      "service": "Gnumeric_UIHello:hello",
+      "source": "plugins/uihello/uihello.c:17-48",
+      "classification": "GUI action only: init/shutdown retain module-local plugin pointer; callback displays GTK notice, no formula or file services",
+      "commandRuntimeEffectCoverage": "unmeasured; no full module activation equivalence claim"
+    },
+    {
+      "service": "Gnumeric_GnomeDB:gnome_db",
+      "source": "plugins/gnome-db/plugin-gnomedb.c:12-34",
+      "classification": "GUI action only: callback launches gnome-database-properties-4.0 and GTK notice; no callable function/format service or module init hook",
+      "commandRuntimeEffectCoverage": "unmeasured activation; GUI tool subprocess is not implemented or exposed by ssconvert"
+    },
+    {
+      "service": "Gnumeric_PythonLoader:console",
+      "source": "plugins/python-loader/boot.c:27-46",
+      "classification": "GUI console action only; shared loader init registers types and shutdown tears down Python, so loader is not excluded as GUI-only",
+      "commandRuntimeEffectCoverage": "loader/function/format behavior remains unresolved"
+    }
+  ],
+  "qualificationFailures": [
+    {
+      "operation": "Isolated activated Perl QA profile Docker image creation",
+      "status": "blocked",
+      "reason": "Docker CreateDiff/export layer failed: no space left on device. Subsequent isolated docker run found no owned image; no activated Perl oracle produced.",
+      "existingResources": "existing oracle container/images retained; no broad cleanup attempted"
+    },
+    {
+      "operation": "Maintained safe-bash typecheck",
+      "command": "npm run typecheck --workspace=@poe-platform/safe-bash",
+      "exitCode": 2,
+      "reason": "Public SafeFS must preserve shared SafeJS runtime identity; actual undefined vs expected ./packages/safe-js/dist/safe-fs.js",
+      "evidence": "packages/safe-bash/tests/plugins/qualified-current-release/peer.mjs:245; root package.json has no ./safe-fs export",
+      "resolution": "No unrelated public export or assertion changed; maintained typecheck remains failed, not a pass"
+    }
+  ],
+  "verification": {
+    "independentReview": "docs/ssconvert/optional-runtime-independent-review.md",
+    "failingRegressions": [
+      "optional function dispatch",
+      "provider accessor evaluation",
+      "intrinsic namespace conflict",
+      "absent optional function conversion status",
+      "command binding capture after caller mutation",
+      "Perl boolean numeric conversion"
+    ],
+    "narrowUnitFixtures": "in-memory, no unit native subprocess/disk/LLM",
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "exitCode": 0,
+      "scope": "maintained selected dependency closure, root exports, ssconvert, safe-bash and native postbuild stages"
+    },
+    "integration": {
+      "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "exitCode": 0,
+      "passed": 69,
+      "skipped": 0
+    },
+    "lint": {
+      "ssconvert": "maintained npm workspace lint; ESLint, source tsc and test tsc passed fresh after final provider stress",
+      "safeBashChangedScope": "npx eslint --no-cache packages/safe-bash/src/commands/ssconvert/index.ts packages/safe-bash/tests/commands/ssconvert.test.ts; passed"
+    },
+    "screenshot": {
+      "sha256": "4e9b892df7f391134fc90c8deb42c5634f0e198eb616b727ad39f9294402e090",
+      "inspected": true,
+      "observation": "Built public virtual command displayed 39,4 with enabled samples and #NAME?,#NAME? with absent samples; both exit=0. Plain terminal output readable; no screenshot tests.",
+      "scratch": "task-owned screenshot removed after reduction"
+    },
+    "delivery": {
+      "localCommits": 0,
+      "push": false,
+      "publish": false,
+      "readmeEdits": false
+    },
+    "unit": {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "testFiles": 302,
+      "passed": 6178,
+      "skipped": 0,
+      "execution": "fresh maintained package route; no task-result cache used"
+    },
+    "sourceBindings": [
+      {
+        "path": "packages/ssconvert/src/contracts.ts",
+        "sha256": "060ec4260ac00101cb3c58210eecc7c702f2159a9cb2d6173ea4f428f513a138"
+      },
+      {
+        "path": "packages/ssconvert/src/engine.ts",
+        "sha256": "3e2e8042ce4156066ef523287c4681545ae9c964642607a5957035c80e9e420f"
+      },
+      {
+        "path": "packages/ssconvert/src/index.ts",
+        "sha256": "0a5ce705155cf7545881c1190413faa159e68d0f11792eec06a601432fe4e2a2"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/evaluator.ts",
+        "sha256": "0d665d2500e7cb0a04b5c9d1b96e337f1c27999aec07e4f3345a47da03cd2484"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/registry.ts",
+        "sha256": "02773ff8a4fe65415333a2a53fd6cd97669c3d65ee521586253e0ce8855869ce"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/runtime-functions.ts",
+        "sha256": "6308f232f6668a31b2fa6349fadd7d4f962af0cf09581cca11f989112ab567eb"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/optional-providers.ts",
+        "sha256": "fa758fb5d315c28514a884a191048c223ea01aff8ecd0a203bc9085f842b28df"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/optional-runtime.test.ts",
+        "sha256": "9959fb56ebf595274ca0d1679e9e29784372e9d26902ca90bf70dd0d5e18a068"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/optional-absence.test.ts",
+        "sha256": "5f126103e9ec03a9aa3cd55be563541ea6e520bccba0c805fe739bf6dfd135c8"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
+        "sha256": "99947168c863f72558b09ea4257f770f13b973a4176e170684435e27656d44e5"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/ssconvert.test.ts",
+        "sha256": "e725a0ca7183298299631a1dac8fc82ce956e55adb86840040de8f3b876ef669"
+      }
+    ],
+    "reducedLogIdentities": [
+      {
+        "path": "out/optional-runtime-final-stable-build.log",
+        "sha256": "63e3e5e3f10bfdbfb6c0ee05476c0e7e356d72c562a9512c05b2731f8e88aa36",
+        "length": 2354
+      },
+      {
+        "path": "out/optional-runtime-final-stable-tests.log",
+        "sha256": "21dd638675f203961616a7996a070179f728aece99b3d5cce926e19d3b2fe6e7",
+        "length": 24144
+      },
+      {
+        "path": "out/optional-runtime-integration-final.log",
+        "sha256": "7f851046e983b12078d5d64d243bdfb9d53a4a34f6647bf199702d752624c022",
+        "length": 16485
+      },
+      {
+        "path": "out/optional-runtime-cross-typecheck.log",
+        "sha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3",
+        "length": 686
+      },
+      {
+        "path": "out/optional-runtime-cross-lint.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "length": 0
+      },
+      {
+        "path": "out/optional-runtime-final-eslint.log",
+        "length": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "scratchCleanup": "Only explicitly task-created out logs/control/screenshot directory removed after durable reduction; authenticated pre-existing source/oracle artifacts and other workers logs retained."
+  },
+  "currentCapwordsVerification": {
+    "date": "2026-09-21",
+    "status": "partial; Unicode and matching activated optional oracle unresolved",
+    "candidate": {
+      "identity": "exact content hashes; uncommitted worktree, no new Git revision",
+      "sourceBindings": [
+        {
+          "path": "packages/ssconvert/src/formulas/optional-providers.ts",
+          "sha256": "4a330eea5da466dc6458ecdb7f08787cb2557af2c8b47b4b0db9273b54dd385a"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/python-capwords.test.ts",
+          "sha256": "6aac17681476674268f3a5671b932d43efb414ce5efcd4f171790053d4ec936f"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
+          "sha256": "e8ca153739b8e36d0d70e4c09678d0ccc1f60650bc1ed8159d3184c160978ef7"
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts",
+          "sha256": "f1b288a711e0c7b4edf0015db20bfcc50ded6e20d74e77a50378ffbe245dd8d9"
+        }
+      ]
+    },
+    "failingRegression": "Before implementation all three python-capwords tests failed: missing dispatch produced #NAME? and unsupported/budget execution checks failed.",
+    "implementation": "Original JS ASCII capwords port with cooperative work and output bounds; non-ASCII explicitly unsupported.",
+    "passes": {
+      "unit": {
+        "command": "npm test --workspace=@poe-code/ssconvert",
+        "execution": "fresh maintained package route",
+        "testFiles": 304,
+        "passed": 6186,
+        "skipped": 0,
+        "exitCode": 0
+      },
+      "lint": {
+        "command": "npm run lint --workspace=@poe-code/ssconvert",
+        "execution": "fresh ESLint and source/test TypeScript",
+        "exitCode": 0
+      },
+      "integrationLint": {
+        "command": "npx eslint --no-cache packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts",
+        "exitCode": 0
+      },
+      "build": {
+        "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+        "scope": "18 selected builds with maintained dependencies and root stages",
+        "exitCode": 0
+      },
+      "integration": {
+        "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
+        "passed": 70,
+        "skipped": 0,
+        "exitCode": 0
+      },
+      "independentAgent": {
+        "file": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
+        "passed": 5,
+        "coverage": "All ASCII codepoints, typed/namespace controls, punctuation/digits, text/work bounds, cancellation identity, Unicode/surrogate refusal; no defect found"
+      },
+      "screenshot": {
+        "command": "Repository screenshot tool invoking built virtual command",
+        "sha256": "f29ad192892b352b61aabf04ed5e304c239a6f63a69437e2b5eecb36db61c2bf",
+        "inspected": true,
+        "observation": "Enabled sample prints quoted Hello World; absent sample #NAME?; both status 0 empty stderr"
+      }
+    },
+    "failures": [],
+    "incompleteRuns": [],
+    "unverified": [
+      "Activated Perl/Python/GDA optional runtime oracle cells and mapped interpreter versions",
+      "PY_CAPWORDS Unicode whitespace/capitalization",
+      "PY_PRINTF percent-format interpreter",
+      "PERL_DATE time/zone/result conversion",
+      "PERL_SED substitution interpreter",
+      "EXECSQL/READDBTABLE arrays/errors",
+      "ATL_LAST FIFO/watch lifecycle",
+      "Optional glossary activation and environment effects",
+      "Native/Guile/Excel/GOffice external JS ports and per-port effects",
+      "Untrusted realm isolation and arbitrary-provider replay/authority revocation"
+    ],
+    "notRun": [
+      "Repository-wide npm test/lint/build: current provider change uses selected cross-workspace build and command integration; no broad pass claimed",
+      "Native optional QA: no newly qualified dependency/plugin runtime; historical blocked captures retained"
+    ],
+    "delivery": {
+      "localCommits": 0,
+      "push": false,
+      "publish": false,
+      "readmeEdits": false
+    },
+    "reducedLogs": [
+      {
+        "path": "out/optional-profiles-current-final-unit.log",
+        "sha256": "2f162f006c25e2b83a1cac9d26880aceb45462709ed907003d401fc70367e553"
+      },
+      {
+        "path": "out/optional-profiles-current-final-lint.log",
+        "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+      },
+      {
+        "path": "out/optional-profiles-current-integration-build.log",
+        "sha256": "e2d3b16cc16518f047a1b55dab71183926f381090c5583c14f6e8fc5f01e8f85"
+      },
+      {
+        "path": "out/optional-profiles-current-integration.log",
+        "sha256": "896cf0bb11dbff517b153f0b21a941a004eb4a18d577b986733f14f5ce02df93"
+      }
+    ]
+  }
+}

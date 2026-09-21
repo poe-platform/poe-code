@@ -1,0 +1,914 @@
+{
+  "classification": "Independent manual QA of current working-tree calculation engine, not complete command/native-format compatibility; numeric tolerances none",
+  "nativeProfile": "native-profile.json",
+  "nativeProfileSha256": "e51823b6952ad99436a875f4a86cd81043c2a01ccb092aad6bb2ab7719b27e28",
+  "officialGnumericSourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "moduleInputs": {
+    "sha256": "9bb7798cb1d72f1b0608a76300b6e378bbef6bc5e4068d5dc4119910c767aa12",
+    "manifest": [
+      {
+        "path": "packages/ssconvert/src/cli.ts",
+        "sha256": "01130a4bf1dd369284b0c0b29d4378ff770b618a514c4ee9240028f0394a4ce0"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/export-options.ts",
+        "sha256": "495f88d51b8f4e878e2f97d2a695a90d36f79514bb36aa071f8c363450e179a8"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/parser.ts",
+        "sha256": "1d73eb1df82496acabc1bbacaa348e84be21db6cb4bb1b5dbc3db769b61b00ba"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/reference.ts",
+        "sha256": "b580a608c7477c6dcc624b3e714f08f7fbb0d1ef1432f2105a3f119c50236557"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/unicode-alphanumeric.ts",
+        "sha256": "010fa25f6e14b705e3ac93d234cddfd50b60e9e526ca793e4d1dc878e13ef251"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs.ts",
+        "sha256": "f2872ca7326df45fd047c2937834b2dc49626b7525208f31e9f9ee30ff0a5f77"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/export-options.ts",
+        "sha256": "04ad9fb745d2abc8fb0e12bcec886f45ad0c90d24d99ddd4ab586c259a3a55e2"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/ordering.ts",
+        "sha256": "8a5912eac1b684e56e537b62d67db317b535342057598bf2b1630f5d55c3ea32"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers.generated.ts",
+        "sha256": "5e2e50dc9234f93264bab9ca1a5f70568d7cf9db77b3af0e3277cd8b8c61e380"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/applix.ts",
+        "sha256": "490a9cafc10ade92c8bb7d9f8f1fc660df40df802ad6cb8b2f551292ec4e0b3e"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/dif.ts",
+        "sha256": "0fa8a17f1056ec1fa419f588d73b004f49242f2c913f3e9c6f3fd3310aee7762"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/excel.ts",
+        "sha256": "a99e5be8eafdc9b42b96ffa23b27f18655167d23bc2568592307c3b95b7f2e8b"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/glpk.ts",
+        "sha256": "0e1246d21d553328fbd7f97560fec40655138d305e6fe720e8157eff07decb36"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/gnome-glossary.ts",
+        "sha256": "894b8fb8b76ebb0461267ada26ef7a63dd21e100a31bc3264b3d1eb6f28cb58a"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/html.ts",
+        "sha256": "a447a3f1fb488e17fbcc7491868ee6d8169b1654679131b0b01f9d9b063bd569"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/lotus-123.ts",
+        "sha256": "fa67e29e40926e97ba2e1c3c1cfdeee8d0576cb965f55ad57011a64ce9625034"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/lpsolve.ts",
+        "sha256": "d5675a70c6d66f3a0ee0c19bd5d459b47839aaa263f686655e51ee547b18bfc6"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/mps.ts",
+        "sha256": "552291602ea0645ef12dbb09d37b9bf24fdef3cb56e5ac5d0e663bfedc0c6f9a"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/oleo.ts",
+        "sha256": "c72875677d6dae4f27acbed8040cf9cad76ed1843d31f6181f7be27fb0cb796b"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/openoffice.ts",
+        "sha256": "a68e3312cac7661fb0cb6d4d3305a2a58e1ef35905c083e6782b007bc866e223"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/paradox.ts",
+        "sha256": "0a5c75e93f468e831b8ea3e174b424d0406fd8756d5fbb21d6b735b5b2252480"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/pdf.ts",
+        "sha256": "b63c061626a88e9113c35457d5be353ecde15fdb96aee571b6d661433b7e64e8"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/plan-perfect.ts",
+        "sha256": "352759a30e0638d928eaa1fc82f039c705eee931f13330069ed03a5ee411716d"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/psiconv.ts",
+        "sha256": "4b1a760d88a9b2be35795f4387ce14123165ec5730f36463b3a6d85ad208f6eb"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/qpro.ts",
+        "sha256": "8d7df3d76479016372d37f526c80c4a05e3aaa1f095b1404aa2ecd9bfcbba2d0"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/sc.ts",
+        "sha256": "a4abdff87f6cda13e434c61881ad201461bb8deb8916fdf4bec870def65f39b4"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/stf.ts",
+        "sha256": "d0f75fe099252560e3574b30954419a7f906c37a3255c50c449d4a94656d1239"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/sylk.ts",
+        "sha256": "33e9081ab11cc6c8cb85ac9a63adb6bae9c202bb3b6bc41653aeefbdd9bc9a62"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/xbase.ts",
+        "sha256": "6bfc70b2efb96ab5479f7a3bd5f86cc12cb7e2fd0a9c97030505d3e0e347a9fd"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/xml.ts",
+        "sha256": "baaa10687c3862a528db637ebd148f2ab0ef36066228651b83b49f7095ce76a8"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/registry.ts",
+        "sha256": "3bb346e7e0f08079db9c12dd7078760474b83f6bda22ad376f4909e96929e476"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/types.ts",
+        "sha256": "ca654c556bac81e265d4d85205d61847543a50bcc3fdd963d1765fc848121ab2"
+      },
+      {
+        "path": "packages/ssconvert/src/contracts.ts",
+        "sha256": "25a028104b43952487751b2cafd7c19102983fd69d3501a5c03237e54091d0ae"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/c-number.ts",
+        "sha256": "8a0b630b98e0c1bc972f7bf1c4da123e40083425b4cf0bc53d080a6869195f84"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/image-options.ts",
+        "sha256": "ec6a62b777263fd928ea177f12f51feb2c64cf442e5501ca312e8851c8a053cc"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/output.ts",
+        "sha256": "b9176ef721eb09a96d58c7057dd732cd0946e13170a3bf278cbb6d30ca6440af"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/resize.ts",
+        "sha256": "b0cf2ecb3de38066d8cec13ce21e650e552bd92e19427840e29b2e1a383780a3"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/transforms.ts",
+        "sha256": "0dcc91b235c3aaed8bc264190a8d903554ed37f6ec1ba9b7b25ff4f88f96158f"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/updates.ts",
+        "sha256": "1a4bf30bf5540d0394a4b300103633541cda06eb4322555f378bfe943f0bf5ba"
+      },
+      {
+        "path": "packages/ssconvert/src/engine.ts",
+        "sha256": "e2788c00c35b2f7e1004073045d6f7ee52734c15ec23a33ad9933b1acc54f6ff"
+      },
+      {
+        "path": "packages/ssconvert/src/formatting.ts",
+        "sha256": "fcf1ea6e32ec7e4176003c683f55995b75718f026a5f4ff6539d8f5af354485f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas.ts",
+        "sha256": "e5264b4431e08812406514d91aecba631f3e4afb986b2ef64218a8d73be932db"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/ast.ts",
+        "sha256": "45c567faed23c061a606a5f352b1baff27fb386b88cc6b310a9e83449995f23c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/conventions.ts",
+        "sha256": "c73d0c7b42e5f1607008f749d5244455472acc692b797ac5a593030ac7106f56"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/dependencies.ts",
+        "sha256": "cb74d9a6cc5d58b874ec26e793f1aedfcf826dadd1dd0a8affa7586a6aeeb31a"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/evaluator.ts",
+        "sha256": "a0abeeba36efb6ed3d348aac511427de7f52072c0b5fb1466b7241d781c8a623"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/local-references.ts",
+        "sha256": "f029f97ad7895cf28461d52c8bfc2ea607875c4aae6679ac3723be03b9676ee9"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/parser.ts",
+        "sha256": "edb92bcf20aaba8f2a14d36764c6a474c10750f8454f1346a8e1870270318d13"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/rewriting.ts",
+        "sha256": "b81fec256aa78ec233f05d81c864672aaf90c12755239c46bfc92386ebb2a8d4"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/serialization.ts",
+        "sha256": "b149f74d42d4b4ccf74ed08fc9332e1e570c6b7e889f90a725f46116f343de15"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/values.ts",
+        "sha256": "cfeba9366118300f754682902b48fc3a5a8a36d686984e852965e4b4b740087c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/workbook.ts",
+        "sha256": "80afbc6e3d71f35b8a7ebb0d992e2faeeff4e4cf0b543e2efa13614e2b423b52"
+      },
+      {
+        "path": "packages/ssconvert/src/index.ts",
+        "sha256": "554a291f048c1a23cbb7ed37c506b37d4a0ce2c858f1ae92613b1b865d48ce11"
+      },
+      {
+        "path": "packages/ssconvert/src/io-errors.ts",
+        "sha256": "4411c74f1f2aca79a17fe6bf13be6b8752c7ca57ce7119537a378da3b5fbedfb"
+      },
+      {
+        "path": "packages/ssconvert/src/io/index.ts",
+        "sha256": "ec6c2be4f642fcc67bfd5188756e180cdde5d78c13a64578bdb2d200d70ed97c"
+      },
+      {
+        "path": "packages/ssconvert/src/io/names.ts",
+        "sha256": "44f87dbf7fc10b52562cdf66203583e434c19aa09c827daf6587da217e9fe71d"
+      },
+      {
+        "path": "packages/ssconvert/src/io/publication.ts",
+        "sha256": "12b8fb009cf1835431b50af40de58bc65684d1a553e57bcd3d30672d901ce65d"
+      },
+      {
+        "path": "packages/ssconvert/src/rendering.ts",
+        "sha256": "9dd91fc5acf344799a8ddc83ade6a45ca9ca863f1653dc20843d5af17a66713d"
+      },
+      {
+        "path": "packages/ssconvert/src/resource-uri.ts",
+        "sha256": "c3a7620b358c774c08ae65bc1f89b5b31eef69d901fb088aaa21ac159518a5cf"
+      },
+      {
+        "path": "packages/ssconvert/src/solver.ts",
+        "sha256": "56b6138314dfc07bc6cc135ef1f16799428bd8ce7a752c6e9768d409e7400f44"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook.ts",
+        "sha256": "e6eb6446fa3906827a0180ed3b7920c39938eaab63b9aef4f0d492fe97d40672"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/case-fold.ts",
+        "sha256": "9d54c4bdef0f785adb7dc1db22b3819ec163b063d09c004000c78b3118372097"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/dimensions.ts",
+        "sha256": "cc6c963e16029257dabb0498c30672143e220f4511aa448da5e6566054321c80"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/expressions.ts",
+        "sha256": "42cb92ef4fc71fd0a511d34c1edc3e6604a6908291bf9974c453bd61006d6346"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/merge.ts",
+        "sha256": "f45f746b35ff8b1b2afbcaeb68e500f6db09fc232a8cc953beac467ebe737b9f"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/model.ts",
+        "sha256": "78a204818e2d5892347c85e41aee61feb22a1ebf2f6684216b20c99a2de20a82"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/unicode-sheet-name.ts",
+        "sha256": "7c80b016f62035bdfb6911a787a3c73cf979488cdfa9cc87562d6e6929650e54"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/formula.ts",
+        "sha256": "1504c8e26bbda5090f5d9c203f69771443bb153b3fb4c07354d5d80b8328ecf5"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/index.ts",
+        "sha256": "f25ae7f0091a73717954f17442360f2467b07a957cb97976f3039d08e15f0260"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/inference.ts",
+        "sha256": "085750ee7182e8b07c440876110bb1dac4dc8b49d24a7fe591353b34e356935b"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/recalculation.ts",
+        "sha256": "dde58af804200f526f914719f8447ada81f3192b5c6d1340522b9dcdbd6fac4a"
+      }
+    ],
+    "ordering": "unsigned UTF-8 full-path byte lexicographic",
+    "domain": "packages/ssconvert/src full relative POSIX paths, .ts except .test.ts; regular files, no symbolic links",
+    "stableDuringCapture": true
+  },
+  "sourceCaseSpecificationSha256": "87bd3269bb3abfb0182f3ff97c48c49dd0c18081560e9d296f6c07f255a62e26",
+  "counts": {
+    "originalFixtures": 89,
+    "originalForceExactBytes": 79,
+    "originalForceRawMismatches": 10,
+    "cliSdkExactBytes": 89,
+    "equalExitStatuses": 89,
+    "equalStdout": 89,
+    "equalStderr": 89,
+    "cycleAutomaticExactBytes": 9,
+    "cycleAutomaticCount": 9,
+    "cycleExplicitAfterCachedLoadExactBytes": 9,
+    "cycleExplicitAfterCachedLoadCount": 9,
+    "seededNormalTextCases": 32,
+    "explicitBoundaryTextCases": 16,
+    "textExactBytes": 48,
+    "textCaseCount": 48
+  },
+  "originalForceRawMismatches": [
+    {
+      "id": "sum-cancel",
+      "native": "1E+308\n",
+      "javascript": "1e+308\n",
+      "classification": "original fixture numerical exporter versus native raw renderer; default product CSV formatter unavailable"
+    },
+    {
+      "id": "noniterative-cycle",
+      "native": "2\n",
+      "javascript": "1\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "iterative-cycle",
+      "native": "4\n",
+      "javascript": "2\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "iteration-cap-1",
+      "native": "4\n",
+      "javascript": "2\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "iteration-cap-2",
+      "native": "4\n",
+      "javascript": "2\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "iteration-cap-4",
+      "native": "4\n",
+      "javascript": "2\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "iteration-cap-10",
+      "native": "4\n",
+      "javascript": "2\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "self-halving",
+      "native": "6.25\n",
+      "javascript": "25\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "multicell-ab",
+      "native": "4,3\n",
+      "javascript": "2,1\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    },
+    {
+      "id": "multicell-ba",
+      "native": "3,4\n",
+      "javascript": "1,2\n",
+      "classification": "distinct loader/explicit-recalculation phase mapping; retain raw mismatch; verify separate stages below"
+    }
+  ],
+  "typedNumericSeparateCheck": {
+    "id": "sum-cancel",
+    "nativeRawField": "1E+308\n",
+    "fixtureRawField": "1e+308\n",
+    "method": "Number parses each shortest raw field and DataView compares binary64 encoding with captured numeric CellValue; no tolerance or text normalization",
+    "nativeBinary64Hex": "7fe1ccf385ebc8a0",
+    "productBinary64Hex": "7fe1ccf385ebc8a0",
+    "equalBinary64": true
+  },
+  "rendererTextControls": [
+    {
+      "id": "seeded-text-00",
+      "seed": "0x596e1261",
+      "binary64Hex": "0011884c9bcd273b",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-01",
+      "seed": "0x596e1261",
+      "binary64Hex": "80ae735ebdc04325",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-02",
+      "seed": "0x596e1261",
+      "binary64Hex": "25801a40a675c89f",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-03",
+      "seed": "0x596e1261",
+      "binary64Hex": "38407d72aaf2be29",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-04",
+      "seed": "0x596e1261",
+      "binary64Hex": "3d47f174a5de6e43",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-05",
+      "seed": "0x596e1261",
+      "binary64Hex": "3e843ec6da6f076d",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-06",
+      "seed": "0x596e1261",
+      "binary64Hex": "3edcc1e8cc1f3c27",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-07",
+      "seed": "0x596e1261",
+      "binary64Hex": "bf2b8b5aeb14e2f1",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-08",
+      "seed": "0x596e1261",
+      "binary64Hex": "bf537f9c4560964b",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-09",
+      "seed": "0x596e1261",
+      "binary64Hex": "bf6b772e677e54b5",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-10",
+      "seed": "0x596e1261",
+      "binary64Hex": "3f765e90cabf20af",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-11",
+      "seed": "0x596e1261",
+      "binary64Hex": "bfc05642ae83a0b9",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-12",
+      "seed": "0x596e1261",
+      "binary64Hex": "3ff8d2c4916fbf53",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-13",
+      "seed": "0x596e1261",
+      "binary64Hex": "c031bc96c1ff4afd",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-14",
+      "seed": "0x596e1261",
+      "binary64Hex": "42db90383a239637",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-15",
+      "seed": "0x596e1261",
+      "binary64Hex": "43367e2a3fd21781",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-16",
+      "seed": "0x596e1261",
+      "binary64Hex": "43408aeca4ac095b",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-17",
+      "seed": "0x596e1261",
+      "binary64Hex": "4388aefe09270a45",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-18",
+      "seed": "0x596e1261",
+      "binary64Hex": "43aef6e0cbdebcbf",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-19",
+      "seed": "0x596e1261",
+      "binary64Hex": "cb09a3125bf76749",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-20",
+      "seed": "0x596e1261",
+      "binary64Hex": "d78748140db99463",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-21",
+      "seed": "0x596e1261",
+      "binary64Hex": "7085ee6662ceb28d",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-22",
+      "seed": "0x596e1261",
+      "binary64Hex": "7d07328883c6b447",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-23",
+      "seed": "0x596e1261",
+      "binary64Hex": "ffe964fa7eceb011",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-24",
+      "seed": "0x596e1261",
+      "binary64Hex": "001daa3c4fc0806b",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-25",
+      "seed": "0x596e1261",
+      "binary64Hex": "80a31acecff363d5",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-26",
+      "seed": "0x596e1261",
+      "binary64Hex": "a58ee33000759ccf",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-27",
+      "seed": "0x596e1261",
+      "binary64Hex": "384963e2bf9711d9",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-28",
+      "seed": "0x596e1261",
+      "binary64Hex": "bd48516472eced73",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-29",
+      "seed": "0x596e1261",
+      "binary64Hex": "be8dd43691363e1d",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-30",
+      "seed": "0x596e1261",
+      "binary64Hex": "3ed4a8d8d3c99657",
+      "equalBytes": true
+    },
+    {
+      "id": "seeded-text-31",
+      "seed": "0x596e1261",
+      "binary64Hex": "bf213fca3d73aca1",
+      "equalBytes": true
+    },
+    {
+      "id": "text-threshold-neg4",
+      "seed": "0x596e1261",
+      "binary64Hex": "3f1a36e2eb1c432d",
+      "equalBytes": true
+    },
+    {
+      "id": "text-threshold-neg5",
+      "seed": "0x596e1261",
+      "binary64Hex": "3ee4f8b588e368f1",
+      "equalBytes": true
+    },
+    {
+      "id": "text-threshold-pos16",
+      "seed": "0x596e1261",
+      "binary64Hex": "4341c37937e08000",
+      "equalBytes": true
+    },
+    {
+      "id": "text-threshold-pos17",
+      "seed": "0x596e1261",
+      "binary64Hex": "4376345785d8a000",
+      "equalBytes": true
+    },
+    {
+      "id": "text-fraction-tricky",
+      "seed": "0x596e1261",
+      "binary64Hex": "3feb0e7009b61ce0",
+      "equalBytes": true
+    },
+    {
+      "id": "text-fraction-digits",
+      "seed": "0x596e1261",
+      "binary64Hex": "3ff3c0ca428c59fb",
+      "equalBytes": true
+    },
+    {
+      "id": "text-fraction-rounding",
+      "seed": "0x596e1261",
+      "binary64Hex": "3ff0147ae147ae14",
+      "equalBytes": true
+    },
+    {
+      "id": "text-fraction-sum",
+      "seed": "0x596e1261",
+      "binary64Hex": "3fd3333333333334",
+      "equalBytes": true
+    },
+    {
+      "id": "text-large-even",
+      "seed": "0x596e1261",
+      "binary64Hex": "4341c37937e08001",
+      "equalBytes": true
+    },
+    {
+      "id": "text-safe-integer",
+      "seed": "0x596e1261",
+      "binary64Hex": "433fffffffffffff",
+      "equalBytes": true
+    },
+    {
+      "id": "text-adjacent-one",
+      "seed": "0x596e1261",
+      "binary64Hex": "3ff0000000000001",
+      "equalBytes": true
+    },
+    {
+      "id": "text-min-subnormal",
+      "seed": "0x596e1261",
+      "binary64Hex": "0000000000000001",
+      "equalBytes": true
+    },
+    {
+      "id": "text-max-finite",
+      "seed": "0x596e1261",
+      "binary64Hex": "7fefffffffffffff",
+      "equalBytes": true
+    },
+    {
+      "id": "text-small-subnormal",
+      "seed": "0x596e1261",
+      "binary64Hex": "00000000000007e8",
+      "equalBytes": true
+    },
+    {
+      "id": "text-negative-subnormal",
+      "seed": "0x596e1261",
+      "binary64Hex": "8000000000000001",
+      "equalBytes": true
+    },
+    {
+      "id": "text-negative-threshold",
+      "seed": "0x596e1261",
+      "binary64Hex": "c376345785d8a000",
+      "equalBytes": true
+    }
+  ],
+  "cyclePhaseMapping": [
+    {
+      "id": "noniterative-cycle",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iterative-cycle",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-1",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-2",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-4",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "iteration-cap-10",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "self-halving",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "multicell-ab",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    },
+    {
+      "id": "multicell-ba",
+      "equalAutomaticBytes": true,
+      "equalExplicitAfterCachedLoadBytes": true,
+      "mapping": "Original dirty cache supplied to one automatic calculation; its resulting plain-data workbook cache is then supplied to a separate explicit recalculation. Native XML input load performs the automatic phase before --recalc."
+    }
+  ],
+  "verifiedFixes": [
+    {
+      "issue": "Recursive evaluator did not clear calculation-needed state at cycle bottom",
+      "preFixCapture": "self-cycle-first-failure.log",
+      "failingCasesBeforeFix": 6,
+      "successfulExistingStressCasesAtReproduction": 26,
+      "nativeEvidence": [
+        "native-cycle-workflows.json",
+        "native-edge-followup.json",
+        "native-cycle-order-controls.json"
+      ],
+      "previousFalseExpectations": [
+        {
+          "fixture": "A1=A1+1, enabled maximum3 tolerance0",
+          "previous": 3,
+          "observedCorrectSinglePhase": 2
+        },
+        {
+          "fixture": "A1=A1/2, cache100 enabled maximum100 tolerance1",
+          "previous": 0.390625,
+          "observedCorrectSinglePhase": 25
+        },
+        {
+          "fixture": "self-referencing numeric/string RAND branches zero tolerance maximum4",
+          "previousDrawCount": 5,
+          "correctedDrawCount": 2,
+          "evidence": "Released dependent_eval clears dirty flag on recursive return, independent value/cap runs confirm two expression passes; native RNG draw count is not directly measured"
+        }
+      ]
+    },
+    {
+      "issue": "Numeric-to-text String() diverged from C profile exponent formatting",
+      "preFixNativeControls": "native-edge-followup.json",
+      "previousExpectedProducts": [
+        "1e+308",
+        "0.3333333333333333",
+        "1e-7",
+        "100000000000000000000"
+      ],
+      "observedNative": [
+        "1E+308",
+        "0.3333333333333333",
+        "1E-07",
+        "1E+20"
+      ],
+      "postFixSeededTextExactCases": 48
+    }
+  ],
+  "unsupported": [
+    {
+      "cell": "Default product native XML/CSV read/write",
+      "reason": "Format descriptors are present but codecs are explicitly injected; fixture adapter byte comparisons do not establish builtin native format support"
+    },
+    {
+      "cell": "Foreign own-data workbook/resolver record admission",
+      "reason": "Existing explicit local/null-prototype admission policy; foreign records refused, tested zero getter invocation/partial effects"
+    },
+    {
+      "cell": "Native RNG seed/draw-count equivalence and stochastic cycle/event order",
+      "reason": "Native sources not injectable through oracle invocation; deterministic product injection/source reasoning does not count as native stochastic runtime equivalence"
+    },
+    {
+      "cell": "Non-C locale/non-UTC time/released platforms outside current Debian arm64 profile",
+      "reason": "Not measured by this oracle cohort"
+    },
+    {
+      "cell": "Host resource-refusal equivalence",
+      "reason": "Product bounded limits/cancellation tested separately; reference equivalence not claimed"
+    }
+  ],
+  "remainingUnmeasured": [
+    {
+      "case": "Inactive conditional dependency recalculation/order",
+      "reason": "Conservative graph links possible IF branch interiors, while native registers runtime dynamic range; no full order equivalence claim"
+    },
+    {
+      "case": "Broader multi-cell cycles, array circularity and external workbook event scheduling",
+      "reason": "Only two-cell AB/BA simple cycles independently measured"
+    },
+    {
+      "case": "Performance",
+      "reason": "No matched bounded performance measurement; runner elapsed times are not benchmark evidence"
+    }
+  ],
+  "incompleteOrHarnessFailures": "build-events.json records itstool/xmllint configure refusals and setup/capture errors separately; none counted as passes",
+  "ordinaryCaptureFile": "differential-results.json",
+  "fixturesFile": "differential-fixtures.json",
+  "preFixIndependentRegressions": {
+    "command": "npx vitest run packages/ssconvert/src/formulas/calculation-stress-review.test.ts",
+    "status": 1,
+    "counts": {
+      "failed": 6,
+      "passed": 26,
+      "total": 32
+    },
+    "sourceRevisionQualification": "Observed before local iteration repair; failing log retained. Exact full pre-fix working-tree manifest was not separately frozen for this initial regression run. Final manual oracle captures bind current module bytes independently.",
+    "cases": [
+      {
+        "fixtureId": "iteration-cap-1",
+        "beforeFix": 1,
+        "expectedSingleAutomaticPhase": 2
+      },
+      {
+        "fixtureId": "iterative-cycle",
+        "beforeFix": 3,
+        "expectedSingleAutomaticPhase": 2
+      },
+      {
+        "fixtureId": "iteration-cap-10",
+        "beforeFix": 10,
+        "expectedSingleAutomaticPhase": 2
+      },
+      {
+        "fixtureId": "self-halving",
+        "beforeFix": 0.390625,
+        "expectedSingleAutomaticPhase": 25
+      },
+      {
+        "fixtureId": "multicell-ab",
+        "comparisonDomain": "Cell values in original storage order AB",
+        "beforeFix": [
+          6,
+          7
+        ],
+        "expectedSingleAutomaticPhase": [
+          2,
+          1
+        ]
+      },
+      {
+        "fixtureId": "multicell-ba",
+        "comparisonDomain": "Cell values in original storage order BA, not physical CSV columns",
+        "beforeFix": [
+          6,
+          7
+        ],
+        "expectedSingleAutomaticPhase": [
+          2,
+          1
+        ]
+      }
+    ],
+    "rawLog": "\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts (32 tests | 6 failed) 46ms\n   \u2713 refuses combined named-expression and syntax dependency depth with a typed limit 7ms\n   \u2713 terminates cyclic names without acquiring external authority in an unselected branch 1ms\n   \u2713 propagates a recalculated named precedent through clean cached errors 1ms\n   \u2713 recalculates shared relative links independently of sparse input cell order 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM((A1):(C1)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(left_edge:right_edge) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM((left_edge):(right_edge)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(((A1):(B1)):(C1)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(((A1:C1) (A1:B1)):(C1)) 1ms\n   \u2713 invalidates cached computed-range interiors for =SUM(IF(TRUE,A1,A2):C1) 1ms\n   \u2713 canonicalizes calculated signed zero for =0/-3 0ms\n   \u2713 canonicalizes calculated signed zero for =PRODUCT(-1,0) 0ms\n   \u2713 canonicalizes calculated signed zero for =SUM(-0) 0ms\n   \u2713 canonicalizes calculated signed zero for =-(-0) 0ms\n   \u2713 skips missing TABLE columns without acquiring cached external output authority 1ms\n   \u2713 rolls TABLE substitutions back after resolver cancellation and admits a fresh run 1ms\n   \u2713 keeps qualified scoped-name changes separate from unrelated sheet coordinates 1ms\n   \u2713 invalidates sparse computed ranges and all stored array members without formulas 1ms\n   \u2713 replays ordered updates identically across a plain-data workbook checkpoint 2ms\n   \u2713 refuses canceled and under-budget cell-update graph work without changing original caches 1ms\n   \u2713 explicitly refuses unsupported foreign workbook and resolver record prototypes 1ms\n   \u2713 preserves cross-realm host refusal identity without publishing partial results 0ms\n   \u2713 bounds named dependencies during sparse cell-update admission 12ms\n   \u2713 applies negative-base exponent domain checks independently across array elements 1ms\n   \u2713 limits nonsingleton array power dimensions to their common width before aggregation 0ms\n   \u2713 keeps qualified sparse TABLE arguments inert through canceled output evaluation and retry 1ms\n   \u00d7 uses released recursive dirty-flag clearing for self iteration cap 1 5ms\n   \u00d7 uses released recursive dirty-flag clearing for self iteration cap 3 1ms\n   \u00d7 uses released recursive dirty-flag clearing for self iteration cap 10 1ms\n   \u00d7 reads the current self value after the recursive calculation clears its dirty flag 0ms\n   \u00d7 keeps completed dependencies cached while preserving multi-cell cycle storage order: false 1ms\n   \u00d7 keeps completed dependencies cached while preserving multi-cell cycle storage order: true 0ms\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > uses released recursive dirty-flag clearing for self iteration cap 1\nAssertionError: expected { kind: 'number', value: 1 } to deeply equal { kind: 'number', value: 2 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 2,\n+   \"value\": 1,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:219:74\n\n\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > uses released recursive dirty-flag clearing for self iteration cap 3\nAssertionError: expected { kind: 'number', value: 3 } to deeply equal { kind: 'number', value: 2 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 2,\n+   \"value\": 3,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:219:74\n\n\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > uses released recursive dirty-flag clearing for self iteration cap 10\nAssertionError: expected { kind: 'number', value: 10 } to deeply equal { kind: 'number', value: 2 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 2,\n+   \"value\": 10,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:219:74\n\n\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > reads the current self value after the recursive calculation clears its dirty flag\nAssertionError: expected { kind: 'number', value: 0.390625 } to deeply equal { kind: 'number', value: 25 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 25,\n+   \"value\": 0.390625,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:224:74\n\n\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > keeps completed dependencies cached while preserving multi-cell cycle storage order: false\nAssertionError: expected [ { kind: 'number', value: 6 }, \u2026(1) ] to deeply equal [ { kind: 'number', value: 2 }, \u2026(1) ]\n\n- Expected\n+ Received\n\n  [\n    {\n      \"kind\": \"number\",\n-     \"value\": 2,\n+     \"value\": 6,\n    },\n    {\n      \"kind\": \"number\",\n-     \"value\": 1,\n+     \"value\": 7,\n    },\n  ]\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:232:88\n    230|   if (reverse) cells.reverse();\n    231|   const input: Workbook = { iteration: { enabled: true, maximum: 3, to\u2026\n    232|   expect(recalculateWorkbook(input, context).sheets[0]!.cells.map(cell\u2026\n       |                                                                                        ^\n    233|   expect(input.sheets[0]!.cells.map(cell => cell.cachedResult)).toEqua\u2026\n    234| });\n\nFAIL packages/ssconvert/src/formulas/calculation-stress-review.test.ts > keeps completed dependencies cached while preserving multi-cell cycle storage order: true\nAssertionError: expected [ { kind: 'number', value: 6 }, \u2026(1) ] to deeply equal [ { kind: 'number', value: 2 }, \u2026(1) ]\n\n- Expected\n+ Received\n\n  [\n    {\n      \"kind\": \"number\",\n-     \"value\": 2,\n+     \"value\": 6,\n    },\n    {\n      \"kind\": \"number\",\n-     \"value\": 1,\n+     \"value\": 7,\n    },\n  ]\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:232:88\n    230|   if (reverse) cells.reverse();\n    231|   const input: Workbook = { iteration: { enabled: true, maximum: 3, to\u2026\n    232|   expect(recalculateWorkbook(input, context).sheets[0]!.cells.map(cell\u2026\n       |                                                                                        ^\n    233|   expect(input.sheets[0]!.cells.map(cell => cell.cachedResult)).toEqua\u2026\n    234| });\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 6 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > uses released recursive dirty-flag clearing for self iteration cap 1\nAssertionError: expected { kind: 'number', value: 1 } to deeply equal { kind: 'number', value: 2 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 2,\n+   \"value\": 1,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:219:74\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/6]\u23af\n\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > uses released recursive dirty-flag clearing for self iteration cap 3\nAssertionError: expected { kind: 'number', value: 3 } to deeply equal { kind: 'number', value: 2 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 2,\n+   \"value\": 3,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:219:74\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[2/6]\u23af\n\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > uses released recursive dirty-flag clearing for self iteration cap 10\nAssertionError: expected { kind: 'number', value: 10 } to deeply equal { kind: 'number', value: 2 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 2,\n+   \"value\": 10,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:219:74\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[3/6]\u23af\n\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > reads the current self value after the recursive calculation clears its dirty flag\nAssertionError: expected { kind: 'number', value: 0.390625 } to deeply equal { kind: 'number', value: 25 }\n\n- Expected\n+ Received\n\n  {\n    \"kind\": \"number\",\n-   \"value\": 25,\n+   \"value\": 0.390625,\n  }\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:224:74\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[4/6]\u23af\n\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > keeps completed dependencies cached while preserving multi-cell cycle storage order: false\n FAIL  packages/ssconvert/src/formulas/calculation-stress-review.test.ts > keeps completed dependencies cached while preserving multi-cell cycle storage order: true\nAssertionError: expected [ { kind: 'number', value: 6 }, \u2026(1) ] to deeply equal [ { kind: 'number', value: 2 }, \u2026(1) ]\n\n- Expected\n+ Received\n\n  [\n    {\n      \"kind\": \"number\",\n-     \"value\": 2,\n+     \"value\": 6,\n    },\n    {\n      \"kind\": \"number\",\n-     \"value\": 1,\n+     \"value\": 7,\n    },\n  ]\n\n \u276f packages/ssconvert/src/formulas/calculation-stress-review.test.ts:232:88\n    230|   if (reverse) cells.reverse();\n    231|   const input: Workbook = { iteration: { enabled: true, maximum: 3, to\u2026\n    232|   expect(recalculateWorkbook(input, context).sheets[0]!.cells.map(cell\u2026\n       |                                                                                        ^\n    233|   expect(input.sheets[0]!.cells.map(cell => cell.cachedResult)).toEqua\u2026\n    234| });\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[5/6]\u23af\n\n\n Test Files  1 failed (1)\n      Tests  6 failed | 26 passed (32)\n   Start at  13:50:17\n   Duration  347ms (transform 157ms, setup 47ms, import 140ms, tests 46ms, environment 0ms)\n\n"
+  },
+  "runtimeHost": {
+    "node": "v22.22.2",
+    "nativePlatform": "Debian trixie Linux aarch64",
+    "engineEnvironment": {
+      "env": {},
+      "locale": "C",
+      "timezone": "UTC"
+    },
+    "engineLimits": {
+      "inputBytes": 100000,
+      "outputBytes": 100000,
+      "cells": 1000,
+      "sheets": 10,
+      "operations": 100,
+      "workbookWork": 1000000
+    },
+    "engineInjectedRandom": "constant0.125; all89 baseline fixtures consumed zero draws; this is product deterministic injection, not native RNG equivalence"
+  },
+  "capturePathsClassification": "Input/native invocation paths are explicit QA fixture/adapter mappings; bytes/status/stdout/stderr are retained without path or text normalization. Default native format services unsupported in product.",
+  "buildOutcome": {
+    "classification": "QA-only build and install success; source archives verified, no source patches",
+    "configureDependencyFailuresBeforeSuccess": [
+      "itstool missing",
+      "xmllint missing"
+    ],
+    "libgsfConfigureBuildInstallStatus": 0,
+    "gofficeConfigureBuildInstallStatus": 0,
+    "gnumericFinalConfigureBuildInstallStatus": 0,
+    "confirmedRuntimeVersion": "ssconvert version '1.12.61'",
+    "compiler": "GCC14.2.0 Debian arm64; full gcc --version in separate native-profile.json",
+    "nativeInvocationDependencies": "Exact built libgsf1.14.53/goffice0.10.61 plus actual captured system libraries; profile distinct from historical capture",
+    "primaryArchivesAfterCapture": {
+      "gnumeric-1.12.61.tar.xz": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+      "goffice-0.10.61.tar.xz": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15",
+      "libgsf-1.14.53.tar.xz": "0eb59a86e0c50f97ac9cfe4d8cc1969f623f2ae8c5296f2414571ff0a9e8bcba"
+    }
+  }
+}

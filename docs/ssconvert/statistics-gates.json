@@ -1,0 +1,167 @@
+{
+  "recordedAtUtc": "2026-09-20T07:26:05.126831+00:00",
+  "gates": [
+    {
+      "command": "npm run test --workspace=@poe-code/ssconvert",
+      "status": "passed",
+      "exitCode": 0,
+      "outputSha256": "2216b3411932c05c09951141833a0f448db6f4f17fe6deb44f3d70ec8be57f33",
+      "testFiles": 118,
+      "tests": 3199,
+      "skipped": 0
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "passed",
+      "exitCode": 0,
+      "outputSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": "passed",
+      "exitCode": 0,
+      "outputSha256": "024948762405938de3660cd5d1cc534bc29f9901861c8144052bf989233d2edf",
+      "workspaceBuilds": 18,
+      "ssconvertIncluded": true,
+      "cache": false
+    },
+    {
+      "command": "node packages/safe-bash/scripts/test-reporting.mjs --import tsx packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "passed",
+      "exitCode": 0,
+      "outputSha256": "e2a844df38d9777e989120a74db4d336c3066960f908229b6c655b851e9d9fbc",
+      "tests": 38,
+      "skipped": 0
+    },
+    {
+      "command": "npm run typecheck --workspace=@poe-platform/safe-bash",
+      "status": "blocked",
+      "exitCode": 2,
+      "outputSha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3",
+      "reason": "Public SafeFS must preserve shared SafeJS runtime identity; actual undefined, expected ./packages/safe-js/dist/safe-fs.js",
+      "currentConsumerGroups": 0,
+      "runtimeExecutions": 0
+    }
+  ],
+  "tddFailingEvidence": [
+    {
+      "name": "ssconvert-statistics-alias-handlers-red.log",
+      "sha256": "eded0724d0a2dfbe9d2194733199995ea2740167ed00c73fa4351f955309e19e"
+    },
+    {
+      "name": "ssconvert-statistics-aliases-red.log",
+      "sha256": "b27d3621585d748a0c653979caaf9fa032446759fa71898168235a550ead1817"
+    },
+    {
+      "name": "ssconvert-statistics-boundaries-red.log",
+      "sha256": "20c7cf596825c721e7cab64e4df2dbf4da8a8fbb6bcd49a3c3ee59e0c1292ad3"
+    },
+    {
+      "name": "ssconvert-statistics-classic-domain-red.log",
+      "sha256": "2aeeded73aafebfe9e4d63fd7b38b2c8d0b95caf6cd578eb91f3a03c94c9548f"
+    },
+    {
+      "name": "ssconvert-statistics-elementary-tail-red.log",
+      "sha256": "eafdf566a3e83e135752ad6f4d1040d7be94dbf45edc3851665f8f2d6889cc28"
+    },
+    {
+      "name": "ssconvert-statistics-extended-red.log",
+      "sha256": "1e1290d5cfb6a0182fa22c43f835f530186ecf6f986de5fb545302b13a9c1dd8"
+    },
+    {
+      "name": "ssconvert-statistics-normal-tail-red.log",
+      "sha256": "647dab78fa2f8fcdc0ef4ea8f00687d0e75a770e79438b1f432a5664b199804d"
+    },
+    {
+      "name": "ssconvert-statistics-odf-export-red.log",
+      "sha256": "7737984f8d4c1fe4ff2d97ead0f82921b56a4f3131bb6003e8cbbeedb5126574"
+    },
+    {
+      "name": "ssconvert-statistics-odf-handlers-red.log",
+      "sha256": "20148fdfae5914e3aed252bef72648de4b9781cc5eba17f8ac041d438194eaf4"
+    },
+    {
+      "name": "ssconvert-statistics-red.log",
+      "sha256": "80e79300f00e891028476aba8c2fca1bd50e2339e8736eb17ebe62e34f944ff2"
+    },
+    {
+      "name": "ssconvert-statistics-student-inverse-red.log",
+      "sha256": "b9c03820335ec77f9fc6526fa7611f368ebb4238feb62923d3383a3664a37ac8"
+    },
+    {
+      "name": "ssconvert-statistics-red.log",
+      "sha256": "80e79300f00e891028476aba8c2fca1bd50e2339e8736eb17ebe62e34f944ff2",
+      "initialFailingRegressions": 33
+    }
+  ],
+  "comparisons": {
+    "differential": {
+      "path": "docs/ssconvert/statistics-differential-results.json",
+      "sha256": "6091bc5771bd441fcfaa122d51ba840bdf124f3239171319f041b24363b22764",
+      "summary": {
+        "total": 178,
+        "exactCaseEquality": 100,
+        "toleranceCaseEquality": 176,
+        "mismatches": 2
+      }
+    },
+    "boundaries": {
+      "path": "docs/ssconvert/statistics-boundaries-results.json",
+      "sha256": "7f5bf6a077479dbbbdecbe8f819b8f6d7a788c10fba5648cafe1aa178268a33b",
+      "summary": {
+        "total": 674,
+        "exactCaseEquality": 623,
+        "toleranceCaseEquality": 674,
+        "mismatches": 0
+      }
+    },
+    "tails": {
+      "path": "docs/ssconvert/statistics-tails-results.json",
+      "sha256": "f123f878c650f2e578789057fadfb4cce0ef637e083927798156d9bea11fd54a",
+      "summary": {
+        "total": 480,
+        "exactCaseEquality": 411,
+        "toleranceCaseEquality": 480,
+        "mismatches": 0
+      }
+    },
+    "random-qa": {
+      "path": "docs/ssconvert/statistics-random-qa.json",
+      "sha256": "26fe650154b0876c29b2d5e2d8306f523926f30d0316539460d6283087e25395",
+      "summary": {
+        "controls": 33,
+        "withinBound": 33,
+        "outsideBound": 0
+      }
+    },
+    "holdout": {
+      "path": "docs/ssconvert/statistics-holdout-results.json",
+      "sha256": "75aac3ff23f5c78cca6d147b7e232a5a169452b12457f8b286e5b1d32c62743a",
+      "summary": {
+        "total": 5,
+        "exact": 5
+      }
+    }
+  },
+  "visualInspection": {
+    "command": "npx tsx scripts/screenshot.ts -o out/ssconvert-statistics-visual.png --no-header node out/ssconvert-statistics-visual.mjs",
+    "exitCode": 0,
+    "imageSha256": "b03c3c5a7e7ea616704e02cb9439b09f8ffed6799df5421ce339244fc2285c56",
+    "inspected": true,
+    "realFormatCodecParityClaim": false
+  },
+  "rootRepositoryFullChecksClaim": false,
+  "releaseClaim": false,
+  "independentReview": {
+    "agent": "statistics_stress",
+    "procedure": "docs/plans/ssconvert-statistics-independent-review-qa.md",
+    "focusedTests": 122,
+    "reportedStatus": "passed",
+    "scopedEslint": "passed",
+    "packageTypecheck": "passed",
+    "testTypecheck": "passed",
+    "earlierConcurrentTimeoutSeconds": 5.922,
+    "finalSequentialExtremeInverseSeconds": 2.697,
+    "performanceLimitationRetained": true
+  }
+}

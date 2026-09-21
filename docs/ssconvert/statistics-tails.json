@@ -1,0 +1,4859 @@
+{
+  "sourceVersion": "1.12.61",
+  "oracleProfile": "docs/ssconvert/statistics-native-profile.json",
+  "oracleStatus": 0,
+  "oracleDiagnostics": "PTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 3.0162e-318\nPTUKEY FAIL RIGHT: 150 0 3.76992e-319\nPTUKEY FAIL RIGHT: 150 0 3.75885e-319\nPTUKEY FAIL RIGHT: 150 0 4.69856e-320\nPTUKEY FAIL RIGHT: 150 0 5.86456e-321\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 7.06514e-322\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 9.88131e-323\nPTUKEY FAIL RIGHT: 150 0 9.88131e-323\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 3.45846e-323\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 9.88131e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 3.0162e-318\nPTUKEY FAIL RIGHT: 150 0 3.76992e-319\nPTUKEY FAIL RIGHT: 150 0 3.75885e-319\nPTUKEY FAIL RIGHT: 150 0 4.69856e-320\nPTUKEY FAIL RIGHT: 150 0 5.86456e-321\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 7.06514e-322\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 9.88131e-323\nPTUKEY FAIL RIGHT: 150 0 9.88131e-323\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 3.45846e-323\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 9.88131e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 4.94066e-324\nPTUKEY FAIL RIGHT: 150 0 0\nPTUKEY FAIL RIGHT: 150 0 0\n",
+  "method": "Original tail/log/domain and quantile-endpoint probes; unformatted binary64 roundtrip cache values, not serialized display comparison.",
+  "inputColumns": {
+    "A": [
+      1,
+      2,
+      4,
+      5,
+      7,
+      9,
+      10,
+      12,
+      15,
+      18
+    ],
+    "B": [
+      3,
+      5,
+      9,
+      11,
+      15,
+      19,
+      21,
+      25,
+      31,
+      37
+    ],
+    "C": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "D": [
+      1,
+      4,
+      16,
+      25,
+      49,
+      81,
+      100,
+      144,
+      225,
+      324
+    ]
+  },
+  "cases": [
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(-1,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(1000000,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(-1,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(1000000,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(-1,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(1000000,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(-1,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(0,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBETA",
+      "formula": "=R.PBETA(1000000,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(-1,8,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(0,8,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -2.853399551509859
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(1000000,8,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(-1,8,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(0,8,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.05764800999999999
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(1000000,8,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(-1,8,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(0,8,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.059376411779808194
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(1000000,8,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(-1,8,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(0,8,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.94235199
+      }
+    },
+    {
+      "name": "R.PBINOM",
+      "formula": "=R.PBINOM(1000000,8,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(-1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.3862943611198906
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(0,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.0429418980620317
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(1000000,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -6.3662061163e-07
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(-1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.25
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(0,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.35241638234956674
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(1000000,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9999993633795909
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(-1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.2876820724517809
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(0,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.4345073545177282
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(1000000,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -14.267092263254563
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(-1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.75
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(0,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.6475836176504333
+      }
+    },
+    {
+      "name": "R.PCAUCHY",
+      "formula": "=R.PCAUCHY(1000000,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 6.366204089871414e-07
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(-1,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(0,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(1000000,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(-1,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(0,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(1000000,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(-1,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(0,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(1000000,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -499993.3180350736
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(-1,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(0,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PCHISQ",
+      "formula": "=R.PCHISQ(1000000,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(-1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(0,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(1000000,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(-1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(0,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(1000000,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(-1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(0,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(1000000,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -500000.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(-1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(0,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PEXP",
+      "formula": "=R.PEXP(1000000,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(-1,3,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(0,3,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(1000000,3,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -7.305499363694876e-15
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(-1,3,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(0,3,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(1000000,3,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999927
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(-1,3,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(0,3,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(1000000,3,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -32.55014899288015
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(-1,3,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(0,3,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PF",
+      "formula": "=R.PF(1000000,3,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 7.305499363694878e-15
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(-1,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(0,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(1000000,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(-1,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(0,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(1000000,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(-1,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(0,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(1000000,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -333320.61643206404
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(-1,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(0,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGAMMA",
+      "formula": "=R.PGAMMA(1000000,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(-1,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(0,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.2039728043259361
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(1000000,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(-1,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(0,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.3
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(1000000,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(-1,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(0,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.35667494393873234
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(1000000,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -356675.30061367626
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(-1,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(0,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.7000000000000001
+      }
+    },
+    {
+      "name": "R.PGEOM",
+      "formula": "=R.PGEOM(1000000,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(-1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -2.718281828459045
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(0,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.6487212707001282
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(1000000,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(-1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.06598803584531254
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(0,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.1922956455479649
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(1000000,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(-1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.0682660312478767
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(0,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.21355918537343413
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(1000000,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(-1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9340119641546875
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(0,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.807704354452035
+      }
+    },
+    {
+      "name": "R.PGUMBEL",
+      "formula": "=R.PGUMBEL(1000000,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(-1,7,5,4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(0,7,5,4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -4.595119850134591
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(1000000,7,5,4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(-1,7,5,4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(0,7,5,4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.010101010101010107
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(1000000,7,5,4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(-1,7,5,4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(0,7,5,4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.010152371464018
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(1000000,7,5,4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(-1,7,5,4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(0,7,5,4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9898989898989898
+      }
+    },
+    {
+      "name": "R.PHYPER",
+      "formula": "=R.PHYPER(1000000,7,5,4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(-1,0.5,0.7,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(0,0.5,0.7,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(1000000,0.5,0.7,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -5.589324010788126e-81
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(-1,0.5,0.7,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(0,0.5,0.7,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(1000000,0.5,0.7,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(-1,0.5,0.7,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(0,0.5,0.7,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(1000000,0.5,0.7,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -184.78853418096577
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(-1,0.5,0.7,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(0,0.5,0.7,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PLNORM",
+      "formula": "=R.PLNORM(1000000,0.5,0.7,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 5.589324010788126e-81
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(-1,3,0.4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(0,3,0.4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -2.7488721956224653
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(1000000,3,0.4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(-1,3,0.4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(0,3,0.4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.06400000000000002
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(1000000,3,0.4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(-1,3,0.4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(0,3,0.4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.06613980250454499
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(1000000,3,0.4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -510801.0292911428
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(-1,3,0.4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(0,3,0.4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9359999999999999
+      }
+    },
+    {
+      "name": "R.PNBINOM",
+      "formula": "=R.PNBINOM(1000000,3,0.4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(-1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.8410216450092636
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(0,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.1759117615936185
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(1000000,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(-1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.15865525393145705
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(0,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.30853753872598694
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(1000000,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(-1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.17275377902344988
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(0,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.3689464152886565
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(1000000,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -124999750014.1663
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(-1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.8413447460685429
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(0,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.691462461274013
+      }
+    },
+    {
+      "name": "R.PNORM",
+      "formula": "=R.PNORM(1000000,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(-1,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(0,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -3.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(1000000,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(-1,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(0,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.049787068367863944
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(1000000,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(-1,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(0,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.05106918094270159
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(1000000,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -11716921.81288633
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(-1,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(0,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.950212931632136
+      }
+    },
+    {
+      "name": "R.PPOIS",
+      "formula": "=R.PPOIS(1000000,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(-1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(0,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(1000000,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(-1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(0,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(1000000,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(-1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(0,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(1000000,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -124999999999.99998
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(-1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(0,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "formula": "=R.PRAYLEIGH(1000000,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(-1,1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -3.6820432900185276
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(0,1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -2.3518235231872366
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(1000000,1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(-1,1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.025171489600055108
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(0,1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.09519541280308991
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(1000000,1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(-1,1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.025493710223468965
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(0,1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.10003628434680252
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(1000000,1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(-1,1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9748285103999449
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(0,1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.90480458719691
+      }
+    },
+    {
+      "name": "R.PSNORM",
+      "formula": "=R.PSNORM(1000000,1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(-1,5,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.038680531473864216
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(0,5,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.25000000000000006
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(1000000,5,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(-1,5,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.038680531473864216
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(0,5,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.25000000000000006
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(1000000,5,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(-1,5,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.9613194685261359
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(0,5,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.75
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(1000000,5,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(-1,5,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9613194685261359
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(0,5,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.75
+      }
+    },
+    {
+      "name": "R.PST",
+      "formula": "=R.PST(1000000,5,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(-1,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.705900720223827
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(0,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.6931471805599453
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(1000000,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -9.49016724546089e-30
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(-1,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.18160873382456133
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(0,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(1000000,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(-1,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.20041473623030756
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(0,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.6931471805599453
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(1000000,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -66.82729655401859
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(-1,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.8183912661754387
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(0,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.5
+      }
+    },
+    {
+      "name": "R.PT",
+      "formula": "=R.PT(1000000,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 9.490167245460771e-30
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(-1,3,10,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(0,3,10,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(1000000,3,10,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -8.881784197001256e-16
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(-1,3,10,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(0,3,10,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(1000000,3,10,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999991
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(-1,3,10,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(0,3,10,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(1000000,3,10,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -34.657359027997266
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(-1,3,10,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(0,3,10,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PTUKEY",
+      "formula": "=R.PTUKEY(1000000,3,10,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 8.881784197001252e-16
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(-1,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(0,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(1000000,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(-1,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(0,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(1000000,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(-1,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(0,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(1000000,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -111111111111.1111
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(-1,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(0,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.PWEIBULL",
+      "formula": "=R.PWEIBULL(1000000,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(-1000,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.908596138331341e-218
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(-1,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.31107362148453865
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0.3,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.2723839420751053
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(1,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(-1000,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.9999999999999996
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(-1,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.46429150817397363
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(0.3,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.5084047548725844
+      }
+    },
+    {
+      "name": "R.QBETA",
+      "formula": "=R.QBETA(1,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(-1000,8,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(-1,8,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0,8,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 8.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0,8,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0.3,8,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(1,8,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 8.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(-1000,8,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 8.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(-1,8,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0,8,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0,8,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 8.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(0.3,8,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QBINOM",
+      "formula": "=R.QBINOM(1,8,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(-1000,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(-1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.11865781700805911
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0.3,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": -0.4530850560107218
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(-1000,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(-1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.8813421829919408
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(0.3,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.453085056010722
+      }
+    },
+    {
+      "name": "R.QCAUCHY",
+      "formula": "=R.QCAUCHY(1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(-1000,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 7.141665857273928e-290
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(-1,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.721698443040727
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0.3,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.4236522430352796
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(1,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(-1000,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2007.153886007422
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(-1,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.158142951919848
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(0.3,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.6648707831703176
+      }
+    },
+    {
+      "name": "R.QCHISQ",
+      "formula": "=R.QCHISQ(1,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(-1000,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(-1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.9173502907741639
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0.3,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.7133498878774647
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(-1000,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2000.0
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(-1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(0.3,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.4079456086518722
+      }
+    },
+    {
+      "name": "R.QEXP",
+      "formula": "=R.QEXP(1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(-1000,3,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.1790887246331e-290
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(-1,3,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.6192640386240658
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0,3,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0,3,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0.3,3,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.4973624578265948
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(1,3,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(-1000,3,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.1567874050455317e+174
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(-1,3,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.3121237655673768
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0,3,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0,3,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(0.3,3,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.6045308429008158
+      }
+    },
+    {
+      "name": "R.QF",
+      "formula": "=R.QF(1,3,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(-1000,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.0227017741730113e-217
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(-1,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.855219622570689
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0.3,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.2920476321104744
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(1,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(-1000,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3020.746919263228
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(-1,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 6.4385796618617475
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(0.3,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 7.317649449840613
+      }
+    },
+    {
+      "name": "R.QGAMMA",
+      "formula": "=R.QGAMMA(1,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(-1000,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(-1,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0,0.3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0.3,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(1,0.3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(-1000,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2803.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(-1,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0,0.3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(0.3,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QGEOM",
+      "formula": "=R.QGEOM(1,0.3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(-1000,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -12.815510557964274
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(-1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0.3,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.6287464822752685
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(-1000,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(-1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.5588261274910264
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(0.3,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.0618608663174465
+      }
+    },
+    {
+      "name": "R.QGUMBEL",
+      "formula": "=R.QGUMBEL(1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(-1000,7,5,4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(-1,7,5,4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0,7,5,4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 4.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0,7,5,4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,7,5,4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(1,7,5,4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 4.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(-1000,7,5,4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 4.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(-1,7,5,4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0,7,5,4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0,7,5,4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 4.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(0.3,7,5,4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QHYPER",
+      "formula": "=R.QHYPER(1,7,5,4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(-1000,0.5,0.7,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 4.50490989405222e-14
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(-1,0.5,0.7,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.3018255197074904
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0,0.5,0.7,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0,0.5,0.7,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0.3,0.5,0.7,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.1421582120704674
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(1,0.5,0.7,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(-1000,0.5,0.7,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 60340426165858.74
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(-1,0.5,0.7,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.0880538807303615
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0,0.5,0.7,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0,0.5,0.7,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(0.3,0.5,0.7,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.3799520939672902
+      }
+    },
+    {
+      "name": "R.QLNORM",
+      "formula": "=R.QLNORM(1,0.5,0.7,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(-1000,3,0.4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(-1,3,0.4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0,3,0.4,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0,3,0.4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0.3,3,0.4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(1,3,0.4,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(-1000,3,0.4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(-1,3,0.4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 5.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0,3,0.4,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0,3,0.4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(0.3,3,0.4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 6.0
+      }
+    },
+    {
+      "name": "R.QNBINOM",
+      "formula": "=R.QNBINOM(1,3,0.4,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(-1000,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -88.23149546393323
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(-1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.32505007247159534
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0.3,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": -0.048801025416081556
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(-1000,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 90.23149546393323
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(-1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.6749499275284045
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(0.3,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.0488010254160813
+      }
+    },
+    {
+      "name": "R.QNORM",
+      "formula": "=R.QNORM(1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(-1000,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(-1,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0.3,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(1,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(-1000,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 280.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(-1,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(0.3,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 4.0
+      }
+    },
+    {
+      "name": "R.QPOIS",
+      "formula": "=R.QPOIS(1,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(-1000,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(-1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.9155681045310438
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0.3,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.689200861801183
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(-1000,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 89.44271909999159
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(-1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.8284271247461903
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(0.3,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.1035113073110416
+      }
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "formula": "=R.QRAYLEIGH(1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(-1000,1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -15.58472215162719
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(-1,1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.5405760414774716
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0,1,1,2,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0,1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.2398188835518273
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(1,1,1,2,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(-1000,1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 76.03859999999997
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(-1,1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.648210333139224
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0,1,1,2,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0,1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(0.3,1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.9616463533170503
+      }
+    },
+    {
+      "name": "R.QSNORM",
+      "formula": "=R.QSNORM(1,1,1,2,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(-1000,5,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -7.394064564034049e+184
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(-1,5,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -7.394064564034049e+184
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0,5,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0,5,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0.3,5,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.12554920189593807
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(1,5,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(-1000,5,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 7.394064564034049e+184
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(-1,5,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 7.394064564034049e+184
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0,5,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0,5,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(0.3,5,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.069845233082212
+      }
+    },
+    {
+      "name": "R.QST",
+      "formula": "=R.QST(1,5,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(-1000,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -1.1333163510624135e+87
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(-1,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": -0.3568658837283195
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0,5,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0.3,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": -0.5594296444693608
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(1,5,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(-1000,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.1333163510624135e+87
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(-1,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.3568658837283195
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0,5,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(0.3,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.5594296444693608
+      }
+    },
+    {
+      "name": "R.QT",
+      "formula": "=R.QT(1,5,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(-1000,3,10,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 7.186959238596909e-108
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(-1,3,10,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 1.3213910338828223
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0,3,10,1,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0,3,10,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0.3,3,10,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.1589854329626577
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(1,3,10,1,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(-1000,3,10,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 5.81925438736163e+207
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(-1,3,10,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.008032798025032
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0,3,10,1,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0,3,10,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(0.3,3,10,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 2.227543178769256
+      }
+    },
+    {
+      "name": "R.QTUKEY",
+      "formula": "=R.QTUKEY(1,3,10,1,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(-1000,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(-1,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 2.0317667948078437
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0,2,3,TRUE,TRUE)",
+      "lowerTail": true,
+      "logProbability": true,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0.3,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 1.7916680762486648
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(1,2,3,TRUE,FALSE)",
+      "lowerTail": true,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(-1000,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 94.86832980505137
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(-1,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 3.0
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0,2,3,FALSE,TRUE)",
+      "lowerTail": false,
+      "logProbability": true,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "error",
+        "value": "#NUM!"
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(0.3,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 3.2917708363331473
+      }
+    },
+    {
+      "name": "R.QWEIBULL",
+      "formula": "=R.QWEIBULL(1,2,3,FALSE,FALSE)",
+      "lowerTail": false,
+      "logProbability": false,
+      "expected": {
+        "kind": "number",
+        "value": 0.0
+      }
+    }
+  ]
+}

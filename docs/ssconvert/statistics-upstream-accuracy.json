@@ -1,0 +1,2565 @@
+{
+  "schemaVersion": 1,
+  "upstream": {
+    "version": "1.12.61",
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+  },
+  "interpretation": "Upstream descriptor test labels describe Gnumeric, not this product. All inventoried workbook formulas and random suites require product differential execution before a pass can be recorded. Native XLSX cache values retain binary64 roundtrip digits; exporter success does not establish product parity.",
+  "descriptorAccuracyClaims": [
+    {
+      "name": "ADTEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SFTEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CVMTEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LKSTEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "AVEDEV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "AVERAGE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "AVERAGEA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "BERNOULLI",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "BETADIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "BETA.DIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "BETAINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "BINOMDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "BINOM.DIST.RANGE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CAUCHY",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CHIDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CHIINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CHITEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CONFIDENCE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CONFIDENCE.T",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CORREL",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "COUNT",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "COUNTA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "COVAR",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "COVARIANCE.S",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CRITBINOM",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "DEVSQ",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "EXPONDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FISHER",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FISHERINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FORECAST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FREQUENCY",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FTEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "GAMMADIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "GAMMAINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "GEOMEAN",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "GROWTH",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "HARMEAN",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "HYPGEOMDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "INTERCEPT",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "KURT",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LARGE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LEVERAGE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LINEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LOGEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LOGFIT",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LOGINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LOGNORMDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LOGREG",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "MAX",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "MAXA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "MEDIAN",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "MIN",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "MINA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "MODE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "MODE.MULT",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "NEGBINOMDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "NORMDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SNORM.DIST.RANGE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "NORMINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "NORMSDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "NORMSINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "OWENT",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PEARSON",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PERCENTILE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PERCENTILE.EXC",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PERCENTRANK",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PERCENTRANK.EXC",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PERMUT",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "POISSON",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PROB",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "QUARTILE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "QUARTILE.EXC",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANK",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANK.AVG",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SLOPE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SMALL",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "STANDARDIZE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SSMEDIAN",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "STDEV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "STDEVA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "STDEVP",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "STDEVPA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "STEYX",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RSQ",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SKEW",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "TDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "TINV",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "TREND",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "TRIMMEAN",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "TTEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "VAR",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "VARA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "VARP",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "VARPA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "WEIBULL",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "ZTEST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "EXPPOWDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "GEOMDIST",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "KURTP",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LANDAU",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LAPLACE",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "LOGISTIC",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PARETO",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RAYLEIGH",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RAYLEIGHTAIL",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SKEWP",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SUBTOTAL",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "CRONBACH",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PERMUTATIONA",
+      "plugin": "fn-stat",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DBETA",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PBETA",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QBETA",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DBINOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PBINOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QBINOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DCAUCHY",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PCAUCHY",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QCAUCHY",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DCHISQ",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PCHISQ",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QCHISQ",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DEXP",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PEXP",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QEXP",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DF",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PF",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QF",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DGAMMA",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PGAMMA",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QGAMMA",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DGEOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PGEOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QGEOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DGUMBEL",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PGUMBEL",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QGUMBEL",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DHYPER",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PHYPER",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QHYPER",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DLNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PLNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QLNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DNBINOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PNBINOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QNBINOM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DPOIS",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PPOIS",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QPOIS",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DRAYLEIGH",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PRAYLEIGH",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QRAYLEIGH",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DSNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PSNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QSNORM",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DST",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PST",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QST",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DT",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PT",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QT",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PTUKEY",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QTUKEY",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.DWEIBULL",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.PWEIBULL",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "R.QWEIBULL",
+      "plugin": "fn-r",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RAND",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDBERNOULLI",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDBETA",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDBETWEEN",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDBINOM",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDCAUCHY",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDCHISQ",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDDISCRETE",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDEXP",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDEXPPOW",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDFDIST",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDGAMMA",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDNORMTAIL",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDGEOM",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDGUMBEL",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDHYPERG",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDLANDAU",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDLAPLACE",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDLEVY",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDLOG",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDLOGISTIC",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDLOGNORM",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDNEGBINOM",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDNORM",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDPARETO",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDPOISSON",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDRAYLEIGH",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDRAYLEIGHTAIL",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDSNORM",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDSTDIST",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDTDIST",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDUNIFORM",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "RANDWEIBULL",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_EXHAUSTIVE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "SIMTABLE",
+      "plugin": "fn-random",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "INTERPOLATION",
+      "plugin": "fn-tsa",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PERIODOGRAM",
+      "plugin": "fn-tsa",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "FOURIER",
+      "plugin": "fn-tsa",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "HPFILTER",
+      "plugin": "fn-tsa",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_BASIC",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "PROBBLOCK",
+      "plugin": "fn-erlang",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "OFFTRAF",
+      "plugin": "fn-erlang",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "DIMCIRC",
+      "plugin": "fn-erlang",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    },
+    {
+      "name": "OFFCAP",
+      "plugin": "fn-erlang",
+      "upstreamTestStatus": "GNM_FUNC_TEST_STATUS_NO_TESTSUITE",
+      "productAccuracyStatus": "unmeasured"
+    }
+  ],
+  "workbookDrivers": [
+    {
+      "driver": "test/t1000-statfuns.pl",
+      "driverSha256": "ab7f1ae2de4a32a44c8d4b82bc1e0bb4d9c8cf2b22d8af47ec9bb1e0352de5f5",
+      "sample": "statfuns.xls",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "def4484ba5d248853ca2e7e9568094898219310b8ca623aeef41591661c9d63c",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "statfuns.xls:xl/worksheets/sheet1.xml"
+      ]
+    },
+    {
+      "driver": "test/t1011-yalta2008.pl",
+      "driverSha256": "97871cd4d21331edeccd7299ebf2c54075856d1e99ca11730bf483117adfc93d",
+      "sample": "yalta2008.xls",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "627d5386c9c0367417a81400ad939496c4cd03c05cd45f9ec2f575b9602519fa",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "yalta2008.xls:xl/worksheets/sheet1.xml",
+        "yalta2008.xls:xl/worksheets/sheet2.xml",
+        "yalta2008.xls:xl/worksheets/sheet3.xml",
+        "yalta2008.xls:xl/worksheets/sheet4.xml",
+        "yalta2008.xls:xl/worksheets/sheet5.xml",
+        "yalta2008.xls:xl/worksheets/sheet6.xml",
+        "yalta2008.xls:xl/worksheets/sheet7.xml",
+        "yalta2008.xls:xl/worksheets/sheet8.xml",
+        "yalta2008.xls:xl/worksheets/sheet9.xml",
+        "yalta2008.xls:xl/worksheets/sheet10.xml"
+      ]
+    },
+    {
+      "driver": "test/t1012-burkardt.pl",
+      "driverSha256": "b929ca8b8779e7940a4e5f144d3ebb1421cf69190ebcc0cb17bbb5042d202e59",
+      "sample": "burkardt.gnumeric",
+      "availability": "absent-from-archive",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "caseGroupIds": []
+    },
+    {
+      "driver": "test/t1014-gsl.pl",
+      "driverSha256": "8cba893633474b528e558ca713e52068f13077d0f6e1dd20fd856ff6d69add62",
+      "sample": "gsl.gnumeric",
+      "availability": "absent-from-archive",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "caseGroupIds": []
+    },
+    {
+      "driver": "test/t1020-erlang.pl",
+      "driverSha256": "d78c5300303f63fa8dde9a6cb42ca07c4e9a59bb9cfbd3a2456f0404c561a7bc",
+      "sample": "erlang.gnumeric",
+      "availability": "absent-from-archive",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "caseGroupIds": []
+    },
+    {
+      "driver": "test/t1100-chitest.pl",
+      "driverSha256": "95fbc31c44b94cde3b37692c090b3bde6f5dfc31846cfae62853ed34e1a59b4f",
+      "sample": "chitest.xls",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "e4d21e747f47edcc8030b1cf7fce586d9b649cafe4051ce8dc1509df486671d6",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "chitest.xls:xl/worksheets/sheet1.xml"
+      ]
+    },
+    {
+      "driver": "test/t1101-ftest.pl",
+      "driverSha256": "c9b1bf221759bdcc548118499273a74a56ab7ae565aa1b29ca20a7a4615ddc34",
+      "sample": "ftest.xls",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "27035d69127e8c2049696d6caf7ebdf889e90749430d183a5c93b0a0f81c0d26",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "ftest.xls:xl/worksheets/sheet1.xml"
+      ]
+    },
+    {
+      "driver": "test/t1102-ttest.pl",
+      "driverSha256": "49a9c804174c88825ac4b798f490ecd590e27a24bbf3cfb9d848d63cd614ff17",
+      "sample": "ttest.xls",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "6504b683dd53232daf871f82c2295bb7c2debe7d6da3ec2d495e0050b85268a2",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "ttest.xls:xl/worksheets/sheet1.xml",
+        "ttest.xls:xl/worksheets/sheet2.xml",
+        "ttest.xls:xl/worksheets/sheet3.xml",
+        "ttest.xls:xl/worksheets/sheet4.xml"
+      ]
+    },
+    {
+      "driver": "test/t1104-linest.pl",
+      "driverSha256": "7c7fa7902bbdece56139c57de1a7313fe7c56f77e67cb5a9bb629e02a9edcf83",
+      "sample": "linest.xls",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "3d663ae6eddc4117fbc9d4240d6f01905c20c1210e63b605365dbafaf90e7cc7",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "linest.xls:xl/worksheets/sheet1.xml",
+        "linest.xls:xl/worksheets/sheet2.xml",
+        "linest.xls:xl/worksheets/sheet3.xml",
+        "linest.xls:xl/worksheets/sheet4.xml",
+        "linest.xls:xl/worksheets/sheet5.xml",
+        "linest.xls:xl/worksheets/sheet6.xml",
+        "linest.xls:xl/worksheets/sheet7.xml",
+        "linest.xls:xl/worksheets/sheet8.xml",
+        "linest.xls:xl/worksheets/sheet9.xml",
+        "linest.xls:xl/worksheets/sheet10.xml",
+        "linest.xls:xl/worksheets/sheet11.xml",
+        "linest.xls:xl/worksheets/sheet12.xml"
+      ]
+    },
+    {
+      "driver": "test/t1105-gamma.pl",
+      "driverSha256": "d515fa651c32be2124a1978fc0b1e4169810acd1f4ab6ee209e73e75b63f16db",
+      "sample": "gamma.gnumeric",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "69576cd47203575da5acb17cef5816ae5322ead9014457cc82d0c9898b001238",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "gamma.gnumeric:xl/worksheets/sheet1.xml",
+        "gamma.gnumeric:xl/worksheets/sheet2.xml",
+        "gamma.gnumeric:xl/worksheets/sheet3.xml"
+      ]
+    },
+    {
+      "driver": "test/t1107-cronbach.pl",
+      "driverSha256": "d4afb7802b07712c798c60ed11294d3cd16db97995c8386308a7f28ea410dcb1",
+      "sample": "cronbach.gnumeric",
+      "availability": "present",
+      "status": "unmeasured",
+      "reason": "Product workbook recalculation has not been compared against all upstream assertion cells.",
+      "sampleSha256": "6f9d79bd42b439f25b0671953fd661923ee6741f5965b0e19c8da43e29a2dee7",
+      "oracleExportExitStatus": 0,
+      "caseGroupIds": [
+        "cronbach.gnumeric:xl/worksheets/sheet1.xml"
+      ]
+    }
+  ],
+  "randomSuites": [
+    {
+      "function": "RAND",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDUNIFORM",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDBETA",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDCAUCHY",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDCHISQ",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDEXP",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDFDIST",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDGAMMA",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDLOG",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDLOGNORM",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDNORM",
+      "sampleCount": "200000 normal, 20000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDSNORM",
+      "sampleCount": "200000 normal, 20000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDTDIST",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDWEIBULL",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDRAYLEIGH",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDEXPPOW",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDGUMBEL",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDLANDAU",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDLAPLACE",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDLEVY",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDLOGISTIC",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDNORMTAIL",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDPARETO",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDRAYLEIGHTAIL",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDSTDIST",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": false,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDBERNOULLI",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDBETWEEN",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDBINOM",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDDISCRETE",
+      "sampleCount": "20000 normal, 2000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDGEOM",
+      "sampleCount": "200000 normal, 20000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDHYPERG",
+      "sampleCount": "200000 normal, 20000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDNEGBINOM",
+      "sampleCount": "200000 normal, 20000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    },
+    {
+      "function": "RANDPOISSON",
+      "sampleCount": "200000 normal, 20000 fast",
+      "upstreamEnabled": true,
+      "status": "unmeasured"
+    }
+  ],
+  "numericalHelperSources": [
+    {
+      "source": "src/mathfunc.c",
+      "sha256": "4f91ff6c32b3b4dbe31e2c3fcb718aa85ba84c149205383c995c4a7be8ed5d50",
+      "lines": 6332,
+      "accuracyPortStatus": "unmeasured; algorithm identity is not inferred from matching central values"
+    },
+    {
+      "source": "src/gnm-random.c",
+      "sha256": "5dfb3a879255b826ee191bfdd9644ea28ca256b00e380b826fe5395baa9bb631",
+      "lines": 1631,
+      "accuracyPortStatus": "unmeasured; algorithm identity is not inferred from matching central values"
+    },
+    {
+      "source": "plugins/fn-r/extra.c",
+      "sha256": "47156a3b24e75619067cdfc6c38d61a3694ef4f67f5af6b1e41cda402b0c0f8f",
+      "lines": 331,
+      "accuracyPortStatus": "unmeasured; algorithm identity is not inferred from matching central values"
+    },
+    {
+      "source": "plugins/fn-r/extra.h",
+      "sha256": "e98e3e6f9bf6496ad2cc5002a15e340230477af377c3eaa2660ff6aa696097b2",
+      "lines": 24,
+      "accuracyPortStatus": "unmeasured; algorithm identity is not inferred from matching central values"
+    },
+    {
+      "source": "plugins/fn-tsa/functions.c",
+      "sha256": "40ce9ca9d03f476319cb858799103583fa30cf7ae0296a4e3cd5e79bc17e0a88",
+      "lines": 1080,
+      "accuracyPortStatus": "unmeasured; algorithm identity is not inferred from matching central values"
+    },
+    {
+      "source": "plugins/fn-erlang/functions.c",
+      "sha256": "ce7978a22dd10cd014441023229d2e6c2007feca40202c853d6ef62d87f7bfb1",
+      "lines": 308,
+      "accuracyPortStatus": "unmeasured; algorithm identity is not inferred from matching central values"
+    }
+  ],
+  "limits": {
+    "binary64": "53-bit precision; finite-range/underflow/overflow must be checked per function and tail mode",
+    "randomSource": "gnm-random.c: MT19937 seeded by unsigned UTF-8 bytes from GNUMERIC_PRNG_SEED; absent seed uses /dev/urandom with MT fallback. Polar normal generator caches a second draw; draw ordering and recalc effects affect streams. Injected deterministic randomness tests do not establish Gnumeric seed parity.",
+    "randomDriverWeakness": "t2003-random-generators.pl ignores failure except USER welinder or aguelzow; do not inherit this as product success. Ten CHECK1 suites are disabled with #if 0.",
+    "status": "unmeasured"
+  },
+  "exhaustiveCaseEvidence": {
+    "path": "out/ssconvert-statistics-upstream-accuracy-detail.json",
+    "sha256": "79d180b313be1c8d8b12cb23be23484e3e4c2beca991804411d41a93488c4843",
+    "formulaCellCount": 87481,
+    "status": "unmeasured against product; all entries are native-export observations only"
+  },
+  "caseGroups": [
+    {
+      "id": "statfuns.xls:xl/worksheets/sheet1.xml",
+      "sample": "statfuns.xls",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 406,
+      "rowRange": [
+        4,
+        99
+      ],
+      "columnFormulaCounts": {
+        "A": 2,
+        "G": 1,
+        "B": 78,
+        "D": 78,
+        "F": 77,
+        "H": 79,
+        "I": 79,
+        "J": 6,
+        "L": 2,
+        "N": 1,
+        "M": 2,
+        "K": 1
+      },
+      "inScopeFormulaCellCount": 168,
+      "functionsInScope": [
+        "AVEDEV",
+        "AVERAGE",
+        "AVERAGEA",
+        "BETADIST",
+        "BETAINV",
+        "BINOMDIST",
+        "CHIDIST",
+        "CHIINV",
+        "CHITEST",
+        "CORREL",
+        "COUNT",
+        "COUNTA",
+        "CRITBINOM",
+        "DEVSQ",
+        "FISHER",
+        "FISHERINV",
+        "FREQUENCY",
+        "FTEST",
+        "GAMMADIST",
+        "GEOMEAN",
+        "GROWTH",
+        "HARMEAN",
+        "HYPGEOMDIST",
+        "INTERCEPT",
+        "KURT",
+        "LARGE",
+        "LINEST",
+        "LOGEST",
+        "LOGNORMDIST",
+        "MAX",
+        "MAXA",
+        "MEDIAN",
+        "MIN",
+        "MINA",
+        "NEGBINOMDIST",
+        "NORMDIST",
+        "NORMINV",
+        "NORMSDIST",
+        "NORMSINV",
+        "PEARSON",
+        "PERMUT",
+        "POISSON",
+        "PROB",
+        "RSQ",
+        "SKEW",
+        "SLOPE",
+        "SMALL",
+        "STANDARDIZE",
+        "STDEVA",
+        "STDEVPA",
+        "STEYX",
+        "TDIST",
+        "TREND",
+        "TRIMMEAN",
+        "TTEST",
+        "VARA",
+        "VARPA"
+      ],
+      "nativeCachedErrorCount": 1,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet1.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 9,
+      "rowRange": [
+        10,
+        19
+      ],
+      "columnFormulaCounts": {
+        "D": 9
+      },
+      "inScopeFormulaCellCount": 0,
+      "functionsInScope": [],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet2.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet2.xml",
+      "formulaCellCount": 43,
+      "rowRange": [
+        1,
+        23
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "F": 14,
+        "I": 14,
+        "J": 14
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "BINOMDIST"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet3.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet3.xml",
+      "formulaCellCount": 31,
+      "rowRange": [
+        1,
+        19
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "G": 10,
+        "J": 10,
+        "K": 10
+      },
+      "inScopeFormulaCellCount": 10,
+      "functionsInScope": [
+        "HYPGEOMDIST"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet4.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet4.xml",
+      "formulaCellCount": 47,
+      "rowRange": [
+        1,
+        23
+      ],
+      "columnFormulaCounts": {
+        "B": 5,
+        "E": 14,
+        "H": 14,
+        "I": 14
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "POISSON"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet5.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet5.xml",
+      "formulaCellCount": 31,
+      "rowRange": [
+        1,
+        19
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "F": 10,
+        "I": 10,
+        "J": 10
+      },
+      "inScopeFormulaCellCount": 10,
+      "functionsInScope": [
+        "GAMMADIST"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet6.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet6.xml",
+      "formulaCellCount": 42,
+      "rowRange": [
+        1,
+        23
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "C": 14,
+        "G": 14,
+        "F": 13
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "NORMSINV"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet7.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet7.xml",
+      "formulaCellCount": 46,
+      "rowRange": [
+        1,
+        24
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "D": 15,
+        "G": 15,
+        "H": 15
+      },
+      "inScopeFormulaCellCount": 15,
+      "functionsInScope": [
+        "CHIINV"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet8.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet8.xml",
+      "formulaCellCount": 43,
+      "rowRange": [
+        1,
+        23
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "E": 14,
+        "H": 14,
+        "I": 14
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "BETAINV"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet9.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet9.xml",
+      "formulaCellCount": 40,
+      "rowRange": [
+        1,
+        22
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "D": 13,
+        "G": 13,
+        "H": 13
+      },
+      "inScopeFormulaCellCount": 0,
+      "functionsInScope": [],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "yalta2008.xls:xl/worksheets/sheet10.xml",
+      "sample": "yalta2008.xls",
+      "worksheetPart": "xl/worksheets/sheet10.xml",
+      "formulaCellCount": 37,
+      "rowRange": [
+        1,
+        21
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "E": 12,
+        "H": 12,
+        "I": 12
+      },
+      "inScopeFormulaCellCount": 0,
+      "functionsInScope": [],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "chitest.xls:xl/worksheets/sheet1.xml",
+      "sample": "chitest.xls",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 60,
+      "rowRange": [
+        1,
+        68
+      ],
+      "columnFormulaCounts": {
+        "A": 9,
+        "C": 16,
+        "F": 14,
+        "I": 10,
+        "L": 6,
+        "G": 2,
+        "K": 2,
+        "J": 1
+      },
+      "inScopeFormulaCellCount": 24,
+      "functionsInScope": [
+        "CHITEST"
+      ],
+      "nativeCachedErrorCount": 13,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "ftest.xls:xl/worksheets/sheet1.xml",
+      "sample": "ftest.xls",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 60,
+      "rowRange": [
+        1,
+        68
+      ],
+      "columnFormulaCounts": {
+        "A": 9,
+        "C": 16,
+        "F": 14,
+        "I": 10,
+        "L": 6,
+        "G": 2,
+        "K": 2,
+        "J": 1
+      },
+      "inScopeFormulaCellCount": 24,
+      "functionsInScope": [
+        "FTEST"
+      ],
+      "nativeCachedErrorCount": 6,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "ttest.xls:xl/worksheets/sheet1.xml",
+      "sample": "ttest.xls",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 3,
+      "rowRange": [
+        2,
+        2
+      ],
+      "columnFormulaCounts": {
+        "B": 1,
+        "C": 1,
+        "D": 1
+      },
+      "inScopeFormulaCellCount": 0,
+      "functionsInScope": [],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "ttest.xls:xl/worksheets/sheet2.xml",
+      "sample": "ttest.xls",
+      "worksheetPart": "xl/worksheets/sheet2.xml",
+      "formulaCellCount": 60,
+      "rowRange": [
+        1,
+        68
+      ],
+      "columnFormulaCounts": {
+        "A": 9,
+        "C": 16,
+        "F": 14,
+        "I": 10,
+        "L": 6,
+        "G": 2,
+        "K": 2,
+        "J": 1
+      },
+      "inScopeFormulaCellCount": 24,
+      "functionsInScope": [
+        "TTEST"
+      ],
+      "nativeCachedErrorCount": 11,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "ttest.xls:xl/worksheets/sheet3.xml",
+      "sample": "ttest.xls",
+      "worksheetPart": "xl/worksheets/sheet3.xml",
+      "formulaCellCount": 60,
+      "rowRange": [
+        1,
+        68
+      ],
+      "columnFormulaCounts": {
+        "A": 9,
+        "C": 16,
+        "F": 14,
+        "I": 10,
+        "L": 6,
+        "G": 2,
+        "K": 2,
+        "J": 1
+      },
+      "inScopeFormulaCellCount": 24,
+      "functionsInScope": [
+        "TTEST"
+      ],
+      "nativeCachedErrorCount": 6,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "ttest.xls:xl/worksheets/sheet4.xml",
+      "sample": "ttest.xls",
+      "worksheetPart": "xl/worksheets/sheet4.xml",
+      "formulaCellCount": 60,
+      "rowRange": [
+        1,
+        68
+      ],
+      "columnFormulaCounts": {
+        "A": 9,
+        "C": 16,
+        "F": 14,
+        "I": 10,
+        "L": 6,
+        "G": 2,
+        "K": 2,
+        "J": 1
+      },
+      "inScopeFormulaCellCount": 24,
+      "functionsInScope": [
+        "TTEST"
+      ],
+      "nativeCachedErrorCount": 6,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet1.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 45,
+      "rowRange": [
+        1,
+        15
+      ],
+      "columnFormulaCounts": {
+        "A": 1,
+        "C": 11,
+        "D": 11,
+        "I": 11,
+        "J": 11
+      },
+      "inScopeFormulaCellCount": 0,
+      "functionsInScope": [],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet2.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet2.xml",
+      "formulaCellCount": 10,
+      "rowRange": [
+        29,
+        32
+      ],
+      "columnFormulaCounts": {
+        "J": 3,
+        "K": 3,
+        "G": 2,
+        "H": 2
+      },
+      "inScopeFormulaCellCount": 6,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet3.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet3.xml",
+      "formulaCellCount": 54,
+      "rowRange": [
+        29,
+        100
+      ],
+      "columnFormulaCounts": {
+        "J": 4,
+        "K": 4,
+        "G": 3,
+        "H": 3,
+        "C": 40
+      },
+      "inScopeFormulaCellCount": 8,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet4.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet4.xml",
+      "formulaCellCount": 6,
+      "rowRange": [
+        29,
+        31
+      ],
+      "columnFormulaCounts": {
+        "J": 2,
+        "K": 2,
+        "G": 1,
+        "H": 1
+      },
+      "inScopeFormulaCellCount": 4,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet5.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet5.xml",
+      "formulaCellCount": 6,
+      "rowRange": [
+        29,
+        31
+      ],
+      "columnFormulaCounts": {
+        "J": 2,
+        "K": 2,
+        "G": 1,
+        "H": 1
+      },
+      "inScopeFormulaCellCount": 4,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet6.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet6.xml",
+      "formulaCellCount": 136,
+      "rowRange": [
+        29,
+        142
+      ],
+      "columnFormulaCounts": {
+        "J": 13,
+        "K": 13,
+        "F": 12,
+        "G": 12,
+        "C": 82,
+        "D": 1,
+        "E": 1,
+        "H": 1,
+        "I": 1
+      },
+      "inScopeFormulaCellCount": 24,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet7.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet7.xml",
+      "formulaCellCount": 30,
+      "rowRange": [
+        29,
+        37
+      ],
+      "columnFormulaCounts": {
+        "J": 8,
+        "K": 8,
+        "G": 7,
+        "H": 7
+      },
+      "inScopeFormulaCellCount": 16,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet8.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet8.xml",
+      "formulaCellCount": 110,
+      "rowRange": [
+        29,
+        81
+      ],
+      "columnFormulaCounts": {
+        "J": 7,
+        "K": 7,
+        "G": 6,
+        "H": 6,
+        "C": 21,
+        "D": 21,
+        "E": 21,
+        "F": 21
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet9.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet9.xml",
+      "formulaCellCount": 110,
+      "rowRange": [
+        29,
+        81
+      ],
+      "columnFormulaCounts": {
+        "J": 7,
+        "K": 7,
+        "G": 6,
+        "H": 6,
+        "C": 21,
+        "D": 21,
+        "E": 21,
+        "F": 21
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet10.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet10.xml",
+      "formulaCellCount": 110,
+      "rowRange": [
+        29,
+        81
+      ],
+      "columnFormulaCounts": {
+        "J": 7,
+        "K": 7,
+        "G": 6,
+        "H": 6,
+        "C": 21,
+        "D": 21,
+        "E": 21,
+        "F": 21
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet11.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet11.xml",
+      "formulaCellCount": 110,
+      "rowRange": [
+        29,
+        81
+      ],
+      "columnFormulaCounts": {
+        "J": 7,
+        "K": 7,
+        "G": 6,
+        "H": 6,
+        "C": 21,
+        "D": 21,
+        "E": 21,
+        "F": 21
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "linest.xls:xl/worksheets/sheet12.xml",
+      "sample": "linest.xls",
+      "worksheetPart": "xl/worksheets/sheet12.xml",
+      "formulaCellCount": 110,
+      "rowRange": [
+        29,
+        81
+      ],
+      "columnFormulaCounts": {
+        "J": 7,
+        "K": 7,
+        "G": 6,
+        "H": 6,
+        "C": 21,
+        "D": 21,
+        "E": 21,
+        "F": 21
+      },
+      "inScopeFormulaCellCount": 14,
+      "functionsInScope": [
+        "LINEST",
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "gamma.gnumeric:xl/worksheets/sheet1.xml",
+      "sample": "gamma.gnumeric",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 3,
+      "rowRange": [
+        1,
+        5
+      ],
+      "columnFormulaCounts": {
+        "B": 3
+      },
+      "inScopeFormulaCellCount": 2,
+      "functionsInScope": [
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "gamma.gnumeric:xl/worksheets/sheet2.xml",
+      "sample": "gamma.gnumeric",
+      "worksheetPart": "xl/worksheets/sheet2.xml",
+      "formulaCellCount": 19888,
+      "rowRange": [
+        3,
+        6634
+      ],
+      "columnFormulaCounts": {
+        "E": 6630,
+        "C": 6629,
+        "H": 6629
+      },
+      "inScopeFormulaCellCount": 1,
+      "functionsInScope": [
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "gamma.gnumeric:xl/worksheets/sheet3.xml",
+      "sample": "gamma.gnumeric",
+      "worksheetPart": "xl/worksheets/sheet3.xml",
+      "formulaCellCount": 65618,
+      "rowRange": [
+        3,
+        10941
+      ],
+      "columnFormulaCounts": {
+        "G": 10937,
+        "H": 10937,
+        "E": 10936,
+        "F": 10936,
+        "J": 10936,
+        "K": 10936
+      },
+      "inScopeFormulaCellCount": 2,
+      "functionsInScope": [
+        "MIN"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    },
+    {
+      "id": "cronbach.gnumeric:xl/worksheets/sheet1.xml",
+      "sample": "cronbach.gnumeric",
+      "worksheetPart": "xl/worksheets/sheet1.xml",
+      "formulaCellCount": 57,
+      "rowRange": [
+        2,
+        49
+      ],
+      "columnFormulaCounts": {
+        "B": 13,
+        "M": 14,
+        "C": 2,
+        "D": 2,
+        "E": 2,
+        "F": 2,
+        "G": 2,
+        "H": 2,
+        "I": 2,
+        "J": 2,
+        "K": 2,
+        "L": 12
+      },
+      "inScopeFormulaCellCount": 2,
+      "functionsInScope": [
+        "COUNT"
+      ],
+      "nativeCachedErrorCount": 0,
+      "status": "unmeasured",
+      "scope": "Includes every formula cell in this worksheet group; downstream helper/assertion formulas retained in exhaustive out evidence. XLSX export does not establish assertion success."
+    }
+  ]
+}

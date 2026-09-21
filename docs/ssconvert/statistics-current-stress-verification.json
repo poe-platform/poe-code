@@ -1,0 +1,3913 @@
+{
+  "cases": [
+    {
+      "formula": "=ROWS(INTERPOLATION({2;1;2},{20;10;21},{1;2;3},0))",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "actual": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=ROWS(INTERPOLATION({2;1;2},{20;10;21},{1;2;3},1))",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "actual": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=ROWS(INTERPOLATION({2;1;2},{20;10;21},{1;2;3},2))",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "actual": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=ROWS(INTERPOLATION({2;1;2},{20;10;21},{1;2;3},3))",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "actual": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=ROWS(INTERPOLATION({2;1;2},{20;10;21},{1;2;3},4))",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "actual": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=ROWS(INTERPOLATION({2;1;2},{20;10;21},{1;2;3},5))",
+      "expected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "actual": {
+        "kind": "error",
+        "value": "#VALUE!"
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=INDEX(INTERPOLATION({3;1;2},{30;10;20},{1.5;2.5}),2,1)",
+      "expected": {
+        "kind": "number",
+        "value": 25
+      },
+      "actual": {
+        "kind": "number",
+        "value": 25
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=INDEX(INTERPOLATION({2},{7},{-1;2;5},2),3,1)",
+      "expected": {
+        "kind": "number",
+        "value": 7
+      },
+      "actual": {
+        "kind": "number",
+        "value": 7
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=DIMCIRC(-1,0.1)",
+      "expected": {
+        "kind": "number",
+        "value": 1
+      },
+      "actual": {
+        "kind": "number",
+        "value": 1
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=PROBBLOCK(3,1)",
+      "expected": {
+        "kind": "number",
+        "value": 0.75
+      },
+      "actual": {
+        "kind": "number",
+        "value": 0.75
+      },
+      "exact": true,
+      "withinTolerance": true
+    },
+    {
+      "formula": "=OFFCAP(1,0.75)",
+      "expected": {
+        "kind": "number",
+        "value": 2.9999999999999996
+      },
+      "actual": {
+        "kind": "number",
+        "value": 2.999999999999999
+      },
+      "exact": false,
+      "withinTolerance": true
+    }
+  ],
+  "summary": {
+    "total": 11,
+    "exact": 10,
+    "tolerance": 11,
+    "mismatches": []
+  },
+  "recordedAtUtc": "2026-09-20T08:46:41.838Z",
+  "procedure": "docs/plans/ssconvert-statistics-current-stress-qa.md",
+  "independentAgent": "statistics_review",
+  "tdd": {
+    "failingBeforeFix": 6,
+    "source": "plugins/fn-tsa/functions.c:478",
+    "newTests": 15,
+    "focusedPassingCasesReportedByIndependentAgent": 93,
+    "redCommand": "npx vitest run packages/ssconvert/src/formulas/statistics-stress-review.test.ts",
+    "initialRedResult": {
+      "cases": 10,
+      "passed": 3,
+      "failed": 7,
+      "validatedProductDefects": 6,
+      "incorrectBitExactAnalyticTest": 1
+    },
+    "preFixObservations": [
+      {
+        "method": 0,
+        "actual": {
+          "kind": "number",
+          "value": 3
+        },
+        "expected": {
+          "kind": "error",
+          "value": "#VALUE!"
+        }
+      },
+      {
+        "method": 1,
+        "actual": {
+          "kind": "number",
+          "value": 2
+        },
+        "expected": {
+          "kind": "error",
+          "value": "#VALUE!"
+        }
+      },
+      {
+        "method": 2,
+        "actual": {
+          "kind": "number",
+          "value": 3
+        },
+        "expected": {
+          "kind": "error",
+          "value": "#VALUE!"
+        }
+      },
+      {
+        "method": 3,
+        "actual": {
+          "kind": "number",
+          "value": 2
+        },
+        "expected": {
+          "kind": "error",
+          "value": "#VALUE!"
+        }
+      },
+      {
+        "method": 4,
+        "actual": {
+          "kind": "number",
+          "value": 3
+        },
+        "expected": {
+          "kind": "error",
+          "value": "#VALUE!"
+        }
+      },
+      {
+        "method": 5,
+        "actual": {
+          "kind": "number",
+          "value": 2
+        },
+        "expected": {
+          "kind": "error",
+          "value": "#VALUE!"
+        }
+      }
+    ],
+    "correctedAnalyticAssertion": "OFFCAP analytic identity used an unjustified bit-exact assertion against 3. Assertion changed to explicit absolute error < 2e-15; no OFFCAP code fix or claim of exact native equality.",
+    "greenCommand": "npx vitest run packages/ssconvert/src/formulas/statistics-stress-review.test.ts packages/ssconvert/src/formulas/statistics-boundaries.test.ts packages/ssconvert/src/formulas/statistics-random.test.ts",
+    "greenFiles": 3,
+    "greenCases": 93
+  },
+  "nativeProfile": {
+    "reference": "docs/ssconvert/statistics-native-profile.json",
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "environmentAddition": {
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas"
+    },
+    "initialWithoutSchemaPath": "Native exited 0 but emitted GOConf critical assertions and monitor warnings. Investigated against go-conf-gsettings.c; rerun with installed schema path exits 0 with empty stderr. All eleven XLSX caches identical.",
+    "schemaSha256": "3e10f2efc14a066e16fc6cc1ce825152e2c7cad3d7716b694060d466e8b80f8b",
+    "qualifiedNativeExitCode": 0,
+    "qualifiedNativeStdout": "",
+    "qualifiedNativeStderr": "",
+    "currentPluginAndCoreLibraryContentHashes": [
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+        "sha256": "5dcd44c84a3527d4cd068dd16bb0fd541b4231a9dedb9cdb2284951fa3ec641d"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+        "sha256": "3535ccac0e9cc587f91f7db3cc3c8f44bbd2b625cb749fb78bf901455e26efd9"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+        "sha256": "c48dae4fa48c0c809a9419a9468176ede20331606457abddf627637eb533cb4a"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+        "sha256": "48f887054d6e1f79b0e0b955c939405f3a01ba9d3979fec71508d5dfea1fff9d"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+        "sha256": "d5b7dc22506e4df4d973caa66e34783e7fa65e86463d6ce6f68ca37320cc5c0c"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10.0.61",
+        "sha256": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so",
+        "sha256": "b429e875c714d8eab593a878b0b2fb15e35a8bdec332301a9c63d4d9cc6009a0"
+      }
+    ],
+    "mathLibraryHashes": [
+      {
+        "path": "/lib/aarch64-linux-gnu/libm.so.6",
+        "sha256": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libc.so.6",
+        "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13"
+      }
+    ]
+  },
+  "previousCandidateAuthentication": {
+    "files": 250,
+    "mismatches": 0,
+    "descriptorSourceBindings": 212,
+    "descriptorBindingMismatches": 0,
+    "referenceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+  },
+  "currentEngineReplay": {
+    "nativeReference": "Previously captured binary64 values; no new native measurement implied",
+    "cohorts": [
+      {
+        "file": "statistics-differential-results.json",
+        "total": 178,
+        "exact": 100,
+        "tolerance": 176,
+        "mismatches": [
+          "=INTERCEPT(A1:A10,A1:A10)",
+          "=STEYX(A1:A10,A1:A10)"
+        ],
+        "differences": [
+          {
+            "formula": "=OFFTRAF(24,30)",
+            "expected": {
+              "kind": "number",
+              "value": 25.52669303238881
+            },
+            "actual": {
+              "kind": "number",
+              "value": 25.526693032388813
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DBETA(0.3,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 1.764
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.7640000000000025
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DBINOM(2,8,0.3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.29647547999999985
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2964754799999996
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DCAUCHY(2,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12732395447351627
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.1273239544735163
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DCHISQ(2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.20755374871029736
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.20755374871029839
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DEXP(2,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.18393972058572117
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.18393972058572114
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DF(2,3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.14289639090753162
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.14289639090753306
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DGAMMA(2,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.11409269311835378
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.1140926931183538
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DHYPER(2,7,5,4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.4242424242424242
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.42424242424242453
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DNBINOM(2,3,0.4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.13824
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.13823999999999997
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DNORM(2,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.17603266338214976
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.17603266338214973
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DPOIS(2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.22404180765538775
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.22404180765538728
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DRAYLEIGH(2,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.30326532985631677
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3032653298563167
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DSNORM(2,1,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.2434399573736822
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.24343995737368215
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DST(2,5,1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12018340878699782
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.12018340878699829
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DT(2,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.06509031032621647
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.06509031032621672
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DWEIBULL(2,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.28496906152442425
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2849690615244242
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBETA(0.3,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.34830000000000005
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3483000000000004
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBINOM(2,8,0.3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.5517738099999996
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.5517738100000011
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PCHISQ(2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.4275932955291213
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.4275932955291224
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PF(2,3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.7673760819999215
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.7673760819999191
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PGAMMA(2,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.1443048016123466
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.14430480161234657
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PHYPER(2,7,5,4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.5757575757575757
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.5757575757575766
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PNBINOM(2,3,0.4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3174400000000001
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3174399999999999
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PPOIS(2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.42319008112684353
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.423190081126845
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PRAYLEIGH(2,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3934693402873665
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3934693402873666
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PST(2,5,1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9038096648044902
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9038096648044909
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PTUKEY(2,3,10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.6294553249645048
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.6294553249645051
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QBETA(0.3,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.2723839420751053
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2723839420751051
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCAUCHY(0.3,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": -0.4530850560107218
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.453085056010722
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCHISQ(0.3,3)",
+            "expected": {
+              "kind": "number",
+              "value": 1.4236522430352796
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.4236522430352725
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QEXP(0.3,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.7133498878774647
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.7133498878774646
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QF(0.3,3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.4973624578265948
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.4973624578265896
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QRAYLEIGH(0.3,2)",
+            "expected": {
+              "kind": "number",
+              "value": 1.689200861801183
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.6892008618011827
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QST(0.3,5,1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12554920189593807
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.1255492018959381
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QT(0.3,5)",
+            "expected": {
+              "kind": "number",
+              "value": -0.5594296444693608
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.5594296444693576
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QTUKEY(0.3,3,10)",
+            "expected": {
+              "kind": "number",
+              "value": 1.1589854329626577
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.1589854329626579
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QWEIBULL(0.3,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 1.7916680762486648
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.7916680762486643
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=ADTEST(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9177231332567096
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9177231332567095
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BETADIST(.3,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.34830000000000005
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3483000000000004
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BETA.DIST(.3,2,3,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.764
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.7640000000000025
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BETAINV(.3,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.2723839420751053
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2723839420751051
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BINOM.DIST.RANGE(8,.3,2,4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.68673402
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.6867340199999981
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BINOMDIST(2,8,.3,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.5517738099999996
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.5517738100000011
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=CHIDIST(2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.5724067044708787
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.5724067044708776
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=CHIINV(.3,3)",
+            "expected": {
+              "kind": "number",
+              "value": 3.6648707831703176
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3.6648707831702882
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=CHITEST(A1:A10,B1:B10)",
+            "expected": {
+              "kind": "number",
+              "value": 1.489715260979914e-7
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.4897152609799157e-7
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=CONFIDENCE(.05,2,10)",
+            "expected": {
+              "kind": "number",
+              "value": 1.2395900646091231
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.239590064609123
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=CONFIDENCE.T(.05,2,10)",
+            "expected": {
+              "kind": "number",
+              "value": 1.4307138119413303
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.43071381194133
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=COVAR(A1:A10,A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 28.009999999999998
+            },
+            "actual": {
+              "kind": "number",
+              "value": 28.01
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=COVARIANCE.S(A1:A10,A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 31.12222222222222
+            },
+            "actual": {
+              "kind": "number",
+              "value": 31.122222222222224
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=EXPPOWDIST(2,3,1.5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.1071232015839876
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.10712320158398758
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=FDIST(2,3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.2326239180000785
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.23262391800008084
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=FINV(.3,3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 1.6045308429008158
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.6045308429008318
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=FTEST(A1:A10,A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 1
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9999999999999954
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=GAMMADIST(2,2,3,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.1443048016123466
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.14430480161234657
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=GEOMEAN(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 6.182933209444036
+            },
+            "actual": {
+              "kind": "number",
+              "value": 6.182933209444037
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=GROWTH(D1:D10,A1:A10,{20;21})",
+            "expected": {
+              "kind": "number",
+              "value": 1349.2963862598713
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1349.2963862598724
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=HARMEAN(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 3.98481973434535
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3.984819734345351
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=HYPGEOMDIST(2,4,7,12,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.5757575757575757
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.5757575757575766
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=INTERCEPT(A1:A10,A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": -1.870947913170458e-31
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0
+            },
+            "withinTolerance": false
+          },
+          {
+            "formula": "=KURT(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": -0.7469468741600733
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.7469468741600731
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=KURTP(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": -0.9679699490198401
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.9679699490198406
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=LEVERAGE(A1:B10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.2902534808996787
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2902534808996784
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=LKSTEST(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9386132348001471
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9386132348001466
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=LOGISTIC(2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.0747191299670762
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.07471912996707619
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=NEGBINOMDIST(2,3,.4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.13824
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.13823999999999997
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=PARETO(4,2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.28125000000000006
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.28125
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=POISSON(2,3,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.42319008112684353
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.423190081126845
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=PROB(A1:A10,{.1;.1;.1;.1;.1;.1;.1;.1;.1;.1},2,10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.6
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.6000000000000001
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=RAYLEIGH(2,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.17794164509262403
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.17794164509262406
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=RSQ(A1:A10,A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9999999999999996
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=SKEW(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.41008519877685556
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.41008519877685573
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=SKEWP(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3458142034287359
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.34581420342873603
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=STEYX(A1:A10,A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 2.091783358105259e-31
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0
+            },
+            "withinTolerance": false
+          },
+          {
+            "formula": "=TINV(.3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 1.1557673428942932
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.1557673428942832
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=TTEST(A1:A10,B1:B10,2,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.029915679649855066
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.029915679649855056
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=HPFILTER(A1:A10)",
+            "expected": {
+              "kind": "number",
+              "value": 0.10224842649912232
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.10224842649991661
+            },
+            "withinTolerance": true
+          }
+        ]
+      },
+      {
+        "file": "statistics-boundaries-results.json",
+        "total": 674,
+        "exact": 623,
+        "tolerance": 674,
+        "mismatches": [],
+        "differences": [
+          {
+            "formula": "=R.DBINOM(0,8,0.3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.05764801
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.05764801000000002
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DCAUCHY(0,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12732395447351627
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.1273239544735163
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DCAUCHY(1e6,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 6.366210456064895e-13
+            },
+            "actual": {
+              "kind": "number",
+              "value": 6.366210456064908e-13
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DF(1e6,3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 1.826371362120479e-20
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.8263713621204857e-20
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DGEOM(0,0.3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.29999999999999993
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DHYPER(0,7,5,4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.010101010101010107
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.01010101010101013
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DLNORM(1e6,0.5,0.7)",
+            "expected": {
+              "kind": "number",
+              "value": 1.5230462042091338e-85
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.5230462042091044e-85
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DLNORM(2,-1,0.7)",
+            "expected": {
+              "kind": "number",
+              "value": 0.015288365062077404
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.0152883650620774
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DNORM(-1,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12098536225957168
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.12098536225957167
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DNORM(0,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.17603266338214976
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.17603266338214973
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DNORM(2,-1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.06475879783294587
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.06475879783294586
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DNORM(2,0,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12098536225957168
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.12098536225957167
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DSNORM(0,1,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.10862536939061732
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.10862536939061729
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DSNORM(2,-1,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.10862536939061732
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.10862536939061729
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DSNORM(2,0,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.17603266338214976
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.17603266338214973
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DSNORM(2,1,-1,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12086488758438194
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.12086488758438191
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DSNORM(2,1,0,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.20358079777658003
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.20358079777658
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DST(-1,5,1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.07818792463973862
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.07818792463973823
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DST(0,5,1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.37960668982249446
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.379606689822496
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DST(1e6,5,1)",
+            "expected": {
+              "kind": "number",
+              "value": 9.253742207000618e-35
+            },
+            "actual": {
+              "kind": "number",
+              "value": 9.253742207000699e-35
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DST(2,5,-1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.009997211865435117
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.009997211865435151
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DST(2,5,0)",
+            "expected": {
+              "kind": "number",
+              "value": 0.06509031032621647
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.06509031032621672
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DT(-1,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.2196797973509806
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2196797973509815
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DT(0,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.37960668982249446
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.379606689822496
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.DT(1e6,5)",
+            "expected": {
+              "kind": "number",
+              "value": 4.745083622709959e-35
+            },
+            "actual": {
+              "kind": "number",
+              "value": 4.74508362271002e-35
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBETA(0.3,-1,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.35662074822157436
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3566207482215745
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBETA(0.3,0,3)",
+            "expected": {
+              "kind": "number",
+              "value": 1.515990388119534
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.5159903881195347
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBINOM(0,8,0.3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.05764800999999999
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.05764800999999987
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PGEOM(0,0.3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.29999999999999993
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PGUMBEL(2,0,2)",
+            "expected": {
+              "kind": "number",
+              "value": 0.6922006275553464
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.6922006275553463
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PHYPER(0,7,5,4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.010101010101010107
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.01010101010101013
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PNBINOM(0,3,0.4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.06400000000000002
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.06400000000000007
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PST(-1,5,1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.038680531473864216
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.038680531473864646
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PST(2,5,-1)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9942508563656514
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9942508563656507
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PT(-1,5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.18160873382456133
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.18160873382455972
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCAUCHY(0.3,0,2)",
+            "expected": {
+              "kind": "number",
+              "value": -1.4530850560107218
+            },
+            "actual": {
+              "kind": "number",
+              "value": -1.453085056010722
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QLNORM(0.3,-1,0.7)",
+            "expected": {
+              "kind": "number",
+              "value": 0.25484994477412765
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2548499447741277
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QSNORM(0.3,0,1,2)",
+            "expected": {
+              "kind": "number",
+              "value": -0.048801025416081556
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.04880102541608168
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QST(0.3,5,-1)",
+            "expected": {
+              "kind": "number",
+              "value": -1.0698452330822121
+            },
+            "actual": {
+              "kind": "number",
+              "value": -1.06984523308221
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QST(0.3,5,0)",
+            "expected": {
+              "kind": "number",
+              "value": -0.5594296444693608
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.5594296444693575
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BINOM.DIST.RANGE(8,.3,-1,4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.94203235
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9420323499999979
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BINOM.DIST.RANGE(8,.3,0,4)",
+            "expected": {
+              "kind": "number",
+              "value": 0.94203235
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9420323499999979
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=BINOMDIST(0,8,.3,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.05764800999999999
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.05764800999999987
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=EXPPOWDIST(-1,3,1.5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.15230126304188957
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.15230126304188954
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=EXPPOWDIST(0,3,1.5)",
+            "expected": {
+              "kind": "number",
+              "value": 0.18462202790541207
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.18462202790541205
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=EXPPOWDIST(2,-1,1.5)",
+            "expected": {
+              "kind": "number",
+              "value": -0.03273666837339508
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.0327366683733951
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=FDIST(1e6,3,5)",
+            "expected": {
+              "kind": "number",
+              "value": 7.305499363694878e-15
+            },
+            "actual": {
+              "kind": "number",
+              "value": 7.3054993636949e-15
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=GEOMDIST(0,.3,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.29999999999999993
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=HYPGEOMDIST(0,4,7,12,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.010101010101010107
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.01010101010101013
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=LAPLACE(-1,3)",
+            "expected": {
+              "kind": "number",
+              "value": 0.11942188509563154
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.11942188509563155
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=LOGINV(.3,-1,.7)",
+            "expected": {
+              "kind": "number",
+              "value": 0.25484994477412765
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2548499447741277
+            },
+            "withinTolerance": true
+          }
+        ]
+      },
+      {
+        "file": "statistics-tails-results.json",
+        "total": 480,
+        "exact": 411,
+        "tolerance": 480,
+        "mismatches": [],
+        "differences": [
+          {
+            "formula": "=R.PBINOM(0,8,0.3,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -2.853399551509859
+            },
+            "actual": {
+              "kind": "number",
+              "value": -2.8533995515098614
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBINOM(0,8,0.3,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.05764800999999999
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.05764800999999987
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBINOM(0,8,0.3,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.059376411779808194
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.05937641177980806
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PBINOM(0,8,0.3,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.94235199
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9423519900000001
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PCHISQ(1000000,3,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -499993.3180350736
+            },
+            "actual": {
+              "kind": "number",
+              "value": -499993.3180350737
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PF(1000000,3,5,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -7.305499363694876e-15
+            },
+            "actual": {
+              "kind": "number",
+              "value": -7.305499363694927e-15
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PF(1000000,3,5,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -32.55014899288015
+            },
+            "actual": {
+              "kind": "number",
+              "value": -32.550148992880146
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PF(1000000,3,5,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 7.305499363694878e-15
+            },
+            "actual": {
+              "kind": "number",
+              "value": 7.3054993636949e-15
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PGEOM(0,0.3,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.29999999999999993
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PGEOM(0,0.3,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.7000000000000001
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.7
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PHYPER(0,7,5,4,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -4.595119850134591
+            },
+            "actual": {
+              "kind": "number",
+              "value": -4.595119850134587
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PHYPER(0,7,5,4,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.010101010101010107
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.01010101010101013
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PHYPER(0,7,5,4,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.010152371464018
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.010152371464017027
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PHYPER(0,7,5,4,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9898989898989898
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9898989898989908
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PLNORM(1000000,0.5,0.7,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -5.589324010788126e-81
+            },
+            "actual": {
+              "kind": "number",
+              "value": -5.589324010788133e-81
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PNBINOM(0,3,0.4,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -2.7488721956224653
+            },
+            "actual": {
+              "kind": "number",
+              "value": -2.748872195622464
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PNBINOM(0,3,0.4,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.06400000000000002
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.06400000000000007
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PNBINOM(0,3,0.4,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.06613980250454499
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.06613980250454508
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PNBINOM(1000000,3,0.4,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -510801.0292911428
+            },
+            "actual": {
+              "kind": "number",
+              "value": -510801.0292911433
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PNORM(-1,1,2,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.17275377902344988
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.1727537790234499
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PPOIS(1000000,3,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -11716921.81288633
+            },
+            "actual": {
+              "kind": "number",
+              "value": -11716921.812886328
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PRAYLEIGH(1000000,2,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -124999999999.99998
+            },
+            "actual": {
+              "kind": "number",
+              "value": -125000000000
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PST(-1,5,1,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.038680531473864216
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.038680531473864646
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PST(-1,5,1,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.038680531473864216
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.038680531473864646
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PST(-1,5,1,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9613194685261359
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9613194685261355
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PST(-1,5,1,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.9613194685261359
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.9613194685261355
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PT(-1,5,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -1.705900720223827
+            },
+            "actual": {
+              "kind": "number",
+              "value": -1.7059007202238359
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PT(1000000,5,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -9.49016724546089e-30
+            },
+            "actual": {
+              "kind": "number",
+              "value": -9.490167245460872e-30
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PT(-1,5,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.18160873382456133
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.18160873382455972
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PT(-1,5,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.20041473623030756
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.2004147362303056
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.PT(-1,5,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.8183912661754387
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.8183912661754402
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QBETA(-1000,2,3,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 2.908596138331341e-218
+            },
+            "actual": {
+              "kind": "number",
+              "value": 2.908596138331293e-218
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QBETA(-1,2,3,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.31107362148453865
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3110736214845383
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QBETA(0.3,2,3,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.2723839420751053
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.2723839420751051
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QBETA(-1,2,3,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.46429150817397363
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.4642915081739739
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QBETA(0.3,2,3,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.5084047548725844
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.5084047548725847
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCAUCHY(-1,1,2,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.11865781700805911
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.11865781700805889
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCAUCHY(0.3,1,2,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.4530850560107218
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.453085056010722
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCAUCHY(-1,1,2,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.8813421829919408
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.8813421829919412
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCHISQ(-1000,3,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 7.141665857273928e-290
+            },
+            "actual": {
+              "kind": "number",
+              "value": 7.141665857273453e-290
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCHISQ(-1,3,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.721698443040727
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.7216984430407187
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCHISQ(0.3,3,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.4236522430352796
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.4236522430352725
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCHISQ(-1,3,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 3.158142951919848
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3.158142951919827
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QCHISQ(0.3,3,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 3.6648707831703176
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3.6648707831702882
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QEXP(0.3,2,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.7133498878774647
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.7133498878774646
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QF(-1000,3,5,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 2.1790887246331e-290
+            },
+            "actual": {
+              "kind": "number",
+              "value": 2.1790887246328798e-290
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QF(-1,3,5,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.6192640386240658
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.6192640386240584
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QF(0.3,3,5,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.4973624578265948
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.4973624578265896
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QF(-1000,3,5,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.1567874050455317e+174
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.1567874050455092e+174
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QF(-1,3,5,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.3121237655673768
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.312123765567391
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QF(0.3,3,5,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.6045308429008158
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.6045308429008318
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QGAMMA(-1000,2,3,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 3.0227017741730113e-217
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3.0227017741729006e-217
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QGAMMA(-1,2,3,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 3.855219622570689
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3.85521962257069
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QGAMMA(-1000,2,3,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 3020.746919263228
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3020.746919263227
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QGAMMA(-1,2,3,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 6.4385796618617475
+            },
+            "actual": {
+              "kind": "number",
+              "value": 6.438579661861747
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QGAMMA(0.3,2,3,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 7.317649449840613
+            },
+            "actual": {
+              "kind": "number",
+              "value": 7.317649449840616
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QRAYLEIGH(0.3,2,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.689200861801183
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.6892008618011827
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QRAYLEIGH(0.3,2,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 3.1035113073110416
+            },
+            "actual": {
+              "kind": "number",
+              "value": 3.103511307311041
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QST(0.3,5,1,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.12554920189593807
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.1255492018959381
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QST(0.3,5,1,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.069845233082212
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.0698452330822106
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QT(-1,5,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.3568658837283195
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.35686588372831785
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QT(0.3,5,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": -0.5594296444693608
+            },
+            "actual": {
+              "kind": "number",
+              "value": -0.5594296444693576
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QT(-1,5,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.3568658837283195
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.3568658837283174
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QT(0.3,5,FALSE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 0.5594296444693608
+            },
+            "actual": {
+              "kind": "number",
+              "value": 0.5594296444693576
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QTUKEY(-1000,3,10,1,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 7.186959238596909e-108
+            },
+            "actual": {
+              "kind": "number",
+              "value": 7.186959238596907e-108
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QTUKEY(-1,3,10,1,TRUE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.3213910338828223
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.321391033882822
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QTUKEY(0.3,3,10,1,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.1589854329626577
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.1589854329626579
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QTUKEY(-1000,3,10,1,FALSE,TRUE)",
+            "expected": {
+              "kind": "number",
+              "value": 5.81925438736163e+207
+            },
+            "actual": {
+              "kind": "number",
+              "value": 5.819254387361595e+207
+            },
+            "withinTolerance": true
+          },
+          {
+            "formula": "=R.QWEIBULL(0.3,2,3,TRUE,FALSE)",
+            "expected": {
+              "kind": "number",
+              "value": 1.7916680762486648
+            },
+            "actual": {
+              "kind": "number",
+              "value": 1.7916680762486643
+            },
+            "withinTolerance": true
+          }
+        ]
+      },
+      {
+        "file": "statistics-holdout-results.json",
+        "total": 5,
+        "exact": 5,
+        "tolerance": 5,
+        "mismatches": [],
+        "differences": []
+      }
+    ]
+  },
+  "gates": [
+    {
+      "command": "npm run lint",
+      "status": "passed",
+      "exitCode": 0,
+      "logSha256": "8bf9517f49fb412b9092eb4f69487ec7972ffd0c1ae57969b8a3a71c3e74b2d6"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert --no-cache",
+      "status": "passed",
+      "exitCode": 0,
+      "logSha256": "4ee9b546e5aef68ebaacf801bb73215503fdfc6556c28e07169bbaa1dd6cf721",
+      "tests": null,
+      "skips": null,
+      "sharedCacheUsed": false
+    },
+    {
+      "command": "npm run test --workspace=@poe-code/ssconvert",
+      "status": "passed",
+      "exitCode": 0,
+      "logSha256": "dea2f6266355360b57e4ea1345e48ab5775233ba76504825afca8ea58b522673",
+      "tests": 3214,
+      "skips": 0,
+      "sharedCacheUsed": false
+    },
+    {
+      "command": "node packages/safe-bash/scripts/test-reporting.mjs --import tsx packages/safe-bash/tests/commands/ssconvert.test.ts",
+      "status": "passed",
+      "exitCode": 0,
+      "logSha256": "98ca05a3e3c1619d03381feb94274b02b55b543be3f41f5bf5a2a37d03a3b553",
+      "tests": 38,
+      "skips": 0,
+      "sharedCacheUsed": false
+    },
+    {
+      "command": "npm run typecheck --workspace=@poe-platform/safe-bash",
+      "status": "blocked",
+      "exitCode": 2,
+      "consumerGroups": 0,
+      "runtimeExecutions": 0,
+      "reason": "Public ./safe-fs export absent; preflight expects ./packages/safe-js/dist/safe-fs.js.",
+      "logSha256": "81efc1086d481dec7e35d40fc010527998994eff25152930cfb0df9daa6a51e3"
+    },
+    {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "passed",
+      "exitCode": 0,
+      "logSha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+      "status": "passed",
+      "exitCode": 0,
+      "builds": 18,
+      "sharedCacheUsed": false,
+      "logSha256": "2561346481f4c734b906a98633f204a192f3b32f641970b9ab5747abb8558e38"
+    },
+    {
+      "command": "> vitest run --config vitest.config.ts --run src/runtime/euc-jp-codec.test.ts -t matches every split byte pair with finalization and opaque state under strict --maxWorkers=1",
+      "status": "passed-isolated-investigation-not-broad-gate",
+      "exitCode": 0,
+      "tests": 1,
+      "skips": 77,
+      "testDurationMs": 3060,
+      "logSha256": "2c5e1c2fd2063fb64fa3026838cb9d33e79aec69a2620d4b2174c4407d54decf"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "exitCode": 0,
+      "workspaceBuilds": 84,
+      "cacheHits": 0,
+      "noDeclaredBuild": [
+        {
+          "name": "@poe-code/py-poe-spawn",
+          "status": "NO_DECLARED_BUILD_NOT_A_PASS"
+        }
+      ],
+      "rootSuffixStagesCompleted": true,
+      "logSha256": "20850c16baa6b3a7b4cfe8ebeb8736852afcc1a7df3d67a8819cd72328d353c7"
+    },
+    {
+      "command": "npm test -- --no-cache",
+      "status": "failed-and-stopped-before-all-declared-tasks",
+      "exitCode": 1,
+      "sharedCacheUsed": false,
+      "failure": {
+        "workspace": "@poe-code/safe-python",
+        "file": "src/runtime/euc-jp-codec.test.ts",
+        "line": 49,
+        "test": "matches every split byte pair with finalization and opaque state under strict",
+        "diagnostic": "Test timed out in 5000ms.",
+        "durationMs": 6168,
+        "isolatedUnchangedCasePassed": true,
+        "isolatedDurationMs": 3060,
+        "timeoutRaised": false,
+        "assertionWeakened": false
+      },
+      "completedMajorWorkspaceSummaries": {
+        "safeBash": {
+          "tests": 44919,
+          "passed": 44086,
+          "skipped": 831,
+          "todo": 2,
+          "failed": 0
+        },
+        "safeJs": {
+          "files": 1470,
+          "passedFiles": 1467,
+          "skippedFiles": 3,
+          "tests": 31169,
+          "passed": 31121,
+          "skipped": 48
+        },
+        "safePython": {
+          "files": 1153,
+          "passedFiles": 1152,
+          "failedFiles": 1,
+          "tests": 84610,
+          "passed": 84609,
+          "failed": 1
+        }
+      },
+      "unavailableCells": [
+        "Safe Bash isolated optional comparator not installed; comparison remains unverified."
+      ],
+      "laterDeclaredTasks": "Not reached after failure; focused package passes are recorded separately.",
+      "logSha256": "5890e44dedaa70f2a0263dd643505de24f3ad7d2d2aa759b07859f19fe003ae8"
+    }
+  ],
+  "exactWholeDomainParityClaim": false,
+  "remainingLimits": [
+    "Previously recorded INTERCEPT and STEYX residual mismatches remain outside recorded tolerance.",
+    "OFFCAP(1,0.75) differs by one ULP but lies within recorded tolerance.",
+    "All 87481 inventoried upstream workbook formulas remain unmeasured; three archive-referenced workbooks are unavailable.",
+    "Native seed-stream equality, full random suites, real-codec roundtrips, solver degeneracies and all helper regions are not established.",
+    "Original/checkpoint/replay checks use injected codecs; no claim of arbitrary host isolation or real-codec parity.",
+    "Full repository build and lint passed, but the uncached broad test gate failed on a confirmed Safe Python codec timeout and stopped before all declared tasks. An isolated unchanged pass does not complete that gate.",
+    "Safe Bash comprehensive public consumer typecheck remains blocked by the absent ./safe-fs export, with zero consumer groups and runtime executions."
+  ],
+  "delivery": {
+    "localCommit": null,
+    "push": false,
+    "publication": false,
+    "readmeChanged": false
+  },
+  "manualQA": {
+    "executedVirtualCommand": "ssconvert -T fixture /input fd://1",
+    "originalFixtureInMemory": true,
+    "sdkBytesIdentical": true,
+    "checkpointReplayAverageAfterA2Equals6": 5,
+    "originalFixtureAndNamespacePreserved": true,
+    "negativeControl": {
+      "omittedRandomCapabilityExitCode": 1,
+      "stdout": "",
+      "stderr": "ssconvert random functions require an explicit random source\n"
+    },
+    "screenshotCommand": "npm run screenshot -- --output out/ssconvert-statistics-current-cli.png --no-header cat out/ssconvert-statistics-current-cli-transcript.txt",
+    "screenshotSource": "Captured actual virtual-command/SDK QA transcript, not real-format codec output",
+    "screenshotInspected": true,
+    "screenshotSha256": "6bd32a57fb995859636d0cffb363e93c8573f6acd2b10ed2a7d13ea893f6d322",
+    "transcript": "% ssconvert -T fixture /input fd://1\nOriginal in-memory workbook:\n=AVERAGE(A1:A3) -> 4\n=R.PNORM(0,0,1) -> 0.5\n=PROBBLOCK(2,2) -> 0.4\n=RANDUNIFORM(2,6) -> 3\n=ROWS(INTERPOLATION({2;1;2},{20;10;21},{1;2;3},0)) -> #VALUE!\n=INDEX(FOURIER({1;0;0;0},FALSE,TRUE),1,1) -> 0.25\n=VAR(1) -> #DIV/0!\nexit 0; diagnostics empty\nSDK bytes identical; checkpoint/replay A2=6 -> average 5\nInput fixture and VFS namespace preserved\n\nRandom capability omitted: exit 1\nssconvert random functions require an explicit random source\n",
+    "realCodecParityClaim": false
+  },
+  "runtime": {
+    "product": {
+      "node": "v22.22.2",
+      "platform": "darwin",
+      "architecture": "arm64"
+    },
+    "nativeOracle": {
+      "platform": "Linux",
+      "architecture": "aarch64",
+      "locale": "C",
+      "timezone": "UTC"
+    }
+  },
+  "finalCandidate": {
+    "kind": "dirty-worktree-candidate-not-commit",
+    "scope": "Authenticated original candidate paths plus independent stress test; hashes do not assert authorship of preserved edits.",
+    "files": [
+      {
+        "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
+        "sha256": "a23b63a408e964f86ef7b5caa5e4cea452d64c09899efd317518913e68473d61"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/ssconvert.test.ts",
+        "sha256": "1f9ef62cfb8462f998fb64ca8fb6c4324626026caa0f16a05b79a4d7c6a1f01f"
+      },
+      {
+        "path": "packages/ssconvert/src/cli.test.ts",
+        "sha256": "48a1ce6c8a724958ca79768d826b2a0843854e510811b22e0a632954700bd65e"
+      },
+      {
+        "path": "packages/ssconvert/src/cli.ts",
+        "sha256": "01130a4bf1dd369284b0c0b29d4378ff770b618a514c4ee9240028f0394a4ce0"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/diagnostics-independent.test.ts",
+        "sha256": "ebc1772cf809e6bfedbac8f3c5365330f127e89c05d44e94fe67200d9a6c3a5c"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/diagnostics.test.ts",
+        "sha256": "9667074cf9f5512dbd5b32a1b6385465a5b936aaa37bb275da06be71443b215d"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/export-options-independent.test.ts",
+        "sha256": "b3a2055a27c80cec5bacdd14c83c49db7baad0c0d063b3d3694f7599fccefc42"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/export-options-stress.test.ts",
+        "sha256": "d60732c3ab9e715df0dfce8bc7add85999bd0a54426ce7c699cadeb9b8a38c09"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/export-options.test.ts",
+        "sha256": "21fc32c654f949fad674eb235a45dd47c3f693898de731ec61d0761a876c561b"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/export-options.ts",
+        "sha256": "495f88d51b8f4e878e2f97d2a695a90d36f79514bb36aa071f8c363450e179a8"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/group-aliases.test.ts",
+        "sha256": "2cefe461c471575b2ac9dc0c67ebacd60b3807fdc7697d44c3dd91591b33d249"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/independent-parser.test.ts",
+        "sha256": "f3271c01584dfe1efe0903e7659d838adcb6eb55ba2ab943cdc9c074de2e39e2"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/inherited-independent-review.test.ts",
+        "sha256": "283b1bcda9d5a7368b820bb8ea5287a8ef59dae4af18c2daf364d9864a93a66e"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/inherited-stress.test.ts",
+        "sha256": "19f493e7573c21a6eab82f8391cb9e0cd6e1ed256dcf5c62e2a9c38de3ed1b24"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/inherited.test.ts",
+        "sha256": "75730ceeab9581ca5b32e53816cef1e1b1c31982714f8ec93b3c761cbcde2d7f"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/listing-review.test.ts",
+        "sha256": "f85ca1e832ba13972a7af7747f5e2265f384728063057c31b95ddb5b7a4afb4c"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/parser.ts",
+        "sha256": "1d73eb1df82496acabc1bbacaa348e84be21db6cb4bb1b5dbc3db769b61b00ba"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/reference.ts",
+        "sha256": "b580a608c7477c6dcc624b3e714f08f7fbb0d1ef1432f2105a3f119c50236557"
+      },
+      {
+        "path": "packages/ssconvert/src/cli/unicode-alphanumeric.ts",
+        "sha256": "010fa25f6e14b705e3ac93d234cddfd50b60e9e526ca793e4d1dc878e13ef251"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs.test.ts",
+        "sha256": "6b471335df4ea6bf13ab1779d9508843769e35d9c0f38d91851b664daf636d28"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs.ts",
+        "sha256": "f2872ca7326df45fd047c2937834b2dc49626b7525208f31e9f9ee30ff0a5f77"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/ascii-stress.test.ts",
+        "sha256": "6f2229aafb5357b9fa67efb83b4e030eed5749a0ef64bdbe080961630bfe80fa"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/command.test.ts",
+        "sha256": "695b15e6c537055522494df8f6559f0d85ff9e9627717e3899ca0df673ec70d6"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/export-options-stress.test.ts",
+        "sha256": "43643997619920acc7def78352e1da4b07db477b5fb62f8d0d5a2b8224c499e0"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/export-options.test.ts",
+        "sha256": "549f2493524d11fa2f60a51a0bad1af8ded86c0da51e530a8d5d036302d49d0a"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/export-options.ts",
+        "sha256": "04ad9fb745d2abc8fb0e12bcec886f45ad0c90d24d99ddd4ab586c259a3a55e2"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/independent-stress.test.ts",
+        "sha256": "d061fbed7752f5d8baac164ab825203da3a7f3175964c9e4967d42c51b5dd808"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/ordering.ts",
+        "sha256": "8a5912eac1b684e56e537b62d67db317b535342057598bf2b1630f5d55c3ea32"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/provider-discovery.test.ts",
+        "sha256": "09a4232c3b9d403220ff7e05b596837828a7f994eb4733bd10326bc7d84d535f"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers.generated.ts",
+        "sha256": "5e2e50dc9234f93264bab9ca1a5f70568d7cf9db77b3af0e3277cd8b8c61e380"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/applix.ts",
+        "sha256": "490a9cafc10ade92c8bb7d9f8f1fc660df40df802ad6cb8b2f551292ec4e0b3e"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/dif.ts",
+        "sha256": "0fa8a17f1056ec1fa419f588d73b004f49242f2c913f3e9c6f3fd3310aee7762"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/excel.ts",
+        "sha256": "a99e5be8eafdc9b42b96ffa23b27f18655167d23bc2568592307c3b95b7f2e8b"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/glpk.ts",
+        "sha256": "0e1246d21d553328fbd7f97560fec40655138d305e6fe720e8157eff07decb36"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/gnome-glossary.ts",
+        "sha256": "894b8fb8b76ebb0461267ada26ef7a63dd21e100a31bc3264b3d1eb6f28cb58a"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/html.ts",
+        "sha256": "a447a3f1fb488e17fbcc7491868ee6d8169b1654679131b0b01f9d9b063bd569"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/lotus-123.ts",
+        "sha256": "fa67e29e40926e97ba2e1c3c1cfdeee8d0576cb965f55ad57011a64ce9625034"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/lpsolve.ts",
+        "sha256": "d5675a70c6d66f3a0ee0c19bd5d459b47839aaa263f686655e51ee547b18bfc6"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/mps.ts",
+        "sha256": "552291602ea0645ef12dbb09d37b9bf24fdef3cb56e5ac5d0e663bfedc0c6f9a"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/oleo.ts",
+        "sha256": "c72875677d6dae4f27acbed8040cf9cad76ed1843d31f6181f7be27fb0cb796b"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/openoffice.ts",
+        "sha256": "a68e3312cac7661fb0cb6d4d3305a2a58e1ef35905c083e6782b007bc866e223"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/paradox.ts",
+        "sha256": "0a5c75e93f468e831b8ea3e174b424d0406fd8756d5fbb21d6b735b5b2252480"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/pdf.ts",
+        "sha256": "b63c061626a88e9113c35457d5be353ecde15fdb96aee571b6d661433b7e64e8"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/plan-perfect.ts",
+        "sha256": "352759a30e0638d928eaa1fc82f039c705eee931f13330069ed03a5ee411716d"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/psiconv.ts",
+        "sha256": "4b1a760d88a9b2be35795f4387ce14123165ec5730f36463b3a6d85ad208f6eb"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/qpro.ts",
+        "sha256": "8d7df3d76479016372d37f526c80c4a05e3aaa1f095b1404aa2ecd9bfcbba2d0"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/sc.ts",
+        "sha256": "a4abdff87f6cda13e434c61881ad201461bb8deb8916fdf4bec870def65f39b4"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/stf.ts",
+        "sha256": "d0f75fe099252560e3574b30954419a7f906c37a3255c50c449d4a94656d1239"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/sylk.ts",
+        "sha256": "33e9081ab11cc6c8cb85ac9a63adb6bae9c202bb3b6bc41653aeefbdd9bc9a62"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/xbase.ts",
+        "sha256": "6bfc70b2efb96ab5479f7a3bd5f86cc12cb7e2fd0a9c97030505d3e0e347a9fd"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/xml.ts",
+        "sha256": "baaa10687c3862a528db637ebd148f2ab0ef36066228651b83b49f7095ce76a8"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/registry.test.ts",
+        "sha256": "f7d42dde7dbc2afd5cdc262d9f54970c9af25bab0165ee1837839007abc2044b"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/registry.ts",
+        "sha256": "3bb346e7e0f08079db9c12dd7078760474b83f6bda22ad376f4909e96929e476"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/types.ts",
+        "sha256": "ca654c556bac81e265d4d85205d61847543a50bcc3fdd963d1765fc848121ab2"
+      },
+      {
+        "path": "packages/ssconvert/src/contracts.ts",
+        "sha256": "63045157ea9cfcfcca719834a33af224e08cdd66700e8ed7f178924d66c822c6"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion-lifecycle.test.ts",
+        "sha256": "d4c2d1d94609705c1832ee5743222fa1f526bacba455dc115e28ff9e01ae5633"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/c-number.ts",
+        "sha256": "8a0b630b98e0c1bc972f7bf1c4da123e40083425b4cf0bc53d080a6869195f84"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/image-options.ts",
+        "sha256": "ec6a62b777263fd928ea177f12f51feb2c64cf442e5501ca312e8851c8a053cc"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/independent-stress.test.ts",
+        "sha256": "39200c3a39f99329d3526f7c0614e6cb8c536780871e47a7d5b116d1974bb47b"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/lifecycle-followup-stress.test.ts",
+        "sha256": "a7b6be93b58c4016b86b55d5f532e07f5b09e87a14534ce71d762cbfaffaf17f"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/output.ts",
+        "sha256": "b9176ef721eb09a96d58c7057dd732cd0946e13170a3bf278cbb6d30ca6440af"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/resize.ts",
+        "sha256": "b0cf2ecb3de38066d8cec13ce21e650e552bd92e19427840e29b2e1a383780a3"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/sheet-range-independent.test.ts",
+        "sha256": "169ebed3db1f1c2a5e6576cebf9cf9cd7e236d6b9ceff29f4af4d10b7a9aa6e8"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/sheet-selection.test.ts",
+        "sha256": "e5712ced77cd5609bd51d96b76bbbe57c7a2776b4a817248994a7b559211efa5"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/sheet-span-followup-independent.test.ts",
+        "sha256": "48bf19b1dff56c849fe764e28413036bdb826e55b9ed63c82acd2797bd714bd9"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/transforms.ts",
+        "sha256": "249b8972441312f0cacf85c4a2da8807aebeec843a4d35885ea70dc7189430ef"
+      },
+      {
+        "path": "packages/ssconvert/src/conversion/updates.ts",
+        "sha256": "a9395e81094f6c77f5de8ee7e10c9f0dd7166c974c32f15f87bc11c5fa6df90b"
+      },
+      {
+        "path": "packages/ssconvert/src/engine.test.ts",
+        "sha256": "4ed73b5a35c262c7fa5b133be8c17cdf3e1f4775c4062bf3bbcbb7f068df4966"
+      },
+      {
+        "path": "packages/ssconvert/src/engine.ts",
+        "sha256": "e2788c00c35b2f7e1004073045d6f7ee52734c15ec23a33ad9933b1acc54f6ff"
+      },
+      {
+        "path": "packages/ssconvert/src/formatting.ts",
+        "sha256": "fcf1ea6e32ec7e4176003c683f55995b75718f026a5f4ff6539d8f5af354485f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas-regression.test.ts",
+        "sha256": "b4bb50374b73df029c10a2c61628b4759e0bb6937af560f4d18a13face1d6879"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas.ts",
+        "sha256": "e5264b4431e08812406514d91aecba631f3e4afb986b2ef64218a8d73be932db"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/ast.ts",
+        "sha256": "2965bfa296b53dd3bc534615537191b0b3ff6a6f85cbc44d535a65a05640c0f1"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/bessel-current-independent.test.ts",
+        "sha256": "0f1abc7ef97d2e70950e23d4a3ad5212097e55cfca9e035bfef6e05a3e763abe"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/boolean-matching-review.test.ts",
+        "sha256": "db8943ab88730390a35689dd806fa03a6f94b3a8022d5404500566fb554326cf"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/calculation-independent.test.ts",
+        "sha256": "61589424895f63869092b76f83c370ba06571b2936fa36c7f452b21728c74e6b"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/calculation-stress-review.test.ts",
+        "sha256": "c2ef224da411cd5bf9492c394c20c301bdf046e8a6a0e09837710bab8aefee11"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/complex-functions.test.ts",
+        "sha256": "7b05ed105f4d7709d4cca1326f2b7d2997b5cdaa46788d839150b55359a6c4d2"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/complex-independent-review.test.ts",
+        "sha256": "270f91658b5442a8bfc5122607b2b8098ede5adb3b791887ead991c8c5fe19bd"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/complex-scientific-independent.test.ts",
+        "sha256": "bd6c9e377c6ece0c2e38477345243d876054877b5f5d194be2ddfc0277c029bf"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/complex-scientific.test.ts",
+        "sha256": "aa0286d4f214654c3671a273208b10783cbeca2a9ea5dd77546e6d62aa9a60d7"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/conditional-math-independent.test.ts",
+        "sha256": "33a85348a470eab2e6acdbb34b020a97e3db1c0dbc9447af0d500a6ab62090da"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/conditional-math.test.ts",
+        "sha256": "3ebeea8ecdfb743576a36e800d8ef0bb80dee74b6b8d19da963330e9a3c9d32f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/conventions-independent.test.ts",
+        "sha256": "1b4bb7f4a1138536a8ea9e04b7af35e18044aba33976185de01f0ce054a8ed36"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/conventions.ts",
+        "sha256": "22e7c0bcc72bee4ca3f0cfc23fa35288820e8eba0cc04bde0980f7d0755162a0"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/database-independent.test.ts",
+        "sha256": "be94229da5862a8348ece79c56787f05fd5b4b62dce2408e74cdb2d244728534"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/database-precision-review.test.ts",
+        "sha256": "235c379aa088933a528101338908d8079044b5d58a18114a9c14b79fe31fdadf"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-calendar-independent.test.ts",
+        "sha256": "2dc0deadb215c95a652e44d5a17431977b68dd8af772e84437a30f4f6a3c6aef"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-finance-conversion.test.ts",
+        "sha256": "2a8b43b2cff718563c5505d59bc4f5c98c27992f212122ef75fc74e1463b8260"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-finance-export-names.ts",
+        "sha256": "f1c35879f8ac969100a1c5829e13bc79b7aa78c7c75cf3c4fc5e91bf5c32d376"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-finance-function-descriptors.ts",
+        "sha256": "a8b65969ea5f203a5e72817dde46f62add149cd0148c58dd570bbe59873ddab4"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-finance-functions.test.ts",
+        "sha256": "e7d5e143cec9284a2d968d9b3890ae9dd6f0657e32a993069a005d1f515dca3d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-finance-inventory.test.ts",
+        "sha256": "cf64171745c3d5b453e50dbed33c82a7021cdcd8f7b0b4b909acec83ffe17611"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-finance-stress.test.ts",
+        "sha256": "7d757c44adcce49e69aae04ba33c37ffb4f15dbfb8ecf781a656708b2f82f204"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/date-text-source-regression.test.ts",
+        "sha256": "76c99ea9b72fa5d2272a5dc9af999a65e2e3df4464eb2a12bac3dc994e26763f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/dependencies-independent.test.ts",
+        "sha256": "d366a5584b65e117bc3ee9c8697883dfbe829c1de7a3bbe9a2001657885f612b"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/dependencies.ts",
+        "sha256": "3a360acc3c5ebe8758a7cec25b2638e4a5adc4ef368edc4d22b4b617880afc10"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/derivatives-functions.test.ts",
+        "sha256": "a280fc745620eadce17e921e7746f1138548c584411a2d06ac91db17547c2f28"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/derivatives-independent.test.ts",
+        "sha256": "71fc262a70bf0089c8d570235db010b1a7cdb7753937967f10720b0b7c13774d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/diagnostics.ts",
+        "sha256": "63bfef1fff3a77f53df56baa0f27869429f46154f215bee242af67dace559847"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/engineering-extra-independent.test.ts",
+        "sha256": "f0f6f1c682ea7403b695c843f2f4ac7b72cfad3d933041732928c29d474c20bd"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/engineering-extra.test.ts",
+        "sha256": "9bddac12005eeadfb445e0acf0b095c565846856d4c5dafded7ab1796e3ba381"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/evaluation.test.ts",
+        "sha256": "c2a5c15c9d2361c417a02aaa1344358ac8fcf04842878acf8a12d63a6aa034fc"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/evaluator.ts",
+        "sha256": "458c43a7a89a6c41847ad41e9d6e76d0a3f5f66f3b40282f6377b861202d4763"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/financial-independent.test.ts",
+        "sha256": "3a4f306b5aad7e44a94c222239fcff3b52b2d1f1e28814548f80c89dba90e491"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/function-contracts.test.ts",
+        "sha256": "09e84488f4ef08edd755a4726f804154ddbb21411ab7aa5122e1ff81c5bf8cb0"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/function-descriptors.ts",
+        "sha256": "8fc95f719122ec644e0dc9cc6fb4d8143912bfff84312180bb6974255e452d13"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/function-export-names.ts",
+        "sha256": "c492e683a5b2df5c16083ba5ee6ccb6dc7618ce8ea0a4d6d9587ba0a883c01cd"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/function-inventory.test.ts",
+        "sha256": "b414f1623fd045506710ef83e3dfbd5ddc4f491dd68e2da70fe7a25dc1ebd772"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions-regression.test.ts",
+        "sha256": "aed6dab476d7f3ce1f51163bfa92f3aff7f8acb7fa8319686ab7c9a51776b857"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/calendars.ts",
+        "sha256": "1ccd76504cfe3c7342eda669c14c9c0bea48780c180e8bf8c39a0e5bdb64c6b4"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-bessel-i.ts",
+        "sha256": "49b2c34036bef7ae728b9117d3bea231d8625de1e15f418424ad8768375a3d05"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-bessel-k.ts",
+        "sha256": "16007b5f49a725d057c01562c6f2d3751b71744c10e91c6fcba3585fc31bf20d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-bessel-phase.ts",
+        "sha256": "f04f3f3702c283188f6ec40104e5172b7065371c0e98d4cf036fff4f62458fa8"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-bessel.ts",
+        "sha256": "5d729901cb1ee39ba78c5736565c5aae695b92247540f9e90d62db88ad42f75d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-log1p.ts",
+        "sha256": "3047fbff171e0a943a42c0348985a9e067219427b887d8ddf970db05c5ca7866"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-trigonometry.test.ts",
+        "sha256": "e19055d9d39c493f079575d9f2153735f2ee0abd76d7ec6a10203b0d3a58cb4c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-trigonometry.ts",
+        "sha256": "c44506cb46583c1e1170fac85176ab418790b6fd9a7b09a67e5ae4b803e3d6c9"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/common.ts",
+        "sha256": "260da5039619a871ab2ed3989cf3d8b22a78d72ea25d5370c40e7a55eb7183ba"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/complex-scientific.ts",
+        "sha256": "85e3fa915f9a1343a18335d0afcf4dad5ef4027ec7c2f995b527de05f103062f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/complex.ts",
+        "sha256": "7aade72af8c0e0a84e65da22587d4470c749187a3ff69d57a77903629bbd8256"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/conditional-math.ts",
+        "sha256": "66612ae719ce2b16f8d8271d15c16d7fe1fa33821779e62a8e3728df5ffd4de3"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/conversion-units.ts",
+        "sha256": "a0f6b1f10ec681ac2c8b37e289446a44e1680b21de527e3fe70b9367c8d27292"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/database.ts",
+        "sha256": "ad88505900fc242a9c7f130e95b9643a6aa708d3f4b64c2ce1722f026bafaeea"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/dates.ts",
+        "sha256": "b0ece782354ae46a2f9785fc096ceea4e7221e72849f50178150c3a6c4fb6d1e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/derivatives.ts",
+        "sha256": "f030a251c78dcb6a57894e3f402aa8ed95eacab771b298a90d8d9a30bcd0ddb2"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/distributions.ts",
+        "sha256": "de3a5572e68ff1c9026b63b806093e324020b96ff9e2e079bf3e4861989fcc35"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/engineering-extra.ts",
+        "sha256": "8f1263725c5befcbe14a8c4638537335bdf0b7a3360d91e20148e4a5dd9b78d8"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/engineering.ts",
+        "sha256": "808998e39aef4b9289f2b200cb780a36b7f1cac63fa7003644a2a5118f56e08d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/erlang.ts",
+        "sha256": "882a4672518827b9457d88d1cc4a528b841590c8f0f2d1c605528b79e0d04186"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/financial-goal-seek.ts",
+        "sha256": "400ed0be9f2c8dcb47da94994a8bf0b04c2bea1822ea2708fdd63318eb6a2876"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/financial.ts",
+        "sha256": "3d6b59e4d8f2fc94d79155e78d9fae15c1c39478b5b2e40733148189ac9e5150"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/floating-point.ts",
+        "sha256": "0029bdd1f6cdcbee4fd3dfe73b959ca71770a448e01dc6284df9e5bba13f580a"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/info.ts",
+        "sha256": "16e203201cde80291d3a523ebacee7d424a5bb862f16637bed9209f7d051f77e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/landau.ts",
+        "sha256": "7115f8bffa9e108b115b8985d3d0e84a4b158172eb0bd727baf57d417cf4dc4a"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/logical.ts",
+        "sha256": "988dd8151f7d52c4000b6ac5ddba494c602bb61fe359b190e5aab57e2a73948f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/lookup.ts",
+        "sha256": "3c1bd1254051a6c0ae7d12deca6385317a768a8ff28d0a85eb600a5b2e0d918d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/math.ts",
+        "sha256": "3fd7f6097619b6cb0670f320cf88cbc9158f92d3202c54c49d598a2294c27e2f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/matrix-qr.ts",
+        "sha256": "e844d52eb0f9b5db65662fcb6e1abf07a5d53a57c30162f60e975e7447be96aa"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/matrix.ts",
+        "sha256": "8ceef381e96aa3d250814c7c80a6726aa36a2252ffd95c6fcbe7a5f7c5ed6410"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/normal-distribution.ts",
+        "sha256": "6b769f65f329d98718cc4b25a21a8f10a29f8fbdd6cbb8cd5b2e67713134f290"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/number-theory.ts",
+        "sha256": "4045f906d1c989f3fc80f51a5928047e6389149a054eec1f703b5fe1c25482cc"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/numeric-arithmetic.test.ts",
+        "sha256": "ee3b5ce15ede4bfe7508f6a8bffce065e5e0010d650df0ac9030dcbd3e0f339e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/numeric-arithmetic.ts",
+        "sha256": "376e33f75373183c9ead0f46a41636600dd60dc61653766d1d1de1b535c7f9f7"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/probability.ts",
+        "sha256": "acdacfe272bdfb10f256c65434b2e442a747fc009f6a502e1750540285e6851e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/random-source.ts",
+        "sha256": "10a0d34adbceb62201fdc7583c3890d92f2a8d4f7a75a35b204072af33f0e231"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/random.ts",
+        "sha256": "643db6e377fad76bbd44bcab3583535fc4235ac2de06399767ec7c9ad2f5515a"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/reduce-pi.ts",
+        "sha256": "fedea1fc84a4177f2418744de4a8babdc14ae241e8b51242abdfd08a9b9ff011"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/registry.ts",
+        "sha256": "43cd1d21b579cf793b8ab1f28744eb64fafcf715cc10c93edc6d2c6f3fb26dcb"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/roman.ts",
+        "sha256": "de917055700a6096d805ae64ac4bdd9591ded09a905b05c3dc7e4a4f4202fe50"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/scientific.ts",
+        "sha256": "7d130b1ddc0bed7279fcd1290061842b5a410807eb4fc8734c778f49f8ce11ce"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/special-numeric.ts",
+        "sha256": "fcd6292e3392e387e61cc761c73d19adb9910ba1c306f8489d2426eac02e22a7"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/statistical-regression.ts",
+        "sha256": "945b1c5b0cc58862f7553786c4df43d3485ed6a817f274df9ead631f5f3b07d8"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/statistical-tests.ts",
+        "sha256": "a75c8576809a25f26e504a25aa6c76263c21130bb3905deec9ddb525d566909c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/statistics-advanced-distributions.ts",
+        "sha256": "fc2e02a0e4b76337459f2e9a4512fa8ae7f6b61f4028b0bdb03e073e8de9fa25"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/statistics-beta.ts",
+        "sha256": "b0382a95c20ec0c8c46b128be07c860f7b15f85052d00141be8ec3968b9f3733"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/statistics-inverse.ts",
+        "sha256": "d34a41a0f81a938d88cd05666a7d5f78f472f776657e4c1ed929bb73e7664e25"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/statistics-range.ts",
+        "sha256": "8bd11f98e27a3a7de43b937d66c6bdfcaf798d0b81060983fc554170bbdc3322"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/statistics.ts",
+        "sha256": "bfee4191c98a4db62aa22ba9d78fafecb01bacf2100a619ca363ff808c649d2d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/text.ts",
+        "sha256": "c896d324abe350c836588264c0dfcc920e51ace9497a63f24d484f1d5a0e569d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/time-series.ts",
+        "sha256": "ace65c02f9adbf766fd06b12885a48c67c6f16a01fc2320cb042e35ac1f4b266"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/types.ts",
+        "sha256": "0c2af066a3e60e9f1a79ba795d632f9c39bafaded1ccb416e1fda6a0506cc83d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/unicode.ts",
+        "sha256": "ee38a0083dd027aa318b1716a76144c36d813d585552cad4df7b8ed700ba4841"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/gamma-current-independent.test.ts",
+        "sha256": "115ecd485293a2cb7fbae16ee4cb27d5d684f75ba30e02af362e14748cecd80a"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/info-independent.test.ts",
+        "sha256": "466f9499e15a181de45fdefd3f2862dea9ff43f60e26292240e0420b43fccf31"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/integration-boundaries.test.ts",
+        "sha256": "fdf9214ee5ce3029b890f059df04c424d8ceed4024c8047f3b765fed8f4fc378"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/legacy-independent.test.ts",
+        "sha256": "a70216aa4cd20be0e7b510d8cea406e5c45d03f171959d836d3e765563ffed66"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/legacy.test.ts",
+        "sha256": "6f7b7e7879edf7b524954bc6bf529fc5e7caca2eb7a671b73a9a0c450440555b"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/local-references.ts",
+        "sha256": "f029f97ad7895cf28461d52c8bfc2ea607875c4aae6679ac3723be03b9676ee9"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/logical-independent.test.ts",
+        "sha256": "4fa2aaf5f001366e05558bb21679d604d2ab08f5e052de4589da2d6bef5da93e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/lookup-independent.test.ts",
+        "sha256": "10ba9bcd484bbda19fc00f5381b18d1a9877a51300f59a54228c97f7adbbd427"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/math-functions.test.ts",
+        "sha256": "225d89f9bcf3a8fd1968e828dc2c70be1bdfa5e7cf666bf1974f2df8d21a7a64"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/math-independent-review.test.ts",
+        "sha256": "9bfa82087d9694cd4ab003355ac9a232290202bf4a1e37043aeb900e3209e081"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/matrix-functions.test.ts",
+        "sha256": "39939612f4635f3b29c4b8cbe5ef9788d409932ce6a2c33401887cd3b9e7d413"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/matrix-independent-review.test.ts",
+        "sha256": "6b44c4127179de2c8bb5a67199383c093257d004b5f085f17bd8265793dccc25"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-current-independent.test.ts",
+        "sha256": "c724b0e323ead3b792adecd4d6b146a4bb41822bce6e47e7cbda4d88f16e4f99"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-diagnostics.test.ts",
+        "sha256": "cf749803ffe7e76150b42b708029e4182e62653b353d9b39a09d3884c3cb6e6e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-excel.test.ts",
+        "sha256": "4b7bb484fc49bcf2b551df12d4aab7ee7eefc77d9491732863d28b878e214102"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-function-descriptors.ts",
+        "sha256": "807ee034b41e7d88b756de1fc1aa61229567e8992041d0a7929bf9b18260a1b7"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-function-inventory.test.ts",
+        "sha256": "6231b745304a383b5669536e8474693249c14be5d12b433f59c12824f4e1b1c0"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-functions.test.ts",
+        "sha256": "dbe30ab8555b8fc5fdc9349483483f590eec0cf5ca44bb3a94e5b607eafe4c28"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-independent-review.test.ts",
+        "sha256": "4c2eca3d206d2663e1d8a947da7f2b1d9169c352d0808582a83fd3de0b856bdf"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-native-writer.test.ts",
+        "sha256": "5a5d4a4c4898462a5f87f0325028a75ff5acac98753938e47c9f59f11b3c3090"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-odf.test.ts",
+        "sha256": "30c1f5200b5751a620690f87ef4e22e61b3974d41418268dc859bbc53ba65537"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/numeric-table-regression.test.ts",
+        "sha256": "7bccee711d15490875b66e99ee276305d46f02f2e9f017bd03b0ef2a65de8705"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/odf-independent-review.test.ts",
+        "sha256": "3c9a202b5bb2b20525472ee203f0d85ddb10d890f42d89ad6b7f3d887601d160"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/odf-sheet-regression.test.ts",
+        "sha256": "6f970546a875ceaa5b753666e528489dba7ce717ffc498d768fd566ed9399a8f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/parser.ts",
+        "sha256": "61a1e64dd6a1777139d902499837e3cae25981fd40f75a1b8d24242615973613"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/reduce-pi-independent.test.ts",
+        "sha256": "157fb46aac8b370e6014d89e0b36da26e6bd51fe45083963b4ceab0a786edb57"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/references-independent.test.ts",
+        "sha256": "58d1a2e942e772dfb43ef4bf8bc21983c9bf3b60464885012504d3c7dae272b3"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/rewriting.ts",
+        "sha256": "c07aa05f46dc1ba770a3a946e71cd4c1a3462a3243e4c2ed99e92ef57b57e287"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/roman-functions.test.ts",
+        "sha256": "5a08cf32ebe01f1d7e67fba43cdb1bb5738c334284e2f3884cf04768578384da"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/roman-independent-review.test.ts",
+        "sha256": "d7a37f25d521bd23fbee1a493166552f390bd068d20877d51bcb0e4320be22c3"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/scientific-functions.test.ts",
+        "sha256": "8b0ef2adfbf378dec28145ae5fb04113375006ac742a596d886ad26f702ab558"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/scientific-independent-review.test.ts",
+        "sha256": "79afe00f96848b70198cdcc4affed7bdb946dfad830c6c7dd33fc4a012e1c5a6"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/serialization.ts",
+        "sha256": "ce5e8590e6f209da26ba2602923a1089b1df6ef0e631b03ba4397b80d2564e1b"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/special-numeric-independent.test.ts",
+        "sha256": "2e3fa581cf78001ff5592d4cf3492fb6d9ca382303c9a8dc11c2764a2519e463"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/special-numeric.test.ts",
+        "sha256": "d5a0e0f66626cb63b39df831533ad12c2f8d7233428c97fa8a35a9f9f4537866"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-aliases.test.ts",
+        "sha256": "273280d5e35afb2ac83eead41baa1534b0f8fa0bff4d0006e6841d109c06ef3c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-boundaries.test.ts",
+        "sha256": "61258b9d9fdfc5d57d08d03eceae3b266c25de66a61d87d50274893d38742ad3"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-export-names.ts",
+        "sha256": "5096c58ef98c16ed262be11745e6093a94ded1ddfaf80ce62bb1f54972dbd01d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-extended.test.ts",
+        "sha256": "83bd9ac4a41de55af0b9df7f64cf2c2770571401ec4d440e27a101c3e43d1719"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-function-descriptors.ts",
+        "sha256": "08b495cd10c34c14b1630f9331945703ec0a1a3766485c5d40c41b7d73f15e7c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-functions.test.ts",
+        "sha256": "5f62d6c98ce13c27305ca56ba53ba584ec308bec06dcf95784de44a8fefbbeea"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-independent-review.test.ts",
+        "sha256": "12fa40e9552066eecc9ffb234269a2bcb3fb3d56db03e7433b62e24c64b78877"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-inventory.test.ts",
+        "sha256": "2303a8d9ad06551681f1f12b9da540281ccf317743236481830ee20062918521"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-random.test.ts",
+        "sha256": "f8ebbc31d0bb4a69269935494e875e561e090b06530eb556b49c4475c81e4b56"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/statistics-stress-review.test.ts",
+        "sha256": "1848533b11e712427f6fdc827c12b51f8eba9702c6a5725bca137daf5a7ec39e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/syntax.test.ts",
+        "sha256": "a7ac64b3ddc4fabc0d4bb7f9f969f43a2217033ca8f598a90580b2d06851c4ce"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/text-delimiter-review.test.ts",
+        "sha256": "3677f47755202abbf5c78c7719fbf757454791f27bf3d96e76f69c294c459b6a"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/text-format-review.test.ts",
+        "sha256": "df0c13d9669abec4197e65dbdfe009a6ee91d47090c4c0672f7bd3a3469aca5d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/text-independent.test.ts",
+        "sha256": "e7ead870f6a48f542c3dca12023b4dc0c363b6aa1d2fbb36c8852f7473e22128"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/text-search-review.test.ts",
+        "sha256": "ef2376d8f1cde8730dfb8f4fdfcd622c56f10e651feee722ffc2296fa2b5ddeb"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/values.ts",
+        "sha256": "cfeba9366118300f754682902b48fc3a5a8a36d686984e852965e4b4b740087c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/workbook-independent.test.ts",
+        "sha256": "3c2647c50b9d564758f2870213895f02c1e439f28ffe020125497525f6c98425"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/workbook-references.test.ts",
+        "sha256": "80fe311fdc3a4887a760233cff6388f113c3db0f9cec883be0980c63e0f5ceb2"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/workbook.ts",
+        "sha256": "80afbc6e3d71f35b8a7ebb0d992e2faeeff4e4cf0b543e2efa13614e2b423b52"
+      },
+      {
+        "path": "packages/ssconvert/src/index.ts",
+        "sha256": "554a291f048c1a23cbb7ed37c506b37d4a0ce2c858f1ae92613b1b865d48ce11"
+      },
+      {
+        "path": "packages/ssconvert/src/io-errors.ts",
+        "sha256": "4411c74f1f2aca79a17fe6bf13be6b8752c7ca57ce7119537a378da3b5fbedfb"
+      },
+      {
+        "path": "packages/ssconvert/src/io/authority-cleanup-stress.test.ts",
+        "sha256": "43181911281a679db8605f2dd1a3e21f8c0f75e6cd5942016004a5563dffb648"
+      },
+      {
+        "path": "packages/ssconvert/src/io/binding.test.ts",
+        "sha256": "d59bf5780ff03073228126eb1e8f328f9df9069f61c006fa3a4a01d5957a1e52"
+      },
+      {
+        "path": "packages/ssconvert/src/io/independent.test.ts",
+        "sha256": "67aa95f4bb62bda9876e6f3616e03dc5b66f62c494e83a6b26b21564602ffc7c"
+      },
+      {
+        "path": "packages/ssconvert/src/io/index.ts",
+        "sha256": "ec6c2be4f642fcc67bfd5188756e180cdde5d78c13a64578bdb2d200d70ed97c"
+      },
+      {
+        "path": "packages/ssconvert/src/io/io.test.ts",
+        "sha256": "b13e304f370f6df07ed016faa5bc55d59f4ebfea36f680127edbcb0f29e2e198"
+      },
+      {
+        "path": "packages/ssconvert/src/io/names.test.ts",
+        "sha256": "cc56ad31a502c2823fcacddce6a32a6c939808eb2cae5ae831d15fdd7a09917f"
+      },
+      {
+        "path": "packages/ssconvert/src/io/names.ts",
+        "sha256": "44f87dbf7fc10b52562cdf66203583e434c19aa09c827daf6587da217e9fe71d"
+      },
+      {
+        "path": "packages/ssconvert/src/io/publication.ts",
+        "sha256": "12b8fb009cf1835431b50af40de58bc65684d1a553e57bcd3d30672d901ce65d"
+      },
+      {
+        "path": "packages/ssconvert/src/rendering.ts",
+        "sha256": "9dd91fc5acf344799a8ddc83ade6a45ca9ca863f1653dc20843d5af17a66713d"
+      },
+      {
+        "path": "packages/ssconvert/src/resource-uri.ts",
+        "sha256": "c3a7620b358c774c08ae65bc1f89b5b31eef69d901fb088aaa21ac159518a5cf"
+      },
+      {
+        "path": "packages/ssconvert/src/solver.ts",
+        "sha256": "56b6138314dfc07bc6cc135ef1f16799428bd8ce7a752c6e9768d409e7400f44"
+      },
+      {
+        "path": "packages/ssconvert/src/stress.test.ts",
+        "sha256": "9b73521e5fb173f72a82156f0d618fb90257f222e82de58f322726ced1cf8bfb"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook.test.ts",
+        "sha256": "3ebb8b83b20195d22ecb6c479f2c5890c6ae7346c883c1987137626d283329f9"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook.ts",
+        "sha256": "6fdda8dce453b74660314212017c691d7481dae171818c918ef91eb9f6a2b1b6"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/case-fold.ts",
+        "sha256": "9d54c4bdef0f785adb7dc1db22b3819ec163b063d09c004000c78b3118372097"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/dimensions.ts",
+        "sha256": "cc6c963e16029257dabb0498c30672143e220f4511aa448da5e6566054321c80"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/expressions.ts",
+        "sha256": "42cb92ef4fc71fd0a511d34c1edc3e6604a6908291bf9974c453bd61006d6346"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/independent-boundaries.test.ts",
+        "sha256": "a425ce8689ce5eec92c9f72c489e0265b0f1d3387c69cfaeff6a8d6b04560e88"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/merge.ts",
+        "sha256": "f45f746b35ff8b1b2afbcaeb68e500f6db09fc232a8cc953beac467ebe737b9f"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/model.ts",
+        "sha256": "7280fe070bf233528ceb20525aa69e175640f7ed98a0a3058b248ce8b64af594"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/numeric-zero.test.ts",
+        "sha256": "d69d717370f4fe541acbe3b5885c911a646f328f8af6dd7b5ad85cbe24d77396"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/ownership.test.ts",
+        "sha256": "04481e0d6d3ecdf5c39b06a06e4e97362cdc1581e1cf03ec968623fe9ff94aa1"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/range-selection.test.ts",
+        "sha256": "dc33b014cd59651c2c6790cbbed11591d26ba92802c81849dd3b741ed9ca5a38"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/stress.test.ts",
+        "sha256": "0b7fe0908dcae1273f073cc1461abb9a4dccc655c6df91bddf2b74244d91d3f3"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/unicode-sheet-name.ts",
+        "sha256": "7c80b016f62035bdfb6911a787a3c73cf979488cdfa9cc87562d6e6929650e54"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates-independent.test.ts",
+        "sha256": "ff030b85543f5482a3d80b2d1f1459877169eb4e87c06f2514336490b61fc6cc"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates-review.test.ts",
+        "sha256": "b5400a3fd5537d99d69af80f5b779bf96df7c6b7663e964270b5a35ca4164795"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates.test.ts",
+        "sha256": "3f33b8471b7d469062372ae06c2ebe93b7b68b85a8caf8913a40192f610aede1"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/formula.ts",
+        "sha256": "1504c8e26bbda5090f5d9c203f69771443bb153b3fb4c07354d5d80b8328ecf5"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/index.ts",
+        "sha256": "f25ae7f0091a73717954f17442360f2467b07a957cb97976f3039d08e15f0260"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/inference.ts",
+        "sha256": "085750ee7182e8b07c440876110bb1dac4dc8b49d24a7fe591353b34e356935b"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/updates/recalculation.ts",
+        "sha256": "dde58af804200f526f914719f8447ada81f3192b5c6d1340522b9dcdbd6fac4a"
+      }
+    ],
+    "aggregateSha256": "1434cac60f9d4198b44c68e5b4acd75a61259b0818c491075b66309c4867c70c"
+  },
+  "candidateTiming": {
+    "broadDependencyBuild": "Started before interpolation repair; broad gate failed and does not verify all final-candidate tasks.",
+    "finalEngineAndIntegration": "Final source covered by maintained package tests/lint, selected uncached engine and Safe Bash build closures, normal full build, focused command tests and independent manual QA."
+  },
+  "temporaryEvidencePolicy": "Run-specific temporary logs and screenshot reduced to durable hashes/results and removed; pre-existing authenticated source/oracle directories retained."
+}

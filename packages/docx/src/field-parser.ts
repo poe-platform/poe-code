@@ -118,9 +118,9 @@ export function parseFields(root: XmlElement, path: readonly number[], budget: D
       // compatibility projection. Their unselected branches were pruned above.
       if (active.has(node)) {
         const name = word ? node.localName : "opaque";
-        const prohibited = !word || ["sdt", "ins", "del", "moveFrom", "moveTo", "hyperlink", "customXml"].includes(name);
+        const prohibited = !word || ["sdt", "ins", "del", "moveFrom", "moveTo", "customXml"].includes(name);
         frame.unsafe ||= prohibited;
-        if (stack.length && !["fldSimple", "fldChar", "instrText", "t", "r", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(name))
+        if (stack.length && !["fldSimple", "fldChar", "instrText", "t", "r", "hyperlink", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(name))
           for (const field of stack) if (name !== "p" || field.form !== "complex") field.unsupported = true;
         if (prohibited || name === "br" && ![undefined, "textWrapping"].includes(fieldAttribute(node, "type"))) for (const field of stack) field.unsupported = true;
         if (name === "fldSimple") frame.simple = begin(node, [...currentPath], true, frame.unsafe);

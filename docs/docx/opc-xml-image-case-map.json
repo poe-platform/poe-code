@@ -8761,5 +8761,6 @@
     "packages/docx/src/image-characterization-variants.test.ts": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f",
     "packages/docx/src/xml-behavior-variants.test.ts": "49286f158b0990d0a0eea9d1ff26e3e1972ff6f8965e5447e3a03132a6c8d101",
     "packages/docx/src/package-behavior-variants.test.ts": "b44188d3b529f4fb085da6b02cb213cfe7b498536383bfa98b5048176ea1bd35"
-  }
+  },
+  "current_reverification": "opc-xml-image-reverification-20260921.json"
 }

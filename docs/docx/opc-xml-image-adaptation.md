@@ -7,6 +7,13 @@ counterpart format results remain research denominators, not TypeScript passes.
 Full public API, format, decoder and rendering parity are not claimed. Later
 text/style/document adaptation and other pipeline tasks remain pending.
 
+The [2026-09-21 requalification](opc-xml-image-reverification-20260921.json)
+records fresh passing links for all 369 selected rows, 435 focused assertions,
+source/test hashes and maintained checks separately from historical receipts.
+It also restores the missing [owned plan](../plans/docx-opc-xml-image-adaptation.md)
+referenced by the case map's SDK language/security mappings. Existing passing
+product behavior is retained; no new product or visual behavior is introduced.
+
 The selected file families contain 371 crosswalk identities. Two core-property
 accessor rows in `tests/opc/test_package.py` are explicitly owned by the separate
 `typed-document-properties` task, so this overlay retains its established 369-row

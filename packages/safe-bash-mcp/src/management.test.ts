@@ -19,6 +19,30 @@ async function run(script: string, env: Record<string, string> = {}) {
 }
 
 describe("remote MCP management init command", () => {
+  it("routes all management help before reading credentials or creating native sessions", async () => {
+    const readCredential = vi.fn(() => { throw new Error("help must not read credentials"); });
+    const env = Object.defineProperty({}, "GOOGLE_APP_ID", { enumerable: true, get: readCredential });
+    const sessionStore = vi.fn(() => { throw new Error("help must not create sessions"); });
+    const fetch = vi.fn();
+    const binding = { env, oauth: { sessionStore } };
+    const definition = createRemoteMcpManagementCommand(servers, {
+      generation: { binding, schema: { fetch } }, authentication: { binding, fetch },
+      credentialImport: { binding, fetch }, reset: { binding }
+    });
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
+    try {
+      for (const script of ["mcp", "mcp --help", ...["init", "generate", "auth", "import", "reset"].map(command => `mcp ${command} --help`)]) {
+        const result = await shell.exec(script);
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain("Usage:");
+        expect(result.stderr).toBe("");
+      }
+      expect(readCredential).not.toHaveBeenCalled();
+      expect(sessionStore).not.toHaveBeenCalled();
+      expect(fetch).not.toHaveBeenCalled();
+    } finally { await shell.dispose(); }
+  });
+
   it("prints complete SDK initialization JSON without fetching schemas or reading actual credentials", async () => {
     const result = await run("mcp init", { GOOGLE_APP_ID: "actual-id", GOOGLE_APP_SECRET: "actual-secret", MCP_CATALOG_ACCESS_TOKEN: "actual-token" });
     expect(result.exitCode).toBe(0);

@@ -151,6 +151,41 @@ describe("generated remote MCP safe-bash commands", () => {
     expect(fixture.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
   });
 
+  it("retains nested field arrays through named and raw calls without requesting tool metadata", async () => {
+    const selected: Tool = { name: "create_workitem", inputSchema: { type: "object", properties: {
+      work_item_type: { type: "string" }, project_key: { type: "string" }, fields: { type: "array", items: {
+        type: "object", properties: { field_key: { type: "string" }, field_value: {} },
+        required: ["field_key", "field_value"], additionalProperties: false
+      } }
+    }, required: ["work_item_type", "project_key", "fields"], additionalProperties: false } };
+    const expected = { work_item_type: "requirement", project_key: "00123", fields: [
+      { field_key: "name", field_value: "Test Requirement" },
+      { field_key: "details", field_value: { enabled: false, count: 0, owners: ["001", "002"], parent: null } }
+    ] };
+    const fixture = remote();
+    const fetch: HttpTransportFetch = async (url, init) => {
+      if (init?.method === "POST" && JSON.parse(String(init.body)).method === "tools/list")
+        throw new Error("metadata unavailable");
+      return fixture.fetch(url, init);
+    };
+    const [definition] = await createRemoteMcpCommands([{ ...server, tools: [selected] }], { fetch });
+    for (const args of [
+      ["work_item_type=requirement", "project_key=00123", `fields=${JSON.stringify(expected.fields)}`],
+      ["--raw", JSON.stringify(expected)]
+    ]) {
+      const input = invocation(["create_workitem", ...args]);
+      expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+      expect(input.error()).toBe("");
+    }
+    expect(fixture.requests.filter(request => request.method === "tools/call").map(request => request.params?.arguments))
+      .toEqual([expected, expected]);
+    fixture.fetch.mockClear();
+    const invalid = invocation(["create_workitem", "work_item_type=requirement", "project_key=00123", "fields:name=Test Requirement"]);
+    expect(await definition.execute(invalid.context)).toEqual({ exitCode: 2 });
+    expect(invalid.output()).toBe("");
+    expect(fixture.fetch).not.toHaveBeenCalled();
+  });
+
   it("prints exact invokable tool names and generated flags in help without connecting", async () => {
     const fixture = remote();
     const definition = await command(fixture);

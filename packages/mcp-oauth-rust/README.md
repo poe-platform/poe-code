@@ -44,6 +44,8 @@ listeners and rejects pending waits; close is idempotent and code waits are sing
 Encrypted session and client-registration persistence uses the embedded Rust
 credential store. URI-specific filenames and Keychain accounts match the original
 package, including resource normalization and machine-bound encrypted documents.
+Configured scopes are captured at provider creation; cached, refreshed and exchanged grants
+must match an explicit requested scope set. Refresh responses retain omitted granted scopes.
 Imported grants retain their original client and resource, anchor relative lifetimes at import,
 and yield to persisted rotations and revocations.
 `parseOAuthTokenGrant(raw, { issuedAt, expiresAt, now })` admits bounded raw

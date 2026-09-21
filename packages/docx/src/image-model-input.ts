@@ -22,7 +22,7 @@ export async function acquireImageModelInput(input: ImageModelInput | DocxBinary
     budget.charge("retainedBytes", input.length); budget.charge("work", input.length); bytes = new Uint8Array(input);
   } else {
     if (!input || typeof input !== "object" || ![Object.prototype, null].includes(Object.getPrototypeOf(input))) throw new InputTypeError("Expected an explicit image input capability.");
-    const record: Record<string, unknown> = {};
+    const record: Record<string, unknown> = Object.create(null);
     for (const key of Reflect.ownKeys(input)) {
       const descriptor = Object.getOwnPropertyDescriptor(input, key)!;
       if (typeof key !== "string" || !["kind", "base64", "path", "capability", "open"].includes(key) || !("value" in descriptor)) throw new InputTypeError("Expected finite image input data.");

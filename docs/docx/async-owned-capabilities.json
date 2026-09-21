@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "task": "sdk-async-capabilities",
+  "status": "qualified-scoped-async-contract",
+  "whole_api_accepted": false,
+  "later_tasks_started": false,
+  "red_before_code": {
+    "ambient_metadata_and_io": 9,
+    "missing_admitted_authority": 2
+  },
+  "original_test": "packages/docx/src/model-owned-capability-data.test.ts",
+  "original_cases": 11,
+  "combined_new_original_cases": 46,
+  "focused_cases": 72,
+  "mappings": {
+    "records": "Context, nested limits/metrics/resolver/VFS records and document/image/output path records capture own data properties into null-prototype snapshots. Accessors are rejected without invocation. Missing metadata and capabilities never fall through Object.prototype.",
+    "methods": "Explicit sink instance/class methods are supported with preserved receivers; lookup stops before Object.prototype. Metrics and resolver functions are captured and bound to supplied original records.",
+    "metadata": "Fixed UTC time and empty identity remain deterministic. Core-property aliases use own keys, preventing ambient author property lookup.",
+    "authority": "Missing admitted binaryResolver/VFS authority remains absent; matching explicit tokens and supplied adapters are still required. No ambient host I/O, native document runtime or implicit network."
+  },
+  "checks": {
+    "focused": {
+      "files": 6,
+      "cases": 72,
+      "passed": true
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "passed": true,
+      "warnings": 1,
+      "errors": 0
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx --no-cache",
+      "passed": true,
+      "native_targets": []
+    },
+    "built_shell": {
+      "command": "node --import tsx --test packages/docx/tests/public-shell.cases.ts",
+      "cases": 8,
+      "passed": true
+    },
+    "initial_full_run": {
+      "command": "npm test --workspace=docx -- --maxWorkers=1",
+      "passed": false,
+      "files": 245,
+      "passed_cases": 5081,
+      "timeout_cases": 2,
+      "duration_seconds": 425.86,
+      "failures": [
+        "image-replacement.test.ts: contain extents/crop",
+        "package.test.ts: relationship/part allocation"
+      ]
+    },
+    "direct_timeout_files": {
+      "command": "npx vitest run packages/docx/src/image-replacement.test.ts packages/docx/src/package.test.ts --maxWorkers=1",
+      "passed": true,
+      "files": 2,
+      "cases": 99,
+      "duration_seconds": 16.16,
+      "contain_case_ms": 316,
+      "timeouts_unchanged": true
+    },
+    "unit": {
+      "command": "npm test --workspace=docx -- --maxWorkers=2",
+      "passed": true,
+      "files": 245,
+      "cases": 5083,
+      "failures": 0,
+      "skips": 0,
+      "duration_seconds": 218.96,
+      "fresh": true,
+      "retries": 0,
+      "timeouts_unchanged": true
+    }
+  },
+  "limitations": [
+    "Whole public API and remaining source-case coverage are not certified by this scoped task.",
+    "No later task, README edit, push or release."
+  ]
+}

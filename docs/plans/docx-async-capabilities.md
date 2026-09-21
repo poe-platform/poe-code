@@ -67,3 +67,26 @@ already modified pipeline plan. No native document runtime, ambient host I/O, im
 downloaded fixture, guarded safe-bash implementation, push or release is included.
 The first atomic local commit is `b8eeaa605` (package input capture); the containing
 second atomic commit delivers save capabilities, async surface tests and evidence.
+
+## Owned capability security and final qualification
+
+Nine original red cases reproduced ambient Object.prototype metadata, sink
+methods, missing path fields and missing resolver methods. Two further red cases
+reproduced missing optional admitted VFS/resolver authority. Context and finite
+input/output snapshots now own their data; absent fields remain absent. Explicit
+instance/class sink methods preserve receivers, stopping before Object.prototype.
+The core-property alias map uses own keys. No separate editor or later task is
+introduced. Exact mappings are in docs/docx/async-owned-capabilities.json and .md.
+
+All six focused files/72 cases passed; the task adds 46 original cases in four
+files across the three atomic improvements. Final maintained package tests passed
+245 files/5,083 cases in 218.96 seconds with two workers, unchanged timeouts, no
+retries and no skipped cases. Earlier one-worker execution had two timeout cases;
+both files passed directly (99 cases), then the complete final rerun passed. No
+unrelated tests or timeout configuration changed. Fresh maintained lint/build
+and all eight built public SDK/plugin Shell cases passed on the final source.
+
+Local input capture commit: b8eeaa605. Local save capability commit: dbf32b6d2.
+The containing third atomic commit delivers the owned-capability correction and
+its evidence. Only sdk-async-capabilities implement/test are now marked done.
+Whole-public-API acceptance and later tasks remain pending. No push or release.

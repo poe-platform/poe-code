@@ -773,7 +773,7 @@ export class ImageParts implements Iterable<ImagePartView> {
 
 const coreStrings = ["title", "subject", "author", "keywords", "comments", "last_modified_by", "category", "content_status", "identifier", "language", "version"] as const;
 const coreDates = ["created", "modified", "last_printed"] as const;
-function coreKey(name: string): string { return ({ last_modified_by: "lastModifiedBy", content_status: "contentStatus", last_printed: "lastPrinted" } as Record<string, string>)[name] ?? name; }
+function coreKey(name: string): string { const aliases = { last_modified_by: "lastModifiedBy", content_status: "contentStatus", last_printed: "lastPrinted" }; return Object.hasOwn(aliases, name) ? aliases[name as keyof typeof aliases] : name; }
 
 export class CoreProperties {
   declare title: string; declare subject: string; declare author: string; declare keywords: string; declare comments: string;

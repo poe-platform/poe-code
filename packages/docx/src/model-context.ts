@@ -33,25 +33,40 @@ export type AdmittedModelContext = ReturnType<typeof archiveSettings> &
   Required<Pick<DocumentModelContext, "timestamp" | "author" | "initials">> &
   Pick<DocumentModelContext, "metrics" | "vfs" | "binaryResolver" | "registerCleanup">;
 
+function ownModelData<Value extends object>(value: Value): Value {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(value))
+  )
+    throw new InputTypeError("Expected finite model context data.");
+  const owned = Object.create(null) as Value;
+  for (const key of Reflect.ownKeys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+    if (!Object.hasOwn(descriptor, "value"))
+      throw new InputTypeError("Expected finite model context data.");
+    Object.defineProperty(owned, key, {
+      value: descriptor.value,
+      enumerable: true,
+      writable: true,
+      configurable: true
+    });
+  }
+  return owned;
+}
+
 /** Captures deterministic metadata and shared resource ceilings before admission. */
 export function modelContext(
   context: DocumentModelContext = {},
   defaultLimits: Partial<ArchiveLimits> = {}
 ): AdmittedModelContext {
-  if (
-    !context ||
-    typeof context !== "object" ||
-    ![Object.prototype, null].includes(Object.getPrototypeOf(context))
-  )
-    throw new InputTypeError("Expected a model context.");
-  for (const key of Reflect.ownKeys(context)) {
-    const descriptor = Object.getOwnPropertyDescriptor(context, key)!;
-    if (!("value" in descriptor)) throw new InputTypeError("Expected finite model context data.");
-  }
+  context = ownModelData(context);
+  const resolver = context.binaryResolver,
+    metrics = context.metrics;
   if (context.signal !== undefined && !(context.signal instanceof AbortSignal))
     throw new InputTypeError("Expected a cancellation signal.");
   const defaults = documentLimitDefaults;
-  const limits: ArchiveLimits = context.limits ?? {
+  let limits: ArchiveLimits = context.limits ?? {
     maxArchiveBytes: defaults.compressedInput,
     maxEntryBytes: defaults.xmlPartBytes,
     maxTotalBytes: defaults.expandedPackage,
@@ -64,18 +79,11 @@ export function modelContext(
     chunkSize: 65536,
     ...defaultLimits
   };
-  for (const value of [context.limits, context.binaryResolver, context.metrics, context.vfs]) {
-    if (value === undefined) continue;
-    if (
-      !value ||
-      typeof value !== "object" ||
-      ![Object.prototype, null].includes(Object.getPrototypeOf(value)) ||
-      Reflect.ownKeys(value).some(
-        (key) => !("value" in Object.getOwnPropertyDescriptor(value, key)!)
-      )
-    )
-      throw new InputTypeError("Expected finite model capability data.");
+  for (const key of ["limits", "binaryResolver", "metrics", "vfs"] as const) {
+    const value = context[key];
+    if (value !== undefined) Object.defineProperty(context, key, { value: ownModelData(value) });
   }
+  if (context.limits) limits = context.limits;
   const timestamp =
     context.timestamp === undefined ? new Date("1980-01-01T00:00:00Z") : context.timestamp;
   if (!(timestamp instanceof Date) || !Number.isFinite(Date.prototype.getTime.call(timestamp)))
@@ -118,7 +126,7 @@ export function modelContext(
     signal: context.signal ?? new AbortController().signal
   });
   settings.budget.check("work", 0);
-  return {
+  return ownModelData({
     ...settings,
     timestamp: new Date(Math.floor(Date.prototype.getTime.call(timestamp) / 1000) * 1000),
     author,
@@ -126,15 +134,15 @@ export function modelContext(
     ...(context.vfs
       ? { vfs: { capability: context.vfs.capability, filesystem: context.vfs.filesystem } }
       : {}),
-    ...(context.metrics ? { metrics: context.metrics } : {}),
+    ...(context.metrics ? { metrics: { measure: context.metrics.measure.bind(metrics) } } : {}),
     ...(context.binaryResolver
       ? {
           binaryResolver: {
             capability: context.binaryResolver.capability,
-            open: context.binaryResolver.open.bind(context.binaryResolver)
+            open: context.binaryResolver.open.bind(resolver)
           }
         }
       : {}),
     ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {})
-  };
+  });
 }

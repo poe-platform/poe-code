@@ -25,7 +25,7 @@ export async function acquireDocumentModelInput(
     ![Object.prototype, null].includes(Object.getPrototypeOf(input))
   )
     throw new InputTypeError("Expected an explicit document input capability.");
-  const record: Record<string, unknown> = {};
+  const record: Record<string, unknown> = Object.create(null);
   for (const key of Reflect.ownKeys(input)) {
     const descriptor = Object.getOwnPropertyDescriptor(input, key)!;
     if (

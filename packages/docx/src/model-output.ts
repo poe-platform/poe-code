@@ -20,7 +20,7 @@ function capabilityMethod(
   name: string
 ): ((...args: never[]) => unknown) | undefined {
   let prototype: object | null = value;
-  while (prototype) {
+  while (prototype && prototype !== Object.prototype) {
     const method = Object.getOwnPropertyDescriptor(prototype, name);
     if (method) {
       if (!("value" in method) || typeof method.value !== "function")
@@ -82,7 +82,7 @@ export function modelOutput(
     };
   if (![Object.prototype, null].includes(Object.getPrototypeOf(output)))
     throw new InputTypeError("Expected a finite document output path.");
-  const record: Record<string, unknown> = {};
+  const record: Record<string, unknown> = Object.create(null);
   for (const key of Reflect.ownKeys(output)) {
     const descriptor = Object.getOwnPropertyDescriptor(output, key)!;
     if (

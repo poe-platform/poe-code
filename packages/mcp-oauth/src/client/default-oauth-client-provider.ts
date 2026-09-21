@@ -188,6 +188,11 @@ export function createDefaultOAuthClientProvider(
       if (forceRefresh && rejectedTokens !== undefined && (rejectedTokens === null || session?.tokens === undefined || !sameTokenGrant(session.tokens, rejectedTokens)))
         forceRefresh = false;
       const sessionDiscovery = resolveDiscovery(discovery, session);
+      if ((options.client.mode === "static" || initialGrant !== undefined) && session !== null && (session.tokens !== undefined || session.refreshState === "pending")) {
+        const configured = normalizeConfiguredClient(options.client);
+        if (configured === null || configured.clientId !== session.client.clientId || configured.clientSecret !== session.client.clientSecret)
+          throw new Error("Stored session belongs to a different OAuth client; use separate persistence or explicitly reset it");
+      }
 
       if (session?.refreshState === "pending") {
         if (!allowInteractive || options.allowInteractive === false || sessionDiscovery === undefined)

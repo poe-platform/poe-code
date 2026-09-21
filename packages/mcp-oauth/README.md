@@ -104,6 +104,10 @@ Discovery binds an expired or explicitly rejected grant before silent refresh,
 using the original configured client. Persisted sessions take precedence,
 including sessions whose tokens have been cleared; an import cannot revive them.
 Input tokens are copied and invalid expiry values fail before authorization.
+Static clients and dynamic initial-grant imports require cached grants to match
+the original normalized client ID and secret. A different client configuration
+fails before attaching or refreshing credentials and retains the stored record;
+select separate persistence or explicitly reset the session to change apps.
 
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.
 

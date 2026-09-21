@@ -54,8 +54,8 @@ it("refreshes a fresh imported access token that the resource explicitly rejecte
   expect(f.session()?.tokens?.accessToken).toBe("rotated-access");
 });
 
-it("prefers persisted rotated credentials over the initial grant", async () => {
-  const f = fixture(tokens, { resource, authorizationServer: issuer, client: { clientId: "imported-client" }, tokens: { ...tokens, accessToken: "persisted-access" },
+it("prefers persisted rotated credentials of the original client over the initial grant", async () => {
+  const f = fixture(tokens, { resource, authorizationServer: issuer, client: { clientId: "imported-client", clientSecret: "app-secret" }, tokens: { ...tokens, accessToken: "persisted-access" },
     discovery: { resourceMetadataUrl: discovery.resourceMetadataUrl, resourceMetadata: discovery.resourceMetadata, authorizationServerMetadata: discovery.authorizationServerMetadata } });
   expect((await f.authorize()).get("Authorization")).toBe("Bearer persisted-access");
   expect(f.fetch).not.toHaveBeenCalled();

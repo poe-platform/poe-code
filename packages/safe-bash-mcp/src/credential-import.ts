@@ -35,7 +35,8 @@ export async function importRemoteMcpAuthentication(
   const [server] = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options).servers;
   if (server.auth?.type !== "oauth") throw new Error("Credential import requires managed OAuth");
   const binding = options.binding ?? { env: {} }, oauth = binding.oauth;
-  if (oauth?.sessionStore !== undefined && oauth.importSession === undefined)
+  const importSession = oauth?.importSession;
+  if (oauth?.sessionStore !== undefined && importSession === undefined)
     throw new Error("Host-owned OAuth persistence requires an explicit atomic import hook");
   const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? 30_000;
   const requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
@@ -72,6 +73,8 @@ export async function importRemoteMcpAuthentication(
   const rawScope = read(refs.scope) ?? refs.scope.fallback;
   const scope = normalizeOAuthScope(rawScope);
   if (scope !== undefined && tokens.scope !== scope) throw new Error("Imported OAuth grant does not match the requested OAuth scope");
+  const nativeStores = importSession === undefined
+    ? createResourceBoundOAuthStores(oauth?.authStore ?? {}, server.auth.persistenceNamespace, server.name) : undefined;
   const deadline = AbortSignal.timeout(requestTimeoutMs);
   const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
   const discovery = await discoverOAuthMetadata(server.url, { fetch: options.fetch, cache: options.oauthDiscoveryCache, signal });
@@ -88,8 +91,8 @@ export async function importRemoteMcpAuthentication(
     ...(scope === undefined ? {} : { requestedScope: scope }),
     discovery: { resourceMetadataUrl: discovery.resourceMetadataUrl, resourceMetadata: discovery.resourceMetadata,
       authorizationServerMetadata: discovery.authorizationServerMetadata } };
-  if (oauth?.importSession !== undefined) await oauth.importSession(server, session, { signal, timeoutMs });
-  else await createResourceBoundOAuthStores(oauth?.authStore ?? {}, server.auth.persistenceNamespace, server.name).importSession(session, { signal, timeoutMs });
+  if (importSession !== undefined) await importSession.call(oauth, server, session, { signal, timeoutMs });
+  else await nativeStores!.importSession(session, { signal, timeoutMs });
   signal.throwIfAborted();
   return { name: server.name, url: server.url, imported: true };
 }

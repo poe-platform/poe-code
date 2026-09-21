@@ -219,3 +219,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Generation must perform neither network nor persistence access. Require two
     tools/list operations, two calls and four distinct retired HTTP sessions.
     Inspect safe summary output, record results and purge owned evidence.
+
+22. Gate real local HTTP protected-resource metadata during credential import.
+    Select host-owned persistence and replace/remove its importSession hook while
+    discovery waits. Also remove that hook from the selected host now callback
+    during lifetime normalization. Require exactly one invocation of the original
+    hook with its original receiver and live state, no replacement invocation,
+    no session-factory query and no native fallback. Separately select native
+    file persistence, then mutate its path and backend environment during gated
+    discovery. Require the imported full app registration and grant at the
+    original encrypted record, anchored relative expiry, no replacement directory
+    and no plaintext tokens. All four imports use only eight metadata GETs,
+    without initialization or tool calls. Native construction may resolve its
+    path early but must not write anything until validated discovery. Inspect the
+    final safe summary screenshot and purge owned evidence.

@@ -378,6 +378,10 @@ collection stops at the smaller of the selected import budget and the host's
 `maxInputBytes` ceiling, before JSON parsing or OAuth discovery. A smaller host
 `credentialImport.maxImportBytes` budget also applies while reading.
 
+The import captures the host atomic import hook or constructs native persistence
+before metadata discovery, preserving the chosen backend and path throughout.
+Changing the hook while discovery waits cannot bypass host-owned persistence.
+No credentials are written until discovery and issuer checks pass.
 The import discovers and validates OAuth metadata, then atomically saves the
 original client and grant for the configured name/profile. It does not initialize,
 list or call tools. Full DCR metadata stays encrypted and caller-owned; dynamic

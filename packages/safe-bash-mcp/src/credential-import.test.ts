@@ -96,6 +96,76 @@ it("passes the bound grant to a host import hook without querying its session fa
   expect(importSession).toHaveBeenCalledWith(dynamic, expect.objectContaining({ tokens: expect.objectContaining({ expiresAt: 3_610_000 }) }), expect.objectContaining({ timeoutMs: 30_000, signal: expect.any(AbortSignal) }));
   expect(await f.stores.sessionStore.load(resource)).toBeNull();
 });
+
+it.each(["replace hook", "remove hook"])("captures the selected atomic import hook before discovery: %s", async mutation => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const fetch = f.fetch.getMockImplementation()!;
+  f.fetch.mockImplementation(async url => { entered.resolve(); await resume.promise; return fetch(url); });
+  const original = vi.fn(async () => {}), replacement = vi.fn(async () => {});
+  const oauth = { sessionStore: () => ({ load: async () => null, save: async () => {}, clear: async () => {} }),
+    authStore: f.authStore, importSession: original as (() => Promise<void>) | undefined };
+  const pending = sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { env: {}, oauth }, fetch: f.fetch });
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise;
+    oauth.importSession = mutation === "replace hook" ? replacement : undefined;
+    resume.resolve();
+    expect(await outcome).toEqual({ name: "catalog", url: resource, imported: true });
+    expect(original).toHaveBeenCalledOnce();
+    expect(replacement).not.toHaveBeenCalled();
+    expect(await f.stores.sessionStore.load(resource)).toBeNull();
+  } finally { resume.resolve(); await outcome; }
+});
+
+it("captures native import persistence settings before metadata discovery waits", async () => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const fetch = f.fetch.getMockImplementation()!;
+  f.fetch.mockImplementation(async url => { entered.resolve(); await resume.promise; return fetch(url); });
+  const pending = sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch });
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise;
+    f.authStore.fileStore.filePath = "/home/replacement/import.enc";
+    resume.resolve();
+    expect(await outcome).toEqual({ name: "catalog", url: resource, imported: true });
+    expect((await f.stores.sessionStore.load(resource))?.tokens?.accessToken).toBe(payload.tokens.access_token);
+    await expect(f.fs.readdir("/home/replacement")).rejects.toMatchObject({ code: "ENOENT" });
+  } finally { resume.resolve(); await outcome; }
+});
+
+it("selects the native import backend before asynchronous metadata discovery", async () => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const fetch = f.fetch.getMockImplementation()!;
+  f.fetch.mockImplementation(async url => { entered.resolve(); await resume.promise; return fetch(url); });
+  const env = { IMPORT_POLICY_BACKEND: "file" };
+  const authStore = { fileStore: f.authStore.fileStore, backendEnvVar: "IMPORT_POLICY_BACKEND", env };
+  const pending = sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, oauth: { ...f.binding.oauth, authStore } }, fetch: f.fetch });
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise;
+    env.IMPORT_POLICY_BACKEND = "invalid-replacement";
+    resume.resolve();
+    expect(await outcome).toEqual({ name: "catalog", url: resource, imported: true });
+    expect((await f.stores.sessionStore.load(resource))?.tokens?.accessToken).toBe(payload.tokens.access_token);
+  } finally { resume.resolve(); await outcome; }
+});
+
+it("retains the original host import hook receiver and its live state", async () => {
+  const f = fixture();
+  const oauth = { imports: 0, async importSession() { this.imports++; } };
+  await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { env: {}, oauth }, fetch: f.fetch });
+  expect(oauth.imports).toBe(1);
+});
+
+it("captures the validated host import hook before invoking the host clock", async () => {
+  const f = fixture(), original = vi.fn(async () => {});
+  const oauth = { authStore: f.authStore, importSession: original as (() => Promise<void>) | undefined,
+    sessionStore: () => ({ load: async () => null, save: async () => {}, clear: async () => {} }),
+    now: () => { oauth.importSession = undefined; return 10_000; } };
+  await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { env: {}, oauth }, fetch: f.fetch });
+  expect(original).toHaveBeenCalledOnce();
+  expect(await f.stores.sessionStore.load(resource)).toBeNull();
+});
 it("rejects unmanaged bearer credentials", async () => {
   const f = fixture();
   const server = sdk.initRemoteMcpConfiguration([{ name: "catalog", url: resource, auth: { type: "bearer" } }]).configuration.servers[0];

@@ -79,7 +79,7 @@ async function requestTokens(input, grant) {
   } catch (error) {
     throw new Error(error.message);
   }
-  const headers = new Headers({ "Content-Type": "application/x-www-form-urlencoded" });
+  const headers = new Headers({ Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" });
   if (Object.hasOwn(plan, "authorization")) headers.set("Authorization", plan.authorization);
   input.signal?.throwIfAborted();
   const deadline = AbortSignal.timeout(30_000),

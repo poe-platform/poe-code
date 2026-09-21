@@ -4559,3 +4559,15 @@ Remote main80912d7d3 includes transcript work; root35568021206 remains in progre
 Root35567435784 failed; no successful current publication verified. Continuous
 active06:19:34–06:26:57 adds443s, bringing conservative effort to89,700s (24.92h).
 Minimum fulfilled; full rewrite/acceptance incomplete. Continue after06:26:57 UTC.
+
+### OAuth JSON endpoint negotiation, 2026-09-21 06:28 UTC
+
+Concurrent originals add Accept:application/json on registration/token endpoints.
+The maintained seeded Unicode differential red detects the missing own header;
+complete updated reference tests also exercise endpoints requiring negotiation.
+Own registration/token host adapters now advertise JSON. Maintained OAuth checks
+pass56 Rust cases,91 native groups,456 reference cases/35 files and types; focused
+lint and uncached combined fixture closure pass. Fixture direct/packed workers
+exercise the embedded adapter with zero runtime groups. No speed advantage claimed.
+The previous HTTP portable-case total was a transcription error:25 cases, not26.
+Embedding9d8badee5 push completed; publication remains unverified.

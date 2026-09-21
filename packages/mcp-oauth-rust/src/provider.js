@@ -659,7 +659,7 @@ export function createDefaultOAuthClientProvider(options) {
       parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
     const response = await fetchMcpResponse(fetch, registration, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal
     });

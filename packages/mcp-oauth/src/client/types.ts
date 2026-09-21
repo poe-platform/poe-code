@@ -106,6 +106,11 @@ export interface DefaultOAuthClientProviderOptions {
       };
   /** Disable interactive authorization while allowing cached tokens and silent refresh. */
   allowInteractive?: boolean;
+  /** Import an existing grant for one resource. Persisted sessions take precedence. */
+  initialGrant?: {
+    resource: string;
+    tokens: StoredOAuthTokens;
+  };
   browser: {
     openBrowser?(url: string): Promise<void>;
     /** Exact registered HTTP loopback redirect URI. */

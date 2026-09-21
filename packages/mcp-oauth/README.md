@@ -41,6 +41,7 @@ const verifier = createJwksTokenVerifier({
   - `mode: "dynamic"` with optional `metadata`
   - `mode: "static"` with `clientId`, optional `clientSecret`, optional `metadata`
 - `allowInteractive: false` prevents interactive login while retaining cached tokens and silent refresh
+- `initialGrant: { resource, tokens }` optionally imports an existing Bearer grant for one HTTP resource; requires the original client ID
 - `browser.openBrowser(url)` optional
 - `browser.readLine()` optional
 - `browser.createServer()` optional
@@ -82,6 +83,14 @@ observe the supplied signal and pass it to any work they start.
 
 Configure `client.metadata.scope` to request a precise scope set; broader
 discovery metadata does not override it.
+
+Imported `initialGrant.tokens` use `accessToken`, optional `refreshToken`,
+`tokenType: "Bearer"`, `expiresAt` (Unix epoch milliseconds or `null` if unknown),
+and optional `scope`. A fresh imported token is used only for its resource.
+Discovery binds an expired or explicitly rejected grant before silent refresh,
+using the original configured client. Persisted sessions take precedence,
+including sessions whose tokens have been cleared; an import cannot revive them.
+Input tokens are copied and invalid expiry values fail before authorization.
 
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.
 

@@ -50,6 +50,21 @@ export function createDefaultOAuthClientProvider(
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
   const refreshPromises = new Map<string, Promise<StoredOAuthSession | null>>();
   const authorizationPromises = new Map<string, Promise<StoredOAuthSession>>();
+  if (options.initialGrant !== undefined) {
+    let resource: URL;
+    try { resource = new URL(options.initialGrant.resource); }
+    catch { throw new Error("OAuth initial grant resource must be an absolute HTTP URL"); }
+    if ((resource.protocol !== "http:" && resource.protocol !== "https:") || resource.username || resource.password || resource.hash)
+      throw new Error("OAuth initial grant resource must be an HTTP URL without credentials or fragments");
+  }
+  const initialGrant = options.initialGrant === undefined ? undefined : {
+    resource: canonicalizeResourceIndicator(options.initialGrant.resource),
+    tokens: normalizeStoredTokens(options.initialGrant.tokens),
+    client: normalizeConfiguredClient(options.client)
+  };
+  if (initialGrant !== undefined && (initialGrant.tokens === undefined || initialGrant.client === null))
+    throw new Error("OAuth initial grant requires valid tokens and the original client ID");
+  let initialGrantConsumed = false;
 
   return {
     async authorizeRequest(input): Promise<void> {
@@ -57,6 +72,11 @@ export function createDefaultOAuthClientProvider(
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false, false, input.signal);
       const accessToken = session?.tokens?.accessToken;
+      if (session === null && !initialGrantConsumed && initialGrant?.resource === requestUrl &&
+        initialGrant.tokens !== undefined && !isExpired(initialGrant.tokens, now)) {
+        input.headers.set("Authorization", `Bearer ${initialGrant.tokens.accessToken}`);
+        return;
+      }
       if (
         session === null ||
         accessToken === undefined ||
@@ -78,7 +98,7 @@ export function createDefaultOAuthClientProvider(
         const resource = canonicalizeResourceIndicator(input.discovery.resource);
         assertRequestMatchesResource(requestUrl, resource);
         const forceRefresh =
-          hasCachedAccessToken(await loadSession(resource)) &&
+          (hasCachedAccessToken(await loadSession(resource)) || (!initialGrantConsumed && initialGrant?.resource === resource)) &&
           input.challenge?.params.error === "invalid_token";
         const session = await ensureAuthorizedSession(
           resource,
@@ -118,6 +138,7 @@ export function createDefaultOAuthClientProvider(
     signal?.throwIfAborted();
     const canonicalResource = canonicalizeResourceIndicator(resource);
     let session = await loadSession(canonicalResource);
+    if (session !== null && initialGrant?.resource === canonicalResource) initialGrantConsumed = true;
     signal?.throwIfAborted();
     if (discovery !== undefined && getOwnString(
       discovery.authorizationServerMetadata, "issuer"
@@ -131,6 +152,15 @@ export function createDefaultOAuthClientProvider(
     )) {
       await clearSession(canonicalResource);
       session = null;
+    }
+    if (session === null && discovery !== undefined && !initialGrantConsumed && initialGrant?.resource === canonicalResource &&
+      initialGrant.tokens !== undefined && initialGrant.client !== null) {
+      assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
+      session = { resource: canonicalResource, authorizationServer: discovery.authorizationServer,
+        client: initialGrant.client, tokens: initialGrant.tokens, discovery: toStoredDiscovery(discovery) };
+      await saveSession(canonicalResource, session);
+      initialGrantConsumed = true;
+      signal?.throwIfAborted();
     }
     const sessionDiscovery = resolveDiscovery(discovery, session);
 

@@ -1,0 +1,420 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-21",
+  "task": "visual-cli-and-document-qa",
+  "status": "executed-with-unverified-document-rendering-and-root-dispatch",
+  "laterTasks": "pending",
+  "testedHead": "285a9c8a57a2f2ca593025b5922bc396f4bde387",
+  "branch": "main",
+  "worktree": "includes unrelated changes; not clean HEAD certification",
+  "contracts": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "2f3582676a73968f656ed29af7e058321e200583251180eaf423496f8cec3869"
+    },
+    {
+      "path": "docs/specs/docx.md",
+      "sha256": "4853f299039dd7c73fe5cb11ce4d5109cb1f2949373c0cfb02fbd6a8d7677c96"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64"
+    },
+    {
+      "path": "docs/docx/upstream-api-audit.md",
+      "sha256": "a0ac2730b5719aab7255df57d72fe9fb72db270f63ca0977534fa8019827e93f"
+    },
+    {
+      "path": "docs/docx/upstream-api-inventory.json",
+      "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+    }
+  ],
+  "inventory": {
+    "objects": 920,
+    "coverage": {
+      "planned": 410,
+      "security-mapped": 378,
+      "language-mapped": 124,
+      "documentation-error": 8
+    },
+    "adaptation": {
+      "unmapped_not_implemented": 920
+    },
+    "promotedRows": 0
+  },
+  "environment": {
+    "node": "v22.22.2",
+    "renderer": "LibreOffice",
+    "metadataVersion": "26.8.0.3",
+    "actualBinaryVersion": "unverified; isolated --version timed out after 20 seconds",
+    "documentSkill": "not available in current catalog or installed plugin skills",
+    "temporaryRoot": "out/docx-visual-20260921",
+    "temporaryRootException": "absolute /out read-only; used ignored repository out/",
+    "downloads": 0,
+    "cleanup": "purged invocation-owned ignored temporary root after hashes, inspections and structural results were recorded"
+  },
+  "commands": [
+    {
+      "id": "help",
+      "args": ["help", "text", "replace"],
+      "exitCode": 0,
+      "stdoutBytes": 3487,
+      "stderr": ""
+    },
+    {
+      "id": "schema",
+      "args": ["schema", "text", "replace", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 7156,
+      "stderr": ""
+    },
+    {
+      "id": "capabilities",
+      "args": ["capabilities", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 27539,
+      "stderr": ""
+    },
+    {
+      "id": "replace",
+      "args": [
+        "text",
+        "replace",
+        "original.docx",
+        "--find",
+        "Draft",
+        "--with",
+        "Final",
+        "--first",
+        "-o",
+        "-"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 9401,
+      "stderr": ""
+    },
+    {
+      "id": "text",
+      "args": ["text", "edited.docx"],
+      "exitCode": 0,
+      "stdoutBytes": 1459,
+      "stderr": ""
+    },
+    {
+      "id": "json",
+      "args": ["comments", "list", "edited.docx", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 1596,
+      "stderr": ""
+    },
+    {
+      "id": "validation",
+      "args": ["validate", "edited.docx", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 1048,
+      "stderr": "docx: partial-validation: Partial schema and semantic validation only; no full conformance certification.\ndocx: partial-validation: Protection, signature cryptography, extension semantics and rendered layout are unvalidated.\n"
+    },
+    {
+      "id": "tables",
+      "args": ["tables", "list", "edited.docx", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 4186,
+      "stderr": ""
+    },
+    {
+      "id": "notes",
+      "args": ["notes", "list", "edited.docx", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 4343,
+      "stderr": ""
+    },
+    {
+      "id": "sections",
+      "args": ["sections", "list", "edited.docx", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 4123,
+      "stderr": ""
+    },
+    {
+      "id": "revisions",
+      "args": ["revisions", "list", "edited.docx", "--json"],
+      "exitCode": 0,
+      "stdoutBytes": 2828,
+      "stderr": ""
+    },
+    {
+      "id": "usage",
+      "args": [
+        "text",
+        "replace",
+        "original.docx",
+        "--find",
+        "Draft",
+        "--with",
+        "Final",
+        "--first",
+        "--all",
+        "--dry-run",
+        "--json"
+      ],
+      "exitCode": 2,
+      "stdoutBytes": 189,
+      "stderr": "docx: Choose exactly one text match cardinality.\n"
+    },
+    {
+      "id": "missing",
+      "args": ["text", "absent.docx", "--json"],
+      "exitCode": 3,
+      "stdoutBytes": 195,
+      "stderr": "docx: Unable to read the declared document input.\n"
+    }
+  ],
+  "rootCommands": [
+    {
+      "id": "root-help",
+      "args": ["--", "docx", "help", "text", "replace"],
+      "exitCode": 1,
+      "stdout": "\u250c   Poe - command not found \n\u2502\n\u25a0  Unknown command: docx\n\u2502\n\u2514  Run npm run dev -- --help for available commands.\n\n",
+      "stderr": ""
+    },
+    {
+      "id": "root-text",
+      "args": ["--", "docx", "text", "edited.docx"],
+      "exitCode": 1,
+      "stdout": "\u250c   Poe - command not found \n\u2502\n\u25a0  Unknown command: docx\n\u2502\n\u2514  Run npm run dev -- --help for available commands.\n\n",
+      "stderr": ""
+    },
+    {
+      "id": "root-json",
+      "args": ["--", "docx", "comments", "list", "edited.docx", "--json"],
+      "exitCode": 1,
+      "stdout": "\u250c   Poe - command not found \n\u2502\n\u25a0  Unknown command: docx\n\u2502\n\u2514  Run npm run dev -- --help for available commands.\n\n",
+      "stderr": ""
+    },
+    {
+      "id": "root-error",
+      "args": ["--", "docx", "text", "absent.docx", "--json"],
+      "exitCode": 1,
+      "stdout": "\u250c   Poe - command not found \n\u2502\n\u25a0  Unknown command: docx\n\u2502\n\u2514  Run npm run dev -- --help for available commands.\n\n",
+      "stderr": ""
+    }
+  ],
+  "render": {
+    "args": [
+      "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+      "-env:UserInstallation=file:///Users/kjopek/Workspace/poe-code-3/out/docx-visual-20260921/render-profile",
+      "--headless",
+      "--convert-to",
+      "pdf:writer_pdf_Export",
+      "--outdir",
+      "/Users/kjopek/Workspace/poe-code-3/out/docx-visual-20260921",
+      "/Users/kjopek/Workspace/poe-code-3/out/docx-visual-20260921/original.docx",
+      "/Users/kjopek/Workspace/poe-code-3/out/docx-visual-20260921/edited.docx"
+    ],
+    "timeoutSeconds": 30,
+    "stdout": "",
+    "stderr": "",
+    "status": "unverified-no-export"
+  },
+  "structural": {
+    "crc": "passed",
+    "xml": "all XML/relationship documents parsed",
+    "membership": "exact including order",
+    "dirtyParts": ["word/document.xml"],
+    "documentXml": "first Draft to Final replacement plus harmless local namespace declaration; all outside bytes retained",
+    "untouchedParts": "exact including PNG, numbering, notes and comments",
+    "preservedSubtreeCounts": {
+      "tbl": 1,
+      "drawing": 1,
+      "sectPr": 2,
+      "numPr": 2,
+      "footnoteReference": 1,
+      "endnoteReference": 1,
+      "commentRangeStart": 1,
+      "commentRangeEnd": 1,
+      "commentReference": 1,
+      "ins": 1,
+      "del": 1,
+      "br": 1
+    },
+    "logicalUnicode": "Arabic/Hebrew/Japanese/Chinese/Korean exact",
+    "rendererDefects": "none validated; no rendered page available",
+    "newRegressions": 0,
+    "probeCorrections": [
+      "Temporary bridge import had one extra parent path; corrected before execution.",
+      "Exact edited XML expectation initially omitted a valid local namespace declaration; corrected after byte-diff verification."
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "out/docx-visual-20260921/help.png",
+      "sha256": "8d397cddf772c2e39d8b0c395e9cffc622a201e0aa5aad40a8be90215eea3b27",
+      "inspected": true,
+      "route": "screenshot public-engine transcript"
+    },
+    {
+      "path": "out/docx-visual-20260921/json-wrapped.png",
+      "sha256": "696fb723e7d8f09be2547d4e0e56df490ab06d01ba93b459446f02dec0706432",
+      "inspected": true,
+      "route": "screenshot public-engine transcript"
+    },
+    {
+      "path": "out/docx-visual-20260921/json.png",
+      "sha256": "e9f3ad6c8562df2d0853b714aecb2018f1046a8931e2cb76126afae0a07632eb",
+      "inspected": true,
+      "route": "screenshot public-engine transcript"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-error.png",
+      "sha256": "fa089ee95314d8d85020c7c731cbf2c19d0b9ff5a9ec37645ae4ebff73b9dd74",
+      "inspected": true,
+      "route": "screenshot-poe-code"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-help.png",
+      "sha256": "09ff50159feb096aecf0071fea7bf3435cdb2c1d6fe98e7489cf22d667ccbaeb",
+      "inspected": true,
+      "route": "screenshot-poe-code"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-json.png",
+      "sha256": "24cf4fb582e9b36a33ec5ef34dc436a2665f0e3381358a8b79ef1f0538931bb0",
+      "inspected": true,
+      "route": "screenshot-poe-code"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-text.png",
+      "sha256": "3cb93f075cdc2905791118ee88d15556c3ee48c526dfbca13cbdc3f3591aa117",
+      "inspected": true,
+      "route": "screenshot-poe-code"
+    },
+    {
+      "path": "out/docx-visual-20260921/text-wrapped.png",
+      "sha256": "c132a96e92e142f3691e8c7e7fd2dec660052705facf82156939adaee4fc1a7d",
+      "inspected": true,
+      "route": "screenshot public-engine transcript"
+    },
+    {
+      "path": "out/docx-visual-20260921/text.png",
+      "sha256": "9fff2ced035e93e50332906bd712e029691085402fbc38e48da165e374eb4650",
+      "inspected": true,
+      "route": "screenshot public-engine transcript"
+    },
+    {
+      "path": "out/docx-visual-20260921/usage.png",
+      "sha256": "ddcc21d290090b2e6f948d41525b874be920df8b9c43d642c9d994ee14cd047b",
+      "inspected": true,
+      "route": "screenshot public-engine transcript"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "out/docx-visual-20260921/author.py",
+      "bytes": 5623,
+      "sha256": "5ce762641e31ad990832ca13de8ddc91b56d2ab05f51d8191d75e2330aab0430"
+    },
+    {
+      "path": "out/docx-visual-20260921/capture.mjs",
+      "bytes": 301,
+      "sha256": "8f857c04d4fccbbfa04ce01f209f5b9d0f4b7f9dc0b6e8cd171eb448cb055e56"
+    },
+    {
+      "path": "out/docx-visual-20260921/edited.docx",
+      "bytes": 9401,
+      "sha256": "7d02ee290823f9b714230e6bb35ad4eec27d27ca6e9987af49305f62d2e8e218"
+    },
+    {
+      "path": "out/docx-visual-20260921/original.docx",
+      "bytes": 3658,
+      "sha256": "5ade56366c94718affd6c196a13899a593faa5c82c82a9fee8e3eec476ff5301"
+    },
+    {
+      "path": "out/docx-visual-20260921/probe.mjs",
+      "bytes": 2164,
+      "sha256": "5e46d66e822ebb75b5cbbc3eca52bddf4882b4c115b1a1bc1a219a1a015dedfb"
+    }
+  ],
+  "checks": {
+    "workspaceBuild": "passed; 5 declared build tasks",
+    "rootPredev": "passed; 94 maintained turbo tasks and root bundle",
+    "workspaceLint": "passed; 1 type-only unused-variable warning",
+    "workspaceUnit": {
+      "status": "passed",
+      "command": "npm test --workspace=docx",
+      "files": 254,
+      "tests": 5198,
+      "skipped": 0,
+      "durationSeconds": 237.3
+    },
+    "ownedFormatting": "passed",
+    "whitespace": "passed"
+  },
+  "unverified": [
+    "DOCX page wrapping/page breaks/clipping/graphics",
+    "list and note visual placement",
+    "comment balloons and revision interaction",
+    "document RTL/CJK glyphs/wrapping/direction",
+    "repair warnings and desktop Word opening",
+    "skill-based renderer route",
+    "root docx dispatch"
+  ],
+  "delivery": {
+    "localCommit": "reported after commit",
+    "pushed": false,
+    "released": false
+  },
+  "logs": [
+    {
+      "path": "out/docx-visual-20260921/help-capture.log",
+      "sha256": "b15e6f57c4e6d253978ae9a7d25c5ed74f2cda09ba95780b112416e28951f6cb"
+    },
+    {
+      "path": "out/docx-visual-20260921/json-capture.log",
+      "sha256": "40480338ed894b9be287fb3a586ca6f7ae58d376fda5d1381ed620fc9a521a00"
+    },
+    {
+      "path": "out/docx-visual-20260921/json-wrapped.log",
+      "sha256": "ebe75f9a12247d99f996db474598675fe6d7a97dd91a39ca0a02b820872b9f12"
+    },
+    {
+      "path": "out/docx-visual-20260921/lint.log",
+      "sha256": "db28f6e0d30c11b7c9d07eec6133b6663f69c355d523632cf4755f87705c81c2"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-error.log",
+      "sha256": "25aad7a80d0122f696cbee7ea350677037833810856714b55a0074f2ab549310"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-help.log",
+      "sha256": "7109faeb35f9edcf4e1f198446a89c03246333069c7ac6104d1cae90ec7c6617"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-json.log",
+      "sha256": "0d97f3eaa9497806bd2d204eb5b3d0bf7d26b56c4c5cecbbca794cc258d27c1a"
+    },
+    {
+      "path": "out/docx-visual-20260921/root-text.log",
+      "sha256": "df60624fb92169093253d543057ade1e28d9ff9897f9e75dd8ac485f27362eba"
+    },
+    {
+      "path": "out/docx-visual-20260921/text-capture.log",
+      "sha256": "569d7f201068a61f9509d1f1e87fad277d62ddaf913ae9e74067821e825d53a0"
+    },
+    {
+      "path": "out/docx-visual-20260921/text-wrapped.log",
+      "sha256": "69cb971ab30efd41316b03153a79854ac80c942c1324c5238c1266a699f1e0c2"
+    },
+    {
+      "path": "out/docx-visual-20260921/unit.log",
+      "sha256": "3901cdd3fdb48f92bef09670915452fd038cd28a663db994d1ff81a8e93b2a44"
+    },
+    {
+      "path": "out/docx-visual-20260921/usage-capture.log",
+      "sha256": "03be69d794ac00fc7c2777db24ef05cc01d6492db713aa0f485557d658c32201"
+    }
+  ]
+}

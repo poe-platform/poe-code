@@ -489,3 +489,53 @@ pub fn design_agent_plan(
     }
     Ok(NativeJson(Value::Object(fields)))
 }
+
+#[napi(object)]
+pub struct DashboardLineBatch {
+    pub lines: Vec<Utf16String>,
+    pub remaining: Utf16String,
+}
+#[derive(Default)]
+#[napi]
+pub struct NativeDashboardLineBuffer {
+    buffer: toolcraft_design_rust::line_buffer::LineBuffer,
+}
+#[napi]
+impl NativeDashboardLineBuffer {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn prepare(&mut self, chunk: Utf16String) -> DashboardLineBatch {
+        let (lines, remaining) = self.buffer.prepare(&chunk);
+        DashboardLineBatch {
+            lines: lines.into_iter().map(Into::into).collect(),
+            remaining: remaining.into(),
+        }
+    }
+    #[napi]
+    pub fn line(&self, raw: Utf16String) -> Utf16String {
+        self.buffer.line(&raw).into()
+    }
+    #[napi]
+    pub fn line_emitted(&mut self) {
+        self.buffer.line_emitted();
+    }
+    #[napi]
+    pub fn finish(&mut self, remaining: Utf16String) {
+        self.buffer.finish(&remaining);
+    }
+    #[napi]
+    pub fn preview(&self) -> Utf16String {
+        self.buffer.preview().into()
+    }
+    #[napi]
+    pub fn has_pending(&self) -> bool {
+        self.buffer.has_pending()
+    }
+    #[napi]
+    pub fn reset_pending(&mut self) {
+        self.buffer.reset_pending();
+    }
+}

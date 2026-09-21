@@ -128,3 +128,17 @@ stdout, preserves asynchronous format scopes and observes color/theme settings.
 Small plain Markdown/JSON messages use a host path with Rust-supplied prefixes to
 avoid native transfer overhead. `stripAnsi` follows the original log cleanup policy;
 use the streaming preview filter when OSC/DCS payloads can span chunks.
+
+Stream partial agent output into stable dashboard rows:
+
+```ts
+const buffer = dashboard.createStreamingDashboardLineBuffer((text, id) => {
+  updateRow(id, text);
+});
+buffer.push("Working");
+buffer.push("…done\n");
+buffer.flush();
+```
+
+The buffer suppresses unchanged previews, removes hidden terminal strings, and
+limits retained partial output to 16,384 UTF-16 units.

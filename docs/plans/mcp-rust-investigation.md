@@ -6814,3 +6814,31 @@ in_progress; latest35624143845 pending. No current successful root publication
 verified. Foreign changes preserved. Continuous16:13:00–16:23:00 adds600s,
 total123715s(34.37h). Minimum fulfilled; full objective incomplete.
 Continue accounting after16:23:00UTC.
+
+### Transactional dashboard line buffers, 2026-09-21 16:27 UTC
+
+Missing core/native line-buffer APIs reproduced before implementation. Rust owns
+UTF-16 framing, CRLF normalization, streaming hidden-terminal filtering, omission
+policy and bounded pending text. Host owns callbacks and UUID live-row identities.
+Prepare/line/commit transactions release every native borrow before callbacks;
+reference comparisons cover thrown emitter identity, nested push/flush, oversized
+reentrancy, detached methods, hidden-string split boundaries and seeded streams.
+Maintained24Rust/32native groups/80original SDK cases6files and bidirectional line
+buffer signatures pass. Full/shared lint and scoped ESLint pass (declaration file
+is ignored by ESLint and covered by TypeScript). Selected sequential uncached
+6-build closure at concurrency1 passes. Viewed out/rust-design-line-buffer.png.
+
+Packed one addon/15audited files/zero npm runtime groups. Direct/packed blocked-
+external16MiBworkers each complete previous design workloads plus8192streaming
+line buffers. Final JS heap7.01–8.16MiB; no total/native-memory bound or superiority
+claim. Input conversion and complete-line batch memory are outside retained-state
+budgets. Five alternating warmed16384-styled-line pairs measure35.74–38.34ms
+owned vs15.18–16.87ms original. Performance gate FAIL. Evidence
+out/rust-design-line-buffer-*. No original consumers integrated.
+
+Checklist4123d6b02 pushed and exact remote main verified. Release35621323705 now
+reports six hidden resource-lock-option reference failures; reproduced locally
+with a failing native test and repair in progress separately. No current successful
+root publication verified. Foreign changes preserved. Continuous16:23:00–16:27:00
+adds240s,total123955s(34.43h). Minimum fulfilled; full objective incomplete.
+Continue accounting after16:27:00UTC.

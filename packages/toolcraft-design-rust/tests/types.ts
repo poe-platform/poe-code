@@ -51,11 +51,36 @@ type Logging = Pick<
 const loggingOriginal: Logging = design;
 const loggingOwn: Pick<typeof design, keyof Logging> = null as unknown as Logging;
 void [loggingOriginal, loggingOwn];
-type Visual = Pick<typeof originalDesign,"color"|"text"|"typography"|"brands"|"brand"|"dark"|"light"|"getTheme"|"resolveThemeName"|"resetThemeCache">;
-const visualOriginal:Visual=design;
-const visualOwn:Pick<typeof design,keyof Visual>=null as unknown as Visual;
-void[visualOriginal,visualOwn];
-type Plans=Pick<typeof originalDesign.acp,"formatAgentPlan"|"renderAgentPlan"|"getAcpWriter"|"withAcpWriter">;
-const plansOriginal:Plans=design.acp;
-const plansOwn:Pick<typeof design.acp,keyof Plans>=null as unknown as Plans;
-void[plansOriginal,plansOwn];
+type Visual = Pick<
+  typeof originalDesign,
+  | "color"
+  | "text"
+  | "typography"
+  | "brands"
+  | "brand"
+  | "dark"
+  | "light"
+  | "getTheme"
+  | "resolveThemeName"
+  | "resetThemeCache"
+>;
+const visualOriginal: Visual = design;
+const visualOwn: Pick<typeof design, keyof Visual> = null as unknown as Visual;
+void [visualOriginal, visualOwn];
+type Plans = Pick<
+  typeof originalDesign.acp,
+  "formatAgentPlan" | "renderAgentPlan" | "getAcpWriter" | "withAcpWriter"
+>;
+const plansOriginal: Plans = design.acp;
+const plansOwn: Pick<typeof design.acp, keyof Plans> = null as unknown as Plans;
+void [plansOriginal, plansOwn];
+
+const ownLines: typeof originalDesign.dashboard.createDashboardLineBuffer =
+  design.dashboard.createDashboardLineBuffer;
+const originalLines: typeof design.dashboard.createDashboardLineBuffer =
+  null as unknown as typeof originalDesign.dashboard.createDashboardLineBuffer;
+const ownStreamingLines: typeof originalDesign.dashboard.createStreamingDashboardLineBuffer =
+  design.dashboard.createStreamingDashboardLineBuffer;
+const originalStreamingLines: typeof design.dashboard.createStreamingDashboardLineBuffer =
+  null as unknown as typeof originalDesign.dashboard.createStreamingDashboardLineBuffer;
+void [ownLines, originalLines, ownStreamingLines, originalStreamingLines];

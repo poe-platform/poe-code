@@ -6,3 +6,5 @@ pub mod palette;
 pub mod preview;
 pub mod template;
 pub mod terminal;
+
+pub mod line_buffer;

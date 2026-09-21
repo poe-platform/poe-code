@@ -9,11 +9,19 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
-        if(importer===path("../toolcraft-design/src/dashboard/terminal-width.test.ts")&&name==="./terminal-width.js")return path("dist/terminal.js");
-        if(importer===path("../toolcraft-design/src/acp/plan.test.ts")){
-          if(name==="./plan.js"||name==="./writer.js")return path("dist/acp.js");
-          if(name==="../internal/output-format.js")return path("dist/logging.js");
-          if(name==="../dashboard/ansi.js")return path("dist/terminal.js");
+        if (importer === path("../toolcraft-design/src/dashboard/streaming-line-buffer.test.ts")) {
+          if (name === "./line-buffer.js") return path("dist/line-buffer.js");
+          if (name === "./output-preview.js") return path("dist/index.js");
+        }
+        if (
+          importer === path("../toolcraft-design/src/dashboard/terminal-width.test.ts") &&
+          name === "./terminal-width.js"
+        )
+          return path("dist/terminal.js");
+        if (importer === path("../toolcraft-design/src/acp/plan.test.ts")) {
+          if (name === "./plan.js" || name === "./writer.js") return path("dist/acp.js");
+          if (name === "../internal/output-format.js") return path("dist/logging.js");
+          if (name === "../dashboard/ansi.js") return path("dist/terminal.js");
         }
         if (
           importer === path("../toolcraft-design/src/components/color.test.ts") &&
@@ -35,6 +43,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft-design/src/dashboard/streaming-line-buffer.test.ts"),
       path("../toolcraft-design/src/dashboard/terminal-width.test.ts"),
       path("../toolcraft-design/src/acp/plan.test.ts"),
       path("../toolcraft-design/src/components/color.test.ts"),

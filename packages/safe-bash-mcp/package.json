@@ -7,19 +7,37 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist", "LICENSE"],
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:@poe-platform/safe-bash --outfile=dist/index.js && rollup dist/index.d.ts --file dist/index.d.ts --format es --external @poe-platform/safe-bash/contracts --plugin dts={respectExternal:true}",
     "test:unit": "cd ../.. && vitest run packages/safe-bash-mcp/src",
     "test": "cd ../.. && vitest run packages/safe-bash-mcp/src",
     "lint": "eslint src && tsc --noEmit"
   },
-  "dependencies": { "tiny-mcp-client": "*", "mcp-oauth": "*", "toolcraft-schema": "*", "@poe-platform/safe-bash": "*" },
+  "dependencies": {
+    "tiny-mcp-client": "*",
+    "mcp-oauth": "*",
+    "toolcraft-schema": "*",
+    "@poe-platform/safe-bash": "*"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/safe-bash-mcp"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./mcp": "."
+      }
+    }
   }
 }

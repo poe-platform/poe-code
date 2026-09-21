@@ -1,5 +1,8 @@
 # safe-bash-mcp
 
+Install `@poe-platform/safe-bash` and import this SDK from
+`@poe-platform/safe-bash/mcp`.
+
 Turn remote MCP tools into safe-bash commands using the repository's MCP client.
 Supply known schemas to skip network discovery, or leave `tools` absent to fetch
 every page automatically. Streamable HTTP and legacy HTTP/SSE endpoints are
@@ -15,7 +18,7 @@ fail preflight, including when schemas are supplied. Local process servers are
 not supported.
 
 ```ts
-import { resolveRemoteMcpSchemas } from "safe-bash-mcp";
+import { resolveRemoteMcpSchemas } from "@poe-platform/safe-bash/mcp";
 
 const schemas = await resolveRemoteMcpSchemas([
   { name: "catalog", url: "https://catalog.example/mcp" },
@@ -111,7 +114,7 @@ Compile a discovered or supplied tool to parse CLI arguments with its complete
 JSON Schema:
 
 ```ts
-import { compileToolArguments } from "safe-bash-mcp";
+import { compileToolArguments } from "@poe-platform/safe-bash/mcp";
 
 const parser = compileToolArguments(schemas[0].tools[0]);
 console.log(parser.parameters); // Exact field names, flags, descriptions and schemas
@@ -146,7 +149,7 @@ Register a generated plugin on your shell:
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
-import { remoteMcpCommands } from "safe-bash-mcp";
+import { remoteMcpCommands } from "@poe-platform/safe-bash/mcp";
 
 const shell = new Shell({ fs: createMemoryFileSystem() });
 shell.use(await remoteMcpCommands([
@@ -228,7 +231,7 @@ credential binding; response failures return nonzero status and no result JSON.
 Prepare credential configuration without reading secrets or connecting:
 
 ```ts
-import { initRemoteMcpConfiguration, createRemoteMcpManagementCommand } from "safe-bash-mcp";
+import { initRemoteMcpConfiguration, createRemoteMcpManagementCommand } from "@poe-platform/safe-bash/mcp";
 
 const servers = [{
   name: "catalog", url: "https://catalog.example/mcp",
@@ -262,7 +265,7 @@ authoritative, including an empty tool list.
 Bind configuration explicitly when preparing runtime commands:
 
 ```ts
-import { bindRemoteMcpConfiguration, createRemoteMcpCommands } from "safe-bash-mcp";
+import { bindRemoteMcpConfiguration, createRemoteMcpCommands } from "@poe-platform/safe-bash/mcp";
 
 const runtimeServers = bindRemoteMcpConfiguration(configuration, {
   env: environmentSnapshot,
@@ -358,7 +361,7 @@ Authenticate one configured server explicitly, including when its tool schemas
 are supplied:
 
 ```ts
-import { authenticateRemoteMcpServer } from "safe-bash-mcp";
+import { authenticateRemoteMcpServer } from "@poe-platform/safe-bash/mcp";
 
 await authenticateRemoteMcpServer(configuration.servers[0], {
   binding: { env: environmentSnapshot },
@@ -427,7 +430,7 @@ imports. Static bearer/header values remain controlled by the host environment.
 Seed credentials obtained by a headless OAuth owner without computing store keys:
 
 ```ts
-import { importRemoteMcpAuthentication } from "safe-bash-mcp";
+import { importRemoteMcpAuthentication } from "@poe-platform/safe-bash/mcp";
 
 await importRemoteMcpAuthentication(server, {
   tokens: tokenResponse,
@@ -484,7 +487,7 @@ owns atomic client/grant installation and durable stale-import suppression. Canc
 Generate a reusable artifact from declarative configuration:
 
 ```ts
-import { generateRemoteMcpArtifact, remoteMcpArtifactPlugin } from "safe-bash-mcp";
+import { generateRemoteMcpArtifact, remoteMcpArtifactPlugin } from "@poe-platform/safe-bash/mcp";
 
 const generated = await generateRemoteMcpArtifact(configuration, {
   binding: { env: environmentSnapshot },

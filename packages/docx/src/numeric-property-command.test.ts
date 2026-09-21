@@ -4,7 +4,7 @@ import { applyStyleModelBatch, createDocxInspectionCommandEngine } from "./index
 import { textFixture, paragraph, textContext, w } from "../tests/fixtures/text.js";
 
 const ref = (resultHandle: string) => ({ resultHandle });
-it.each([0, null, 24, 0.5, -4])("checks SDK and CLI priority assignment %s", async (value) => {
+it.each([0, null, 24, 0.5, -4, -2147483648, 2147483647, -2147483649, 2147483648])("checks SDK and CLI priority assignment %s", async (value) => {
   const operations = [
     {
       operation: "model.document.Document.styles.get",
@@ -29,7 +29,7 @@ it.each([0, null, 24, 0.5, -4])("checks SDK and CLI priority assignment %s", asy
       arguments: {}
     }
   ];
-  const valid = value === null || (Number.isInteger(value) && value >= 0);
+  const valid = value === null || (Number.isInteger(value) && value >= -2147483648 && value <= 2147483647);
   const batch = { version: 1, operations };
   const input = await textFixture(paragraph("Original canopy"), {
     styles: {

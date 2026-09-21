@@ -54,3 +54,7 @@ The second full root lint completed its traversal of 16,928 configured files; al
 ## Independent assertion checksums
 
 A 100-read benchmark of a 256 KiB stored member reproduced 758.66 ms of assertion work in the independent bitwise CRC witness. DOCX assertions now use Node's independent native zlib checksum when provided (Node 22.2+), retaining the original bitwise witness on older hosts. No production checksum implementation is reused; framing, payload sizes, every checksum and corrupt payload rejection remain checked. A red host-path test verified the missed native witness; native/fallback check-vector and existing corruption checks pass 25 tests. The equivalent benchmark takes 5.16 ms after the change. This microbenchmark measures the assertion helper, not an additional 99% whole-suite gain. Package lint and both production/test type checks pass with six existing warnings.
+
+## Signed native priority transport checks
+
+The ongoing complete run reproduced the older command test rejecting priority -4. Current native setters deliberately admit the signed 32-bit interval (see b0e3cdb53), and existing native admission checks already preserve negative priorities. The command test now checks SDK/CLI parity for -4, both inclusive signed limits and both immediately outside limits, retaining null, zero, positive and fractional controls. All nine cases pass through the maintained exact-file route; no production semantics were changed.

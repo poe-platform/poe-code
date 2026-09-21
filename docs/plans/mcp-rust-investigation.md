@@ -5615,3 +5615,33 @@ reported distinctly from delivery; successful publication remains unverified.
 Schema62b31535a exact remote-main verified. Config foundation in progress remains
 uncommitted; unrelated concurrent commits/files preserved. Continuous10:53:16–
 11:00:15 adds419s,total104665s (29.07h). Continue accounting after11:00:15 UTC.
+
+### Config Rust foundation, 2026-09-21 11:03 UTC
+
+Added private @poe-code/poe-code-config-rust with ./core and root surfaces for scopes,
+config store, normalization/merge, readonly/extension reads, atomic recovery/write,
+inspection, runtime/memory/provider adapters and callbacks. Rust owns document/scope
+policy over opaque handles and primitive coercion; owned extension parsing and
+resolution embedded in one addon. Node retains object identity/effects/I/O/custom
+JSON parsers/default cloning and current runtime/memory/provider adapters. No
+production imports change. Configured-service migration,state registries and
+TypeScript schema compiler remain absent,so full config interchangeability is not
+claimed. Missing-coercion-module/native-package reds precede applicable additions;
+a getter corpus red exposed double field.type reads,now snapshot once per coercion.
+
+Maintained5Rust cases,3native groups,125original references/5files,covered
+bidirectional public types,fmt/clippy/hostESLint pass. Uncached declared selected
+116workspaces/16builds/354edges passes. Packed49JS/declarations,one addon,zero
+runtime groups/external imports. Direct/packed16MiB-old-generation workers each
+complete4096merges/4096coercions/128sets/128gets,one memfs store. Final JS heaps
+11.43/11.56MiB,RSS77.1/79.1MiB; not a total/native memory bound. Five alternating
+warmed64memfs sets/gets+256runtime merges: originalwall5.84–7.64ms/CPU7.99–14.66ms
+versus ownwall13.08–16.70ms/CPU16.00–35.75ms; slower each pair,scoped performance
+FAIL. Foreign callbacks are expensive; planned plain-data crossing optimization
+must preserve getters and opaque identity. Evidence out/rust-poe-config-*.
+
+Client2096f50df exact remote-main verified,release35591743711 pending; prior registry
+release35583768081 failed as recorded,successful publication unverified. Concurrent
+OAuth files preserved. Continuous11:00:15–11:03:44 adds209s,total104874s (29.13h).
+Minimum fulfilled; full closure/runtime/platform/performance objective incomplete.
+Continue accounting after11:03:44 UTC.

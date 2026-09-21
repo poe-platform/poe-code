@@ -875,3 +875,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     closes, with full applicable guidance/results/resources/falsey JSON/nested
     metadata/exact005930. Inspect the successful summary screenshot and purge
     owned synthetic evidence.
+
+77. Supply private class environment getters and hidden outer binding credential/
+    configuration byte and tool-limit fields. Across actual HTTP/SSE schema,
+    generated-tool, resource, SDK-auth, recreated-artifact, management-auth and
+    automatic artifact-discovery routes, require forty-two invalid-limit failures
+    with zero transport requests. Fourteen positive sessions must use the original
+    environment; sixty-six original private environment reads occur across all
+    preflight/credential guards. Require four offline captures, two successful
+    operations per route,38 MCP POSTs/59 total transport requests/seven HTTP
+    retirements/seven SSE closes. Retain full applicable schemas/guidance/results/
+    resources/falsey JSON/nested metadata/exact005930. Capture actual management
+    connection-status and safe limit-error JSON in the successful summary
+    screenshot. Omit absent tools from JSON initialization inputs. Purge owned
+    synthetic evidence after inspection.

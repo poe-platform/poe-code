@@ -268,7 +268,10 @@ setup, and empty optional values use public fallbacks or remain absent. Values
 for every explicit registry reference are captured before host clocks run,
 independently from later environment changes. Credential inputs
 have a 1 MiB combined byte limit (`maxCredentialBytes`); shared references count
-once. Binding produces runtime credentials separately from the configuration
+once. Binding captures declared environment, credential/configuration byte and
+tool-limit policies even when they are nonenumerable or supplied by a host
+class; invalid limits reject before store or transport access.
+Binding produces runtime credentials separately from the configuration
 used in artifacts. Do not serialize runtime server entries as configuration.
 
 OAuth uses the native provider and defaults to headless operation. Set

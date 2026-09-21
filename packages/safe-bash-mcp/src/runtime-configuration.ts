@@ -26,10 +26,17 @@ export interface BoundRemoteMcpServer extends Omit<RemoteMcpServer, "oauth"> {
   readonly oauth?: { readonly provider: OAuthClientProvider };
 }
 
+/** Own declared binding policies before resolving credentials or calling host hooks. */
+export function snapshotConfigurationBindingOptions(options: ConfigurationBindingOptions): ConfigurationBindingOptions {
+  const oauth = options.oauth;
+  return { ...options, env: options.env, maxCredentialBytes: options.maxCredentialBytes,
+    maxConfigurationBytes: options.maxConfigurationBytes, maxTools: options.maxTools,
+    ...(oauth === undefined ? {} : { oauth: snapshotOAuthBindingOptions(oauth) }) };
+}
+
 /** Resolve explicit environment references into runtime-only credentials without network or artifact writes. */
 export function bindRemoteMcpConfiguration(value: unknown, options: ConfigurationBindingOptions): BoundRemoteMcpServer[] {
-  const oauth = options.oauth;
-  options = { ...options, ...(oauth === undefined ? {} : { oauth: snapshotOAuthBindingOptions(oauth) }) };
+  options = snapshotConfigurationBindingOptions(options);
   const configuration = parseRemoteMcpConfiguration(value, options);
   const read = credentialEnvironmentReader(options);
   // Capture only this registry's references before invoking any host clock.

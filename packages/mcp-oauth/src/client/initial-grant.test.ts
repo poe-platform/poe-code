@@ -100,7 +100,7 @@ it("requires the original client ID instead of dynamically registering an import
   expect(() => createDefaultOAuthClientProvider({ client: { mode: "dynamic" }, browser: {}, initialGrant: { resource, tokens } })).toThrow("original client ID");
 });
 
-it.each(["https://user:secret@resource.example/mcp", "https://resource.example/mcp#fragment", "file:///tmp/mcp"])("rejects an invalid initial grant resource", resource => {
+it.each(["https://user:secret@resource.example/mcp", "https://resource.example/mcp#fragment", "https://resource.example/mcp#", "file:///tmp/mcp"])("rejects an invalid initial grant resource", resource => {
   expect(() => createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "app" }, browser: {}, initialGrant: { resource, tokens } })).toThrow("initial grant resource");
 });
 

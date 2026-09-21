@@ -81,7 +81,7 @@ export function createDefaultOAuthClientProvider(
     let resource: URL;
     try { resource = new URL(options.initialGrant.resource); }
     catch { throw new Error("OAuth initial grant resource must be an absolute HTTP URL"); }
-    if ((resource.protocol !== "http:" && resource.protocol !== "https:") || resource.username || resource.password || resource.hash)
+    if ((resource.protocol !== "http:" && resource.protocol !== "https:") || resource.username || resource.password || resource.href.includes("#"))
       throw new Error("OAuth initial grant resource must be an HTTP URL without credentials or fragments");
   }
   const initialGrant = options.initialGrant === undefined ? undefined : {
@@ -961,7 +961,7 @@ function isLoopbackHostname(hostname: string): boolean {
 
 function assertSecureUrl(value: string, label: string): void {
   const url = new URL(value);
-  if (url.username !== "" || url.password !== "" || url.hash !== "") {
+  if (url.username !== "" || url.password !== "" || url.href.includes("#")) {
     throw new Error(`${label} must not include credentials or fragment`);
   }
   if (url.protocol === "https:") {

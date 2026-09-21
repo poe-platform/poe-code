@@ -687,3 +687,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     silent refresh. Require twenty-four MCP POSTs/eight retired sessions/two
     rotation writes/zero consent. Inspect summary screenshot and purge only owned
     synthetic evidence.
+
+63. Pass named/empty endpoint fragments directly to native discovery hooks and
+    through host-owned expired sessions, bypassing HTTP metadata validation.
+    Require twenty safe initial-grant/discovery/stored/generated failures before
+    listener consent/credential traffic/pending writes. Complete actual dynamic
+    registration/state/S256 callback/code exchange through percent-escaped-hash
+    authorization/token/registration URLs; retain exact escaped resource query,
+    full DCR extensions, complete schema/guidance/falsey tool JSON/exact005930.
+    Recreate headless provider at expiry and require one silent rotation with the
+    original client. Require one DCR/callback/exchange/refresh, six MCP POSTs and
+    two retired sessions. Inspect summary screenshot and purge only owned evidence.

@@ -145,3 +145,53 @@ it.each(["https://user:secret@auth.example", "https://auth.example/authorize#fra
     expect(openBrowser).not.toHaveBeenCalled();
   }
 );
+
+
+it.each(["authorization_endpoint", "token_endpoint", "registration_endpoint"] as const)(
+  "rejects an empty %s fragment before consent or persistence", async field => {
+    const metadata = discovery("https://auth.example");
+    metadata.authorizationServerMetadata[field] = `https://auth.example/${field}#`;
+    const fetch = vi.fn(async () => Response.json({ access_token: "private-access", token_type: "Bearer" }));
+    const openBrowser = vi.fn(async () => { throw new Error("browser reached"); });
+    const save = vi.fn(async () => {}), clear = vi.fn(async () => {});
+    const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" },
+      browser: { openBrowser }, sessionStore: { load: async () => null, save, clear } });
+    expect(await provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+      challenge: null, discovery: metadata, fetch }))
+      .toMatchObject({ action: "fail", error: { message: expect.stringContaining("credentials or fragment") } });
+    expect(openBrowser).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled(); expect(save).not.toHaveBeenCalled(); expect(clear).not.toHaveBeenCalled();
+  }
+);
+
+it.each(["authorization_endpoint", "token_endpoint", "registration_endpoint"] as const)(
+  "rejects a stored empty %s fragment before pending refresh writes", async field => {
+    const metadata = discovery("https://auth.example");
+    metadata.authorizationServerMetadata[field] = `https://auth.example/${field}#`;
+    const session: StoredOAuthSession = { resource, authorizationServer: metadata.authorizationServer, client: { clientId: "client" },
+      tokens: { accessToken: "private-access", refreshToken: "private-refresh", tokenType: "Bearer", expiresAt: 0 },
+      discovery: { resourceMetadataUrl: metadata.resourceMetadataUrl, resourceMetadata: metadata.resourceMetadata,
+        authorizationServerMetadata: metadata.authorizationServerMetadata } };
+    const fetch = vi.fn(async () => Response.json({ access_token: "fresh", token_type: "Bearer" }));
+    const openBrowser = vi.fn(async () => { throw new Error("browser reached"); });
+    const save = vi.fn(async () => {}), clear = vi.fn(async () => {});
+    const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, allowInteractive: false,
+      browser: { openBrowser }, now: () => 1000, sessionStore: { load: async () => session, save, clear } });
+    await expect(provider.authorizeRequest!({ requestUrl: new URL(resource), headers: new Headers(), fetch }))
+      .rejects.toThrow("credentials or fragment");
+    expect(openBrowser).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled(); expect(save).not.toHaveBeenCalled(); expect(clear).not.toHaveBeenCalled();
+  }
+);
+
+it.each(["authorization_endpoint", "token_endpoint", "registration_endpoint"] as const)(
+  "retains percent-escaped hashes in direct %s metadata", async field => {
+    const metadata = discovery("https://auth.example");
+    metadata.authorizationServerMetadata[field] = "https://auth.example/path%23data?literal=%23";
+    const openBrowser = vi.fn(async () => { throw new Error("browser reached"); });
+    const fetch = vi.fn(async () => { throw new Error("unexpected credential request"); });
+    const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: { openBrowser },
+      sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } });
+    expect(await provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+      challenge: null, discovery: metadata, fetch })).toMatchObject({ action: "fail", error: { message: "browser reached" } });
+    expect(openBrowser).toHaveBeenCalledOnce(); expect(fetch).not.toHaveBeenCalled();
+  }
+);

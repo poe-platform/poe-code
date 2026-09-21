@@ -98,6 +98,9 @@ authorization and code exchange. Credentials, fragments, port zero and reserved
 OAuth callback query parameters, including `error_uri`, are rejected before binding a listener.
 Fragment rejection includes a trailing empty `#`. Empty queries and percent-escaped
 hash data remain valid and keep their exact registered spelling.
+Direct initial grants and host-supplied or stored authorization, token and
+registration endpoints also reject empty fragment components before consent or
+credential redemption. Percent-escaped hashes remain ordinary path/query data.
 `createDefaultOAuthClientProvider` also checks the configured redirect before
 creating the provider. Imported tokens that cannot be sent as HTTP header
 values fail with diagnostics that omit their contents. Omit

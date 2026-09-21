@@ -97,6 +97,12 @@ pub fn normalize_stored(value: &Value) -> Result<Option<Value>, &'static str> {
     if let Some(secret) = secret {
         fields.push(field("clientSecret", Value::String(secret.to_vec())));
     }
+    if let Some(redirect) = value.get("requestedRedirectUri") {
+        if !matches!(redirect, Value::String(_)) {
+            return Err("Invalid stored OAuth registration redirect identity");
+        }
+        fields.push(field("requestedRedirectUri", redirect.clone()));
+    }
     let method = crate::token_auth::normalize(value.get("tokenEndpointAuthMethod"))?;
     let mut registered_method = None;
     if let Some(registration) = value.get("registration") {
@@ -132,4 +138,21 @@ pub fn normalize_stored(value: &Value) -> Result<Option<Value>, &'static str> {
         ));
     }
     Ok(Some(Value::Object(fields)))
+}
+
+/// Host URL parsing supplies normalized components and equality after port/host substitution.
+pub fn redirect_pair_allowed(
+    requested_http: bool,
+    returned_http: bool,
+    requested_host: &str,
+    returned_host: &str,
+    returned_no_port: bool,
+    normalized_equal: bool,
+) -> bool {
+    requested_http
+        && returned_http
+        && ["127.0.0.1", "[::1]", "localhost"].contains(&requested_host)
+        && (requested_host == returned_host
+            || (requested_host == "127.0.0.1" && returned_host == "localhost" && returned_no_port))
+        && normalized_equal
 }

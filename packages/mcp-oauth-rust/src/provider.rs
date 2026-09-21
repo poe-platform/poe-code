@@ -27,7 +27,11 @@ pub fn normalize_client(value: &Value, configured: bool) -> Option<Value> {
     if let Some(secret) = secret {
         fields.push(property("clientSecret", Value::String(secret)));
     }
-    for key in ["registration", "tokenEndpointAuthMethod"] {
+    for key in [
+        "registration",
+        "tokenEndpointAuthMethod",
+        "requestedRedirectUri",
+    ] {
         if let Some(value) = value.get(key) {
             fields.push(property(key, value.clone()));
         }

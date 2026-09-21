@@ -1,3 +1,4 @@
+import { loopbackTarget } from "./loopback.js";
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 export function parseOAuthClientRegistration(value) {
@@ -24,6 +25,18 @@ export function normalizeStoredOAuthClient(value) {
   };
   const identity = { clientId: project(clientId), clientSecret: project(clientSecret) };
   if (unwrap(identity) === null) return null;
+  const redirect = Object.hasOwn(value, "requestedRedirectUri")
+    ? value.requestedRedirectUri
+    : undefined;
+  if (redirect !== undefined) {
+    try {
+      if (typeof redirect !== "string") throw new Error("Invalid redirect identity");
+      loopbackTarget({ redirectUri: redirect });
+    } catch {
+      throw new Error("Invalid stored OAuth registration redirect identity");
+    }
+    identity.requestedRedirectUri = redirect;
+  }
   identity.tokenEndpointAuthMethod = project(
     Object.hasOwn(value, "tokenEndpointAuthMethod") ? value.tokenEndpointAuthMethod : undefined
   );
@@ -31,4 +44,37 @@ export function normalizeStoredOAuthClient(value) {
   if (Object.hasOwn(value, "registration") && value.registration !== undefined)
     identity.registration = parseOAuthClientRegistration(value.registration);
   return unwrap(identity);
+}
+
+export function registrationMatchesRedirect(client, requestedUri, fresh = false) {
+  if (client.requestedRedirectUri !== undefined)
+    return client.requestedRedirectUri === requestedUri;
+  const redirects = client.registration?.redirect_uris;
+  if (redirects === undefined || redirects === null || redirects.length === 0) return true;
+  return redirects.some((returnedUri) => {
+    if (returnedUri === requestedUri) return true;
+    if (!fresh) return false;
+    let returned, requested;
+    try {
+      returned = new URL(returnedUri);
+      requested = new URL(requestedUri);
+    } catch {
+      return false;
+    }
+    const returnedHost = returned.hostname,
+      returnedNoPort = returned.port === "",
+      requestedHost = requested.hostname;
+    const requestedHttp = requested.protocol === "http:",
+      returnedHttp = returned.protocol === "http:";
+    returned.hostname = requestedHost;
+    returned.port = requested.port;
+    return native.registrationRedirectPairAllowed(
+      requestedHttp,
+      returnedHttp,
+      requestedHost,
+      returnedHost,
+      returnedNoPort,
+      returned.href === requested.href
+    );
+  });
 }

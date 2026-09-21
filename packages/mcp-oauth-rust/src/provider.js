@@ -1,3 +1,8 @@
+import {
+  normalizeStoredOAuthClient,
+  parseOAuthClientRegistration,
+  registrationMatchesRedirect
+} from "./registration.js";
 import { withOAuthSessionTransaction } from "./transaction.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
@@ -14,7 +19,6 @@ import {
   OAuthError
 } from "./tokens.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
-const CLIENT = ["clientId", "clientSecret", "registration", "tokenEndpointAuthMethod"];
 const TOKENS = ["accessToken", "tokenType", "expiresAt", "refreshToken", "scope"];
 const METADATA = [
   "issuer",
@@ -142,7 +146,7 @@ export function createDefaultOAuthClientProvider(options) {
     try {
       normalized = native.providerNormalizeSession(
         JSON.stringify({
-          client: project(ownEntry(value, "client"), CLIENT),
+          client: normalizeStoredOAuthClient(ownEntry(value, "client")),
           tokens: project(ownEntry(value, "tokens"), TOKENS)
         })
       );
@@ -163,10 +167,7 @@ export function createDefaultOAuthClientProvider(options) {
     }
     if (clientStore === null) return null;
     const raw = await clientStore.load(issuer);
-    const normalized =
-      raw === null
-        ? null
-        : native.providerNormalizeClient(JSON.stringify(project(raw, CLIENT)), false);
+    const normalized = raw === null ? null : normalizeStoredOAuthClient(raw);
     if (raw !== null && normalized === null) {
       await clientStore.clear(issuer);
       return null;
@@ -418,7 +419,11 @@ export function createDefaultOAuthClientProvider(options) {
       signal
     });
     const payload = await readOAuthJsonObjectResponse(response, signal);
-    const client = unwrap(native.providerRegisteredClient(JSON.stringify(payload)));
+    const registrationValue = parseOAuthClientRegistration(payload);
+    const normalized = unwrap(native.providerRegisteredClient(JSON.stringify(registrationValue)));
+    if (!registrationMatchesRedirect(normalized, redirect, true))
+      throw new Error("OAuth client registration does not match the requested redirect URI");
+    const client = { ...normalized, requestedRedirectUri: redirect };
     await saveClient(discovery.authorizationServer, client);
     return { kind: "dynamic", fromStoredRegistration: false, client };
   }

@@ -216,3 +216,34 @@ fn rejected_grants_match_rotated_refresh_tokens_and_full_provenance() {
         assert!(!same_token_grant(&current, &value(rejected)));
     }
 }
+
+#[test]
+fn stored_clients_retain_explicit_registration_redirect_identity() {
+    let input =
+        value(r#"{"clientId":"c","requestedRedirectUri":"http://localhost:39119/cb?app=one"}"#);
+    let normalized = mcp_oauth_rust::registration::normalize_stored(&input)
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        normalized.get("requestedRedirectUri"),
+        input.get("requestedRedirectUri")
+    );
+}
+
+#[test]
+fn fresh_redirect_port_aliases_never_change_scheme_host_path_or_query() {
+    use mcp_oauth_rust::registration::redirect_pair_allowed as allowed;
+    assert!(allowed(true, true, "127.0.0.1", "localhost", true, true));
+    assert!(allowed(true, true, "[::1]", "[::1]", true, true));
+    assert!(!allowed(true, true, "127.0.0.1", "localhost", false, true));
+    assert!(!allowed(false, true, "localhost", "localhost", true, true));
+    assert!(!allowed(
+        true,
+        true,
+        "attacker.example",
+        "attacker.example",
+        true,
+        true
+    ));
+    assert!(!allowed(true, true, "localhost", "localhost", true, false));
+}

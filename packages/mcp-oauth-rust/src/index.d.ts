@@ -209,6 +209,7 @@ export interface OAuthClientRegistration extends Record<string, unknown> {
 export declare function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration;
 
 export interface StoredOAuthClient {
+  requestedRedirectUri?: string;
   clientId: string;
   clientSecret?: string;
   registration?: OAuthClientRegistration;

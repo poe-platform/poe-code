@@ -3861,3 +3861,29 @@ Focused lint/types and uncached package build closure are verified for this
 integration. Evidence out/rust-oauth-native-queue-provider-*. Original production
 imports remain unchanged; this is internal integration inside the additive Rust
 package only. Full rewrite/minimum24-hour effort/release publication remain open.
+
+### OAuth Rust registration redirect ownership, 2026-09-21 04:52 UTC
+
+Portable/native reds expose the newer exact registration redirect contract.
+Stored clients now retain validated requestedRedirectUri before authentication
+admission. Fresh registration matching allows only defined loopback host/port
+normalization while preserving scheme, path, query, credentials and fragment;
+saved identities remain exact. Rust owns the normalized-component match policy,
+while Node supplies WHATWG URL parsing through the existing Rust loopback target
+admission. Provider session/client loads use full own registration normalization;
+new DCR validates metadata, checks redirect binding and saves exact request identity.
+Rust client-cache normalization preserves that field.
+
+All43 Rust cases and13 focused native provider/client groups pass. The maintained
+whole native route now passes all76 groups. Its complete original suite fails80/
+359 cases across12 files with279 passing; it reaches the original stage but does
+not reach the final types stage. Initial/relative grants, namespaces/backend locks,
+resource identity, imported registration/configured auth-method and scope binding
+remain required fixes. No filtering or complete-unit acceptance is claimed.
+Focused lint/fmt/clippy/types and uncached113-workspace/8-build/338-edge closure
+pass. Packed artifact/16MiB workers retain the cumulative callback/scope/token/
+registration/client/transaction workloads. Evidence out/rust-oauth-stored-redirect-*.
+
+Provider native-queue0d6e36a2b push succeeded; remote verification continues
+separately. Root release publication and full goal/minimum24-hour effort remain
+unfulfilled. Concurrent original resource-identity work remains untouched.

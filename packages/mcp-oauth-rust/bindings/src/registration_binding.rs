@@ -123,3 +123,22 @@ pub fn normalize_stored_client(text: Utf16String) -> Result<NativeJson> {
         value,
     )])))
 }
+
+#[napi]
+pub fn registration_redirect_pair_allowed(
+    requested_http: bool,
+    returned_http: bool,
+    requested_host: String,
+    returned_host: String,
+    returned_no_port: bool,
+    normalized_equal: bool,
+) -> bool {
+    mcp_oauth_rust::registration::redirect_pair_allowed(
+        requested_http,
+        returned_http,
+        &requested_host,
+        &returned_host,
+        returned_no_port,
+        normalized_equal,
+    )
+}

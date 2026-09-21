@@ -4122,3 +4122,35 @@ Root35564374719 remains pending; current root publication is unverified. Continu
 active05:22:35–05:23:55 adds80s, bringing conservative effort to85,918s (23.87h).
 Minimum24h remains unfulfilled by482s; full rewrite remains open. Active work
 continues after05:23:55 UTC.
+
+### OAuth provider scope isolation, 2026-09-21 05:28 UTC
+
+Portable and original SDK reds precede Rust cached/refresh/authorization scope
+profile gates. Profiles compare normalized case-sensitive sets; cached tokens
+fallback to stored requestedScope when granted scope is missing. Refresh retains
+the previous scope when omitted, rejects broader/narrower/differently-cased grants
+without replacing the pending-outcome marker, and preserves rotating token fallback.
+Code exchange rejects an explicitly different supplied scope. Host snapshots
+normalized client name/scope/software metadata at provider construction, preserving
+source property-read order; later caller mutation cannot change the requested scope.
+
+All46 Rust cases and77 native groups pass. Complete scope-isolation19-case file,
+token-auth-provider11 and registration-metadata19 files pass (49/49). Own type
+fixtures, focused maintained build/lint/fmt/clippy/formatting and packed checks pass.
+Full maintained unit route remains failing:347/373 original cases pass,26 fail
+across4 files. During work the original resource-identity suite added6 cases; its
+required storage rewrite remains unfinished. Interaction has3 explicit authenticate
+failures, with its broader-code-exchange and captured-scope cases now passing.
+Issuer/expired-secret trust and obsolete redirect replacement remain required.
+No complete provider acceptance is claimed. Direct/packed16MiB workers each add
+12,288 scope gates to prior workloads, checking exact normalized sets, rejected
+refresh widening and omitted exchange scope. Audit covers19 JS/declaration files,
+one addon and zero runtime dependency groups. Endpoint heaps~14MB and parent-
+inclusive RSS are not isolated leak/peak/advantage evidence. No scope speed advantage
+is claimed. Evidence out/rust-oauth-provider-scope-*, including a mixed scope/
+interaction run that correctly retains the3 required authenticate failures.
+
+Authentication7ab4a11d8 is pushed. Root35564441063 remains pending; publication
+remains unverified. Continuous active05:23:55–05:28:09 adds254s, bringing conservative
+effort to86,172s (23.94h). Minimum24h remains unfulfilled by228s; full rewrite remains
+incomplete. Active work continues after05:28:09 UTC.

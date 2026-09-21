@@ -364,3 +364,18 @@ pub fn provider_assert_session_method(text: Utf16String) -> Result<NativeJson> {
             .map_err(str::to_owned),
     ))
 }
+
+#[napi]
+pub fn provider_assert_scope(text: Utf16String, phase: u32) -> Result<NativeJson> {
+    let input = parse(&text)?;
+    let check = if phase == 2 {
+        mcp_oauth_rust::scope::assert_authorization(input.get("granted"), input.get("requested"))
+    } else {
+        mcp_oauth_rust::scope::assert_profile(
+            input.get("granted"),
+            input.get("requested"),
+            phase == 1,
+        )
+    };
+    Ok(result(check.map(|()| Value::Null).map_err(str::to_owned)))
+}

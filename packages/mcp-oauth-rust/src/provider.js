@@ -112,14 +112,14 @@ function clientOptions(client) {
   };
 }
 function clientMetadata(client) {
-  const metadata = client.metadata;
-  if (metadata === undefined) return null;
-  return Object.fromEntries(
-    ["clientName", "scope", "softwareId", "softwareVersion"].map((key) => [
-      key,
-      scalar(metadata[key])
-    ])
-  );
+  if (client.metadata === undefined) return null;
+  const normalize = (value) => (value === undefined ? undefined : value.trim() || undefined);
+  return {
+    clientName: normalize(client.metadata.clientName),
+    scope: normalizeOAuthScope(client.metadata.scope),
+    softwareId: normalize(client.metadata.softwareId),
+    softwareVersion: normalize(client.metadata.softwareVersion)
+  };
 }
 export function createOAuthClientProvider(options) {
   return Object.hasOwn(options, "provider")
@@ -129,7 +129,8 @@ export function createOAuthClientProvider(options) {
 export function createDefaultOAuthClientProvider(options) {
   assertPersistenceNamespace(options.persistenceNamespace);
   loopbackTarget(options.browser);
-  const requestedScope = normalizeOAuthScope(options.client.metadata?.scope);
+  const resolvedClientMetadata = clientMetadata(options.client);
+  const requestedScope = resolvedClientMetadata?.scope;
   const requestedTokenMethod =
     unwrap(
       native.providerTokenMethod(
@@ -372,6 +373,16 @@ export function createDefaultOAuthClientProvider(options) {
         )
           force = false;
         const resolved = discoveryFor(discovery, session);
+        if (session?.tokens !== undefined)
+          unwrap(
+            native.providerAssertScope(
+              JSON.stringify({
+                granted: session.tokens.scope ?? session.requestedScope,
+                requested: requestedScope
+              }),
+              0
+            )
+          );
         if (
           session !== null &&
           (session.tokens !== undefined || session.refreshState === "pending")
@@ -485,13 +496,26 @@ export function createDefaultOAuthClientProvider(options) {
         }
         const updated = {
           ...session,
-          tokens: { ...tokens, refreshToken: tokens.refreshToken ?? session.tokens.refreshToken },
+          tokens: {
+            ...tokens,
+            refreshToken: tokens.refreshToken ?? session.tokens.refreshToken,
+            scope: tokens.scope ?? session.tokens.scope
+          },
           discovery: {
             resourceMetadataUrl: discovery.resourceMetadataUrl,
             resourceMetadata: discovery.resourceMetadata,
             authorizationServerMetadata: discovery.authorizationServerMetadata
           }
         };
+        unwrap(
+          native.providerAssertScope(
+            JSON.stringify({
+              granted: updated.tokens.scope ?? session.requestedScope,
+              requested: requestedScope
+            }),
+            1
+          )
+        );
         await sessionStore.save(resource, updated);
         return updated;
       } finally {
@@ -532,10 +556,7 @@ export function createDefaultOAuthClientProvider(options) {
       return plan;
     }
     if (!Object.hasOwn(plan, "action") || plan.action !== "register") return plan;
-    const body = native.providerRegistrationBody(
-      JSON.stringify(clientMetadata(options.client)),
-      redirect
-    );
+    const body = native.providerRegistrationBody(JSON.stringify(resolvedClientMetadata), redirect);
     const registrationMethod = unwrap(
       native.providerRegistrationMethod(
         JSON.stringify({ metadata: project(metadata, METADATA), method: requestedTokenMethod })
@@ -620,7 +641,7 @@ export function createDefaultOAuthClientProvider(options) {
                 clientId: client.client.clientId,
                 redirectUri: loopback.redirectUri,
                 codeChallenge: challenge,
-                clientMetadata: clientMetadata(options.client)
+                clientMetadata: resolvedClientMetadata
               }),
               randomBytes(16)
             )
@@ -641,6 +662,12 @@ export function createDefaultOAuthClientProvider(options) {
             signal,
             now
           });
+          unwrap(
+            native.providerAssertScope(
+              JSON.stringify({ granted: tokens.scope, requested: requestedScope }),
+              2
+            )
+          );
           const complete = { ...pending, tokens };
           await sessionStore.save(resource, complete);
           return complete;

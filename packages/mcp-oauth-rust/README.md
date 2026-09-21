@@ -120,3 +120,9 @@ through code exchange and refresh. Discovery method lists are bounded and checke
 before credentials are sent. Dynamic registration prefers public authentication,
 then Basic, then POST when supported; explicit selections must be advertised.
 Cached grants with a different explicitly selected method are rejected.
+
+Explicit scope profiles compare normalized case-sensitive sets before cached grants
+are attached. Refresh retains the previous scope when omitted and rejects changed
+profiles while leaving the pending outcome marker intact. Code exchange rejects a
+supplied broader scope. Client metadata is captured at provider creation, so later
+caller mutation cannot change the authorization request's scope.

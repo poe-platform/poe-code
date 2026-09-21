@@ -500,3 +500,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Require four metadata GETs, two complete calls/two distinct retired sessions,
     private records and removed own claims. Inspect safe summary output and purge
     only owned native records and synthetic evidence.
+
+45. Gate host atomic import completion after actual HTTP metadata discovery.
+    Require SDK caller cancellation and actual150ms SDK/CLI complete-operation
+    deadlines to settle before host release, retaining the original reason or
+    safe nonzero TimeoutError/empty stdout. Release two hooks to finish native
+    atomic encrypted writes despite cancellation; retain complete original
+    client/grants/discovery and authorize full actual HTTP command results from
+    them. Release two other hooks to reject late; require observed failures, no
+    writes and zero unhandled rejection. Count eight metadata GETs and two
+    complete calls/two distinct retired sessions. Verify private records and
+    removed claims. Host work may finish later; do not claim interruption or
+    rollback. Compile a strict consumer of public waitForOAuthOperation without
+    deep imports/casts, inspect safe summary output and purge owned evidence.

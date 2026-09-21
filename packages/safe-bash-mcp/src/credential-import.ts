@@ -1,5 +1,5 @@
 import { snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
-import { createResourceBoundOAuthStores, normalizeOAuthScope, normalizeStoredOAuthClient, parseOAuthClientRegistration, parseOAuthTokenGrant,
+import { createResourceBoundOAuthStores, normalizeOAuthScope, normalizeStoredOAuthClient, parseOAuthClientRegistration, parseOAuthTokenGrant, waitForOAuthOperation,
   type OAuthTokenGrantImportOptions, type StoredOAuthSession } from "mcp-oauth";
 import { discoverOAuthMetadata } from "tiny-mcp-client";
 import { isJsonValue } from "toolcraft-schema";
@@ -96,8 +96,9 @@ export async function importRemoteMcpAuthentication(
     ...(scope === undefined ? {} : { requestedScope: scope }),
     discovery: { resourceMetadataUrl: discovery.resourceMetadataUrl, resourceMetadata: discovery.resourceMetadata,
       authorizationServerMetadata: discovery.authorizationServerMetadata } };
-  if (importSession !== undefined) await importSession.call(oauth, server, session, { signal, timeoutMs });
-  else await nativeStores!.importSession(session, { signal, timeoutMs });
+  const persistence = importSession !== undefined ? importSession.call(oauth, server, session, { signal, timeoutMs })
+    : nativeStores!.importSession(session, { signal, timeoutMs });
+  await waitForOAuthOperation(persistence, signal);
   signal.throwIfAborted();
   return { name, url, imported: true };
 }

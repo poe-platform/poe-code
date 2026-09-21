@@ -385,7 +385,7 @@ Use `mcp import catalog < /credentials.json` or
 Paths belong to the safe-bash virtual filesystem; `--file -` explicitly selects
 stdin. `--json` emits the public import summary. `--timeout-ms` bounds input,
 discovery and persistence (default 30,000 ms), including stalled host metadata
-cache callbacks. `mcp import --help` shows payload
+cache and atomic import callbacks. `mcp import --help` shows payload
 and expiry guidance. Management `options.credentialImport` supplies SDK settings
 and otherwise uses the authentication binding's persistence or shell environment.
 `--max-import-bytes <bytes>` overrides the import budget (default 1 MiB),
@@ -422,7 +422,7 @@ and lock limits are 30 seconds (`requestTimeoutMs` and `timeoutMs`). Input defau
 to 1 MiB (`maxImportBytes`), with token/DCR JSON separately bounded to 64 KiB.
 Malformed JSON diagnostics never quote input. Host-owned persistence requires
 `binding.oauth.importSession(server, session, { signal, timeoutMs })`; that hook
-owns atomic client/grant installation and durable stale-import suppression.
+owns atomic client/grant installation and durable stale-import suppression. Cancellation settles the caller while continuing to observe host completion. Host persistence can still finish afterward; an already completed write is retained. The hook must observe the supplied signal to stop its own work.
 
 Generate a reusable artifact from declarative configuration:
 

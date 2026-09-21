@@ -31,6 +31,7 @@ const verifier = createJwksTokenVerifier({
 - `generateCodeVerifier()` and `generateCodeChallenge(...)`: PKCE helpers.
 - `normalizeStoredOAuthClient(value)`: normalize a saved client identity, full registration and ownership marker.
 - `normalizeOAuthScope(value)`: validate scope syntax and normalize its case-sensitive set.
+- `waitForOAuthOperation(promise, signal?)`: settle the caller on cancellation while continuing to observe host completion.
 - `canonicalizeResourceIndicator(value)`: resource indicator canonicalization.
 - `createJwksTokenVerifier(options)`: JWKS-backed access-token verifier for MCP servers.
 - `OAuthError`: OAuth HTTP error type with status, retryability and known-outcome fields.

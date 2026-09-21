@@ -303,3 +303,42 @@ it("settles an import deadline while its selected OAuth discovery cache read wai
     expect(f.fetch).not.toHaveBeenCalled(); expect(await f.stores.sessionStore.load(resource)).toBeNull();
   } finally { release.resolve(); await pending; timeout.mockRestore(); }
 });
+
+it.each(["caller cancellation", "operation deadline"] as const)("settles %s while a host atomic import hook waits", async mode => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const caller = new AbortController(), deadline = new AbortController(), reason = new Error("original import cancellation");
+  const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(deadline.signal);
+  const importSession = vi.fn(async () => { entered.resolve(); await release.promise; });
+  const pending = sdk.importRemoteMcpAuthentication(dynamic, payload, {
+    signal: caller.signal, fetch: f.fetch, requestTimeoutMs: 1000,
+    binding: { env: {}, oauth: { now: () => 10_000, importSession } }
+  }).catch(error => error);
+  try {
+    await entered.promise;
+    (mode === "caller cancellation" ? caller : deadline).abort(reason);
+    expect(await Promise.race([pending, new Promise(resolve => setImmediate(() => resolve("still waiting for host import")))])).toBe(reason);
+    expect(importSession).toHaveBeenCalledOnce();
+    expect(f.fetch).toHaveBeenCalledTimes(2);
+    expect(await f.stores.sessionStore.load(resource)).toBeNull();
+  } finally { release.resolve(); await pending; timeout.mockRestore(); }
+});
+
+it("observes a host atomic import rejection after caller cancellation without replacing its reason", async () => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), completion = Promise.withResolvers<void>();
+  const controller = new AbortController(), reason = new Error("original import canceled"), unhandled = vi.fn();
+  process.on("unhandledRejection", unhandled);
+  const importSession = vi.fn(() => { entered.resolve(); return completion.promise; });
+  const pending = sdk.importRemoteMcpAuthentication(dynamic, payload, {
+    signal: controller.signal, fetch: f.fetch, binding: { env: {}, oauth: { now: () => 10_000, importSession } }
+  }).catch(error => error);
+  try {
+    await entered.promise; controller.abort(reason);
+    expect(await pending).toBe(reason);
+    completion.reject(new Error("late host failure"));
+    await new Promise(resolve => setImmediate(resolve));
+    expect(unhandled).not.toHaveBeenCalled();
+    expect(await pending).toBe(reason);
+    expect(importSession).toHaveBeenCalledOnce();
+    expect(f.fetch).toHaveBeenCalledTimes(2);
+  } finally { completion.resolve(); await pending; process.off("unhandledRejection", unhandled); }
+});

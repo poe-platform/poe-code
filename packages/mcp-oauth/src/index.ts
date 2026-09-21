@@ -1,4 +1,5 @@
 export { normalizeOAuthScope } from "./client/scope.js";
+export { waitForOAuthOperation } from "./client/cancellable-operation.js";
 export { parseOAuthTokenGrant } from "./client/token-grant.js";
 export type { OAuthTokenGrantImportOptions } from "./client/token-grant.js";
 export {

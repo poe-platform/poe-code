@@ -58,3 +58,16 @@ inspection.
    and rpcMethod provenance. The same 404/405 completion failure must not select
    another transport. Stalled completion must respect caller cancellation and
    the configured request deadline.
+
+10. With built packages, register mcp management in a real safe-bash Shell and
+    authenticate a supplied-schema OAuth server against a local synthetic
+    protected resource. Deliver its full authorization URL before waiting,
+    complete an actual loopback callback, verify state/PKCE/exact redirect and
+    one token redemption, and prohibit tools/list and tools/call. In JSON mode,
+    URL records belong to stdout and the public connection summary to stderr.
+    Recreate the host using the saved native encrypted store: cached access must
+    produce a summary without another URL or redemption. Repeat against a
+    resource with public initialization and verify explicit consent still occurs
+    followed by a fresh authenticated connection. Render and inspect auth text
+    output and auth help. Test an explicit host browser selection, canceled
+    consent and a failed output sink without production credentials.

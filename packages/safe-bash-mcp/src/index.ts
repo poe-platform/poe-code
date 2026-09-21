@@ -13,3 +13,5 @@ export { bindRemoteMcpConfiguration } from "./runtime-configuration.js";
 export type { ConfigurationBindingOptions, BoundRemoteMcpServer } from "./runtime-configuration.js";
 export { generateRemoteMcpArtifact, parseRemoteMcpArtifact, remoteMcpArtifactPlugin } from "./artifact.js";
 export type { RemoteMcpArtifact, ArtifactOptions, ArtifactGenerationOptions, GeneratedRemoteMcpArtifact, ArtifactPluginOptions } from "./artifact.js";
+export { authenticateRemoteMcpServer } from "./authentication.js";
+export type { RemoteMcpAuthorizationRequest, RemoteMcpAuthenticationOptions, RemoteMcpAuthenticationResult } from "./authentication.js";

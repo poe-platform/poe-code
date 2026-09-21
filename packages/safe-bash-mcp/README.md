@@ -31,7 +31,8 @@ server identity, capabilities and instructions.
 | `initRemoteMcpConfiguration(servers, options)` | Create versioned configuration and empty credential templates |
 | `parseRemoteMcpConfiguration(value, options)` | Validate and copy configuration from JSON text or an object |
 | `bindRemoteMcpConfiguration(value, options)` | Resolve environment references into runtime server credentials |
-| `createRemoteMcpManagementCommand(servers, options)` | Create the safe-bash `mcp init` and `mcp generate` commands |
+| `createRemoteMcpManagementCommand(servers, options)` | Create the safe-bash `mcp init`, `mcp auth` and `mcp generate` commands |
+| `authenticateRemoteMcpServer(server, options)` | Establish access explicitly without listing or calling tools |
 | `generateRemoteMcpArtifact(configuration, options)` | Discover absent schemas and emit reproducible JSON/ESM data |
 | `parseRemoteMcpArtifact(value, options)` | Validate artifact size, digest and configuration/schema agreement |
 | `remoteMcpArtifactPlugin(artifact, options)` | Bind credentials and register artifact commands without rediscovery |
@@ -189,6 +190,43 @@ time, a relative lifetime means remaining lifetime at binding. Init emits empty
 Persisted rotated or cleared grants take precedence over imported environment
 tokens. A fresh import avoids discovery; an expired or explicitly rejected grant
 binds validated discovery before refreshing with its original client.
+
+Authenticate one configured server explicitly, including when its tool schemas
+are supplied:
+
+```ts
+import { authenticateRemoteMcpServer } from "safe-bash-mcp";
+
+await authenticateRemoteMcpServer(configuration.servers[0], {
+  binding: { env: environmentSnapshot },
+  onAuthorizationUrl({ authorizationUrl, redirectUri }) {
+    console.log(authorizationUrl, redirectUri);
+  }
+});
+```
+
+`mcp auth catalog` prints the complete authorization URL and exact redirect
+before waiting for consent. Keep the command running while opening the URL.
+If a process manager ends its child process group, use a persistent terminal,
+tmux or a supervisor so the callback listener survives until consent completes.
+It defaults to headless operation; `--no-browser` and `--browser none` select
+that explicitly. `--browser host` uses the host's configured browser opener.
+The SDK exposes the same selection through `noBrowser` (default `true`).
+Headless SDK login requires an `onAuthorizationUrl` callback when consent is
+needed; cached access can succeed without one. Existing uncertain refresh
+outcomes can be recovered through a new consent flow.
+
+`--json` streams one `{ authorizationUrl, redirectUri }` JSON record per consent
+attempt. After any URL output, the connection summary goes to stderr; otherwise
+stdout contains `{ name, url, connected: true }`. Summaries omit remote server
+metadata and credentials. Use `--timeout-ms <milliseconds>` or SDK
+`requestTimeoutMs` to bound the complete operation (default 120,000 ms).
+Authentication verifies initialization, establishes the configured OAuth grant
+even if initialization is public, and never lists or calls tools. A fresh
+connection verifies newly established access after public initialization.
+Management `options.authentication` accepts SDK settings and an optional binding;
+without a host binding it uses the command's environment. For names beginning
+with a dash, put options first and use `mcp auth --json -- '-catalog'`.
 
 Generate a reusable artifact from declarative configuration:
 

@@ -88,6 +88,23 @@ export function createDefaultOAuthClientProvider(
   let initialGrantConsumed = false;
 
   return {
+    async authenticate(input): Promise<StoredOAuthTokens | void> {
+      input.signal?.throwIfAborted();
+      assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
+      const resource = canonicalizeResourceIndicator(input.requestUrl);
+      let session = await ensureAuthorizedSession(resource, undefined, input.fetch, true, false, input.signal);
+      if (session?.tokens !== undefined && !isExpired(session.tokens, now)) return { ...session.tokens };
+      if (session === null && !initialGrantConsumed && initialGrant?.resource === resource &&
+        initialGrant.tokens !== undefined && !isExpired(initialGrant.tokens, now)) return { ...initialGrant.tokens };
+      if (input.discover === undefined) return;
+      const discovery = await input.discover();
+      input.signal?.throwIfAborted();
+      assertRequestMatchesResource(resource, canonicalizeResourceIndicator(discovery.resource));
+      session = await ensureAuthorizedSession(resource, discovery, input.fetch, true, false, input.signal);
+      if (session?.tokens === undefined || isExpired(session.tokens, now)) throw new Error("OAuth authentication did not establish a usable grant");
+      return { ...session.tokens };
+    },
+
     async authorizeRequest(input): Promise<StoredOAuthTokens | void> {
       assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);

@@ -41,7 +41,7 @@ function interaction(settings: { allowInteractive?: boolean; redirectUri?: strin
     browser: { openBrowser, readLine: () => callback.promise, createServer, redirectUri: settings.redirectUri },
     sessionStore: { load: async () => session, save: async (_key, value) => { session = value; }, clear: async () => { session = null; } }
   });
-  return { fetch, createServer, openBrowser, metadata, session: () => session,
+  return { provider, fetch, createServer, openBrowser, metadata, session: () => session,
     authorize: async () => { const headers = new Headers(); await provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch }); return headers; },
     seed: (value: StoredOAuthSession) => { session = value; }, authorization: () => authorization, run: () => provider.handleUnauthorized({
     requestUrl: new URL(resource), response: new Response(null, { status: 401 }), challenge: null, discovery, fetch
@@ -55,6 +55,35 @@ it("keeps the exact fixed redirect through registration, authorization and code 
   expect(JSON.parse(String(fixture.fetch.mock.calls[0]?.[1]?.body)).redirect_uris).toEqual([redirectUri]);
   expect(fixture.authorization().searchParams.get("redirect_uri")).toBe(redirectUri);
   expect(new URLSearchParams(String(fixture.fetch.mock.calls[1]?.[1]?.body)).get("redirect_uri")).toBe(redirectUri);
+});
+
+it("explicitly authenticates without fabricating a rejected resource request", async () => {
+  const f = interaction(), discover = vi.fn(async () => discovery);
+  const tokens = await f.provider.authenticate!({ requestUrl: new URL(resource), fetch: f.fetch, discover });
+  expect(tokens).toMatchObject({ accessToken: "token" });
+  expect(discover).toHaveBeenCalledOnce();
+  expect(f.openBrowser).toHaveBeenCalledOnce();
+  tokens!.accessToken = "caller-mutated";
+  expect(f.session()?.tokens?.accessToken).toBe("token");
+  await f.provider.authenticate!({ requestUrl: new URL(resource), fetch: f.fetch, discover });
+  expect(discover).toHaveBeenCalledOnce();
+  expect(f.openBrowser).toHaveBeenCalledOnce();
+});
+
+it("rejects explicit authentication discovery for another resource before registration or consent", async () => {
+  const f = interaction();
+  await expect(f.provider.authenticate!({ requestUrl: new URL(resource), fetch: f.fetch,
+    discover: async () => ({ ...discovery, resource: "https://other.example/mcp" }) })).rejects.toThrow("resource");
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(f.openBrowser).not.toHaveBeenCalled();
+});
+
+it("honors the headless policy for explicit authentication", async () => {
+  const f = interaction({ allowInteractive: false });
+  await expect(f.provider.authenticate!({ requestUrl: new URL(resource), fetch: f.fetch,
+    discover: async () => discovery })).rejects.toThrow("interactive");
+  expect(f.createServer).not.toHaveBeenCalled();
+  expect(f.openBrowser).not.toHaveBeenCalled();
 });
 
 it("requests configured scopes even when discovery advertises wider permissions", async () => {

@@ -95,6 +95,14 @@ without redeeming its refresh token again. A proven current token is refreshed
 on 401 even when the server omits `error="invalid_token"`. Invalid provenance
 fails without quoting token values.
 
+The native provider also exposes `authenticate({ requestUrl, fetch, signal,
+discover })` for explicit login, including servers whose initialization is
+public. `discover` lazily supplies validated OAuth metadata and is skipped for
+usable existing grants. Omit it to recover/reuse known sessions only; the method
+returns `void` if a new discovery lookup is needed. It honors `allowInteractive`,
+recovers pending refresh outcomes through consent, and returns an owned token
+snapshot. Normal transport request authorization remains noninteractive.
+
 Configure `client.metadata.scope` to request a precise scope set; broader
 discovery metadata does not override it. Explicit scopes must match the cached
 or imported grant's scope set; ordering, repeated spaces and duplicates are

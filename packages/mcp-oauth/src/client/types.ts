@@ -37,6 +37,15 @@ export interface OAuthUnauthorizedChallenge {
 }
 
 export interface OAuthClientProvider {
+  /** Establish a grant explicitly, including when resource initialization is public. */
+  authenticate?(input: {
+    requestUrl: URL;
+    fetch: OAuthMetadataFetch;
+    /** Lazy validated discovery. Without it, recover/reuse known grants only. */
+    discover?: () => Promise<OAuthDiscoveryResult>;
+    signal?: AbortSignal;
+  }): Promise<StoredOAuthTokens | void>;
+
   authorizeRequest?(input: {
     requestUrl: URL;
     headers: Headers;

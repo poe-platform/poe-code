@@ -51,8 +51,12 @@ fn wire(value: &Value) -> Json {
 }
 fn oracle(cases: &[String]) -> Vec<Json> {
     let script = r#"
-import {createRequire} from 'node:module';import {readFileSync} from 'node:fs';
-const {parse,stringify}=createRequire(process.cwd()+'/package.json')('smol-toml');
+import {createRequire} from 'node:module';import {readFileSync} from 'node:fs';import {pathToFileURL} from 'node:url';
+const owner=process.cwd()+'/packages/config-mutations-rust/package.json',require=createRequire(owner);
+const {parse,stringify}=require('smol-toml');
+const expected=JSON.parse(readFileSync(owner,'utf8')).devDependencies['smol-toml'];
+const actual=JSON.parse(readFileSync(new URL('../package.json',pathToFileURL(require.resolve('smol-toml'))),'utf8')).version;
+if(actual!==expected)throw Error(`TOML reference version mismatch: installed ${actual}, expected ${expected}`);
 function wire(v){
  if(v instanceof Date)return ['date',v.getTime(),v.toISOString(),v.isLocal(),v.isDate(),v.isTime(),v.isDateTime()];
  if(Array.isArray(v))return ['array',v.map(wire)];
@@ -183,6 +187,23 @@ fn own_parser_and_serializer_match_sdk_values_temporals_and_diagnostics() {
             cases.push(format!("{}{}", &input[..offset], &input[offset + 1..]));
         }
     }
+    for value in [
+        "true", "false", "1", "'text'", "\"text\"", "[]", "{}", "[1]", "{x=1}",
+    ] {
+        for source in [
+            format!("x = [{value}"),
+            format!("x = [{value} next]"),
+            format!("x = {{ a = {value}"),
+            format!("x = {{ a = {value} b = 1 }}"),
+        ] {
+            cases.push(source);
+        }
+    }
+    cases.extend(
+        ["x = [,]", "x = {,}", "x = { a =  }", "x = [  ", "x = {  "]
+            .into_iter()
+            .map(str::to_owned),
+    );
     // Legacy parsing accepts a missing second table-array bracket at EOF.
     // Dedicated own coverage requires rejection of that malformed header.
     cases.retain(|source| source != "[[section]" && !source.starts_with("[[section]\n"));

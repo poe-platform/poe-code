@@ -5841,3 +5841,27 @@ audit/build/checks/unit-cached/bash jobs successful,unit ongoing,publication
 unverified. Concurrent OAuth/tiny-client/safe-bash changes preserved. Continuous
 11:34:58–12:03:03 adds1685s,total108306s (30.09h). Minimum fulfilled;full objective
 incomplete. Continue accounting after12:03:03 UTC.
+
+
+### Locked TOML oracle repair, 2026-09-21 12:14 UTC
+
+CI failures35592527002/35591136884 reproduced against the repository-locked
+smol-toml1.7.0: local root1.8.0 had masked69 diagnostic mismatches. Own dev
+reference now pins1.7.0,resolves from the own manifest and explicitly rejects
+installed-version drift. Original production/root SDK resolution unchanged.
+Repaired unterminated string offsets,inline redefinition offsets,empty-value
+reasons,primitive diagnostic priority and malformed array/table transitions.
+Expanded differential oracle by41malformed-container cases;four additional
+string-array reds repaired. Successful value/date/serialization behavior retained.
+No production integration.
+
+Maintained90Rust cases,66native groups,260original references/2files pass using
+locked1.7;fmt/clippy/host lint pass. Uncached selected117workspaces/8builds/360edges
+passes. Newly packed complete SDK passes JSON/TOML/YAML invalid backups,
+merge/prune/transform and embedded-renderer scenarios with all external npm
+resolution disabled;zero runtime dependency groups. Evidence out/rust-toml-sdk17-*.
+Store release35594857859 failed unit;compiler35597375742 still ongoing.
+No successful current publication verified. Concurrent changes preserved.
+Known12:03:03–12:10:12 adds429s; restart12:13:20–12:14:15 adds55s,total108790s
+(30.22h). Checkpoint interval excluded. Minimum fulfilled;objective incomplete.
+Continue accounting after12:14:15 UTC.

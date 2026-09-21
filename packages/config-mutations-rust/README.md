@@ -131,7 +131,8 @@ Unlike the original JSONC parser, `__proto__` keys are retained as ordinary own
 data properties instead of being lost through a prototype assignment.
 Removing the final array item also fixes an SDK bug that joins adjacent numbers
 (`remove [1,2,3] at index 2` returns `[1,2]`, instead of `[1,23]`).
-TOML nesting is bounded to 1,000 levels, including dotted paths combined with
+TOML parsing and diagnostics track the locked smol-toml 1.7 development reference;
+the SDK is not a runtime dependency. TOML nesting is bounded to 1,000 levels, including dotted paths combined with
 literal nesting. Arrays-of-tables headers require both closing brackets, fixing
 the development oracle's acceptance of `[[section]`. Rust does not guarantee a
 speedup for every workload: native transfer overhead can outweigh parsing savings

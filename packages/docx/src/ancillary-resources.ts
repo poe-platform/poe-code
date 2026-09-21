@@ -15,6 +15,10 @@ export interface CustomXmlResourceDetails { readonly kind: "custom-xml"; readonl
 export interface GlossaryResourceDetails { readonly kind: "glossary"; readonly parts: readonly InspectionPart[]; readonly buildingBlocks: readonly { readonly path: readonly number[]; readonly name: string | null; readonly guid: string | null; readonly category: string | null; readonly gallery: string | null; readonly types: readonly string[]; readonly behaviors: readonly string[] }[] }
 export interface PackageResourceRecord { readonly kind: "custom-xml" | "glossary"; readonly location: Location<"part">; readonly name: string; readonly properties: readonly []; readonly references: readonly InspectionReference[]; readonly support: "preserve"; readonly details: CustomXmlResourceDetails | GlossaryResourceDetails }
 export interface PackageResourceListData { readonly items: readonly PackageResourceRecord[] }
+export function packageResourceWarnings(data: PackageResourceListData): readonly { readonly code: string; readonly message: string }[] {
+  return data.items.some(item => item.details.kind === "custom-xml" ? item.details.storeItemId === null : item.details.buildingBlocks.length === 0 || item.details.buildingBlocks.some(block => block.name === null || block.guid === null || block.category === null || block.gallery === null))
+    ? [{ code: "unrecognized-resource-metadata", message: "Resource metadata is missing, ambiguous or unrecognized; resources remain preserved." }] : [];
+}
 const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 function attribute(node: XmlElement | undefined, name: string): string | null { return node?.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === name)?.value ?? null; }
 function child(node: XmlElement | undefined, name: string): XmlElement | undefined { const matches = node?.children.filter(child => child.namespace === node.namespace && child.localName === name) ?? []; return matches.length === 1 ? matches[0] : undefined; }

@@ -84,6 +84,7 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
   budget.charge("batchOperations", batch.operations.length);
   if (!batch.operations.length) return { results: [], publication: null };
   const session = await DocumentSession.open(input, { ...context, ...settings, budget });
+  let publicationSource: DocumentArchive = session.baseline;
   const results: DocumentBatchItemResult[] = [];
   const addedStyles = new Map<string, ReadonlySet<string>>();
   let changed = false;
@@ -106,14 +107,16 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
         budget.charge("retainedBytes", ids.reduce((size, id) => size + id.length * 4 + 32, 64));
         addedStyles.set(id, new Set(ids));
       }
-      const record = data as { changed?: boolean; changes?: readonly { after?: Location | null }[]; items?: readonly { location?: Location }[]; item?: { location: Location }; warnings?: readonly { code: string; message: string }[] };
-      const affected = mutates && record.changed !== false ? record.changes?.length ?? 0 : 0;
+      const record = data as { changed?: boolean; changes?: readonly { after?: Location | null }[]; removedParts?: readonly string[]; items?: readonly { location?: Location }[]; item?: { location: Location }; warnings?: readonly { code: string; message: string }[] };
+      const affected = mutates && record.changed !== false ? record.changes?.length ?? record.removedParts?.length ?? 0 : 0;
+      if (item.operation === "signatures.remove" && record.changed)
+        publicationSource = await session.snapshot();
       const matches = mutates ? record.changes?.length ?? 0 : record.items?.length ?? (record.item ? 1 : 0);
       budget.charge("matches", Math.max(0, matches - (budget.usage.matches - previousMatches)));
       changed ||= record.changed === true;
       const locations = record.changes ? record.changes.flatMap(change => change.after ? [change.after] : []) : record.items?.flatMap(item => item.location ? [item.location] : []) ?? (record.item ? [record.item.location] : []);
       const resultData = item.operation === "properties.get" ? { item: record.items![0] } : item.operation === "properties.list" ? { items: record.items }
-        : item.operation === "images.list" || item.operation === "images.get" ? Object.fromEntries(Object.entries(data as Record<string, unknown>).filter(([key]) => key !== "warnings")) : data;
+        : ["images.list", "images.get", "custom-xml.list", "glossary.list"].includes(item.operation) ? Object.fromEntries(Object.entries(data as Record<string, unknown>).filter(([key]) => key !== "warnings")) : data;
       results.push({ id, version: 1, operation: item.operation, ok: true, data: resultData, warnings: record.warnings ?? [], errors: [], affected, locations });
       const size = new TextEncoder().encode(JSON.stringify(results)).length;
       budget.check("serializedOutput", size);
@@ -138,7 +141,7 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
   if (mutates) {
     const archive: DocumentArchive = await session.snapshot();
     const { limit: ignoredLimit, author: ignoredAuthor, timestamp: ignoredTimestamp, ...intent } = options;
-    const published = await publishDocumentArchive(archive, intent, { ...context, ...settings, budget }, session.baseline);
+    const published = await publishDocumentArchive(archive, intent, { ...context, ...settings, budget }, publicationSource);
     if (publication && published.published.length) Object.assign(publication, { output: { path: options.output === "-" ? null : published.published[0]!.path, bytes: published.published[0]!.bytes, sha256: published.archiveSha256! } });
   }
   return { results: Object.freeze(results), publication };

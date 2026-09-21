@@ -32,7 +32,8 @@ it("advertises only bounded direct revision decisions and an operation report", 
     const help = getDocxDiscovery({ operation: "help", inputs: [], options: { operation } })!.human;
     expect(help).toContain("--revision");
     expect(help).toContain("--all");
-    expect(help).toContain("ordered batches remain unsupported");
+    expect(help).toContain("Available in the ordered utility batch");
+    expect(help).not.toContain("ordered batches remain unsupported");
   }
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data as DocxCapabilitiesData;
   expect(capabilities.features.find(item => item.id === "F26")!.subsets).toContainEqual(expect.objectContaining({ name: "revision-decisions", level: "edit" }));
@@ -68,5 +69,6 @@ it("describes bounded decisions consistently in revision creation help", () => {
   expect(help).not.toContain("Acceptance/rejection, live owners and batches remain unsupported.");
   expect(help).not.toContain("Acceptance/rejection, live review owners and ordered batches remain unsupported.");
   expect(help).toContain("Acceptance/rejection is a separate bounded subset");
-  expect(help).toContain("live review owners and ordered batches remain unsupported");
+  expect(help).toContain("Available in the ordered utility batch");
+  expect(help).not.toContain("ordered batches remain unsupported");
 });

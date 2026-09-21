@@ -1,5 +1,5 @@
 import { synchronizeCommentExtensions, type CommentExtensionInfo } from "./comment-extensions.js";
-import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { archiveSettings, documentSession, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { writeArchive } from "./archive-write.js";
 import { validateDocxInvocation } from "./command.js";
@@ -190,7 +190,9 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
   const encoded = new Uint8Array(chunks.reduce((sum, bytes) => sum + bytes.length, 0));
   let cursor = 0;
   for (const chunk of chunks) { encoded.set(chunk, cursor); cursor += chunk.length; }
-  const finalState = await openComments(encoded, { ...settings, budget });
+  const verification = { ...settings, budget };
+  delete verification[documentSession];
+  const finalState = await openComments(encoded, verification);
   const changes = updates.map(update => {
     const record = finalState.records.find(n => n.id === update.id);
     if (update.kind !== "remove" && (!record || record.issues.some(i => i !== "deleted-anchor"))) throw new UnsupportedEditError("Comment edit produced inconsistent anchors.");

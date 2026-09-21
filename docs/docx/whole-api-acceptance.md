@@ -3,6 +3,33 @@
 Status: **Blocked; partial behavior verified.** This does not complete
 `whole-api-acceptance` or any later task.
 
+This is historical evidence from the utility-era implementation, not an
+observation of current exports. The [dated acceptance record](whole-api-acceptance-20260921.md)
+supersedes its missing-factory, missing-owner and unexecuted-workflow findings.
+Fresh verification of the built public `docx` package finds every runtime export
+listed in that dated receipt and the same 1,518 discovered operation IDs
+(363 edit, 1,134 read and 21 reject). The current register retains 1,338 rows,
+including all 920 reconciled inventory records and 417 inherited rows. These
+structural observations do not close its unsupported public members, complete
+per-member behavior or all 85 guide-heading obligations; full acceptance remains
+blocked.
+
+The dated receipt retains hashes for seven temporary outputs and its help
+screenshot, but those files are absent from their recorded paths during this
+verification. Their bytes and visual inspection cannot be freshly reverified.
+Retained earlier document-workflow and inline-picture red/green logs were
+inspected separately; they establish historical evidence only. No fresh
+screenshot, renderer, independent-schema or packed-consumer QA pass is claimed.
+
+Fresh scoped verification ran
+`npm run test:unit --workspace=docx -- --no-cache --maxWorkers=2`:
+253 files and 5,195 tests passed, including all 18 original guide workflow and
+raster cases. `npm run lint --workspace=docx` passed with one type-only
+unused-variable warning, and
+`npm run build:workspaces -- --workspace=docx --no-cache` passed its maintained
+five-build dependency closure. This documentation-only correction changes no
+product behavior and claims no new failing-test reproduction.
+
 The [row review](whole-api-acceptance.json) retains the complete 1,337-row
 [public API map](public-api-map.json), all 920 reconciled inventory records,
 262 enum values, inherited/returned interfaces and publicly documented

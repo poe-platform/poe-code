@@ -120,7 +120,7 @@ describe("remote MCP initialization and declarative configuration", () => {
     expect(() => initRemoteMcpConfiguration([{ ...server, name }])).toThrow("command name");
   });
 
-  it.each(["file:///tmp/mcp", "stdio:tool", "https://user:password@example.test/mcp", "https://example.test/mcp#fragment"])("rejects unsafe/nonremote URL %s", url => {
+  it.each(["file:///tmp/mcp", "stdio:tool", "https://user:password@example.test/mcp", "https://example.test/mcp#fragment", "https://example.test/mcp#"])("rejects unsafe/nonremote URL %s", url => {
     expect(() => initRemoteMcpConfiguration([{ ...server, url }])).toThrow();
   });
 

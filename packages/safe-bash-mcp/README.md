@@ -66,7 +66,9 @@ discovery. Explicit instructions take precedence over discovered guidance.
 | `remoteMcpArtifactPlugin(artifact, options)` | Bind credentials and register artifact commands without rediscovery |
 
 Use `headers` or the client's `oauth` options for credentials. URLs must use
-HTTP or HTTPS without embedded credentials or fragments. Discovery supports
+HTTP or HTTPS without embedded credentials or fragments.
+Fragment rejection includes trailing empty `#`; percent-escaped hashes in paths
+and queries remain literal URL data. Discovery supports
 injected `fetch`, OAuth discovery caches, warning callbacks and cancellation.
 Set `maxPages`, `maxTools`, `maxResponseBytes` and `requestTimeoutMs` to bound
 discovery. Defaults are 100 pages, 10,000 tools, 16 MiB per JSON response body or

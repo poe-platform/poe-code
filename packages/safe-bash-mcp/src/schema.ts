@@ -81,7 +81,7 @@ function validateServer(server: RemoteMcpServer, maxTools: number): void {
   if (url.protocol !== "https:" && url.protocol !== "http:")
     throw new Error("Only remote HTTP and SSE MCP servers are supported");
   if (url.username || url.password) throw new Error("MCP URL credentials must be supplied using headers or OAuth");
-  if (url.hash) throw new Error("MCP URLs cannot contain fragments");
+  if (url.href.includes("#")) throw new Error("MCP URLs cannot contain fragments");
   if (server.transport !== undefined && server.transport !== "http" && server.transport !== "sse")
     throw new Error("Unsupported remote MCP transport; use http or sse");
   if (server.protocolVersion !== undefined && !MCP_PROTOCOL_VERSIONS.includes(server.protocolVersion))

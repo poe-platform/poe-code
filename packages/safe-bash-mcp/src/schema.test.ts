@@ -255,7 +255,7 @@ describe("remote MCP schemas", () => {
     await expect(fetchRemoteMcpSchema(server, { fetch: fixture.fetch })).rejects.toThrow("Duplicate tool");
   });
 
-  it.each(["file:///bin/server", "ftp://example/mcp", "https://user:password@example/mcp", "https://example/mcp#fragment", "relative/mcp"])(
+  it.each(["file:///bin/server", "ftp://example/mcp", "https://user:password@example/mcp", "https://example/mcp#fragment", "https://example/mcp#", "relative/mcp"])(
     "rejects non-remote or unsafe URL %s before fetching", async url => {
       const fetch = vi.fn<HttpTransportFetch>();
       await expect(fetchRemoteMcpSchema({ ...server, url, tools: [tool] }, { fetch })).rejects.toThrow();

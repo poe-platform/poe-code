@@ -249,3 +249,12 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     eighteen closed receive streams/nine retired HTTP sessions and zero metadata/
     token/tool-discovery/consent. Inspect summary screenshot and purge only owned
     synthetic evidence.
+
+36. Reject a trailing empty fragment on registry URLs through thirteen SDK
+    entry points: schema/registry/commands/plugin/init/parse/binding/artifact/
+    resources/auth/reset/import/management. Require safe diagnostics before
+    network/store factories/credential writes. Retain escaped hash data in
+    resource path/query through schema/configuration/artifact and an actual
+    virtual-shell call. Require complete content/falsey values/nested metadata/
+    exact005930, offline help/supplied schemas and one retired session without
+    discovery/consent. Inspect safe summary screenshot and purge owned evidence.

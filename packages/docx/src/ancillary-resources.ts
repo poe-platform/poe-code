@@ -9,6 +9,7 @@ import { encodeGeneratedLocation as encodeLocation, type Location } from "./loca
 import type { DocxOperationArguments } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import type { DocumentBudget } from "./budget.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 export interface CustomXmlResourceDetails { readonly kind: "custom-xml"; readonly parts: readonly InspectionPart[]; readonly root: { readonly namespace: string; readonly localName: string } | null; readonly storeItemId: string | null; readonly propertiesParts: readonly string[]; readonly namespaces: readonly { readonly prefix: string; readonly uri: string }[]; readonly schemaReferences: readonly string[] }
 export interface GlossaryResourceDetails { readonly kind: "glossary"; readonly parts: readonly InspectionPart[]; readonly buildingBlocks: readonly { readonly path: readonly number[]; readonly name: string | null; readonly guid: string | null; readonly category: string | null; readonly gallery: string | null; readonly types: readonly string[]; readonly behaviors: readonly string[] }[] }
@@ -18,6 +19,50 @@ const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 function attribute(node: XmlElement | undefined, name: string): string | null { return node?.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === name)?.value ?? null; }
 function child(node: XmlElement | undefined, name: string): XmlElement | undefined { const matches = node?.children.filter(child => child.namespace === node.namespace && child.localName === name) ?? []; return matches.length === 1 ? matches[0] : undefined; }
 async function hash(bytes: Uint8Array, budget: DocumentBudget): Promise<string> { budget.charge("work", bytes.length); budget.charge("retainedBytes", bytes.length + 96); const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes))); return [...digest].map(byte => byte.toString(16).padStart(2, "0")).join(""); }
+
+function glossaryBuildingBlocks(root: XmlElement, budget: DocumentBudget): GlossaryResourceDetails["buildingBlocks"] {
+  const children = activeXmlChildren(root, budget);
+  const one = (node: XmlElement | undefined, name: string): XmlElement | undefined => {
+    const matches = node ? children(node).filter(child => child.namespace === root.namespace && child.localName === name) : [];
+    return matches.length === 1 ? matches[0] : undefined;
+  };
+  const container = one(root, "docParts");
+  if (!container) return [];
+  const parents = new Map<XmlElement, { parent: XmlElement; index: number }>();
+  const pending = [root];
+  budget.charge("retainedBytes", 8);
+  while (pending.length) {
+    const node = pending.pop()!;
+    budget.charge("work", node.children.length + 1);
+    budget.charge("retainedBytes", node.children.length * 64);
+    for (const [index, child] of node.children.entries()) {
+      parents.set(child, { parent: node, index });
+      pending.push(child);
+    }
+  }
+  const values = (owner: XmlElement | undefined, name: string): string[] => owner ? children(owner)
+    .filter(node => node.namespace === root.namespace && node.localName === name)
+    .map(node => attribute(node, "val")).filter((value): value is string => value !== null) : [];
+  const blocks: GlossaryResourceDetails["buildingBlocks"][number][] = [];
+  for (const block of children(container)) {
+    if (block.namespace !== root.namespace || block.localName !== "docPart") continue;
+    const path: number[] = [];
+    for (let node = block; node !== root;) {
+      const position = parents.get(node)!;
+      budget.charge("work", 1);
+      budget.charge("retainedBytes", 8);
+      path.push(position.index);
+      node = position.parent;
+    }
+    const properties = one(block, "docPartPr"), category = one(properties, "category");
+    budget.charge("retainedBytes", 256);
+    blocks.push({ path: path.reverse(), name: attribute(one(properties, "name"), "val"),
+      guid: attribute(one(properties, "guid"), "val"), category: attribute(one(category, "name"), "val"),
+      gallery: attribute(one(category, "gallery"), "val"), types: values(one(properties, "types"), "type"),
+      behaviors: values(one(properties, "behaviors"), "behavior") });
+  }
+  return blocks;
+}
 
 /** Measures internally constructed inventory JSON without allocating the serialized payload. */
 export function measurePackageResourceSerialization(value: unknown, budget: DocumentBudget): number {
@@ -61,8 +106,8 @@ export async function inspectDocumentPackageResources(input: Uint8Array, operati
       const schemaReferences = [...new Set(propertyRoots.flatMap(node => child(node, "schemaRefs")?.children.filter(child => child.namespace === node.namespace && child.localName === "schemaRef").map(node => attribute(node, "uri")).filter((uri): uri is string => uri !== null) ?? []))].sort(compare);
       details = { kind: "custom-xml", parts: inventory, root: itemNames.has(name) && itemRoot ? { namespace: itemRoot.namespace, localName: itemRoot.localName } : null, storeItemId: propertiesParts.length === 1 && propertyRoots.length === 1 ? storeIds[0] ?? null : null, propertiesParts, namespaces: itemRoot ? [...itemRoot.namespaces].map(([prefix, uri]) => ({ prefix, uri })).sort((a, b) => compare(a.prefix, b.prefix)) : [], schemaReferences };
     } else {
-      const buildingBlocks: GlossaryResourceDetails["buildingBlocks"][number][] = [];
-      if (itemRoot && documentPartRole(parts.get(name)!.content_type, itemRoot) === "glossary") { const container = child(itemRoot, "docParts"); if (container) for (let index = 0; index < container.children.length; index++) { budget.charge("work", 1); const block = container.children[index]!; if (block.namespace !== itemRoot.namespace || block.localName !== "docPart") continue; const properties = child(block, "docPartPr"), category = child(properties, "category"), values = (owner: XmlElement | undefined, field: string) => owner?.children.filter(node => node.namespace === itemRoot.namespace && node.localName === field).map(node => attribute(node, "val")).filter((value): value is string => value !== null) ?? []; buildingBlocks.push({ path: [itemRoot.children.indexOf(container), index], name: attribute(child(properties, "name"), "val"), guid: attribute(child(properties, "guid"), "val"), category: attribute(child(category, "name"), "val"), gallery: attribute(child(category, "gallery"), "val"), types: values(child(properties, "types"), "type"), behaviors: values(child(properties, "behaviors"), "behavior") }); } }
+      const buildingBlocks = itemRoot && documentPartRole(parts.get(name)!.content_type, itemRoot) === "glossary"
+        ? glossaryBuildingBlocks(itemRoot, budget) : [];
       details = { kind: "glossary", parts: inventory, buildingBlocks };
     }
     records.push({ kind: details.kind, name, location, properties: [], references, support: "preserve", details });

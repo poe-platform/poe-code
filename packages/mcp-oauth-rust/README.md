@@ -159,3 +159,10 @@ secret. Unlimited/public-client expiry checks avoid reading the clock.
 a grant, reuses cached/imported credentials and invokes lazy discovery only when
 needed. Without discovery it only recovers known grants. It returns owned token
 snapshots and respects cancellation and headless policy before interactive consent.
+
+
+Explicit static or dynamic client settings must match the cached session's normalized
+client ID and secret before token reuse, refresh or recovery of a pending grant.
+Mismatches reject without attaching authorization headers, fetching token endpoints,
+opening a browser or mutating persistence. Dynamic registration without explicit
+client credentials continues to own and reuse its registered application.

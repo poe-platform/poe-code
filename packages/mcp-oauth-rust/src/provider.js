@@ -348,6 +348,7 @@ export function createDefaultOAuthClientProvider(options) {
                   authorizationServer: scalar(session.authorizationServer),
                   client: session.client,
                   tokens: session.tokens,
+                  refreshState: scalar(session.refreshState),
                   discovery: {
                     authorizationServerMetadata: project(
                       session.discovery.authorizationServerMetadata,

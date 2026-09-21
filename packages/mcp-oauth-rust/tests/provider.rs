@@ -276,3 +276,44 @@ fn imported_grant_expiry_is_anchored_once_and_absolute_expiry_wins() {
         assert!(normalize_imported_tokens(&value(invalid), 1000.0).is_err());
     }
 }
+
+#[test]
+fn configured_dynamic_apps_check_cached_and_pending_grants_before_any_recovery() {
+    use mcp_oauth_rust::provider::binding_action;
+    let resource: Vec<u16> = "r".encode_utf16().collect();
+    for state in [r#""tokens":{}"#, r#""refreshState":"pending""#] {
+        let session = value(&format!(
+            r#"{{"resource":"r","authorizationServer":"a","discovery":{{"authorizationServerMetadata":{{"issuer":"a"}}}},"client":{{"clientId":"c","clientSecret":"private"}},{state}}}"#
+        ));
+        for configured in [
+            r#"{"mode":"dynamic","clientId":"other"}"#,
+            r#"{"mode":"dynamic","clientId":"c"}"#,
+            r#"{"mode":"dynamic","clientId":"c","clientSecret":"different-private"}"#,
+        ] {
+            let failure = binding_action(&resource, Some(&session), None, Some(&value(configured)))
+                .unwrap_err();
+            assert!(failure.contains("different OAuth client"));
+            assert!(!failure.contains("private"));
+        }
+        assert_eq!(
+            binding_action(
+                &resource,
+                Some(&session),
+                None,
+                Some(&value(r#"{"mode":"dynamic"}"#))
+            ),
+            Ok("keep")
+        );
+        assert_eq!(
+            binding_action(
+                &resource,
+                Some(&session),
+                None,
+                Some(&value(
+                    r#"{"mode":"dynamic","clientId":" c ","clientSecret":" private "}"#
+                ))
+            ),
+            Ok("keep")
+        );
+    }
+}

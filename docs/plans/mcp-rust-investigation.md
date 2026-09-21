@@ -5189,3 +5189,29 @@ Repair is next, preserving original TS source and foreign changes. No successful
 current publication verified. Continuous09:06:32–09:18:29 adds717s,total98971s (27.49h).
 Minimum fulfilled; remaining OAuth repair/registry/builder/session/spawn/toolcraft/
 Python/platform/performance acceptance incomplete. Continue after09:18:29 UTC.
+
+### Dynamic OAuth client isolation repair, 2026-09-21 09:22 UTC
+
+Release35579223367 reproduces5 current original client-isolation failures locally
+(named reference5failed/7passed); a new Rust cached/pending fixture also fails before
+repair. Rust binding_action now compares normalized configured IDs/secrets for both
+static and explicitly configured dynamic apps before cached reuse/expired refresh/
+pending recovery. Host projects refreshState into that gate. Dynamic native-owned
+registration with no explicit client remains reusable. Mismatch diagnostic includes
+no credentials and rejects before headers/fetch/browser/persistence effects.
+
+Maintained OAuth checks57 Rust cases,91 native groups,470 full original references/
+35files,types,fmt/clippy,focused ESLint/diff pass. Uncached maintained agent closure
+113workspaces/36builds/339edges rebuilds all affected embedded addons and passes;
+agent55 Rust/94 native/333 reference cases/22files/types pass. Direct/packed/agent-
+embedded16MiB old-space workers each reject1536 mismatched cached/expired/pending
+grants and reuse256 matching/native-owned grants,zero effects or exposed credentials.
+Finite evidence does not accept all memory/platform/performance behavior. Evidence
+out/rust-oauth-dynamic-*,out/rust-oauth-current-isolation-red.log,
+out/rust-release-35579223367-failed.log. No changes to original TS source.
+
+Web9f37539bd exact remote-main verified; release35582585964 pending. Current publication
+remains unverified; failed/canceled older runs remain separate from delivery.
+Continuous09:18:29–09:22:58 adds269s,total99240s (27.57h). Minimum fulfilled; registry/
+builder/session/spawn/toolcraft/platform/performance acceptance and later Python
+bindings remain incomplete. Continue after09:22:58 UTC.

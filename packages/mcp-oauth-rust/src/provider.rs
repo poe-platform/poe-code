@@ -409,27 +409,31 @@ pub fn binding_action(
             return Ok("clear");
         }
     }
-    if let (Some(session), Some(configured)) = (session, configured)
-        && string(configured, "mode") == Some(text("static").as_slice())
-        && session
+    if let (Some(session), Some(configured)) = (session, configured) {
+        let client = normalize_client(configured, true);
+        let configured_app =
+            string(configured, "mode") == Some(text("static").as_slice()) || client.is_some();
+        let cached_grant = session
             .get("tokens")
             .is_some_and(|tokens| matches!(tokens, Value::Object(_)))
-    {
-        let client = normalize_client(configured, true);
-        let stored = session.get("client");
-        if client.is_none()
-            || client
-                .as_ref()
-                .and_then(|client| string(client, "clientId"))
-                != stored.and_then(|client| string(client, "clientId"))
-            || client
-                .as_ref()
-                .and_then(|client| string(client, "clientSecret"))
-                != stored.and_then(|client| string(client, "clientSecret"))
-        {
-            return Err("Stored session belongs to a different OAuth client; use separate persistence or explicitly reset it".into());
+            || string(session, "refreshState") == Some(text("pending").as_slice());
+        if configured_app && cached_grant {
+            let stored = session.get("client");
+            if client.is_none()
+                || client
+                    .as_ref()
+                    .and_then(|client| string(client, "clientId"))
+                    != stored.and_then(|client| string(client, "clientId"))
+                || client
+                    .as_ref()
+                    .and_then(|client| string(client, "clientSecret"))
+                    != stored.and_then(|client| string(client, "clientSecret"))
+            {
+                return Err("Stored session belongs to a different OAuth client; use separate persistence or explicitly reset it".into());
+            }
         }
     }
+
     Ok("keep")
 }
 fn resolved(client: Value, kind: &str, stored: bool) -> Value {

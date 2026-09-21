@@ -156,6 +156,11 @@
       "dependsOn": [
         "build"
       ]
+    },
+    "@poe-code/process-runner-rust#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
     }
   }
 }

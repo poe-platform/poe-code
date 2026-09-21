@@ -87,24 +87,22 @@ the same optional `closeReason` promise when closing requires asynchronous work.
 `HttpTransport` accepts `oauth` options from `mcp-oauth`. When a protected server returns a Bearer `WWW-Authenticate` challenge, the transport discovers protected-resource metadata, loads authorization-server metadata, lets the OAuth provider handle authorization, and retries the request when credentials are available.
 
 ```ts
-import { HttpTransport, createDefaultOAuthClientProvider } from "tiny-mcp-client";
+import { HttpTransport } from "tiny-mcp-client";
 
 const transport = new HttpTransport({
   url: "https://mcp.example.com/mcp",
   oauth: {
-    provider: createDefaultOAuthClientProvider({
-      client: {
-        mode: "dynamic",
-        metadata: {
-          clientName: "tiny-client"
-        }
-      },
-      browser: {
-        openBrowser: async (url) => {
-          console.log(`Open ${url}`);
-        }
+    client: {
+      mode: "dynamic",
+      metadata: {
+        clientName: "tiny-client"
       }
-    })
+    },
+    browser: {
+      openBrowser: async (url) => {
+        console.log(`Open ${url}`);
+      }
+    }
   }
 });
 ```

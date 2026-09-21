@@ -269,7 +269,7 @@ export class Run {
           r.children.some(
             (child) =>
               child.namespace !== r.namespace ||
-              (!["rPr", "t", "tab", "br", "cr", "lastRenderedPageBreak"].includes(child.localName) &&
+              (!["rPr", "t", "tab", "ptab", "noBreakHyphen", "br", "cr", "lastRenderedPageBreak"].includes(child.localName) &&
                 !paragraphReferenceMarkers.has(child.localName))
           )
         )

@@ -35,3 +35,22 @@ only after checks pass. Record exact source-case pointers and JS/security
 decisions in `docs/docx`; retain the existing task's open status until every
 applicable residual case/API is independently reconciled. Missing historical
 temporary source checkouts are unavailable research inputs, not fresh passes.
+
+## Stored text-token boundaries
+
+Before product edits, reproduce that a run containing only `noBreakHyphen` or
+`ptab` cannot be replaced/cleared and that cached-break fragments containing only
+these tokens incorrectly disappear. Keep original memfs assertions for Unicode
+replacement, explicit false formatting, save/reload and unchanged source XML.
+Admit those already supported text tokens in destructive run replacement and
+in cached-fragment presence detection; keep resource/unknown-content refusal.
+Run the focused destructive-owner/review suite and maintained package checks.
+Commit this correction separately from comment allocation.
+
+## Shared story relationships
+
+Exercise two explicit bindings to the same relationship for each default/first/
+even header and footer slot. Remove the first binding, verify retained relationship
+and live Unicode paragraph, save/reload, then remove the final binding and verify
+relationship/part retirement and stale old handle. This validates existing product
+behavior and calls for original tests only, with its own atomic test commit.

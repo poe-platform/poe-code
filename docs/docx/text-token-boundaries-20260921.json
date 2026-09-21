@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-text-style-document",
+  "status": "bounded-text-token-correction-verified-task-open",
+  "source_revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+  "scope": "Supported stored run text tokens and cached-break extraction; no whole-task conformance claim",
+  "red": {
+    "command": "npx vitest run packages/docx/src/text-token-boundaries.test.ts",
+    "result": "4 failed before code: run replacement refused noBreakHyphen/ptab; preceding-only token fragments incorrectly returned null"
+  },
+  "green": {
+    "focused": "41 cases passed in 5 files after correction, including all 4 failing regressions and existing destructive-owner/review cases",
+    "latest": "6 original token cases passed, including 2 SDK-backed CLI batches with exact saved run XML; 8 public cached-break cases passed with exact fragment XML"
+  },
+  "public_mappings": [
+    {
+      "member": "Run.text / Run.clear",
+      "target": "Run.text: string (read/write); Run.clear(): this",
+      "behavior": "Supported noBreakHyphen and ptab are replaceable stored text, preserving owning rPr and explicit false flags. Unicode replacement and save/reload are lossless; unsupported resource carriers still reject.",
+      "cli": "model.text.run.Run.text.set / model.text.run.Run.clear.call through closed SDK-backed batch",
+      "authority": "Synchronous admitted mutation; always-async factory/save, explicit owned bytes and sinks; no ambient I/O."
+    },
+    {
+      "member": "RenderedPageBreak.preceding_paragraph_fragment / following_paragraph_fragment",
+      "target": "readonly Paragraph | null getters",
+      "behavior": "Token-only fragments remain present. Detached fragments keep properties, remove only the selected marker and never mutate source. Later-marker extraction throws UnsupportedEditError, with code unsupported-edit, instead of a generic source ValueError.",
+      "language_security": "Stored layout only, no pagination calculation or target fetch. Typed Document traversal replaces private proxy construction."
+    }
+  ],
+  "source_cases": [
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 19,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::it_raises_on_preceding_fragment_when_page_break_is_not_first_in_paragrah"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:19#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 30,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::it_produces_None_for_preceding_fragment_when_page_break_is_leading"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:30#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 43,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::it_can_split_off_the_preceding_paragraph_content_when_in_a_run"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:43#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 63,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::and_it_can_split_off_the_preceding_paragraph_content_when_in_a_hyperlink"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:63#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 83,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::it_raises_on_following_fragment_when_page_break_is_not_first_in_paragrah"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:83#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 94,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::it_produces_None_for_following_fragment_when_page_break_is_trailing"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:94#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 107,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::it_can_split_off_the_following_paragraph_content_when_in_a_run"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:107#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_pagebreak.py",
+        "line": 121,
+        "node_id": "tests/text/test_pagebreak.py::DescribeRenderedPageBreak::and_it_can_split_off_the_following_paragraph_content_when_in_a_hyperlink"
+      },
+      "target": "packages/docx/src/cached-break-public-cases.test.ts",
+      "source_witness": "tests/text/test_pagebreak.py:121#/setup_and_expected_value_expressions",
+      "equivalence": "Original wording, same marker position, paragraph properties, run/hyperlink cardinality, first/later marker condition, null or exact fragment XML; no private proxy or cloned fixture"
+    }
+  ],
+  "supplemental_cases": {
+    "target": "packages/docx/src/text-token-boundaries.test.ts",
+    "cases": [
+      "noBreakHyphen run replacement/clear and false formatting",
+      "ptab run replacement/clear and false formatting",
+      "noBreakHyphen-only fragments on both sides",
+      "ptab-only fragments on both sides",
+      "noBreakHyphen replacement through declared CLI batch",
+      "ptab replacement through declared CLI batch"
+    ]
+  },
+  "documentation_drift": "The model already reads these tokens and emits them during traversal. Remove their accidental unsupported-edit/disappearing-fragment inconsistency; retaining supported text is distinct from refusing owned drawings or opaque content.",
+  "maintained_checks": {
+    "test": "npm test --workspace=docx: 5180 passed in 250 files, zero failures/skips; 207.35 seconds. Includes six token and six shared-story cases; cached-break public cases added after run discovery and verified separately (8 passed).",
+    "lint": "npm run lint --workspace=docx: passed ESLint, source/test TypeScript; one unchanged type-only unused-variable warning",
+    "build": "npm run build:workspaces -- --workspace=docx: passed declared selected build closure"
+  },
+  "visual_qa": {
+    "command": "npm run screenshot -- --output out/docx-text-style-20260921/tokens.png cat out/docx-text-style-20260921/tokens.txt",
+    "source": "Actual built public text engine after model replacement and save. Binary inputs remain in memory.",
+    "transcript_sha256": "0a271c78ff7d194ecb39a9ee390a5c91470916d2bde33c58e41d07b779839d49",
+    "screenshot_sha256": "fc59130290a6967d009b67e46f6a5a9cfbc73bf17650bb43396124274c438da7",
+    "result": "Inspected unclipped output, but screenshot font displays missing-glyph boxes for CJK and emoji. Unicode byte/value assertions pass; readable Unicode screenshot qualification remains unavailable with this renderer. Root historical bash route unavailable, independently verified in allocation receipt."
+  },
+  "remaining": "All other applicable residual case/API reconciliations remain pending in retained audits. No source runtime, downloaded corpus, document renderer, push or release was run."
+}

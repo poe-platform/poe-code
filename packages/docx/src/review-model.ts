@@ -274,7 +274,7 @@ export class RenderedPageBreak {
       runElementOpen(p) + (properties ? xml.sourceXml(properties) : "") + fragment + `</${p.name}>`;
     const meaningful = (n: XmlElement): boolean =>
       (n.namespace === p.namespace &&
-        ["t", "tab", "br", "cr", "drawing", "pict", "object"].includes(n.localName)) ||
+        ["t", "tab", "ptab", "noBreakHyphen", "br", "cr", "drawing", "pict", "object"].includes(n.localName)) ||
       n.children.some(meaningful);
     const parsed = new DocumentXmlEditor(new TextEncoder().encode(candidate));
     if (!parsed.root.children.some((n) => n.localName !== "pPr" && meaningful(n))) return null;

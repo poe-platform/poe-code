@@ -163,6 +163,12 @@ Configured scope and exact redirect values come from environment references or
 their public fallbacks. Supply `oauth.sessionStore(server)` for host-owned
 persistence, or `oauth.authStore` for the native secret-store backend.
 `oauth.sessionLockTimeoutMs` bounds transaction lock acquisition (default 30 s).
+Set `auth.persistenceNamespace` on an OAuth server in initialization or
+configuration to select a named native credential profile. Different namespaces
+keep separate grants and registrations even at the same URL; omitting one keeps
+the default storage identity. Profiles are public configuration values and do
+not add credential environment variables. Host-owned stores select their own
+profile identities.
 Existing access-token imports require the original client ID; refresh-token/expiry fields
 require an access token. Expiry must be a decimal Unix epoch millisecond value.
 Persisted rotated or cleared grants take precedence over imported environment

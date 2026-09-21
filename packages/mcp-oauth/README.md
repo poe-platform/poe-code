@@ -42,6 +42,7 @@ const verifier = createJwksTokenVerifier({
   - `mode: "static"` with `clientId`, optional `clientSecret`, optional `metadata`
 - `allowInteractive: false` prevents interactive login while retaining cached tokens and silent refresh
 - `sessionLockTimeoutMs` limits acquisition waits for a session transaction lock (default 30,000 ms; integer from 1 to 2147483647)
+- `persistenceNamespace` isolates native sessions and registrations for a named profile (nonempty string, at most 1024 UTF-8 bytes)
 - `initialGrant: { resource, tokens }` optionally imports an existing Bearer grant for one HTTP resource; requires the original client ID
 - `browser.openBrowser(url)` optional
 - `browser.readLine()` optional
@@ -108,6 +109,13 @@ Static clients and dynamic initial-grant imports require cached grants to match
 the original normalized client ID and secret. A different client configuration
 fails before attaching or refreshing credentials and retains the stored record;
 select separate persistence or explicitly reset the session to change apps.
+Use `persistenceNamespace: "personal"` or `"work"` to keep separate native
+profiles for the same resource/issuer. `createAuthStoreSessionStore(options,
+namespace)` addresses the same profile when seeding or inspecting credentials.
+Namespaces are hashed into file/Keychain identities and transaction locks;
+omitting one preserves the default storage keys. Switching namespaces selects a
+different record and does not migrate or reset the previous profile. Host-owned
+`sessionStore` implementations remain responsible for their own profile keys.
 
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.
 

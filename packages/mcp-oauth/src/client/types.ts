@@ -116,6 +116,8 @@ export interface DefaultOAuthClientProviderOptions {
   allowInteractive?: boolean;
   /** Maximum wait to acquire a session transaction lock (default 30,000 ms). */
   sessionLockTimeoutMs?: number;
+  /** Isolate native persisted sessions and registrations for a named profile. */
+  persistenceNamespace?: string;
   /** Import an existing grant for one resource. Persisted sessions take precedence. */
   initialGrant?: {
     resource: string;

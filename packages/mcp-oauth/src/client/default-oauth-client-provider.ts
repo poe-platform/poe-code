@@ -14,7 +14,8 @@ import type {
 } from "./types.js";
 import {
   createAuthStoreClientStore,
-  createAuthStoreSessionStore
+  createAuthStoreSessionStore,
+  assertPersistenceNamespace
 } from "./auth-store-session-store.js";
 import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback-authorization.js";
 import { createAuthorizationState } from "./authorization-state.js";
@@ -45,9 +46,10 @@ export function createDefaultOAuthClientProvider(
   options: DefaultOAuthClientProviderOptions
 ): OAuthClientProvider {
   loopbackTarget(options.browser);
-  const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
+  assertPersistenceNamespace(options.persistenceNamespace);
+  const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
   const clientStore =
-    options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
+    options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
   const now = options.now ?? Date.now;
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
   if (options.initialGrant !== undefined) {

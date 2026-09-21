@@ -24,16 +24,18 @@ export interface OAuthClientStore {
 }
 
 export function createAuthStoreSessionStore(
-  options: CreateSecretStoreInput = {}
+  options: CreateSecretStoreInput = {},
+  namespace?: string
 ): OAuthSessionStore {
+  assertPersistenceNamespace(namespace);
   return {
     async withLock(resource, operation, lockOptions) {
-      const store = createResourceSecretStore(resource, options);
+      const store = createResourceSecretStore(resource, options, namespace);
       if (store.withLock === undefined) throw new Error("OAuth secret-store backend does not support transaction locks");
       return store.withLock(operation, lockOptions);
     },
     async load(resource: string): Promise<StoredOAuthSession | null> {
-      const store = createResourceSecretStore(resource, options);
+      const store = createResourceSecretStore(resource, options, namespace);
       const value = await store.get();
       if (value === null) {
         return null;
@@ -49,20 +51,21 @@ export function createAuthStoreSessionStore(
       throw new Error("Stored OAuth session must match the expected shape");
     },
     async save(resource: string, session: StoredOAuthSession): Promise<void> {
-      const store = createResourceSecretStore(resource, options);
+      const store = createResourceSecretStore(resource, options, namespace);
       await store.set(JSON.stringify(session));
     },
     async clear(resource: string): Promise<void> {
-      const store = createResourceSecretStore(resource, options);
+      const store = createResourceSecretStore(resource, options, namespace);
       await store.delete();
     }
   };
 }
 
-export function createAuthStoreClientStore(options: CreateSecretStoreInput): OAuthClientStore {
+export function createAuthStoreClientStore(options: CreateSecretStoreInput, namespace?: string): OAuthClientStore {
+  assertPersistenceNamespace(namespace);
   return {
     async load(issuer: string): Promise<StoredOAuthClient | null> {
-      const store = createIssuerSecretStore(issuer, options);
+      const store = createIssuerSecretStore(issuer, options, namespace);
       const value = await store.get();
       if (value === null) {
         return null;
@@ -87,11 +90,11 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput): OAu
       throw new Error("Stored OAuth client must be a JSON object with clientId");
     },
     async save(issuer: string, client: StoredOAuthClient): Promise<void> {
-      const store = createIssuerSecretStore(issuer, options);
+      const store = createIssuerSecretStore(issuer, options, namespace);
       await store.set(JSON.stringify(client));
     },
     async clear(issuer: string): Promise<void> {
-      const store = createIssuerSecretStore(issuer, options);
+      const store = createIssuerSecretStore(issuer, options, namespace);
       await store.delete();
     }
   };
@@ -100,9 +103,10 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput): OAu
 function createNamedSecretStore(
   key: string,
   options: CreateSecretStoreInput,
-  defaults: { salt: string; directory: string; service: string; accountPrefix: string }
+  defaults: { salt: string; directory: string; service: string; accountPrefix: string },
+  namespace?: string
 ): SecretStore {
-  const hash = crypto.createHash("sha256").update(key).digest("hex");
+  const hash = crypto.createHash("sha256").update(namespace === undefined ? key : JSON.stringify([namespace, key])).digest("hex");
   const configuredFilePath = options.fileStore?.filePath;
   const parsedFilePath = configuredFilePath === undefined ? null : path.parse(configuredFilePath);
 
@@ -132,22 +136,27 @@ function createNamedSecretStore(
   return createSecretStore({ ...options, fileStore, keychainStore }).store;
 }
 
-function createResourceSecretStore(resource: string, options: CreateSecretStoreInput): SecretStore {
+function createResourceSecretStore(resource: string, options: CreateSecretStoreInput, namespace?: string): SecretStore {
   return createNamedSecretStore(canonicalizeResourceIndicator(resource), options, {
     salt: DEFAULT_FILE_SALT,
     directory: DEFAULT_FILE_DIRECTORY,
     service: DEFAULT_KEYCHAIN_SERVICE,
     accountPrefix: "provider"
-  });
+  }, namespace);
 }
 
-function createIssuerSecretStore(issuer: string, options: CreateSecretStoreInput): SecretStore {
+function createIssuerSecretStore(issuer: string, options: CreateSecretStoreInput, namespace?: string): SecretStore {
   return createNamedSecretStore(issuer, options, {
     salt: DEFAULT_CLIENT_FILE_SALT,
     directory: DEFAULT_CLIENT_FILE_DIRECTORY,
     service: DEFAULT_CLIENT_KEYCHAIN_SERVICE,
     accountPrefix: "issuer"
-  });
+  }, namespace);
+}
+
+export function assertPersistenceNamespace(namespace: string | undefined): void {
+  if (namespace !== undefined && (typeof namespace !== "string" || namespace.trim() === "" || Buffer.byteLength(namespace, "utf8") > 1024))
+    throw new Error("OAuth persistence namespace must be a nonempty string within 1024 bytes");
 }
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {

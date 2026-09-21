@@ -132,3 +132,53 @@ pub fn agent_session_decode(source: Utf16String) -> NativeJson {
             .collect(),
     ))
 }
+
+#[napi]
+#[derive(Default)]
+pub struct NativeAgentMemoryStore {
+    state: poe_agent_rust::session_log::MemoryStore,
+}
+#[napi]
+impl NativeAgentMemoryStore {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn append(&mut self, source: Utf16String) -> Result<()> {
+        self.state
+            .append(&source)
+            .map_err(|error| Error::from_reason(error.to_string()))
+    }
+    #[napi]
+    pub fn list(&self) -> NativeJson {
+        NativeJson(Value::Array(self.state.entries().to_vec()))
+    }
+    #[napi]
+    pub fn clear(&mut self) {
+        self.state.clear();
+    }
+}
+#[napi]
+pub fn agent_session_log_decode(source: Utf16String) -> NativeJson {
+    use poe_agent_rust::session_log::{LogError, decode_jsonl};
+    let status = |name: &str| Value::String(name.encode_utf16().collect());
+    let pairs = match decode_jsonl(&source) {
+        Ok(entries) => vec![("status", status("ok")), ("entries", Value::Array(entries))],
+        Err(LogError::Syntax(line)) => vec![
+            ("status", status("syntax")),
+            ("line", Value::Number(line as f64)),
+        ],
+        Err(LogError::Limit(line)) => vec![
+            ("status", status("limit")),
+            ("line", Value::Number(line as f64)),
+        ],
+        Err(LogError::Invalid) => vec![("status", status("invalid"))],
+    };
+    NativeJson(Value::Object(
+        pairs
+            .into_iter()
+            .map(|(key, value)| (key.encode_utf16().collect(), value))
+            .collect(),
+    ))
+}

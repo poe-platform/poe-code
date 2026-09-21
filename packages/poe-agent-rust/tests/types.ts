@@ -12,3 +12,12 @@ type Supported = Pick<
 const a: Supported = own;
 const b: Pick<typeof own, keyof Supported> = null as unknown as Supported;
 void [a, b];
+
+import type * as originalLog from "../../poe-agent/dist/runtime/session/session-store.js";
+type LogSupported = Pick<
+  typeof originalLog,
+  "createMemorySessionStore" | "createJsonlSessionStore"
+>;
+const logA: LogSupported = own;
+const logB: Pick<typeof own, keyof LogSupported> = null as unknown as LogSupported;
+void [logA, logB];

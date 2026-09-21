@@ -3570,3 +3570,31 @@ The full agent/runtime/closure rewrite and minimum24-hour effort remain open.
 Conservative active03:41:16–04:01:41 UTC adds1225s; total81347s (22.60h),
 minimum remaining5053s (1h24m13s). The checkpoint gap04:01:41–04:03:46 is
 excluded. Work resumed04:03:46 UTC and continues beyond this boundary.
+
+### Poe Agent Rust history stores, 2026-09-21 04:09 UTC
+
+Independent Rust MemoryStore owns parsed transcript values and clones them into
+Node on listing; clearing drops retained capacity. JSONL replay validates all
+seven entry kinds, follows original metadata/array admission, trims ECMAScript
+whitespace and preserves source line numbers. It tolerates only a final syntax
+failure without a terminating newline; valid-but-invalid final entries reject.
+Bounds violations always reject, including final records. Node supplies ordered
+filesystem promises, serialization effects and missing-file handling. Failed
+write queues preserve arbitrary causes and suppress subsequent filesystem effects.
+Memory stores retain original re-use-after-disposal behavior.
+
+Portable red precedes implementation. All5 Rust cases,10 native groups and59
+complete original cases pass, including all19 original history-store cases.
+Differential entry-kind/metadata mutation coverage and native serialized-write,
+failed-queue, hook, Unicode, __proto__, deep-isolation/disposal and parser-bound
+checks pass. Bidirectional internal-store contracts and supported root contracts,
+focused unit/lint/fmt/clippy/formatting and uncached113-workspace/28-build/338-edge
+closure pass. Direct/packed16MiB workers each add2048 memory appends,96 memory
+listings,512 JSONL appends and8 replays alongside the provider/session workload.
+Recursive artifact audit covers20 JS/declaration files, one addon and zero npm
+runtime groups. Heap endpoints~8.9MB and parent-inclusive RSS are bounded checks,
+not isolated peak/leak acceptance. The parser limits remain disclosed. Evidence
+out/rust-poe-agent-log-*. Session commitff44b885c is verified on remote main.
+Release35558479691 still runs fresh unit after other validation jobs passed;
+no successful publication is verified. Full rewrite and minimum effort remain
+open. Work continues beyond the04:03:46 active-segment boundary.

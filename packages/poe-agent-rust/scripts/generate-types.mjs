@@ -82,7 +82,7 @@ writeFileSync(
 );
 writeFileSync(
   new URL("src/index.d.ts", root),
-  "export {collectProviders,resolveProvider,DuplicateProviderNameError,ProviderResolutionError} from './providers.js';\nexport {InvalidToolNameError} from './tool-names.js';\nexport type {AgentPlugin,Provider,ProviderContext,ProviderStreamEvent} from './plugin-types.js';\nexport type {ChatMessage,Tool,ToolResult,ToolResultPart} from './types.js';\nexport {createAgentSessionStore} from './session-store.js';\nexport type {AgentSessionStore,PersistedAgentSession} from './session-store.js';\n"
+  "export {collectProviders,resolveProvider,DuplicateProviderNameError,ProviderResolutionError} from './providers.js';\nexport {InvalidToolNameError} from './tool-names.js';\nexport type {AgentPlugin,Provider,ProviderContext,ProviderStreamEvent} from './plugin-types.js';\nexport type {ChatMessage,Tool,ToolResult,ToolResultPart} from './types.js';\nexport {createAgentSessionStore} from './session-store.js';\nexport type {AgentSessionStore,PersistedAgentSession} from './session-store.js';\nexport {createMemorySessionStore,createJsonlSessionStore} from './session-log.js';\nexport type {SessionStore} from './session-log.js';\nexport type {SessionEntry} from './entry-types.js';\n"
 );
 
 seed(
@@ -90,4 +90,12 @@ seed(
   "session-store",
   ["SessionStoreFs", "PersistedAgentSession", "AgentSessionStore", "createAgentSessionStore"],
   "import type {ChatMessage} from './types.js';"
+);
+
+seed("runtime/session/entry-types.d.ts", "entry-types", ["SessionEntry"], "");
+seed(
+  "runtime/session/session-store.d.ts",
+  "session-log",
+  ["JsonlSessionStoreFs", "SessionStore", "createMemorySessionStore", "createJsonlSessionStore"],
+  "import type {SessionEntry} from './entry-types.js';"
 );

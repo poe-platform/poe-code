@@ -19,3 +19,30 @@ fn independently_validates_session_roles_and_structured_tool_parts() {
     ));
     assert!(matches!(decode(&[123]), Err(ReadError::Syntax(_))));
 }
+
+#[test]
+fn jsonl_replay_validates_entries_and_only_discards_final_syntax_failure() {
+    use poe_agent_rust::session_log::{LogError, decode_jsonl};
+    let entry = r#"{"kind":"user","id":"u","parentId":null,"createdAt":"a","text":"hello\ud800"}"#;
+    let input = format!("  \n{entry}\n{{\"kind\":");
+    assert_eq!(
+        decode_jsonl(&input.encode_utf16().collect::<Vec<_>>())
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(matches!(
+        decode_jsonl(
+            &format!("{entry}\n{{bad\n")
+                .encode_utf16()
+                .collect::<Vec<_>>()
+        ),
+        Err(LogError::Syntax(2))
+    ));
+    assert!(matches!(
+        decode_jsonl(&r#"{"kind":"user"}"#.encode_utf16().collect::<Vec<_>>()),
+        Err(LogError::Invalid)
+    ));
+    let extension = r#"{"kind":"compaction","id":"c","parentId":null,"createdAt":"a","summary":"s","droppedIds":[null],"readFiles":[],"modifiedFiles":[]}"#;
+    assert!(decode_jsonl(&extension.encode_utf16().collect::<Vec<_>>()).is_ok());
+}

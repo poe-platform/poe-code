@@ -9,17 +9,17 @@ Resolve plugin-provided models with an independent Rust core and no npm runtime 
 - Save/load conversation records with Rust role/content validation and injectable storage.
 
 ```typescript
-import { collectProviders, resolveProvider } from '@poe-code/poe-agent-rust';
+import { collectProviders, resolveProvider } from "@poe-code/poe-agent-rust";
 
 const providers = collectProviders(plugins);
-const provider = resolveProvider(providers, 'openai/gpt-5');
-const model = await provider.createModel('openai/gpt-5', context);
+const provider = resolveProvider(providers, "openai/gpt-5");
+const model = await provider.createModel("openai/gpt-5", context);
 ```
 
-This private experimental package currently provides runtime foundations. Agent builders, sessions, iteration/tool execution, built-in plugins and transcript persistence are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
+This private experimental package currently provides runtime foundations. Agent builders, sessions, iteration/tool execution, built-in plugins and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
 
 ```typescript
-import { createAgentSessionStore } from '@poe-code/poe-agent-rust';
+import { createAgentSessionStore } from "@poe-code/poe-agent-rust";
 
 const store = createAgentSessionStore();
 await store.save(session);
@@ -27,3 +27,5 @@ const restored = await store.load(session.threadId);
 ```
 
 Conversation records live under `~/.poe-code/sessions` by default. Set `homeDir` or inject an `fs` implementation to choose storage. Loaded records require version 1, conversation metadata and supported message/tool-result content. Missing records return `undefined`; unsafe thread paths, invalid messages and unsupported versions are rejected. Session files currently share the Rust parser's 16 MiB/depth-128/262,144-value limits, so unrestricted file interoperability remains incomplete. Saving uses standard JavaScript serialization and keeps its hook/error behavior.
+
+Use `createMemorySessionStore(id)` for isolated entry snapshots, or `await createJsonlSessionStore(id, directory, { fs })` for ordered persistent history. Replay preserves valid records and ignores an incomplete final JSON line; malformed complete lines and invalid entries report context. A failed append also rejects subsequent writes, replay and disposal. Memory-store disposal releases entries and permits reuse. JSONL records and memory snapshots share the parser limits above; an oversized final record is rejected rather than silently discarded.

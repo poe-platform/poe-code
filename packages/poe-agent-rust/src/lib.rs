@@ -128,3 +128,5 @@ pub fn session_error(id: &[u16]) -> Vec<u16> {
     value.extend(id);
     value
 }
+
+pub mod session_log;

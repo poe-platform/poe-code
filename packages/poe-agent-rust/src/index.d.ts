@@ -14,3 +14,6 @@ export type {
 export type { ChatMessage, Tool, ToolResult, ToolResultPart } from "./types.js";
 export { createAgentSessionStore } from "./session-store.js";
 export type { AgentSessionStore, PersistedAgentSession } from "./session-store.js";
+export { createMemorySessionStore, createJsonlSessionStore } from "./session-log.js";
+export type { SessionStore } from "./session-log.js";
+export type { SessionEntry } from "./entry-types.js";

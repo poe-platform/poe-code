@@ -17,12 +17,22 @@ export default defineConfig({
           name === "./session-store.js"
         )
           return path("dist/session-store.js");
+        if (
+          importer === path("../poe-agent/src/runtime/session/session-store.test.ts") &&
+          name === "./session-store.js"
+        )
+          return path("dist/session-log.js");
         if (importer === names && name === "./tool-names.js") return path("dist/tool-names.js");
       }
     }
   ],
   test: {
-    include: [providers, names, path("../poe-agent/src/session-store.test.ts")],
+    include: [
+      providers,
+      names,
+      path("../poe-agent/src/session-store.test.ts"),
+      path("../poe-agent/src/runtime/session/session-store.test.ts")
+    ],
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

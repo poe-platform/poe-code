@@ -3,6 +3,54 @@ use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use toolcraft_design_rust::template::{self, Environment, Lookup, Partials, ValueKind};
+#[napi]
+pub fn design_color_names() -> Vec<String> {
+    toolcraft_design_rust::color::style_names()
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect()
+}
+#[napi]
+pub fn design_color_style(name: String) -> Option<Utf16String> {
+    toolcraft_design_rust::color::style(&name).map(Into::into)
+}
+#[napi]
+pub fn design_color_apply(text: Utf16String, open: Utf16String) -> Utf16String {
+    toolcraft_design_rust::color::apply(&text, &open).into()
+}
+#[napi]
+pub fn design_rgb_style(r: f64, g: f64, b: f64, background: bool) -> Utf16String {
+    toolcraft_design_rust::color::rgb([r, g, b], background).into()
+}
+#[napi]
+pub fn design_hex_style(text: Utf16String, background: bool) -> Result<Utf16String> {
+    toolcraft_design_rust::color::hex(&text, background)
+        .map(Into::into)
+        .map_err(Error::from_reason)
+}
+#[napi]
+pub fn design_markdown_inline(text: Utf16String, code: bool) -> Utf16String {
+    if code {
+        toolcraft_design_rust::color::markdown_code(&text)
+    } else {
+        toolcraft_design_rust::color::markdown_link(&text)
+    }
+    .into()
+}
+#[napi]
+pub fn design_theme_hint(kind: String, text: String) -> Option<String> {
+    toolcraft_design_rust::color::theme_hint(&kind, &text).map(str::to_owned)
+}
+#[napi]
+pub fn design_palette(name: String, primary: Utf16String, light: bool) -> Result<NativeJson> {
+    toolcraft_design_rust::palette::palette(&name, &primary, light)
+        .map(NativeJson)
+        .map_err(Error::from_reason)
+}
+#[napi]
+pub fn design_text_markdown(kind: String, text: Utf16String) -> Utf16String {
+    toolcraft_design_rust::color::text_markdown(&kind, &text).into()
+}
 #[napi(object)]
 pub struct Reply {
     pub hit: bool,

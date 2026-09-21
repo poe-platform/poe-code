@@ -4,6 +4,22 @@ Compose agent prompts and configuration templates with an own Rust core and no
 npm runtime dependencies. This private additive package keeps your current design
 system integrations intact.
 
+Render consistent agent output with callable `color` chains, `text` helpers and
+cached dark/light palettes. `configureTheme({brand: 'blue', label: 'Acme'})`
+sets your brand and live intro label. Colors follow terminal support and
+`FORCE_COLOR`/`NO_COLOR`; `withOutputFormat` switches text between terminal,
+Markdown and JSON within an async context. Inline Markdown code and links escape
+delimiters and flatten newlines.
+
+```ts
+import {color, text, getTheme, configureTheme} from 'toolcraft-design-rust';
+
+configureTheme({brand: 'blue', label: 'Acme'});
+console.log(getTheme().intro('Agent ready'));
+console.log(text.command('poe-agent'));
+console.log(color.green.bold('Completed'));
+```
+
 ```ts
 import {renderTemplate,resolveTemplatePartials} from 'toolcraft-design-rust';
 

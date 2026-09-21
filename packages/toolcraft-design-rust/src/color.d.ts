@@ -1,0 +1,31 @@
+export interface Color {
+  (text: string): string;
+  reset: Color;
+  bold: Color;
+  dim: Color;
+  italic: Color;
+  underline: Color;
+  inverse: Color;
+  strikethrough: Color;
+  black: Color;
+  red: Color;
+  green: Color;
+  yellow: Color;
+  blue: Color;
+  magenta: Color;
+  cyan: Color;
+  white: Color;
+  gray: Color;
+  magentaBright: Color;
+  cyanBright: Color;
+  bgRed: Color;
+  bgGreen: Color;
+  bgYellow: Color;
+  bgBlue: Color;
+  bgMagenta: Color;
+  hex: (value: string) => Color;
+  rgb: (red: number, green: number, blue: number) => Color;
+  bgHex: (value: string) => Color;
+  bgRgb: (red: number, green: number, blue: number) => Color;
+}
+export declare const color: Color;

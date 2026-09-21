@@ -6721,3 +6721,34 @@ Capture c961a5b79 pushed and exact remote main verified; release35620820562 pend
 No successful current root publication verified. Continuous15:43:00–15:48:00 adds
 300s,total121615s(33.78h). Minimum fulfilled; full objective incomplete.
 Continue accounting after15:48:00UTC.
+
+### Native colors, palettes and inline text, 2026-09-21 15:56 UTC
+
+Missing core/SDK color/palette/text APIs reproduced before implementation. Rust
+owns UTF-16 nested-reset restoration, ANSI style definitions, RGB/hex conversion,
+palette style/cell plans, inline Markdown delimiters/escaping and theme-hint
+classification. Node owns callable property chains, lazy environment observations,
+async format scopes, mutable labels and palette caching. Added shared theme state
+revision/explicit-brand ownership; existing logger consumes the same state. No
+original consumer integration. Floating-point rounding just below0.5 reproduced
+against the reference, then fixed before final checks. Maintained20Rust/24native
+groups/42original SDK cases in3files and bidirectional visual types pass. Oracles
+cover every style, each built-in brand/mode, all text methods/formats, surrogate
+strings, private lazy environment reads, live labels and cache identity. Final
+lint/shared lint/scoped ESLint pass. Selected uncached6-build closure passes at
+concurrency1. Viewed out/rust-design-color.png.
+
+Packed one addon/12audited host/declaration files/zero npm runtime groups. Direct/
+packed blocked-external16MiBworkers each complete65536logs,131072layouts,262144
+preview updates,24576palette renders and16384inline renders. Sampled final JS heap
+9.54–11.27MiB; limits do not bound native/total memory. Five alternating warmed
+pairs of24576blue-dark header/prompt/intro renders measure7.73–10.46ms owned vs
+49.64–60.09ms original. This workload improves through cached style construction;
+no general speed/stability/memory superiority asserted. Full design-system/terminal
+Markdown/ACP renderers remain incomplete. Evidence out/rust-design-color-*.
+Tooling Vitest remains dev-only; staged lock change touches only this workspace.
+
+Logging493903b2e pushed and exact remote main verified; release35621323705 pending.
+No successful current root publication verified. Foreign changes preserved.
+Continuous15:48:00–15:56:00 adds480s,total122095s(33.92h). Minimum fulfilled;
+full objective incomplete. Continue accounting after15:56:00UTC.

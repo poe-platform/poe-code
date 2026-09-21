@@ -1,5 +1,8 @@
 import { createRequire } from "node:module";
 import { createTemplateEngine } from "./engine.js";
+export {color} from "./color.js";
+export {brands,brand,dark,light,getTheme,resolveThemeName,resetThemeCache} from "./theme.js";
+export {text,typography} from "./text.js";
 export { TemplateParseError } from "./engine.js";
 const native = createRequire(import.meta.url)("./toolcraft-design-rust.node");
 export const { renderTemplate, getTemplatePartialNames, resolveTemplatePartials } =

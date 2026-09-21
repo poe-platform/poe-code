@@ -51,3 +51,7 @@ type Logging = Pick<
 const loggingOriginal: Logging = design;
 const loggingOwn: Pick<typeof design, keyof Logging> = null as unknown as Logging;
 void [loggingOriginal, loggingOwn];
+type Visual = Pick<typeof originalDesign,"color"|"text"|"typography"|"brands"|"brand"|"dark"|"light"|"getTheme"|"resolveThemeName"|"resetThemeCache">;
+const visualOriginal:Visual=design;
+const visualOwn:Pick<typeof design,keyof Visual>=null as unknown as Visual;
+void[visualOriginal,visualOwn];

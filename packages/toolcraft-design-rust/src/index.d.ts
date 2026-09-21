@@ -1,4 +1,9 @@
 export type TemplateEscape = "html" | "none";
+export {color} from "./color.js";
+export type {Color} from "./color.js";
+export {brands,brand,dark,light,getTheme,resolveThemeName,resetThemeCache} from "./theme.js";
+export type {Brand,ThemeName,ThemePalette,ThemeEnv} from "./theme.js";
+export {text,typography} from "./text.js";
 export interface RenderTemplateOptions {
   escape?: TemplateEscape;
   partials?: Record<string, string>;

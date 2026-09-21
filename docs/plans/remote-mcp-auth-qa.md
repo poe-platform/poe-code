@@ -601,3 +601,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     extensions, exact redirect/state/005930 and escaped original page; release
     the listener. Require zero token/persistence/tool traffic, inspect the safe
     summary screenshot and purge only owned evidence.
+
+55. Reflect a synthetic credential in actual protected-resource and issuer
+    mismatch metadata. Through SDK discovery retain full native typed metadata
+    errors/phase/messages. Through generated tools and management auth retain
+    only safe curated phase summaries, nonzero exit and empty result stdout.
+    Require six unauthorized MCP initializations/seventeen metadata GETs, complete
+    valid metadata extensions and zero token/tool/consent/persistence traffic.
+    Compile strict Node-only public OAuthMetadataError.is/phase use without
+    casts/deep imports. Preserve separately bundled/nested classifications and
+    ordinary same-named host errors; withhold malformed phases. Inspect safe CLI
+    summary screenshot and purge only owned synthetic evidence.

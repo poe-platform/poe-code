@@ -3,7 +3,7 @@ import {
   type CommandContext, type CommandDefinition, type OutputOperation, type VirtualShellPlugin
 } from "@poe-platform/safe-bash/contracts";
 import { OAuthAuthorizationError, OAuthError } from "mcp-oauth";
-import { HttpTransportError, McpError, type Tool, type CallToolResult } from "tiny-mcp-client";
+import { HttpTransportError, McpError, OAuthMetadataError, type Tool, type CallToolResult } from "tiny-mcp-client";
 import { compileJsonSchema, formatIssues, type CompiledJsonSchema, type CompileJsonSchemaOptions } from "toolcraft-schema";
 import { compileToolArguments, type ToolArgumentParseOptions, type ToolArgumentParser } from "./arguments.js";
 import { withRemoteMcpClient } from "./remote.js";
@@ -117,6 +117,12 @@ const publicOAuthErrorCodes = new Set([
 export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 0): Record<string, unknown> {
   if (depth > 8 || seen.has(error)) return { message: "Nested error details omitted" };
   seen.add(error);
+  if (OAuthMetadataError.is(error)) {
+    const phase = error.phase === "protected-resource" || error.phase === "authorization-server" ? error.phase : undefined;
+    return { name: "OAuthMetadataError", message: phase === "protected-resource" ? "OAuth protected resource metadata failed"
+      : phase === "authorization-server" ? "OAuth authorization server metadata failed" : "OAuth metadata failed",
+      ...(phase === undefined ? {} : { phase }) };
+  }
   if (OAuthAuthorizationError.is(error)) {
     const code = publicOAuthErrorCodes.has(error.error) ? error.error : undefined;
     return { name: "OAuthAuthorizationError", message: code === undefined ? "OAuth authorization failed" : `OAuth ${code}`,

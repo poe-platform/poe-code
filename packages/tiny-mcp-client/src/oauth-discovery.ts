@@ -35,6 +35,21 @@ export interface OAuthMetadataLookupOptions {
   signal?: AbortSignal;
 }
 
+const metadataErrorBrand = Symbol.for("poe-platform.tiny-mcp-client.OAuthMetadataError");
+
+/** Native metadata failure with complete SDK diagnostics and a safe phase. */
+export class OAuthMetadataError extends Error {
+  static is(value: unknown): value is OAuthMetadataError {
+    return value instanceof Error && Object.getOwnPropertyDescriptor(value, metadataErrorBrand)?.value === true;
+  }
+
+  constructor(readonly phase: "protected-resource" | "authorization-server", message: string) {
+    super(message);
+    this.name = "OAuthMetadataError";
+    Object.defineProperty(this, metadataErrorBrand, { value: true });
+  }
+}
+
 function defaultOAuthMetadataFetch(input: string | URL, init?: RequestInit): Promise<Response> {
   return fetch(input, init);
 }
@@ -90,7 +105,7 @@ function validateProtectedResourceMetadata(
   const normalizedResource = canonicalizeResourceIndicator(value.resource);
 
   if (normalizedResource !== resourceUrl) {
-    throw new Error(
+    throw new OAuthMetadataError("protected-resource",
       `Protected resource metadata resource mismatch: expected ${resourceUrl}, received ${value.resource}`
     );
   }
@@ -120,7 +135,7 @@ function validateAuthorizationServerMetadata(
   }
 
   if (value.issuer !== issuer) {
-    throw new Error(
+    throw new OAuthMetadataError("authorization-server",
       `Authorization server metadata issuer mismatch: expected ${issuer}, received ${value.issuer}`
     );
   }
@@ -432,7 +447,7 @@ export class OAuthMetadataDiscovery {
       }
     }
 
-    throw new Error(
+    throw new OAuthMetadataError("authorization-server",
       `Unable to load authorization server metadata for ${cacheKey}: ${authorizationServerErrors.join(
         "; "
       )}`

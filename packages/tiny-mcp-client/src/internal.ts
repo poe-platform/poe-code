@@ -36,6 +36,7 @@ import type {
 
 export {
   OAuthMetadataDiscovery,
+  OAuthMetadataError,
   discoverOAuthMetadata,
   parseBearerWwwAuthenticateHeader,
   resolveAuthorizationServerMetadataUrl,

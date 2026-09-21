@@ -79,6 +79,7 @@ function validateToolSchemas(tools: readonly Tool[], options: CompileJsonSchemaO
 
 /** Discover only absent schemas and produce deterministic, credential-free artifacts. */
 export async function generateRemoteMcpArtifact(value: unknown, options: ArtifactGenerationOptions = {}): Promise<GeneratedRemoteMcpArtifact> {
+  options = { ...options, ...(options.schema === undefined ? {} : { schema: { ...options.schema } }) };
   const limit = artifactLimit(options);
   options.schema?.signal?.throwIfAborted();
   const schemaRegistry = snapshotRegistry(options.schemaRegistry, limit);

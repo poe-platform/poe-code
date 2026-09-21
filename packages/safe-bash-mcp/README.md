@@ -441,7 +441,9 @@ corresponding `options.generation` settings; `--max-tools` applies to discovery
 and the resolved configuration, including supplied snapshots. Byte limits apply
 before output, while the host's command output limit still bounds stdout.
 Shell redirection works for all formats. Host-selected SDK
-generation settings are available as management `options.generation`; discovery
+generation settings are available as management `options.generation`. Generation
+captures configuration ceilings and discovery option handles at entry; caller
+changes while discovery waits cannot replace its selected signal or limits. Discovery
 uses the command's environment unless the host supplies an explicit binding.
 
 Server/tool ordering and nested JSON keys are stable; semantic arrays retain

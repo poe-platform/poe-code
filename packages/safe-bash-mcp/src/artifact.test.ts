@@ -352,3 +352,37 @@ it("keeps older version-one artifacts compatible with host external registration
   try { expect((await shell.exec("catalog search_items --query 005930")).exitCode).toBe(0); }
   finally { await shell.dispose(); }
 });
+
+it("retains the artifact discovery signal when its caller replaces the handle during initialization", async () => {
+  const f = remote(), entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const options = { schema: { signal: new AbortController().signal, fetch: (async (url, init) => {
+    if (init?.method === "POST" && JSON.parse(String(init.body)).method === "initialize") { entered.resolve(); await release.promise; }
+    return f.fetch(url, init);
+  }) as HttpTransportFetch } };
+  const pending = generateRemoteMcpArtifact(initRemoteMcpConfiguration([server]).configuration, options);
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise; options.schema.signal = AbortSignal.abort(new Error("replacement cancellation")); release.resolve();
+    const result = await outcome; expect(result).not.toBeInstanceOf(Error);
+    expect(result.artifact.schemas[0].tools).toEqual([tool]);
+  } finally { release.resolve(); await outcome; }
+});
+
+it.each(["tighten", "loosen"])("retains the artifact configuration tool ceiling when its caller chooses to %s it during discovery", async mutation => {
+  const f = remote(), entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const tools = [tool, { ...tool, name: "second" }];
+  const options = { maxTools: mutation === "tighten" ? 2 : 1, schema: { fetch: (async (url, init) => {
+    const request = init?.method === "POST" ? JSON.parse(String(init.body)) : null;
+    if (request?.method === "initialize") { entered.resolve(); await release.promise; }
+    if (request?.method === "tools/list") return Response.json({ jsonrpc: "2.0", id: request.id, result: { tools } });
+    return f.fetch(url, init);
+  }) as HttpTransportFetch } };
+  const pending = generateRemoteMcpArtifact(initRemoteMcpConfiguration([server]).configuration, options);
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise; options.maxTools = mutation === "tighten" ? 1 : 2; release.resolve();
+    const result = await outcome;
+    if (mutation === "tighten") { expect(result).not.toBeInstanceOf(Error); expect(result.artifact.schemas[0].tools).toEqual([...tools].sort((a, b) => a.name.localeCompare(b.name))); }
+    else { expect(result).toBeInstanceOf(Error); expect(result.message).toContain("tool limit"); }
+  } finally { release.resolve(); await outcome; }
+});

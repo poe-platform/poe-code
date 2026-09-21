@@ -284,3 +284,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     redemption/replay, inspect the corrected safe summary screenshot and purge
     only owned evidence. A backend-lock gate must have zero session reads until
     the lock callback resumes.
+
+27. Gate initialization during actual HTTP artifact discovery and replace its
+    caller signal handle with an unrelated aborted signal. Repeat with an
+    original two-tool configuration ceiling changed to one, then an original
+    one-tool ceiling changed to two. The first two generations must retain their
+    original policy, validate complete artifacts, import the dependency-free ESM
+    module and recreate offline command help. The third must reject its original
+    one-tool ceiling after discovery. Require three tools/list requests, no
+    tools/call and three distinct retired sessions. Inspect safe summary output,
+    record results and purge owned synthetic evidence.

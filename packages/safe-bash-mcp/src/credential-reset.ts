@@ -18,6 +18,7 @@ export async function resetRemoteMcpAuthentication(
   value: RemoteMcpServerConfiguration,
   options: RemoteMcpCredentialResetOptions = {}
 ): Promise<RemoteMcpCredentialResetResult> {
+  options = { ...options };
   options.signal?.throwIfAborted();
   const [server] = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options).servers;
   if (server.auth?.type !== "oauth") throw new Error("Only managed OAuth credentials can be reset; update bearer/header environment values at the host");

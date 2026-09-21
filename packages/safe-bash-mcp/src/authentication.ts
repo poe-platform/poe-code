@@ -30,13 +30,14 @@ export async function authenticateRemoteMcpServer(
   value: RemoteMcpServerConfiguration,
   options: RemoteMcpAuthenticationOptions
 ): Promise<RemoteMcpAuthenticationResult> {
+  options = { ...options };
   options.signal?.throwIfAborted();
   const limits = remoteLimits({ ...options, requestTimeoutMs: options.requestTimeoutMs ?? 120_000 });
   if (limits.requestTimeoutMs > 2_147_483_647) throw new Error("Authentication requestTimeoutMs must be a positive supported timer interval");
   const deadline = AbortSignal.timeout(limits.requestTimeoutMs);
   const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
   const configuration = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options.binding);
-  const browser = options.binding.oauth?.browser;
+  const browser = options.binding.oauth?.browser === undefined ? undefined : { ...options.binding.oauth.browser };
   const opener = browser?.openBrowser;
   const observer = options.onAuthorizationUrl;
   const noBrowser = options.noBrowser ?? true;

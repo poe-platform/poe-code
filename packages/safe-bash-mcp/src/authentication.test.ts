@@ -203,6 +203,40 @@ it("explicitly resets the old grant before starting a new consent flow", async (
   expect(reset).toHaveBeenCalledOnce();
   expect(f.observed).toHaveBeenCalledTimes(2);
 });
+
+it("captures the selected fetch before awaiting host credential reset", async () => {
+  const f = fixture(true), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const reset = vi.fn(async () => { entered.resolve(); await resume.promise; });
+  const replacement = vi.fn(async () => { throw new Error("replacement auth fetch selected"); });
+  const options = { binding: { ...f.binding, oauth: { ...f.binding.oauth, reset } }, fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true };
+  const pending = authenticateRemoteMcpServer(f.configuration, options);
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise;
+    options.fetch = replacement;
+    resume.resolve();
+    expect(await outcome).toMatchObject({ name: "catalog", url: resource });
+    expect(replacement).not.toHaveBeenCalled();
+    expect(f.observed).toHaveBeenCalledOnce();
+  } finally { resume.resolve(); await outcome; }
+});
+
+it("captures browser cancellation policy used by authorization URL delivery", async () => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const reset = vi.fn(async () => { entered.resolve(); await resume.promise; });
+  const browser = { ...f.binding.oauth.browser, signal: new AbortController().signal };
+  const binding = { ...f.binding, oauth: { ...f.binding.oauth, browser, reset } };
+  const pending = authenticateRemoteMcpServer(f.configuration, { binding, fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true });
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise;
+    browser.signal = AbortSignal.abort(new Error("replacement browser cancellation"));
+    resume.resolve();
+    expect(await outcome).toMatchObject({ name: "catalog", url: resource });
+    expect(f.observed).toHaveBeenCalledOnce();
+    expect(f.opener).not.toHaveBeenCalled();
+  } finally { resume.resolve(); await outcome; }
+});
 it("fails explicitly selected browser launch without a configured opener before URL observation", async () => {
   const f = fixture();
   await expect(authenticateRemoteMcpServer(f.configuration, { binding: { ...f.binding, oauth: { ...f.binding.oauth, browser: { readLine: f.binding.oauth.browser.readLine } } },

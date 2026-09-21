@@ -233,3 +233,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     without initialization or tool calls. Native construction may resolve its
     path early but must not write anything until validated discovery. Inspect the
     final safe summary screenshot and purge owned evidence.
+
+23. Use public HTTP MCP initialization followed by actual local static-app OAuth
+    consent. Gate its host reset hook, replace caller fetch and browser signal,
+    then release reset. Require the selected original fetch/browser policy,
+    exactly one state/S256/actual-loopback code exchange and a second initialized
+    connection verifying the grant. Repeat with original browser cancellation
+    during gated reset while replacing its option handle with a fresh signal;
+    require original failure identity, no second consent/exchange and session
+    retirement. Separately gate standalone host resets, replace signal handles
+    with an aborted signal or abort the original then replace it with a fresh
+    one. Hook policy and final status must retain the original signal. Require
+    three distinct retired sessions and no tool list/call. Inspect safe summary
+    output, record results and purge only owned evidence.

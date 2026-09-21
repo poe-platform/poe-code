@@ -62,3 +62,20 @@ it("retains an already canceled reset reason before consulting persistence", asy
   await expect(sdk.resetRemoteMcpAuthentication(server, { signal: controller.signal, binding: { oauth: { reset } } })).rejects.toBe(reason);
   expect(reset).not.toHaveBeenCalled();
 });
+
+it.each(["replace with aborted", "replace after original abort"])("retains the selected reset signal while a host hook waits: %s", async mutation => {
+  const entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const controller = new AbortController(), reason = new Error("original reset cancellation");
+  const reset = vi.fn(async () => { entered.resolve(); await resume.promise; });
+  const options = { signal: controller.signal, binding: { oauth: { reset } } };
+  const pending = sdk.resetRemoteMcpAuthentication(server, options);
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise;
+    if (mutation === "replace with aborted") options.signal = AbortSignal.abort(new Error("replacement reset cancellation"));
+    else { controller.abort(reason); options.signal = new AbortController().signal; }
+    resume.resolve();
+    expect(await outcome).toEqual(mutation === "replace with aborted" ? { name: "catalog", url: resource, reset: true } : reason);
+    expect(reset).toHaveBeenCalledWith(server, { signal: controller.signal, timeoutMs: 30_000 });
+  } finally { resume.resolve(); await outcome; }
+});

@@ -52,6 +52,9 @@ static clients and dynamic registration. Its Rust effect machine owns expiry,
 credential binding, endpoint security, registration plans, PKCE parameters and
 bounded retry decisions. Host callbacks provide browser input, fetch and storage. Successful request
 Provider persistence retains requested scopes and dynamic registration metadata.
+Complete session operations serialize per store and resource. Refreshes persist a
+tokenless intent before redemption; uncertain outcomes require new authorization.
+Request cancellation aborts token reads and callback waits.
 Cached tokens must match the configured static client ID and secret. Successful request
 authorization returns an owned normalized token snapshot as well as attaching the
 Authorization header.

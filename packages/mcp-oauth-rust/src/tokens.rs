@@ -127,6 +127,13 @@ pub fn read_json_response(text: &[u16], ok: bool, status: f64) -> Result<Value, 
             ));
         }
     }
+    let known = payload
+        .as_ref()
+        .and_then(|value| value.get("error"))
+        .is_some_and(
+            |value| matches!(value, Value::String(text) if text.iter().copied().any(|unit| !whitespace(unit))),
+        );
+    fields.push(property("outcomeKnown", Value::Bool(known)));
     Err(ResponseError::OAuth(Value::Object(fields)))
 }
 /// application/x-www-form-urlencoded uses USVString replacement before UTF-8.

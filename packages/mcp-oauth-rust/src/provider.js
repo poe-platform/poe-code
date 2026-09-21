@@ -1,9 +1,10 @@
+import { withOAuthSessionTransaction } from "./session-transaction.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
 import { createAuthStoreSessionStore, createAuthStoreClientStore } from "./session-store.js";
-import { createLoopbackAuthorizationSession } from "./loopback.js";
+import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 import { fetchMcpResponse } from "./http.js";
 import {
@@ -87,6 +88,7 @@ function endpoints(metadata, interactive = false) {
 function clearTokens(session) {
   const result = { ...session };
   delete result.tokens;
+  delete result.refreshState;
   return result;
 }
 function clientOptions(client) {
@@ -112,6 +114,7 @@ export function createOAuthClientProvider(options) {
     : createDefaultOAuthClientProvider(options);
 }
 export function createDefaultOAuthClientProvider(options) {
+  loopbackTarget(options.browser);
   const requestedScope = normalizeOAuthScope(options.client.metadata?.scope);
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
   const clientStore =
@@ -128,6 +131,9 @@ export function createDefaultOAuthClientProvider(options) {
   async function loadSession(resource) {
     const value = await sessionStore.load(resource);
     if (value === null) return null;
+    const refreshState = ownEntry(value, "refreshState");
+    if (refreshState !== undefined && (refreshState !== "pending" || ownEntry(value, "tokens") !== undefined))
+      throw new Error("Stored OAuth refresh state is invalid");
     let normalized;
     try {
       normalized = native.providerNormalizeSession(
@@ -200,75 +206,84 @@ export function createDefaultOAuthClientProvider(options) {
           authorizationServerMetadata: stored.authorizationServerMetadata
         };
   }
-  async function ensure(resource, discovery, fetch, interactive, force = false) {
+  async function ensure(resource, discovery, fetch, interactive, force = false, signal) {
     resource = canonicalizeResourceIndicator(resource);
-    let session = await loadSession(resource);
-    const input = {
-      configured: clientOptions(options.client),
-      session:
-        session === null
-          ? null
-          : {
-              resource: canonicalizeResourceIndicator(session.resource),
-              authorizationServer: scalar(session.authorizationServer),
-              client: session.client,
-              tokens: session.tokens,
-              discovery: {
-                authorizationServerMetadata: project(
-                  session.discovery.authorizationServerMetadata,
-                  METADATA
-                )
+    return withOAuthSessionTransaction(sessionStore, resource, async () => {
+      let session = await loadSession(resource);
+      const input = {
+        configured: clientOptions(options.client),
+        session:
+          session === null
+            ? null
+            : {
+                resource: canonicalizeResourceIndicator(session.resource),
+                authorizationServer: scalar(session.authorizationServer),
+                client: session.client,
+                tokens: session.tokens,
+                discovery: {
+                  authorizationServerMetadata: project(
+                    session.discovery.authorizationServerMetadata,
+                    METADATA
+                  )
+                }
+              },
+        discovery:
+          discovery === undefined
+            ? null
+            : {
+                authorizationServer: scalar(discovery.authorizationServer),
+                authorizationServerMetadata: project(discovery.authorizationServerMetadata, METADATA)
               }
-            },
-      discovery:
-        discovery === undefined
-          ? null
-          : {
-              authorizationServer: scalar(discovery.authorizationServer),
-              authorizationServerMetadata: project(discovery.authorizationServerMetadata, METADATA)
-            }
-    };
-    if (unwrap(native.providerBindingAction(resource, JSON.stringify(input))) === "clear") {
-      await sessionStore.clear(resource);
-      session = null;
-    }
-    const resolved = discoveryFor(discovery, session);
-    const flow = new native.NativeSessionFlow(
-      JSON.stringify(session?.tokens ?? null),
-      resolved !== undefined,
-      interactive,
-      force
-    );
-    let clock;
-    for (;;) {
-      const effect = flow.next(clock);
-      clock = undefined;
-      switch (effect) {
-        case "clock":
-          clock = Number(now());
-          break;
-        case "continue":
-          break;
-        case "refresh":
-          session = await refreshSession(resource, session, resolved, fetch);
-          flow.refreshed(JSON.stringify(session?.tokens ?? null));
-          break;
-        case "clear":
-          session = clearTokens(session);
-          await sessionStore.save(resource, session);
-          break;
-        case "authorize":
-          return authorizeSession(resource, session, resolved, fetch);
-        default:
-          return session;
+      };
+      if (unwrap(native.providerBindingAction(resource, JSON.stringify(input))) === "clear") {
+        await sessionStore.clear(resource);
+        session = null;
       }
-    }
+      const resolved = discoveryFor(discovery, session);
+      if (session?.refreshState === "pending") {
+        if (!interactive || options.allowInteractive === false || resolved === undefined)
+          throw new Error("OAuth refresh outcome is unknown; authorize again before using this resource");
+        return authorizeSession(resource, clearTokens(session), resolved, fetch, signal);
+      }
+      const flow = new native.NativeSessionFlow(
+        JSON.stringify(session?.tokens ?? null),
+        resolved !== undefined,
+        interactive,
+        force
+      );
+      let clock;
+      for (;;) {
+        const effect = flow.next(clock);
+        clock = undefined;
+        switch (effect) {
+          case "clock":
+            clock = Number(now());
+            break;
+          case "continue":
+            break;
+          case "refresh":
+            session = await refreshSession(resource, session, resolved, fetch, signal);
+            flow.refreshed(JSON.stringify(session?.tokens ?? null));
+            break;
+          case "clear":
+            session = clearTokens(session);
+            await sessionStore.save(resource, session);
+            break;
+          case "authorize":
+            if (options.allowInteractive === false) throw new Error("OAuth authorization requires interactive consent");
+            return authorizeSession(resource, session, resolved, fetch, signal);
+          default:
+            return session;
+        }
+      }
+    }, { signal, timeoutMs: options.sessionLockTimeoutMs });
   }
-  async function refreshSession(resource, session, discovery, fetch) {
+  async function refreshSession(resource, session, discovery, fetch, signal) {
     const urls = endpoints(discovery.authorizationServerMetadata);
     if (refreshing.has(resource)) return refreshing.get(resource);
     const promise = (async () => {
       const retries = new native.NativeOAuthRetryState();
+      await sessionStore.save(resource, { ...clearTokens(session), refreshState: "pending" });
       try {
         let tokens;
         for (;;) {
@@ -280,10 +295,13 @@ export function createDefaultOAuthClientProvider(options) {
               refreshToken: session.tokens.refreshToken,
               resource,
               fetch,
+              signal,
               now
             });
             break;
           } catch (error) {
+            signal?.throwIfAborted();
+            if (!(error instanceof OAuthError) || !error.outcomeKnown) throw error;
             const oauth = error instanceof OAuthError,
               code = oauth ? error.error : "",
               status = oauth ? error.status : 0;
@@ -306,6 +324,7 @@ export function createDefaultOAuthClientProvider(options) {
               return null;
             }
             if (action === "retry") continue;
+            await sessionStore.save(resource, session);
             throw error;
           }
         }
@@ -327,7 +346,7 @@ export function createDefaultOAuthClientProvider(options) {
     refreshing.set(resource, promise);
     return promise;
   }
-  async function resolveClient(existing, discovery, redirect, fetch) {
+  async function resolveClient(existing, discovery, redirect, fetch, parentSignal) {
     const metadata = discovery.authorizationServerMetadata;
     const registration = ownEntry(metadata, "registration_endpoint");
     const hasRegistration = typeof registration === "string";
@@ -358,7 +377,8 @@ export function createDefaultOAuthClientProvider(options) {
       JSON.stringify(clientMetadata(options.client)),
       redirect
     );
-    const signal = AbortSignal.timeout(30_000);
+    const deadline = AbortSignal.timeout(30_000);
+    const signal = parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
     const response = await fetchMcpResponse(fetch, registration, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -370,17 +390,17 @@ export function createDefaultOAuthClientProvider(options) {
     await saveClient(discovery.authorizationServer, client);
     return { kind: "dynamic", fromStoredRegistration: false, client };
   }
-  async function authorizeSession(resource, existing, discovery, fetch) {
+  async function authorizeSession(resource, existing, discovery, fetch, signal) {
     if (authorizing.has(resource)) return authorizing.get(resource);
     const promise = (async () => {
       const urls = endpoints(discovery.authorizationServerMetadata, true);
       const retries = new native.NativeOAuthRetryState();
       let current = existing;
       for (;;) {
-        const loopback = await createLoopbackAuthorizationSession(options.browser);
+        const loopback = await createLoopbackAuthorizationSession({ ...options.browser, signal: signal === undefined ? options.browser.signal : options.browser.signal === undefined ? signal : AbortSignal.any([signal, options.browser.signal]) });
         let client = null;
         try {
-          client = await resolveClient(current, discovery, loopback.redirectUri, fetch);
+          client = await resolveClient(current, discovery, loopback.redirectUri, fetch, signal);
           const pending = {
             resource,
             authorizationServer: discovery.authorizationServer,
@@ -420,12 +440,14 @@ export function createDefaultOAuthClientProvider(options) {
             redirectUri: loopback.redirectUri,
             resource,
             fetch,
+            signal,
             now
           });
           const complete = { ...pending, tokens };
           await sessionStore.save(resource, complete);
           return complete;
         } catch (error) {
+          signal?.throwIfAborted();
           const oauth = error instanceof OAuthError;
           const action = retries.authorization(
             oauth,
@@ -458,7 +480,7 @@ export function createDefaultOAuthClientProvider(options) {
     async authorizeRequest(input) {
       validateUrl(input.requestUrl, "Protected resource request URL");
       const url = canonicalizeResourceIndicator(input.requestUrl);
-      const session = await ensure(url, undefined, input.fetch, false);
+      const session = await ensure(url, undefined, input.fetch, false, false, input.signal);
       if (session === null || session.tokens === undefined || expired(session.tokens)) return;
       unwrap(native.providerRequestMatches(url, session.resource));
       input.headers.set("Authorization", `Bearer ${session.tokens.accessToken}`);
@@ -478,12 +500,14 @@ export function createDefaultOAuthClientProvider(options) {
           { ...input.discovery, resource },
           input.fetch,
           true,
-          force
+          force,
+          input.signal
         );
         return session?.tokens?.accessToken === undefined
           ? { action: "fail" }
           : { action: "retry" };
       } catch (error) {
+        input.signal?.throwIfAborted();
         return { action: "fail", error: error instanceof Error ? error : new Error(String(error)) };
       }
     }

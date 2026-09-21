@@ -4,7 +4,7 @@ import { canonicalizeResourceIndicator } from "./resource.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 
 export class OAuthError extends Error {
-  constructor(shape, status) {
+  constructor(shape, status, outcomeKnown = true) {
     super(shape.error_description ?? shape.error);
     this.name = "OAuthError";
     this.error = shape.error;
@@ -13,6 +13,7 @@ export class OAuthError extends Error {
     this.error_description = shape.error_description;
     this.error_uri = shape.error_uri;
     this.status = status;
+    this.outcomeKnown = outcomeKnown;
     this.retryable = native.isRetryableTokenError(shape.error, status);
     this.terminal = !this.retryable;
   }
@@ -46,7 +47,8 @@ export async function readOAuthJsonObjectResponse(response, signal) {
           : undefined,
         error_uri: Object.hasOwn(shape, "error_uri") ? shape.error_uri : undefined
       },
-      response.status
+      response.status,
+      shape.outcomeKnown
     );
   }
   return result.payload;

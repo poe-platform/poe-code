@@ -133,3 +133,21 @@ fn token_auth_plans_encode_basic_credentials_and_never_duplicate_secrets() {
         "Unsupported OAuth token endpoint authentication method"
     );
 }
+
+#[test]
+fn error_outcomes_are_known_only_for_explicit_nonblank_oauth_errors() {
+    use mcp_oauth_rust::tokens::ResponseError;
+    for (body, known) in [
+        (r#"{"error":"invalid_scope"}"#, true),
+        (r#"{"error":" "}"#, false),
+        (r#"{"message":"lost"}"#, false),
+        ("lost", false),
+    ] {
+        let Err(ResponseError::OAuth(error)) =
+            read_json_response(&body.encode_utf16().collect::<Vec<_>>(), false, 503.0)
+        else {
+            panic!()
+        };
+        assert_eq!(error.get("outcomeKnown"), Some(&Value::Bool(known)));
+    }
+}

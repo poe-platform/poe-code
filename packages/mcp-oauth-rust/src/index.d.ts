@@ -61,6 +61,7 @@ export interface OAuthClientProvider {
     requestUrl: URL;
     headers: Headers;
     fetch: OAuthMetadataFetch;
+    signal?: AbortSignal;
   }): Promise<StoredOAuthTokens | void> | StoredOAuthTokens | void;
   handleUnauthorized(input: {
     requestUrl: URL;
@@ -68,6 +69,7 @@ export interface OAuthClientProvider {
     challenge: OAuthUnauthorizedChallenge | null;
     discovery: OAuthDiscoveryResult;
     fetch: OAuthMetadataFetch;
+    signal?: AbortSignal;
   }):
     | Promise<{ action: "retry" } | { action: "fail"; error?: Error }>
     | { action: "retry" }
@@ -77,12 +79,9 @@ export interface DefaultOAuthClientProviderOptions {
   client:
     | { mode: "dynamic"; clientId?: string; clientSecret?: string; metadata?: OAuthClientMetadata }
     | { mode: "static"; clientId: string; clientSecret?: string; metadata?: OAuthClientMetadata };
-  browser: {
-    openBrowser?: (url: string) => Promise<void>;
-    readLine?: () => Promise<string>;
-    createServer?: () => import("node:http").Server;
-    landingPage?: OAuthLandingPage;
-  };
+  allowInteractive?: boolean;
+  sessionLockTimeoutMs?: number;
+  browser: LoopbackAuthorizationOptions;
   sessionStore?: OAuthSessionStore;
   authStore?: CreateSecretStoreInput;
   now?: () => number;
@@ -142,9 +141,11 @@ export declare class OAuthError extends Error {
   readonly status: number;
   readonly retryable: boolean;
   readonly terminal: boolean;
+  readonly outcomeKnown: boolean;
   constructor(
     shape: { error: string; error_description?: string; error_uri?: string },
-    status: number
+    status: number,
+    outcomeKnown?: boolean
   );
 }
 export declare function isRetryableOAuthError(error: unknown): error is OAuthError;

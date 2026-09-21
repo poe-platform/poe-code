@@ -242,73 +242,109 @@ export class RenderedPageBreak {
       p = this.store.node(this.paragraphRef),
       marker = this.store.node(this.ref);
     const children = activeModelChildren(this.store, this.ref.part);
-    const breaks: XmlElement[] = [];
-    const collect = (n: XmlElement): void => {
-      if (n.namespace !== p.namespace) return;
-      if (n.localName === "lastRenderedPageBreak") breaks.push(n);
-      for (const child of children(n)) collect(child);
-    };
-    collect(p);
-    if (!breaks.includes(marker))
+    const budget = this.store.context.budget;
+    const parents = new Map<XmlElement, XmlElement>();
+    const pending = [p];
+    let activeMarker = false;
+    budget.charge("retainedBytes", 8);
+    while (pending.length) {
+      const node = pending.pop()!;
+      budget.charge("work", 1);
+      if (node.namespace !== p.namespace) continue;
+      if (node === marker && node.localName === "lastRenderedPageBreak") activeMarker = true;
+      const nested = children(node);
+      budget.charge("work", nested.length);
+      budget.charge("retainedBytes", nested.length * 24);
+      for (let index = nested.length - 1; index >= 0; index--) {
+        parents.set(nested[index]!, node);
+        pending.push(nested[index]!);
+      }
+    }
+    if (!activeMarker)
       throw new UnsupportedEditError(
         "Fragment extraction requires an active cached break in its paragraph."
       );
-    const contains = (n: XmlElement): boolean => n === marker || children(n).some(contains);
-    const owner = children(p).find(contains);
-    if (!owner) throw new InvalidValueError("Cached break is not in its paragraph.");
-    const properties = children(p).find((n) => n.namespace === p.namespace && n.localName === "pPr");
-    const content = children(p).filter((n) => n !== properties),
-      index = content.indexOf(owner),
-      patches = new Map<XmlElement, string>();
+    const ancestors = new Set<XmlElement>();
+    const hyperlinkPath = new Set<XmlElement>();
+    let owner = marker, hyperlinkBoundary: XmlElement | undefined;
+    for (let node: XmlElement | undefined = marker; node && node !== p; node = parents.get(node)) {
+      budget.charge("work", 1);
+      budget.charge("retainedBytes", 8);
+      ancestors.add(node);
+      if (!hyperlinkBoundary) {
+        budget.charge("retainedBytes", 8);
+        hyperlinkPath.add(node);
+        if (node.localName === "hyperlink") hyperlinkBoundary = node;
+      }
+      owner = node;
+    }
+    if (owner === marker && !parents.has(marker))
+      throw new InvalidValueError("Cached break is not in its paragraph.");
+    const paragraphChildren = children(p);
+    const properties = paragraphChildren.find((n) => n.namespace === p.namespace && n.localName === "pPr");
+    const content = paragraphChildren.filter((n) => n !== properties),
+      index = content.indexOf(owner);
     const standalone = (node: XmlElement): string =>
       runElementOpen(node) + (node.content.length ? xml.sourceXml(node, new Map(), true) : "") + `</${node.name}>`;
-    let fragment = "";
-    if (owner.localName === "hyperlink") {
-      const removeMarker = (node: XmlElement): string =>
-        node === marker
-          ? ""
-          : !contains(node)
-            ? standalone(node)
-            : runElementOpen(node) + children(node).map(removeMarker).join("") + `</${node.name}>`;
-      patches.set(owner, removeMarker(owner));
-      fragment = content
-        .slice(preceding ? 0 : index + 1, preceding ? index + 1 : undefined)
-        .map((n) => patches.get(n) ?? standalone(n))
-        .join("");
-    } else {
-      const split = (node: XmlElement): string => {
-        if (node === marker) return "";
-        if (!contains(node)) return standalone(node);
-        let seen = false,
-          inner = "";
-        for (const child of children(node)) {
-          const has = contains(child);
-          if (has) {
-            inner += split(child);
-            seen = true;
-          } else if (
-            (child.namespace === node.namespace && child.localName === "rPr") ||
-            (preceding ? !seen : seen)
-          )
-            inner += standalone(child);
-        }
-        return runElementOpen(node) + inner + `</${node.name}>`;
-      };
-      patches.set(owner, split(owner));
-      fragment = content
-        .slice(preceding ? 0 : index, preceding ? index + 1 : undefined)
-        .map((n) => patches.get(n) ?? standalone(n))
-        .join("");
+    const hyperlink = owner === hyperlinkBoundary;
+    const chunks: string[] = [];
+    const frames: (XmlElement | string)[] = [owner];
+    budget.charge("retainedBytes", 8);
+    while (frames.length) {
+      const frame = frames.pop()!;
+      budget.charge("work", 1);
+      if (typeof frame === "string") {
+        chunks.push(frame);
+        continue;
+      }
+      if (frame === marker || frame === hyperlinkBoundary && !preceding) continue;
+      if (!ancestors.has(frame)) {
+        chunks.push(standalone(frame));
+        continue;
+      }
+      chunks.push(runElementOpen(frame));
+      const selected: XmlElement[] = [];
+      let seen = false;
+      for (const child of children(frame)) {
+        budget.charge("work", 1);
+        if (ancestors.has(child)) {
+          selected.push(child);
+          seen = true;
+        } else if (hyperlinkBoundary && hyperlinkPath.has(frame) ||
+          (child.namespace === frame.namespace && child.localName === "rPr") ||
+          (preceding ? !seen : seen)) selected.push(child);
+      }
+      budget.charge("retainedBytes", (selected.length + 1) * 8);
+      frames.push(`</${frame.name}>`);
+      for (let childIndex = selected.length - 1; childIndex >= 0; childIndex--)
+        frames.push(selected[childIndex]!);
     }
+    const patchedOwner = chunks.join("");
+    const fragment = content
+      .slice(preceding ? 0 : index + (hyperlink ? 1 : 0), preceding ? index + 1 : undefined)
+      .map((n) => n === owner ? patchedOwner : standalone(n))
+      .join("");
     const candidate =
       runElementOpen(p) + (properties ? standalone(properties) : "") + fragment + `</${p.name}>`;
-    const parsed = new DocumentXmlEditor(new TextEncoder().encode(candidate));
-    const fragmentChildren = activeXmlChildren(parsed, this.store.context.budget);
-    const meaningful = (n: XmlElement): boolean =>
-      (n.namespace === p.namespace &&
-        ["t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "drawing", "pict", "object"].includes(n.localName)) ||
-      fragmentChildren(n).some(meaningful);
-    if (!fragmentChildren(parsed.root).some((n) => n.localName !== "pPr" && meaningful(n))) return null;
+    budget.charge("retainedBytes", candidate.length * 2);
+    const parsed = new DocumentXmlEditor(new TextEncoder().encode(candidate), {}, undefined, budget);
+    const fragmentChildren = activeXmlChildren(parsed, budget);
+    const meaningful = fragmentChildren(parsed.root).filter((n) => n.localName !== "pPr");
+    budget.charge("retainedBytes", meaningful.length * 8);
+    let hasContent = false;
+    while (meaningful.length) {
+      const node = meaningful.pop()!;
+      budget.charge("work", 1);
+      if (node.namespace === p.namespace &&
+        ["t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "drawing", "pict", "object"].includes(node.localName)) {
+        hasContent = true;
+        break;
+      }
+      const nested = fragmentChildren(node);
+      budget.charge("retainedBytes", nested.length * 8);
+      for (const child of nested) meaningful.push(child);
+    }
+    if (!hasContent) return null;
     return this.store.detachedParagraph(candidate, this.ref.part);
   }
 }

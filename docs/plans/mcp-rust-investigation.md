@@ -3837,3 +3837,27 @@ release35561781557 succeeded independently, but no current root publication is
 claimed. The mistakenly queried archived workflow named Release returned historical
 runs; current monitoring uses the branch run list and concrete run IDs. Full
 rewrite and minimum24-hour actual effort remain unfinished.
+
+### Rust provider native transaction integration, 2026-09-21 04:48 UTC
+
+The Rust provider now uses the portable ticket queue through the own host adapter
+for complete read/redeem/write transactions. All23 complete original transaction,
+request-cancellation and uncertain-refresh cases pass with this queue. Concurrent
+remote refresh recovery/provenance implementations are retained, including pending
+intent before redemption, outcomeKnown classification and signal propagation.
+The latest whole native route passes72/74 groups; its two dynamic flows now expose
+the concurrently added exact requested-redirect identity contract, requiring the
+next reconciliation. No full-unit success is claimed.
+
+The initial rebase encountered a main-reference race while another local process
+committed original redirect changes. It was quit without resetting main; its
+checkpoint remains in autostash5ec7ad9a4 and overlapping own edits remain in
+out/rust-oauth-provider-transaction-overlap.patch. Current main retained the
+concurrent original commit, then rebased both commits onto remote refresh/
+provenance fixes. Queues e7e507f51 and stored-client76adb8d82 are verified on remote
+main. No other changes were reverted or unpublished commits discarded.
+
+Focused lint/types and uncached package build closure are verified for this
+integration. Evidence out/rust-oauth-native-queue-provider-*. Original production
+imports remain unchanged; this is internal integration inside the additive Rust
+package only. Full rewrite/minimum24-hour effort/release publication remain open.

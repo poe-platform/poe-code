@@ -1,4 +1,4 @@
-import { withOAuthSessionTransaction } from "./session-transaction.js";
+import { withOAuthSessionTransaction } from "./transaction.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
@@ -132,7 +132,10 @@ export function createDefaultOAuthClientProvider(options) {
     const value = await sessionStore.load(resource);
     if (value === null) return null;
     const refreshState = ownEntry(value, "refreshState");
-    if (refreshState !== undefined && (refreshState !== "pending" || ownEntry(value, "tokens") !== undefined))
+    if (
+      refreshState !== undefined &&
+      (refreshState !== "pending" || ownEntry(value, "tokens") !== undefined)
+    )
       throw new Error("Stored OAuth refresh state is invalid");
     let normalized;
     try {
@@ -206,78 +209,104 @@ export function createDefaultOAuthClientProvider(options) {
           authorizationServerMetadata: stored.authorizationServerMetadata
         };
   }
-  async function ensure(resource, discovery, fetch, interactive, force = false, signal, rejectedTokens) {
+  async function ensure(
+    resource,
+    discovery,
+    fetch,
+    interactive,
+    force = false,
+    signal,
+    rejectedTokens
+  ) {
     resource = canonicalizeResourceIndicator(resource);
-    return withOAuthSessionTransaction(sessionStore, resource, async () => {
-      let session = await loadSession(resource);
-      const input = {
-        configured: clientOptions(options.client),
-        session:
-          session === null
-            ? null
-            : {
-                resource: canonicalizeResourceIndicator(session.resource),
-                authorizationServer: scalar(session.authorizationServer),
-                client: session.client,
-                tokens: session.tokens,
-                discovery: {
+    return withOAuthSessionTransaction(
+      sessionStore,
+      resource,
+      async () => {
+        let session = await loadSession(resource);
+        const input = {
+          configured: clientOptions(options.client),
+          session:
+            session === null
+              ? null
+              : {
+                  resource: canonicalizeResourceIndicator(session.resource),
+                  authorizationServer: scalar(session.authorizationServer),
+                  client: session.client,
+                  tokens: session.tokens,
+                  discovery: {
+                    authorizationServerMetadata: project(
+                      session.discovery.authorizationServerMetadata,
+                      METADATA
+                    )
+                  }
+                },
+          discovery:
+            discovery === undefined
+              ? null
+              : {
+                  authorizationServer: scalar(discovery.authorizationServer),
                   authorizationServerMetadata: project(
-                    session.discovery.authorizationServerMetadata,
+                    discovery.authorizationServerMetadata,
                     METADATA
                   )
                 }
-              },
-        discovery:
-          discovery === undefined
-            ? null
-            : {
-                authorizationServer: scalar(discovery.authorizationServer),
-                authorizationServerMetadata: project(discovery.authorizationServerMetadata, METADATA)
-              }
-      };
-      if (unwrap(native.providerBindingAction(resource, JSON.stringify(input))) === "clear") {
-        await sessionStore.clear(resource);
-        session = null;
-      }
-      if (force && rejectedTokens !== undefined && !native.rejectedGrantMatches(JSON.stringify({ current: session?.tokens, rejected: rejectedTokens }))) force = false;
-      const resolved = discoveryFor(discovery, session);
-      if (session?.refreshState === "pending") {
-        if (!interactive || options.allowInteractive === false || resolved === undefined)
-          throw new Error("OAuth refresh outcome is unknown; authorize again before using this resource");
-        return authorizeSession(resource, clearTokens(session), resolved, fetch, signal);
-      }
-      const flow = new native.NativeSessionFlow(
-        JSON.stringify(session?.tokens ?? null),
-        resolved !== undefined,
-        interactive,
-        force
-      );
-      let clock;
-      for (;;) {
-        const effect = flow.next(clock);
-        clock = undefined;
-        switch (effect) {
-          case "clock":
-            clock = Number(now());
-            break;
-          case "continue":
-            break;
-          case "refresh":
-            session = await refreshSession(resource, session, resolved, fetch, signal);
-            flow.refreshed(JSON.stringify(session?.tokens ?? null));
-            break;
-          case "clear":
-            session = clearTokens(session);
-            await sessionStore.save(resource, session);
-            break;
-          case "authorize":
-            if (options.allowInteractive === false) throw new Error("OAuth authorization requires interactive consent");
-            return authorizeSession(resource, session, resolved, fetch, signal);
-          default:
-            return session;
+        };
+        if (unwrap(native.providerBindingAction(resource, JSON.stringify(input))) === "clear") {
+          await sessionStore.clear(resource);
+          session = null;
         }
-      }
-    }, { signal, timeoutMs: options.sessionLockTimeoutMs });
+        if (
+          force &&
+          rejectedTokens !== undefined &&
+          !native.rejectedGrantMatches(
+            JSON.stringify({ current: session?.tokens, rejected: rejectedTokens })
+          )
+        )
+          force = false;
+        const resolved = discoveryFor(discovery, session);
+        if (session?.refreshState === "pending") {
+          if (!interactive || options.allowInteractive === false || resolved === undefined)
+            throw new Error(
+              "OAuth refresh outcome is unknown; authorize again before using this resource"
+            );
+          return authorizeSession(resource, clearTokens(session), resolved, fetch, signal);
+        }
+        const flow = new native.NativeSessionFlow(
+          JSON.stringify(session?.tokens ?? null),
+          resolved !== undefined,
+          interactive,
+          force
+        );
+        let clock;
+        for (;;) {
+          const effect = flow.next(clock);
+          clock = undefined;
+          switch (effect) {
+            case "clock":
+              clock = Number(now());
+              break;
+            case "continue":
+              break;
+            case "refresh":
+              session = await refreshSession(resource, session, resolved, fetch, signal);
+              flow.refreshed(JSON.stringify(session?.tokens ?? null));
+              break;
+            case "clear":
+              session = clearTokens(session);
+              await sessionStore.save(resource, session);
+              break;
+            case "authorize":
+              if (options.allowInteractive === false)
+                throw new Error("OAuth authorization requires interactive consent");
+              return authorizeSession(resource, session, resolved, fetch, signal);
+            default:
+              return session;
+          }
+        }
+      },
+      { signal, timeoutMs: options.sessionLockTimeoutMs }
+    );
   }
   async function refreshSession(resource, session, discovery, fetch, signal) {
     const urls = endpoints(discovery.authorizationServerMetadata);
@@ -379,7 +408,8 @@ export function createDefaultOAuthClientProvider(options) {
       redirect
     );
     const deadline = AbortSignal.timeout(30_000);
-    const signal = parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
+    const signal =
+      parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
     const response = await fetchMcpResponse(fetch, registration, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -398,7 +428,15 @@ export function createDefaultOAuthClientProvider(options) {
       const retries = new native.NativeOAuthRetryState();
       let current = existing;
       for (;;) {
-        const loopback = await createLoopbackAuthorizationSession({ ...options.browser, signal: signal === undefined ? options.browser.signal : options.browser.signal === undefined ? signal : AbortSignal.any([signal, options.browser.signal]) });
+        const loopback = await createLoopbackAuthorizationSession({
+          ...options.browser,
+          signal:
+            signal === undefined
+              ? options.browser.signal
+              : options.browser.signal === undefined
+                ? signal
+                : AbortSignal.any([signal, options.browser.signal])
+        });
         let client = null;
         try {
           client = await resolveClient(current, discovery, loopback.redirectUri, fetch, signal);
@@ -499,17 +537,33 @@ export function createDefaultOAuthClientProvider(options) {
         if (presented !== undefined) {
           rejectedCurrent = false;
           if (presented !== null) {
-            try { presented = native.providerNormalizeTokens(JSON.stringify(project(presented, TOKENS))); }
-            catch (error) { throw new Error(error.message); }
+            try {
+              presented = native.providerNormalizeTokens(
+                JSON.stringify(project(presented, TOKENS))
+              );
+            } catch (error) {
+              throw new Error(error.message);
+            }
             const header = input.requestHeaders?.get("Authorization") ?? "";
             const separator = header.indexOf(" ");
-            if (presented === null || header.slice(0, separator).toLowerCase() !== "bearer" || header.slice(separator + 1).trim() !== presented.accessToken)
-              throw new Error("OAuth rejected-request provenance does not match its authorization header");
-            rejectedCurrent = native.rejectedGrantMatches(JSON.stringify({ current: cached?.tokens, rejected: presented }));
+            if (
+              presented === null ||
+              header.slice(0, separator).toLowerCase() !== "bearer" ||
+              header.slice(separator + 1).trim() !== presented.accessToken
+            )
+              throw new Error(
+                "OAuth rejected-request provenance does not match its authorization header"
+              );
+            rejectedCurrent = native.rejectedGrantMatches(
+              JSON.stringify({ current: cached?.tokens, rejected: presented })
+            );
           }
         }
         const challenge = input.challenge?.params.error;
-        const force = rejectedCurrent && (challenge === "invalid_token" || (input.presentedTokens !== undefined && challenge === undefined));
+        const force =
+          rejectedCurrent &&
+          (challenge === "invalid_token" ||
+            (input.presentedTokens !== undefined && challenge === undefined));
         const session = await ensure(
           resource,
           { ...input.discovery, resource },

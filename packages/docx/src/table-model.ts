@@ -308,6 +308,7 @@ export class Table {
   add_row(): _Row {
     const grid = this.grid();
     if (!grid.columns.length) throw new InvalidValueError("Adding a row requires declared columns.");
+    this.store.context.budget.table(grid.rows.length + 1, grid.columns.length);
     this.store.change(this.ref.part, (xml) => {
       const table = this.store.node(this.ref),
         cells = grid.columns

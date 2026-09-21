@@ -119,6 +119,14 @@ Explicit ID/secret values must agree with the imported response. Sessions and
 native registration stores retain arrays, issuance/expiry timestamps and JSON
 provider metadata. Registration input is copied, bounded to 64 KiB and 64
 levels, and rejects invalid standard field types and non-JSON extensions.
+An optional registration `issuer` must match discovery and the persisted
+authorization server exactly. Contradictory metadata fails without activating
+or redeeming the grant. `client_secret_expires_at` uses Unix epoch seconds;
+zero means no expiry. Live access tokens remain usable after secret expiry,
+but an expired secret is never submitted for refresh. Native DCR can replace
+an expired registration during explicit authorization; caller-owned imports
+must be updated. Headless requests retain the old record and report recovery
+is required without creating a pending refresh marker.
 Set `client.tokenEndpointAuthMethod` to `none`, `client_secret_post` or
 `client_secret_basic`; a full registration can supply the same field as
 `token_endpoint_auth_method`. Public clients never transmit a stored secret.

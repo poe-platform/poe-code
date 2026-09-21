@@ -173,6 +173,8 @@ export function createDefaultOAuthClientProvider(
     const canonicalResource = canonicalizeResourceIndicator(resource);
     return withOAuthSessionTransaction(sessionStore, canonicalResource, async () => {
       let session = await loadSession(canonicalResource);
+      if (session !== null) assertRegistrationIssuer(session.client, session.authorizationServer);
+      if (configuredClient !== null && discovery !== undefined) assertRegistrationIssuer(configuredClient, discovery.authorizationServer);
       if (session !== null && initialGrant?.resource === canonicalResource) initialGrantConsumed = true;
       signal?.throwIfAborted();
       if (discovery !== undefined && getOwnString(
@@ -227,6 +229,11 @@ export function createDefaultOAuthClientProvider(
         sessionDiscovery !== undefined &&
         (forceRefresh || isExpired(session.tokens, now))
       ) {
+        if (hasExpiredClientSecret(session.client, now)) {
+          if (!allowInteractive || options.allowInteractive === false || options.client.mode === "static" || configuredClient?.registration !== undefined)
+            throw new Error("OAuth client secret has expired; authorize again or update the imported registration");
+          return authorizeSession(canonicalResource, clearSessionTokens(session), sessionDiscovery, fetch, signal);
+        }
         session = await refreshSession(canonicalResource, session, sessionDiscovery, fetch, signal);
         if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
           return session;
@@ -452,6 +459,9 @@ export function createDefaultOAuthClientProvider(
       if (configuredClient === null) {
         throw new Error("OAuth client_id must not be blank");
       }
+      assertRegistrationIssuer(configuredClient, discovery.authorizationServer);
+      if (hasExpiredClientSecret(configuredClient, now))
+        throw new Error("OAuth client secret has expired; update the imported registration");
 
       return {
         kind: "static",
@@ -472,7 +482,14 @@ export function createDefaultOAuthClientProvider(
       };
     }
 
-    const storedClient = await loadRegisteredClient(discovery.authorizationServer);
+    let storedClient = await loadRegisteredClient(discovery.authorizationServer);
+    if (storedClient !== null) {
+      assertRegistrationIssuer(storedClient, discovery.authorizationServer);
+      if (hasExpiredClientSecret(storedClient, now)) {
+        await clearRegisteredClient(discovery.authorizationServer);
+        storedClient = null;
+      }
+    }
     if (storedClient !== null) {
       return {
         kind: "dynamic",
@@ -482,7 +499,7 @@ export function createDefaultOAuthClientProvider(
     }
 
     if (registrationEndpoint === undefined) {
-      if (existingSession !== null && existingSession.client.clientId.length > 0) {
+      if (existingSession !== null && existingSession.client.clientId.length > 0 && !hasExpiredClientSecret(existingSession.client, now)) {
         return {
           kind: "dynamic",
           fromStoredRegistration: true,
@@ -493,7 +510,7 @@ export function createDefaultOAuthClientProvider(
       throw new Error("Authorization server metadata is missing registration_endpoint");
     }
 
-    if (existingSession !== null && existingSession.client.clientId.length > 0) {
+    if (existingSession !== null && existingSession.client.clientId.length > 0 && !hasExpiredClientSecret(existingSession.client, now)) {
       const isConfiguredStaticFallback =
         configuredClient !== null &&
         existingSession.client.clientId === configuredClient.clientId &&
@@ -540,6 +557,9 @@ export function createDefaultOAuthClientProvider(
       ...(responseMethod === undefined ? {} : { tokenEndpointAuthMethod: responseMethod }),
       registration
     };
+    assertRegistrationIssuer(registeredClient, discovery.authorizationServer);
+    if (hasExpiredClientSecret(registeredClient, now))
+      throw new Error("OAuth client secret has expired in the registration response");
     await saveRegisteredClient(discovery.authorizationServer, registeredClient);
 
     return {
@@ -916,6 +936,18 @@ function assertRequestMatchesResource(requestUrl: string, resource: string): voi
       `OAuth request URL ${requestUrl} does not match discovered resource ${resource}`
     );
   }
+}
+
+function assertRegistrationIssuer(client: StoredOAuthSession["client"], issuer: string): void {
+  const registrationIssuer = client.registration === undefined ? undefined : getOwnString(client.registration, "issuer");
+  if (registrationIssuer !== undefined && registrationIssuer !== issuer)
+    throw new Error("OAuth client registration issuer does not match the authorization server");
+}
+
+function hasExpiredClientSecret(client: StoredOAuthSession["client"], now: () => number): boolean {
+  if (client.clientSecret === undefined || client.tokenEndpointAuthMethod === "none" || client.registration === undefined) return false;
+  const expiry = getOwnEntry(client.registration, "client_secret_expires_at");
+  return typeof expiry === "number" && expiry !== 0 && expiry <= now() / 1000;
 }
 
 function getSupportedTokenAuthMethods(metadata: OAuthAuthorizationServerMetadata): string[] | undefined {

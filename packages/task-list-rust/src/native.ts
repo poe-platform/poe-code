@@ -1,5 +1,12 @@
 import { createRequire } from "node:module";
 export const native = createRequire(import.meta.url)("./task-list-rust.node") as {
+  NativeTaskSearch: new (initial: string) => {
+    next(): { state: string; events: string[] } | null;
+    has(state: string): boolean;
+    mark(state: string): void;
+    push(state: string, events: string[]): void;
+  };
+  NativeTaskTokenBucket: new (rate: number, now: number) => { take(now: number): number | null };
   taskYamlSpans(source: string): {
     root: number;
     nodes: {

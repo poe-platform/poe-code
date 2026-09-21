@@ -1,3 +1,4 @@
+export { moveTasks } from "./move.js";
 export { openTaskList } from "./open.js";
 export { assertEvent, assertTransition, defaultStateMachine, type TaskEvent } from "./state.js";
 export {

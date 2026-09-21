@@ -17,6 +17,8 @@ export default defineConfig({
           return;
         const modules = new Map([
           ["./state.js", "state"],
+          ["./index.js", "index"],
+          ["./move.js", "move"],
           ["./yaml-file.js", "backends/yaml-file"],
           ["./open.js", "open"],
           ["./gh-issues.js", "backends/gh-issues"],
@@ -63,6 +65,7 @@ export default defineConfig({
       "backends/markdown-dir.test.ts",
       "backends/yaml-file.test.ts",
       "open-task-list.test.ts",
+      "move-tasks.test.ts",
       "tasks.fire.test.ts",
       "backends/lock-concurrency.test.ts",
       "backends/conformance.test.ts",

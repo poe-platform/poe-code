@@ -5552,3 +5552,31 @@ unverified. Concurrent original changes preserved. Continuous10:37:46–10:40:33
 adds167s,total103671s (28.80h). Minimum fulfilled; remaining full closure/runtime/
 platform/performance/edited-YAML acceptance remains incomplete. Continue accounting
 after10:40:33 UTC.
+
+### Task-list migration, 2026-09-21 10:51 UTC
+
+Additive moveTasks supports read-only sources, dry-run write guards, single-list
+GitHub target fallback, shortest state-event paths, rate limiting, source deletion,
+progress callbacks and rollback after transition/source deletion failure. Rust owns
+bounded UTF16 BFS queue/visited state and token arithmetic; Node retains observable
+property access, filesystem/callback/timer orchestration. Search rejects above
+1048576 aggregate UTF16/path units or65536 queued/visited entries without mutation.
+Initial missing-module/export reds and resource-budget red precede implementation.
+An initial reference redirect gap reproduced four realm failures; repaired redirect
+ensures original migration fixtures exercise owned code.
+
+Maintained16Rust cases,13native groups,370original references/17files,full-module
+bidirectional public API types,18exact runtime exports,fmt/clippy/hostESLint pass.
+Uncached declared selected closure115workspaces/19builds/350edges passes. Refreshed
+packed audit40JS/declarations,one addon,zero runtime dependency groups/external
+imports. Direct/packed16MiB-old-generation workers each create96tasks,apply96events,
+dry-run96moves and migrate192tasks across Markdown/YAML with deletion. Final JS
+heaps9.92/9.98MiB,RSS97.8/100.8MiB. V8 bound is not total/native memory bound.
+Evidence out/rust-task-list-migration-*; no integration or full YAML/platform/
+performance acceptance claim.
+
+Registry release35583768081 remains in_progress; no successful publication
+verified. Unrelated auth-store/planning edits preserved. Previously unrecorded
+10:40:33–10:47:36 adds423s; fresh10:50:44–10:51:31 adds47s; checkpoint pause excluded.
+Total104141s (28.93h),minimum fulfilled,objective incomplete. Continue accounting
+after10:51:31 UTC.

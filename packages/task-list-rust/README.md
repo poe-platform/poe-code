@@ -12,6 +12,7 @@ additive implementation.
 - Markdown storage with atomic writes, locks, ordering, archive and passthrough frontmatter.
 - YAML stores with source spans, retained block comments, quote styles and task ordering.
 - GitHub issue/project storage, canonical issue identities, label states and project sync.
+- Migration with state mapping, rollback, dry-run validation and progress callbacks.
 
 ```typescript
 import {
@@ -53,9 +54,18 @@ contain `#` are rejected before file writes; other changed flow mappings are
 normalized. Complex mapping keys and complete SDK formatting/alias-edit parity
 remain under review.
 
-This private package currently covers all three storage backends, project sync,
-states, errors, interfaces and file-operation helpers. Migration is still being
-implemented. It is not yet a complete replacement for task-list.
+Migration searches declared state events in order and rolls back a created target
+if applying the mapped state or deleting the source fails. Rust owns the live
+search queue, visited identities and token bucket. The caller retains getters,
+callbacks, timers and I/O. Search admits up to 65,536 queued/visited entries per
+collection and 1,048,576 aggregate UTF-16/path units, counting empty event slots.
+Dequeued paths release their budget; invalid rates and limits reject before I/O.
+
+This private package exposes all original public runtime exports and compatible
+public TypeScript signatures. Each implementation's default machine has its own
+singleton identity; an explicitly supplied foreign default follows custom-machine
+transition rules. YAML editing bounds above and platform acceptance remain pending,
+so the rewrite is not yet fully interchangeable for every admitted SDK document.
 No npm runtime dependencies or changes to existing consumers are introduced.
 Current native artifact validation covers macOS arm64; other platforms and Python
 bindings remain pending. Native crossings do not imply faster small operations.

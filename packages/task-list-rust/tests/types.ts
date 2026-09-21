@@ -46,3 +46,9 @@ void [
   reverseDeps,
   error
 ];
+const move: typeof original.moveTasks = own.moveTasks;
+const reverseMove: typeof own.moveTasks = original.moveTasks;
+void [move, reverseMove];
+const fullForward: typeof original = own;
+const fullReverse: typeof own = original;
+void [fullForward, fullReverse];

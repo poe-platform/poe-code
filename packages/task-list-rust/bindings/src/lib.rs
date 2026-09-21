@@ -157,3 +157,64 @@ pub fn task_yaml_spans(
         ]),
     ))
 }
+#[napi(object)]
+pub struct TaskSearchFrame {
+    pub state: Utf16String,
+    pub events: Vec<Utf16String>,
+}
+#[napi]
+pub struct NativeTaskSearch {
+    search: task_list_rust::migration::Search,
+}
+#[napi]
+impl NativeTaskSearch {
+    #[napi(constructor)]
+    pub fn new(initial: Utf16String) -> napi::Result<Self> {
+        task_list_rust::migration::Search::new(initial.to_vec())
+            .map(|search| Self { search })
+            .map_err(napi::Error::from_reason)
+    }
+    #[napi(js_name = "next")]
+    pub fn next_frame(&mut self) -> Option<TaskSearchFrame> {
+        self.search.next().map(|(state, events)| TaskSearchFrame {
+            state: state.into(),
+            events: events.into_iter().map(Utf16String::from).collect(),
+        })
+    }
+    #[napi]
+    pub fn has(&self, state: Utf16String) -> bool {
+        self.search.has(&state)
+    }
+    #[napi]
+    pub fn mark(&mut self, state: Utf16String) -> napi::Result<()> {
+        self.search
+            .mark(state.to_vec())
+            .map_err(napi::Error::from_reason)
+    }
+    #[napi]
+    pub fn push(&mut self, state: Utf16String, events: Vec<Utf16String>) -> napi::Result<()> {
+        self.search
+            .push(
+                state.to_vec(),
+                events.into_iter().map(|s| s.to_vec()).collect(),
+            )
+            .map_err(napi::Error::from_reason)
+    }
+}
+#[napi]
+pub struct NativeTaskTokenBucket {
+    bucket: task_list_rust::migration::TokenBucket,
+}
+#[napi]
+impl NativeTaskTokenBucket {
+    #[napi(constructor)]
+    pub fn new(rate: f64, now: f64) -> napi::Result<Self> {
+        task_list_rust::migration::TokenBucket::new(rate, now)
+            .map(|bucket| Self { bucket })
+            .map_err(napi::Error::from_reason)
+    }
+    #[napi]
+    pub fn take(&mut self, now: f64) -> Option<f64> {
+        self.bucket.take(now)
+    }
+}

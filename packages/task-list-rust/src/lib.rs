@@ -130,3 +130,4 @@ pub fn task_id(value: &[u16]) -> bool {
 }
 pub mod github;
 pub mod markdown;
+pub mod migration;

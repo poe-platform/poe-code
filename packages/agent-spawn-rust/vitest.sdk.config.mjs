@@ -83,6 +83,13 @@ export default defineConfig({
           if (name.startsWith("../configs/"))
             return path("dist/configs/" + name.slice("../configs/".length));
         }
+        if (importer === path("../agent-spawn/src/spawn-interactive.test.ts")) {
+          if (name === "./spawn-interactive.js") return path("dist/spawn-interactive.js");
+          if (name === "./configs/resolve-config.js") return path("dist/resolve-config.js");
+          if (name === "./mcp-args.js") return path("dist/mcp-args.js");
+          if (name.startsWith("./configs/"))
+            return path("dist/configs/" + name.slice("./configs/".length));
+        }
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -216,6 +223,7 @@ export default defineConfig({
   test: {
     include: [
       args,
+      path("../agent-spawn/src/spawn-interactive.test.ts"),
       path("../agent-spawn/src/configs/mcp-file.test.ts"),
       configs,
       types,

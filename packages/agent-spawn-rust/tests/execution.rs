@@ -72,3 +72,38 @@ fn streaming_stdin_placement_is_distinct_from_captured_cli_launches() {
     assert_eq!(args.last(), Some(&v(r#""-""#)));
     assert!(!args.contains(&v(r#""secret""#)));
 }
+
+#[test]
+fn interactive_transport_uses_interactive_catalog_arguments_without_print_mode() {
+    let p = Planner::builtins();
+    let built = p
+        .build(
+            "codex",
+            &v(r#"{"prompt":"secret","mode":"read","interactiveTransport":true}"#),
+            None,
+        )
+        .unwrap();
+    assert_eq!(
+        built.get("args"),
+        Some(&v(
+            r#"["secret","-a","never","-s","read-only","--enable","use_legacy_landlock"]"#
+        ))
+    );
+    assert_eq!(
+        built.get("displayArgs"),
+        Some(&v(
+            r#"["[prompt redacted]","-a","never","-s","read-only","--enable","use_legacy_landlock"]"#
+        ))
+    );
+    let empty = p
+        .build(
+            "claude-code",
+            &v(r#"{"prompt":"","interactiveTransport":true}"#),
+            None,
+        )
+        .unwrap();
+    let Value::Array(args) = empty.get("args").unwrap() else {
+        panic!()
+    };
+    assert!(!args.contains(&v(r#""-p""#)));
+}

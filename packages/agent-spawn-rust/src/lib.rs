@@ -337,6 +337,15 @@ impl Planner {
             }
             resume_args1 = resume_args(config, units(resume), units(field(options, "cwd")), false);
         }
+        if field(options, "interactiveTransport") == &Value::Bool(true) {
+            return execution::interactive_plan(
+                &public_config,
+                options,
+                binary,
+                mcp_args,
+                resume_args1,
+            );
+        }
         let default_before = field(config, "defaultArgsPosition") == &s("beforePrompt");
         let mcp_position = if let Some(position) = config.get("mcpArgsPosition") {
             text(position)

@@ -1,7 +1,7 @@
 import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
 import path from "node:path";
-import { native } from "./native.js";
-import { buildSpawnArgs, resolveConfig, mergeSpawnEnvironment } from "./index.js";
+import { spawnPlanner as planner, buildSpawnArgs, mergeSpawnEnvironment } from "./planning.js";
+import { resolveConfig } from "./resolve-config.js";
 import { getMcpEnv } from "./mcp-args.js";
 import { applyMcpFile } from "./mcp-file.js";
 import { observeAgentSpawn } from "./observe.js";
@@ -11,7 +11,6 @@ import { createSpawnParallel } from "./parallel.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./resources.js";
 import { runPoeCommand } from "./harness/run-poe-command.js";
-const planner = new native.NativeSpawnPlanner();
 function abortError() {
   const error = new Error("Agent spawn aborted");
   error.name = "AbortError";

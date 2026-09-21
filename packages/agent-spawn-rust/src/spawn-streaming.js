@@ -1,5 +1,6 @@
 import { native } from "./native.js";
-import { resolveConfig, mergeSpawnEnvironment } from "./index.js";
+import { spawnPlanner as planner, mergeSpawnEnvironment } from "./planning.js";
+import { resolveConfig } from "./resolve-config.js";
 import { getMcpEnv } from "./mcp-args.js";
 import { applyMcpFile } from "./mcp-file.js";
 import { resolveSpawnExecution } from "./runtime.js";
@@ -12,7 +13,6 @@ import { EventQueue } from "./event-queue.js";
 import { observeAgentSpawn } from "./observe.js";
 import { startNativeOtelCapture } from "./native-otel.js";
 import { DEFAULT_SPAWN_MODE } from "./types.js";
-const planner = new native.NativeSpawnPlanner();
 function own(value, key) {
   return Object.hasOwn(value, key) ? value[key] : undefined;
 }

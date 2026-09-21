@@ -6582,3 +6582,31 @@ unit in_progress,other validations successful. No successful current root
 publication verified. Foreign changes preserved. Continuous14:42:09–14:56:11
 adds842s,total118506s(32.92h). Minimum fulfilled;full objective incomplete.
 Continue accounting after14:56:11UTC.
+
+### Owned interactive execution, 2026-09-21 15:05 UTC
+
+Missing core and SDK interactive APIs reproduced before implementation. Added
+spawnInteractive with Rust provider planning and owned runtime/process/resource
+hosts. Terminal streams inherit; model, mode, resume and MCP arguments follow
+the interactive provider contract. Planning registries now share one immutable
+internal module, avoiding duplicate catalogs and root-barrel mock cycles.
+No original consumer integration.
+
+Maintained25Rust cases/35native groups/426SDK cases in14files and bidirectional
+interactive signatures pass. Maintained lint and changed-scope ESLint pass; an
+extra all-source ESLint invocation detected an existing empty catch in the owned
+run-command host, outside this change. Selected uncached38-build closure passes
+at concurrency1. Viewed out/rust-spawn-interactive.png with actual /bin/echo
+execution and exit0. Packed one addon/361audited sources+declarations/zero npm
+runtime groups. Blocked external imports and direct/packed16MiBworkers each
+complete512spawns,512dryruns,64parallel,128streams/8192events,128interactive
+runs and1024abandonments. Old-generation limits do not bound native/total memory.
+Evidence out/rust-spawn-interactive-*.
+
+Correction to the previous streaming benchmark entry: final isolated five warmed
+pairs are21.47–26.93ms owned vs8.58–14.83ms original, not the earlier approximate
+30–35ms vs13–18ms samples. Performance acceptance remains FAIL.
+Streaming eddb3ac04 pushed and exact remote main verified. Root release35615609195
+still in_progress; no successful current root publication verified. Foreign
+changes preserved. Continuous14:56:11–15:05:48 adds577s,total119083s(33.08h).
+Minimum fulfilled; full objective incomplete. Continue accounting after15:05:48UTC.

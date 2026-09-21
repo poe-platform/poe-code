@@ -104,3 +104,8 @@ const streamingExecutionB: Pick<typeof own, keyof StreamingExecution> =
 const completeSpawnA: typeof original.spawn = own.spawn;
 const completeSpawnB: typeof own.spawn = null as unknown as typeof original.spawn;
 void [streamingExecutionA, streamingExecutionB, completeSpawnA, completeSpawnB];
+
+type Interactive = Pick<typeof original, "spawnInteractive">;
+const interactiveA: Interactive = own;
+const interactiveB: Pick<typeof own, keyof Interactive> = null as unknown as Interactive;
+void [interactiveA, interactiveB];

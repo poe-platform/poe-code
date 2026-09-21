@@ -1,5 +1,4 @@
-import { native } from "./native.js";
-const planner = new native.NativeSpawnPlanner();
+import { spawnPlanner as planner } from "./planning.js";
 export function getMcpArgs(config, servers) {
   const args = typeof config.mcpArgs === "function";
   const admitted = planner.mcpAdmission(

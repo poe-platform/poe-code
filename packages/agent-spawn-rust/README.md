@@ -172,3 +172,16 @@ stream. Usage and thread metadata remain in middleware context; raw streaming
 results retain the original empty stdout contract. Streaming activity deadlines
 reset on stdout only. Native capture records reach middleware before it completes.
 `spawn.retry` uses this same execution path for attempt-tagged events and telemetry.
+
+```typescript
+import { spawnInteractive } from '@poe-code/agent-spawn-rust';
+
+const result = await spawnInteractive('codex', {
+  prompt: 'Review this repository', mode: 'read', cwd: process.cwd(),
+});
+```
+
+Interactive execution inherits the terminal streams and uses each agent’s
+declarative prompt, resume, model and mode policies. Runtime overrides and
+resource bridges share the captured execution path. Agents without interactive
+support reject before opening a runtime.

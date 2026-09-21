@@ -101,3 +101,5 @@ export { noopOtelSink } from "./observe.js";
 
 export { spawnStreaming } from "./spawn-streaming.js";
 export type { SpawnStreamingOptions, SpawnStreamingResult } from "./spawn-streaming.js";
+
+export { spawnInteractive } from "./spawn-interactive.js";

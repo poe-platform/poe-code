@@ -36,6 +36,18 @@ mock.method(childProcess, "spawn", (command, args, options) => {
   });
   return child;
 });
+for (const key of [
+  "lstat",
+  "mkdir",
+  "readFile",
+  "writeFile",
+  "rename",
+  "unlink",
+  "readdir",
+  "stat",
+  "rm"
+])
+  mock.method(fs.promises, key, memory.promises[key].bind(memory.promises));
 syncBuiltinESMExports();
 test("spawn keeps cyclic host callbacks and middleware outside native DTOs", async () => {
   for (const api of [original, own]) {
@@ -116,4 +128,32 @@ test("spawn dry runs redact prompts and create no filesystem or process effects"
     assert.equal(messages[0].includes("private"), false);
     assert.deepEqual(volume.toJSON(), {});
   }
+});
+
+test("interactive execution preserves catalog resume/model arguments and inherited terminal modes", async () => {
+  const records = [];
+  for (const api of [original, own]) {
+    volume.reset();
+    calls.length = 0;
+    const result = await api.spawnInteractive("codex", {
+      prompt: "continue",
+      cwd: "/work",
+      mode: "read",
+      resumeThreadId: "thread",
+      model: "openai/gpt-5",
+      env: { ISOLATED: "one", DELETED: undefined }
+    });
+    assert.deepEqual(result, { stdout: "", stderr: "", exitCode: 0 });
+    const call = calls.at(-1);
+    records.push({
+      command: call.command,
+      args: call.args,
+      stdio: call.options.stdio,
+      env: call.options.env,
+      cwd: call.options.cwd
+    });
+  }
+  assert.deepEqual(records[1], records[0]);
+  assert.equal(records[1].args.includes("--json"), false);
+  assert.equal(records[1].stdio, "inherit");
 });

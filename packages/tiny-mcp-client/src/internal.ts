@@ -3076,7 +3076,7 @@ export class HttpTransport implements McpTransport {
     if (this.legacyProtocolVersion !== undefined) headers.set("MCP-Protocol-Version", this.legacyProtocolVersion);
     if (this.lastEventId !== undefined) {
       if (this.lastEventId === "") headers.delete("Last-Event-ID");
-      else headers.set("Last-Event-ID", this.lastEventId);
+      else headers.set("Last-Event-ID", Buffer.from(this.lastEventId, "utf8").toString("latin1"));
     }
     return this.authorizeRequestHeaders(headers, signal);
   }

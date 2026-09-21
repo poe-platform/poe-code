@@ -69,6 +69,7 @@ bound pending operations.
 Receive reconnections retain the last completed event ID through events and
 keepalives without IDs. An explicit empty `id:` clears the resume header,
 including any initially configured value.
+Unicode event IDs use UTF-8 bytes in `Last-Event-ID` headers.
 HTTP failures expose `HttpTransportError.status` and `.method`, so callers can
 make transport decisions without parsing error messages. Legacy HTTP/SSE
 `connect()` also waits for the initialized notification POST to complete before

@@ -228,3 +228,12 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     falsey structured values/nested metadata/exact005930. Require twelve GETs,
     four full calls/four distinct retired sessions and zero credential/consent
     traffic. Inspect safe summary screenshot and purge only owned evidence.
+
+34. Send accented/Chinese/emoji completed event IDs over actual receive SSE.
+    Hold each operation until a second GET and decode its server-observed raw
+    Last-Event-ID bytes as UTF-8; require the exact original cursor. Cover native
+    calls, generated virtual-shell calls and resource reads. Require eighteen
+    receive GETs, six complete tool calls/three full text/blob reads with falsey
+    values/Unicode metadata/exact005930 and nine distinct retired sessions.
+    Require zero discovery/credential/consent traffic, inspect safe summary
+    screenshot and purge only owned evidence.

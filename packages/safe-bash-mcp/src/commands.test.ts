@@ -203,6 +203,30 @@ describe("generated remote MCP safe-bash commands", () => {
     expect(fixture.fetch).not.toHaveBeenCalled();
   });
 
+  it("preserves schema-owned execution-option names through named and raw native calls", async () => {
+    const fixture = remote();
+    const selected: Tool = { name: "policy_fields", inputSchema: { type: "object", properties: {
+      args: { type: "object" }, disableOAuth: { type: "boolean" }, timeout: { type: "integer" },
+      autoAuthorize: { type: "boolean" }, allowCachedAuth: { type: "boolean" },
+      yes: { type: "boolean" }, raw: { type: "string" }, help: { type: "string" }
+    }, required: ["args", "disableOAuth", "timeout", "autoAuthorize", "allowCachedAuth", "yes", "raw", "help"], additionalProperties: false } };
+    const expected = { args: { nested: [0, false, null] }, disableOAuth: true, timeout: 0,
+      autoAuthorize: true, allowCachedAuth: false, yes: false, raw: "--help", help: "--schema" };
+    const definition = await command(fixture, [selected]);
+    for (const argumentsList of [
+      ["--args", JSON.stringify(expected.args), "--disable-oauth", "--timeout", "0", "--auto-authorize",
+        "--allow-cached-auth=false", "--yes-2=false", "--raw-2=--help", "--help-2=--schema"],
+      ["--raw", JSON.stringify(expected)]
+    ]) {
+      const input = invocation([selected.name, ...argumentsList]);
+      expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+      expect(input.error()).toBe("");
+    }
+    expect(fixture.requests.filter(request => request.method === "tools/call").map(request => request.params))
+      .toEqual([{ name: selected.name, arguments: expected }, { name: selected.name, arguments: expected }]);
+    expect(fixture.requests.some(request => request.method === "tools/list")).toBe(false);
+  });
+
   it("prints exact invokable tool names and generated flags in help without connecting", async () => {
     const fixture = remote();
     const definition = await command(fixture);

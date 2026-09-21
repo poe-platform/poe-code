@@ -97,7 +97,7 @@ export function assertSettingsXmlReplacement(contentType: string, original: Uint
   const before = new DocumentXmlEditor(original, {}, undefined, budget), after = new DocumentXmlEditor(replacement, {}, undefined, budget);
   if (documentPartRole(contentType, before.root) !== "settings" || documentPartRole(contentType, after.root) !== "settings") throw new UnsupportedEditError("Affected settings root is unsupported.");
   const remainder = (editor: DocumentXmlEditor) => {
-    const fields = editor.root.children.filter(node => node.namespace === editor.root.namespace && node.localName === "updateFields");
+    const fields = activeXmlChildren(editor, budget)(editor.root).filter(node => node.namespace === editor.root.namespace && node.localName === "updateFields");
     if (fields.length > 1 || fields.some(node => !editor.compatibility.canEdit(node) || node.children.length || node.text.trim() || booleanValue(node) === null || node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && (attribute.namespace !== node.namespace || attribute.localName !== "val" || !editor.compatibility.canEdit(attribute))))) throw new UnsupportedEditError("Affected field-update settings are unsupported.");
     return editor.sourceXml(editor.root, new Map(fields.map(node => [node, ""])));
   };

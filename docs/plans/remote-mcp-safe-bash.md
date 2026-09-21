@@ -28,14 +28,14 @@ Closed issue inventory fetched 2026-09-20: 121 closed issues (pull requests excl
 3. OAuth init/credential environment output, persisted sessions and refresh/callback hardening using existing OAuth abstractions.
 4. Full upstream source/test and resolved issue audit, regression tests for every applicable behavior, documentation and manual QA.
 
-## Closed issue cross-check ledger
-
 ## Verified implementation progress (2026-09-20)
 
 - Local client commit `da74f629c` adds explicit legacy SSE handshake mode, same-origin endpoint security, endpoint-change rejection, stream closure failures and cleanup. Nine new regressions were first observed failing, then passing.
 - New `safe-bash-mcp` schema SDK resolves provided or discovered tools with registry preflight, pagination/cursor guards, limits, independent metadata copies and awaited session cleanup.
 - Client plus schema verification: 45 test files / 645 tests passed. Selected `safe-bash-mcp` workspace build closure passed (seven builds). ESLint passed for changed code. No remote delivery or release is claimed.
-- Remaining: automatic legacy SSE negotiation, generated safe-bash commands/artifacts, argument mapping and schema validation, init/OAuth environment output and robustness audit, full upstream issue/source/test cross-check, visual QA and requested 14-hour work duration.
+- Local client commit `2f3413928` preserves HTTP failure status/method. Automatic legacy SSE negotiation has regression coverage: only POST 404/405 during setup is eligible; pinned transports, network/auth/rate-limit/server errors do not fall back. Both failure causes survive a double failure. In-flight setup cancellation closes the request without fallback; list failures after connection never switch transports.
+- Negotiation increment verification: 47 affected test files / 659 tests passed; selected workspace build passed; 36 client type contract cases passed; ESLint passed. The subsequent two added regressions passed with the maintained package test route (40 schema SDK tests).
+- Remaining: generated safe-bash commands/artifacts, argument mapping and schema validation, init/OAuth environment output and robustness audit, full upstream issue/source/test cross-check, visual QA and requested 14-hour work duration.
 
 ## Issue validation status
 
@@ -49,7 +49,7 @@ Every row remains unverified until source, discussion/fix and applicable local r
 | [#323](https://github.com/openclaw/mcporter/issues/323) | Env placeholder syntax for --header/--env is undiscoverable from CLI or npm package; ${env:VAR} silently passes through verbatim | Pending source/fix and applicability validation |
 | [#321](https://github.com/openclaw/mcporter/issues/321) | OAuth discovery fetches inherit the transport's accept: text/event-stream, misrouting them through nodeHttp1Fetch → 403 from ALBs | Pending source/fix and applicability validation |
 | [#320](https://github.com/openclaw/mcporter/issues/320) | nodeHttp1Fetch sends no User-Agent → 403 from ALBs/WAFs that reject headerless HTTP/1.1 requests | Pending source/fix and applicability validation |
-| [#310](https://github.com/openclaw/mcporter/issues/310) | SSE fallback fires on any primary error, replacing the real cause with a misleading HTTP 405 on streamable-HTTP-only servers | Pending source/fix and applicability validation |
+| [#310](https://github.com/openclaw/mcporter/issues/310) | SSE fallback fires on any primary error, replacing the real cause with a misleading HTTP 405 on streamable-HTTP-only servers | Applicable. Read issue, comments and current `src/runtime/http-transport.ts` predicates. Local `schema-fallback.test.ts` reproduces missing fallback and cause metadata, then verifies constrained negotiation, original network/auth errors, explicit pinning, cancellation, no fallback after connection, and both failure causes. `http-error-status.test.ts` verifies machine-readable client failures. Affected suites, build, lint and client type contracts passed. |
 | [#307](https://github.com/openclaw/mcporter/issues/307) | OAuth: SDK post-401 auth() redeems outside the cross-process refresh lock | Pending source/fix and applicability validation |
 | [#305](https://github.com/openclaw/mcporter/issues/305) | OAuth refresh is not serialized across processes, allowing rotating-token replay and grant revocation | Pending source/fix and applicability validation |
 | [#290](https://github.com/openclaw/mcporter/issues/290) | OAuth DCR re-registers client on every run when redirect URI changes, preventing silent token refresh (WorkOS) | Pending source/fix and applicability validation |

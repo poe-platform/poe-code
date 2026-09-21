@@ -1,5 +1,6 @@
 import {
   HttpTransport,
+  HttpTransportError,
   McpClient,
   type HttpTransportOptions,
   type Implementation,
@@ -98,7 +99,15 @@ export async function fetchRemoteMcpSchema(
   if (server.tools !== undefined) {
     return { name: server.name, url: server.url, source: "provided", tools: structuredClone([...server.tools]) };
   }
+  return discoverRemoteSchema(server, options, limits, server.transport === "sse" ? "sse" : "streamable-http");
+}
 
+async function discoverRemoteSchema(
+  server: RemoteMcpServer,
+  options: SchemaFetchOptions,
+  limits: ReturnType<typeof limitsFor>,
+  mode: "sse" | "streamable-http"
+): Promise<RemoteMcpSchema> {
   const client = new McpClient({
     clientInfo: { name: "safe-bash-mcp", version: "0.0.1" },
     protocolVersion: server.protocolVersion,
@@ -106,7 +115,7 @@ export async function fetchRemoteMcpSchema(
   });
   const transport = new HttpTransport({
     url: server.url,
-    mode: server.transport === "sse" ? "sse" : "streamable-http",
+    mode,
     headers: server.headers,
     oauth: server.oauth,
     fetch: options.fetch,
@@ -115,7 +124,24 @@ export async function fetchRemoteMcpSchema(
     maxResponseBytes: limits.maxResponseBytes
   });
   try {
-    await client.connect(transport, { signal: options.signal });
+    try {
+      await client.connect(transport, { signal: options.signal });
+    } catch (primaryError) {
+      options.signal?.throwIfAborted();
+      if (server.transport !== undefined || mode !== "streamable-http" ||
+          !(primaryError instanceof HttpTransportError) || primaryError.method !== "POST" ||
+          (primaryError.status !== 404 && primaryError.status !== 405)) throw primaryError;
+      await client.close();
+      transport.dispose();
+      await transport.closed;
+      options.signal?.throwIfAborted();
+      try {
+        return await discoverRemoteSchema(server, options, limits, "sse");
+      } catch (fallbackError) {
+        options.signal?.throwIfAborted();
+        throw new AggregateError([primaryError, fallbackError], "Remote MCP HTTP and legacy SSE discovery failed", { cause: primaryError });
+      }
+    }
     const tools: Tool[] = [];
     const names = new Set<string>();
     const cursors = new Set<string>();

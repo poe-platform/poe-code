@@ -4,7 +4,7 @@ import { activeXmlChildren } from "./xml-active-children.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { openDocumentLocations } from "./locations.js";
-import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { pathContains } from "./location-index.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentArchiveEditor } from "./package-write.js";

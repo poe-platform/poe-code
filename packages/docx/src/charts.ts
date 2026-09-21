@@ -4,7 +4,7 @@ import {readDocumentArchive} from './admission.js';
 import {validateDocxInvocation} from './command.js';
 import type {DocxOperationArguments} from './operation-types.js';
 import {DocumentBudget} from './budget.js';
-import {encodeLocation,type Location} from './location-token.js';
+import {encodeGeneratedLocation as encodeLocation,type Location} from './location-token.js';
 import {parseDocumentXml,type XmlElement} from './package-xml.js';
 import type {DocumentPackage,PackagePart,PackageRelationship} from './package.js';
 import type {InspectionReference,InspectionWarning} from './inspection.js';

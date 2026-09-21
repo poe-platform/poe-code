@@ -1,6 +1,6 @@
 import { archiveSettings } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
-import { encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentArchiveEditor } from "./package-write.js";

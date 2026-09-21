@@ -3,7 +3,7 @@ import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import { pathContains } from "./location-index.js";
-import { closedRecord, encodeLocation, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentArchiveEditor } from "./package-write.js";

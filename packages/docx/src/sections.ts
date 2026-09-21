@@ -3,7 +3,7 @@ import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
-import { closedRecord, decodeLocation, encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, decodeLocation, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations, type DocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";

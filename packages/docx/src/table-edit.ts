@@ -4,7 +4,7 @@ import { validateDocxInvocation } from "./command.js";
 import { twips, xmlValue } from "./create-content.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { addressKey, LocationIndex } from "./location-index.js";
-import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";

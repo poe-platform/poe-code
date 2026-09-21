@@ -7,7 +7,7 @@ import { fieldAttribute, parseFields, type ParsedField } from "./field-parser.js
 import { editFieldInstruction } from "./field-instruction.js";
 import { addDocumentFields } from "./field-creation.js";
 import { addressKey, LocationIndex, type DocumentScope } from "./location-index.js";
-import { closedRecord, encodeLocation, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";

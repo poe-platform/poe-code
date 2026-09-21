@@ -4,7 +4,7 @@ import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import { LocationIndex } from "./location-index.js";
-import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { openNotes, noteAttribute, type NoteKind, type NoteRecord, type NoteReference } from "./notes-state.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";

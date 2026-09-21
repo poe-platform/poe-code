@@ -7,7 +7,7 @@ import { archiveSettings, InputTypeError, type ArchiveContext, type ArchiveMembe
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { isXmlContentType, parseDocumentXml } from "./package-xml.js";
 import { normalizePartName, asciiKey } from "./part-uri.js";
-import { SelectionError, closedRecord, encodeLocation, type PartLocation } from "./location-token.js";
+import { SelectionError, closedRecord, encodeGeneratedLocation as encodeLocation, type PartLocation } from "./location-token.js";
 import { compatibilityProfileForPart } from "./compatibility.js";
 import { opaqueXmlContent } from "./xml-retention.js";
 import { UnsupportedEditError } from "./xml-write.js";

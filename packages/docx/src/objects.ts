@@ -9,7 +9,7 @@ import { MarkupCompatibility, compatibilityProfileForPart, type CompatibilityCon
 import {
   closedRecord,
   decodeLocation,
-  encodeLocation,
+  encodeGeneratedLocation as encodeLocation,
   SelectionError,
   type Location
 } from "./location-token.js";

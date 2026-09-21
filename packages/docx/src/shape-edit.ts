@@ -3,7 +3,7 @@ import { validateDocxInvocation } from './command.js';
 import { documentDialects, dialectForNamespace } from './dialect.js';
 import type { InspectionReference } from './inspection.js';
 import type { StoryReference } from './location-index.js';
-import { closedRecord, encodeLocation, SelectionError, type Location } from './location-token.js';
+import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from './location-token.js';
 import { openDocumentLocations } from './locations.js';
 import type { DocxOperationArguments } from './operation-types.js';
 import { paragraphTextRun } from './paragraph-content.js';

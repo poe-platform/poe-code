@@ -5,7 +5,7 @@ import { validateDocxInvocation } from "./command.js";
 import { documentDialects } from "./dialect.js";
 import { DocumentXmlEditor, editActivePropertyXml, UnsupportedEditError } from "./xml-write.js";
 import { SelectionError, closedRecord } from "./location-token.js";
-import { encodeLocation, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { xmlValue } from "./create-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";

@@ -6,7 +6,7 @@ import { updateBookmarkReferences } from "./bookmark-references.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace } from "./dialect.js";
-import { closedRecord, encodeLocation, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";

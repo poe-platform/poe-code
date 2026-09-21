@@ -3,7 +3,7 @@ import {archiveSettings,InputTypeError,type ArchiveContext} from './archive.js';
 import {readDocumentArchive,type AdmittedDocumentArchive} from './admission.js';
 import {validateDocxInvocation} from './command.js';import type {DocxOperationArguments} from './operation-types.js';
 import {DocumentBudget} from './budget.js';import {documentDialects,type DocumentDialect} from './dialect.js';
-import {encodeLocation,type Location} from './location-token.js';import {parseDocumentXml,type XmlElement} from './package-xml.js';
+import {encodeGeneratedLocation as encodeLocation,type Location} from './location-token.js';import {parseDocumentXml,type XmlElement} from './package-xml.js';
 import type {DocumentPackage,PackagePart,PackageRelationship} from './package.js';import type {InspectionReference,InspectionWarning} from './inspection.js';
 import {collectDiagramObservations,type RawDiagramObservation} from './diagram-observations.js';import {measurePackageResourceSerialization} from './ancillary-resources.js';import {UnsupportedEditError} from './xml-write.js';
 export type DiagramRole='data'|'layout'|'style'|'color'|'drawing';

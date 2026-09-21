@@ -5,7 +5,7 @@ import { validateDocxInvocation } from "./command.js";
 import { documentPartRole } from "./document-part-roles.js";
 import { customXmlDataNamespaces, customXmlRelationshipNamespaces } from "./custom-xml-namespaces.js";
 import type { InspectionPart, InspectionReference } from "./inspection.js";
-import { encodeLocation, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import type { DocumentBudget } from "./budget.js";

@@ -6,7 +6,7 @@ import { docxOperationSchemas } from "./operation-schema.js";
 import { parseDocumentXml, UnsupportedProfileError } from "./package-xml.js";
 import { publishDocumentArchive, type PublicationContext, type PublicationOptions } from "./publication.js";
 import type { DocumentModelContext } from "./model-context.js";
-import { closedRecord, encodeLocation, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import type { DocumentBudget } from "./budget.js";
 import type { DocxBatchItem } from "./operation-types.js";
 import { applyStyleModelBatch } from "./style-model-batch.js";

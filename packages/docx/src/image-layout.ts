@@ -6,7 +6,7 @@ import {
 } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import { DocxUsageError } from "./argument-json.js";
-import { closedRecord, encodeLocation, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";

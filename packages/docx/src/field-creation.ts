@@ -7,7 +7,7 @@ import { fieldInstruction, fieldInstructionTokens } from "./field-instruction.js
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import type { FieldEditData, FieldEditRequest } from "./fields.js";
 import { addressKey, LocationIndex } from "./location-index.js";
-import { encodeLocation, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";

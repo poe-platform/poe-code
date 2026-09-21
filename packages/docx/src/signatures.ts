@@ -2,7 +2,7 @@ import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.j
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import { signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
-import { encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { asciiKey } from "./part-uri.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";

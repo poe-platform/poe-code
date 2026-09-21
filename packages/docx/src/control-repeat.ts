@@ -7,7 +7,7 @@ import { inspectDocumentControls, inspectControlSnapshot, prepareControlValue, p
 import { xmlValue } from "./create-content.js";
 import { parseFields, assertOutsideFields } from "./field-parser.js";
 import { pathContains } from "./location-index.js";
-import { encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxBindingRecord, DocxOperationArguments } from "./operation-types.js";
 import { tableRows } from "./table-rows.js";

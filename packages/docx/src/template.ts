@@ -10,7 +10,7 @@ import type { ControlTemplateData } from "./control-template-types.js";
 import { editDocumentControls, inspectDocumentControls, prepareControlPlaceholder, type ControlSnapshot } from "./controls.js";
 import { DocumentSession } from "./document-session.js";
 import { pathContains } from "./location-index.js";
-import { encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import type { DocxOperationArguments, DocxTemplateRecord } from "./operation-types.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { UnsupportedEditError } from "./xml-write.js";

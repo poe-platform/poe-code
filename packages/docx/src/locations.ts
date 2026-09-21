@@ -3,7 +3,7 @@ import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.j
 import { DocumentArchiveEditor } from "./package-write.js";
 import { DocumentBudget } from "./budget.js";
 import { LocationIndex, addressKey, documentScopes, pathContains, type DocumentScope, type LocationEntry, type StoryReference } from "./location-index.js";
-import { closedRecord, decodeLocation, encodeLocation, safeOrdinal, SelectionError,
+import { closedRecord, decodeLocation, encodeGeneratedLocation as encodeLocation, safeOrdinal, SelectionError,
   type Location, type LocationKind, type LocationPayload } from "./location-token.js";
 import { readTextSegments, type TextData } from "./text-traversal.js";
 import type { TextOptions } from "./text.js";

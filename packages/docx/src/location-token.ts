@@ -1,4 +1,4 @@
-import { InvalidValueError } from "./archive.js";
+import { InvalidValueError, ResourceLimitError } from "./archive.js";
 import { normalizePartName } from "./part-uri.js";
 
 export interface LocationPayload {
@@ -66,14 +66,19 @@ function nonnegative(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
 
+class LocationCapacityError extends InvalidValueError {}
+
 function checked(value: unknown): LocationPayload {
   closedRecord(value, ["version", "sourceSha256", "generation", "part", "story", "path", "range"]);
   if (Object.keys(value as object).length !== 7) throw new InvalidValueError("Location payload fields are required.");
   const { version, sourceSha256, generation, part, story, path, range } = value as Record<string, unknown>;
   if (version !== 1 || typeof sourceSha256 !== "string" || sourceSha256.length !== 64 ||
     [...sourceSha256].some(c => !"0123456789abcdef".includes(c)) || !nonnegative(generation) ||
-    typeof part !== "string" || part.length > 4096 || typeof story !== "string" || !story || story.length > 8192 ||
-    !Array.isArray(path) || path.length * 2 > 24576 || Reflect.ownKeys(path).length !== path.length + 1 ||
+    typeof part !== "string" || typeof story !== "string" || !story ||
+    !Array.isArray(path)) throw new InvalidValueError("Invalid document location payload.");
+  if (part.length > 4096 || story.length > 8192 || path.length * 2 > 24576)
+    throw new LocationCapacityError("Invalid document location payload.");
+  if (Reflect.ownKeys(path).length !== path.length + 1 ||
     Array.from({ length: path.length }, (_, i) => Object.getOwnPropertyDescriptor(path, String(i))).some(d => !d || !("value" in d)) ||
     Array.from(path).some(n => !nonnegative(n))) throw new InvalidValueError("Invalid document location payload.");
   try {
@@ -92,10 +97,19 @@ function checked(value: unknown): LocationPayload {
 
 export function encodeLocation(value: LocationPayload): string {
   const bytes = new TextEncoder().encode(JSON.stringify(checked(value)));
-  if (bytes.length > 24576) throw new InvalidValueError("Document location token is too large.");
+  if (bytes.length > 24576) throw new LocationCapacityError("Document location token is too large.");
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return "docx-loc-v1." + btoa(binary).split("+").join("-").split("/").join("_").split("=")[0]!;
+}
+
+/** Package-minted metadata exhausts resources rather than invalidating caller arguments. */
+export function encodeGeneratedLocation(value: LocationPayload): string {
+  try { return encodeLocation(value); }
+  catch (error) {
+    if (error instanceof LocationCapacityError) throw new ResourceLimitError("Document location token capacity exceeded.");
+    throw error;
+  }
 }
 
 export function decodeLocation(token: string): LocationPayload {

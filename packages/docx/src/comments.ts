@@ -6,7 +6,7 @@ import { validateDocxInvocation } from "./command.js";
 import { commentAttribute, openComments } from "./comments-state.js";
 import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
-import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
 import { relativePartTarget } from "./part-uri.js";

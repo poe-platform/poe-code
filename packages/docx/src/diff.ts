@@ -3,7 +3,7 @@ import { admittedXml, readDocumentArchive, type AdmittedDocumentArchive } from "
 import { validateDocxInvocation } from "./command.js";
 import { DocumentBudget } from "./budget.js";
 import { LocationIndex, type DocumentScope, type LocationEntry } from "./location-index.js";
-import { encodeLocation, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import type { XmlContent, XmlElement } from "./package-xml.js";
 import { readTextSegments } from "./text-traversal.js";
 import type { DocxOperationArguments } from "./operation-types.js";

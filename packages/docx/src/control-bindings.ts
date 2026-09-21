@@ -7,7 +7,7 @@ import { inspectControlSnapshot, inspectDocumentControls, prepareControlValue, t
 import type { ControlTemplateData } from "./control-template-types.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import { pathContains } from "./location-index.js";
-import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";

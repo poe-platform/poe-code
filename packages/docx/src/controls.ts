@@ -5,7 +5,7 @@ import { xmlValue } from "./create-content.js";
 import { parseFields, assertOutsideFields } from "./field-parser.js";
 import { assertOutsideRevisionRanges, containsRevision } from "./revision-markup.js";
 import { pathContains } from "./location-index.js";
-import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments, DocxBinaryInput } from "./operation-types.js";
 import { DocumentArchiveEditor } from "./package-write.js";

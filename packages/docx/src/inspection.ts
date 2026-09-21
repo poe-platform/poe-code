@@ -14,7 +14,7 @@ import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibility
 import { isXmlContentType, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { LocationIndex } from "./location-index.js";
 import { DocumentLocations } from "./locations.js";
-import { encodeLocation, type Location, type LocationPayload } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, type Location, type LocationPayload } from "./location-token.js";
 import { validateDocumentArchive, type ValidationData, type ValidationOptions } from "./validation.js";
 
 export interface InspectionPart { readonly name: string; readonly contentType: string; readonly bytes: number; readonly sha256: string }

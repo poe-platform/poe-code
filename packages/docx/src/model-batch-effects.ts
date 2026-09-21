@@ -1,6 +1,6 @@
 import type { DocumentArchive } from "./archive.js";
 import type { DocumentBudget } from "./budget.js";
-import { encodeLocation, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { normalizePartName } from "./part-uri.js";
 
 export interface ModelBatchItemResult {

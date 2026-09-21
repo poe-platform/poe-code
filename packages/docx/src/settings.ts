@@ -5,7 +5,7 @@ import { validateDocxInvocation } from "./command.js";
 import { MarkupCompatibility } from "./compatibility.js";
 import { documentPartRole } from "./document-part-roles.js";
 import type { InspectionProtection } from "./inspection.js";
-import { encodeLocation, type Location } from "./location-token.js";
+import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";

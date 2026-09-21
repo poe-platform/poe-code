@@ -15,7 +15,7 @@ import { Image, acquireImageModelInput, type ImageModelContext } from "./image-m
 import { characterizeRasterHeader } from "./raster-header.js";
 import { openDocumentLocations } from "./locations.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { closedRecord, encodeLocation, type Location } from "./location-token.js";
+import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { DocumentPackage } from "./package.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";

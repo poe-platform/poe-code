@@ -123,23 +123,37 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
   const byId = new Map(records.map(record => [record.kind + ":" + record.id, record]));
   for (const [part, editor] of editors) {
     const containers = new Set(editor.compatibility[compatibilityContainers]);
-    const visit = (node: XmlElement, path: readonly number[], ancestors: readonly XmlElement[]) => {
+    const path: number[] = [];
+    const frames: { node: XmlElement; parent: XmlElement | undefined; safe: boolean; position: number }[] = [{ node: editor.root, parent: undefined, safe: true, position: -1 }];
+    while (frames.length) {
+      const frame = frames.at(-1)!;
+      if (frame.position >= 0) {
+        if (frame.position === frame.node.children.length) {
+          frames.pop();
+          if (frames.length) path.pop();
+        } else {
+          const index = frame.position++;
+          budget.charge("retainedBytes", 64);
+          path.push(index);
+          frames.push({ node: frame.node.children[index]!, parent: containers.has(frame.node) ? frame.parent : frame.node,
+            safe: frame.safe && (containers.has(frame.node) || frame.node.namespace === w && !["sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple"].includes(frame.node.localName)), position: -1 });
+        }
+        continue;
+      }
+      const { node, parent } = frame;
+      frame.position = 0;
       budget.charge("work", 1);
       if (node.namespace === w && ["footnoteReference", "endnoteReference"].includes(node.localName)) {
         const kind: NoteKind = node.localName === "footnoteReference" ? "footnote" : "endnote", id = idOf(node);
         const record = byId.get(kind + ":" + id);
-        let parentPosition = ancestors.length - 1;
-        while (parentPosition > 0 && containers.has(ancestors[parentPosition]!)) parentPosition--;
-        const parent = ancestors[parentPosition];
         const location = parent?.namespace === w && parent.localName === "r" ? annotationMap.get(part + ":" + path.join(".")) : undefined;
         if (record ? record.type !== "normal" : location !== undefined || inactiveNotes.get(kind)?.get(id) !== true)
           throw new InvalidPackageError("Note reference has no normal note body.");
-        const reference = { kind, id, node, editor, path, part, location, safe: !!location && ancestors.every(n => containers.has(n) || n.namespace === w && !["sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple"].includes(n.localName)) };
+        budget.charge("retainedBytes", 128 + path.length * 8);
+        const reference = { kind, id, node, editor, path: [...path], part, location, safe: !!location && frame.safe };
         references.push(reference); record?.references.push(reference);
       }
-      node.children.forEach((child, i) => visit(child, [...path, i], [...ancestors, node]));
-    };
-    visit(editor.root, [], []);
+    }
   }
   const defaults = { format: "decimal", start: 1, restart: "continuous" };
   const settingsEdges = edges.filter(e => e.reltype === r + "/settings" && !e.is_external);

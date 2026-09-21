@@ -139,3 +139,33 @@ it.each(["PAGE", "NUMPAGES"])("preserves operand-free %s fields when the bookmar
   updateBookmarkReferences(new Map([["word/document.xml", xml]]), name, "Arrival", "update", new DocumentBudget());
   expect(output(xml)).toBe(before);
 });
+
+it.each(["ins", "del", "moveFrom", "moveTo", "sdt"])("rejects dependent references inside %s before staging any changes", wrapper => {
+  const refs = [
+    '<w:hyperlink w:anchor="Harbor"><w:r><w:t>Route</w:t></w:r></w:hyperlink>',
+    '<w:fldSimple w:instr="REF Harbor"><w:r><w:t>Port</w:t></w:r></w:fldSimple>',
+    '<w:r><w:fldChar w:fldCharType="begin"/><w:instrText>PAGEREF Harbor</w:instrText><w:fldChar w:fldCharType="separate"/><w:t>14</w:t><w:fldChar w:fldCharType="end"/></w:r>'
+  ];
+  for (const reference of refs) {
+    const xml = editor(`<w:p>${refs[0]}<w:${wrapper} w:id="9">${reference}</w:${wrapper}></w:p>`);
+    const before = output(xml);
+    expect(() => update(xml)).toThrow(UnsupportedEditError);
+    expect(output(xml)).toBe(before);
+    expect(() => update(xml, null, "remove")).toThrow(UnsupportedEditError);
+    expect(output(xml)).toBe(before);
+  }
+});
+
+it("rejects a dependent complex field with only its operand in controlled content", () => {
+  const xml = editor('<w:p><w:r><w:fldChar w:fldCharType="begin"/><w:instrText>REF </w:instrText></w:r><w:sdt><w:sdtContent><w:r><w:instrText>Harbor</w:instrText></w:r></w:sdtContent></w:sdt><w:r><w:fldChar w:fldCharType="separate"/><w:t>Port</w:t><w:fldChar w:fldCharType="end"/></w:r></w:p>');
+  const before = output(xml);
+  expect(() => update(xml)).toThrow(UnsupportedEditError);
+  expect(output(xml)).toBe(before);
+});
+
+it("preserves unrelated fields inside tracked and controlled content", () => {
+  const xml = editor('<w:p><w:sdt><w:sdtContent><w:fldSimple w:instr="DATE"><w:r><w:t>2030</w:t></w:r></w:fldSimple></w:sdtContent></w:sdt><w:ins w:id="9"><w:r><w:fldChar w:fldCharType="begin"/><w:instrText>PAGE</w:instrText><w:fldChar w:fldCharType="separate"/><w:t>14</w:t><w:fldChar w:fldCharType="end"/></w:r></w:ins></w:p>');
+  const before = output(xml);
+  update(xml);
+  expect(output(xml)).toBe(before);
+});

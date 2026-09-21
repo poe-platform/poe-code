@@ -3585,9 +3585,12 @@ Rename updates internal anchors and literal simple/complex REF/PAGEREF operands
 only with explicit `references: "update"`; `reject` refuses dependent edits.
 Removal requires `remove` or `reject`, retains bookmark content, and unwraps
 supported simple references under `remove`. Complex-field removal and opaque or
-unsafe dependencies reject. Fields are never executed. Existing multi-paragraph
-ranges within one admitted container can be renamed/removed; creation is limited
-to one paragraph. The bounded profile requires document-wide name/ID uniqueness
+unsafe dependencies reject. Fields are never executed.
+Dependent links or field instructions within tracked or controlled content also
+reject before any reference change is applied; unrelated fields remain intact.
+Existing multi-paragraph ranges within one admitted container can be
+renamed/removed; creation is limited to one paragraph. The bounded profile
+requires document-wide name/ID uniqueness
 and refuses shared-story edits. General field and live-model APIs remain pending.
 
 Rendered page-break objects describe stored layout metadata, not measured pages

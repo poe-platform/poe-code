@@ -4,7 +4,7 @@ import type { XmlContent, XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 
 interface Operand { start: number; end: number }
-interface Field { nodes: XmlContent[]; separated: boolean; nested: boolean }
+interface Field { nodes: XmlContent[]; separated: boolean; nested: boolean; unsafe: boolean }
 
 function unsafe(message: string): never {
   throw new UnsupportedEditError(message);
@@ -53,10 +53,11 @@ export function updateBookmarkReferences(
     let fields: Field[] = [];
     let deletedTail = "";
     const attribute = (node: XmlElement, localName: string) => node.attributes.find(item => item.namespace === node.namespace && item.localName === localName);
-    const visit = (node: XmlElement): void => {
+    const visit = (node: XmlElement, controlled = false): void => {
       budget.charge("work", 1);
       const dialect = dialectForNamespace(node.namespace);
       const word = dialect !== undefined && node.namespace === documentDialects[dialect].w;
+      controlled ||= word && ["ins", "del", "moveFrom", "moveTo", "sdt"].includes(node.localName);
       const story = word && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName);
       const outerFields = fields;
       const outerDeletedTail = deletedTail;
@@ -83,6 +84,7 @@ export function updateBookmarkReferences(
             unsafe("An internal document-location reference cannot be safely updated.");
           if (anchor?.value === oldName && !external) {
             dependency();
+            if (controlled) unsafe("A bookmark reference inside tracked or controlled content cannot be safely changed.");
             if (policy === "remove") remove.add(node);
             else changes.push(() => editor.setAttribute(node, anchor.name, newName!));
           }
@@ -93,15 +95,18 @@ export function updateBookmarkReferences(
           const operand = referenceOperand(instruction.value, oldName);
           if (operand) {
             dependency();
+            if (controlled) unsafe("A bookmark reference inside tracked or controlled content cannot be safely changed.");
             if (policy === "remove") remove.add(node);
             else changes.push(() => editor.setAttribute(node, instruction.name,
               instruction.value.slice(0, operand.start) + newName + instruction.value.slice(operand.end)));
           }
         } else if (node.localName === "fldChar") {
           const type = attribute(node, "fldCharType")?.value;
+          const active = fields[fields.length - 1];
+          if (active) active.unsafe ||= controlled;
           if (type === "begin") {
             if (fields.length) fields[fields.length - 1]!.nested = true;
-            fields.push({ nodes: [], separated: false, nested: false });
+            fields.push({ nodes: [], separated: false, nested: false, unsafe: controlled });
           } else if (type === "separate") {
             const field = fields[fields.length - 1];
             if (!field || field.separated) unsafe("A complex field has an unmatched separator.");
@@ -114,6 +119,7 @@ export function updateBookmarkReferences(
             const operand = referenceOperand(instruction, oldName);
             if (operand) {
               dependency();
+              if (field.unsafe) unsafe("A bookmark reference inside tracked or controlled content cannot be safely changed.");
               if (field.nested) unsafe("Nested dependent fields cannot be safely updated.");
               if (policy === "remove") unsafe("Complex bookmark reference removal is not supported safely.");
               let offset = 0;
@@ -141,12 +147,13 @@ export function updateBookmarkReferences(
         } else if (node.localName === "instrText") {
           const field = fields[fields.length - 1];
           if (!field || field.separated || node.children.length) unsafe("Field instruction text has no safe instruction boundary.");
+          field.unsafe ||= controlled;
           for (const part of node.content) {
             if (part.kind === "text" || part.kind === "cdata") field.nodes.push(part);
           }
         }
       }
-      for (const child of node.children) visit(child);
+      for (const child of node.children) visit(child, controlled);
       if (story) {
         if (fields.length) unsafe("A complex field crosses a story boundary or is missing its end.");
         fields = outerFields;

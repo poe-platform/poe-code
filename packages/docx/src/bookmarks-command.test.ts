@@ -62,3 +62,15 @@ it("prints malformed bookmark diagnostics in human output", async () => {
   expect(result.exitCode).toBe(0);
   expect(new TextDecoder().decode(result.stdout)).toContain("missing-end");
 });
+
+it.each(["set", "remove"])("rejects bookmarks %s with controlled references equally in CLI and SDK", async action => {
+  const bytes = await textFixture(table(['<w:p><w:bookmarkStart w:id="5" w:name="Survey"/>' + run("Coastal ") + run("survey") + '<w:bookmarkEnd w:id="5"/></w:p>']) + '<w:p><w:sdt><w:sdtContent><w:fldSimple w:instr="REF Survey">' + run("Cached survey") + '</w:fldSimple></w:sdtContent></w:sdt></w:p>');
+  const references = action === "set" ? "update" : "remove";
+  const result = await command(bytes, ["bookmarks", action, "input.docx", "--bookmark", "1", ...(action === "set" ? ["--name", "FinalSurvey"] : []), "--references", references, "--dry-run", "--json"]);
+  expect(result.exitCode).toBe(1);
+  expect(JSON.parse(new TextDecoder().decode(result.stdout))).toMatchObject({ ok: false, data: null, affected: 0, errors: [{ code: "unsupported-edit" }] });
+  const request = action === "set"
+    ? { operation: "bookmarks.set" as const, options: { bookmark: 1, name: "FinalSurvey", references: "update" as const, dryRun: true } }
+    : { operation: "bookmarks.remove" as const, options: { bookmark: 1, references: "remove" as const, dryRun: true } };
+  await expect(docx.editDocumentBookmarks(bytes, request, { ...textContext, encoding: { order: "input", compression: "store" } })).rejects.toMatchObject({ code: "unsupported-edit" });
+});

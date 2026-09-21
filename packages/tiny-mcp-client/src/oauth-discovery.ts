@@ -679,7 +679,11 @@ export function parseBearerWwwAuthenticateHeader(
             break;
           }
 
-          params[parsedParam.name.toLowerCase()] = parsedParam.value;
+          const parameterName = parsedParam.name.toLowerCase();
+          if (scheme.token.toLowerCase() === "bearer" && Object.hasOwn(params, parameterName)) {
+            throw new Error("Bearer challenge must not repeat authentication parameters");
+          }
+          params[parameterName] = parsedParam.value;
           index = skipOptionalWhitespace(headerValue, parsedParam.nextIndex);
 
           if (headerValue[index] !== ",") {

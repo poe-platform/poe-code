@@ -633,3 +633,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     zero writes/token/tool/consent/unhandled rejection. Host work may finish later;
     no interruption claim. Inspect safe summary screenshot and purge only owned
     synthetic evidence.
+
+58. Return actual initial401/403 and retried401 challenges with repeated case-
+    insensitive metadata/scope/error/realm/extension/prototype parameters,
+    including identical repeats. Through native SDK/generated commands and
+    management auth require safe ambiguity diagnostics before further discovery/
+    authorization, empty CLI stdout, nonzero status and all eight unended bodies
+    closed before shutdown. Retain valid combined Basic/Bearer challenge handling,
+    quoted commas and distinct extensions on two first-challenge host retries.
+    Require ten MCP requests/four valid metadata GETs/two host retries and zero
+    persistence/tool/token/consent. Inspect safe summary screenshot and purge
+    only owned synthetic evidence.

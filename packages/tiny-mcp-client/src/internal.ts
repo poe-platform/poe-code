@@ -3296,9 +3296,9 @@ export class HttpTransport implements McpTransport {
       return false;
     }
 
-    const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
-    const resourceMetadataUrl = challenge?.params.resource_metadata;
     try {
+      const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
+      const resourceMetadataUrl = challenge?.params.resource_metadata;
       const discovery = await discoveryClient.discover(this.url, { resourceMetadataUrl, signal });
       const providerResponse = response.clone();
       let result;
@@ -3504,10 +3504,12 @@ export class HttpTransport implements McpTransport {
       let attempt = await request();
       if (await this.maybeHandleUnauthorizedResponse(attempt.response, controller.signal, attempt.headers, attempt.tokens)) attempt = await request();
       const response = attempt.response;
-      const oauthError = this.oauthProvider === undefined ? null : this.readOAuthChallengeError(response);
-      if (oauthError !== null) {
+      try {
+        const oauthError = this.oauthProvider === undefined ? null : this.readOAuthChallengeError(response);
+        if (oauthError !== null) throw oauthError;
+      } catch (error) {
         void response.body?.cancel().catch(() => undefined);
-        throw oauthError;
+        throw error;
       }
       return response;
     } finally { this.inFlightOAuthAbortControllers.delete(controller); }

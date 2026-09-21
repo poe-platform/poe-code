@@ -114,6 +114,9 @@ Protected-resource metadata HTTP failures also expose their numeric `status`.
 Rejected metadata bodies start cleanup without delaying failure or caller
 cancellation. Host cleanup may finish later; its rejection remains observed.
 `OAuthMetadataError.is(value)` recognizes separately bundled native copies.
+Bearer challenges with repeated case-insensitive parameters fail before OAuth
+recovery, including identical repeats. Their rejected response bodies are released
+without reflecting parameter values in the diagnostic.
 
 OAuth provider inputs receive the originating request's `signal`, covering header authorization and unauthorized handling. Modern request cancellation stops its OAuth work while leaving other requests usable; transport disposal cancels all pending OAuth operations. The default provider propagates this signal to callback, registration and token work. Custom providers must observe it for their own operations.
 

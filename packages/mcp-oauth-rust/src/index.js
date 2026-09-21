@@ -18,3 +18,5 @@ export { withOAuthSessionTransaction } from "./transaction.js";
 export { parseOAuthTokenGrant } from "./token-grant.js";
 
 export { createResourceBoundOAuthStores } from "./resource-store.js";
+
+export { normalizeOAuthScope } from "./scope.js";

@@ -169,3 +169,9 @@ const resourceStoreA: typeof referenceResourceStores = createResourceBoundOAuthS
 const resourceStoreB: typeof createResourceBoundOAuthStores = referenceResourceStores;
 const importedIdentitySession: Promise<void> = identityStores.importSession(pendingRegistrationSession, { timeoutMs: 1000 });
 void [resourceStoreA, resourceStoreB, importedIdentitySession];
+
+import type { ImportedOAuthTokens } from "../dist/index.js";
+import { normalizeOAuthScope } from "../dist/index.js";
+const importedPublicTokens: ImportedOAuthTokens = { accessToken: "a", tokenType: "Bearer", expiresIn: 2, issuedAt: 0 };
+const normalizedPublicScope: string | undefined = normalizeOAuthScope("write read");
+void [importedPublicTokens, normalizedPublicScope];

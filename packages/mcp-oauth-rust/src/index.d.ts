@@ -114,11 +114,7 @@ export interface DefaultOAuthClientProviderOptions {
   persistenceNamespace?: string;
   initialGrant?: {
     resource: string;
-    tokens: Omit<StoredOAuthTokens, "expiresAt"> & {
-      expiresAt?: number | null;
-      expiresIn?: number;
-      issuedAt?: number;
-    };
+    tokens: ImportedOAuthTokens;
   };
   browser: LoopbackAuthorizationOptions;
   sessionStore?: OAuthSessionStore;
@@ -274,3 +270,10 @@ export interface ResourceBoundOAuthStores {
   reset(resource: string, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
 }
 export declare function createResourceBoundOAuthStores(options: CreateSecretStoreInput, namespace: string | undefined, identity: string): ResourceBoundOAuthStores;
+
+export interface ImportedOAuthTokens extends Omit<StoredOAuthTokens, "expiresAt"> {
+  expiresAt?: number | null;
+  expiresIn?: number;
+  issuedAt?: number;
+}
+export declare function normalizeOAuthScope(value: unknown): string | undefined;

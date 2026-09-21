@@ -4469,3 +4469,31 @@ tiny-http35566987998 succeeds but does not publish private Rust packages. No suc
 current root publication verified. Continuous active06:05:48–06:08:38 adds170s,
 bringing conservative actual effort to88,601s (24.61h). Minimum effort fulfilled;
 full rewrite/acceptance incomplete. Continue active work after06:08:38 UTC.
+
+### OAuth root surface and isolated reclamation, 2026-09-21 06:11 UTC
+
+A native root-export audit reproduces missing normalizeOAuthScope; a typed public
+usage red also reproduces missing ImportedOAuthTokens. Added the root scope export,
+its own declaration and the imported-token interface, replacing equivalent inline
+initial-grant declarations with the public type. The runtime audit compares every
+original export and a development AST audit checks every named original public type.
+All56 Rust cases,91 native groups,451 original cases/35 files and typed usage pass
+through the maintained complete unit route. Focused maintained lint and own build
+pass. Direct/packed16MiB cumulative worker audit remains22 files, one addon, zero
+runtime groups and passes; no performance advantage claimed.
+
+Isolated native import processes with16MiB Node old-space each exercise98,304 small
+imports. Automatic collection/yield RSS endpoints rise~80.2→84.3MB and settle near
+84.3MB for the final batches; heap~4.0–5.0MB. Forced four-collection/yield batches
+show RSS~80.4→85.4MB, post-GC heap~3.85–3.89MB, fixed external/array-buffer endpoints.
+A separate4096-import60KB-extension process samples RSS~62.9→88.3MB with post-GC
+~88.7MB and heap~3.93MB. These finite workloads support reclamation rather than
+linear unreclaimed growth; allocator/VM retention remains and external counters
+do not account for all Rust allocations. No universal leak/peak/TS memory advantage
+acceptance follows. Evidence out/rust-oauth-resource-import-{reclamation,automatic-
+gc,large-memory}.* and out/rust-oauth-public-api-*.
+
+Atomic import94cfa4578 is pushed. Root35567221359 in progress; current successful
+publication unverified. Continuous active06:08:38–06:11:35 adds177s, bringing
+conservative actual effort to88,778s (24.66h). Minimum effort fulfilled; full
+rewrite/acceptance incomplete. Continue active work after06:11:35 UTC.

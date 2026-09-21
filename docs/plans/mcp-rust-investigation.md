@@ -6888,3 +6888,28 @@ OAuth74ac1b39b pushed and exact remote main verified; release35625767803 running
 No current successful root publication verified. Foreign changes preserved.
 Continuous16:29:00–16:35:00 adds360s,total124435s(34.57h). Minimum fulfilled;
 full objective incomplete. Continue accounting after16:35:00UTC.
+
+### Owned ACP activity event rendering, 2026-09-21 16:38 UTC
+
+Missing public activity renderers reproduced with failing native oracle tests.
+Rust owns tool-kind styles, UTF-16 reasoning truncation, usage/rejection/error
+business text in terminal/Markdown formats. Host preserves structured JSON values,
+private usage receiver/getter order, cached/cost observations, built-in currency
+formatting, async writer scopes and pre-error blank-line emission. Six public
+renderers added; scoped writer moved to a concrete module to avoid barrel cycles.
+Agent-message terminal Markdown remains absent. Maintained26Rust/38native groups/
+80original SDK cases6files and bidirectional event signatures pass. Final
+maintained/shared/scoped lint passes. Selected sequential uncached6-build closure
+concurrency1 passes. Viewed out/rust-design-acp-events.png.
+
+Packed one addon/17audited files/zero npm runtime groups. Direct/packed blocked-
+external16MiBworkers each complete previous design workloads plus49152ACP events;
+final JS heap12.73–12.86MiB. Limits do not bound native/total memory. Five warmed
+alternating49152-Markdown-event pairs measure30.28–36.64ms owned vs3.59–4.30ms
+original. Performance gate FAIL for these small per-call native transfers. No
+superiority claim or original-consumer integration. Evidence out/rust-design-acp-
+events-*. Checklist optimization6e8baf8d7 pushed and remote main verified.
+
+No current successful root publication verified. Foreign changes preserved.
+Continuous16:35:00–16:38:00 adds180s,total124615s(34.62h). Minimum fulfilled;
+full objective incomplete. Continue accounting after16:38:00UTC.

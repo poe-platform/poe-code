@@ -84,3 +84,16 @@ const ownStreamingLines: typeof originalDesign.dashboard.createStreamingDashboar
 const originalStreamingLines: typeof design.dashboard.createStreamingDashboardLineBuffer =
   null as unknown as typeof originalDesign.dashboard.createStreamingDashboardLineBuffer;
 void [ownLines, originalLines, ownStreamingLines, originalStreamingLines];
+
+type AcpEvents = Pick<
+  typeof originalDesign.acp,
+  | "renderToolStart"
+  | "renderToolComplete"
+  | "renderReasoning"
+  | "renderUsage"
+  | "renderError"
+  | "renderPermissionRejected"
+>;
+const acpEventsOriginal: AcpEvents = design.acp;
+const acpEventsOwn: Pick<typeof design.acp, keyof AcpEvents> = null as unknown as AcpEvents;
+void [acpEventsOriginal, acpEventsOwn];

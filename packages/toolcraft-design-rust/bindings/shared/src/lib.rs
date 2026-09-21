@@ -569,3 +569,21 @@ pub fn design_agent_plan_snapshot(
     }
     Ok(NativeJson(Value::Object(fields)))
 }
+
+#[napi]
+pub fn design_acp_event(
+    event: String,
+    markdown: bool,
+    first: Utf16String,
+    second: Utf16String,
+    cached: Utf16String,
+    cost: Utf16String,
+) -> Vec<Utf16String> {
+    let result = toolcraft_design_rust::acp_events::render(
+        &event, markdown, &first, &second, &cached, &cost,
+    );
+    vec![
+        result.style.encode_utf16().collect::<Vec<_>>().into(),
+        result.text.into(),
+    ]
+}

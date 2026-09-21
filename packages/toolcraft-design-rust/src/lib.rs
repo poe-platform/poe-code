@@ -8,3 +8,5 @@ pub mod template;
 pub mod terminal;
 
 pub mod line_buffer;
+
+pub mod acp_events;

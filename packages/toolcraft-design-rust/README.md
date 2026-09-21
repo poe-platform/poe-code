@@ -142,3 +142,18 @@ buffer.flush();
 
 The buffer suppresses unchanged previews, removes hidden terminal strings, and
 limits retained partial output to 16,384 UTF-16 units.
+
+Report agent tool activity and usage through the same scoped writer:
+
+```ts
+import { acp } from 'toolcraft-design-rust';
+
+acp.withAcpWriter(line => appendAgentOutput(line), () => {
+  acp.renderToolStart('read', 'Inspect package');
+  acp.renderToolComplete('read');
+  acp.renderUsage({ input: 1500, output: 350, cached: 800, costUsd: 0.01 });
+});
+```
+
+Tool, reasoning, usage, permission and error events support terminal, Markdown
+and JSON output. Terminal agent-message Markdown rendering is still unavailable.

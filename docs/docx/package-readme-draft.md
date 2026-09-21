@@ -5,8 +5,8 @@ awaits explicit permission.
 
 The private workspace exposes bounded package admission, inspection, text and
 structure editing, typed utility batches, immutable Image/URI values and a
-bounded style/formatting model. It is not a Word renderer or complete live
-Document model. [Usage](usage.md) documents verified imports, command injection,
+bounded style/formatting model. It includes an async Document factory and bounded live table, section, review,
+settings and drawing owners. It is not a Word renderer or complete public model API. [Usage](usage.md) documents verified imports, command injection,
 all operation schemas/options, limits, environments and output safety;
 [acceptance](acceptance-matrix.md) records current read/edit/preserve/reject levels.
 The API and publication boundaries remain qualified subsets. Applying this draft
@@ -83,7 +83,7 @@ independent; their mutation cannot affect another member or the supplied input.
 `invalid-container`, `ResourceLimitError` uses `limit-exceeded`, and
 `CancellationError` uses `cancelled`. Diagnostics exclude member names/content.
 
-Development checks:
+Local workspace checks (not runtime dependencies):
 
 ```sh
 npm run build:workspaces -- --workspace=docx
@@ -94,3 +94,50 @@ npm run lint --workspace=docx
 Compression uses the existing shared portable incremental codec. There is no
 native compression fallback. XML parsers and memory filesystems used by original
 unit assertions are development dependencies only.
+
+## Work with document content
+
+| Need                                  | Available bounded surface                                    |
+| ------------------------------------- | ------------------------------------------------------------ |
+| Read text and structure               | text get, inspect, tables list, images list, properties list |
+| Replace text while keeping runs       | text replace with explicit first/all/occurrence              |
+| Edit tables, styles and page settings | declared resource set/add/remove operations                  |
+| Fill tagged templates                 | template apply with typed record data                        |
+| Automate ordered edits                | version-1 typed batch with one publication                   |
+| Discover support                      | schema, help and capabilities; rejected routes stay visible  |
+
+Use the built local `docx` ESM import. There is no standalone bin or public registry
+installation promise; root `poe-code/docx` is not exported. For a granted shell,
+resolve createDocxCommand/docxCommands from the current local
+`@poe-platform/safe-bash/commands/docx` and explicitly inject the document engine.
+No command registration grants filesystem authority.
+
+A checked original memory-only model example:
+
+```js
+import { Document } from "docx";
+const document = await Document(undefined, {
+  timestamp: new Date("2026-09-21T12:00:00Z"),
+  author: "Surveyor"
+});
+document.add_paragraph("Harbor notes").add_run(" — checked").bold = false;
+let saved;
+await document.save({
+  write: async (bytes) => {
+    saved = bytes.slice();
+  }
+});
+const reopened = await Document(saved);
+```
+
+Fields and pages are stored caches; no calculation or rendering. Utility direct
+insertion supports PNG/JPEG, while bounded model add_picture supports the five
+characterized raster formats. Static SVG utility insertion requires explicit
+validated raster fallback. Protection is respected; signed ordinary mutation
+rejects, and explicit signature stripping never claims verification or signing.
+There are no product environment variables or ambient filesystem/network/font/
+clock/identity inputs. Optional native schema QA prerequisites are test-only.
+See [usage](usage.md) for every option/schema, exact model context, document and
+archive limits, explicit sinks, output collision/alias/partial-output rules,
+exit statuses and current runtime qualification. Full Word/OOXML compatibility,
+whole-public-API acceptance and renderer fidelity are unqualified.

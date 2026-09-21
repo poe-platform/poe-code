@@ -12,11 +12,12 @@ Its original proposed cases are not promoted by this documentation task. This is
 
 ## Current actual feature levels
 
-Verified 2026-09-15 from the built local discovery surface. Each level applies
-only to the named subset; the [acceptance matrix](acceptance-matrix.md) records
-its exact preserve/reject boundaries and qualification limits. Current-tree
-packing metadata includes unowned edits and is not qualified by this task.
-The historical schema table below remains the proposed standards target.
+Verified 2026-09-21 against built local discovery, with maintained checks and
+bounded API evidence recorded in [acceptance](acceptance-matrix.md). Levels apply
+only to named subsets. Declaration support is not complete per-member execution;
+the historical standards table below remains the proposed target. The current
+[API overlay](whole-api-acceptance-20260921.md) supersedes older utility-era
+statements about absent live models, not whole-format or renderer obligations.
 
 | Family | Actual overall level | Actual subset levels                                                                                                 |
 | ------ | -------------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -281,27 +282,29 @@ The entire member/enum/inherited/protocol closure remains required, including do
 `_Cell`, `_Row`, `_Header`, `_Footer`, `_TableStyle` and `_LatentStyle` types.
 
 The following are exact shared mappings applicable to this audit, not a completed
-member-by-member API map. Defaults and overloads beyond these rows remain assigned to
-`reconcile-documented-public-api` and `define-mirrored-js-api`, both pending.
+member-by-member API map. The 920-record reconciled inventory and 1,338-row API map retain exact
+member mappings. [The current acceptance overlay](whole-api-acceptance-20260921.md)
+records actual defaults, context forms, return interfaces and remaining gaps;
+complete per-row behavioral acceptance remains blocked.
 
-| Source behavior                 | Proposed JS/security mapping                                                                                                                                                                                       | Disposition / original evidence target                                                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| Document factory and save       | `Document(input?, context?): Promise<DocumentObject>`; `save(output): Promise<void>`; input/output are owned byte or explicit VFS/stream capabilities                                                              | language/security-mapped; T11 and J01; never read ambient paths or package-relative external targets                              |
-| Image admission                 | `add_picture(image, width?, height?): Promise<InlineShape>` on document/run, with explicit `null` dimensions permitted; always async even for `Uint8Array`                                                         | language/security-mapped; T32 and J01; same domain sizing/publication as CLI `images add`                                         |
-| In-memory methods/properties    | Synchronous live views; preserve neutral names and positional order; keyword-only options become one trailing typed object                                                                                         | language-mapped; J01; no blanket camelCase aliases                                                                                |
-| Python absence and formatting   | Missing/`undefined` uses documented defaults; `null` is explicit absence/inheritance only where allowed; retain distinct `true`, `false`, `null`                                                                   | language-mapped; T12–T14; invalid coercions fail                                                                                  |
-| Sequences and keyed collections | Zero-based numeric access, `.length`, `[Symbol.iterator]()`, `.at(index)` for supported negative access and `.slice(start, end)` for supported slicing; keyed comments/styles keep ID/name semantics               | language-mapped; T19–T20 and J01; out-of-range sequence access maps to a bounds `RangeError`, absent `Comments.get(id)` to `null` |
-| Explicit deletion protocol      | Tab-stop indexed deletion maps to `.delete(index): void`; source `clear_all()` retains spelling; deletion shifts later indexes                                                                                     | proposed language mapping; T13 and J01; only this protocol mapping is fixed here, full signatures remain pending                  |
-| Units, colors and enum values   | Length value objects use safe integer EMUs, `Inches`/`Cm`/`Mm`/`Pt`/`Twips`/`Emu` and unit accessors; `RGBColor` validates 0–255 integer channels; retain documented enum symbols/aliases and values               | language-mapped; J01; shared EMU rounding is nearest, halfway away from zero, not implicit JS/Python numeric subclass behavior    |
-| Type/value/key errors           | Invalid argument type → `TypeError`; invalid numeric/domain/index value → `RangeError`; required missing keyed lookup → neutral `LookupError`; common stable operation error codes still classify CLI/SDK failures | proposed language mapping; J01; absence-returning getters remain `null`, errors never become silent defaults                      |
-| UTC and explicit identity/time  | UTC `Date` values, reject invalid dates; serialized comment timestamps use whole seconds; require caller context timestamp when creation needs time, preserve explicit supplied author/initials                    | security-mapped; T25/T30; no ambient clock/user discovery                                                                         |
-| Public XML/package views        | `.element`/`.part` expose bounded document-owned views under F07; safe parsed mutations still undergo profile/reference/protection/publication checks                                                              | security-mapped; T07; unrestricted XPath, dependency-library internals and host filesystem access are not imported                |
-| Byte/hash metadata              | Owned `Uint8Array` and explicit sources/sinks; documented image SHA-1 is metadata only, source identity and evidence hashes use SHA-256                                                                            | language/security-mapped; T31–T32; never use SHA-1 as stale-selection protection                                                  |
-| CLI selection/results           | One-based simple selectors versus zero-based SDK indexes; fingerprinted tokens reject stale state; version-1 envelope and typed batch use shared schemas                                                           | planned; T10/T47/T48; ordinary exits 0/1/2/3/4/130, diff 0/1/2/130, differing comparison is successful data                       |
+| Source behavior                 | Proposed JS/security mapping                                                                                                                                                                                                  | Disposition / original evidence target                                                                                                   |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Document factory and save       | `Document(input?, context?): Promise<DocumentObject>`; `save(output): Promise<void>`; input/output are owned byte or explicit VFS/stream capabilities                                                                         | language/security-mapped; T11 and J01; never read ambient paths or package-relative external targets                                     |
+| Image admission                 | `add_picture(image, width?, height?): Promise<InlineShape>` on document/run, with explicit `null` dimensions permitted; always async even for `Uint8Array`                                                                    | language/security-mapped; T32 and J01; same domain sizing/publication as CLI `images add`                                                |
+| In-memory methods/properties    | Synchronous live views; preserve neutral names and positional order; keyword-only options become one trailing typed object                                                                                                    | language-mapped; J01; no blanket camelCase aliases                                                                                       |
+| Python absence and formatting   | Missing/`undefined` uses documented defaults; `null` is explicit absence/inheritance only where allowed; retain distinct `true`, `false`, `null`                                                                              | language-mapped; T12–T14; invalid coercions fail                                                                                         |
+| Sequences and keyed collections | Zero-based numeric access, `.length`, `[Symbol.iterator]()`, `.at(index)` for supported negative access and `.slice(start, end)` for supported slicing; keyed comments/styles keep ID/name semantics                          | language-mapped; T19–T20 and J01; out-of-range sequence access maps to `BoundsError` (a RangeError), absent `Comments.get(id)` to `null` |
+| Explicit deletion protocol      | Tab-stop indexed deletion maps to `.delete(index): void`; source `clear_all()` retains spelling; deletion shifts later indexes                                                                                                | proposed language mapping; T13 and J01; only this protocol mapping is fixed here, full signatures remain pending                         |
+| Units, colors and enum values   | Length value objects use safe integer EMUs, `Inches`/`Cm`/`Mm`/`Pt`/`Twips`/`Emu` and unit accessors; `RGBColor` validates 0–255 integer channels; retain documented enum symbols/aliases and values                          | language-mapped; J01; shared EMU rounding is nearest, halfway away from zero, not implicit JS/Python numeric subclass behavior           |
+| Type/value/key errors           | Invalid argument type → `TypeError`; invalid numeric/domain/index value → `RangeError`; required missing keyed lookup → `MissingKeyError` (a RangeError); common stable operation error codes still classify CLI/SDK failures | proposed language mapping; J01; absence-returning getters remain `null`, errors never become silent defaults                             |
+| UTC and explicit identity/time  | UTC `Date` values, reject invalid dates; serialized comment timestamps use whole seconds; require caller context timestamp when creation needs time, preserve explicit supplied author/initials                               | security-mapped; T25/T30; no ambient clock/user discovery                                                                                |
+| Public XML/package views        | `.element`/`.part` expose bounded document-owned views under F07; safe parsed mutations still undergo profile/reference/protection/publication checks                                                                         | security-mapped; T07; unrestricted XPath, dependency-library internals and host filesystem access are not imported                       |
+| Byte/hash metadata              | Owned `Uint8Array` and explicit sources/sinks; documented image SHA-1 is metadata only, source identity and evidence hashes use SHA-256                                                                                       | language/security-mapped; T31–T32; never use SHA-1 as stale-selection protection                                                         |
+| CLI selection/results           | One-based simple selectors versus zero-based SDK indexes; fingerprinted tokens reject stale state; version-1 envelope and typed batch use shared schemas                                                                      | planned; T10/T47/T48; ordinary exits 0/1/2/3/4/130, diff 0/1/2/130, differing comparison is successful data                              |
 
 ### Confirmed documentation drift
 
-The [API audit](upstream-api-audit.md) and [331-record candidate inventory](upstream-api-inventory.json)
+The [API audit](upstream-api-audit.md) and [920-record reconciled inventory](upstream-api-inventory.json)
 were read. The source revision remains `e45454602b53e8e572b179ccf1c91093ec9f4ed7`.
 The candidate count is not an exhaustive public API denominator. No inventory row is
 marked implemented, and no public API is excluded because its name starts with `_`.
@@ -328,7 +331,8 @@ marked implemented, and no public API is excluded because its name starts with `
 No source test bodies, document passages, artwork or binary fixtures were copied.
 The test obligations are original contract-based cases. Existing research/legal notices
 remain separate. Complete adaptation of the 2,259 collected behavioral variants and
-complete public member mapping are later tasks; this standards audit claims neither.
+complete per-member behavioral acceptance remains unqualified; the mapping
+register and current bounded execution overlay are distinct evidence.
 
 ## Evidence and remaining boundaries
 
@@ -339,7 +343,8 @@ the future document engine. Test design and the task completion record live excl
 in [the task plan](../plans/docx-standards-audit.md). The main pipeline's unrelated
 in-progress edits are preserved; its later tasks are not started by this audit.
 
-All F01–F50 behavior remains proposed. In particular, XSD validation alone does not
+The historical F01–F50 standards target remains proposed beyond the bounded
+levels above; scoped execution evidence does not qualify the full target. In particular, XSD validation alone does not
 validate ZIP limits, graph/range integrity, extension understanding, image codecs,
 font rendering, field execution safety or publication atomicity. Unsupported child
 features above remain visible even when their enclosing family is a required target.
@@ -354,3 +359,32 @@ checks do not establish full primary-XSD/math-model/rendering conformance or
 whole-public-API parity. The pinned real corpus input refused default archive work
 admission before math inspection, so its 45-expression census and preservation
 remain unqualified by the product. Unsupported families remain visible.
+
+### Current JS/security drift reconciliation
+
+The historical mapping table does not grant unqualified overloads. Current
+DocumentModelContext uses metrics.measure, string capability tokens with VFS/
+binary resolvers, copied UTC dates and deterministic original metadata defaults.
+The proposed fonts/template overrides and capability-object forms are not current
+API promises. Actual save accepts staged/direct byte sinks or matching VFS tokens
+and always returns Promise<void>. Model factories and add_picture are async;
+admitted members are synchronous. Utility JSON options remain camelCase; model
+members retain neutral snake_case. No ambient network, filesystem, font, time or
+identity acquisition follows from either surface.
+
+CommentsPartView and SettingsPartView are actual returned part spellings.
+Run.iter_inner_content yields primitive strings; proposed \_Text and
+ProvidesStoryPart/ProvidesXmlPart exports remain unqualified public obligations.
+NumberingPart.new rejects with UnsupportedEditError/unsupported-edit and stays
+in the denominator. BoundsError/MissingKeyError extend RangeError with
+missing-selection; StaleHandleError uses stale-selection. Enum helpers are
+exported, while complete value/member acceptance remains blocked. Null, false,
+zero, checked integer EMUs, per-axis 72-DPI fallback, whole-second UTC serialization,
+merged-cell ownership and stale tab views retain their specific mappings.
+Comment comment_id/timestamp, paragraph-owned add_run, table_direction and
+priority resolve documented spelling drift without accidental typo aliases.
+
+See [current usage](usage.md) for exact import, context and option availability,
+and [the dated API overlay](whole-api-acceptance-20260921.md) for all M-\* and
+D01–D23 mappings and unresolved obligations. Older absent-owner statements in
+research records are historical; no unsupported public API is hidden as private.

@@ -1,5 +1,30 @@
 {
-  "date": "2026-09-15",
+  "schemaVersion": 1,
+  "date": "2026-09-21",
+  "node": "v22.22.2",
+  "scope": "Documentation reconciliation; built imports, parser/discovery execution and original memory-only model round trip. No product changes or renderer/corpus qualification.",
+  "availability": [
+    {
+      "import": "docx",
+      "available": true,
+      "exports": 236
+    },
+    {
+      "import": "poe-code/docx",
+      "available": false,
+      "error": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "import": "poe-code/safe-bash/commands/docx",
+      "available": false,
+      "error": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "import": "@poe-platform/safe-bash/commands/docx",
+      "available": true,
+      "exports": 2
+    }
+  ],
   "imports": [
     "readArchive",
     "getDocxDiscovery",
@@ -7,54 +32,199 @@
     "createDocxInspectionCommandEngine",
     "inspectDocxCapabilities",
     "Image",
-    "openDocumentStyleModel"
+    "openDocumentStyleModel",
+    "Document",
+    "DocumentView"
   ],
-  "parsedCommands": 7,
-  "operationDeclarations": 1517,
+  "parsedCommands": [
+    {
+      "args": ["inspect", "draft.docx", "--json"],
+      "operation": "inspect"
+    },
+    {
+      "args": [
+        "text",
+        "replace",
+        "draft.docx",
+        "--find",
+        "Draft",
+        "--with",
+        "Final",
+        "--first",
+        "--dry-run"
+      ],
+      "operation": "text.replace"
+    },
+    {
+      "args": ["images", "list", "draft.docx"],
+      "operation": "images.list"
+    },
+    {
+      "args": ["tables", "list", "draft.docx"],
+      "operation": "tables.list"
+    },
+    {
+      "args": ["properties", "list", "draft.docx"],
+      "operation": "properties.list"
+    },
+    {
+      "args": ["schema", "text", "replace"],
+      "operation": "schema"
+    },
+    {
+      "args": ["help", "images", "add"],
+      "operation": "help"
+    },
+    {
+      "args": ["help", "batch", "--operation", "model.text.paragraph.Paragraph.element.get"],
+      "operation": "help"
+    },
+    {
+      "args": ["capabilities", "--json"],
+      "operation": "capabilities"
+    }
+  ],
+  "discoveryExecuted": [
+    {
+      "args": ["schema", "text", "replace"],
+      "exitCode": 0,
+      "stdoutSha256": "679bc32eb4cb8f05153d465bf189d02a20e83d61dc45e9f9f16ca31eed51fa3c"
+    },
+    {
+      "args": ["help", "images", "add"],
+      "exitCode": 0,
+      "stdoutSha256": "8ee623e0e87f3970457908943ca53b154b7c9cc7e5b93075b83556683a6afd2e"
+    },
+    {
+      "args": ["capabilities", "--json"],
+      "exitCode": 0,
+      "stdoutSha256": "f7cfb02d9283e9ea14fbce8e9f800a90216a70c614a1e578b4cade34e59bebc2"
+    }
+  ],
+  "operationDeclarations": 1518,
   "featureFamilies": 50,
+  "rejectedRoutes": [
+    "paragraphs.list",
+    "paragraphs.get",
+    "runs.list",
+    "runs.get",
+    "styles.remove",
+    "fonts.list",
+    "model.document.Document.save.call",
+    "model.types.ProvidesStoryPart.part.get",
+    "model.types.ProvidesXmlPart.part.get",
+    "model.parts.document.DocumentPart.save.call",
+    "model.parts.styles.StylesPart.load.call",
+    "model.package.Package.open.call",
+    "model.package.Package.save.call",
+    "model.opc.package.OpcPackage.open.call",
+    "model.opc.package.OpcPackage.save.call",
+    "model.NumberingDefinitionsView.length.get",
+    "paragraphs.format.set",
+    "runs.fonts.set",
+    "lists.levels.set",
+    "sections.columns.set",
+    "styles.links.set"
+  ],
   "inventoryRecords": 920,
-  "inheritedRecords": 417,
-  "underscoreRecords": 185,
+  "inventoryCounts": {
+    "records": 920,
+    "enum_values_including_value_aliases": 262,
+    "enum_type_aliases": 11,
+    "rst_directives": 59,
+    "documentation_files": 39,
+    "coverage_roles": {
+      "documented-or-inherited-model": 572,
+      "returned-package-view-or-owner-protocol": 335,
+      "constructor-support-explicitly-internal-in-source": 5,
+      "documentation-error": 8
+    }
+  },
+  "modelRoundTrip": {
+    "passed": true,
+    "packageBytes": 4231,
+    "text": "Harbor notes — checked",
+    "explicitFalseRetained": true
+  },
   "hashes": {
-    "docs/specs/docx.md": "3c70e7b9f600f0bef7aa321405cf482559831783eb38b061a7ad60472e918136",
+    "docs/specs/docx.md": "4853f299039dd7c73fe5cb11ce4d5109cb1f2949373c0cfb02fbd6a8d7677c96",
     "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
     "docs/specs/office-sdk.md": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64",
-    "docs/docx/upstream-api-audit.md": "09a14366c1a659e484653b0e2d8c6fe205ece28adf8748db7cb75c76af1bc269",
+    "docs/docx/upstream-api-audit.md": "a0ac2730b5719aab7255df57d72fe9fb72db270f63ca0977534fa8019827e93f",
     "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
-    "packages/docx/src/index.ts": "a7a60320b3b71fa1ad5a7edd5a8027bd19fce698cd3dc5e455a65d569d3b8298",
-    "docs/docx/usage-contracts.json": "daf60a27c82930ee8f8e7b4c72aa7c82dc32d49a1fab6954868583e6777d91f3"
+    "packages/docx/src/index.ts": "a46df33fb38a63b810cb2910e5806f6fec22c9527752e28a5190c1c66a463bc5",
+    "docs/docx/usage-contracts.json": "603e294048ecbf8658fa9b8068a6355ac9a9cd338e842503fbb4ad4d62a1f4fc",
+    "package.json": "7c65fc719c86d9e9a1fab40eb56d83645a8a47bbfc8b00eac1a68bb7ab7caed7",
+    "packages/docx/package.json": "51d4efcd319720ddeca0a4e44cd9249d7aa0bd4ed10628b67ea8273b84c8ae62",
+    "packages/safe-bash/package.json": "994a548f89fb8f0f5cf2505bf4cadbaaa4fe6a1aeba21666336f037b445c862f",
+    "docs/docx/usage.md": "b979845baf14f1811765fe9f37b68993aa5d5fdfb89ec782e65ffdfad3427c9e",
+    "docs/docx/standards-coverage.md": "1857b376e5cdb8c87410e3c1610f1b018e15553a3b8ee403903179333da99be8",
+    "docs/docx/acceptance-matrix.md": "9d9f55d7e0ee2ef49bb8af742e08db0c40ce6e462da8b478679590ae7341cd49",
+    "docs/docx/package-readme-draft.md": "6fa3c4d8a06cd0edaab580ca2ab3cdbb1ef55a92c4c5f69e307392918dbfac16",
+    "docs/plans/docx-usage-documentation.md": "56486aa481d84b0ab5047dbdf7d0da27df22f222f9736250d87fb523f8bc8e97"
   },
   "checks": {
     "build": {
-      "receipt": "docs/docx/usage-evidence/build.log",
-      "sha256": "58c6ef1bcb03dc248818dd29ff4a91d8d4b19438f4095bb3a070faeb3e1885c6"
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "passed": true,
+      "scope": "Maintained selected dependency closure, shared cache; portable safe-fs build, no native execution"
     },
     "unit": {
-      "receipt": "docs/docx/usage-evidence/tests.log",
-      "sha256": "992000c0617f45cc40b48746a359ceb6300acd97a4044b91e0e2efb1bfed373e"
+      "command": "npm test --workspace=docx",
+      "passed": true,
+      "filesPassed": 254,
+      "testsPassed": 5198,
+      "testsSkipped": 0,
+      "failures": 0,
+      "durationSeconds": 214.48
     },
     "lint": {
-      "receipt": "docs/docx/usage-evidence/lint.log",
-      "sha256": "31dea107353a44757fd9933cb9eb330132edb17c88b43610baf32f2132513aa6"
+      "command": "npm run lint --workspace=docx",
+      "passed": true,
+      "errors": 0,
+      "warnings": 1,
+      "warning": "operation-types.test.ts:20 type-only use of operation"
     },
-    "schemaPrerequisiteFailure": {
-      "receipt": "docs/docx/usage-evidence/schemas.log",
-      "sha256": "332a6cd3e63c4bb47fb556122e85f3fc959b457446b6042c37e99b2073cb178f"
+    "documentary": {
+      "passed": true,
+      "scope": "Every captured declaration field/SDK field/batch field/receiver/result handle/common option matches current built source; all 1518 IDs/support/path/feature IDs and all 50 family levels/subsets match discovery"
     },
-    "schemaConfigured": {
-      "receipt": "docs/docx/usage-evidence/schemas-configured.log",
-      "sha256": "2e750e0692c448c810086384d6a093e1afdb9bbf477319a32f5317599fbe3f9e"
+    "discovery": {
+      "passed": true,
+      "scope": "Three actual engine discovery executions, nine parser commands, nine named exports and original Document save/reload with Unicode/false formatting"
+    },
+    "screenshot": {
+      "command": "npm run screenshot -- cat out/docx-usage-20260921/help.txt",
+      "inspected": true,
+      "sha256": "96dec490efea20f1f34c79b848e2bc92637e2dd0426fac540ec798491c50f3d5",
+      "scope": "Actual images add generated help; readable support, options and safety, no CLI change or renderer qualification",
+      "retention": "Disposable image purged after visual inspection; hash retained"
+    },
+    "format": {
+      "command": "npx prettier --check <seven explicitly owned Markdown/JSON files>",
+      "passed": true,
+      "status": "Final owned-file format check passed"
+    },
+    "diff": {
+      "command": "git diff --check -- <owned files>",
+      "passed": true
     }
   },
-  "unit": {
-    "filesPassed": 178,
-    "testsPassed": 3438,
-    "testsSkipped": 4
+  "qualification": {
+    "fullOoxml": false,
+    "wholeApi": false,
+    "renderer": "not executed",
+    "registryInstall": "not executed",
+    "schemaNative": "Not executed; optional test-only DOCX_SCHEMA_ROOT input not supplied. No full grammar claim.",
+    "rootCli": "no integration claim",
+    "browserWorker": "bounded prior evidence only"
   },
-  "schema": {
-    "checksPassed": 10,
-    "strictGrammarQualified": false,
-    "environment": "Test-only DOCX_SCHEMA_ROOT; no product environment variables"
-  },
-  "receiptNote": "Check output retained with trailing blank lines normalized; hashes cover retained receipts."
+  "readmeApplication": "pending explicit permission",
+  "laterTasks": "pending",
+  "delivery": {
+    "branch": "main",
+    "localCommit": "This task commit; retrieve with git log -- docs/docx/usage-verification.json",
+    "push": "not performed",
+    "release": "not performed"
+  }
 }

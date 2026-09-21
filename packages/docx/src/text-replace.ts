@@ -131,7 +131,10 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
       lockedOwners = new Set([...activeControlLocks(xml.root, xml.compatibility, budget)].filter(([lock]) => attr(lock, "val") !== "unlocked").map(([, binding]) => binding.owner));
       partLocks.set(xml.root, lockedOwners);
     }
-    let unsupported = ancestors.some(n => lockedOwners.has(n) || !!revisionInfo(n) && !["ins", "del"].includes(n.localName));
+    const rowProperties = ancestors.filter(n => n.namespace === w && n.localName === "tr")
+      .flatMap(row => activeChildren(row).filter(props => props.namespace === w && props.localName === "trPr"));
+    let unsupported = ancestors.some(n => lockedOwners.has(n) || !!revisionInfo(n) && !["ins", "del"].includes(n.localName)) ||
+      rowProperties.some(containsActiveRevision);
     const flush = () => {
       if (dummy) {
         paragraphPieces.push(...pieces);
@@ -162,7 +165,8 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
       }
       pieces = [];
     };
-    if (ancestors.some(n => n.namespace === w && (!visible(n.localName) || n.localName === "tr" && n.children.some(p => p.localName === "trPr" && p.children.some(c => !visible(c.localName)))))) continue;
+    if (ancestors.some(n => n.namespace === w && !visible(n.localName)) ||
+      rowProperties.some(props => activeChildren(props).some(marker => marker.namespace === w && !visible(marker.localName)))) continue;
     type TraversalRequest = { current: XmlElement; path: readonly number[]; run: XmlElement | undefined; runOffset: { value: number } };
     const visit = function* (current: XmlElement, path: readonly number[], run?: XmlElement, runOffset = { value: 0 }): Generator<TraversalRequest, void, void> {
       budget.charge("work", targets.length + 1);

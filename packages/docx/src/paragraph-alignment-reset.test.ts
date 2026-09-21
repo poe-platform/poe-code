@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
-import { Document, createDocxInspectionCommandEngine } from "./index.js";
+import { Document, createDocxInspectionCommandEngine, type DocxOperationArguments, type DocxBatchItem } from "./index.js";
 import { applyStyleModelBatch } from "./style-model-batch.js";
 import { textContext, textFixture, w, r } from "../tests/fixtures/text.js";
 
@@ -16,6 +16,12 @@ it.each(["", '<w:jc w:val="center"/>'])(
       "/cli": "",
       "/err": ""
     });
+    const resetArguments = { value: null } satisfies DocxOperationArguments<"model.text.paragraph.Paragraph.alignment.set">;
+    const reset = {
+      operation: "model.text.paragraph.Paragraph.alignment.set",
+      receiver: { resultHandle: "paragraphs", index: 0 },
+      arguments: resetArguments
+    } satisfies DocxBatchItem;
     const operations = [
       {
         operation: "model.document.Document.paragraphs.get",
@@ -23,11 +29,7 @@ it.each(["", '<w:jc w:val="center"/>'])(
         arguments: {},
         resultHandle: "paragraphs"
       },
-      {
-        operation: "model.text.paragraph.Paragraph.alignment.set",
-        receiver: { resultHandle: "paragraphs", index: 0 },
-        arguments: { value: null }
-      },
+      reset,
       {
         operation: "model.text.paragraph.Paragraph.alignment.get",
         receiver: { resultHandle: "paragraphs", index: 0 },

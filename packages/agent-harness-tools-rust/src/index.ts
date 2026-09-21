@@ -23,3 +23,5 @@ export * from "./execution-env.js";
 export {createPoeCommandSession,runPoeCommand,type PoeCommandSession} from "./run-poe-command.js";
 
 export {applyRuntimeOverrides,resolvePoeCommandExecution,UnsupportedRuntimeCapabilityError,type RuntimeOverrideOptions} from "./poe-command-execution.js";
+
+export * from "./workspace-transfer.js";

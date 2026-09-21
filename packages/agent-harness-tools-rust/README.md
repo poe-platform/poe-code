@@ -22,6 +22,7 @@ The package is additive and has no npm runtime dependencies.
 - Run commands inline or detached with persisted job lifecycle updates.
 - Reuse an execution environment through command sessions.
 - Resolve runtime configuration and overrides before executing commands.
+- Upload filtered workspaces and download changes with conflict checks.
 
 ```ts
 import { createRunQueue } from "@poe-code/agent-harness-tools-rust";
@@ -53,7 +54,7 @@ checks normalized containment and merges project/global entries by exact filenam
 Supply your filesystem adapter through `discoverWorkflowDocs({cwd, homeDir,
 subDirectory, fs})`; discovery ignores missing directories and symbolic links.
 
-This surface does not expose dashboards or workspace transfer. It is not a full replacement
+This surface does not expose dashboards. It is not a full replacement
 for the original package. Loop-agent callbacks use a structural symbol cancellation
 type: original SDK callbacks can be supplied, but the original SDK's unique symbol
 prevents the reverse full-module type assignment. Custom array/intrinsic hooks
@@ -113,3 +114,10 @@ order and Node retains property getters and exception identities.
 A local benchmark of 1,024 resolutions with absent configuration files takes
 6–9 ms with the Rust package versus 4–6 ms with the original. This scope does not
 currently demonstrate a performance improvement.
+
+`uploadWorkspace(env, options)` stages filtered local files and promotes the
+workspace only after successful writes. `downloadWorkspace(env, {conflictPolicy})`
+refuses or overwrites local conflicts. Supply local and remote filesystem adapters
+through `env.fs` and `env.remoteFs`. The owned process-runner implementation shares
+the harness addon: Rust owns ignore rules, content hashes, conflict state and upload
+transaction effects; Node executes filesystem operations and retains file buffers.

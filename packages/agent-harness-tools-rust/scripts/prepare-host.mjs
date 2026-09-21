@@ -104,3 +104,10 @@ copyFileSync(
   new URL("../task-list-rust/src/runner-types.d.ts", root),
   new URL("runner-types.d.ts", dist)
 );
+
+// The existing addon embeds process-runner bindings through the task SDK.
+const processHosts = new URL("process/", dist);
+mkdirSync(processHosts, { recursive: true });
+for (const name of ["workspace-transfer.js", "workspace-transfer.d.ts", "types.d.ts"])
+  copyFileSync(new URL("../process-runner-rust/src/" + name, root), new URL(name, processHosts));
+writeFileSync(new URL("native.js", processHosts), "export {native} from '../addon.js';\n");

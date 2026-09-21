@@ -6108,3 +6108,24 @@ release35599744513 in_progress;command35601923765 pending. No successful current
 publication verified. Concurrent changes preserved. Continuous12:50:11–12:58:45
 adds514s,total111460s(30.96h). Minimum fulfilled;objective incomplete.
 Continue accounting after12:58:45UTC.
+
+### Harness workspace transfer SDK, 2026-09-21 13:01 UTC
+
+Added uploadWorkspace/downloadWorkspace and owned transfer types through direct
+exports of the embedded process-runner hosts. The already embedded runner Rust
+bindings own ignore/hash/conflict/upload-transaction policy; no duplicated core or
+proxy functions. Source types use a dev-only bridge;packed declarations are owned.
+Missing-module reference red precedes implementation. No production integration.
+
+Maintained23Rust cases,22native groups,261original references/19files(including
+31transfer cases),covered types,fmt/clippy/ESLint pass. Uncached selected117workspaces/
+30builds/363edges passes. Packed214files/one addon with external npm resolution
+blocked and zero runtime groups passes upload filtering,refusal/overwrite and all
+prior cases.16MiBworker256memfs roundtrips retains6.65MiBheap/82.92MiBRSS. This
+is the same measured owned process-runner algorithm;no new speed/total-memory claim.
+Evidence out/rust-harness-transfer-*;earlier out/rust-process-workspace-* still
+provides comparative policy/rollback/performance evidence. Original SDK remains
+dev-only. Runtime8e1f803e4 exactly verified on remote main. Plans release35599744513
+in_progress;no successful current publication verified. Concurrent edits preserved.
+Continuous12:58:45–13:01:27 adds162s,total111622s(31.01h). Minimum fulfilled;
+objective incomplete. Continue accounting after13:01:27UTC.

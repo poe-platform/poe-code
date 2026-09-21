@@ -5673,3 +5673,46 @@ Foundation580a51ea4 exact remote-main verified,release35592066783 pending;
 successful publication remains unverified. Concurrent OAuth work preserved.
 Continuous11:03:44–11:08:41 adds297s,total105171s (29.21h). Full objective remains
 incomplete. Continue accounting after11:08:41 UTC.
+
+### Harness-tools Rust queue foundation, 2026-09-21 11:18 UTC
+
+Added private @poe-code/agent-harness-tools-rust with a persistent Rust live queue:
+plan/message ordering,IDs,cursor,status,duplicate/finished admission and transactional
+65536item bound. Node preserves validation submission order,async execution,
+listeners,abort handling,path resolution and frozen snapshot/item identities.
+Owned agent catalog embedded in the same addon; current participant/hook/stage/
+document/sequence/loop-agent/worktree adapters stay in Node. Plan discovery/storage,
+runtime/process execution,logs,dashboards and workspace transfer remain absent.
+All19dependency-closure names now have additive counterpart directories; existence
+is not full implementation/parity acceptance. Wider agent-spawn runtime and
+config state/service/compiler surfaces remain incomplete.
+
+Missing Rust queue module/native package reds precede implementation. Eager full
+snapshot crossing benchmark128plans+256followups/no listeners measured original
+wall7.29–7.73ms/CPU7.16–9.17ms versus ownwall296.15–314.83ms/
+CPU295.64–311.62ms,FAIL. Binding now transfers active items and lazily materializes
+full snapshots on reads/listener delivery. Permanent fixture validates immutable
+old snapshots,stable unchanged item identity,active item identity and every
+callback-visible mutation. Five alternating warmed complete384-execution samples
+with final all-completed assertions: originalwall6.67–7.87ms/CPU6.68–8.75ms versus
+ownwall2.34–2.64ms/CPU2.32–3.77ms,better each pair,scoped no-listener PASS. This does
+not establish subscriber/interactive/general performance acceptance.
+
+Maintained3Rust cases+one focused resource-bound case (4total),3native groups,
+118original references/8files,forward covered public types and reverse except
+loop-agent callback nominal cancellation type,fmt/clippy/hostESLint pass. Original
+SDK callbacks accepted by owned API; reversefull-module type cannot match SDK
+unique CANCEL symbol with self-contained structural symbol declarations. No
+external declaration imports or nominal SDK dependency introduced. Custom array/
+intrinsic hooks and invalid untyped outcomes remain under review. Uncached
+selected117workspaces/18builds/358edges passes. Packed31JS/declarations,one addon,
+zero runtime groups/imports. Direct/packed16MiB-old-generation workers each128queue
+cycles,12288executions,12416snapshot publications,256mock workflow agent runs;
+final JS heaps11.96/10.88MiB,RSS82.09/86.94MiB. Not total/native memory bounds.
+Evidence out/rust-harness-queue-*.
+
+Snapshots44bb7f753 exact remote-main verified,release35592527002 in_progress.
+Client35591743711 cancelled by workflow concurrency; no successful publication
+verified. Concurrent safe-bash files preserved. Continuous11:08:41–11:18:11 adds
+570s,total105741s (29.37h). Minimum fulfilled; full objective remains incomplete.
+Continue accounting after11:18:11 UTC.

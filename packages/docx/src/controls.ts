@@ -12,6 +12,8 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import type { XmlElement } from "./package-xml.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
+import { activeXmlChildren } from "./xml-active-children.js";
+import type { DocumentBudget } from "./budget.js";
 import { replaceControlPicture, finishControlPictures, readControlPicture, acquireControlPng, type ControlBinaryResolver, type ControlPicture } from "./control-picture.js";
 
 const w14 = "http://schemas.microsoft.com/office/word/2010/wordml";
@@ -35,10 +37,13 @@ export interface ControlEditData {
 function attr(node: XmlElement | undefined, name: string, namespace = node?.namespace): string | null {
   return node?.attributes.find(attribute => attribute.namespace === namespace && attribute.localName === name)?.value ?? null;
 }
-function child(node: XmlElement, name: string, namespace = node.namespace): XmlElement | undefined {
-  const result = node.children.filter(element => element.namespace === namespace && element.localName === name);
-  if (result.length > 1) throw new UnsupportedEditError("Repeated control properties are unsupported.");
-  return result[0];
+function controlChildren(xml: DocumentXmlEditor, budget: DocumentBudget) {
+  const all = activeXmlChildren(xml, budget);
+  return { all, one(node: XmlElement, name: string, namespace = node.namespace): XmlElement | undefined {
+    const result = all(node).filter(element => element.namespace === namespace && element.localName === name);
+    if (result.length > 1) throw new UnsupportedEditError("Repeated control properties are unsupported.");
+    return result[0];
+  } };
 }
 function walk(node: XmlElement): XmlElement[] { return [node, ...node.children.flatMap(walk)]; }
 function owners(root: XmlElement, path: readonly number[]): XmlElement[] {
@@ -53,14 +58,15 @@ function logicalText(content: XmlElement, xml: DocumentXmlEditor): string {
   return visit(content);
 }
 export function inspectControlSnapshot(node: XmlElement, location: Location<"control">, archive: ReturnType<DocumentArchiveEditor["snapshot"]>, context: ArchiveContext, xml: DocumentXmlEditor): ControlSnapshot {
+  const { one: child, all: children } = controlChildren(xml, archiveSettings(context).budget);
   let kind: ControlSnapshot["kind"] = "unsupported", value: ControlSnapshot["value"] = null, reason: string | null = null;
   let properties: XmlElement | undefined, content: XmlElement | undefined;
   const choices: { value: string; label: string }[] = [];
   try {
     properties = child(node, "sdtPr"); content = child(node, "sdtContent");
     if (!properties || !content) throw new UnsupportedEditError("A control requires one properties and content owner.");
-    if (properties.children.some(owner => owner.namespace === node.namespace && ["docPartObj", "docPartList", "citation", "bibliography", "equation", "group"].includes(owner.localName) || owner.namespace === w14 && ["repeatingSection", "repeatingSectionItem"].includes(owner.localName))) throw new UnsupportedEditError("This stored control type has no verified scalar semantics.");
-    const kinds = properties.children.filter(n => n.namespace === node.namespace && ["text", "richText", "dropDownList", "comboBox", "date", "picture"].includes(n.localName) || n.namespace === w14 && n.localName === "checkbox" || n.namespace === w15 && ["repeatingSection", "repeatingSectionItem"].includes(n.localName));
+    if (children(properties).some(owner => owner.namespace === node.namespace && ["docPartObj", "docPartList", "citation", "bibliography", "equation", "group"].includes(owner.localName) || owner.namespace === w14 && ["repeatingSection", "repeatingSectionItem"].includes(owner.localName))) throw new UnsupportedEditError("This stored control type has no verified scalar semantics.");
+    const kinds = children(properties).filter(n => n.namespace === node.namespace && ["text", "richText", "dropDownList", "comboBox", "date", "picture"].includes(n.localName) || n.namespace === w14 && n.localName === "checkbox" || n.namespace === w15 && ["repeatingSection", "repeatingSectionItem"].includes(n.localName));
     if (kinds.length > 1) throw new UnsupportedEditError("Conflicting control types are unsupported.");
     const type = kinds[0];
     const names: Readonly<Record<string, ControlSnapshot["kind"]>> = { text: "plain-text", checkbox: "checkbox", dropDownList: "dropdown", comboBox: "combo-box", date: "date", picture: "picture", richText: "rich-text", repeatingSection: "repeating-section", repeatingSectionItem: "repeating-item" };
@@ -69,7 +75,7 @@ export function inspectControlSnapshot(node: XmlElement, location: Location<"con
     if (["repeating-section", "repeating-item"].includes(kind)) value = null;
     if (kind === "checkbox") { const checked = attr(child(type!, "checked", w14), "val", w14); value = checked === "1" || checked === "true"; if (!["0", "1", "true", "false"].includes(checked ?? "")) throw new UnsupportedEditError("Malformed checkbox state."); }
     if (kind === "dropdown" || kind === "combo-box") {
-      for (const item of type!.children) {
+      for (const item of children(type!)) {
         if (item.namespace !== node.namespace || item.localName !== "listItem") throw new UnsupportedEditError("Unsupported choice declaration.");
         const stored = attr(item, "value"), label = attr(item, "displayText");
         if (stored === null || label === null || choices.some(choice => choice.value === stored)) throw new UnsupportedEditError("Choice values must be distinct declared values.");
@@ -112,7 +118,8 @@ export async function inspectDocumentControls(input: Uint8Array, options: DocxOp
 function opening(node: XmlElement): string {
   return `<${node.name}${node.attributes.map(a => ` ${a.name}="${xmlValue(a.value)}"`).join("")}>`;
 }
-function textReplacement(xml: DocumentXmlEditor, content: XmlElement, text: string, font?: string): string {
+function textReplacement(xml: DocumentXmlEditor, content: XmlElement, text: string, budget: DocumentBudget, font?: string): string {
+  const { one: child } = controlChildren(xml, budget);
   const w = content.namespace; const nodes = walk(content);
   if (nodes.some(node => node.namespace !== w || !["sdtContent", "p", "pPr", "r", "rPr", "t", "tab", "br", "cr"].includes(node.localName) &&
     !nodes.some(owner => ["pPr", "rPr"].includes(owner.localName) && walk(owner).includes(node)))) throw new UnsupportedEditError("Only ordinary text containers support scalar filling.");
@@ -149,13 +156,14 @@ function textReplacement(xml: DocumentXmlEditor, content: XmlElement, text: stri
 }
 export interface ControlScalarInput { readonly text?: string; readonly checked?: boolean; readonly choice?: string; readonly date?: string; }
 export function prepareControlPlaceholder(xml: DocumentXmlEditor, node: XmlElement, item: ControlSnapshot, context: ArchiveContext): () => void {
+  const { budget } = archiveSettings(context), { one: child } = controlChildren(xml, budget);
   const properties = child(node, "sdtPr")!, content = child(node, "sdtContent")!;
   if (!properties || !content || item.support !== "supported" || !["plain-text", "rich-text", "checkbox", "dropdown", "combo-box", "date"].includes(item.kind)) throw new UnsupportedEditError("A placeholder requires an admitted scalar control.");
   let scalar: (() => void) | undefined;
   if (item.kind === "checkbox") scalar = prepareControlValue(xml, node, item, { checked: false }, context, false);
   else {
     if (item.kind === "date") prepareControlValue(xml, node, item, { date: "2000-01-01" }, context);
-    const replacement = textReplacement(xml, content, ""); scalar = () => xml.replaceElement(content, replacement);
+    const replacement = textReplacement(xml, content, "", budget); scalar = () => xml.replaceElement(content, replacement);
   }
   const current = item.kind === "date" ? child(properties, "date") : item.kind === "dropdown" ? child(properties, "dropDownList") : item.kind === "combo-box" ? child(properties, "comboBox") : undefined;
   let currentXml: string | undefined;
@@ -167,6 +175,7 @@ export function prepareControlPlaceholder(xml: DocumentXmlEditor, node: XmlEleme
 }
 export function prepareControlValue(xml: DocumentXmlEditor, node: XmlElement, item: ControlSnapshot, values: ControlScalarInput, context: ArchiveContext, clearPlaceholder = true): () => void {
   const { budget } = archiveSettings(context); const { text, checked, choice, date } = values;
+  const { one: child } = controlChildren(xml, budget);
   const properties = child(node, "sdtPr")!, content = child(node, "sdtContent")!;
   if (!properties || !content || item.support !== "supported" || walk(content).some(n => n.namespace === node.namespace && n.localName === "sdt")) throw new UnsupportedEditError("Scalar filling requires an admitted leaf control.");
   for (const owner of walk(content)) { budget.charge("work", owner.children.length + owner.attributes.length + 1); if (!xml.compatibility.canEdit(owner) || owner.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute))) throw new UnsupportedEditError("Affected control content is opaque."); }
@@ -198,7 +207,7 @@ export function prepareControlValue(xml: DocumentXmlEditor, node: XmlElement, it
         const replacement = opening(stored).slice(0, -1) + ` ${prefix}fullDate="${canonical}">` + xml.sourceXml(stored, new Map(), true) + `</${stored.name}>`;
         stages.push(() => xml.replaceElement(stored, replacement)); }
     } else throw new UnsupportedEditError("The explicit value does not match the control type.");
-    if (value !== undefined) { const replacement = textReplacement(xml, content, value, font); stages.push(() => xml.replaceElement(content, replacement)); }
+    if (value !== undefined) { const replacement = textReplacement(xml, content, value, budget, font); stages.push(() => xml.replaceElement(content, replacement)); }
     if (placeholder && clearPlaceholder) stages.push(() => xml.replaceElement(placeholder, ""));
   return () => { for (const stage of stages) stage(); };
 }
@@ -214,6 +223,7 @@ export async function editDocumentControls(input: Uint8Array, options: DocxOpera
   for (const location of chosen) {
     budget.charge("work", 1); const item = result.items.find(item => item.location.token === location.token)!;
     const xml = result.editor.xml(location.value.part.slice(1)); const ancestors = owners(xml.root, location.value.path); const node = ancestors.at(-1)!;
+    const { one: child } = controlChildren(xml, budget);
     if (item.support !== "supported" || item.binding || item.lock !== "unlocked" || result.document.references(location.token).length > 1) throw new UnsupportedEditError("This control is unsupported, bound, locked or shared.");
     for (const owner of ancestors.slice(0, -1)) if (owner.namespace === node.namespace && owner.localName === "sdt") {
       const ancestor = inspectControlSnapshot(owner, item.location, result.archive, { ...settings, budget }, xml);

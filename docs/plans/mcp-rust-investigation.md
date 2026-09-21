@@ -2793,6 +2793,58 @@ Conservative resumed effort segment 23:10:05–23:49:57 UTC is recorded; compact
 23:49:57–23:54:31 is excluded. Work resumed 23:54:31. The frozen blocked goal tool
 counter is not used to imply that 24 hours have been achieved or the goal is done.
 
+### Terminal renderer additive delivery (2026-09-21 UTC)
+
+`terminal-png-rust` now provides the original root API, an additional CLI export,
+and a suffixed executable through one napi-rs addon. Own portable Rust owns
+UTF-16 ANSI/control cells, Unicode 17 extended graphemes, SVG layout, bundled
+JetBrains Mono font faces, bounded TrueType cmap/metrics/simple/composite
+outlines, eight-sample antialiased scanline rasterization, fixed-Huffman LZ77
+Deflate/PNG encoding, atomic-output admission/cleanup and CLI grammar. Node
+supplies filesystem/executable effects; no production SDK/resvg/npm dependency.
+The font OFL and Unicode data licenses accompany own assets and generated tables.
+Existing TypeScript and production imports/defaults remain intact.
+
+Core/module/addon absence was checked before implementations. All 766 official
+Unicode 17 grapheme vectors pass, alongside 4,096 Intl comparisons, 1,024 ANSI
+comparisons, exact SVG layout/style/palette comparisons, codec round trips and
+bounded font/XML/raster tests. The attempted fractional-rectangle alpha245
+expectation was rejected after actual resvg returned255, matching own output;
+no product bug was validated there. A selected-workload performance red exposed
+37.5–39.5ms Rust captures versus28.0–28.9ms SDK before optimization. Restricting
+coverage work to shape horizontal bounds and copying opaque pixels preserves
+three clipped/translucent/offscreen raw-pixel SHA256 vectors and SDK pixel checks.
+
+Maintained focused checks pass: 71 applicable SDK Vitest cases, six native groups,
+18 Rust tests, strict bidirectional root/CLI types, fmt/clippy for both crates,
+and an uncached five-workspace build closure (106 workspaces/309 edges). Two SDK
+resvg constructor/options cases are architecture-specific and omitted, not passes;
+font exports and actual raster pixels are independently checked. Representative
+images share dimensions and mean channel difference below3/255. Native/reference,
+help and numeric-error PNG screenshots were visually inspected. Not pixel-identical.
+
+Fresh direct and packed16MiB workers each complete512 captures with actual zlib
+PNG decoding and CLI validation, external production imports blocked. AST audit
+covers every shipped JS/declaration. Archive has exactly one addon and no npm
+runtime/peer/optional groups, with own fonts/licenses. An initial audit passed a
+URL to path.join; correcting this evidence script fixed the diagnostic, not product.
+An interrupted measurement overlapped a build launch and was discarded; final
+measurements used stable built binaries. Own packed artifacts are removed after
+verification; evidence remains under out/rust-terminal-png-*.
+
+Extended pre-optimization runs complete2,048 further captures per implementation.
+Native RSS settles114.90MB, SDK final1,341.03MB, sampled V8 heap4.85/5.35MB and
+buffers16.62KB each. SDK RSS fluctuates1.34–1.35GB in final batches; this is bounded
+workload evidence, not a proved leak. Post-optimization selected warmed runs:
+Rust29.3–32.4ms, SDK37.7–42.6ms; PNG75,220/55,316 bytes. The selected timing gate
+passes, but host load and image differences prevent a general speed claim.
+
+General SVG paths, gradients, clipping/masks/filters, strokes/rounded rectangles,
+complex shaping, malformed/getter/cross-platform distribution and aggregate
+acceptance remain incomplete. The README explicitly records these limits. This
+is an additive terminal implementation delivery, not full package/goal acceptance.
+The terminal MCP and poe-agent closure still require further implementations.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

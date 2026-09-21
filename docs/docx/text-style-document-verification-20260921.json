@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-text-style-document",
+  "status": "bounded-correction-verified-whole-task-open",
+  "baseline_revision": "0493b2087",
+  "contracts": ["../specs/docx.md", "../specs/office-cli.md", "../specs/office-sdk.md"],
+  "instructions": "Root AGENTS.md; no nested DOCX AGENTS.md exists. Ownership packages/docx and docs/docx; standalone procedure in docs/plans. Unrelated pipeline-plan changes preserved.",
+  "prior_evidence_review": {
+    "comment_ids": "Reviewed six original memfs cases, five exact retained source pointers, allocator and model/utility assertions. Retained receipt describes separate three-failure model and utility red runs; raw historical logs unavailable and not rerun as new reds.",
+    "text_tokens": "Reviewed six original cases and eight cached-break public cases, exact XML, explicit false/Unicode and source isolation assertions; retained four-failure red summary remains historical.",
+    "shared_stories": "Reviewed six default/first/even header/footer cases, exact surviving XML and final graph retirement. Test-only prior delivery; no product red claimed.",
+    "highlight_and_breaks": "Reviewed retained highlight and break receipts: bounded historical red/green, not whole-task parity.",
+    "counterpart": "Read crosslinked PPTX test and API audits; shared OPC/XML/image similarities are research inputs, never additional DOCX passes."
+  },
+  "validated_defect": {
+    "member": "docx.text.paragraph.Paragraph.alignment",
+    "operation": "model.text.paragraph.Paragraph.alignment.set",
+    "before": "Direct typed model accepts null; typed SDK batch rejects with usage/exit 2 before publication.",
+    "red": {
+      "command": "npx vitest run packages/docx/src/paragraph-alignment-reset.test.ts",
+      "result": "2 failed; Invalid value; expected WD_PARAGRAPH_ALIGNMENT. Direct model reset succeeded before each failing SDK call; 108 ms test time."
+    },
+    "correction": "Deep-merged fields/sdkFields/batchFields value type to WD_PARAGRAPH_ALIGNMENT | null in the existing declarative schema. Existing package domain setter and SDK-backed CLI executor unchanged.",
+    "green": {
+      "command": "npx vitest run packages/docx/src/paragraph-alignment-reset.test.ts packages/docx/src/operation-json-schema.test.ts packages/docx/src/operation-schema.test.ts",
+      "result": "28 passed in 3 files; 476 ms test time."
+    },
+    "assertion_adjustment": "After schema fix, one exact XML expectation omitted redundant ancestor namespace declarations on modified pPr. Corrected expectation to existing safe serialization; no serializer change or second product defect claimed.",
+    "test": "packages/docx/src/paragraph-alignment-reset.test.ts",
+    "cases": [
+      "absent alignment with retained false keepNext",
+      "explicit center reset with retained false keepNext"
+    ],
+    "observations": [
+      "direct typed Document reset",
+      "typed SDK batch reset/read/save",
+      "actual public command engine batch exit 0 and binary publication",
+      "SDK and CLI save/reload exact paragraph XML",
+      "Unicode and explicit false preserved",
+      "unchanged memfs input"
+    ],
+    "source_relationship": "Supplemental public reset/parity boundaries related to tests/text/test_paragraph.py:161 alignment_set_fixture2 and alignment_set_fixture3. The source explicit value is left and no unrelated keepNext exists; these new center/keepNext cases do not claim exact adaptation of those source rows.",
+    "language_security": "Primary nullable neutral alignment property; synchronous admitted setter, always-async factory/save and explicit sinks. Null removes direct alignment and restores inheritance; it is distinct from a false flag. Closed versioned typed batch/CLI share the same schema; no ambient filesystem, networking, binary fixture or private proxy.",
+    "documentation_drift": "Corrected only this public-api-map.json row target setter/signature, CLI setter form and original assertion signature. Source annotation remains an unchanged historical fact; the observable nullable source tests and current domain setter govern the target. Supersedes only nullable-reset gap in preserved whole-api-resumption.json; no blanket per-member acceptance promoted."
+  },
+  "maintained_checks": {
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "result": "Passed after correction: ESLint and source/test TypeScript; one unchanged type-only unused-variable warning in operation-types.test.ts:20."
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "result": "Passed after correction; declared selected closure of 5 builds; shared cache 2 hits, 0 misses."
+    },
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "result": "252 files passed; 5190 tests passed; zero failures/skips; 212.25 seconds. Final correction and original tests included; actual output inspected."
+    },
+    "initial_unit": {
+      "command": "npm test --workspace=docx",
+      "result": "5188 passed in 251 files, 207.53 seconds. Started before correction/new-test creation; baseline verification only, not final correction acceptance."
+    },
+    "built_schema": {
+      "command": "Public built getDocxOperationSchema(operation, \"batch\")",
+      "result": "Inspected closed WD_PARAGRAPH_ALIGNMENT enum record union with type:null; invalid symbols remain excluded."
+    },
+    "naming": "No reference-project identity matches in packages/docx/src or packages/docx/tests (literal research-project/checkout token scan).",
+    "formatting": "Owned original test, plan, evidence and modified public API map passed Prettier; scoped git diff --check passed."
+  },
+  "coverage_review": {
+    "source_inventory": {
+      "unit_cases": 1609,
+      "expanded_bdd_cases": 650
+    },
+    "api_inventory": {
+      "records": 920,
+      "map_rows": 1337,
+      "fully_accepted_map_rows": 0
+    },
+    "style_overlay": {
+      "source_cases": 898,
+      "api_rows": 613,
+      "owning_binding_pending_status_rows": 61,
+      "note": "Historical pending labels may be superseded by later live-owner receipts; their existence or generic family links is not exact residual-case acceptance."
+    },
+    "acceptance": "Whole task not verified. Retained maps and structural overlays do not independently demonstrate every required parameter variant, inherited member, enum, collection, helper, public underscore-prefixed owner or untested documented API.",
+    "remaining": "Complete exact per-case/per-member assertion reconciliation across all named families remains open. No missing public API is disposed as private on spelling grounds; later pipeline tasks not executed."
+  },
+  "qa": {
+    "historical_root_bash_screenshot": "Unavailable route in latest prior receipt; CJK/emoji font gap retained. Prior fallback transcript is terminal-only evidence.",
+    "fresh_screenshot": "not run; schema admission correction changes no visual layout",
+    "document_renderer": "not run",
+    "corpus": "not run",
+    "reference_runtime": "not run",
+    "disposable_inputs": "No downloaded documents or cloned binary fixtures admitted, shipped, deleted or used as canonical test dependencies."
+  },
+  "delivery": {
+    "push": "not requested; not performed",
+    "release": "not performed",
+    "readmes": "unchanged",
+    "index": "Initial index empty; stage literal owned paths only.",
+    "local_commit": "Atomic fix(docx) commit contains only listed task-owned correction/test/map/procedure/receipt; commit identity reported separately after creation."
+  }
+}

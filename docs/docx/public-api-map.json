@@ -22424,10 +22424,10 @@
       "disposition": "planned",
       "target": {
         "name": "alignment",
-        "signature": "get alignment(): WD_PARAGRAPH_ALIGNMENT | null; set alignment(value: WD_PARAGRAPH_ALIGNMENT)",
+        "signature": "get alignment(): WD_PARAGRAPH_ALIGNMENT | null; set alignment(value: WD_PARAGRAPH_ALIGNMENT | null)",
         "arguments": [],
         "getter": "WD_PARAGRAPH_ALIGNMENT | null",
-        "setter": "WD_PARAGRAPH_ALIGNMENT",
+        "setter": "WD_PARAGRAPH_ALIGNMENT | null",
         "return_type": "WD_PARAGRAPH_ALIGNMENT | null",
         "execution": "sync",
         "ownership": "Live owner-bound view; cross-document assignment requires explicit import; removed nodes invalidate handles."
@@ -22448,7 +22448,7 @@
           "receiver": "Paragraph",
           "arguments": [],
           "get": "WD_PARAGRAPH_ALIGNMENT | null",
-          "set": "WD_PARAGRAPH_ALIGNMENT",
+          "set": "WD_PARAGRAPH_ALIGNMENT | null",
           "result": "WD_PARAGRAPH_ALIGNMENT | null",
           "unknown_fields": "reject",
           "dispatch": "Closed typed ID with owner/revision handles; never dynamic property lookup/eval.",
@@ -22459,7 +22459,7 @@
             },
             "write": {
               "arguments": {
-                "value": "WD_PARAGRAPH_ALIGNMENT"
+                "value": "WD_PARAGRAPH_ALIGNMENT | null"
               },
               "result": "void"
             }
@@ -22471,7 +22471,7 @@
           "id": "API-0225",
           "status": "planned-not-written",
           "assertions": [
-            "Check get alignment(): WD_PARAGRAPH_ALIGNMENT | null; set alignment(value: WD_PARAGRAPH_ALIGNMENT) against return WD_PARAGRAPH_ALIGNMENT | null, declared defaults and read/write types.",
+            "Check get alignment(): WD_PARAGRAPH_ALIGNMENT | null; set alignment(value: WD_PARAGRAPH_ALIGNMENT | null) against return WD_PARAGRAPH_ALIGNMENT | null, declared defaults and read/write types.",
             "Setter updates only the named property; explicit null resets only where admitted."
           ],
           "requirements": [

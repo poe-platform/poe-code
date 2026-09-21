@@ -74,3 +74,5 @@ export declare function resolveConfig(
   agentId: string,
   env?: Readonly<Record<string, string | undefined>>
 ): ResolvedSpawnConfig;
+export { createSpawnRetry, calculateBackoffMs, defaultIsRetryable } from "./retry.js";
+export type { SpawnRetryOptions, SpawnHandle, SpawnRetryFunction } from "./retry.js";

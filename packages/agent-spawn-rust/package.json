@@ -32,7 +32,8 @@
     "@poe-code/agent-spawn": "*",
     "mcp-protocol-rust": "*",
     "typescript": "5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "@poe-code/poe-acp-client-rust": "*"
   },
   "files": [
     "dist",

@@ -140,3 +140,143 @@ impl Default for NativeSpawnPlanner {
         Self::new()
     }
 }
+fn number(value: Unknown<'_>) -> Result<f64> {
+    Ok(if value.get_type()? == napi::ValueType::Number {
+        unsafe { value.cast::<f64>()? }
+    } else {
+        f64::NAN
+    })
+}
+#[napi(object)]
+pub struct RetryDecision {
+    pub kind: String,
+    pub delay: Option<f64>,
+}
+fn retry_decision(value: agent_spawn_rust::retry::Decision) -> RetryDecision {
+    use agent_spawn_rust::retry::Decision;
+    match value {
+        Decision::Done => RetryDecision {
+            kind: "done".into(),
+            delay: None,
+        },
+        Decision::Check => RetryDecision {
+            kind: "check".into(),
+            delay: None,
+        },
+        Decision::Wait(ms) => RetryDecision {
+            kind: "wait".into(),
+            delay: Some(ms),
+        },
+    }
+}
+#[napi]
+pub struct NativeSpawnRetry {
+    state: agent_spawn_rust::retry::Retry,
+}
+#[napi]
+impl NativeSpawnRetry {
+    #[napi(constructor)]
+    pub fn new(max: Unknown<'_>, base: Unknown<'_>) -> Result<Self> {
+        Ok(Self {
+            state: agent_spawn_rust::retry::Retry::new(number(max)?, number(base)?)
+                .map_err(Error::from_reason)?,
+        })
+    }
+    #[napi]
+    pub fn begin(&mut self, aborted: bool) -> Result<f64> {
+        self.state.begin(aborted).map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn evaluate(&mut self, exit: Unknown<'_>) -> Result<RetryDecision> {
+        Ok(retry_decision(
+            self.state
+                .evaluate(number(exit)?)
+                .map_err(Error::from_reason)?,
+        ))
+    }
+    #[napi]
+    pub fn finish_check(&mut self, retry: bool) -> Result<RetryDecision> {
+        Ok(retry_decision(
+            self.state.finish_check(retry).map_err(Error::from_reason)?,
+        ))
+    }
+    #[napi]
+    pub fn prefix(&self, kind: String) -> NativeJson {
+        NativeJson(Value::Object(vec![
+            (
+                "field".encode_utf16().collect(),
+                agent_spawn_rust::retry::prefix_field(&kind)
+                    .map_or(Value::Null, |v| Value::String(v.encode_utf16().collect())),
+            ),
+            (
+                "prefix".encode_utf16().collect(),
+                Value::String(
+                    format!("attempt: {} ", self.state.attempt())
+                        .encode_utf16()
+                        .collect(),
+                ),
+            ),
+        ]))
+    }
+    #[napi]
+    pub fn wait_event(&self, ms: f64) -> NativeJson {
+        NativeJson(Value::Object(vec![
+            (
+                "event".encode_utf16().collect(),
+                Value::String("agent_message".encode_utf16().collect()),
+            ),
+            (
+                "text".encode_utf16().collect(),
+                Value::String(
+                    format!(
+                        "attempt: {} wait {}ms before retry",
+                        self.state.attempt(),
+                        if ms.is_nan() {
+                            "NaN".into()
+                        } else {
+                            mcp_protocol_rust::numbers::format(ms)
+                        }
+                    )
+                    .encode_utf16()
+                    .collect(),
+                ),
+            ),
+        ]))
+    }
+}
+#[napi]
+pub fn spawn_retryable(exit: Unknown<'_>) -> Result<bool> {
+    Ok(agent_spawn_rust::retry::retryable(number(exit)?))
+}
+#[napi]
+pub fn spawn_backoff(base: f64, completed: f64) -> f64 {
+    agent_spawn_rust::retry::backoff(base, completed)
+}
+#[napi]
+#[derive(Default)]
+pub struct NativeSpawnQueue {
+    state: poe_acp_client_rust::client::Queue,
+}
+#[napi]
+impl NativeSpawnQueue {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn push(&mut self, token: f64) -> bool {
+        self.state.push(Value::Number(token))
+    }
+    #[napi]
+    pub fn poll(&mut self) -> NativeJson {
+        NativeJson(self.state.poll())
+    }
+    #[napi]
+    pub fn close(&mut self) {
+        self.state.complete();
+    }
+    #[napi]
+    pub fn fail(&mut self) {
+        self.state.fail("failure".into());
+    }
+}

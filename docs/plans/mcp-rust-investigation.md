@@ -3314,3 +3314,36 @@ is out/rust-agent-spawn-benchmark.json; no broad speed/memory advantage is claim
 Evidence out/rust-agent-spawn-*; remaining aggregate/getter/platform/Python and
 full agent acceptance remain open. Latest release35556765333 is pending; no
 publication is verified. The24-hour minimum effort and overall goal remain open.
+
+### Spawn retry implementation, 2026-09-21 03:28 UTC
+
+The agent-spawn-rust retry API now owns validation, attempt transitions, stop/check/
+wait decisions, capped exponential backoff and event prefix selection in Rust.
+Node supplies promises, callbacks, timers and AbortSignal effects. The event queue
+reuses own ACP Rust token admission and keeps arbitrary/cyclic values in their
+originating isolate. Custom retry callbacks are captured once at invocation;
+mutation during an asynchronous attempt was reproduced with a red native case.
+Rust transitions reject reentry/out-of-order calls, covered by a red portable case
+before implementation. Zero-base exponent overflow preserves JavaScript NaN.
+
+Event declarations use original structural declaration contracts only, with the
+ACP Plan import rewritten through the TypeScript AST to own local protocol types.
+No original runtime implementation is copied or imported. Bidirectional supported
+public API types, 6 portable Rust cases, 5 native groups and all 110 applicable
+original cases pass. Maintained focused lint/fmt/clippy, unit/types, npm ci dry-run
+and explicit uncached build closure (112 workspaces/22 builds/335 edges) pass.
+Direct and packed 16MiB workers each complete 8192 launch plans/serializations/env
+merges and 512 retry attempts/1280 events, retaining 256 plans and 32 closed handles.
+Cyclic tool payload identity and arbitrary falsy failures survive. Recursive AST
+import audit covers 27 shipped JS/declaration files, one addon and zero npm
+runtime/peer/optional groups. Worker heap endpoints ~9.2MB; process RSS includes
+the auditor parent. This is bounded stability evidence, not leak/peak acceptance.
+Unread event queues remain unbounded like the original. Evidence out/rust-agent-
+spawn-retry-*; parallel/execution/adapters/full agent closure remain unfinished.
+
+The conservative inherited active segment 02:43:12–03:14:16 UTC (1864s) is now
+recorded, excluding the checkpoint gap. Work resumed 03:21:02 UTC. The frozen goal
+counter plus previously recorded segments and this inherited segment total 78908s
+(21.92h); the minimum 24-hour effort and overall rewrite remain unfinished.
+Release 35556922386 for planning commit 753e96c6d remains pending; no publication
+is verified. This retry change is locally verified; delivery is recorded separately.

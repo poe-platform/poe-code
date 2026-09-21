@@ -12,6 +12,8 @@ export default defineConfig({
       name: "rust-spawn-planning-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (importer === path("../agent-spawn/src/retry.test.ts") && name === "./retry.js")
+          return path("dist/retry.js");
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -58,7 +60,7 @@ export default defineConfig({
     }
   ],
   test: {
-    include: [args, configs, types],
+    include: [args, configs, types, path("../agent-spawn/src/retry.test.ts")],
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

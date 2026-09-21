@@ -149,3 +149,4 @@ export function mergeSpawnEnvironment(...sources) {
     )
   );
 }
+export { createSpawnRetry, calculateBackoffMs, defaultIsRetryable } from "./retry.js";

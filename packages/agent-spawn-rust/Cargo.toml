@@ -7,3 +7,4 @@ license = "MIT"
 [dependencies]
 agent-defs-rust = { path = "../agent-defs-rust" }
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
+poe-acp-client-rust = { path = "../poe-acp-client-rust" }

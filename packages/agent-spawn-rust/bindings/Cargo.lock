@@ -15,6 +15,7 @@ version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
  "mcp-protocol-rust",
+ "poe-acp-client-rust",
 ]
 
 [[package]]
@@ -27,6 +28,7 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
+ "poe-acp-client-rust",
 ]
 
 [[package]]
@@ -247,6 +249,13 @@ name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
+
+[[package]]
+name = "poe-acp-client-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
 
 [[package]]
 name = "proc-macro2"

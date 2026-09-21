@@ -95,3 +95,25 @@ test("ACP argument recipes agree for empty, absent and null option values", () =
         }
   }
 });
+test("retry captures its callback once before asynchronous attempts", async () => {
+  for (const implementation of [reference, own]) {
+    let finish,
+      calls = 0;
+    const once = () => ({
+      events: { async *[Symbol.asyncIterator]() {} },
+      result: new Promise((resolve) => {
+        calls++;
+        finish = resolve;
+      })
+    });
+    const options = { maxAttempts: 2, backoffMs: 0, isRetryable: () => false };
+    const handle = implementation.createSpawnRetry(once)("agent", {}, options);
+    options.isRetryable = () => {
+      throw Error("mutated callback must not run");
+    };
+    finish({ exitCode: 1 });
+    assert.equal((await handle.result).exitCode, 1);
+    assert.equal(calls, 1);
+    for await (const ignored of handle.events) void ignored;
+  }
+});

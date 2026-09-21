@@ -23,3 +23,10 @@ type Planning = Pick<
 const a: Planning = own;
 const b: Pick<typeof own, keyof Planning> = null as unknown as Planning;
 void [a, b];
+type Retry = Pick<
+  typeof original,
+  "createSpawnRetry" | "calculateBackoffMs" | "defaultIsRetryable"
+>;
+const c: Retry = own;
+const d: Pick<typeof own, keyof Retry> = null as unknown as Retry;
+void [c, d];

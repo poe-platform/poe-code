@@ -75,4 +75,53 @@ const index =
   ]) +
   "\n" +
   declarations("configs/resolve-config.d.ts", ["ResolvedSpawnConfig", "resolveConfig"]);
-writeFileSync(new URL("src/index.d.ts", root), imports + index + "\n");
+writeFileSync(
+  new URL("src/index.d.ts", root),
+  imports +
+    index +
+    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\n"
+);
+
+writeFileSync(
+  new URL("src/retry.d.ts", root),
+  "import type {AcpEvent} from './acp-types.js';\n" +
+    declarations("retry.d.ts", [
+      "SpawnRetryOptions",
+      "SpawnHandle",
+      "SpawnRetryFunction",
+      "createSpawnRetry",
+      "defaultIsRetryable",
+      "calculateBackoffMs"
+    ]) +
+    "\n"
+);
+const acpSource = ts.createSourceFile(
+  "acp/types.d.ts",
+  readFileSync(new URL("../agent-spawn/dist/acp/types.d.ts", root), "utf8"),
+  ts.ScriptTarget.Latest,
+  true,
+  ts.ScriptKind.TS
+);
+const acpPrinter = ts.createPrinter();
+const acpStatements = acpSource.statements.map((statement) => {
+  if (!ts.isImportDeclaration(statement)) return statement;
+  if (statement.moduleSpecifier.text !== "@poe-code/poe-acp-client")
+    throw new Error("Unexpected ACP declaration dependency");
+  return ts.factory.updateImportDeclaration(
+    statement,
+    statement.modifiers,
+    statement.importClause,
+    ts.factory.createStringLiteral("./acp-protocol-types.js"),
+    statement.attributes
+  );
+});
+writeFileSync(
+  new URL("src/acp-types.d.ts", root),
+  acpStatements
+    .map((statement) => acpPrinter.printNode(ts.EmitHint.Unspecified, statement, acpSource))
+    .join("\n") + "\n"
+);
+writeFileSync(
+  new URL("src/acp-protocol-types.d.ts", root),
+  readFileSync(new URL("../../poe-acp-client-rust/src/types.d.ts", import.meta.url), "utf8")
+);

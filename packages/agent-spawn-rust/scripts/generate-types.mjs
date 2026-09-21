@@ -79,7 +79,7 @@ writeFileSync(
   new URL("src/index.d.ts", root),
   imports +
     index +
-    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\nexport {runCommand} from './run-command.js';\nexport type {CommandRunner,CommandRunnerOptions,CommandRunnerResult} from './run-command.js';\n"
+    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\nexport {runCommand} from './run-command.js';\nexport type {CommandRunner,CommandRunnerOptions,CommandRunnerResult} from './run-command.js';\nexport {adaptClaude,adaptCodex,adaptNative,getAdapter} from './adapters.js';\n"
 );
 
 writeFileSync(
@@ -149,3 +149,22 @@ writeFileSync(
     "runCommand"
   ]) + "\n"
 );
+
+const adapterTypes =
+  "import type {AcpEvent,SessionUpdate} from './acp-types.js';\n" +
+  declarations("adapters/index.d.ts", ["AdapterType", "AdapterOutput", "Adapter", "getAdapter"]) +
+  "\n" +
+  ["claude", "codex", "cursor", "opencode", "pi"]
+    .map((format) =>
+      declarations("adapters/" + format + ".d.ts", [
+        "adaptClaude",
+        "adaptCodex",
+        "adaptCursor",
+        "adaptOpenCode",
+        "adaptPi",
+        "TOOL_KIND_MAP"
+      ])
+    )
+    .join("\n") +
+  "\ndeclare function adaptNative(lines:AsyncIterable<string>):AsyncGenerator<{event:string}&Record<string,unknown>>;\nexport {adaptNative};\n";
+writeFileSync(new URL("src/adapters.d.ts", root), adapterTypes);

@@ -9,6 +9,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Retry injected spawn handles with capped backoff, cancellation and attempt-tagged events.
 - Run tuples or spawn thunks with bounded concurrency and group cancellation.
 - Capture subprocess output with timeout/abort handling and Unix process-group cleanup.
+- Normalize Claude, Codex, Cursor, native, OpenCode and Pi JSONL streams into shared events.
 
 ```typescript
 import { buildSpawnArgs, listSpawnableAgents } from '@poe-code/agent-spawn-rust';
@@ -24,7 +25,7 @@ console.log(launch.binaryName, launch.displayArgs);
 
 An omitted permission mode selects `auto`. Agents without an unattended approval channel reject it; `yolo` requires an explicit request. Large UTF-8 prompts and embedded NULs use stdin where the selected agent supports automatic fallback. Display arguments redact prompt text while execution arguments preserve it.
 
-This private, experimental package currently supplies registry and argument planning. Full agent execution, streaming adapters, telemetry and runtime/resource bridges are still being implemented. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
+This private, experimental package currently supplies registry and argument planning. Full agent execution, telemetry and runtime/resource bridges are still being implemented. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
 
 ```typescript
 import { createSpawnRetry } from '@poe-code/agent-spawn-rust';
@@ -57,3 +58,11 @@ console.log(result.stdout, result.exitCode);
 ```
 
 `runCommand` accepts a working directory, environment overrides, stdin and an abort signal. Timeouts return exit code 124; cancellation returns 130. Managed Unix commands run in their own process group, with TERM-to-KILL escalation and bounded group-exit polling. Output is retained without a size limit, matching the original API; avoid unlimited child output when memory is constrained.
+
+```typescript
+import { getAdapter } from '@poe-code/agent-spawn-rust';
+
+for await (const event of getAdapter('codex')(jsonLines)) render(event);
+```
+
+Each adapter invocation owns separate session/tool state. Tool starts and completions, usage, reasoning and plan updates are normalized independently. Malformed lines emit error events and processing continues. Parsing currently limits a line to 16 MiB, depth 128 and 262,144 JSON values; exceeding a limit produces a malformed-line event. This differs from JavaScript's unrestricted `JSON.parse` contract and remains an interoperability limit.

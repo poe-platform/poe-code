@@ -21,11 +21,33 @@ export default defineConfig({
         if (
           [
             path("../agent-spawn/src/run-command.test.ts"),
-            path("../agent-spawn/src/run-command.integration.test.ts")
+            path("../agent-spawn/src/run-command.integration.test.ts"),
+            path("../agent-spawn/src/adapters/adapters.test.ts"),
+            path("../agent-spawn/src/adapters/action-presentation.test.ts")
           ].includes(importer) &&
           name === "./run-command.js"
         )
           return path("dist/run-command.js");
+        if (
+          [
+            path("../agent-spawn/src/adapters/adapters.test.ts"),
+            path("../agent-spawn/src/adapters/action-presentation.test.ts")
+          ].includes(importer)
+        ) {
+          if (
+            [
+              "./claude.js",
+              "./codex.js",
+              "./native.js",
+              "./cursor.js",
+              "./opencode.js",
+              "./pi.js",
+              "./index.js"
+            ].includes(name)
+          )
+            return path("dist/adapters.js");
+          if (name === "./utils.js") return path("dist/adapter-utils.js");
+        }
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -79,7 +101,9 @@ export default defineConfig({
       path("../agent-spawn/src/retry.test.ts"),
       path("../agent-spawn/src/parallel.test.ts"),
       path("../agent-spawn/src/run-command.test.ts"),
-      path("../agent-spawn/src/run-command.integration.test.ts")
+      path("../agent-spawn/src/run-command.integration.test.ts"),
+      path("../agent-spawn/src/adapters/adapters.test.ts"),
+      path("../agent-spawn/src/adapters/action-presentation.test.ts")
     ],
     environment: "node",
     fileParallelism: false,

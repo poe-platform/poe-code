@@ -416,3 +416,48 @@ pub fn spawn_command_timings() -> Vec<u32> {
         agent_spawn_rust::command::GROUP_WAIT_MS,
     ]
 }
+#[napi]
+pub struct NativeSpawnAdapter {
+    state: agent_spawn_rust::adapters::Adapter,
+}
+#[napi]
+impl NativeSpawnAdapter {
+    #[napi(constructor)]
+    pub fn new(format: String) -> Result<Self> {
+        Ok(Self {
+            state: agent_spawn_rust::adapters::Adapter::new(&format).map_err(Error::from_reason)?,
+        })
+    }
+    #[napi]
+    pub fn line(&mut self, line: Utf16String) -> NativeJson {
+        NativeJson(Value::Array(self.state.line(&line)))
+    }
+}
+#[napi]
+pub fn spawn_claude_kinds() -> NativeJson {
+    NativeJson(agent_spawn_rust::adapters::claude_kinds())
+}
+#[napi]
+pub fn spawn_truncate(value: Utf16String, max: f64) -> Utf16String {
+    if value.len() as f64 <= max {
+        return value;
+    }
+    let end = if max <= 3.0 { max } else { max - 3.0 };
+    let end = if end.is_nan() {
+        0
+    } else if end < 0.0 {
+        ((value.len() as f64 + end.trunc()).max(0.0)) as usize
+    } else {
+        end as usize
+    };
+    let mut output = value[..end.min(value.len())].to_vec();
+    if max > 3.0 || max.is_nan() {
+        output.extend([46, 46, 46]);
+    }
+    output.into()
+}
+#[napi]
+pub fn spawn_is_nonempty(value: Unknown<'_>) -> Result<bool> {
+    Ok(value.get_type()? == napi::ValueType::String
+        && !unsafe { value.cast::<Utf16String>()? }.is_empty())
+}

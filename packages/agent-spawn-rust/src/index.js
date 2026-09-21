@@ -153,3 +153,5 @@ export { createSpawnRetry, calculateBackoffMs, defaultIsRetryable } from "./retr
 export { createSpawnParallel, SpawnParallelError } from "./parallel.js";
 
 export { runCommand } from "./run-command.js";
+
+export { adaptClaude, adaptCodex, adaptNative, getAdapter } from "./adapters.js";

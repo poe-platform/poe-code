@@ -3396,3 +3396,39 @@ Evidence out/rust-agent-spawn-command-*. Full agent spawn, adapters/rendering,
 resources/runtime/telemetry and larger closure remain unfinished. Parallel commit
 0e0762140 is verified on remote main. Release35557562373 is pending; retry release
 35557365606 is in progress. No successful publication is verified.
+
+### Six independent stream adapters, 2026-09-21 03:36 UTC
+
+Rust independently parses and normalizes Claude, Codex, Cursor, native, OpenCode
+and Pi JSONL streams, with per-invocation tool/session/usage/error state. Native
+bindings restore explicitly undefined properties through output descriptors;
+Node supplies asynchronous iteration and SyntaxError stack effects. Metadata,
+checklists, permission denials, completed-only tool lifecycles, usage/cost fields,
+Pi results, Cursor arguments and Codex sandbox diagnostics match the supported
+original behavior. Portable adapter tests were red before implementation. A
+native red reproduced eager unrelated thread getter evaluation; host property
+effects now short-circuit. Native checks also preserve lone UTF-16 surrogates,
+JSON-stringified tool results and nested undefined command input properties.
+
+All12 portable Rust cases,8 native groups and282 applicable original cases pass.
+Both whole original adapter/action suites are redirected without filtered tests;
+original tool-summary rendering remains a development reference in action cases.
+Bidirectional adapter public contracts, maintained focused unit/types/lint/
+fmt/clippy/formatting and explicit uncached build closure pass. Direct/packed16MiB
+workers each normalize1536 adapter lines into1920 events in addition to existing
+planning/retry/parallel/real-command workload. Recursive AST import audit covers34
+files, one addon and zero npm runtime/peer/optional groups. Heap endpoints~9.3MB;
+parent-inclusive RSS is not isolated acceptance.
+
+Isolated adapter-module benchmark out/rust-agent-spawn-adapters-benchmark.json:
+6145 mixed small events per round take original4.09–5.93ms versus native14.10–
+16.59ms. Post-GC JS heaps original~3.94MB/native~3.75MB; final RSS original~59.3MB/
+native~54.1MB over six rounds. This does not establish a full-library advantage
+or long-term leak acceptance. Throughput advantage gate fails. Parser limits
+16MiB/depth128/262144 values differ from unrestricted JSON.parse and are disclosed
+in package README; limit interoperability remains unfinished. Evidence out/rust-
+agent-spawn-adapters-*. Command commit98234a0cd is verified on remote main. Its
+release35557730932 is pending; older parallel release was cancelled and retry
+release35557365606 remains in progress. No publication verified. Full spawn,
+rendering/resources/runtime/telemetry, poe-agent closure and minimum effort remain
+unfinished; production imports remain unchanged.

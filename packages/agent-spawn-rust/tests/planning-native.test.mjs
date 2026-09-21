@@ -160,3 +160,60 @@ test("command options getters are read once and UTF-8 streams retain complete te
     assert.equal(reads, 1);
   }
 });
+test("thread extraction stops before unrelated getters and adapter output preserves UTF-16", async () => {
+  const originalUtils = await import("../../agent-spawn/dist/adapters/utils.js"),
+    ownUtils = await import("../dist/adapter-utils.js");
+  for (const implementation of [originalUtils, ownUtils]) {
+    const value = {
+      thread_id: "first",
+      get session_id() {
+        throw Error("unrelated getter");
+      }
+    };
+    assert.equal(implementation.extractThreadId(value), "first");
+  }
+  const ownAdapters = await import("../dist/adapters.js");
+  for (const [name, lines] of [
+    ["adaptNative", [JSON.stringify({ event: "custom", text: "x\ud800", __proto__: null })]],
+    [
+      "adaptClaude",
+      [
+        JSON.stringify({
+          type: "assistant",
+          session_id: "x\ud800",
+          message: {
+            content: [{ type: "tool_use", id: "a", name: "Read", input: { file_path: "x\ud800" } }]
+          }
+        }),
+        JSON.stringify({
+          type: "user",
+          message: {
+            content: [{ type: "tool_result", tool_use_id: "a", content: { x: "\udc00" } }]
+          }
+        })
+      ]
+    ],
+    [
+      "adaptCodex",
+      [
+        JSON.stringify({
+          type: "item.completed",
+          item: { type: "command_execution", id: "x\ud800", exit_code: 0 }
+        })
+      ]
+    ]
+  ]) {
+    const referenceAdapter = (await import("../../agent-spawn/dist/adapters/index.js"))[name];
+    const collect = async (fn) => {
+      const values = [];
+      for await (const value of fn({
+        async *[Symbol.asyncIterator]() {
+          yield* lines;
+        }
+      }))
+        values.push(value);
+      return values;
+    };
+    assert.deepEqual(await collect(ownAdapters[name]), await collect(referenceAdapter), name);
+  }
+});

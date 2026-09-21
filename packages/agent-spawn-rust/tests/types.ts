@@ -40,3 +40,8 @@ type Command = Pick<typeof original, "runCommand">;
 const g: Command = own;
 const h: Pick<typeof own, keyof Command> = null as unknown as Command;
 void [g, h];
+
+type Adapters = Pick<typeof original, "adaptClaude" | "adaptCodex" | "adaptNative" | "getAdapter">;
+const i: Adapters = own;
+const j: Pick<typeof own, keyof Adapters> = null as unknown as Adapters;
+void [i, j];

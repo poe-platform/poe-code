@@ -21,27 +21,31 @@ export async function executeImagesCommand(invocation: DocxInvocation, bytes: Ui
   const settings = archiveSettings(context), options = invocation.options as DocxOperationArguments<"images.extract">;
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(limit => [limit.name, limit.value])));
   const extraction = invocation.operation === "images.extract";
+  const unsupportedPublication = commandDiagnostic(options.allowPartialOutput === true
+    ? "Document operation failed: unsupported-publication"
+    : "Multi-file image extraction requires an adapter transaction or explicit --allow-partial-output consent. See docx help images extract.", "unsupported-publication", budget.limits.diagnosticBytes);
   let reserved = false;
   const admitPublication = (planned: ImageExtractionData): undefined => {
     const { warnings, ...data } = planned, locations = data.entries.flatMap(entry => entry.locations);
     const diagnosticSize = warnings.reduce((size, warning) => size + utf8Length(`docx: ${warning.code}: ${warning.message}\n`), 0);
-    budget.check("diagnosticBytes", diagnosticSize + utf8Length("docx: unsupported-publication: Document operation failed: unsupported-publication\n"));
+    budget.check("diagnosticBytes", diagnosticSize + utf8Length(unsupportedPublication.human));
     let responseSize: number;
     if (options.json) {
       const envelope = { version: 1, operation: invocation.operation, ok: true, data, affected: 0, locations, warnings, errors: [] };
       const success = measurePackageResourceSerialization(envelope, budget) + 1;
-      const failure = measurePackageResourceSerialization({ ...envelope, ok: false, data: { ...data, complete: false }, errors: [{ code: "unsupported-publication", message: "Document operation failed: unsupported-publication" }] }, budget) + 1;
+      const failure = measurePackageResourceSerialization({ ...envelope, ok: false, data: { ...data, complete: false }, errors: [{ code: "unsupported-publication", message: unsupportedPublication.message }] }, budget) + 1;
       budget.check("serializedOutput", Math.max(success, failure));
       responseSize = Math.max(success, failure);
     } else { responseSize = utf8Length(`Images extracted: ${data.entries.length}; complete: false\n`); budget.check("serializedOutput", responseSize); }
-    const diagnostics = diagnosticSize + utf8Length("docx: unsupported-publication: Document operation failed: unsupported-publication\n");
+    const diagnostics = diagnosticSize + utf8Length(unsupportedPublication.human);
     budget.charge("retainedBytes", responseSize * 12 + diagnostics * 12 + data.entries.length * 512 + 1024);
     budget.charge("work", responseSize * 12 + diagnostics * 12 + data.entries.length * 16 + 1024);
     reserved = true;
     return undefined;
   };
   const commandError = (error: ImageExtractionPublicationError): ImageCommandPublicationError => {
-    const { warnings, ...data } = error.data, diagnostic = commandDiagnostic("Document operation failed: " + error.code, error.code, budget.limits.diagnosticBytes);
+    const { warnings, ...data } = error.data, diagnostic = error.code === "unsupported-publication" && error.published.length === 0
+      ? unsupportedPublication : commandDiagnostic("Document operation failed: " + error.code, error.code, budget.limits.diagnosticBytes);
     const reportPublication = options.allowPartialOutput === true || error.published.length > 0;
     const envelope = { version: 1, operation: invocation.operation, ok: false, data: reportPublication ? data : null, affected: 0, locations: reportPublication ? data.entries.flatMap(entry => entry.locations) : [], warnings, errors: [{ code: error.code, message: diagnostic.message }] };
     return new ImageCommandPublicationError(error, new TextEncoder().encode(options.json ? JSON.stringify(envelope) + "\n" : ""), new TextEncoder().encode(diagnostic.human));

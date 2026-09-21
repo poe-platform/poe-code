@@ -7,16 +7,21 @@ it("returns null error data when image extraction lacks partial-output consent",
   const bytes = await replacementFixture(1);
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes), "/out": null, "/sentinel": "Preserve me" });
   const original = volume.toJSON();
-  let stdout = "";
+  let stdout = "", stderr = "";
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["images", "extract", "-", "--output-dir", "/out", "--json"].map(word => new TextEncoder().encode(word)),
     cwd: "/", signal: new AbortController().signal,
     filesystem: { capabilities: { write: true, atomicFileStaging: false }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); } },
     stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(volume.readFileSync("/input.docx") as Uint8Array); } },
     stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
-    stderr: { async write() {} }
+    stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
   });
   expect(result.exitCode).toBe(3);
   expect(JSON.parse(stdout)).toMatchObject({ ok: false, data: null, affected: 0, locations: [], errors: [{ code: "unsupported-publication" }] });
   expect(volume.toJSON()).toEqual(original);
+  const message = JSON.parse(stdout).errors[0].message;
+  for (const guidance of ["transaction", "--allow-partial-output", "docx help images extract"]) {
+    expect(message).toContain(guidance);
+    expect(stderr).toContain(guidance);
+  }
 });

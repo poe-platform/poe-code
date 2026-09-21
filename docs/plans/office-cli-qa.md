@@ -303,3 +303,19 @@ files; commit each atomic improvement on main with Conventional Commits. No READ
 edits, ignored fixtures, empty read-only commits, --no-verify, co-authors, push or
 release. Link observed and unrun variants in the current receipt rather than
 promoting historical or counterpart evidence to a pass.
+
+## Current DOCX verification follow-up
+
+The [2026-09-21 receipt](../docx/office-cli-verification-20260921.md) records
+bounded probes for Q01–Q49 and a reduced Q10 diagnostic defect. For Q10, inspect
+the rejection before consent, then verify the transaction/partial-output guidance
+in both stderr and JSON with the original memfs test before changing code. Reserve
+the actual bounded diagnostic size before publication. Rebuild the selected DOCX
+closure and inspect a fresh-process rejection screenshot; retain exit 3, null
+data, empty locations and unchanged input/destinations. Run the maintained DOCX
+tests and lint before committing the owned correction.
+
+Continue outstanding paired and recovery variants from the receipt individually;
+the numbered probes do not establish complete recipe, model or format acceptance.
+Do not restore or rewrite removed historical procedures as current execution
+evidence. Keep future procedures here and observed evidence under docs/docx.

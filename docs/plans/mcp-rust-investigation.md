@@ -6863,3 +6863,28 @@ awaits repaired main validation; no current successful root publication verified
 Foreign changes preserved. Continuous16:27:00–16:29:00 adds120s,
 total124075s(34.47h). Minimum fulfilled; full objective incomplete.
 Continue accounting after16:29:00UTC.
+
+### Batched checklist ingress, 2026-09-21 16:35 UTC
+
+The82–86ms checklist workload identified excessive boundary callbacks. Added a
+failing direct batch-ingress oracle, then owned native snapshot ingestion and
+allocation-light simple-text preview formatting. Host snapshots only ordinary
+arrays with own string data fields and simple text; proxy/accessor/complex Unicode
+inputs retain callback reads. A new Unicode-segmenter mutation test failed before
+guarding snapshots, then passes with later-entry mutation preserved. Proxy entry
+reads avoid descriptor traps. Maintained24Rust/35native groups/80reference cases
+6files and types pass; final maintained/shared/scoped lint passes. Selected
+sequential uncached6-build closure concurrency1 passes. Existing checklist visual
+output is unchanged. Packed one addon/15audited files/zero npm runtime groups;
+direct/packed blocked-external16MiBworkers pass all previous design workloads.
+
+Final sequential five alternating warmed4096-plan pairs measure32.22–32.94ms
+owned vs11.38–13.44ms original. This reduces owned time from82.16–85.59ms but the
+performance acceptance gate remains FAIL. General unrestricted intrinsic interop
+remains open. No speed/stability/native-memory superiority claim or consumer
+integration. Evidence out/rust-design-plan-batch-*.
+
+OAuth74ac1b39b pushed and exact remote main verified; release35625767803 running.
+No current successful root publication verified. Foreign changes preserved.
+Continuous16:29:00–16:35:00 adds360s,total124435s(34.57h). Minimum fulfilled;
+full objective incomplete. Continue accounting after16:35:00UTC.

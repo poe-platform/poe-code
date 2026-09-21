@@ -332,8 +332,43 @@ pub fn plain<E>(
     }
     Ok(result)
 }
+fn simple_preview(text: &[u16], width: usize) -> Option<Text> {
+    let mut column = 0;
+    for unit in text {
+        if !(32..=126).contains(unit)
+            && !matches!(unit, 9 | 10)
+            && !(0x4e00..=0x9fff).contains(unit)
+        {
+            return None;
+        }
+        column += if *unit == 9 {
+            8 - column % 8
+        } else if *unit >= 0x4e00 {
+            2
+        } else {
+            1
+        };
+    }
+    if column <= width {
+        return Some(text.to_vec());
+    }
+    let mut used = 0;
+    let mut end = 0;
+    for unit in text {
+        let amount = if *unit >= 0x4e00 { 2 } else { 1 };
+        if used + amount > width.saturating_sub(1) {
+            break;
+        }
+        used += amount;
+        end += 1;
+    }
+    let mut preview = text[..end].to_vec();
+    preview.push(0x2026);
+    Some(preview)
+}
 pub fn plan<E>(
     length: usize,
+    simple: bool,
     mut read: impl FnMut(usize, bool) -> Result<Text, E>,
     mut segment: impl FnMut(&[u16]) -> Result<Vec<Text>, E>,
 ) -> Result<(Text, Option<Text>), E> {
@@ -342,20 +377,28 @@ pub fn plan<E>(
     }
     let mut completed = 0;
     for i in 0..length {
-        if read(i, false)? == u("completed") {
+        if read(i, false)?
+            .iter()
+            .copied()
+            .eq("completed".encode_utf16())
+        {
             completed += 1;
         }
     }
     let mut active = None;
     for i in 0..length {
-        if read(i, false)? == u("in_progress") {
+        if read(i, false)?
+            .iter()
+            .copied()
+            .eq("in_progress".encode_utf16())
+        {
             active = Some(i);
             break;
         }
     }
     let mut pending = None;
     for i in 0..length {
-        if read(i, false)? == u("pending") {
+        if read(i, false)?.iter().copied().eq("pending".encode_utf16()) {
             pending = Some(i);
             break;
         }
@@ -375,11 +418,11 @@ pub fn plan<E>(
     let mut shortened = start > 0 || end < length;
     for index in 0..length {
         let status = read(index, false)?;
-        let marker = if status == u("completed") {
+        let marker = if status.iter().copied().eq("completed".encode_utf16()) {
             "✓"
-        } else if status == u("in_progress") {
+        } else if status.iter().copied().eq("in_progress".encode_utf16()) {
             "›"
-        } else if status == u("pending") {
+        } else if status.iter().copied().eq("pending".encode_utf16()) {
             "○"
         } else {
             "undefined"
@@ -390,7 +433,10 @@ pub fn plan<E>(
         if index < start || index >= end {
             continue;
         }
-        let preview = if display_width(&segment(&content)?, 0.) <= 100. {
+        let preview = if let Some(preview) = simple.then(|| simple_preview(&content, 100)).flatten()
+        {
+            preview
+        } else if display_width(&segment(&content)?, 0.) <= 100. {
             content.clone()
         } else {
             truncate_overflow(&segment(&content)?, 100.)

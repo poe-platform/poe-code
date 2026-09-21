@@ -473,6 +473,7 @@ pub fn design_agent_plan(
 ) -> Result<NativeJson> {
     let (text, detail) = toolcraft_design_rust::terminal::plan(
         length as usize,
+        false,
         |index, content| {
             let reply = read.call((index as u32, content).into())?;
             if reply.error {
@@ -538,4 +539,33 @@ impl NativeDashboardLineBuffer {
     pub fn reset_pending(&mut self) {
         self.buffer.reset_pending();
     }
+}
+
+#[napi(object)]
+pub struct DesignPlanEntry {
+    pub status: Utf16String,
+    pub content: Utf16String,
+}
+#[napi]
+pub fn design_agent_plan_snapshot(
+    entries: Vec<DesignPlanEntry>,
+    segment: Function<'_, Utf16String, DesignSegmentsReply>,
+) -> Result<NativeJson> {
+    let (text, detail) = toolcraft_design_rust::terminal::plan(
+        entries.len(),
+        true,
+        |index, content| {
+            Ok::<_, Error>(if content {
+                entries[index].content.to_vec()
+            } else {
+                entries[index].status.to_vec()
+            })
+        },
+        |text| design_segments(&segment, text),
+    )?;
+    let mut fields = vec![("text".encode_utf16().collect(), Value::String(text))];
+    if let Some(detail) = detail {
+        fields.push(("detail".encode_utf16().collect(), Value::String(detail)));
+    }
+    Ok(NativeJson(Value::Object(fields)))
 }

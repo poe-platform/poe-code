@@ -85,3 +85,67 @@ test("plan getters observe reference ordering and preserve thrown error identity
       (error) => error === marker
     );
 });
+test("batch checklist ingress preserves sanitized Unicode output without entry callbacks", async () => {
+  const { createRequire } = await import("node:module");
+  const native = createRequire(import.meta.url)("../dist/toolcraft-design-rust.node");
+  const { graphemes } = await import("../dist/terminal.js");
+  for (const content of [
+    "Step",
+    "界".repeat(60),
+    "👩‍💻".repeat(70),
+    "old\rnew\x1b[K",
+    "\ud800".repeat(120)
+  ]) {
+    const entries = Array.from({ length: 12 }, (_, i) => ({
+      status: i < 7 ? "completed" : i === 7 ? "in_progress" : "pending",
+      content: content + i
+    }));
+    assert.deepEqual(
+      native.designAgentPlanSnapshot(entries, (text) => ({
+        segments: graphemes(text),
+        error: false
+      })),
+      original.acp.formatAgentPlan(entries)
+    );
+  }
+});
+test("proxy entries stay on receiver-preserving reads without descriptor traps", () => {
+  const observe = (api) => {
+    const reads = [];
+    const entries = [
+      new Proxy(
+        { status: "pending", content: "Step" },
+        {
+          get(target, key, receiver) {
+            reads.push(String(key));
+            return Reflect.get(target, key, receiver);
+          },
+          getOwnPropertyDescriptor() {
+            throw Error("descriptor trap");
+          }
+        }
+      )
+    ];
+    return { value: api.acp.formatAgentPlan(entries), reads };
+  };
+  assert.deepEqual(observe(own), observe(original));
+});
+test("observable Unicode segmentation can mutate later plain entries before they are read", () => {
+  const saved = Intl.Segmenter.prototype.segment;
+  try {
+    const observe = (api) => {
+      const entries = [
+        { status: "pending", content: "👩‍💻" },
+        { status: "pending", content: "before" }
+      ];
+      Intl.Segmenter.prototype.segment = function (value) {
+        entries[1].content = "after";
+        return saved.call(this, value);
+      };
+      return api.acp.formatAgentPlan(entries);
+    };
+    assert.deepEqual(observe(own), observe(original));
+  } finally {
+    Intl.Segmenter.prototype.segment = saved;
+  }
+});

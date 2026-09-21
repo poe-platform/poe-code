@@ -4682,3 +4682,48 @@ remains pending;35568626036 is in_progress; no current successful root publicati
 verified. Continuous active06:44:57–07:03:11 adds1094s, bringing conservative effort
 to91,874s (25.52h). Minimum fulfilled; full rewrite remains incomplete. Continue
 after07:03:11 UTC.
+
+### Poe agent ACP execution loop, 2026-09-21 07:12 UTC
+
+Complete original runAcpCore describe is selected with an explicit own-import
+identity guard; missing own module and portable execution/message-layout tests
+fail first. Rust owns FIFO event/waiter queues, terminal admission, stop/disposal
+state, iteration numbering and staged assistant/request message layouts. Node owns
+promise/iterator/callback scheduling, serialization/spread/array-map/property effects,
+AbortSignal listeners and model/host calls. This is hybrid execution, not a claim
+that host callbacks, filesystem or networking have moved wholesale into Rust.
+
+Loop supports lifecycle input handling, pre/post iteration and tool hooks, skips,
+rewrites, guardrails, patched results, model tool iteration, multimodal/reasoning/raw
+argument history, usage, token/iteration limits, stop hooks, disposal retries and
+unique terminal events. Tool ACKs race abort even when the host ignores its signal.
+Queue waiters settle in FIFO order, buffered events drain after close and return
+runs the abort callback before closing. Native message copy callbacks use raw napi
+invocation to retain primitive causes. Late name/tool-call assignment remains in
+Node to preserve inherited setter effects. Model stop errors retain original Error
+names/text, including changing stop getters and numeric limit coercion semantics.
+
+Maintained checks pass33 Rust cases,50 native groups,183 complete reference cases/
+10 files (27 new original execution cases),bidirectional model/options types and
+lint/fmt/clippy. Seeded64 histories check compaction/system rules, key layouts,
+multimodal/reasoning copies; custom getters/map failures preserve read order and
+causes. One initial extra native comparison included per-run function identities
+in terminal histories; comparing terminal outcome separately fixes that oracle.
+Uncached closure passes113 workspaces/36 builds/339 edges. Direct/packed16MiB
+workers each run576 runs,1024 model calls,512 rewritten multimodal tool ACKs,
+512 cleanups and64 ignored-host cancellations with external imports blocked.
+An initial artifact fixture used dispatch-shaped rewrite instead of the public
+hook rewrite contract; correcting the fixture passes. Cumulative stream/plugin/
+real-MCP workloads pass; recursive audit82 JS/declaration files,one addon,zero
+runtime groups. Evidence out/rust-poe-agent-execution-*.
+
+Five alternating warmed512-run samples: TS7.05–13.69ms versus Rust24.42–31.27ms;
+speed gate FAIL. Isolated16MiB old-space workload runs16,384 complete two-model/
+one-tool runs. Four forced collections/yields per2048 batch produce post-GC heap
+6.45→6.68MB and RSS100.1→124.9MB. These finite measurements do not establish a
+leak-free platform contract or memory superiority. AgentHost/builder/session/
+built-ins/closure/platform/wider performance acceptance remain incomplete.
+
+Model streamb2d03eddc push completed; remote inclusion verified. Current successful
+root publication remains unverified. Continue active effort after the prior07:03:11
+checkpoint; minimum24h fulfilled, overall rewrite remains incomplete.

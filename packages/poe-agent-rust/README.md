@@ -17,7 +17,7 @@ const provider = resolveProvider(providers, "openai/gpt-5");
 const model = await provider.createModel("openai/gpt-5", context);
 ```
 
-This private experimental package currently provides runtime foundations. Agent builders, sessions, iteration/tool execution, built-in plugins and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
+This private experimental package currently provides runtime foundations. Agent builders, host tool/fork/spawn execution, built-in plugins and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
 
 ```typescript
 import { createAgentSessionStore } from "@poe-code/poe-agent-rust";
@@ -51,7 +51,7 @@ tools use server namespaces and retain multimodal content, tool signals and
 structured errors. Discovery rejects repeated cursors and continuations beyond
 128 pages. The Rust MCP client and OAuth implementation are embedded in the same
 addon, with no npm runtime dependencies. Node supplies subprocesses, streams and
-plugin callbacks. Built-in plugins and agent execution remain pending.
+plugin callbacks. Built-in plugins and agent host execution remain pending.
 
 `createFileAwarenessTracker(cwd)` records normalized file reads and writes in
 ordered, deduplicated Rust sets. Snapshots return independent JavaScript Sets.
@@ -107,5 +107,16 @@ reasoning payloads and interleaved tool calls in Rust. It keeps exact raw argume
 strings, emits an early intent once valid JSON arrives and preserves final usage
 and stop snapshots. Superseded snapshots and parsed early-intent payloads release
 their GC roots during collection. Node supplies async iteration, JSON parsing and
-callbacks. The collector is a prerequisite for the pending execution loop;
-current per-event napi benchmarks are slower than the TypeScript collector.
+callbacks. The execution loop uses this collector; current per-event napi benchmarks are
+slower than the TypeScript collector.
+
+`runAcpCore({ prompt, runContext, host, model })` streams one agent run. It runs
+lifecycle/iteration/tool hooks, compiles prompts, calls the model, awaits host
+tool acknowledgements and records assistant/tool history. It preserves multimodal
+results, reasoning and raw arguments in follow-up requests. Run limits, failed
+model stops and cancellation produce one terminal error. Stop hooks precede
+disposal; a failed disposal can retry on the error path. Rust owns FIFO queue
+admission, terminal/stop/disposal state, iteration numbering and message layouts.
+Node schedules asynchronous operations and performs callback, spread, serialization
+and AbortSignal effects. This remains a hybrid runtime; small mocked runs are
+currently slower than TypeScript.

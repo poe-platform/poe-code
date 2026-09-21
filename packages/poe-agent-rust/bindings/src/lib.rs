@@ -267,3 +267,7 @@ pub mod model_stream_binding;
 pub mod embedded_client;
 pub use embedded_client::NativeHttpResponseMessages;
 use mcp_protocol_rust_napi_core::convert;
+
+pub mod execution_binding;
+
+pub mod model_messages_binding;

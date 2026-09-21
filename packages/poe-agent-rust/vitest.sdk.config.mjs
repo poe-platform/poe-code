@@ -57,7 +57,8 @@ export default defineConfig({
           "hook context factories",
           "applyHookDecision",
           "PromptRegistry",
-          "RunContext"
+          "RunContext",
+          "runAcpCore"
         ]);
         const ranges = source.statements
           .filter(
@@ -75,6 +76,7 @@ export default defineConfig({
             output.slice(0, start) +
             [...output.slice(start, end)].map((char) => (char === "\n" ? char : " ")).join("") +
             output.slice(end);
+        output += `\nimport {runAcpCore as nativeExecutionContract} from ${JSON.stringify(path("dist/acp-core.js"))};\nif(runAcpCore!==nativeExecutionContract)throw new Error("Execution contracts must execute the Rust package");`;
         return { code: output, map: null };
       },
       resolveId(name, importer) {
@@ -90,6 +92,7 @@ export default defineConfig({
           if (name === "./tool-names.js") return path("dist/tool-names.js");
         }
         if (importer === path("../poe-agent/src/runtime/runtime.test.ts")) {
+          if (name === "./acp-core.js") return path("dist/acp-core.js");
           if (name === "./run-context.js") return path("dist/run-context.js");
           if (name === "./prompts.js") return path("dist/prompts.js");
           if (name === "./hooks.js") return path("dist/hooks.js");

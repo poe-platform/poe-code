@@ -143,8 +143,10 @@ void [treeA, treeB];
 import * as referenceTranscript from "../../poe-agent/dist/runtime/transcript.js";
 const transcriptA: typeof referenceTranscript = own;
 const transcriptB: Pick<typeof own, keyof typeof referenceTranscript> = referenceTranscript;
-const transcriptOptionsA: referenceTranscript.CreateTranscriptWriterOptions = {} as own.CreateTranscriptWriterOptions;
-const transcriptOptionsB: own.CreateTranscriptWriterOptions = {} as referenceTranscript.CreateTranscriptWriterOptions;
+const transcriptOptionsA: referenceTranscript.CreateTranscriptWriterOptions =
+  {} as own.CreateTranscriptWriterOptions;
+const transcriptOptionsB: own.CreateTranscriptWriterOptions =
+  {} as referenceTranscript.CreateTranscriptWriterOptions;
 void [transcriptA, transcriptB, transcriptOptionsA, transcriptOptionsB];
 
 import { PluginApiImpl as ReferencePluginApiImpl } from "../../poe-agent/dist/runtime/plugin-api-impl.js";
@@ -152,8 +154,28 @@ import { runPluginSetup as referencePluginSetup } from "../../poe-agent/dist/run
 import type { PluginApi as ReferencePluginApi } from "../../poe-agent/dist/runtime/plugin-types.js";
 const pluginApiA: ReferencePluginApi = new own.PluginApiImpl(new own.RunContext());
 const pluginApiB: own.PluginApi = new ReferencePluginApiImpl(new referenceContext.RunContext());
-const pluginEntriesA: Parameters<typeof referencePluginSetup>[0] = [] as Parameters<typeof own.runPluginSetup>[0];
-const pluginEntriesB: Parameters<typeof own.runPluginSetup>[0] = [] as Parameters<typeof referencePluginSetup>[0];
-const flushA: ReferencePluginApiImpl["flushSetup"] = new own.PluginApiImpl(new own.RunContext()).flushSetup;
-const flushB: own.PluginApiImpl["flushSetup"] = new ReferencePluginApiImpl(new referenceContext.RunContext()).flushSetup;
+const pluginEntriesA: Parameters<typeof referencePluginSetup>[0] = [] as Parameters<
+  typeof own.runPluginSetup
+>[0];
+const pluginEntriesB: Parameters<typeof own.runPluginSetup>[0] = [] as Parameters<
+  typeof referencePluginSetup
+>[0];
+const flushA: ReferencePluginApiImpl["flushSetup"] = new own.PluginApiImpl(new own.RunContext())
+  .flushSetup;
+const flushB: own.PluginApiImpl["flushSetup"] = new ReferencePluginApiImpl(
+  new referenceContext.RunContext()
+).flushSetup;
 void [pluginApiA, pluginApiB, pluginEntriesA, pluginEntriesB, flushA, flushB];
+
+import { runAcpCore as referenceExecution } from "../../poe-agent/dist/runtime/acp-core.js";
+const executionModelA: Parameters<typeof referenceExecution>[0]["model"] = {} as own.AcpModel;
+const executionModelB: own.AcpModel = {} as Parameters<typeof referenceExecution>[0]["model"];
+const executionOptionsA: Omit<Parameters<typeof referenceExecution>[0], "runContext"> = {} as Omit<
+  own.RunAcpCoreOptions,
+  "runContext"
+>;
+const executionOptionsB: Omit<own.RunAcpCoreOptions, "runContext"> = {} as Omit<
+  Parameters<typeof referenceExecution>[0],
+  "runContext"
+>;
+void [executionModelA, executionModelB, executionOptionsA, executionOptionsB];

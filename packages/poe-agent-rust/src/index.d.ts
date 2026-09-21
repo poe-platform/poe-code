@@ -48,3 +48,11 @@ export * from "./session-tree.js";
 export * from "./transcript.js";
 export { PluginApiImpl } from "./plugin-api.js";
 export { runPluginSetup } from "./plugin-setup.js";
+export { runAcpCore } from "./acp-core.js";
+export type { RunAcpCoreOptions } from "./acp-core.js";
+export type {
+  AcpModel,
+  AcpModelResponse,
+  AcpModelRequestMessage,
+  AcpModelToolDefinition
+} from "./acp-model.js";

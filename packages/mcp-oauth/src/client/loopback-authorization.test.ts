@@ -115,6 +115,24 @@ describe("createLoopbackAuthorizationSession", () => {
     }
   });
 
+  it("serves reflected callback diagnostics as plain text with content sniffing disabled", async () => {
+    const session = await createLoopbackAuthorizationSession();
+    const description = "<h1 data-provider='synthetic'>Provider diagnostic</h1>";
+    const pending = session.waitForCode("https://auth.example.com/authorize?state=expected-state").catch(error => error);
+    try {
+      const callback = new URL(session.redirectUri);
+      callback.searchParams.set("state", "expected-state");
+      callback.searchParams.set("error", "access_denied");
+      callback.searchParams.set("error_description", description);
+      const response = await nodeFetch(callback.href);
+      expect(response.status).toBe(400);
+      expect(response.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
+      expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+      expect(await response.text()).toBe(`OAuth authorization failed: access_denied — ${description}`);
+      expect((await pending).errorDescription).toBe(description);
+    } finally { session.close(); await pending; }
+  });
+
   it("rejects when manual callback input fails", async () => {
     const session = await createLoopbackAuthorizationSession({
       readLine: async () => {

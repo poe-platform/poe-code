@@ -98,7 +98,9 @@ values fail with diagnostics that omit their contents. Omit
 `redirectUri` to allocate a random loopback port. Standalone callback sessions
 accept the same `redirectUri`, `signal` and `timeoutMs` options. Cancellation,
 timeout and explicit close settle pending code waits and release listeners.
-Always close a successful standalone session in `finally`.
+Always close a standalone session in `finally`. Failed callback responses declare
+plain UTF-8 text with content sniffing disabled; provider markup remains literal
+text. Successful landing pages remain HTML with escaped custom title/body.
 
 Native provider calls capture request option handles before host work. Unauthorized
 handling also owns complete discovery metadata, presented grant values, rejected

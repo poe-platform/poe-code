@@ -166,7 +166,8 @@ function waitForAuthorizationCode(
         res.writeHead(200, { "Content-Type": "text/html" }); res.end(buildSuccessPage(options.landingPage));
         settle(() => resolve(code));
       } catch (error) {
-        res.writeHead(400); res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
+        res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8", "X-Content-Type-Options": "nosniff" });
+        res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
         settle(() => reject(error));
       }
     };

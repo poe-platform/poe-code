@@ -535,3 +535,11 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     public OAuthError.is/OAuthAuthorizationError.is guards without casts/deep
     imports; preserve ordinary same-named host errors. Inspect actual safe
     summary screenshot and purge owned synthetic evidence.
+
+48. Send actual loopback denial and state-mismatch callbacks with synthetic
+    provider markup. Require HTTP400 plain UTF-8 text/nosniff, full original body
+    and SDK denial diagnostic, safe binding failure text, and no markup
+    interpretation contract. Also complete a successful state-bound callback with
+    exact005930 and custom markup title/body; retain escaped HTML success. Close
+    every standalone session in finally and prove listeners released. Inspect
+    safe summary output and purge only owned synthetic evidence.

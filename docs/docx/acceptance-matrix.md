@@ -1403,3 +1403,31 @@ Defined merge widths (2026-09-21): [named current evidence](table-merge-defined-
 Table property public variants (2026-09-21): [named exact evidence](table-property-public-variants-20260921/requirement-evidence.json) attaches current exact titles to **87 retained original property scenarios**, independently executed across both kinds/dialects, direct/transparent property carriers and public model/typed SDK/actual explicitly opted-in Shell. **2,568 current canonical and 2,568 rebuilt native executions pass**, including all 20 original incomplete scaffolds as expected publication refusals plus successful completed equivalents, exact nullable/enum/EMU values before save/after reload, source/preexisting-destination/member retention and independent package-link validation. Earlier overlapping campaigns are not added as unique coverage. The selected original workflow/table gate passes736 cases; maintained package lint/types and visually inspected CLI output pass. Complete F19/F20 and all other family acceptance remain open; these 87 exact source observations do not qualify unexecuted source/native/member/carrier/variant/cross-family obligations. No push/publication.
 
 Current structural-family user audit (2026-09-21): [exact task status](layout-family-user-edge-audit-20260921/task-status.json) preserves the180-file maintained selection with **43202 intermediate passes**, no failures/skips. The selection began before the story-role source change and receives no settled whole-family cohort credit; **25583 final affected story/section/history neighbors reran passing**, source hashes unchanged. Separate source gates yield **650 exact original workflow identities** with fresh assertion pointers, including116 style dependencies absent from the first selection. An obsolete source label claiming nested-cell replacement refusal is retained and corrected by the present successful replacement assertions. **3336 unique named built public executions** cover the three earlier repairs, relationship-role refusal and87 table-property variants; overlapping replay/suite totals are not added. All eight complete families remain open against645 public rows/61 detailed obligations/994 source cases. No complete acceptance, remote-main delivery or publication is claimed; DOCX remains opt-in.
+
+Review/control/property named corrections (2026-09-21): the following entries
+retain original failing executions and bind current exact passing titles to the
+contract. They supplement historical evidence without accepting complete families.
+
+- F30 stored revision zero: [36 model/SDK/actual CLI cases](review-controls-properties-20260921/core-revision-zero-evidence.json), both dialects/kinds and three zero spellings; readable zero, positive-only writes and nondirty graph retention. Original 24 failures retained; 1,158 property neighbors pass.
+- F28/F29 active control declarations: [312 SDK/actual CLI cases](review-controls-properties-20260921/control-declaration-evidence.json), six carriers, native scalar kinds, successful fills and unsynchronized bound-fill refusal; formatting, placeholder definitions and input/destination/member retention. Original 120 failures retained; 3,675 neighbors pass.
+- F41 active glossary metadata: [288 SDK/actual CLI cases](review-controls-properties-20260921/glossary-active-metadata-evidence.json), six carriers at six boundaries, physical paths, inert fields/bodies, expected warnings and exact retained glossary/relationship bytes. Original 144 failures retained.
+- F29/F41 binding ownership: [288 SDK/actual CLI cases](review-controls-properties-20260921/binding-ownership-carriers-evidence.json), active properties/binding carriers, alias synchronization, same-store glossary refusal, different-store isolation and raw bound-part refusal. Original 144 failures retained; 1,001 dependencies pass.
+- F42 active settings: [160 SDK/actual CLI cases](review-controls-properties-20260921/settings-active-carriers-evidence.json), four boolean snapshots, native/opaque physical entries, malformed values, active duplicates and inactive lookalikes with nondirty retention. Original 72 failures retained; 2,442 dependencies pass.
+
+The isolated unchanged-source selection passes 26,450 tests in 147 files with zero
+failures/skips, including the previously timed-out comment namespace case unchanged
+at 39 ms. It predates the later binding/settings/repeat changes; it supplies named
+regression evidence, not a settled complete-family seal. Changed dependencies rerun
+separately. Selected build/lint and visually inspected built CLI workflows pass.
+All F25–F30/F41–F43/F47 complete-family entries remain open; no push/publication.
+
+F29/F47 repeat-owner dependency (2026-09-21): [312 exact public SDK/actual CLI cases](review-controls-properties-20260921/repeat-owner-carriers-evidence.json)
+pass for carried native row/block owners and nested-template ancestors, both
+dialects/kinds. Original 96 root and 24 ancestor failures remain retained.
+Unlocked active owners expand; bound/locked owners refuse before staging with
+retained source/destination and affected zero. Formatting, decorations, owner
+carriers and nondirty graph bytes survive. The final repeat/template dependency
+gate passes 4,148 tests in sixteen files with zero failures/skips. The earlier
+42-file/9,499-pass affected closure predates the ancestor correction and supplies
+no final whole-family seal. Six built SDK/Shell observations and their inspected
+terminal PNG cover the rebuilt repair. Full F29/F47 acceptance remains open.

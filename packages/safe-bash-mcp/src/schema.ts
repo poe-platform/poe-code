@@ -40,6 +40,7 @@ export interface SchemaFetchOptions {
   readonly onWarning?: HttpTransportOptions["onWarning"];
   readonly maxPages?: number;
   readonly maxTools?: number;
+  /** Bounds each complete JSON response body or individual SSE event. */
   readonly maxResponseBytes?: number;
   readonly requestTimeoutMs?: number;
   /** Handle server input explicitly. Without a hook, input is declined. */

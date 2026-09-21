@@ -2541,6 +2541,7 @@ export interface HttpTransportOptions {
   oauth?: OAuthClientProviderOptions;
   oauthDiscoveryCache?: OAuthDiscoveryCache;
   onWarning?: (message: string) => void;
+  /** Maximum JSON response bytes or individual SSE event bytes; not a stream lifetime cap. */
   maxResponseBytes?: number;
 }
 

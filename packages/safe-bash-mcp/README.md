@@ -53,8 +53,10 @@ Use `headers` or the client's `oauth` options for credentials. URLs must use
 HTTP or HTTPS without embedded credentials or fragments. Discovery supports
 injected `fetch`, OAuth discovery caches, warning callbacks and cancellation.
 Set `maxPages`, `maxTools`, `maxResponseBytes` and `requestTimeoutMs` to bound
-discovery. Defaults are 100 pages, 10,000 tools, 16 MiB per HTTP response and
-30 seconds per request. Request deadlines must not exceed 2,147,483,647 ms;
+discovery. Defaults are 100 pages, 10,000 tools, 16 MiB per JSON response body or
+SSE event, and 30 seconds per request. The byte limit does not accumulate across
+the lifetime of a receive stream; keepalive comments and separate events remain
+usable. Request deadlines must not exceed 2,147,483,647 ms;
 larger values fail before setup because Node would reduce them to a 1 ms timer.
 Cyclic cursors and duplicate tools fail explicitly;
 connections close on success, failure and cancellation. Network, authentication,

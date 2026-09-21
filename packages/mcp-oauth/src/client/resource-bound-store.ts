@@ -34,7 +34,7 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
       options.signal?.throwIfAborted();
       let url: URL;
       try { url = new URL(resource); } catch { throw new Error("OAuth reset resource must be an absolute HTTP URL"); }
-      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash)
+      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.href.includes("#"))
         throw new Error("OAuth reset resource must be an HTTP URL without credentials or fragment");
       await replace({ version: 1, resource: canonicalizeResourceIndicator(url), generation: 1, session: null, clients: {} }, options);
     },
@@ -44,11 +44,12 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
       try {
         if (!isStoredOAuthSession(session) || session.tokens === undefined || session.refreshState !== undefined)
           throw new Error("Invalid session");
-        const resource = new URL(session.resource), issuer = new URL(session.authorizationServer);
-        if ([resource, issuer].some(url => !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash) ||
+        if (typeof session.discovery.resourceMetadata.resource !== "string") throw new Error("Invalid resource metadata");
+        const resource = new URL(session.resource), issuer = new URL(session.authorizationServer),
+          advertisedResource = new URL(session.discovery.resourceMetadata.resource);
+        if ([resource, issuer, advertisedResource].some(url => !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.href.includes("#")) ||
           session.discovery.authorizationServerMetadata.issuer !== session.authorizationServer ||
-          typeof session.discovery.resourceMetadata.resource !== "string" ||
-          canonicalizeResourceIndicator(session.discovery.resourceMetadata.resource) !== canonicalizeResourceIndicator(resource))
+          canonicalizeResourceIndicator(advertisedResource) !== canonicalizeResourceIndicator(resource))
           throw new Error("Invalid binding");
         session.client = normalizeStoredOAuthClient(session.client)!;
         if (session.client.registration !== undefined) session.client.registrationOwnership = "caller";
@@ -90,13 +91,13 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
       throw new Error("Invalid stored OAuth resource identity; reset explicitly to recover");
     let resourceUrl: URL;
     try { resourceUrl = new URL(record.resource); } catch { throw new Error("Invalid stored OAuth resource identity URL"); }
-    if (!["http:", "https:"].includes(resourceUrl.protocol) || resourceUrl.username || resourceUrl.password || resourceUrl.hash)
+    if (!["http:", "https:"].includes(resourceUrl.protocol) || resourceUrl.username || resourceUrl.password || resourceUrl.href.includes("#"))
       throw new Error("Invalid stored OAuth resource identity URL");
     for (const [issuer, client] of Object.entries(record.clients)) {
       const normalized = normalizeStoredOAuthClient(client);
       let url: URL;
       try { url = new URL(issuer); } catch { throw new Error("Invalid stored OAuth resource client issuer"); }
-      if (normalized === null || !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash)
+      if (normalized === null || !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.href.includes("#"))
         throw new Error("Invalid stored OAuth resource client");
       Object.defineProperty(record.clients, issuer, { value: normalized, enumerable: true, configurable: true, writable: true });
     }

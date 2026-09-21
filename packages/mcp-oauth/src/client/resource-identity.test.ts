@@ -204,7 +204,7 @@ it("does not mutate credentials when reset is canceled while waiting for the sta
   expect((await f.authorize(original)).headers.get("Authorization")).toBe("Bearer access-1");
 });
 
-it.each(["https://user:private-secret@resource.example/mcp", "https://resource.example/mcp#fragment", "file:///private/record"])("rejects an unsafe reset resource before mutation", async resource => {
+it.each(["https://user:private-secret@resource.example/mcp", "https://resource.example/mcp#fragment", "https://resource.example/mcp#", "file:///private/record"])("rejects an unsafe reset resource before mutation", async resource => {
   const f = fixture();
   await expect(createResourceBoundOAuthStores(f.authStore, undefined, "catalog").reset(resource, { timeoutMs: 1000 })).rejects.toThrow("resource");
   expect(await f.fs.readdir("/home/test").catch(() => [])).toEqual([]);

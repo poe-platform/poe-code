@@ -145,3 +145,37 @@ it("checks original transaction cancellation after an active identity reconcilia
     expect(await observed).toBe(reason); expect(operation).not.toHaveBeenCalled();
   } finally { resume.resolve(); await observed; intercepted.mockRestore(); }
 });
+
+
+it.each(["resource", "issuer", "metadata-empty", "metadata-named"])("rejects fragment components at explicit import boundaries: %s", async field => {
+  const f = fixture(), session = grant();
+  if (field === "resource") session.resource += "#";
+  if (field === "issuer") { session.authorizationServer += "#"; session.discovery.authorizationServerMetadata.issuer = session.authorizationServer; }
+  if (field === "metadata-empty") session.discovery.resourceMetadata.resource = resource + "#";
+  if (field === "metadata-named") session.discovery.resourceMetadata.resource = resource + "#private";
+  await expect(f.stores.importSession(session)).rejects.toThrow(new Error("Invalid OAuth import session or resource binding"));
+  expect(await f.fs.readdir("/home/test").catch(() => [])).toEqual([]);
+});
+
+it("rejects an empty-fragment issuer in a stored client map without rewriting the record", async () => {
+  const f = fixture();
+  await f.stores.reset(resource);
+  await f.stores.clientStore.save(issuer + "#", grant().client);
+  const [file] = await f.fs.readdir("/home/test"), before = await f.fs.readFile(`/home/test/${file}`, "utf8");
+  const fresh = createResourceBoundOAuthStores(f.authStore, undefined, "catalog");
+  await expect(fresh.sessionStore.load(resource)).rejects.toThrow(new Error("Invalid stored OAuth resource client"));
+  expect(await f.fs.readFile(`/home/test/${file}`, "utf8")).toBe(before);
+});
+
+it("retains escaped hash data through explicit import and reset", async () => {
+  const f = fixture(), session = grant(), escapedResource = resource + "/literal%23data?value=%23", escapedIssuer = issuer + "/literal%23data";
+  session.resource = escapedResource; session.discovery.resourceMetadata.resource = escapedResource;
+  session.authorizationServer = escapedIssuer; session.discovery.authorizationServerMetadata.issuer = escapedIssuer;
+  await f.stores.importSession(session);
+  const fresh = createResourceBoundOAuthStores(f.authStore, undefined, "catalog");
+  expect(await fresh.sessionStore.load(escapedResource)).toEqual(session);
+  expect(await fresh.clientStore.load(escapedIssuer)).toEqual(session.client);
+  await fresh.reset(escapedResource);
+  expect(await fresh.sessionStore.load(escapedResource)).toBeNull();
+  expect(await fresh.clientStore.load(escapedIssuer)).toBeNull();
+});

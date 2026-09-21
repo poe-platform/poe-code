@@ -171,7 +171,10 @@ refresh retains the previous granted set. Mismatched responses never activate
 credentials; an unusable refresh response retains the pending refresh record.
 `resourceIdentity` selects a native-owned logical server within its optional
 persistence namespace. One encrypted, locked document owns that identity's
-current resource URL, sessions and registrations. Changing the URL retires its
+current resource URL, sessions and registrations. Explicit imports and resets
+reject fragment components, including an empty trailing `#`; imported protected-
+resource metadata and stored client issuers obey the same fragment-free policy.
+Escaped hash data stays valid. Changing the URL retires its
 credentials permanently; returning to the old URL does not restore them.
 Retired identities also withhold stale initial grants; authorize again or select
 a fresh explicit profile to import a new grant. This option requires native persistence; custom

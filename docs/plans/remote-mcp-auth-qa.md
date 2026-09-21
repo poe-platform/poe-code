@@ -698,3 +698,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Recreate headless provider at expiry and require one silent rotation with the
     original client. Require one DCR/callback/exchange/refresh, six MCP POSTs and
     two retired sessions. Inspect summary screenshot and purge only owned evidence.
+
+64. With native encrypted files under owned out, reject named/empty fragments
+    on explicit reset/import resources, issuers and advertised metadata before
+    creating files. Write an authenticated malformed empty-fragment client-map
+    issuer and require four store/SDK/generated read failures without rewriting
+    encrypted bytes or MCP traffic. Explicit import recovers that record. Reload
+    escaped resource/issuer/full DCR extensions in an independent host process;
+    retain exact URLs/full schema/guidance/tool JSON/falsey values/exact005930.
+    Require six MCP POSTs/two retired sessions, no token/consent, absence of
+    synthetic plaintext in encrypted files, then explicit grant+client reset.
+    Inspect summary screenshot and purge only owned synthetic evidence.

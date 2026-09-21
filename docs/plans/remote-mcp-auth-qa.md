@@ -513,3 +513,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     removed claims. Host work may finish later; do not claim interruption or
     rollback. Compile a strict consumer of public waitForOAuthOperation without
     deep imports/casts, inspect safe summary output and purge owned evidence.
+
+46. Deny authorization through actual state/S256-bound HTTP loopback callbacks
+    with a recognized access_denied code or a synthetic reflected extension code
+    and private description. Cover SDK and management CLI: retain complete native
+    OAuthAuthorizationError fields/message for SDK observers, but require CLI
+    safe recognized-code/generic summaries without descriptions/extension echoes.
+    Require original tokenless client/discovery records, released listeners,
+    eight metadata GETs/four unauthorized resource requests and zero token/tool
+    exchanges or grants. Compile the public class through a strict consumer,
+    inspect the actual safe CLI summary screenshot and purge owned evidence.

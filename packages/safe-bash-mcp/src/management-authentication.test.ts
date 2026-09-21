@@ -158,6 +158,26 @@ it("delivers a headless JSON authorization URL before consent and sends the publ
   expect(f.opener).not.toHaveBeenCalled();
 });
 
+it.each(["access_denied", "private-reflected-code"])("withholds reflected callback diagnostics for OAuth authorization error %s", async code => {
+  const f = oauthFixture(), denial = Promise.withResolvers<string>();
+  f.binding.oauth.browser.readLine = () => denial.promise;
+  const onAuthorizationUrl = async (event: { authorizationUrl: string; redirectUri: string }) => {
+    const authorization = new URL(event.authorizationUrl), callback = new URL(event.redirectUri);
+    callback.searchParams.set("state", authorization.searchParams.get("state")!);
+    callback.searchParams.set("error", code);
+    callback.searchParams.set("error_description", "private-reflected-app-secret");
+    denial.resolve(callback.href);
+  };
+  const command = createRemoteMcpManagementCommand(f.servers, { authentication: { binding: f.binding, fetch: f.fetch, onAuthorizationUrl } });
+  expect(await command.execute(f.context)).toEqual({ exitCode: 1 });
+  expect(f.output().stdout + f.output().stderr).not.toContain("private-");
+  expect(JSON.parse(f.output().stderr)).toEqual({ error: {
+    name: "OAuthAuthorizationError", message: code === "access_denied" ? "OAuth access_denied" : "OAuth authorization failed",
+    ...(code === "access_denied" ? { oauthError: code } : {})
+  } });
+  expect(f.fetch.mock.calls.some(([url]) => String(url).endsWith("/token"))).toBe(false);
+});
+
 it("prints complete headless text guidance before consent", async () => {
   const f = oauthFixture(["auth", "catalog"]);
   const command = createRemoteMcpManagementCommand(f.servers, { authentication: { binding: f.binding, fetch: f.fetch, onAuthorizationUrl: f.observer } });

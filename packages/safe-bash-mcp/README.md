@@ -488,4 +488,6 @@ CLI OAuth failure summaries keep the HTTP status, recognized recovery code,
 retryability and known-outcome flags. Provider descriptions, error URIs and
 unknown extension codes are withheld because they can reflect app/token
 credentials. Direct SDK OAuthError objects remain intact for host observers.
-Other MCP protocol error codes/data and ordinary failure causes are preserved.
+Callback denials use native `OAuthAuthorizationError`: CLI summaries retain recognized
+codes and withhold reflected descriptions or unknown codes; SDK fields/messages
+remain intact. Other MCP protocol error codes/data and ordinary failure causes are preserved.

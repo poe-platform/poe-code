@@ -28,6 +28,7 @@ const verifier = createJwksTokenVerifier({
 - `createOAuthClientProvider(options)`: lower-level provider constructor.
 - `createAuthStoreSessionStore(options)`: persisted OAuth session store backed by `auth-store`.
 - `createLoopbackAuthorizationSession(options)`: local callback server for browser authorization.
+- `OAuthAuthorizationError`: a callback denial with its original `error`, `errorDescription` and message for host observers.
 - `generateCodeVerifier()` and `generateCodeChallenge(...)`: PKCE helpers.
 - `normalizeStoredOAuthClient(value)`: normalize a saved client identity, full registration and ownership marker.
 - `normalizeOAuthScope(value)`: validate scope syntax and normalize its case-sensitive set.

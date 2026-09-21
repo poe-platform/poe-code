@@ -16,6 +16,7 @@ export {
   buildSuccessPage,
   createLoopbackAuthorizationSession,
   extractCodeFromInput,
+  OAuthAuthorizationError,
 } from "./client/loopback-authorization.js";
 export {
   generateCodeChallenge,

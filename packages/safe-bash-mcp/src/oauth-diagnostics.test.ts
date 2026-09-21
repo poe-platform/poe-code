@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { OAuthError } from "mcp-oauth";
+import { OAuthAuthorizationError, OAuthError } from "mcp-oauth";
 import { errorDetails } from "./commands.js";
 it("summarizes known OAuth failures without mutating the SDK error", () => {
   const error = new OAuthError({ error: "invalid_client", error_description: "private-description", error_uri: "https://auth.example/private-uri" }, 400);
@@ -20,4 +20,11 @@ it("sanitizes OAuth errors inside aggregate causes and leaves normal MCP details
   const details = errorDetails(new AggregateError([new OAuthError({ error: "invalid_grant", error_description: "private-description" }, 400)], "Connection failed", { cause: error }));
   expect(JSON.stringify(details)).not.toContain("private-");
   expect(details).toMatchObject({ message: "Connection failed", cause: { status: 400, oauthError: "invalid_grant" }, errors: [{ status: 400, oauthError: "invalid_grant" }] });
+});
+it.each(["access_denied", "private-reflected-code"])("preserves SDK callback diagnostics while sanitizing nested CLI authorization error %s", code => {
+  const error = new OAuthAuthorizationError(code, "private-reflected-description");
+  expect(JSON.stringify(errorDetails(new AggregateError([error], "Authorization failed", { cause: error })))).not.toContain("private-");
+  expect(error.error).toBe(code);
+  expect(error.errorDescription).toBe("private-reflected-description");
+  expect(error.message).toBe(`OAuth authorization failed: ${code} — private-reflected-description`);
 });

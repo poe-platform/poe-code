@@ -25,6 +25,14 @@ export interface LoopbackAuthorizationSession {
   close(): void;
 }
 
+/** Authorization callback denial, retaining the provider diagnostic for host observers. */
+export class OAuthAuthorizationError extends Error {
+  constructor(readonly error: string, readonly errorDescription: string) {
+    super(`OAuth authorization failed: ${error} — ${errorDescription}`);
+    this.name = "OAuthAuthorizationError";
+  }
+}
+
 export async function createLoopbackAuthorizationSession(
   options: LoopbackAuthorizationOptions = {}
 ): Promise<LoopbackAuthorizationSession> {
@@ -147,7 +155,7 @@ function waitForAuthorizationCode(
       try {
         validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
         if (callbackParameters.error !== null)
-          throw createAuthorizationError(callbackParameters.error, callbackParameters.errorDescription ?? callbackParameters.error);
+          throw new OAuthAuthorizationError(callbackParameters.error, callbackParameters.errorDescription ?? callbackParameters.error);
         const code = validateAuthorizationCallbackParameters(callbackParameters, expectedAuthorization);
         res.writeHead(200, { "Content-Type": "text/html" }); res.end(buildSuccessPage(options.landingPage));
         settle(() => resolve(code));
@@ -165,7 +173,7 @@ function waitForAuthorizationCode(
         if (callbackParameters === null) throw new Error("OAuth callback missing authorization code");
         validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
         if (callbackParameters.error !== null)
-          throw createAuthorizationError(callbackParameters.error, callbackParameters.errorDescription ?? callbackParameters.error);
+          throw new OAuthAuthorizationError(callbackParameters.error, callbackParameters.errorDescription ?? callbackParameters.error);
         const code = validateAuthorizationCallbackParameters(callbackParameters, expectedAuthorization);
         settle(() => resolve(code));
       }).catch(error => settle(() => reject(error)));
@@ -280,10 +288,6 @@ function validateAuthorizationCallbackBinding(
   ) {
     throw new Error("OAuth callback issuer mismatch");
   }
-}
-
-function createAuthorizationError(error: string, description: string): Error {
-  return new Error(`OAuth authorization failed: ${error} — ${description}`);
 }
 
 function escapeHtml(text: string): string {

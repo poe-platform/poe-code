@@ -2,7 +2,7 @@ import {
   collectBytes, commandRuntimeIdentity, createOutputOperation, getCommandArguments,
   type CommandContext, type CommandDefinition, type OutputOperation, type VirtualShellPlugin
 } from "@poe-platform/safe-bash/contracts";
-import { OAuthError } from "mcp-oauth";
+import { OAuthAuthorizationError, OAuthError } from "mcp-oauth";
 import { HttpTransportError, McpError, type Tool, type CallToolResult } from "tiny-mcp-client";
 import { compileJsonSchema, formatIssues, type CompiledJsonSchema, type CompileJsonSchemaOptions } from "toolcraft-schema";
 import { compileToolArguments, type ToolArgumentParseOptions, type ToolArgumentParser } from "./arguments.js";
@@ -117,6 +117,11 @@ const publicOAuthErrorCodes = new Set([
 export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 0): Record<string, unknown> {
   if (depth > 8 || seen.has(error)) return { message: "Nested error details omitted" };
   seen.add(error);
+  if (error instanceof OAuthAuthorizationError) {
+    const code = publicOAuthErrorCodes.has(error.error) ? error.error : undefined;
+    return { name: "OAuthAuthorizationError", message: code === undefined ? "OAuth authorization failed" : `OAuth ${code}`,
+      ...(code === undefined ? {} : { oauthError: code }) };
+  }
   if (error instanceof OAuthError) {
     const code = publicOAuthErrorCodes.has(error.error) ? error.error : undefined;
     return { name: "OAuthError", message: code === undefined ? `OAuth request failed (HTTP ${error.status})` : `OAuth ${code} (HTTP ${error.status})`,

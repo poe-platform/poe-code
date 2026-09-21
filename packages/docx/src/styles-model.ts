@@ -37,8 +37,8 @@ function typeName(type: DocxEnumValue<"WD_STYLE_TYPE">): string {
 const order = "name aliases basedOn next link autoRedefine hidden uiPriority semiHidden unhideWhenUsed qFormat locked personal personalCompose personalReply rsid pPr rPr tblPr trPr tcPr tblStylePr".split(" ");
 function tri(value: unknown): asserts value is boolean | null { if (value !== null && typeof value !== "boolean") throw new InputTypeError("Expected true, false or null."); }
 function nullableInteger(value: unknown): asserts value is number | null {
-  if (value !== null && typeof value !== "number") throw new InputTypeError("Expected a nonnegative safe integer or null.");
-  if (value !== null && (!Number.isSafeInteger(value) || value < 0)) throw new InvalidValueError("Expected a nonnegative safe integer or null.");
+    if (value !== null && typeof value !== "number") throw new InputTypeError("Expected a signed 32-bit integer or null.");
+    if (value !== null && (!Number.isInteger(value) || value < -2147483648 || value > 2147483647)) throw new InvalidValueError("Expected a signed 32-bit integer or null.");
 }
 
 class StyleStore {

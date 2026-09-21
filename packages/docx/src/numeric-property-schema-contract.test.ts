@@ -17,12 +17,15 @@ it.each([
   });
   const schema = docxOperationSchemas[operation]!;
   for (const fields of [schema.fields, schema.sdkFields, schema.batchFields!]) {
-    expect(fields.value!.type).toBe("nonnegative safe integer | null");
-    for (const value of JSON.parse(volume.readFileSync("/valid.json", "utf8") as string))
-      expect(() => assertDocxFields(fields, { value })).not.toThrow();
-    for (const value of JSON.parse(volume.readFileSync("/invalid.json", "utf8") as string))
-      expect(() => assertDocxFields(fields, { value })).toThrow();
-  }
+     expect(fields.value!.type).toBe("signed 32-bit integer | null");
+     // Retain every original native numeric characterization value and add source boundaries.
+     const originalValues = [...JSON.parse(volume.readFileSync("/valid.json", "utf8") as string), ...JSON.parse(volume.readFileSync("/invalid.json", "utf8") as string)];
+     for (const value of [...originalValues, -2147483649, -2147483648, 2147483647, 2147483648]) {
+      const action = () => assertDocxFields(fields, { value });
+      if (value === null || typeof value === "number" && Number.isInteger(value) && value >= -2147483648 && value <= 2147483647) expect(action).not.toThrow();
+      else expect(action).toThrow();
+     }
+    }
   expect(JSON.stringify(getDocxOperationSchema(operation))).toContain('"integer"');
 });
 

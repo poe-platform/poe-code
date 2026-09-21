@@ -137,6 +137,7 @@ export function isDocxLiteralUnion(type: string): boolean {
 function valid(type: string, value: unknown): boolean {
   if (["ImageLayoutOffset", "ImageLayoutExtent", "ImageLayoutDistance"].includes(type)) return valid("Length (explicit emu/in/cm/mm/pt)", value) && (type !== "ImageLayoutDistance" || object(value) && typeof value.value === "number" && value.value >= 0);
   if (type === "unsigned 32-bit integer") return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 4294967295;
+    if (type === "signed 32-bit integer") return typeof value === "number" && Number.isInteger(value) && value >= -2147483648 && value <= 2147483647;
   if (type === "native polygon coordinate") return typeof value === "number" && Number.isInteger(value) && value >= -27273042329600 && value <= 27273042316900;
   if (type === "ImageWrapPoint") return closed(value, { x: "native polygon coordinate", y: "native polygon coordinate" });
   if (type === "ImageWrapPolygon") return object(value) && closed(value, { start: "ImageWrapPoint", lineTo: "ReadonlyArray<ImageWrapPoint>" }) && Array.isArray(value.lineTo) && value.lineTo.length >= 2;

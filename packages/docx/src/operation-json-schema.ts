@@ -87,6 +87,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
       description: `Explicit finite physical length; convert to EMUs and round once with halfway values away from zero. ${offset || distance ? `Check finite values and the native EMU domain ${domain} before and after conversion and rounding.` : `Supplied and converted values must be positive; converted EMUs must not exceed 2147483647 before rounding. Rounded integer EMUs must be in ${domain}. Positive half-EMU values round to one; values rounding to zero reject.`} No clamping. ${distance ? "The supplied physical value must also be nonnegative." : offset ? "Signed native axis offset." : "Size uses the stored unrotated ratio for an omitted axis."}` };
   }
   if (type === "unsigned 32-bit integer") return { type: "integer", minimum: 0, maximum: 4294967295 };
+    if (type === "signed 32-bit integer") return { type: "integer", minimum: -2147483648, maximum: 2147483647 };
   if (type === "native polygon coordinate") return { type: "integer", minimum: -27273042329600, maximum: 27273042316900 };
   if (type === "ImageWrapPoint") return objectSchema({ x: "native polygon coordinate", y: "native polygon coordinate" }, definitions);
   if (type === "ImageWrapPolygon") return { ...objectSchema({ start: "ImageWrapPoint", lineTo: "ReadonlyArray<ImageWrapPoint>" }, definitions), properties: { start: valueSchema("ImageWrapPoint", definitions), lineTo: { type: "array", minItems: 2, items: valueSchema("ImageWrapPoint", definitions) } } };

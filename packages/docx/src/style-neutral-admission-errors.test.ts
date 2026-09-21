@@ -28,10 +28,19 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   const memory = Volume.fromJSON({ "/before": "", "/after": "" });
   await doc.save({ async write(bytes) { memory.appendFileSync("/before", bytes); } });
   const before = styles.part.blob, mainBefore = doc.part.blob;
-  expect(() => Reflect.set(target, member, value)).toThrow(error === "type" ? api.InputTypeError : api.InvalidValueError);
-  expect(styles.part.blob).toEqual(before); expect(doc.part.blob).toEqual(mainBefore);
+  if (value === -1) { expect(Reflect.set(target, member, value)).toBe(true); expect(Reflect.get(target, member)).toBe(-1); }
+      else expect(() => Reflect.set(target, member, value)).toThrow(error === "type" ? api.InputTypeError : api.InvalidValueError);
+  if (value !== -1) expect(styles.part.blob).toEqual(before); expect(doc.part.blob).toEqual(mainBefore);
   await doc.save({ async write(bytes) { memory.appendFileSync("/after", bytes); } });
-  expect(readPackage(new Uint8Array(memory.readFileSync("/after") as Buffer))).toEqual(readPackage(new Uint8Array(memory.readFileSync("/before") as Buffer)));
+  const saved = readPackage(new Uint8Array(memory.readFileSync("/after") as Buffer)), original = readPackage(new Uint8Array(memory.readFileSync("/before") as Buffer));
+      if (value !== -1) expect(saved).toEqual(original);
+      else {
+       expect([...saved.keys()]).toEqual([...original.keys()]);
+       for (const [name, bytes] of original) if (name !== styles.part.partname.membername) expect(saved.get(name)).toEqual(bytes);
+       const reopened = await api.Document(new Uint8Array(memory.readFileSync("/after") as Buffer), textContext);
+       const persisted = owner === "style" ? reopened.styles.at("Atlas") : owner === "latent" ? reopened.styles.latent_styles : reopened.styles.latent_styles.at("Known");
+       expect(Reflect.get(persisted, member)).toBe(-1);
+      }
   expect(doc.paragraphs[0]!.text).toBe("Retain é 日本 עברית 🌊"); expect(styles.at("Atlas").style_id).toBe(style.style_id); expect(latent.at("Known").name).toBe("Known");
  });
 

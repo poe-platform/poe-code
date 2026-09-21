@@ -95,7 +95,16 @@ it("preserves nested fields used inside instruction text", async () => {
   expect(result.xml).toContain(field.replace(">Cached<", ">Updated<"));
 });
 
-it.each(["sym", "noBreakHyphen", "footnoteReference", "mystery"])("rejects unsupported cached content without publishing: %s", async name => {
+it("reads and replaces native nonbreaking hyphens in cached content", async () => {
+  const input = await textFixture(`<w:p><w:fldSimple w:instr=" PAGE ">${styled}<w:r><w:noBreakHyphen/></w:r></w:fldSimple></w:p>`);
+  const before = await docx.inspectDocumentFields(input, {}, textContext);
+  expect(before.items[0]?.result).toBe("Old\u2011");
+  const result = await edit(input, { field: 1, result: "No" });
+  expect(result.xml).not.toContain("<w:noBreakHyphen/>");
+  expect((await docx.inspectDocumentFields(result.output, {}, textContext)).items[0]?.result).toBe("No");
+});
+
+it.each(["sym", "footnoteReference", "mystery"])("rejects unsupported cached content without publishing: %s", async name => {
   const input = await textFixture(`<w:p><w:fldSimple w:instr=" PAGE ">${styled}<w:r><w:${name}/></w:r></w:fldSimple></w:p>`);
   let writes = 0;
   await expect(docx.editDocumentFields(input, { operation: "fields.set", options: { field: 1, result: "No", output: "-" } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write() { writes++; } } })).rejects.toMatchObject({ code: name === "footnoteReference" ? "invalid-package" : "unsupported-edit" });

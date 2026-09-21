@@ -14157,7 +14157,7 @@
   "language_security": {
     "spellings": "Neutral documented model method/property names retained; CLI fields remain camelCase and resources plural.",
     "admission": "Always-async owned bytes/explicit sources; VFS string tokens require explicit matching binaryResolver, not ambient host paths.",
-    "context": "Actual DocumentModelContext uses metrics and explicit timestamp/author; proposed fonts/template/vfs capability-object forms remain unreconciled obligations.",
+    "context": "DocumentModelContext uses metrics, explicit timestamp/author/cancellation and token-bearing vfs output authority. Input paths retain matching binaryResolver. Broader proposed fonts/template context forms remain separate unreconciled obligations; see async-capabilities.json.",
     "execution": "Synchronous admitted model access; async admission/save; bounded XML views and fixed validation replace dependency callback/native runtime authority.",
     "transport": "Typed enum descriptors converted to canonical setter members using declared schema; no dynamic invocation or implicit network."
   },
@@ -14166,11 +14166,6 @@
       "id": "docx.parts.numbering.NumberingPart.new",
       "actual": "NumberingPart.new() throws UnsupportedEditError (unsupported-edit); typed CLI route also rejects.",
       "required": "Creation remains unsupported; source direct_raises is NotImplementedError, contrary to earlier map creation text."
-    },
-    {
-      "id": "docx.document.Document.save",
-      "actual": "save(sink: ArchiveSink): Promise<void>",
-      "required": "ByteSink | VfsPath forms retained as obligations; no direct VfsPath overload observed."
     },
     {
       "id": "docx.text.paragraph.Paragraph.alignment",
@@ -14207,5 +14202,18 @@
     "documentary_checks": "1337 unique ordered rows; unchanged inventory hashes; 12 guides/11 workflow rows; disposition totals match",
     "screenshot": "screenshots/cat-tmp-docx-whole-api-resumption-human.txt.png (disposable, inspected)",
     "independent_documentary_review": "passed accounting; identified stale numbering creation assertion, reconciled to explicit error and retained superseded proposal"
-  }
+  },
+  "scoped_corrections": [
+    {
+      "id": "docx.document.Document.save",
+      "historical_observation": {
+        "id": "docx.document.Document.save",
+        "actual": "save(sink: ArchiveSink): Promise<void>",
+        "required": "ByteSink | VfsPath forms retained as obligations; no direct VfsPath overload observed."
+      },
+      "current_actual": "save(output: ByteSink | ArchiveSink | DocxVfsPath): Promise<void>",
+      "disposition": "language-mapped and security-mapped async/publication forms; not complete per-member behavior acceptance",
+      "evidence": "async-capabilities.json"
+    }
+  ]
 }

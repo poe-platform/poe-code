@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs/core";
 import type { ByteSource } from "@poe-code/office-package";
 import {
   archiveSettings,
@@ -17,6 +18,7 @@ export interface DocumentModelContext extends Partial<ArchiveContext> {
   readonly author?: string;
   readonly initials?: string | null;
   readonly metrics?: DocumentFontMetrics;
+  readonly vfs?: { readonly capability: string; readonly filesystem: FileSystem };
   readonly binaryResolver?: {
     readonly capability: string;
     open(
@@ -29,7 +31,7 @@ export interface DocumentModelContext extends Partial<ArchiveContext> {
 
 export type AdmittedModelContext = ReturnType<typeof archiveSettings> &
   Required<Pick<DocumentModelContext, "timestamp" | "author" | "initials">> &
-  Pick<DocumentModelContext, "metrics" | "binaryResolver" | "registerCleanup">;
+  Pick<DocumentModelContext, "metrics" | "vfs" | "binaryResolver" | "registerCleanup">;
 
 /** Captures deterministic metadata and shared resource ceilings before admission. */
 export function modelContext(
@@ -62,7 +64,7 @@ export function modelContext(
     chunkSize: 65536,
     ...defaultLimits
   };
-  for (const value of [context.limits, context.binaryResolver, context.metrics]) {
+  for (const value of [context.limits, context.binaryResolver, context.metrics, context.vfs]) {
     if (value === undefined) continue;
     if (
       !value ||
@@ -100,6 +102,14 @@ export function modelContext(
       typeof context.binaryResolver.open !== "function")
   )
     throw new InputTypeError("Expected an explicit binary resolver capability.");
+  if (
+    context.vfs !== undefined &&
+    (typeof context.vfs.capability !== "string" ||
+      !context.vfs.capability ||
+      !context.vfs.filesystem ||
+      typeof context.vfs.filesystem !== "object")
+  )
+    throw new InputTypeError("Expected an explicit VFS capability.");
   if (context.registerCleanup !== undefined && typeof context.registerCleanup !== "function")
     throw new InputTypeError("Expected a cleanup registrar.");
   const settings = archiveSettings({
@@ -113,6 +123,9 @@ export function modelContext(
     timestamp: new Date(Math.floor(Date.prototype.getTime.call(timestamp) / 1000) * 1000),
     author,
     initials,
+    ...(context.vfs
+      ? { vfs: { capability: context.vfs.capability, filesystem: context.vfs.filesystem } }
+      : {}),
     ...(context.metrics ? { metrics: context.metrics } : {}),
     ...(context.binaryResolver
       ? {

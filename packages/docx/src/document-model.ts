@@ -6,7 +6,7 @@ import { ModelStore, type ModelRef } from "./model-store.js";
 import { Sections } from "./section-model.js";
 import { Comments, bindCommentRange } from "./review-model.js";
 import type { Length } from "./formatting-values.js";
-import type { ArchiveSink } from "./archive-write.js";
+import type { DocumentModelOutput } from "./model-output.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { WD_STYLE_TYPE, WD_BREAK, WD_SECTION_START, Emu, Inches } from "./formatting-values.js";
 import type { DocxEnumValue } from "./operation-types.js";
@@ -173,7 +173,7 @@ export class DocumentView {
       return table;
     });
   }
-  async save(sink: ArchiveSink): Promise<void> {
+  async save(sink: DocumentModelOutput): Promise<void> {
     this.store.node(this.ref);
     await this.store.save(sink);
   }

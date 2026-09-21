@@ -8,7 +8,7 @@ import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { PackURI } from "./pack-uri.js";
 import { asciiKey, normalizePartName, relativePartTarget } from "./part-uri.js";
 import { xmlValue } from "./create-content.js";
-import type { ArchiveSink } from "./archive-write.js";
+import type { DocumentModelOutput } from "./model-output.js";
 import { corePropertyKeys, corePropertyNamespace, readPropertyNodes, serializePropertyScalar, normalizePropertyDate } from "./property-values.js";
 import { createPropertyPart } from "./property-part.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
@@ -76,7 +76,7 @@ export interface PackageViewBinding {
   stage(archive: DocumentArchive, rename?: { from: string; to: string }): void;
   version(): number;
   writable(): void;
-  save(sink: ArchiveSink): Promise<void>;
+  save(sink: DocumentModelOutput): Promise<void>;
 }
 
 function relationshipName(owner: string): string {
@@ -476,8 +476,8 @@ export class PackageView {
     const report = validateDocumentArchive(this.#binding.snapshot(), {}, archiveSettings(this.#binding.context).budget);
     if (!report.valid) throw new SemanticValidationError(report.diagnostics);
   }
-  async save(sink: ArchiveSink): Promise<void> {
-    if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
+  async save(sink: DocumentModelOutput): Promise<void> {
+    if (!sink || typeof sink !== "object") throw new InputTypeError("Expected an explicit document output capability.");
     this.#binding.writable();
     this[packageValidate]();
     await this.#binding.save(sink);
@@ -674,8 +674,8 @@ export class DocumentPartView extends StoryPart {
   get inline_shapes() { return this.document.inline_shapes; }
   get settings() { return this.document.settings; }
   get styles() { return this.document.styles; }
-  async save(sink: ArchiveSink): Promise<void> {
-    if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
+  async save(sink: DocumentModelOutput): Promise<void> {
+    if (!sink || typeof sink !== "object") throw new InputTypeError("Expected an explicit document output capability.");
     await this.package.save(sink);
   }
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<DocumentPartView> {

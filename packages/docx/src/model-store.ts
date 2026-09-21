@@ -17,7 +17,7 @@ import {
   publishDocumentArchive,
   publicationGenerationGuard
 } from "./publication.js";
-import type { ArchiveSink } from "./archive-write.js";
+import { modelOutput, type DocumentModelOutput } from "./model-output.js";
 import { paragraphTextRun, replaceParagraphContent, paragraphReferenceMarkers, paragraphAnnotationMarkers } from "./paragraph-content.js";
 import { renderContent, xmlValue } from "./create-content.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
@@ -873,16 +873,15 @@ export class ModelStore {
       }
     });
   }
-  async save(sink: ArchiveSink): Promise<void> {
-    if (!sink || typeof sink.write !== "function")
-      throw new InputTypeError("Expected an explicit byte sink.");
+  async save(sink: DocumentModelOutput): Promise<void> {
+    const output = modelOutput(sink, this.context);
     const revision = this.revision;
     await publishDocumentArchive(
       this.snapshot(),
-      { output: "-" },
+      output.options,
       {
         ...this.context,
-        stdout: sink,
+        ...output.transport,
         encoding: { order: "input", compression: "store" },
         [publicationGenerationGuard]: () => {
           if (revision !== this.revision)

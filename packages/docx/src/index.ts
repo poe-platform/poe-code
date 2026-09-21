@@ -186,6 +186,7 @@ export { packDocumentArchive, type ArchivePackingContext } from "./pack.js";
 export { type PackageInventoryV1, type PackageEntry } from "./pack-inventory.js";
 
 export type { DocumentModelContext, DocumentFontMetrics } from "./model-context.js";
+export type { DocumentModelOutput, ByteSink, StagedByteSink } from "./model-output.js";
 export type { DocumentModelInput } from "./model-input.js";
 
 export { Document, DocumentView } from "./document-model.js";

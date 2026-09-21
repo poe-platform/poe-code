@@ -38,10 +38,13 @@ remains in the denominator and blocks full acceptance.
 Additional gaps remain explicit: direct paragraph alignment resets accept null,
 but the typed setter schema does not; the public Paragraph.element getter has no
 matching typed getter schema. The equivalent bounded XML removal workflow does
-not close that getter gap. Actual save accepts ArchiveSink, while the required
-ByteSink/VfsPath forms remain obligations. Actual VFS admission uses matching
+not close that getter gap. The later [async capability record](async-capabilities.md) qualifies save
+with staged ByteSink, compatible ArchiveSink and explicit VfsPath output forms.
+It supersedes the earlier sink-only observation without promoting whole-API
+acceptance. Actual VFS admission uses matching
 string capability tokens and an explicit binaryResolver; the proposed capability
-object and fonts/template/vfs context forms have not been fully reconciled.
+object and fonts/template context forms have not been fully reconciled. Explicit
+VFS output authority is now qualified by the scoped async record.
 Save is asynchronous publication; the old map's “No publication” statement was
 incorrect. Required contracts are retained alongside actual observations.
 

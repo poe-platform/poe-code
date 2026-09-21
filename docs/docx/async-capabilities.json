@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "task": "sdk-async-capabilities",
+  "status": "qualified-scoped-async-contract",
+  "whole_api_accepted": false,
+  "later_tasks_started": false,
+  "reference_denominators": {
+    "api_records": 920,
+    "unit_source_cases": 1609,
+    "bdd_source_cases": 650
+  },
+  "api_boundary_rows": [
+    {
+      "source_id": "docx.document.Document.add_picture",
+      "canonical_source_id": "docx.document.Document.add_picture",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.document.Document.save",
+      "canonical_source_id": "docx.document.Document.save",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.text.run.Run.add_picture",
+      "canonical_source_id": "docx.text.run.Run.add_picture",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.image.image.Image.from_blob",
+      "canonical_source_id": "docx.image.image.Image.from_blob",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.image.image.Image.from_file",
+      "canonical_source_id": "docx.image.image.Image.from_file",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.document.DocumentPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.document.DocumentPart.get_or_add_image",
+      "canonical_source_id": "docx.parts.story.StoryPart.get_or_add_image",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.document.DocumentPart.new_pic_inline",
+      "canonical_source_id": "docx.parts.story.StoryPart.new_pic_inline",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.document.DocumentPart.save",
+      "canonical_source_id": "docx.parts.document.DocumentPart.save",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.story.StoryPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.story.StoryPart.get_or_add_image",
+      "canonical_source_id": "docx.parts.story.StoryPart.get_or_add_image",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.story.StoryPart.new_pic_inline",
+      "canonical_source_id": "docx.parts.story.StoryPart.new_pic_inline",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.hdrftr.HeaderPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.hdrftr.HeaderPart.get_or_add_image",
+      "canonical_source_id": "docx.parts.story.StoryPart.get_or_add_image",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.hdrftr.HeaderPart.new_pic_inline",
+      "canonical_source_id": "docx.parts.story.StoryPart.new_pic_inline",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.hdrftr.FooterPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.hdrftr.FooterPart.get_or_add_image",
+      "canonical_source_id": "docx.parts.story.StoryPart.get_or_add_image",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.hdrftr.FooterPart.new_pic_inline",
+      "canonical_source_id": "docx.parts.story.StoryPart.new_pic_inline",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.comments.CommentsPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.comments.CommentsPart.get_or_add_image",
+      "canonical_source_id": "docx.parts.story.StoryPart.get_or_add_image",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.comments.CommentsPart.new_pic_inline",
+      "canonical_source_id": "docx.parts.story.StoryPart.new_pic_inline",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.image.ImagePart.load",
+      "canonical_source_id": "docx.parts.image.ImagePart.load",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.image.ImagePart.from_image",
+      "canonical_source_id": "docx.parts.image.ImagePart.from_image",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.numbering.NumberingPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.styles.StylesPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.parts.settings.SettingsPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.opc.parts.coreprops.CorePropertiesPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.opc.part.Part.load",
+      "canonical_source_id": "docx.opc.part.Part.load",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.opc.part.XmlPart.load",
+      "canonical_source_id": "docx.opc.part.XmlPart.load",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.package.Package.open",
+      "canonical_source_id": "docx.opc.package.OpcPackage.open",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.package.Package.save",
+      "canonical_source_id": "docx.opc.package.OpcPackage.save",
+      "inherited": true,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.package.Package.get_or_add_image_part",
+      "canonical_source_id": "docx.package.Package.get_or_add_image_part",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.package.ImageParts.get_or_add_image_part",
+      "canonical_source_id": "docx.package.ImageParts.get_or_add_image_part",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.opc.package.OpcPackage.open",
+      "canonical_source_id": "docx.opc.package.OpcPackage.open",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    },
+    {
+      "source_id": "docx.opc.package.OpcPackage.save",
+      "canonical_source_id": "docx.opc.package.OpcPackage.save",
+      "inherited": false,
+      "disposition": "language-mapped and security-mapped async boundary; complete behavior is a separate obligation"
+    }
+  ],
+  "exact_save_open_source_case_mappings": [
+    {
+      "source_case": "tests/opc/test_package.py::DescribeOpcPackage::it_can_open_a_pkg_file",
+      "original_test": "package-admission-ownership.test.ts",
+      "equivalence": "Original real owned package/VFS or staged sink behavior replaces mocked unrestricted host file/stream delegation. Additional failure/security cases are independently authored; other source variants are not counted as adapted."
+    },
+    {
+      "source_case": "tests/opc/test_package.py::DescribeOpcPackage::it_can_save_to_a_pkg_file",
+      "original_test": "model-save-capabilities.test.ts",
+      "equivalence": "Original real owned package/VFS or staged sink behavior replaces mocked unrestricted host file/stream delegation. Additional failure/security cases are independently authored; other source variants are not counted as adapted."
+    },
+    {
+      "source_case": "tests/parts/test_document.py::DescribeDocumentPart::it_can_save_the_package_to_a_file",
+      "original_test": "model-save-capabilities.test.ts",
+      "equivalence": "Original real owned package/VFS or staged sink behavior replaces mocked unrestricted host file/stream delegation. Additional failure/security cases are independently authored; other source variants are not counted as adapted."
+    },
+    {
+      "source_case": "tests/test_document.py::DescribeDocument::it_can_save_the_document_to_a_file",
+      "original_test": "model-save-capabilities.test.ts",
+      "equivalence": "Original real owned package/VFS or staged sink behavior replaces mocked unrestricted host file/stream delegation. Additional failure/security cases are independently authored; other source variants are not counted as adapted."
+    }
+  ],
+  "red_before_code": {
+    "package_ownership": 2,
+    "save_vfs_sink_capture_accessors": 6,
+    "staged_byte_sink": 4,
+    "early_save_argument_validation": 2
+  },
+  "original_tests": {
+    "new": [
+      "package-admission-ownership.test.ts",
+      "model-save-capabilities.test.ts",
+      "model-admission-async-surface.test.ts"
+    ],
+    "retained": [
+      "async-model-capabilities.test.ts",
+      "model-context-consistency.test.ts",
+      "part-model-surface.test.ts",
+      "package-view-resources.test.ts",
+      "publication.test.ts",
+      "image-model-input.test.ts"
+    ],
+    "focused_scope_cases": 61,
+    "new_original_cases": 35
+  },
+  "mappings": {
+    "factory": "Document(input?, context?) and required-input PackageView.open return Promises. Already owned/admitted part/image inputs do not switch to sync. Model-only new(owner), properties, collections, helpers and conversions remain synchronous.",
+    "bytes": "Own Uint8Array before the first caller-controlled suspension; copy source chunks before next advance, preserve receivers, close failed/cancelled streams. Image blob getters return owned copies.",
+    "defaults": "Fixed UTC 1980-01-01T00:00:00Z, empty author/initials, intrinsic limits and local un-aborted signal. No metrics/font discovery; explicit metrics only. Timestamp copied to whole-second precision. Explicit null/malformed context values reject. Document omission/null creates original template; package open remains required-input. Comment identity argument defaults remain empty.",
+    "io": "Input paths require matching binaryResolver tokens. Output paths require matching context.vfs capability/filesystem; no ambient host I/O, native document runtime or implicit network. Caller transport adapters may supply sources immediately or asynchronously; domain boundaries always return Promises.",
+    "save": "Document, DocumentPartView, PackageView and style model save accept ByteSink | ArchiveSink | DocxVfsPath. Stage/write/commit/abort protocol implemented; raw stream compatibility retained. Methods are captured and accessors rejected without invocation.",
+    "overwrite": "VFS save exclusively creates; existing destination conflicts instead of source ambient overwrite. Explicit force/in-place belongs to the shared publication operation with conditional ownership checks.",
+    "failures": "Shared typed codes retained. Stage abort awaited on write/commit/precommit cancellation failure; failed abort preserves both errors. A successful receipt wins over late cancellation. Unrecoverable raw-stream errors retain conservative possible-partial-output reporting.",
+    "cli": "Final output flags/batch publication use the shared package engine. No serialized callbacks, arbitrary member invocation or nested publication. Existing plural resources, text replace, schemas, selectors, envelopes and exit statuses are unchanged."
+  },
+  "checks": {
+    "unit": {
+      "command": "npm test --workspace=docx -- --maxWorkers=1",
+      "passed": true,
+      "files": 244,
+      "cases": 5072,
+      "failures": 0,
+      "skips": 0,
+      "duration_seconds": 421.32,
+      "fresh": true,
+      "workers": "One worker; unchanged timeouts and no excluded cases. This save-only snapshot precedes the separately recorded owned-capability correction."
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "passed": true,
+      "warnings": 1,
+      "warning": "Existing type-only unused operation variable in operation-types.test.ts; no errors."
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx --no-cache",
+      "passed": true,
+      "closure": "Derived from maintained declarations; portable filesystem target emitted no native binaries."
+    },
+    "built_shell": {
+      "command": "node --import tsx --test packages/docx/tests/public-shell.cases.ts",
+      "passed": true,
+      "cases": 8
+    },
+    "development_runs": "An in-flight-tree run observed mismatched older modules/new tests and a media timeout. A subsequent stable two-worker run had a table span timeout; all 63 cases in that file passed on direct rerun. The stable one-worker save snapshot passed all cases with unchanged timeouts. Final owned-capability verification is recorded separately."
+  },
+  "visual_qa": {
+    "command": "npm run screenshot -- --output out/docx-async-capabilities-help.png cat out/docx-async-capabilities-help.txt",
+    "source": "Actual built SDK-backed docx help batch through explicitly supplied memory filesystem/Shell plugin; no document renderer.",
+    "inspected": true,
+    "finding": "Legible complete help retains shared publication flags, plural resource IDs and one-final-publication semantics. No visual CLI change.",
+    "transcript_sha256": "5efc3dfdb1718be4f11742e2c0a1ead59186b7f11ef8e22b8a773ef034aa038a",
+    "screenshot_sha256": "6cfabd17645cdf2f58fd2b072c9df3cc33333abbd71aae7152ed4ed5aafe28b3"
+  },
+  "limitations": [
+    "Per-member/source-case whole-API acceptance remains pending; inherited, public underscore-prefixed, enum, helper and collection obligations are retained.",
+    "NumberingPart.new remains visibly unsupported; no unrelated domain correction or later-task implementation is certified.",
+    "No README, shared/guarded safe-bash product, downloaded corpus, copied fixture or standalone notice changed.",
+    "No push, remote-main verification or release authorized."
+  ],
+  "cleanup": {
+    "owned_disposable_paths": [
+      "out/docx-async-capabilities-help.txt",
+      "out/docx-async-capabilities-help.png"
+    ],
+    "reduced_before_removal": true
+  }
+}

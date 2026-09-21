@@ -6,7 +6,7 @@ import { acquireDocumentModelInput, type DocumentModelInput } from "./model-inpu
 import { MissingKeyError, StaleHandleError } from "./model-errors.js";
 import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
-import type { ArchiveSink } from "./archive-write.js";
+import { modelOutput, type DocumentModelOutput } from "./model-output.js";
 import { createDocumentArchive } from "./create.js";
 import { documentDialects } from "./dialect.js";
 import { runElementOpen } from "./run-properties.js";
@@ -378,10 +378,10 @@ export async function openDocumentStyleModel(input?: DocumentModelInput | null, 
       return () => { store.activePublications--; };
     };
   };
-  const model = { styles, package: packageView, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: ArchiveSink): Promise<void> {
-    if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
+  const model = { styles, package: packageView, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: DocumentModelOutput): Promise<void> {
+    const output = modelOutput(sink, settings);
     assertDocumentEditable(admitted, settings);
-    await publishDocumentArchive(snapshot(), { output: "-" }, { ...settings, [publicationGenerationGuard]: guard(), stdout: sink, encoding: { order: "input", compression: "store" } });
+    await publishDocumentArchive(snapshot(), output.options, { ...settings, [publicationGenerationGuard]: guard(), ...output.transport, encoding: { order: "input", compression: "store" } });
   }, async publish(options: PublicationOptions, publication: PublicationContext) {
     assertDocumentEditable(admitted, settings);
     const caller = archiveSettings(publication);

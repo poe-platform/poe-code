@@ -47,3 +47,17 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
    tools/list. Native JSON-RPC handling unwraps the protocol envelope; the library
    must never guess that payload json/data/result fields are another envelope.
    Preserve blob bytes rather than replacing them with rendering placeholders.
+
+10. Verify host transport compatibility using a local HTTP endpoint and an
+    explicitly injected node:http-backed HttpTransportFetch. Require HTTP/1.1,
+    bearer/API-key/tenant headers (including equals signs), canonical POST Accept
+    despite a supplied text/plain value and JSON content type. Discover once,
+    generate JSON/ESM artifacts, recreate a Shell with commands.fetch explicitly
+    supplied, then call the archived tool and redirect its output to a virtual
+    file. Require exact schema-declared string values, no new tools/list and no
+    resolved credentials in artifact bytes. Injected adapters must honor redirect:
+    error and cancellation; native tests reject already-redirected responses.
+    Reject an overflowing requestTimeoutMs before network access and visually
+    inspect the management-command error/exit-status screenshot. Do not infer
+    vendor-specific transport modes from hostnames or retry authentication errors
+    with legacy SSE.

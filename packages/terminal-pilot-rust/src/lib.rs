@@ -1,5 +1,6 @@
 //! Portable terminal automation policies and display state.
 pub mod buffer;
+pub mod names;
 pub mod pty;
 mod pty_spawn;
 pub mod screen;

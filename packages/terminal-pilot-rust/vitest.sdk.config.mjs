@@ -29,5 +29,5 @@ export default defineConfig({
    const output=ts.createPrinter().printFile(result.transformed[0]);result.dispose();return output;
   }
  }],
- test:{include:[...sources,path('tests/session-host.test.ts'),path('tests/session-conformance.test.ts')],environment:'node',globals:true,fileParallelism:false,maxWorkers:1,pool:'forks',testTimeout:3000,cache:false}
+ test:{include:[...sources,path('tests/session-host.test.ts'),path('tests/session-conformance.test.ts'),path('tests/runtime.test.ts')],environment:'node',globals:true,fileParallelism:false,maxWorkers:1,pool:'forks',testTimeout:3000,cache:false}
 });

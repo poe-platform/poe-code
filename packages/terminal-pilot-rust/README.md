@@ -11,6 +11,7 @@ with portable Unicode state and no npm runtime dependencies.
 | Remove CSI, OSC and terminal string controls | `stripAnsi` |
 | Automate a real PTY with input, waits, history, snapshots and signals | `TerminalSession` |
 | Track independent sessions and shut them down with retryable escalation | `TerminalPilot` |
+| Reserve public names, resolve sessions and coordinate runtime shutdown | `createTerminalPilotRuntime` from `terminal-pilot-rust/commands` |
 
 ```typescript
 import { TerminalBuffer } from 'terminal-pilot-rust';
@@ -56,7 +57,12 @@ history is retained for the session lifetime, including after exit, and can grow
 with output. Closed sessions release the PTY descriptor immediately. Sessions
 currently support macOS and Linux; Linux execution remains unverified.
 
-This private additive rewrite's CLI/commands, MCP integration
+The named runtime retains exited sessions for history reads until replacement or
+closure. Reservations prevent duplicate names while creation is pending. Runtime
+shutdown waits for pending creation and blocks new admission, with retry after
+failed shutdown or launch.
+
+This private additive rewrite's CLI, command definitions, MCP integration
 and Python bindings are unfinished. Existing imports remain unchanged. Nominal
 TypeScript classes with private SDK fields require a public structural contract
 when exchanging implementations. General Unicode width parity and cross-platform

@@ -3059,6 +3059,39 @@ versus35.27ms. RSS49.71→57.95MB versus60.16→65.45MB. These are macOS workloa
 measurements, not peak/stability/general performance acceptance. Direct spawn is
 not a complete cross-platform optimization. Evidence out/rust-terminal-pilot-spawn-*.
 
+### Named terminal runtime delivery (2026-09-21 UTC)
+
+Additive terminal-pilot-rust/commands currently exposes the named runtime and
+SESSION_ENV_VAR, with own Rust Names admission, pending reservations, auto names,
+retained exited lookup, conditional forgetting/replacement, ambiguity/available
+diagnostics and shutdown guards. Node retains launch/creation/close promises and
+session handles. No official SDK runtime delegation. Public error names work
+with original Toolcraft isUserError detection; runtime interfaces are checked in
+both TypeScript directions. Commands/CLI still need their own implementation.
+
+Portable Names absence reds and missing module red precede implementation. A
+retained-byte shutdown red (376 versus56 empty bytes) leads to releasing registry
+capacity after successful shutdown. Thirteen Rust tests, eleven native groups,
+238 applicable SDK cases plus twelve own Vitest cases pass (250 total Vitest).
+Six runtime cases cover concurrent reservation, failed spawn release, completed
+history/name replacement, pending creation shutdown/new admission, shutdown retry,
+original naming/env/error/retention comparison, invalid pre-effect admission and
+launch retry. An invalid fixture reused IDs based on active array length; its
+monotonic ID counter corrects the test fixture, with no product change for that
+failure. A real native group controls a named own PTY and retains exited snapshots.
+Focused lint/fmt/clippy and explicit uncached25-workspace closure pass.
+
+Fresh direct/packed16MiB workers each complete65 named real sessions, retain64
+exited snapshots, close all tracked state, launch again and reuse s1. Prior4,096
+buffer workers/import AST audit and single-addon/zero npm runtime groups pass.
+Own packaged archive/extraction is removed after checks. Evidence
+out/rust-terminal-pilot-names-*; endpoint memory is not leak/peak acceptance.
+Latest session/exit-tail/spawn commits are delivered to main; original pin fix
+release35550571891 is still running. No verified publication/full goal completion.
+Conservative active segment01:24:12–01:50:55 UTC is recorded (1,603s); the earlier
+checkpoint gap and unrecorded01:20–01:24 minutes are excluded. Full24-hour actual
+effort remains unfulfilled. Work continues after this boundary.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

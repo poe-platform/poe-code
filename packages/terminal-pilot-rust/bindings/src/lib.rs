@@ -412,6 +412,149 @@ impl NativeTerminalPilot {
 pub struct NativeTerminalPty {
     inner: Option<terminal_pilot_rust::pty::Pty>,
 }
+
+fn names_outcome(result: std::result::Result<Value, String>) -> NativeJson {
+    NativeJson(result.unwrap_or_else(|fault| {
+        object(vec![(
+            "fault",
+            Value::String(fault.encode_utf16().collect()),
+        )])
+    }))
+}
+#[napi(custom_finalize)]
+pub struct NativeTerminalNames {
+    inner: terminal_pilot_rust::names::Names,
+    reported: i64,
+}
+#[napi]
+impl NativeTerminalNames {
+    #[napi(constructor)]
+    pub fn new(env: Env) -> Result<Self> {
+        let inner = terminal_pilot_rust::names::Names::default();
+        let reported = inner.retained_bytes() as i64;
+        env.adjust_external_memory(reported)?;
+        Ok(Self { inner, reported })
+    }
+    #[napi]
+    pub fn validate_command(&self, command: Utf16String) -> NativeJson {
+        names_outcome(terminal_pilot_rust::names::command(&command).map(|_| Value::Null))
+    }
+    #[napi]
+    pub fn requested_name(&self, name: Option<Utf16String>) -> NativeJson {
+        names_outcome(
+            terminal_pilot_rust::names::requested(name.as_ref().map(|s| s.as_ref()))
+                .map(|_| object(vec![("name", name.map_or(Value::Null, |s| string(&s)))])),
+        )
+    }
+    #[napi]
+    pub fn id_for(&self, name: Utf16String) -> Option<Utf16String> {
+        self.inner.id_for(&name).map(Into::into)
+    }
+    #[napi]
+    pub fn reserve(
+        &mut self,
+        env: Env,
+        command: Utf16String,
+        name: Option<Utf16String>,
+    ) -> Result<NativeJson> {
+        let result = self
+            .inner
+            .reserve(&command, name.as_ref().map(|s| s.as_ref()))
+            .map(|(name, replaced)| {
+                object(vec![
+                    ("name", string(&name)),
+                    ("replaced", replaced.map_or(Value::Null, |id| string(&id))),
+                ])
+            });
+        self.account(env)?;
+        Ok(names_outcome(result))
+    }
+    #[napi]
+    pub fn commit(
+        &mut self,
+        env: Env,
+        name: Utf16String,
+        id: Utf16String,
+        active: bool,
+    ) -> Result<NativeJson> {
+        let result = self
+            .inner
+            .commit(&name, id.to_vec(), active)
+            .map(|_| Value::Null);
+        self.account(env)?;
+        Ok(names_outcome(result))
+    }
+    #[napi]
+    pub fn release(&mut self, env: Env, name: Utf16String) -> Result<()> {
+        self.inner.release(&name);
+        self.account(env)
+    }
+    #[napi]
+    pub fn set_active(&mut self, id: Utf16String, active: bool) {
+        self.inner.set_active(&id, active);
+    }
+    #[napi]
+    pub fn synchronize(&mut self, ids: Vec<Utf16String>) {
+        self.inner
+            .synchronize(&ids.into_iter().map(|s| s.to_vec()).collect::<Vec<_>>());
+    }
+    #[napi]
+    pub fn names_for(&self, ids: Vec<Utf16String>) -> NativeJson {
+        NativeJson(Value::Array(
+            self.inner
+                .names_for(&ids.into_iter().map(|s| s.to_vec()).collect::<Vec<_>>())
+                .into_iter()
+                .map(|name| name.map_or(Value::Null, |s| string(&s)))
+                .collect(),
+        ))
+    }
+    #[napi]
+    pub fn resolve(&self, name: Option<Utf16String>) -> NativeJson {
+        names_outcome(
+            self.inner
+                .resolve(name.as_ref().map(|s| s.as_ref()))
+                .map(|(name, id)| object(vec![("name", string(&name)), ("id", string(&id))])),
+        )
+    }
+    #[napi]
+    pub fn not_found(&self, name: Utf16String) -> NativeJson {
+        names_outcome(Err(self.inner.not_found(&name)))
+    }
+    #[napi]
+    pub fn forget(&mut self, env: Env, name: Utf16String, id: Utf16String) -> Result<()> {
+        self.inner.forget(&name, &id);
+        self.account(env)
+    }
+    #[napi(getter)]
+    pub fn retained(&self) -> bool {
+        self.inner.retained()
+    }
+    #[napi]
+    pub fn begin_shutdown(&mut self) {
+        self.inner.begin_shutdown();
+    }
+    #[napi]
+    pub fn end_shutdown(&mut self, env: Env, success: bool) -> Result<()> {
+        self.inner.end_shutdown(success);
+        self.account(env)
+    }
+}
+impl NativeTerminalNames {
+    fn account(&mut self, env: Env) -> Result<()> {
+        let bytes = self.inner.retained_bytes() as i64;
+        if bytes != self.reported {
+            env.adjust_external_memory(bytes - self.reported)?;
+            self.reported = bytes;
+        }
+        Ok(())
+    }
+}
+impl ObjectFinalize for NativeTerminalNames {
+    fn finalize(self, env: Env) -> Result<()> {
+        env.adjust_external_memory(-self.reported)?;
+        Ok(())
+    }
+}
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 #[napi]
 impl NativeTerminalPty {

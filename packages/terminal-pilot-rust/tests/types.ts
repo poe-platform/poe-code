@@ -19,3 +19,8 @@ type PublicReturns<T>={[K in keyof T]:T[K] extends (...args:infer A)=>Promise<re
 const pilotA:PublicReturns<PilotContract>=null as unknown as OwnPilotContract;
 const pilotB:PublicReturns<OwnPilotContract>=null as unknown as PilotContract;
 void [sessionA,sessionB,pilotA,pilotB];
+import type * as ownCommands from '../dist/commands.js';
+import type * as sdkCommands from 'terminal-pilot/commands';
+const runtimeA:sdkCommands.TerminalPilotRuntime=null as unknown as ownCommands.TerminalPilotRuntime;
+const runtimeB:ownCommands.TerminalPilotRuntime=null as unknown as sdkCommands.TerminalPilotRuntime;
+void [runtimeA,runtimeB];

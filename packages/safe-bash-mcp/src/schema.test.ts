@@ -36,6 +36,60 @@ function remote(pages: unknown[]) {
 }
 
 describe("remote MCP schemas", () => {
+  it.each(["identity", "headers", "signal handle"])("snapshots %s before asynchronous schema discovery", async mode => {
+    const fixture = remote([{ tools: [tool] }]), fetch = fixture.fetch.getMockImplementation()!;
+    const initialized = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+    const headers = new Headers({ "X-Tenant": "original" });
+    const owned = { ...server, headers, protocolVersion: "2025-03-26" as const };
+    const settings = { fetch: fixture.fetch, signal: new AbortController().signal };
+    fixture.fetch.mockImplementation(async (url, init) => {
+      if (init?.method === "POST" && JSON.parse(String(init.body)).method === "initialize") {
+        initialized.resolve(); await resume.promise;
+      }
+      return fetch(url, init);
+    });
+    const pending = fetchRemoteMcpSchema(owned, settings);
+    const outcome = pending.catch(error => error);
+    try {
+      await initialized.promise;
+      if (mode === "identity") { owned.name = "replacement"; owned.url = "https://replacement.example/mcp"; }
+      else if (mode === "headers") headers.set("X-Tenant", "replacement");
+      else settings.signal = AbortSignal.abort(new Error("Replacement signal"));
+      resume.resolve();
+      const result = await outcome;
+      expect(result).toMatchObject({ name: server.name, url: server.url, tools: [tool] });
+      const calls = fixture.fetch.mock.calls.filter(([, init]) => init?.method === "POST" && JSON.parse(String(init.body)).method === "tools/list");
+      expect(calls).toHaveLength(1);
+      expect(new Headers(calls[0][1]?.headers).get("X-Tenant")).toBe("original");
+    } finally { resume.resolve(); await outcome; }
+  });
+
+  it("snapshots the complete registry and supplied schemas before the first discovery waits", async () => {
+    const fixture = remote([{ tools: [tool] }]), fetch = fixture.fetch.getMockImplementation()!;
+    const initialized = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+    fixture.fetch.mockImplementation(async (url, init) => {
+      if (init?.method === "POST" && JSON.parse(String(init.body)).method === "initialize") {
+        initialized.resolve(); await resume.promise;
+      }
+      return fetch(url, init);
+    });
+    const supplied = { ...server, name: "supplied", tools: [structuredClone(tool)], instructions: "Original guidance" };
+    const registry = [{ ...server, protocolVersion: "2025-03-26" as const }, supplied];
+    const pending = resolveRemoteMcpSchemas(registry, { fetch: fixture.fetch });
+    const outcome = pending.catch(error => error);
+    try {
+      await initialized.promise;
+      supplied.name = "replacement"; supplied.url = "https://replacement.example/mcp";
+      supplied.tools[0].name = "replacement_tool"; supplied.instructions = "Replacement guidance";
+      registry.push({ ...server, name: "appended", tools: [], instructions: "Appended" });
+      resume.resolve();
+      const result = await outcome;
+      expect(result).toHaveLength(2);
+      expect(result[1]).toMatchObject({ name: "supplied", url: server.url, tools: [tool], instructions: "Original guidance", source: "provided" });
+      expect(fixture.methods.filter(method => method === "tools/list")).toHaveLength(1);
+    } finally { resume.resolve(); await outcome; }
+  });
+
   it.each(["2099-01-01", "auto", null, 42])("rejects unsupported protocol pins even with supplied schemas: %j", async protocolVersion => {
     const fetch = vi.fn<HttpTransportFetch>();
     const invalid = { ...server, tools: [], protocolVersion: protocolVersion as never };

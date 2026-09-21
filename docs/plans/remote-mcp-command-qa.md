@@ -210,3 +210,12 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     external consumer using ToolArgumentParser, execution policies and optional
     McpTransport.closeReason without casts/deep imports. Inspect diagnostics and
     purge only owned synthetic consumer files and screenshots.
+
+32. Schema input ownership: hold a real HTTP initialization response, then mutate
+    the caller's name, URL, Headers and signal handle. Resolve with the original
+    identity/headers/signal. In a second mixed-registry wave, mutate a later
+    supplied entry's name/URL/tools/instructions and append another entry while
+    the first connection waits. Require exactly the original two entries,
+    authoritative original supplied tools/guidance and no replacement endpoint
+    requests. Verify two tools/list operations and retired sessions, inspect the
+    result screenshot and purge only owned synthetic fixtures/evidence.

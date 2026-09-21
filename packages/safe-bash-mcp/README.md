@@ -27,6 +27,12 @@ An explicitly empty `tools: []` is authoritative and never connects. Returned
 schemas are independent copies and retain tool descriptions, annotations,
 input/output schemas and other metadata. Discovered snapshots also include
 server identity, capabilities and instructions.
+Discovery captures server fields, headers, supplied tools and option handles
+before waiting; registry resolution captures every entry before its first
+connection. Later caller edits cannot rename results, change request headers,
+replace the chosen signal, or append servers to the in-progress registry.
+Aborting the original signal still cancels discovery. Runtime provider/store
+objects and caches remain host dependencies.
 Supply `instructions` on a registry entry to keep known server guidance without
 discovery. Explicit instructions take precedence over discovered guidance.
 

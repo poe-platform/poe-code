@@ -7,7 +7,7 @@ import { HttpTransportError, McpError, type Tool, type CallToolResult } from "ti
 import { compileJsonSchema, formatIssues, type CompiledJsonSchema, type CompileJsonSchemaOptions } from "toolcraft-schema";
 import { compileToolArguments, type ToolArgumentParseOptions, type ToolArgumentParser } from "./arguments.js";
 import { withRemoteMcpClient } from "./remote.js";
-import { resolveRemoteMcpSchemas, type RemoteMcpServer, type SchemaFetchOptions } from "./schema.js";
+import { resolveRemoteMcpSchemas, snapshotRemoteMcpServer, type RemoteMcpServer, type SchemaFetchOptions } from "./schema.js";
 
 export interface RemoteMcpCommandOptions extends SchemaFetchOptions, ToolArgumentParseOptions {
   readonly maxOutputBytes?: number;
@@ -195,10 +195,7 @@ export async function createRemoteMcpCommands(
       ...(options.schemaValidation?.formats === undefined ? {} : { formats: { ...options.schemaValidation.formats } })
     }
   };
-  const snapshots = servers.map(server => ({
-    ...server, headers: new Headers(server.headers),
-    ...(server.tools === undefined ? {} : { tools: structuredClone([...server.tools]) })
-  }));
+  const snapshots = servers.map(snapshotRemoteMcpServer);
   const schemas = await resolveRemoteMcpSchemas(snapshots, settings);
   return schemas.map((schema, index) => {
     const server: RemoteMcpServer = { ...snapshots[index], tools: schema.tools };

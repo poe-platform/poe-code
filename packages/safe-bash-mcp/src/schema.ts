@@ -89,14 +89,23 @@ function validateServer(server: RemoteMcpServer, maxTools: number): void {
   if (server.tools !== undefined) appendTools([], server.tools, new Set(), maxTools);
 }
 
+export function snapshotRemoteMcpServer(server: RemoteMcpServer): RemoteMcpServer {
+  return {
+    ...server, headers: new Headers(server.headers),
+    ...(server.tools === undefined ? {} : { tools: structuredClone([...server.tools]) })
+  };
+}
+
 /** Discover every tool page, or return an isolated copy of authoritative supplied schemas. */
 export async function fetchRemoteMcpSchema(
   server: RemoteMcpServer,
   options: SchemaFetchOptions = {}
 ): Promise<RemoteMcpSchema> {
+  options = { ...options };
   options.signal?.throwIfAborted();
   const limits = remoteLimits(options);
   validateServer(server, limits.maxTools);
+  server = snapshotRemoteMcpServer(server);
   const instructions = server.instructions;
   if (server.tools !== undefined) {
     return { name: server.name, url: server.url, source: "provided", tools: structuredClone([...server.tools]),
@@ -148,8 +157,10 @@ export async function resolveRemoteMcpSchemas(
   servers: readonly RemoteMcpServer[],
   options: SchemaFetchOptions = {}
 ): Promise<RemoteMcpSchema[]> {
+  options = { ...options };
   preflightRemoteMcpServers(servers, options);
+  const snapshots = servers.map(snapshotRemoteMcpServer);
   const schemas: RemoteMcpSchema[] = [];
-  for (const server of servers) schemas.push(await fetchRemoteMcpSchema(server, options));
+  for (const server of snapshots) schemas.push(await fetchRemoteMcpSchema(server, options));
   return schemas;
 }

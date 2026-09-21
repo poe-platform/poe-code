@@ -17,7 +17,7 @@ const provider = resolveProvider(providers, "openai/gpt-5");
 const model = await provider.createModel("openai/gpt-5", context);
 ```
 
-This private experimental package currently provides runtime foundations. Agent builders, built-in plugins and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
+This private experimental package currently provides runtime foundations. Agent builders and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
 
 ```typescript
 import { createAgentSessionStore } from "@poe-code/poe-agent-rust";
@@ -51,7 +51,7 @@ tools use server namespaces and retain multimodal content, tool signals and
 structured errors. Discovery rejects repeated cursors and continuations beyond
 128 pages. The Rust MCP client and OAuth implementation are embedded in the same
 addon, with no npm runtime dependencies. Node supplies subprocesses, streams and
-plugin callbacks. Built-in plugins and higher-level session adapters remain pending.
+plugin callbacks. Higher-level session adapters remain pending.
 
 `createFileAwarenessTracker(cwd)` records normalized file reads and writes in
 ordered, deduplicated Rust sets. Snapshots return independent JavaScript Sets.
@@ -136,8 +136,7 @@ at session start, checks tool metadata and calls optional tool validators. Scrat
 notes and normalized skill definitions live in Rust, preserving UTF16 keys/values.
 Skills guidance lists active definitions, tags and available tool names while Node
 preserves custom iterators, getters and metadata. Spawn arguments use shared Rust
-scalar validation; Node executes the injected spawn callback. Other built-ins and
-the complete built-in configuration registry remain in progress.
+scalar validation; Node executes the injected spawn callback. The complete built-in configuration registry remains in progress.
 
 `memoryPlugin` finds the nearest project `AGENTS.md` and user memory file, expands
 trusted `@` file imports and caches the load per plugin. It rejects import cycles,
@@ -198,3 +197,17 @@ checks and notification callbacks. Policy parsing is limited to 1,048,576 UTF16 
 this policy check is not a general shell sandbox. Common policy cases are faster in
 the current scoped benchmark; arbitrary shell syntax and all-platform process
 behavior remain outside the verified coverage.
+
+
+`webPlugin()` adds `search_web` and `fetch_url`. Searches flatten the first five
+nonempty answers; URL fetches normalize public-host checks, enforce a 200,000 UTF16
+unit body limit and return 20,000-unit pages. HTML becomes Markdown with headings,
+links, lists, emphasis, images, quotes, code and named/numeric entities through the
+owned Rust parser. Node retains URL parsing and fetch, and cancels pending body
+readers on abort while releasing their locks/listeners. Inject `fetch` or `searchWeb`
+for custom transports. HTML nesting is limited to 128 levels and individual rendered
+nodes to 8,388,608 units; full HTML5 tree repair remains unimplemented. The structural
+fixtures match the original converter and pass the current scoped speed check;
+arbitrary malformed HTML and universal memory/performance advantages remain
+unverified. The bundled named-entity data comes from Python's standard library and
+includes its source license; Python bindings remain pending.

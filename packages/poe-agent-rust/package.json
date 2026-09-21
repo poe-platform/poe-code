@@ -33,7 +33,8 @@
     "dist",
     "LICENSE",
     "UNICODE-LICENSE.txt",
-    "MCP-LICENSE.txt"
+    "MCP-LICENSE.txt",
+    "PYTHON-LICENSE.txt"
   ],
   "engines": {
     "node": ">=18.18"

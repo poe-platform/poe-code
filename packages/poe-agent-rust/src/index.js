@@ -73,3 +73,5 @@ export { openaiChatCompletionsPlugin } from "./plugin-openai-chat-completions.js
 export { openaiResponsesPlugin } from "./plugin-openai-responses.js";
 
 export { default as shellPlugin } from "./plugin-shell.js";
+
+export { default as webPlugin } from "./plugin-web.js";

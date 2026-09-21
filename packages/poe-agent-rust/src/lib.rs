@@ -169,3 +169,8 @@ pub mod openai_policy;
 pub mod openai_responses;
 
 pub mod shell_tools;
+
+pub mod web_tools;
+
+mod html_entities;
+pub mod html_markdown;

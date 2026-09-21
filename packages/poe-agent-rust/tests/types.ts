@@ -231,3 +231,8 @@ import referenceShell from "../../poe-agent/dist/plugins/poe-agent-plugin-shell.
 const shellA: typeof referenceShell = own.shellPlugin;
 const shellB: typeof own.shellPlugin = referenceShell;
 void [shellA, shellB];
+
+import referenceWeb from "../../poe-agent/dist/plugins/poe-agent-plugin-web.js";
+const webA: typeof referenceWeb = own.webPlugin;
+const webB: typeof own.webPlugin = referenceWeb;
+void [webA, webB];

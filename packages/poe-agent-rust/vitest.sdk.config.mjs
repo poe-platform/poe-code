@@ -148,6 +148,13 @@ export default defineConfig({
               `\nimport {getOptionalNumber as nativeArgument} from ${JSON.stringify(path("dist/plugin-args.js"))};\nif(getOptionalNumber!==nativeArgument)throw new Error("Argument contracts must execute the Rust package");`,
             map: null
           };
+        if (id === path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"))
+          return {
+            code:
+              code +
+              `\nimport ownWeb from ${JSON.stringify(path("dist/plugin-web.js"))}; if(webPlugin!==ownWeb)throw new Error("Web contracts must execute own module");`,
+            map: null
+          };
         if (id === path("../poe-agent/src/plugins/poe-agent-plugin-shell.test.ts"))
           return {
             code:
@@ -285,6 +292,7 @@ export default defineConfig({
       resolveId(name, importer) {
         if (
           [
+            path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-shell.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-files.test.ts"),
             path("../poe-agent/src/plugins/plugins.test.ts"),
@@ -296,6 +304,7 @@ export default defineConfig({
           ].includes(importer)
         ) {
           const modules = new Map([
+            ["./poe-agent-plugin-web.js", "plugin-web"],
             ["./poe-agent-plugin-shell.js", "plugin-shell"],
             ["./poe-agent-plugin-files.js", "plugin-files"],
             ["./poe-agent-plugin-mcp.js", "plugin-mcp"],
@@ -372,6 +381,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-shell.test.ts"),
       path("../poe-agent/src/plugins/openai-auth.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts"),

@@ -5148,3 +5148,44 @@ in_progress; no successful current publication verified. Concurrent safe-bash
 commits preserved. Continuous active08:53:43–09:06:32 adds769s,total98254s (27.29h).
 Minimum fulfilled; remaining web/registry/builder/session/spawn/toolcraft/Python/
 platform/performance acceptance incomplete. Continue after09:06:32 UTC.
+
+### Web plugin, 2026-09-21 09:18 UTC
+
+Additive `webPlugin` supplies search_web/fetch_url. Rust owns literal-host policy,
+content-type normalization, UTF16 pagination, five-result formatting and owned HTML
+Markdown conversion. Node retains URL parsing, fetch, bounded body decoding,
+DuckDuckGo property/iteration effects and callbacks. HTML parser/scanner uses no
+external Rust/npm runtime dependencies; complete HTML5 tree repair is not implemented.
+HTML supports blocks/headings/quotes/lists/links/images/emphasis/code, escaping,
+whitespace collapse and named/numeric references.2231 named references derive from
+Python3.14 stdlib html.entities; its license ships in the packed archive. Input
+200000 UTF16 units, nesting128 levels and per-node rendered output8388608 units
+bounds reject excess. Aggregate parser allocations/malformed-input parity remain
+outside complete acceptance; no universal memory claim.
+
+Own web/HTML unresolved-module reds precede core implementation; native missing
+bindings red precedes linkage. Own pending body-read fixture reproduces abort that
+never settles; host now checks abort around reads, cancels pending reader and releases
+lock/listener on success/failure. Maintained checks55 Rust cases,94 native groups,
+333 complete applicable original reference cases/22files,bidirectional declarations,
+fmt/clippy,focused ESLint and diff checks pass.48 structural HTML page fixtures plus
+entity/host/exact-surrogate pagination comparisons match actual original Turndown
+provider over mocked HTTP. Uncached maintained selected closure113workspaces/
+36builds/339edges passes. Packed audit131 JS/declaration files,one addon,zero runtime
+groups/imports (explicit SDK development adapter exception retained). Direct/packed
+16MiB old-space workers each finish1024 HTML fetches/128 pending-read cancellations,
+with no retained reader locks/caller abort listeners. Finite evidence only.
+
+Five alternating warmed256-fetch/32-paragraph samples have original CPU124.45–140.07ms
+versus own27.60–31.72ms, scoped speed PASS, identical returned-unit totals. Does not
+accept arbitrary HTML or full-runtime superiority. Evidence out/rust-poe-agent-web-*.
+
+Shell879c3a9ad exact remote-main delivery verified; release35581488911 pending.
+Responses35580327258 canceled. Legacy35579223367 failed five current original
+client-isolation contracts in mcp-oauth-rust and skipped publication. Local current
+named-reference reproduction gives5 failed/7 passed: dynamic explicitly configured
+client identity must check cached/expired/pending grants before refresh/recovery.
+Repair is next, preserving original TS source and foreign changes. No successful
+current publication verified. Continuous09:06:32–09:18:29 adds717s,total98971s (27.49h).
+Minimum fulfilled; remaining OAuth repair/registry/builder/session/spawn/toolcraft/
+Python/platform/performance acceptance incomplete. Continue after09:18:29 UTC.

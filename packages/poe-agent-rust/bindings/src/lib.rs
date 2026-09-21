@@ -283,3 +283,5 @@ pub mod openai_binding;
 pub mod responses_binding;
 
 pub mod shell_binding;
+
+pub mod web_binding;

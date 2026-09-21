@@ -11,7 +11,7 @@ vi.mock("./loopback-authorization.js", async importOriginal => ({ ...await impor
 it.each(["signal", "timeoutMs", "redirectUri", "createServer", "openBrowser", "readLine"] as const)(
   "passes native nonenumerable browser %s through the provider", async field => {
     const original = field === "signal" ? new AbortController().signal : field === "timeoutMs" ? 17
-      : field === "redirectUri" ? "http://127.0.0.1:39119/original?app=one" : vi.fn();
+      : field === "redirectUri" ? "http://127.0.0.1:39119/original?app=one" : vi.fn(function(this: unknown) { return this; });
     const browser = Object.defineProperty({}, field, { value: original }) as DefaultOAuthClientProviderOptions["browser"];
     const resource = "https://resource.example/mcp", issuer = "https://auth.example";
     const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "original" }, browser,
@@ -21,6 +21,9 @@ it.each(["signal", "timeoutMs", "redirectUri", "createServer", "openBrowser", "r
       discover: async () => ({ resource, resourceMetadataUrl: `${resource}/metadata`, resourceMetadata: { resource, authorization_servers: [issuer] },
         authorizationServer: issuer, authorizationServerMetadataUrl: `${issuer}/metadata`, authorizationServerMetadata: { issuer,
           authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } }) })).toMatchObject({ accessToken: "original" });
-    expect(selected.options?.[field]).toBe(original);
+    if (typeof original === "function") {
+      const callback = selected.options?.[field] as () => unknown;
+      expect(callback()).toBe(browser); expect(original).toHaveBeenCalledOnce();
+    } else expect(selected.options?.[field]).toBe(original);
   }
 );

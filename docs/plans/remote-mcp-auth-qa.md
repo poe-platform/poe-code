@@ -772,3 +772,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     landing page and original live cancellation in three actual checks. No
     refresh claim in this scope. Inspect successful screenshot; purge owned
     synthetic evidence.
+
+70. Use host browser classes with prototype methods and private live state
+    through actual HTTP/SSE schema, generated-tool, resource, explicit-auth and
+    recreated-artifact routes, with both actual callbacks and manual input.
+    Update private state after command/plugin creation and replace caller methods
+    after offline generation. Require original receivers/selected methods in
+    twenty listener factories/twenty openers/ten readers/twenty state-S256 code
+    exchanges and ten actual HTTP callbacks. Complete four instances per route,
+    retaining full schemas/guidance/tool JSON/falsey metadata/exact005930 and
+    text+blob reads. Require forty metadata GETs/fifty-six credential MCP POSTs/
+    ten retired HTTP sessions/ten closed SSE streams. Inspect successful
+    screenshot; purge only owned synthetic evidence.

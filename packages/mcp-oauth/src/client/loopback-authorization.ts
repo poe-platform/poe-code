@@ -29,7 +29,7 @@ export interface LoopbackAuthorizationSession {
 
 /** Capture declared configuration regardless of property enumerability. */
 export function snapshotLoopbackAuthorizationOptions(options: LoopbackAuthorizationOptions): LoopbackAuthorizationOptions {
-  return { ...options, openBrowser: options.openBrowser, readLine: options.readLine, createServer: options.createServer,
+  return { ...options, openBrowser: options.openBrowser?.bind(options), readLine: options.readLine?.bind(options), createServer: options.createServer?.bind(options),
     callbackPath: options.callbackPath, redirectUri: options.redirectUri, signal: options.signal, timeoutMs: options.timeoutMs,
     landingPage: options.landingPage === undefined ? undefined : { ...options.landingPage } };
 }
@@ -50,9 +50,7 @@ export class OAuthAuthorizationError extends Error {
 export async function createLoopbackAuthorizationSession(
   options: LoopbackAuthorizationOptions = {}
 ): Promise<LoopbackAuthorizationSession> {
-  const selected = snapshotLoopbackAuthorizationOptions(options);
-  options = { ...selected, createServer: selected.createServer?.bind(options),
-    openBrowser: selected.openBrowser?.bind(options), readLine: selected.readLine?.bind(options) };
+  options = snapshotLoopbackAuthorizationOptions(options);
   options.signal?.throwIfAborted();
   const timeoutMs = options.timeoutMs ?? 120_000;
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)

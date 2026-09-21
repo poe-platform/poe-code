@@ -125,7 +125,7 @@ fetch callbacks, retaining the original refresh endpoint and persisted extension
 the selected discovery method retains its original receiver and live host state.
 Browser and standalone loopback snapshots retain declared redirects, deadlines,
 cancellation and selected host hooks regardless of property enumerability.
-Standalone callback hooks retain their original receiver and live host state.
+Browser callback hooks retain their original receiver and live host state.
 
 Provider request inputs accept an optional `signal`. It reaches callback waits,
 registration, token requests and bounded token-body reads. Cancellation retains

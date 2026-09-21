@@ -1,7 +1,7 @@
 import type { DefaultOAuthClientProviderOptions } from "mcp-oauth";
 
 export function snapshotOAuthBrowserOptions(browser: DefaultOAuthClientProviderOptions["browser"]): DefaultOAuthClientProviderOptions["browser"] {
-  return { ...browser, openBrowser: browser.openBrowser, readLine: browser.readLine, createServer: browser.createServer,
+  return { ...browser, openBrowser: browser.openBrowser?.bind(browser), readLine: browser.readLine?.bind(browser), createServer: browser.createServer?.bind(browser),
     redirectUri: browser.redirectUri, signal: browser.signal, timeoutMs: browser.timeoutMs,
     ...(browser.landingPage === undefined ? {} : { landingPage: { ...browser.landingPage } }) };
 }

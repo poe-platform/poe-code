@@ -17,7 +17,7 @@ it.each((["schema", "command", "resource"] as const).flatMap(route => fields.map
   "preserves nonenumerable browser $field through $route", async ({ route, field }) => {
     const controller = new AbortController(), canceled = new Error("original browser signal canceled");
     const original = field === "signal" ? controller.signal : field === "timeoutMs" ? 17
-      : field === "redirectUri" ? "http://127.0.0.1:39119/original?app=one" : vi.fn();
+      : field === "redirectUri" ? "http://127.0.0.1:39119/original?app=one" : vi.fn(function(this: unknown) { return this; });
     const browser = Object.defineProperty({}, field, { value: original, configurable: true }) as DefaultOAuthClientProviderOptions["browser"];
     const resource = "https://resource.example/mcp", issuer = "https://auth.example";
     const tool = { name: "echo", inputSchema: { type: "object" } };
@@ -53,6 +53,9 @@ it.each((["schema", "command", "resource"] as const).flatMap(route => fields.map
       if (field === "signal") await expect(operation).rejects.toBe(canceled); else await operation;
     }
     if (field === "signal") { expect((selected.options?.signal as AbortSignal).reason).toBe(canceled); expect(save).not.toHaveBeenCalled(); }
-    else expect(selected.options?.[field]).toBe(original);
+    else if (typeof original === "function") {
+      const callback = selected.options?.[field] as () => unknown;
+      expect(callback()).toBe(browser); expect(original).toHaveBeenCalledOnce();
+    } else expect(selected.options?.[field]).toBe(original);
   }
 );

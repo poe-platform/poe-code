@@ -3745,7 +3745,6 @@ function validateRequestTimer(value: number, name: string): void {
 interface PendingRequest {
   resolve: (result: unknown) => void;
   reject: (error: unknown) => void;
-  timeout: ReturnType<typeof setTimeout> | undefined;
 }
 
 interface ActiveIncomingRequest {
@@ -3880,6 +3879,7 @@ export class JsonRpcMessageLayer {
     let rejectAbort: (reason: unknown) => void;
     const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject; });
     const cancel = () => {
+      clearTimeout(deadline);
       if (currentRequestId !== undefined) this.cancelRequest(currentRequestId, controller.signal.reason);
       rejectAbort(controller.signal.reason);
     };
@@ -3891,6 +3891,13 @@ export class JsonRpcMessageLayer {
       currentRequestId = id;
       onRequestId?.(id);
     } };
+    const deadline = timeoutMs === null ? undefined : setTimeout(() => {
+      let reason: unknown = new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`);
+      try {
+        if (currentRequestId !== undefined) options.onTimeout?.(currentRequestId);
+      } catch (error) { reason = error; }
+      controller.abort(reason);
+    }, timeoutMs);
     if (callerSignal?.aborted) forwardAbort();
     const work = (async () => {
       let retryParams = originalParams;
@@ -3969,6 +3976,7 @@ export class JsonRpcMessageLayer {
       throw new McpError(ERROR_INTERNAL, "Unreachable MCP retry state");
     })();
     return Promise.race([work, aborted]).finally(() => {
+      clearTimeout(deadline);
       callerSignal?.removeEventListener("abort", forwardAbort);
       controller.signal.removeEventListener("abort", cancel);
       this.exchangeControllers.delete(controller);
@@ -3986,10 +3994,6 @@ export class JsonRpcMessageLayer {
 
     const id = this.nextRequestId;
     this.nextRequestId += 1;
-    const timeoutMs =
-      options.timeoutMs === null ? null : (options.timeoutMs ?? this.requestTimeoutMs);
-
-    if (timeoutMs !== null) validateRequestTimer(timeoutMs, "timeoutMs");
     if (options.onRequestId !== undefined) {
       options.onRequestId(id);
     }
@@ -4015,21 +4019,11 @@ export class JsonRpcMessageLayer {
     }
 
     return new Promise((resolve, reject) => {
-      const timeout =
-        timeoutMs === null
-          ? undefined
-          : setTimeout(() => {
-              this.pendingRequests.delete(id);
-              options.onTimeout?.(id);
-              reject(new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`));
-            }, timeoutMs);
-
-      this.pendingRequests.set(id, { resolve, reject, timeout });
+      this.pendingRequests.set(id, { resolve, reject });
 
       try {
         this.output.write(serializeJsonRpcMessage(message));
       } catch (error) {
-        clearTimeout(timeout);
         this.pendingRequests.delete(id);
         reject(error);
       }
@@ -4043,7 +4037,6 @@ export class JsonRpcMessageLayer {
     }
 
     this.pendingRequests.delete(requestId);
-    clearTimeout(pending.timeout);
     pending.reject(reason);
     return true;
   }
@@ -4057,7 +4050,6 @@ export class JsonRpcMessageLayer {
     for (const controller of this.exchangeControllers) controller.abort(reason);
 
     for (const pending of this.pendingRequests.values()) {
-      clearTimeout(pending.timeout);
       pending.reject(reason);
     }
 
@@ -4222,7 +4214,6 @@ export class JsonRpcMessageLayer {
     }
 
     this.pendingRequests.delete(parsed.message.id);
-    clearTimeout(pending.timeout);
     if ("result" in parsed.message) {
       pending.resolve(parsed.message.result);
       return;

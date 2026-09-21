@@ -95,6 +95,9 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     and retained requestState during modern continuations. Verify malformed input
     and host responses fail before a continuation, invalid discovery elicitation
     stays rejected by the modern protocol, and canceling a stalled hook preserves
-    cancellation identity without another request. Await real legacy stream close
+    cancellation identity without another request. Keep the configured deadline
+    active through stalled host callbacks and every modern continuation round;
+    require hook-signal abortion, exit 1 and zero late continuation requests.
+    Explicit native timeoutMs:null remains unlimited. Await real legacy stream close
     events, inspect result/hint screenshots, record observations and purge only
     this QA's synthetic fixtures under out.

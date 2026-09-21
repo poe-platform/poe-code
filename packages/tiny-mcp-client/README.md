@@ -22,12 +22,18 @@ console.log(result.structuredContent);
 await client.close();
 ```
 
-`Tool` includes MCP `outputSchema` when a server advertises typed tool output. `CallToolResult` includes `structuredContent?: Record<string, unknown>` for typed results; legacy/content-block tools still use `content[]`.
+`Tool` includes MCP `outputSchema` when a server advertises typed tool output.
+`CallToolResult.structuredContent` preserves modern JSON values; legacy servers
+require an object. Complete `content[]` blocks remain available in either case.
 
 Set `requestTimeoutMs` on `McpClient` or `timeoutMs` on individual requests.
 Numeric deadlines must be finite, nonnegative and no greater than
 2,147,483,647 ms; oversized values fail before a request is sent. Individual
 JSON-RPC requests also accept `timeoutMs: null` to disable their timer.
+The deadline covers the complete request, including modern input callbacks and
+continuation rounds. On expiry, callback signals abort and late input cannot
+submit another round. Successful requests, cancellation and disposal clear the
+timer; a timeout releases request capacity so later operations can proceed.
 
 ## Transports
 

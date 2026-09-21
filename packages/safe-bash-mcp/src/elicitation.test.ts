@@ -141,6 +141,21 @@ it("cancels a pending host input hook without submitting a continuation", async 
   expect(f.requests).toHaveLength(2); expect(f.requests.at(-1)?.params).not.toHaveProperty("inputResponses");
 });
 
+it("bounds a stalled host input hook with the configured request deadline", async () => {
+  const f = remote(); let hookSignal!: AbortSignal;
+  const handler = vi.fn((_params: ElicitationParams, context: McpRequestContext): Promise<ElicitationResult> => {
+    hookSignal = context.signal; return new Promise(() => {});
+  });
+  const commands = await createRemoteMcpCommands([server], { fetch: f.fetch, requestTimeoutMs: 20, onElicitationRequest: handler });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+  try {
+    const result = await shell.exec("jobs confirm");
+    expect(result.exitCode).toBe(1); expect(result.stderr).toContain('timed out after 20ms');
+    expect(handler).toHaveBeenCalledOnce(); expect(hookSignal.aborted).toBe(true);
+    expect(f.requests).toHaveLength(2); expect(f.requests.at(-1)?.params).not.toHaveProperty("inputResponses");
+  } finally { await shell.dispose(); }
+});
+
 it("handles a legacy server-initiated form request over an owned HTTP receive stream", async () => {
   const encoder = new TextEncoder(), onWarning = vi.fn();
   let events!: ReadableStreamDefaultController<Uint8Array>, toolId: string | number, closed = 0;

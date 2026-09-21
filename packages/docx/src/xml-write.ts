@@ -58,6 +58,8 @@ export const insertParagraphAfter = Symbol("insert-paragraph-after");
 export const insertTableRowXml = Symbol("insert-table-row-xml");
 /** Internal checked table-row removal with surviving span promotion. */
 export const removeTableRowXml = Symbol("remove-table-row-xml");
+/** Internal note-domain deletion after complete reference/ownership checks. */
+export const removeNoteBodyXml = Symbol("remove-note-body-xml");
 
 /** Internal style-domain authority for active native definitions. */
 export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
@@ -849,6 +851,24 @@ export class DocumentXmlEditor {
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
     } catch (error) { this.#patches.delete(node); throw error; }
+  }
+
+  [removeNoteBodyXml](note: XmlElement): void {
+    this.#assertOwnedElement(note);
+    if (!this.#dialect || !["footnote", "endnote"].includes(note.localName) ||
+        note.namespace !== documentDialects[this.#dialect].w || this.root.localName !== note.localName + "s" ||
+        !activeXmlChildren(this, this.#budget)(this.root).includes(note) || this.#patches.has(note)) unsupported();
+    this.assertShapeEditAllowed(note);
+    const containers = new Set(this.compatibility[compatibilityContainers]), pending = [note];
+    while (pending.length) {
+      const node = pending.pop()!;
+      this.#budget.charge("work", 1 + node.attributes.length);
+      if (!containers.has(node) && (!this.#canEdit(node) || node.attributes.some(a =>
+        !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace"].includes(a.namespace) && !this.#canEdit(a)))) unsupported();
+      this.#budget.charge("retainedBytes", node.children.length * 8);
+      for (const child of node.children) pending.push(child);
+    }
+    this.#stageReplacement(note, "", false, true);
   }
 
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */

@@ -32,3 +32,7 @@ Scheduler/ZIP/compression/budget validation: 81 passes. Portable browser bundle 
 - Root ESLint stopped at its finite 16,000-subject ceiling (`subject cap`), not an ESLint rule error. A failing guard test reproduced the inability to admit 16,001 subjects. The new ceiling is 24,000; byte/metadata/entry limits and caller-lowered limits remain unchanged.
 - The complete run reproduced 48 outdated canonical field assertions: compatibility-wrapped native PAGE fields were expected to reject edits, although those carriers are already admitted by current code. Tests now exercise successful edits and retain assertions for inactive INCLUDETEXT branches, wrapper spelling, unchanged non-dirty parts and input bytes. Inert fields still reject. Shells are disposed at test completion. The 320-case canonical matrix passes.
 - One 5-second test timeout occurred during overlapping full runs/builds. Duplicate full DOCX work was stopped. The final complete suite runs alone; no test timeout was increased.
+
+## Shared helper scope follow-up
+
+An isolated root script test edit now schedules root only. Package test helper/fixture changes fall back to all tasks, because tests may import helpers across package ownership boundaries. The prior committed selector returned only root + DOCX for `packages/docx/tests/fixtures/text.ts`; a replay of the prior pure selector reproduced that result. Focused scope/scanner/routing checks pass 28 tests, plus root posttest stress.

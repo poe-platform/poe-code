@@ -260,8 +260,7 @@ export function affectedWorkspaceNames(plan, reference, files) {
   return selected;
 }
 
-const isTest = filename => filename.endsWith(".test.ts") || filename.endsWith(".spec.ts")
-  || filename.split("/").some(part => part === "tests" || part === "test");
+const isTest = filename => filename.endsWith(".test.ts") || filename.endsWith(".spec.ts") || filename.endsWith(".schema-test.ts");
 
 /** Undefined means shared or unknown inputs require the full maintained suite. */
 export function affectedUnitWorkspaces(plan, changedFiles) {
@@ -275,10 +274,11 @@ export function affectedUnitWorkspaces(plan, changedFiles) {
     if (filename.startsWith("packages/")) {
       const workspace = plan.workspaces.find(candidate => filename === candidate.path + "/package.json" || filename.startsWith(candidate.path + "/"));
       if (!workspace) return undefined;
+      if (!isTest(filename) && filename.split("/").some(part => part === "tests" || part === "test")) return undefined;
       changed.add(workspace.name);
       if (!isTest(filename)) propagate.add(workspace.name);
       root = true;
-    } else if (isTest(filename) && filename.startsWith("src/")) root = true;
+    } else if (isTest(filename) && ["src/", "scripts/", "tests/"].some(prefix => filename.startsWith(prefix))) root = true;
     else return undefined;
   }
   const queue = [...propagate];

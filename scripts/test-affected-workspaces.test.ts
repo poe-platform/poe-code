@@ -44,6 +44,11 @@ describe("change-based unit scope", () => {
     expect(selected(["src/cli/command.ts"])).toEqual(["root", "virtual-bash", "consumer", "docx", "safe-js"]);
   });
 
+  it("keeps root script test edits scoped and treats package test helpers as shared", () => {
+    expect(selected(["scripts/build-workspaces.test.ts"])).toEqual(["root"]);
+    expect(selected(["packages/docx/tests/fixtures/text.ts"])).toEqual(["root", "virtual-bash", "consumer", "docx", "safe-js"]);
+  });
+
   it("reports no work for an unchanged checkout or documentation-only changes", () => {
     for (const files of [[], ["docs/plans/test-performance.md"], ["README.md"]]) expect(selected(files)).toEqual([]);
   });
@@ -52,7 +57,7 @@ describe("change-based unit scope", () => {
     const fixtureOptions = fixture();
     fixtureOptions.fileSystem.mkdirSync("/repo/packages/new", { recursive: true });
     fixtureOptions.fileSystem.writeFileSync("/repo/packages/new/package.json", JSON.stringify({ name: "new", scripts: { "test:unit": "new-tests" }, dependencies: { consumer: "*" } }));
-    expect(createWorkspaceTestPlan("/repo", { ...fixtureOptions, changedFiles: ["packages/docx/src/fields.ts", "packages/js/test/case.ts"] }).testStages.map(stage => stage.name))
+    expect(createWorkspaceTestPlan("/repo", { ...fixtureOptions, changedFiles: ["packages/docx/src/fields.ts", "packages/js/test/case.test.ts"] }).testStages.map(stage => stage.name))
       .toEqual(["root", "consumer", "docx", "safe-js", "new"]);
   });
 

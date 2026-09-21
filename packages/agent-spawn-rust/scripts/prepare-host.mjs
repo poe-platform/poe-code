@@ -1,4 +1,7 @@
 import { mkdirSync, copyFileSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import ts from "typescript";
 const root = new URL("../", import.meta.url),
   dist = new URL("dist/", root);
 mkdirSync(dist, { recursive: true });
@@ -24,3 +27,58 @@ for (const name of readdirSync(new URL("../../agent-defs-rust/definitions/", imp
   writeFileSync(new URL("configs/" + data.definition.id + ".js", dist), code);
   writeFileSync(new URL("configs/" + data.definition.id + ".d.ts", dist), types);
 }
+
+// Keep the owned SDK hosts together behind the agent-spawn addon. Tooling is dev-only.
+function embedHosts(source, target) {
+  mkdirSync(target, { recursive: true });
+  for (const entry of readdirSync(source, { withFileTypes: true })) {
+    const input = new URL(entry.name + (entry.isDirectory() ? "/" : ""), source),
+      output = new URL(entry.name + (entry.isDirectory() ? "/" : ""), target);
+    if (entry.isDirectory()) {
+      embedHosts(input, output);
+      continue;
+    }
+    if (entry.name.endsWith(".node")) continue;
+    if (!entry.name.endsWith(".js")) {
+      copyFileSync(input, output);
+      continue;
+    }
+    let binding = path
+      .relative(
+        path.dirname(fileURLToPath(output)),
+        fileURLToPath(new URL("agent-spawn-rust.node", dist))
+      )
+      .split(path.sep)
+      .join("/");
+    if (!binding.startsWith(".")) binding = "./" + binding;
+    const parsed = ts.createSourceFile(
+      fileURLToPath(input),
+      readFileSync(input, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.JS
+    );
+    const transformed = ts.transform(parsed, [
+      (context) => (node) =>
+        ts.visitNode(node, function visit(current) {
+          if (
+            ts.isStringLiteral(current) &&
+            (current.text.endsWith("/agent-harness-tools-rust.node") ||
+              current.text.endsWith("/process-runner-rust.node"))
+          )
+            return ts.factory.createStringLiteral(binding);
+          return ts.visitEachChild(current, visit, context);
+        })
+    ]);
+    try {
+      writeFileSync(output, ts.createPrinter().printFile(transformed.transformed[0]));
+    } finally {
+      transformed.dispose();
+    }
+  }
+}
+embedHosts(
+  new URL("../../agent-harness-tools-rust/dist/", import.meta.url),
+  new URL("harness/", dist)
+);
+embedHosts(new URL("../../process-runner-rust/dist/", import.meta.url), new URL("process/", dist));

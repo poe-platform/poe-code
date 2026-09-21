@@ -9,6 +9,18 @@ license = "MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
+providers-rust={path="../../providers-rust"}
+config-extends-rust={path="../../config-extends-rust"}
+poe-code-config-rust={path="../../poe-code-config-rust"}
+toolcraft-design-rust={path="../../toolcraft-design-rust"}
+frontmatter-rust-napi-core={path="../../frontmatter-rust/bindings/shared"}
+task-list-rust={path="../../task-list-rust"}
+config-mutations-rust={path="../../config-mutations-rust"}
+config-mutations-rust-napi-core={path="../../config-mutations-rust/bindings/shared"}
+process-runner-rust={path="../../process-runner-rust"}
+user-error-rust={path="../../user-error-rust"}
+agent-defs-rust={path="../../agent-defs-rust"}
+agent-harness-tools-rust={path="../../agent-harness-tools-rust"}
 agent-spawn-rust = { path = ".." }
 mcp-protocol-rust = { path = "../../mcp-protocol-rust" }
 mcp-protocol-rust-napi-core = { path = "../../mcp-protocol-rust/bindings/shared" }

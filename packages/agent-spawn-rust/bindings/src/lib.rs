@@ -2,6 +2,9 @@ use mcp_protocol_rust::json::{self, Value};
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::{Error, bindgen_prelude::*};
 use napi_derive::napi;
+#[path = "../../../agent-harness-tools-rust/bindings/src/lib.rs"]
+mod harness;
+pub use harness::*;
 fn parse(source: Utf16String) -> Result<Value> {
     json::parse_utf16(&source, Default::default())
         .map_err(|_| Error::from_reason("Invalid spawn JSON value"))

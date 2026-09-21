@@ -92,3 +92,4 @@ export type { ToolRenderState } from "./render.js";
 
 export { startNativeOtelCapture } from "./native-otel.js";
 export type { NativeOtelRecord, NativeOtelCapture } from "./native-otel.js";
+export { resolveSpawnExecution, UnsupportedRuntimeCapabilityError } from "./runtime.js";

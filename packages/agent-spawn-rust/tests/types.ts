@@ -60,3 +60,9 @@ type Otel = Pick<typeof original, "startNativeOtelCapture">;
 const otelOriginal: Otel = own;
 const otelOwn: Pick<typeof own, keyof Otel> = null as unknown as Otel;
 void [otelOriginal, otelOwn];
+
+import type { resolvePoeCommandExecution } from "../../agent-harness-tools/dist/poe-command-execution.js";
+const resolveOriginal: typeof resolvePoeCommandExecution = own.resolveSpawnExecution;
+const resolveOwn: typeof own.resolveSpawnExecution =
+  null as unknown as typeof resolvePoeCommandExecution;
+void [resolveOriginal, resolveOwn];

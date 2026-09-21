@@ -10,6 +10,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "agent-harness-tools-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "agent-spawn-rust"
 version = "0.1.0"
 dependencies = [
@@ -22,13 +29,25 @@ dependencies = [
 name = "agent-spawn-rust-node"
 version = "0.1.0"
 dependencies = [
+ "agent-defs-rust",
+ "agent-harness-tools-rust",
  "agent-spawn-rust",
+ "config-extends-rust",
+ "config-mutations-rust",
+ "config-mutations-rust-napi-core",
+ "frontmatter-rust-napi-core",
  "mcp-protocol-rust",
  "mcp-protocol-rust-napi-core",
  "napi",
  "napi-build",
  "napi-derive",
  "poe-acp-client-rust",
+ "poe-code-config-rust",
+ "process-runner-rust",
+ "providers-rust",
+ "task-list-rust",
+ "toolcraft-design-rust",
+ "user-error-rust",
 ]
 
 [[package]]
@@ -44,6 +63,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
+name = "config-extends-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "frontmatter-rust",
+ "mcp-protocol-rust",
+ "toolcraft-design-rust",
+]
+
+[[package]]
+name = "config-mutations-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "config-mutations-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust-napi-core",
+]
+
+[[package]]
 name = "convert_case"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -57,6 +105,25 @@ name = "ctor"
 version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "914a755b7c2d4af2bdcff7ce1739e2db9a1b81a9b07123d8015786ae03c0980d"
+
+[[package]]
+name = "frontmatter-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+]
+
+[[package]]
+name = "frontmatter-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust-napi-core",
+ "frontmatter-rust",
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+]
 
 [[package]]
 name = "futures"
@@ -163,6 +230,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mcp-oauth-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
 
@@ -258,12 +332,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "poe-code-config-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "process-runner-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-oauth-rust",
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "providers-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
 ]
 
 [[package]]
@@ -316,6 +413,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "task-list-rust"
+version = "0.1.0"
+
+[[package]]
+name = "toolcraft-design-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "toolcraft-design-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -326,6 +445,10 @@ name = "unicode-segmentation"
 version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
+
+[[package]]
+name = "user-error-rust"
+version = "0.1.0"
 
 [[package]]
 name = "windows-link"

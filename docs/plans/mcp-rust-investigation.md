@@ -6380,3 +6380,31 @@ pending,specialized tiny-http release succeeded,toolcraft release in_progress. N
 successful current poe-code publication verified. Continuous13:55:56–14:04:09
 adds493s,total115384s(32.05h). Minimum fulfilled;full objective incomplete.
 Continue accounting after14:04:09UTC.
+
+### Embedded agent-spawn runtime environments, 2026-09-21 14:09 UTC
+
+Missing resolveSpawnExecution API reproduced with native reference red. Added
+owned runtime resolution and default host/docker environment registration. The
+complete existing owned harness and process-runner hosts/declarations are embedded
+locally;AST rewriting points their native imports to the single agent-spawn addon.
+Harness binding composition already supplies the full process bindings;no duplicate
+native exports or npm production dependencies. No existing consumer integration.
+
+Maintained19Rust cases/19native groups/315SDK reference cases in12files and covered
+bidirectional types pass. Native tests use memfs and compare merged policies,
+defaults,runtime overrides,factory capabilities,opaque caller identities,host
+lifecycle,detach/transfer refusals and malformed configuration. fmt/clippy/shared
+checks/ESLint pass. Uncached selected117workspaces/36builds/365edges passes. Its
+default build concurrency was2;future artifact closures explicitly use1.
+Packed280files/one addon/274audited host+declaration files,zero npm runtime
+groups and external resolution blocked passes. Direct/packed16MiBworkers each
+complete8192resolutions,16384capability refusals,1024host opens/closes. Finite
+workload only;shared process RSS is not isolated native memory. No speed benefit
+asserted for orchestration. Evidence out/rust-spawn-runtime-*.
+
+OAuth22f7c4895 pushed and exact remote main22f7c4895e0ccfc8544d67742d6e4f16dd1535ab
+verified separately. Older root release35605641955 unit still in_progress;all other
+validation jobs succeeded. No successful current root publication verified.
+Concurrent changes preserved. Continuous14:04:09–14:09:53 adds344s,
+total115728s(32.15h). Minimum fulfilled;full objective incomplete.
+Continue accounting after14:09:53UTC.

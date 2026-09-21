@@ -1,5 +1,6 @@
 import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { compatibilityContainers } from "./compatibility.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
@@ -143,12 +144,15 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
       if (!note.location) throw new UnsupportedEditError("Selected note is outside the editable story profile.");
       if (request.operation === "notes.set") {
         if (note.references.length > 1 && !options.shared) throw new SelectionError("ambiguous-selection");
-        const children = note.node.children;
-        if (children.some(n => n.namespace !== w || n.localName !== "p")) throw new UnsupportedEditError("Note text assignment cannot discard tables or opaque blocks; use scoped story editing.");
+        const projected = activeXmlChildren(note.editor, budget), children = projected(note.node);
+        const containers = new Set(note.editor.compatibility[compatibilityContainers]);
+        if (children.some(n => n.namespace !== w || n.localName !== "p") ||
+            note.node.children.some(n => !containers.has(n) && (n.namespace !== w || n.localName !== "p")))
+          throw new UnsupportedEditError("Note text assignment cannot discard tables or opaque blocks; use scoped story editing.");
         const replacements = children.map((p, i) => {
           if (i && p.content.some(content => content.kind !== "element" && (content.kind !== "text" || content.text.trim())))
             throw new UnsupportedEditError("Note text assignment cannot discard XML annotations in removed paragraphs.");
-          const props = p.children.find(n => n.namespace === w && n.localName === "pPr");
+          const props = projected(p).find(n => n.namespace === w && n.localName === "pPr");
           const replacement = replaceParagraphContent(note.editor, p, props ? note.editor.sourceXml(props) : "", i === 0 ? options.text : "", budget);
           if (i && p.children.some(n => !["pPr", "r", "hyperlink"].includes(n.localName) || n.children.some(c => ["footnoteRef", "endnoteRef"].includes(c.localName))))
             throw new UnsupportedEditError("Note text assignment cannot remove annotation-bearing paragraphs.");

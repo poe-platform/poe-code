@@ -56,7 +56,7 @@ export async function inspectDocumentProperties(input: Uint8Array, options: Prop
   budget.charge("work", bytes.length); const sourceSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map(n => n.toString(16).padStart(2, "0")).join("");
   const items: PropertyResourceRecord[] = [];
   for (const part of parts) {
-    const references = archive.package.relationships("/").filter(edge => !edge.is_external && edge.target_part.partname === part.name).map(edge => ({ owner: "/", id: edge.rId, type: edge.reltype, target: edge.target_ref, external: false })).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    const references = archive.package.relationships("/").filter(edge => !edge.is_external && edge.target_part.partname === part.name).map(edge => ({ owner: "/", id: edge.rId, type: edge.reltype, target: edge.target_ref, external: false }));
     for (const property of part.properties) {
       if (selection && property !== selection.property) continue;
       budget.charge("matches", 1); budget.charge("retainedBytes", 256);

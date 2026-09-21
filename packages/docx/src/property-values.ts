@@ -1,3 +1,4 @@
+import { compareInventoryNames } from "./pack-inventory.js";
 import { parseMediaType } from "./media-type.js";
 import { InvalidValueError } from "./archive.js";
 import type { AdmittedDocumentArchive } from "./admission.js";
@@ -115,5 +116,5 @@ export function readPropertyParts(archive: AdmittedDocumentArchive, budget: Docu
       parts.push({ name: part.partname, group, root, properties, owned, ambiguous: declarations.length > 1, safeCustom });
     }
   }
-  return parts.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+  return parts.sort((a, b) => compareInventoryNames(a.name, b.name));
 }

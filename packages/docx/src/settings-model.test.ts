@@ -4,6 +4,46 @@ import { Document, InputTypeError } from "./index.js";
 import { textFixture, paragraph, w } from "../tests/fixtures/text.js";
 import { applyStyleModelBatch } from "./style-model-batch.js";
 import { textContext } from "../tests/fixtures/text.js";
+import { createDocxInspectionCommandEngine } from "./inspection-command.js";
+
+it.each([
+  '<w:evenAndOddHeaders w:future="retain"/>',
+  '<w:evenAndOddHeaders><w:future/></w:evenAndOddHeaders>',
+  '<w:evenAndOddHeaders>retain</w:evenAndOddHeaders>',
+  '<w:evenAndOddHeaders w:val="unknown"/>'
+])("rejects an affected unsupported header policy without changing settings: %s", async policy => {
+  const input = await textFixture(paragraph("Coast"), {
+    settings: { kind: "settings", xml: `<w:settings xmlns:w="${w}"><w:compat/>${policy}</w:settings>` }
+  });
+  const document = await Document(input);
+  const settings = document.settings, before = document.store.snapshot();
+  expect(() => { settings.odd_and_even_pages_header_footer = false; }).toThrowError(
+    expect.objectContaining({ code: "unsupported-edit" })
+  );
+  expect(document.store.snapshot()).toEqual(before);
+  const batch = {
+    version: 1 as const,
+    operations: [
+      { operation: "model.document.Document.settings.get", receiver: { id: "document", type: "DocumentModel", owner: "document", revision: 0 }, arguments: {}, resultHandle: "settings" },
+      { operation: "model.settings.Settings.odd_and_even_pages_header_footer.set", receiver: { resultHandle: "settings" }, arguments: { value: false } }
+    ]
+  };
+  await expect(applyStyleModelBatch(input, batch, textContext)).rejects.toMatchObject({ code: "unsupported-edit" });
+  const volume = Volume.fromJSON({ "/input.docx": Buffer.from(input), "/out": "", "/err": "" });
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
+    args: ["batch", "input.docx", "--ops-json", JSON.stringify(batch), "--output", "-", "--json", "--dry-run"].map(value => new TextEncoder().encode(value)),
+    cwd: "/", signal: textContext.signal,
+    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } },
+    stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
+  });
+  expect(result.exitCode).toBe(1);
+  expect(JSON.parse(volume.readFileSync("/out", "utf8") as string)).toMatchObject({
+    ok: false, data: null, affected: 0, errors: [{ code: "unsupported-edit" }]
+  });
+  expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
+});
 
 it("creates and retains a single settings owner through the document getter", async () => {
   const document = await Document(await textFixture(paragraph("Coast")));

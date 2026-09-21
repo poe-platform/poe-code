@@ -90,6 +90,14 @@ export class Settings {
       );
       if (old.length > 1)
         throw new UnsupportedEditError("Duplicate page header policies cannot be edited.");
+      if (old[0]) {
+        const policy = old[0];
+        if (policy.children.length || policy.text.trim() || policy.attributes.some(attribute =>
+          attribute.namespace !== "http://www.w3.org/2000/xmlns/" &&
+          (attribute.namespace !== root.namespace || attribute.localName !== "val")
+        )) throw new UnsupportedEditError("Affected page header policy metadata is unsupported.");
+        sectionBoolean(policy);
+      }
       const markup = value ? `<ds:evenAndOddHeaders xmlns:ds="${root.namespace}"/>` : "";
       if (old[0]) xml.replaceElement(old[0], markup);
       else if (markup) {

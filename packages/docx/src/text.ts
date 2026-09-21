@@ -12,6 +12,6 @@ export async function extractDocumentText(input: Uint8Array, context: ArchiveCon
   const invocation = validateDocxInvocation({ operation: "text.get", inputs: ["document"], options }, settings.budget);
   const limits = invocation.options.limit as TextOptions["limit"];
   const budget = settings.budget.lower(Object.fromEntries((limits ?? []).map(item => [item.name, item.value])));
-  const document = await openDocumentLocations(input, { ...settings, budget });
+  const document = await openDocumentLocations(input, { ...settings, budget }, "inventory");
   return document.text(invocation.options as TextOptions);
 }

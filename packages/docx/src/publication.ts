@@ -212,18 +212,28 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
     for (const owner of ["/", ...sourcePackage.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)])
       if (sourcePackage.relationships(owner).some(edge => signatureRelationshipTypes.includes(edge.reltype))) throw new UnsupportedEditError("Signed package publication requires separate explicit signature removal.");
   }
+  // A protection check is read-only. Reuse each owned view within this check,
+  // including an unchanged source/candidate pair, without retaining caller bytes.
+  const sourceEditors = new Map<string, DocumentXmlEditor>();
+  const currentEditors = new Map<string, DocumentXmlEditor>();
   if (controlSource) for (const sourcePart of sourcePackage!.parts) {
     const sourceType = parseMediaType(sourcePart.content_type);
     if (!sourceType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourceType.endsWith("+xml")) continue;
     const source = new DocumentXmlEditor(sourcePart.bytes, {}, undefined, budget);
+    sourceEditors.set(sourcePart.partname, source);
     const role = documentPartRole(sourcePart.content_type, source.root);
     if (role === "settings" && activeSettingsProtection(source.root, source.compatibility, budget).size) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
     if (role !== "story" && role !== "glossary") continue;
     const candidate = archive.members.find(part => part.name === sourcePart.name);
-    const current = candidate ? new DocumentXmlEditor(candidate.bytes, {}, undefined, budget) : undefined;
+    const unchanged = candidate && candidate.bytes.length === sourcePart.bytes.length
+      && candidate.bytes.every((byte, index) => byte === sourcePart.bytes[index]);
+    if (candidate) budget.charge("work", candidate.bytes.length);
+    const current = unchanged ? source : candidate ? new DocumentXmlEditor(candidate.bytes, {}, undefined, budget) : undefined;
+    if (current) currentEditors.set(sourcePart.partname, current);
     const sourceLocks = activeControlLocks(source.root, source.compatibility, budget);
     const lockedOwners = new Set([...sourceLocks].filter(([lock]) => lock.attributes.find(attribute => attribute.namespace === lock.namespace && attribute.localName === "val")?.value !== "unlocked").map(([, binding]) => binding.owner));
     const currentOwners = new Set(current ? [...activeControlLocks(current.root, current.compatibility, budget).values()].map(binding => binding.owner) : []);
+    if (!lockedOwners.size) continue;
     const pending: { node: XmlElement; target: XmlElement | undefined }[] = [{ node: source.root, target: current?.root }];
     while (pending.length) {
       const { node, target } = pending.pop()!;
@@ -242,9 +252,9 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
     const type = parseMediaType(part.content_type);
     if (signatureContentTypes.includes(type)) throw new UnsupportedEditError("Signed package publication is not supported.");
     if (!type.endsWith("+xml") && type !== "application/xml" && type !== "text/xml") continue;
-    const current = controlSource ? new DocumentXmlEditor(part.bytes, {}, undefined, budget) : undefined;
+    const current = controlSource ? currentEditors.get(part.partname) ?? new DocumentXmlEditor(part.bytes, {}, undefined, budget) : undefined;
     const originalPart = sourcePackage?.parts.find(member => member.partname === part.partname);
-    const original = originalPart ? new DocumentXmlEditor(originalPart.bytes, {}, undefined, budget) : undefined;
+    const original = originalPart ? sourceEditors.get(part.partname) ?? new DocumentXmlEditor(originalPart.bytes, {}, undefined, budget) : undefined;
     const root = current?.root ?? parseDocumentXml(part.bytes, {}, budget).root;
     const role = documentPartRole(type, root); if (role !== "story" && role !== "glossary" && role !== "settings") continue;
     if (role === "settings") {

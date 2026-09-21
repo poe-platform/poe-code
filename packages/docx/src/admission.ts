@@ -60,6 +60,10 @@ export async function readDocumentArchive(
     );
   }
   const archive = await readArchive(input, { limits, signal, budget });
+  // Repeated read-only validation within this invocation shares admitted XML.
+  // Cache entries own snapshots and compare bytes and exact effective limits.
+  budget[documentXmlCache].entries ??= new Map();
+  budget[documentXmlCache].admitted ??= new WeakSet();
   return admitDocumentArchive(archive, { limits, signal, budget }, input.length);
 }
 

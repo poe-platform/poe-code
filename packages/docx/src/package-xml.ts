@@ -134,8 +134,11 @@ function cachedDocumentXml(input: Uint8Array, options: DocumentXmlLimits, budget
   for (const byte of input) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
   const key = `${JSON.stringify(limits)}:${input.length}:${hash}`;
   for (const candidate of entries.get(key) ?? []) {
-    budget.charge("work", input.length);
-    if (candidate.bytes.every((byte, index) => byte === input[index])) return { key, document: candidate };
+    budget.charge("work", input.length * 2);
+    if (candidate.source.every((byte, index) => byte === input[index])
+      && candidate.document.bytes.length === candidate.source.length
+      && candidate.document.bytes.every((byte, index) => byte === candidate.source[index]))
+      return { key, document: candidate.document };
   }
   return budget[documentXmlCache].admitted?.has(input) ? { key } : {};
 }
@@ -143,9 +146,45 @@ function cachedDocumentXml(input: Uint8Array, options: DocumentXmlLimits, budget
 function retainDocumentXml(key: string | undefined, document: DocumentXml, budget: DocumentBudget): DocumentXml {
   if (key !== undefined) {
     const entries = budget[documentXmlCache].entries!;
-    budget.charge("retainedBytes", key.length * 2 + 128);
+    budget.charge("retainedBytes", key.length * 2 + 128 + document.bytes.length);
+    budget.charge("work", document.bytes.length);
+    const namespaces = new Map<ReadonlyMap<string, string>, ReadonlyMap<string, string>>();
+    const pending: import("@poe-code/safe-fs/xml").XmlContent[] = [document.root];
+    while (pending.length) {
+      const node = pending.pop()!;
+      budget.charge("work", 1);
+      if (node.kind === "element") {
+        let view = namespaces.get(node.namespaces);
+        if (!view) {
+          budget.charge("retainedBytes", 128 + node.namespaces.size * 64);
+          const owned = Object.freeze(new Map(node.namespaces));
+          view = new Proxy(owned, {
+            get(target, name, receiver) {
+              if (name === "set" || name === "delete" || name === "clear") return undefined;
+              if (name === "size") return target.size;
+              if (name === "forEach") return (callback: (value: string, key: string, map: ReadonlyMap<string, string>) => void, thisArg?: unknown) => {
+                if (typeof callback !== "function") throw new InputTypeError("Expected a namespace callback.");
+                for (const [prefix, uri] of target) callback.call(thisArg, uri, prefix, receiver);
+              };
+              if (["get", "has", "keys", "values", "entries", Symbol.iterator].includes(name))
+                return Reflect.get(target, name, target).bind(target);
+              return Reflect.get(target, name, receiver);
+            }
+          });
+          namespaces.set(node.namespaces, view);
+        }
+        Object.defineProperty(node, "namespaces", { value: view });
+        for (const attribute of node.attributes) Object.freeze(attribute);
+        for (const list of [node.content, node.children, node.attributes, node.prolog ?? [], node.epilog ?? []]) Object.freeze(list);
+        budget.charge("retainedBytes", (node.content.length + (node.prolog?.length ?? 0) + (node.epilog?.length ?? 0)) * 8);
+        for (const list of [node.content, node.prolog ?? [], node.epilog ?? []])
+          for (const child of list) pending.push(child);
+      }
+      Object.freeze(node);
+    }
+    Object.freeze(document);
     const bucket = entries.get(key) ?? [];
-    bucket.push(document);
+    bucket.push({ document, source: new Uint8Array(document.bytes) });
     entries.set(key, bucket);
   }
   return document;

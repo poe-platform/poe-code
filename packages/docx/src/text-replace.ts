@@ -78,7 +78,7 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
   const dummy = operation === "lorem.set";
   const opts = invocation.options as DocxOperationArguments<"text.replace"> & Partial<DocxOperationArguments<"lorem.set">>;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
-  const document = await openDocumentLocations(input, { ...settings, budget });
+  const document = await openDocumentLocations(input, { ...settings, budget }, "inventory");
   const selected = resolveDocxSelection(document, invocation);
   const archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget }, archive);
@@ -168,20 +168,22 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
     };
     if (ancestors.some(n => n.namespace === w && !visible(n.localName)) ||
       rowProperties.some(props => activeChildren(props).some(marker => marker.namespace === w && !visible(marker.localName)))) continue;
-    type TraversalRequest = { current: XmlElement; path: readonly number[]; run: XmlElement | undefined; runOffset: { value: number } };
-    const visit = function* (current: XmlElement, path: readonly number[], run?: XmlElement, runOffset = { value: 0 }): Generator<TraversalRequest, void, void> {
+    const path = [...paragraph.value.path];
+    budget.charge("retainedBytes", path.length * 8);
+    type TraversalRequest = { current: XmlElement; index: number; run: XmlElement | undefined; runOffset: { value: number } };
+    const visit = function* (current: XmlElement, run?: XmlElement, runOffset = { value: 0 }): Generator<TraversalRequest, void, void> {
       budget.charge("work", targets.length + 1);
       if (current.namespace !== w) {
         if (branches.has(current)) {
           const selectedBranch = branches.get(current);
           if (selectedBranch) {
-            budget.charge("work", path.length + 1); budget.charge("retainedBytes", 128 + (path.length + 1) * 8);
-            yield { current: selectedBranch, path: [...path, current.children.indexOf(selectedBranch)], run, runOffset };
+            budget.charge("work", current.children.length + 1); budget.charge("retainedBytes", 136);
+            yield { current: selectedBranch, index: current.children.indexOf(selectedBranch), run, runOffset };
           }
         } else if (containers.has(current)) {
           for (let index = 0; index < current.children.length; index++) {
-            budget.charge("work", path.length + 1); budget.charge("retainedBytes", 128 + (path.length + 1) * 8);
-            yield { current: current.children[index]!, path: [...path, index], run, runOffset };
+            budget.charge("work", 1); budget.charge("retainedBytes", 136);
+            yield { current: current.children[index]!, index, run, runOffset };
           }
         } else flush();
         return;
@@ -214,6 +216,7 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
         const scalars = [...text];
         budget.charge("work", text.length);
         budget.charge("retainedBytes", scalars.length * 8);
+        budget.charge("work", targets.reduce((work, target) => work + target.value.path.length, 0));
         const target = targets.find(target => pathContains(target.value.path, path));
         const offset = target?.kind === "run" ? runOffset.value : logicalOffset;
         const range = target?.value.range;
@@ -238,20 +241,21 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
       unsupported ||= lockedOwners.has(current) || changedProperties || ["moveTo", "moveFrom"].includes(name);
       const childOffset = name === "r" ? { value: 0 } : runOffset;
       for (let i = 0; i < current.children.length; i++) {
-        budget.charge("work", path.length + 1); budget.charge("retainedBytes", 128 + (path.length + 1) * 8);
-        yield { current: current.children[i]!, path: [...path, i], run: name === "r" ? current : run, runOffset: childOffset };
+        budget.charge("work", 1); budget.charge("retainedBytes", 136);
+        yield { current: current.children[i]!, index: i, run: name === "r" ? current : run, runOffset: childOffset };
       }
       if (container || changedProperties) flush();
       unsupported = previous;
     };
     budget.charge("retainedBytes", 128);
-    const pending = [visit(node, paragraph.value.path)];
+    const pending = [visit(node)];
     while (pending.length) {
       const step = pending[pending.length - 1]!.next();
-      if (step.done) pending.pop();
+      if (step.done) { pending.pop(); if (pending.length) path.pop(); }
       else {
         const request = step.value;
-        pending.push(visit(request.current, request.path, request.run, request.runOffset));
+        path.push(request.index);
+        pending.push(visit(request.current, request.run, request.runOffset));
       }
     }
     flush();

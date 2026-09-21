@@ -130,8 +130,10 @@ export class LocationIndex {
           path.order = physicalOrder++;
           this.#paths.set(node, path);
           for (let i = node.children.length - 1; i >= 0; i--) {
-            budget.charge("work", path.length + 1);
-            budget.charge("retainedBytes", 64 + (path.length + 1) * 8);
+            budget.charge("work", 1);
+            // Physical paths share their parent; arrays are reserved only for
+            // actual public locations by #add, not for every carrier edge.
+            budget.charge("retainedBytes", 96);
             raw.push({ node: node.children[i]!, path: { parent: path, index: i, length: path.length + 1, order: 0 } });
           }
         }

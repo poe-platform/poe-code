@@ -7,7 +7,8 @@ import type { DocumentXml } from "./package-xml.js";
 export const budgetSharesReservations = Symbol("budget-shares-reservations");
 
 export const documentXmlCache = Symbol("document-xml-cache");
-interface InvocationXmlCache { entries?: Map<string, DocumentXml[]>; admitted?: WeakSet<Uint8Array> }
+interface CachedDocumentXml { readonly source: Uint8Array; readonly document: DocumentXml }
+interface InvocationXmlCache { entries?: Map<string, CachedDocumentXml[]>; admitted?: WeakSet<Uint8Array> }
 
 export const documentLimitDefaults = Object.freeze({
   compressedInput: Infinity,

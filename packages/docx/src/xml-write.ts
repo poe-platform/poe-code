@@ -2,7 +2,7 @@ import { storedMeasure } from "./stored-measure.js";
 import { copiedNativeProperties } from "./native-property-copy.js";
 import { InputTypeError, ResourceLimitError } from "./archive.js";
 import { OwnershipError } from "./model-errors.js";
-import { DocumentBudget } from "./budget.js";
+import { documentXmlCache, DocumentBudget } from "./budget.js";
 import { opaqueXmlContent } from "./xml-retention.js";
 import {
   parseDocumentXml, documentXmlSettings, InvalidXmlError, type DocumentXml, type DocumentXmlLimits,
@@ -681,7 +681,11 @@ export class DocumentXmlEditor {
       const fragment = parseDocumentXml(new TextEncoder().encode(`<fragment${bindings}>${xml}</fragment>`), this.#limits, this.#budget);
       if (checkMath && containsMath(fragment.root, this.#budget)) preserveOpaque = true;
       this.#budget.charge("insertedNodes", this.#budget.usage.xmlNodes - before - 1 - fragment.root.attributes.length);
-      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      const serialized = this.serialize();
+      // Full candidate parts are owned snapshots, unlike repeatable fragments.
+      // Subsequent package validation can share this exact bounded parse.
+      this.#budget[documentXmlCache].admitted?.add(serialized);
+      const candidate = parseDocumentXml(serialized, this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
       if (preserveOpaque && opaqueXmlContent(this.root, this.#budget, this.#profile) !== opaqueXmlContent(candidate.root, this.#budget, this.#profile)) unsupported();
     } catch (error) { this.#patches.delete(node); throw error; }

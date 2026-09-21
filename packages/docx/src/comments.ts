@@ -1,3 +1,4 @@
+import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { synchronizeCommentExtensions, type CommentExtensionInfo } from "./comment-extensions.js";
 import { archiveSettings, documentSession, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
@@ -64,7 +65,8 @@ export async function inspectDocumentComments(input: Uint8Array, request: Commen
       timestamp: commentAttribute(n.node, "date") ?? null, text: state.document.text({ select: n.location.token }).text, location: n.location,
       range: n.start && n.end && n.reference ? { start: anchor(n.start), end: anchor(n.end), reference: anchor(n.reference) } : null, issues: n.issues };
   }), issues: state.issues, modern: state.modern ? "preserve" : null, extensions: state.extensions };
-  budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: request.operation, ok: true, data, affected: 0, locations: data.items.map(n => n.location), warnings: [], errors: [] }) + "\n").length);
+  const serializedBytes = measurePackageResourceSerialization({ version: 1, operation: request.operation, ok: true, data, affected: 0, locations: data.items.map(n => n.location), warnings: [], errors: [] }, budget) + 1;
+  budget.check("serializedOutput", serializedBytes);
   return data;
 }
 

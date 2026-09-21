@@ -28,12 +28,30 @@ export function inventoryCommentExtensions(graph: DocumentPackage, editors: Read
       root?.namespace === e.namespace && root.localName === e.root || relationships.some(r => r.reltype === e.relationship && !r.is_external && r.target_part === part));
     if (!descriptor && !["commentsExtended", "commentsIds", "commentsExtensible", "people"].some(k => type.includes(k.toLowerCase()))) continue;
     const entries: CommentExtensionInfo["entries"][number][] = [];
-    const visit = (node: XmlElement, path: readonly number[]) => {
-      budget.charge("work", 1 + node.attributes.length);
-      entries.push({ path, name: node.localName, namespace: node.namespace, attributes: node.attributes.filter(a => a.namespace !== xmlns).map(a => ({ name: a.localName, namespace: a.namespace, value: a.value })) });
-      node.children.forEach((child, i) => visit(child, [...path, i]));
-    };
-    if (root) visit(root, []);
+    if (root) {
+      const path: number[] = [];
+      const frames = [{ node: root, next: -1 }];
+      budget.charge("retainedBytes", 32);
+      while (frames.length) {
+        budget.charge("work", 1);
+        const frame = frames.at(-1)!;
+        if (frame.next === -1) {
+          const node = frame.node;
+          budget.charge("work", 1 + node.attributes.length + path.length);
+          budget.charge("retainedBytes", 192 + path.length * 8 + node.attributes.length * 72);
+          entries.push({ path: [...path], name: node.localName, namespace: node.namespace, attributes: node.attributes.filter(a => a.namespace !== xmlns).map(a => ({ name: a.localName, namespace: a.namespace, value: a.value })) });
+          frame.next = 0;
+        } else if (frame.next < frame.node.children.length) {
+          const index = frame.next++;
+          budget.charge("retainedBytes", 40);
+          path.push(index);
+          frames.push({ node: frame.node.children[index]!, next: -1 });
+        } else {
+          frames.pop();
+          path.pop();
+        }
+      }
+    }
     result.push({ part: part.partname, kind: descriptor?.kind ?? "unknown", namespace: root?.namespace ?? "", entries });
   }
   return result;

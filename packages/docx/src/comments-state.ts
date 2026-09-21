@@ -43,24 +43,42 @@ export async function openComments(input: Uint8Array, context: ArchiveContext) {
   for (const [name, xml] of editors) {
     let order = 0;
     const depth = new Map<XmlElement, number>();
-    const visit = (node: XmlElement, parent: XmlElement, path: readonly number[], container: XmlElement, unsafe: boolean) => {
+    budget.charge("retainedBytes", 80);
+    const path: number[] = [];
+    const frames = [{ node: xml.root, parent: xml.root, container: xml.root, unsafe: false, next: -1 }];
+    while (frames.length) {
       budget.charge("work", 1);
-      if (node.namespace === w && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "tc", "txbxContent"].includes(node.localName)) container = node;
-      unsafe ||= node.namespace !== w || ["hdr", "ftr", "comment", "sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple", "hyperlink", "customXml"].includes(node.localName);
-      if (node.namespace === w && node.localName === "fldChar") {
-        const kind = commentAttribute(node, "fldCharType"), current = depth.get(container) ?? 0;
-        if (kind === "begin") depth.set(container, current + 1);
-        if (kind === "end") depth.set(container, Math.max(0, current - 1));
+      const frame = frames.at(-1)!;
+      if (frame.next === -1) {
+        const { node, parent } = frame;
+        if (node.namespace === w && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "tc", "txbxContent"].includes(node.localName)) frame.container = node;
+        frame.unsafe ||= node.namespace !== w || ["hdr", "ftr", "comment", "sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple", "hyperlink", "customXml"].includes(node.localName);
+        if (node.namespace === w && node.localName === "fldChar") {
+          const kind = commentAttribute(node, "fldCharType"), current = depth.get(frame.container) ?? 0;
+          if (kind === "begin" || kind === "end") {
+            if (!depth.has(frame.container)) budget.charge("retainedBytes", 24);
+            depth.set(frame.container, kind === "begin" ? current + 1 : Math.max(0, current - 1));
+          }
+        }
+        if (node.namespace === w && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName)) {
+          const reference = node.localName === "commentReference";
+          budget.charge("work", path.length);
+          budget.charge("retainedBytes", 192 + path.length * 8);
+          markers.push({ id: idOf(node), node, parent, editor: xml, part: name, path: [...path], order, container: frame.container,
+            safe: !frame.unsafe && !(depth.get(frame.container) ?? 0) && parent.namespace === w && parent.localName === (reference ? "r" : "p") && !node.children.length && !node.content.some(c => c.kind !== "text" || c.text.trim()) });
+        }
+        order++;
+        frame.next = 0;
+      } else if (frame.next < frame.node.children.length) {
+        const index = frame.next++;
+        budget.charge("retainedBytes", 88);
+        path.push(index);
+        frames.push({ node: frame.node.children[index]!, parent: frame.node, container: frame.container, unsafe: frame.unsafe, next: -1 });
+      } else {
+        frames.pop();
+        path.pop();
       }
-      if (node.namespace === w && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName)) {
-        const reference = node.localName === "commentReference";
-        markers.push({ id: idOf(node), node, parent, editor: xml, part: name, path, order, container,
-          safe: !unsafe && !(depth.get(container) ?? 0) && parent.namespace === w && parent.localName === (reference ? "r" : "p") && !node.children.length && !node.content.some(c => c.kind !== "text" || c.text.trim()) });
-      }
-      order++;
-      node.children.forEach((child, i) => visit(child, node, [...path, i], container, unsafe));
-    };
-    visit(xml.root, xml.root, [], xml.root, false);
+    }
   }
   const locations = document.list("story", { scope: "comments" });
   const records = (editor?.root.children ?? []).filter(n => n.namespace === w && n.localName === "comment").map(node => {

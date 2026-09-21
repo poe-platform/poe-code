@@ -57,11 +57,21 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
     return record;
   }
   result.sessionStore = {
-    async withLock(_resource, operation, options) {
+    async withLock(resource, operation, options) {
       if (store.withLock === undefined) throw new Error("OAuth resource identity backend must support transaction locks");
-      return store.withLock(operation, options);
+      return store.withLock(async () => {
+        options.signal?.throwIfAborted();
+        await reconcile(resource);
+        options.signal?.throwIfAborted();
+        return operation();
+      }, options);
     },
-    async load(resource) { return (await reconcile(resource)).session; },
+    async load(resource) {
+      // Unauthorized provenance may peek before acquiring the transaction lock.
+      // Only the lock owner may adopt a URL or retire the previous credentials.
+      const record = await read();
+      return record?.resource === canonicalizeResourceIndicator(resource) ? record.session : null;
+    },
     async save(resource, session) {
       const record = await reconcile(resource);
       if (canonicalizeResourceIndicator(session.resource) !== record.resource) throw new Error("OAuth session does not match its resource identity");

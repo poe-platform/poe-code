@@ -1,6 +1,7 @@
 import { setImmediate } from "node:timers/promises";
 import { expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { createResourceBoundOAuthStores } from "./resource-bound-store.js";
 import { createDefaultOAuthClientProvider } from "./default-oauth-client-provider.js";
 import type { DefaultOAuthClientProviderOptions, OAuthDiscoveryResult } from "./types.js";
 vi.mock("node:crypto", async importOriginal => {
@@ -26,12 +27,12 @@ function fixture() {
     const tokens = await make(identity, extra).authorizeRequest!({ requestUrl: new URL(resource), headers, fetch });
     return { tokens, headers };
   };
-  const login = (resource: string, identity = "catalog") => {
+  const login = (resource: string, identity = "catalog", signal?: AbortSignal) => {
     const discovery: OAuthDiscoveryResult = { resource, resourceMetadataUrl: `${resource}/metadata`, resourceMetadata: { resource, authorization_servers: [issuer] },
       authorizationServer: issuer, authorizationServerMetadataUrl: `${issuer}/metadata`, authorizationServerMetadata: {
         issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, registration_endpoint: `${issuer}/register`,
         response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } };
-    return make(identity).handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }), challenge: null, discovery, fetch });
+    return make(identity).handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }), challenge: null, discovery, fetch, signal });
   };
   return { fs, authStore, fetch, make, authorize, login, registrations: () => registrations };
 }
@@ -116,4 +117,21 @@ it("fails closed on corrupt identity persistence before URL changes or imported-
   for (const resource of [original, changed]) await expect(f.authorize(resource, "catalog", extra)).rejects.toThrow();
   expect(await f.fs.readFile(`/home/test/${file}`, "utf8")).toBe("corrupted-private-record");
   expect(f.fetch).toHaveBeenCalledTimes(2);
+});
+
+it("does not retire credentials when a changed-URL challenge is canceled waiting for the identity lock", async () => {
+  const f = fixture();
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  const entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const stores = createResourceBoundOAuthStores(f.authStore, undefined, "catalog");
+  const holder = stores.sessionStore.withLock!(original, async () => { entered.resolve(); await release.promise; }, { timeoutMs: 1000 });
+  await entered.promise;
+  const controller = new AbortController(), reason = new Error("cancel changed resource");
+  const observed = f.login(changed, "catalog", controller.signal).catch(error => error);
+  try {
+    await setImmediate();
+    controller.abort(reason);
+    expect(await observed).toBe(reason);
+  } finally { release.resolve(); await holder; }
+  expect((await f.authorize(original)).headers.get("Authorization")).toBe("Bearer access-1");
 });

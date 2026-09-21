@@ -7,6 +7,15 @@ function parser(properties: Record<string, unknown>, extra: Record<string, unkno
 }
 
 describe("schema-driven MCP arguments", () => {
+  it.each(["renamed", "accessor"])("keeps compiled tool identity after caller metadata becomes %s", mode => {
+    const tool: Tool = { name: "original", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } };
+    const compiled = compileToolArguments(tool);
+    if (mode === "renamed") tool.name = "replacement";
+    else Object.defineProperty(tool, "name", { get() { throw new Error("Caller tool metadata was read again"); } });
+    expect(compiled.toolName).toBe("original");
+    expect(() => compiled.parse([])).toThrow("Invalid arguments for 'original'");
+  });
+
   it.each(["2003886907", "005930", "1234567890.123456", "true", "null", "[1,2]", "", " a,b "])(
     "preserves schema-declared string %j", value => {
       expect(parser({ thread_ts: { type: "string" } }).parse(["--thread-ts", value])).toEqual({ thread_ts: value });

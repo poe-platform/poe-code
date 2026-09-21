@@ -86,6 +86,7 @@ function parameterValue(property: JsonSchemaProperty, tokens: readonly ValueToke
 
 /** Compile a tool's complete JSON Schema plus stable, collision-safe flag metadata. */
 export function compileToolArguments(tool: Tool, options: CompileJsonSchemaOptions = {}): ToolArgumentParser {
+  const toolName = tool.name;
   const schema = structuredClone(tool.inputSchema);
   const snapshotOptions = {
     ...options,
@@ -112,7 +113,7 @@ export function compileToolArguments(tool: Tool, options: CompileJsonSchemaOptio
     };
   });
   return {
-    toolName: tool.name,
+    toolName,
     parameters,
     parse(args, parseOptions = {}) {
       const maxBytes = parseOptions.maxInputBytes ?? 1024 * 1024;
@@ -172,7 +173,7 @@ export function compileToolArguments(tool: Tool, options: CompileJsonSchemaOptio
         }
       }
       const validation = validator.validate(result);
-      if (!validation.ok) throw new Error(`Invalid arguments for '${tool.name}': ${formatIssues(validation.issues)}`);
+      if (!validation.ok) throw new Error(`Invalid arguments for '${toolName}': ${formatIssues(validation.issues)}`);
       return result;
     }
   };

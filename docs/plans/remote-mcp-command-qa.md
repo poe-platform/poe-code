@@ -202,3 +202,11 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     POST with403. Generated stderr must retain status403, methodPOST and
     rpcMethod:notifications/initialized, with exit1, empty stdout, zero tool calls
     and session retirement. Inspect the diagnostic screenshot and purge owned QA.
+
+31. Compiled parser ownership: compile through the built public SDK, then rename
+    the caller's tool and separately replace its name with a throwing getter.
+    Invalid input must identify the original tool without rereading metadata;
+    valid numeric-looking strings must remain exact. Strictly compile a public
+    external consumer using ToolArgumentParser, execution policies and optional
+    McpTransport.closeReason without casts/deep imports. Inspect diagnostics and
+    purge only owned synthetic consumer files and screenshots.

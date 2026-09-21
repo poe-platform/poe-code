@@ -93,6 +93,8 @@ console.log(parser.parameters); // Exact field names, flags, descriptions and sc
 const args = parser.parse(["--query", "005930"]);
 ```
 
+Compiled parsers retain the original tool identity and schemas after caller mutation.
+
 Schema-declared strings retain their exact values, including numeric IDs and
 timestamps. Numbers, booleans, null, nested objects, unions and typed arrays are
 validated before a call. Use `--flag value`, `--flag=value`, `field=value`,

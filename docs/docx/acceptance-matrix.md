@@ -1301,3 +1301,14 @@ Control-only cached-break fragments (2026-09-21): [named exact scoped evidence](
 The [current post-control spacing verification](text-style-user-edge-audit-20260920/cached-break-controls-current-native-spacing-public-variants-named-current-verification.json) independently retains all13824 original public spacing identities after the cached-break/control corrections:13824 passed, zero failed/skipped/unrun and exact membership with unchanged frozen sources. All source/native/dry/publication/property/member/relationship assertions remain required and passed. The20-suite3110 focused prerequisite passed; full776 and remaining public/normative acceptance are still open. No push/publication.
 
 Admitted cached-break depth and native ancestry (2026-09-21): [named exact scoped evidence](text-style-user-edge-audit-20260920/cached-break-controls-current-admitted-depth-named-requirement-evidence.json) verifies all648 independent public identities:432 nullable/cache/query/extraction,72 closest-native-hyperlink ancestry and144 run-iteration owner variants. Both dialects/kinds and admitted32/4096/8192 depths execute public model/model-SDK/ordered-SDK/actual explicitly opted-in CLI and publication/dry-run. All120 original qualified memfs identities remain byte-unchanged (60 genuine failures/60 controls); current120 and focused3110 pass, preserving inert native text, formatting, detached mutation isolation and exact source members/relationships. Six explicit XML-ceiling cases pass expected2MiB refusals and32MiB trusted success without raising archive-member ceilings. Original observers/timeouts/type failures/canceled transport cohorts remain retained with zero acceptance. Full776 uncached gate is running; every other original public cohort/reviewer and full805/914/959/553/119/103 semantic reconciliation remains required. No complete family, push or release is accepted.
+
+The [native hyperlink paragraph text correction](text-style-user-edge-audit-20260920/model-text-native-hyperlink-admitted-depth-named-requirement-evidence-20260921.json)
+retains20 original memfs cases:16 passing controls and four main-host recursion
+failures at8192/16377 levels in both dialects. The unchanged20 pass after iterative
+ordered text traversal;30 current suites/5667 cases and maintained lint/types/build
+pass. Exact Unicode, paragraph properties and source-member retention remain
+verified. Actual opted-in CLI JSON confirms exact text and no publication; its
+inspected screenshot has a documented raster-font glyph limitation. The3872
+boundary-qualified public replay and fresh777-suite/full original obligation
+pipeline remain pending, with zero completed-cohort credit. Only the named F08/F09
+host-depth defect closes; every complete F08–F15/F18 family remains open.

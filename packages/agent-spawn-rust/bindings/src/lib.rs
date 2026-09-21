@@ -234,6 +234,31 @@ impl Default for NativeSpawnPlanner {
     }
 }
 use command_binding::number;
+#[napi]
+pub struct NativeSpawnAutonomous {
+    state: agent_spawn_rust::autonomous::Autonomous,
+}
+#[napi]
+impl NativeSpawnAutonomous {
+    #[napi(constructor)]
+    pub fn new(max: Unknown<'_>) -> Result<Self> {
+        let mut state = agent_spawn_rust::autonomous::Autonomous::new(number(max)?)
+            .map_err(Error::from_reason)?;
+        state.begin().map_err(Error::from_reason)?;
+        Ok(Self { state })
+    }
+    #[napi]
+    pub fn retry(&mut self, activity_timeout: bool) -> Result<bool> {
+        let retry = self
+            .state
+            .fail(activity_timeout)
+            .map_err(Error::from_reason)?;
+        if retry {
+            self.state.begin().map_err(Error::from_reason)?;
+        }
+        Ok(retry)
+    }
+}
 #[napi(object)]
 pub struct RetryDecision {
     pub kind: String,

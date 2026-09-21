@@ -7,6 +7,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Serialize JSON, Codex TOML, OpenCode environment and Goose MCP settings.
 - Merge environments with explicit variable deletion.
 - Retry injected spawn handles with capped backoff, cancellation and attempt-tagged events.
+- Drive autonomous streaming runs with an injected event consumer and activity-timeout retries.
 - Run tuples or spawn thunks with bounded concurrency and group cancellation.
 - Capture subprocess output with timeout/abort handling and Unix process-group cleanup.
 - Normalize Claude, Codex, Cursor, native, OpenCode and Pi JSONL streams into shared events.
@@ -44,6 +45,19 @@ const result = await handle.result;
 ```
 
 Supply your own `spawnOnce` function returning an async event stream and a result promise. Retry defaults cover exit codes 1, 124, 125 and 137; a successful result stops immediately. A custom `isRetryable` callback can change that policy. The final result keeps its original identity. Queued unread events remain buffered, so consume the stream during a run.
+
+```typescript
+import { createSpawnAutonomous } from '@poe-code/agent-spawn-rust';
+
+const autonomous = createSpawnAutonomous(async events => {
+  for await (const event of events) await render(event);
+});
+const result = await autonomous(spawnOnce, {
+  service: 'codex', prompt: 'Fix the bug', maxTimeoutRetries: 3,
+});
+```
+
+Autonomous runs consume events concurrently with the result. Only `ActivityTimeoutError` failures retry; aborts and other failures retain their original identity. Despite its name, `maxTimeoutRetries` counts total attempts, matching the original API. The default is three attempts with ten minutes of inactivity per attempt. A failed attempt can retry while its consumer is still pending; late rejections remain observed. Your consumer owns its rendering and cleanup. This factory does not yet provide the original terminal-backed `spawnAutonomous` export. The retry policy lives in the Rust core; Node still owns async tasks and subprocess I/O.
 
 ```typescript
 import { createSpawnParallel } from '@poe-code/agent-spawn-rust';

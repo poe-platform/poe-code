@@ -12,6 +12,10 @@ export default defineConfig({
       name: "rust-spawn-planning-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (importer === path("../agent-spawn/src/autonomous.test.ts")) {
+          if (name === "./autonomous.js") return path("tests/autonomous-reference.mjs");
+          if (name === "./spawn.js") return path("dist/spawn.js");
+        }
         if (importer === path("../agent-spawn/src/acp/replay.test.ts") && name === "./replay.js")
           return path("dist/index.js");
         if (
@@ -316,6 +320,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../agent-spawn/src/autonomous.test.ts"),
       path("../agent-spawn/src/acp/replay.test.ts"),
       path("../agent-spawn/src/acp/tool-summary.test.ts"),
       args,

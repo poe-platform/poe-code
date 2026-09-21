@@ -34,6 +34,12 @@ Latest additive checkpoint: `agent-spawn-rust` now reads saved JSONL runs, with
 Rust framing/location ownership, direct Rust decoding and Node-specific JSON
 diagnostics. Scope and final verification are recorded at the end of this ledger.
 
+Latest steering prioritizes spawn as a reusable foundation. An additive autonomous
+factory now shares timeout-attempt policy through the Rust core and accepts a
+host event consumer. The original terminal-backed autonomous export remains a
+renderer acceptance gap; Python implementation and standalone Rust process I/O
+remain pending. This does not change the incomplete status above.
+
 Historical checkpoints follow.
 
 Status: implementation active. The reusable `mcp-protocol-rust` JSON foundation
@@ -7097,3 +7103,51 @@ opening; Python implementation has not begun. Foreign lockfile, harness and
 safe-bash plan changes remain untouched. Root release91c1432d5 is still pending
 at17:27:02UTC; no successful publication verified. Owned temporary reader logs,
 benchmarks and packed copies are purged after delivery; maintained tests remain.
+
+## Spawn foundation: autonomous attempt policy (2026-09-21)
+
+The latest user steering prioritizes spawn's reusable APIs. Added a
+language-neutral `autonomous::Autonomous` state in `agent-spawn-rust` and the
+additive Node `createSpawnAutonomous(consumeEvents)` factory. The Rust core owns
+attempt admission, total attempt budgets and activity-timeout retry decisions.
+The host owns concurrent result/event-consumer tasks and original opaque
+results/errors. Defaults and the `maxTimeoutRetries` total-attempt meaning match
+the original API. Abort and other non-timeout errors are terminal. Failed attempts
+can retry while their consumer is pending, with late rejections observed.
+
+The factory separates orchestration from terminal rendering without changing any
+production consumers. Its generic call signature is checked bidirectionally
+against the original `spawnAutonomous`. All eleven original autonomous cases run
+through this factory with their existing mocked renderer; that is orchestration
+parity, not proof of terminal-renderer parity. The original terminal-backed
+`spawnAutonomous` export remains absent, and the eight-name export gap is unchanged.
+Python bindings and standalone Rust process I/O remain pending.
+
+Rust admission/settlement tests and native factory tests failed before adding the
+implementation. The first warmed mocked-spawn benchmark measured 4096 runs with
+half requiring one retry: owned wall11.54–12.10ms/reference9.05–9.59ms,
+owned CPU12.94–13.84ms/reference10.08–12.45ms. A failing native-driver test then
+preceded combining initial admission into construction and failed-attempt
+settlement/next admission into one binding call. Successful runs no longer cross
+the native boundary to begin or settle separately; the private driver is dropped
+after return. Final verification and measurements follow below.
+
+Final maintained package checks pass:46Rust tests,62native groups,594original
+SDK cases18files, bidirectional autonomous types, maintained Rust lint and scoped
+ESLint. The sequential uncached38-build closure passed before the final driver
+refinement; the final maintained unit route rebuilt the refined addon and repeated
+all package cases. A fresh packed audit covers408JS/type files,one addon andzero
+external npm runtime/peer/optional groups. Direct and packed blocked-import16MiB
+old-generation workers each complete8192autonomous runs,16384attempts and32768
+consumed events. Final JS heap8.27MiB; young/native/total memory are outside that
+limit and no comparative memory superiority is established.
+
+Final warmed16-cycle five alternating32768-run samples (empty streams,mocked
+spawns,half requiring one retry): owned wall109.82–157.40ms/reference77.53–
+118.94ms; owned CPU115.54–167.48ms/reference97.70–116.11ms. The isolated native
+policy remains slower than the JavaScript reference despite fewer crossings.
+This is an additive shared-core checkpoint,not a passed performance gate or proof
+of improved real-process throughput. Coarser native process/stream orchestration
+is still needed. Earlier performance and combined spawn memory gates remain open.
+The full objective remains incomplete past the original deadline. Publication has
+not been verified; the preceding fec3c2db4 release remains queued at17:44UTC.

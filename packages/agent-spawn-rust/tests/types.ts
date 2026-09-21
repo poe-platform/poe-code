@@ -31,6 +31,10 @@ const c: Retry = own;
 const d: Pick<typeof own, keyof Retry> = null as unknown as Retry;
 void [c, d];
 
+const autonomousOriginal: typeof original.spawnAutonomous = own.createSpawnAutonomous(async () => {});
+const autonomousOwned: ReturnType<typeof own.createSpawnAutonomous> = null as unknown as typeof original.spawnAutonomous;
+void [autonomousOriginal, autonomousOwned];
+
 type Parallel = Pick<typeof original, "createSpawnParallel" | "SpawnParallelError">;
 const e: Parallel = own;
 const f: Pick<typeof own, keyof Parallel> = null as unknown as Parallel;

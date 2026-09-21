@@ -23,6 +23,7 @@ export {
 } from "./planning.js";
 export { resolveConfig } from "./resolve-config.js";
 export { createSpawnRetry, calculateBackoffMs, defaultIsRetryable } from "./retry.js";
+export { createSpawnAutonomous } from "./autonomous.js";
 export { createSpawnParallel, SpawnParallelError } from "./parallel.js";
 
 export { runCommand } from "./run-command.js";

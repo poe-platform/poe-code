@@ -75,6 +75,8 @@ export declare function resolveConfig(
   env?: Readonly<Record<string, string | undefined>>
 ): ResolvedSpawnConfig;
 export { createSpawnRetry, calculateBackoffMs, defaultIsRetryable } from "./retry.js";
+export { createSpawnAutonomous } from "./autonomous.js";
+export type { AutonomousOptions, StreamingSpawnFn, StreamingSpawnReturn } from "./autonomous.js";
 export type { SpawnRetryOptions, SpawnHandle, SpawnRetryFunction } from "./retry.js";
 export { createSpawnParallel, SpawnParallelError } from "./parallel.js";
 export type {

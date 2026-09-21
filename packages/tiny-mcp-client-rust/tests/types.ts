@@ -35,6 +35,10 @@ import {
   type McpRequestContext
 } from "../dist/index.js";
 import { HttpTransport, type HttpTransportOptions } from "../dist/index.js";
+const completeInitialization: ReferenceHttpTransport["completeInitialization"] = new HttpTransport({ url: "https://resource.example/mcp" }).completeInitialization;
+const ownCompleteInitialization: HttpTransport["completeInitialization"] = new ReferenceHttpTransport({ url: "https://resource.example/mcp" }).completeInitialization;
+void completeInitialization;
+void ownCompleteInitialization;
 import { HttpTransport as ReferenceHttpTransport, type HttpTransportOptions as ReferenceHttpOptions } from "tiny-mcp-client";
 declare const ownHttpOptions: HttpTransportOptions;
 declare const referenceHttpOptions: ReferenceHttpOptions;

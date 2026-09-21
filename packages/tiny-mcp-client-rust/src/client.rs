@@ -142,8 +142,15 @@ impl ClientState {
             _ => None,
         };
         self.modern = false;
-        self.state = ConnectionState::Ready;
         Ok(result)
+    }
+    pub fn complete_initialize(&mut self, generation: u64) -> Result<(), ClientError> {
+        self.ensure_generation(generation)?;
+        if self.modern || self.server_capabilities.is_none() {
+            return Err(error(None, "MCP client has not completed initialization"));
+        }
+        self.state = ConnectionState::Ready;
+        Ok(())
     }
     pub fn accept_discovery(
         &mut self,

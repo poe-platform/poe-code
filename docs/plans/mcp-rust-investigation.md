@@ -4571,3 +4571,30 @@ lint and uncached combined fixture closure pass. Fixture direct/packed workers
 exercise the embedded adapter with zero runtime groups. No speed advantage claimed.
 The previous HTTP portable-case total was a transcription error:25 cases, not26.
 Embedding9d8badee5 push completed; publication remains unverified.
+
+### MCP legacy initialization completion, 2026-09-21 06:31 UTC
+
+All four new original completion contracts reproduce early connect success,
+unobserved notification rejection and lost cancellation/deadline. Own HTTP transport
+now completes the initialized POST with the connection signal/deadline; custom
+transports retain the optional completion hook and ordinary notification fallback.
+HTTP completion failures carry rpcMethod=notifications/initialized. Native readiness
+red additionally proves Rust reported ready during a stalled POST. Rust now owns
+separate result admission and generation-checked completion, remaining initializing
+until the handshake succeeds; stale/closed completions reject. Arbitrary cancellation
+causes survive even when injected fetch never settles or observes abort. Native
+failure expectations were corrected against original disconnected recovery state.
+
+Maintained checks pass33 Rust cases,67 native groups,311 reference cases/40 files,
+bidirectional completion types and lint/fmt/clippy. Uncached combined fixture closure
+passes113 workspaces/16 builds/338 edges. HTTP passes25 Rust/48 native/443 reference
+cases and types; fixture passes5 Rust/3 native/23 reference cases and types. Direct/
+packed16MiB workers each exercise64 successful,64 rejected and64 canceled completion
+requests with external runtime imports blocked. One initial pack raced the maintained
+native rebuild and retained the earlier ready state; packing after completion fixes
+the artifact and both workers pass. Evidence out/rust-client-initialization-*.
+Zero runtime groups; no performance/memory superiority accepted.
+
+JSON negotiation40d606513 is pushed; current publication unverified. Continuous
+active06:26:57–06:31:25 adds268s, bringing conservative effort to89,968s (24.99h).
+Minimum fulfilled; full rewrite/acceptance incomplete. Continue after06:31:25 UTC.

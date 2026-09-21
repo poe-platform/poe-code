@@ -375,6 +375,7 @@ export interface McpTransport {
     closed: Promise<McpTransportClosedEvent>;
     dispose(reason?: Error): void;
     filterTools?(tools: Tool[], reset?: boolean): Tool[];
+    completeInitialization?(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void>;
 }
 
 export interface InMemoryServerTransport { readable: Readable; writable: Writable; }
@@ -405,7 +406,8 @@ export type HttpTransportFetch = (input: string | URL, init?: RequestInit) => Pr
 export declare class HttpTransportError extends Error {
   readonly status: number;
   readonly method: "GET" | "POST" | "DELETE";
-  constructor(message: string, status: number, method: "GET" | "POST" | "DELETE");
+  readonly rpcMethod?: string;
+  constructor(message: string, status: number, method: "GET" | "POST" | "DELETE", rpcMethod?: string);
 }
 export interface HttpTransportOptions {
   url: string;
@@ -423,6 +425,7 @@ export declare class HttpTransport implements McpTransport {
   readonly closed: Promise<McpTransportClosedEvent>;
   constructor(options: HttpTransportOptions);
   filterTools(tools: Tool[], reset?: boolean): Tool[];
+  completeInitialization(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void>;
   dispose(reason?: Error): void;
 }
 export declare class McpClient {

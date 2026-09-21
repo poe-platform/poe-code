@@ -8,11 +8,12 @@ import { fetchMcpResponse, readBoundedResponseText } from "./oauth/http.js";
 const { NativeHttpTransport, NativeSseParser, httpResponseKind } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 
 export class HttpTransportError extends Error {
-  constructor(message, status, method) {
+  constructor(message, status, method, rpcMethod) {
     super(message);
     this.name = "HttpTransportError";
     this.status = status;
     this.method = method;
+    this.rpcMethod = rpcMethod;
   }
 }
 
@@ -62,6 +63,27 @@ export class HttpTransport {
       catch (error) { this.#warning?.(`Rejected MCP tool ${tool.name}: ${error instanceof Error ? error.message : String(error)}`); }
     }
     return accepted;
+  }
+  async completeInitialization(options) {
+    const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
+    const signals = [options.signal, deadline].filter(signal => signal !== undefined);
+    const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);
+    signal.throwIfAborted();
+    const controller = new AbortController();
+    const abort = () => controller.abort(signal.reason);
+    signal.addEventListener("abort", abort, { once: true });
+    const line = '{"jsonrpc":"2.0","method":"notifications/initialized"}';
+    try {
+      await this.#sendPost(line, this.#state.prepare(line), controller);
+      signal.throwIfAborted();
+      if (this.#state.disposed) throw (await this.closed).reason;
+    } catch (error) {
+      if (error instanceof HttpTransportError)
+        throw new HttpTransportError(error.message, error.status, error.method, "notifications/initialized");
+      throw error;
+    } finally {
+      signal.removeEventListener("abort", abort);
+    }
   }
   dispose(reason = new Error("HTTP transport disposed")) {
     const disposal = this.#state.dispose();
@@ -121,9 +143,9 @@ export class HttpTransport {
       else void work.catch(error => { this.dispose(error instanceof Error ? error : new Error(String(error))); });
     }
   }
-  async #sendPost(line, post) {
+  async #sendPost(line, post, completionController) {
     const slot = post.slot;
-    const controller = slot === null ? undefined : new AbortController();
+    const controller = completionController ?? (slot === null ? undefined : new AbortController());
     if (controller !== undefined) this.#controllers.set(slot, controller);
     try {
       const endpoint = this.#mode === "sse" ? await this.#ensureEndpoint() : this.#url;

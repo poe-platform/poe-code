@@ -178,7 +178,9 @@ export class McpClient {
         }));
       if (onElicitationRequest !== undefined)
         layer.onRequest("elicitation/create", onElicitationRequest);
-      layer.sendNotification("notifications/initialized");
+      if (transport.completeInitialization === undefined) layer.sendNotification("notifications/initialized");
+      else await transport.completeInitialization({ signal: options.signal, timeoutMs: this.#options.requestTimeoutMs ?? 30000 });
+      unwrap(this.#core.completeInitialize(generation));
       return initialized;
     } catch (error) {
       if (this.#generation === generation || this.#layer === undefined) {

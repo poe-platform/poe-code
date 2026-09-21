@@ -534,6 +534,17 @@ impl NativeClient {
         }
     }
     #[napi]
+    pub fn complete_initialize(&self, generation: f64) -> convert::NativeJson {
+        match self
+            .state
+            .borrow_mut()
+            .complete_initialize(generation as u64)
+        {
+            Ok(()) => convert::NativeJson(object(vec![])),
+            Err(error) => client_error(error),
+        }
+    }
+    #[napi]
     pub fn check_connection(&self) -> convert::NativeJson {
         match self.state.borrow().require_connection() {
             Ok(()) => convert::NativeJson(object(vec![])),

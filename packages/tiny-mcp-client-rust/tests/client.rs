@@ -11,6 +11,8 @@ fn connection_generations_isolate_reconnections_and_return_owned_snapshots() {
     let generation = client.begin_connect().unwrap();
     assert!(client.begin_connect().is_err());
     client.accept_initialize(generation, value(r#"{"protocolVersion":"2025-03-26","capabilities":{"tools":{}},"serverInfo":{"name":"server","version":"1"}}"#)).unwrap();
+    assert_eq!(client.state(), ConnectionState::Initializing);
+    client.complete_initialize(generation).unwrap();
     assert_eq!(client.state(), ConnectionState::Ready);
     assert!(client.require_capability("tools").is_ok());
     assert!(client.require_capability("resources").is_err());
@@ -20,6 +22,7 @@ fn connection_generations_isolate_reconnections_and_return_owned_snapshots() {
     assert_eq!(client.state(), ConnectionState::Initializing);
     assert!(client.connection_closed(next));
     assert_eq!(client.state(), ConnectionState::Closed);
+    assert!(client.complete_initialize(next).is_err());
 }
 
 #[test]

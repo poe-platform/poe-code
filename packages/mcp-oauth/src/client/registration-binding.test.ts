@@ -65,6 +65,13 @@ it("requires a caller-owned expired imported registration to be updated explicit
   expect(await f.run()).toMatchObject({ action: "fail", error: { message: expect.stringContaining("client secret has expired") } });
   expect(f.fetch).not.toHaveBeenCalled(); expect(f.save).not.toHaveBeenCalled();
 });
+it("retains caller-owned expired registration policy after a persisted session reload", async () => {
+  const session = stored(); Object.assign(session.client, { registrationOwnership: "caller" });
+  const f = fixture({ mode: "dynamic" }, session);
+  expect(await f.run()).toMatchObject({ action: "fail", error: { message: expect.stringContaining("update the imported registration") } });
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(f.save).not.toHaveBeenCalled();
+});
 it("continues using live access tokens without redeeming an expired secret", async () => {
   const f = fixture({ mode: "dynamic" }, stored(100_000));
   expect(await f.authorize()).toMatchObject({ accessToken: "private-old-access" });
@@ -91,4 +98,13 @@ it("retains strictly matched registration issuer metadata during refresh", async
   const f = fixture({ mode: "dynamic" }, session);
   expect(await f.authorize()).toMatchObject({ accessToken: "fresh-access" });
   expect(f.session()?.client.registration?.issuer).toBe(issuer);
+});
+
+it("preserves caller ownership and original app through successful refresh", async () => {
+  const session = stored(); session.client.registration!.client_secret_expires_at = 0;
+  session.client.registrationOwnership = "caller";
+  const f = fixture({ mode: "dynamic" }, session);
+  expect(await f.authorize()).toMatchObject({ accessToken: "fresh-access" });
+  expect(f.session()?.client).toEqual(session.client);
+  expect(f.fetch.mock.calls.map(([url]) => String(url))).toEqual([`${issuer}/token`]);
 });

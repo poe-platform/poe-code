@@ -83,6 +83,12 @@ export function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | 
     if (registrationMethod !== undefined) client.tokenEndpointAuthMethod = registrationMethod;
   }
   if (method !== undefined) client.tokenEndpointAuthMethod = method;
+  const ownership = Object.hasOwn(record, "registrationOwnership") ? record.registrationOwnership : undefined;
+  if (ownership !== undefined) {
+    if (ownership !== "caller" || client.registration === undefined)
+      throw new Error("Invalid stored OAuth registration ownership");
+    client.registrationOwnership = "caller";
+  }
   return client;
 }
 

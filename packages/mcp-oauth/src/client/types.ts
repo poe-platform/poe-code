@@ -106,6 +106,8 @@ export interface OAuthClientRegistration extends Record<string, unknown> {
 
 export interface StoredOAuthClient {
   clientId: string;
+  /** Externally registered apps must never be replaced by native DCR on reload. */
+  registrationOwnership?: "caller";
   /** Actual listener URI submitted when this native client was registered. */
   requestedRedirectUri?: string;
   clientSecret?: string;

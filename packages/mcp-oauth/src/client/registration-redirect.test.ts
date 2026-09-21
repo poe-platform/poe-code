@@ -75,6 +75,23 @@ it("refreshes silently with the original client despite obsolete callback metada
   expect(body.get("refresh_token")).toBe("original-refresh");
   expect(body.has("redirect_uri")).toBe(false);
 });
+it("retains caller ownership across reload and never replaces an imported app for a different listener", async () => {
+  const initial = oldSession("http://127.0.0.1:9999/callback");
+  Object.assign(initial.client, { registrationOwnership: "caller" });
+  const f = fixture([], initial);
+  expect(await f.run()).toMatchObject({ action: "fail", error: { message: expect.stringContaining("imported registration") } });
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(f.save).not.toHaveBeenCalled();
+  expect(f.session()?.client.clientId).toBe("old");
+});
+it("reuses a compatible caller-owned registration without converting it into a native registration", async () => {
+  const initial = oldSession(browser.redirectUri);
+  Object.assign(initial.client, { registrationOwnership: "caller" });
+  const f = fixture([], initial);
+  expect(await f.run()).toEqual({ action: "retry" });
+  expect(f.fetch).toHaveBeenCalledOnce();
+  expect(f.session()?.client).toMatchObject({ clientId: "old", registrationOwnership: "caller" });
+});
 it.each(["https://evil.example/callback", "http://user@localhost:49152/callback", 7])("rejects malformed persisted requested callback identity: %#", requestedRedirectUri => {
   expect(() => normalizeStoredOAuthClient({ clientId: "old", requestedRedirectUri })).toThrow("redirect");
 });

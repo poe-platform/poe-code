@@ -165,6 +165,9 @@ Authorization and code exchange always use the actual listener URI. Silent
 refresh keeps its original client regardless of callback changes. At interactive
 authorization, a native registration with an obsolete captured callback is
 replaced; caller-owned full registration imports retain their original identity.
+Their persisted `registrationOwnership: "caller"` survives reload and refresh;
+invalid-client responses never silently replace these apps. Callback changes or
+expired imported secrets require an explicit registration update.
 Set `client.tokenEndpointAuthMethod` to `none`, `client_secret_post` or
 `client_secret_basic`; a full registration can supply the same field as
 `token_endpoint_auth_method`. Public clients never transmit a stored secret.

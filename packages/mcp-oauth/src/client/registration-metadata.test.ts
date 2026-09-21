@@ -1,8 +1,8 @@
 import { expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createDefaultOAuthClientProvider } from "./default-oauth-client-provider.js";
-import { createAuthStoreClientStore } from "./auth-store-session-store.js";
-import { parseOAuthClientRegistration } from "./client-registration.js";
+import { createAuthStoreClientStore, createAuthStoreSessionStore } from "./auth-store-session-store.js";
+import { normalizeStoredOAuthClient, parseOAuthClientRegistration } from "./client-registration.js";
 import type { DefaultOAuthClientProviderOptions, StoredOAuthSession } from "./types.js";
 
 vi.mock("node:crypto", async importOriginal => {
@@ -49,6 +49,26 @@ it("preserves complete registration through the native client store", async () =
   expect(await store.load(issuer)).toEqual(client);
 });
 
+it("does not retire a caller-owned native client cache when refresh returns invalid_client", async () => {
+  const fs = createFsFromVolume(new Volume()).promises;
+  const authStore = { backend: "file" as const, fileStore: { fs, filePath: "/home/test/caller.enc", salt: "fixture",
+    getMachineIdentity: () => ({ hostname: "host", username: "user" }) } };
+  const client = { clientId: "registered", clientSecret: "private-client-secret", registration, registrationOwnership: "caller" as const };
+  const sessions = createAuthStoreSessionStore(authStore), clients = createAuthStoreClientStore(authStore);
+  await clients.save(issuer, client);
+  await sessions.save(resource, { resource, authorizationServer: issuer, client,
+    tokens: { accessToken: "expired", refreshToken: "caller-refresh", tokenType: "Bearer", expiresAt: 0 },
+    discovery: { resourceMetadataUrl: `${resource}/metadata`, resourceMetadata: { resource, authorization_servers: [issuer] },
+      authorizationServerMetadata: { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`,
+        registration_endpoint: `${issuer}/register`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } } });
+  const fetch = vi.fn(async () => Response.json({ error: "invalid_client" }, { status: 400 }));
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "dynamic" }, browser: {}, authStore, allowInteractive: false });
+  await expect(provider.authorizeRequest!({ requestUrl: new URL(resource), headers: new Headers(), fetch })).rejects.toMatchObject({ error: "invalid_client" });
+  expect(await clients.load(issuer)).toEqual(client);
+  expect(await sessions.load(resource)).toMatchObject({ client, tokens: { refreshToken: "caller-refresh" } });
+  expect((await sessions.load(resource))?.refreshState).toBeUndefined();
+});
+
 it("uses an owned imported registration without registering another client", async () => {
   const supplied = structuredClone(registration);
   const f = fixture({ mode: "dynamic", registration: supplied } as DefaultOAuthClientProviderOptions["client"]);
@@ -58,7 +78,7 @@ it("uses an owned imported registration without registering another client", asy
   const body = new URLSearchParams(String(f.fetch.mock.calls[0]?.[1]?.body));
   expect(body.get("client_id")).toBe("registered");
   expect(body.get("client_secret")).toBe("private-client-secret");
-  expect(f.session()?.client).toMatchObject({ registration });
+  expect(f.session()?.client).toMatchObject({ registration, registrationOwnership: "caller" });
 });
 
 it.each([
@@ -114,4 +134,12 @@ it("does not invoke accessors or expose their errors while copying imported meta
   Object.defineProperty(supplied, "extension", { enumerable: true, get: getter });
   expect(() => parseOAuthClientRegistration(supplied)).toThrow("OAuth client registration");
   expect(getter).not.toHaveBeenCalled();
+});
+
+it.each(["dynamic", "native", null, 7])("rejects unsupported persisted registration ownership: %s", registrationOwnership => {
+  expect(() => normalizeStoredOAuthClient({ clientId: "registered", clientSecret: "private-client-secret", registration, registrationOwnership })).toThrow("registration ownership");
+});
+
+it("rejects ownership without full registration metadata", () => {
+  expect(() => normalizeStoredOAuthClient({ clientId: "registered", registrationOwnership: "caller" })).toThrow("registration ownership");
 });

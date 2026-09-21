@@ -509,6 +509,15 @@ export function createDefaultOAuthClientProvider(
     }
 
     let storedClient = await loadRegisteredClient(discovery.authorizationServer);
+    const importedClient = existingSession?.client.registrationOwnership === "caller" ? existingSession.client :
+      storedClient?.registrationOwnership === "caller" ? storedClient : undefined;
+    if (importedClient !== undefined) {
+      assertRegistrationIssuer(importedClient, discovery.authorizationServer);
+      if (hasExpiredClientSecret(importedClient, now)) throw new Error("OAuth client secret has expired; update the imported registration");
+      if (!registrationMatchesRedirect(importedClient, redirectUri))
+        throw new Error("OAuth imported registration does not match the configured redirect URI; update its callback configuration");
+      return { kind: "static", fromStoredRegistration: false, client: importedClient };
+    }
     if (storedClient !== null) {
       assertRegistrationIssuer(storedClient, discovery.authorizationServer);
       if (hasExpiredClientSecret(storedClient, now) || !registrationMatchesRedirect(storedClient, redirectUri)) {
@@ -825,7 +834,9 @@ function normalizeConfiguredClient(
   const clientId = normalizeOptionalOAuthString(client.clientId) ?? registration?.client_id.trim();
   if (clientId === undefined) return null;
   const clientSecret = normalizeOptionalOAuthString(client.clientSecret) ?? (registration === undefined ? undefined : getOwnString(registration, "client_secret")?.trim());
-  return normalizeStoredOAuthClient({ clientId, clientSecret, registration, tokenEndpointAuthMethod: client.tokenEndpointAuthMethod });
+  return normalizeStoredOAuthClient({ clientId, clientSecret, registration,
+    ...(registration === undefined ? {} : { registrationOwnership: "caller" }),
+    tokenEndpointAuthMethod: client.tokenEndpointAuthMethod });
 }
 
 function normalizeOptionalOAuthString(value: string | undefined): string | undefined {
@@ -1078,5 +1089,5 @@ function shouldReRegisterStoredDynamicClient(
     return client.kind === "dynamic" && client.fromStoredRegistration;
   }
 
-  return true;
+  return client.registrationOwnership !== "caller";
 }

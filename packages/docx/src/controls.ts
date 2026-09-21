@@ -44,7 +44,17 @@ function controlChildren(xml: DocumentXmlEditor, budget: DocumentBudget) {
     return result[0];
   } };
 }
-function walk(node: XmlElement): XmlElement[] { return [node, ...node.children.flatMap(walk)]; }
+function walk(node: XmlElement, budget: DocumentBudget): XmlElement[] {
+  budget.charge("retainedBytes", 192);
+  const result: XmlElement[] = [], pending = [node];
+  while (pending.length) {
+    const current = pending.pop()!;
+    budget.charge("work", 1); budget.charge("retainedBytes", 8); result.push(current);
+    budget.charge("retainedBytes", current.children.length * 8);
+    for (let index = current.children.length - 1; index >= 0; index--) pending.push(current.children[index]!);
+  }
+  return result;
+}
 function owners(root: XmlElement, path: readonly number[]): XmlElement[] {
   const result = [root]; for (const index of path) result.push(result.at(-1)!.children[index]!); return result;
 }
@@ -133,9 +143,9 @@ function opening(node: XmlElement): string {
 }
 function textReplacement(xml: DocumentXmlEditor, content: XmlElement, text: string, budget: DocumentBudget, font?: string): string {
   const { one: child } = controlChildren(xml, budget);
-  const w = content.namespace; const nodes = walk(content);
+  const w = content.namespace; const nodes = walk(content, budget);
   if (nodes.some(node => node.namespace !== w || !["sdtContent", "p", "pPr", "r", "rPr", "t", "tab", "br", "cr"].includes(node.localName) &&
-    !nodes.some(owner => ["pPr", "rPr"].includes(owner.localName) && walk(owner).includes(node)))) throw new UnsupportedEditError("Only ordinary text containers support scalar filling.");
+    !nodes.some(owner => ["pPr", "rPr"].includes(owner.localName) && walk(owner, budget).includes(node)))) throw new UnsupportedEditError("Only ordinary text containers support scalar filling.");
   if (content.children.some(n => !["r", "p"].includes(n.localName)) || content.children.some(n => n.localName === "p") && content.children.some(n => n.localName !== "p")) throw new UnsupportedEditError("Mixed text containers are unsupported.");
   const first = nodes.find(n => n.namespace === w && n.localName === "r"); const prefix = content.name.includes(":") ? content.name.slice(0, content.name.indexOf(":") + 1) : "";
   const name = (local: string) => prefix + local; const properties = first && child(first, "rPr");
@@ -190,15 +200,15 @@ export function prepareControlValue(xml: DocumentXmlEditor, node: XmlElement, it
   const { budget } = archiveSettings(context); const { text, checked, choice, date } = values;
   const { one: child } = controlChildren(xml, budget);
   const properties = child(node, "sdtPr")!, content = child(node, "sdtContent")!;
-  if (!properties || !content || item.support !== "supported" || walk(content).some(n => n.namespace === node.namespace && n.localName === "sdt")) throw new UnsupportedEditError("Scalar filling requires an admitted leaf control.");
-  for (const owner of walk(content)) { budget.charge("work", owner.children.length + owner.attributes.length + 1); if (!xml.compatibility.canEdit(owner) || owner.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute))) throw new UnsupportedEditError("Affected control content is opaque."); }
+  if (!properties || !content || item.support !== "supported" || walk(content, budget).some(n => n.namespace === node.namespace && n.localName === "sdt")) throw new UnsupportedEditError("Scalar filling requires an admitted leaf control.");
+  for (const owner of walk(content, budget)) { budget.charge("work", owner.children.length + owner.attributes.length + 1); if (!xml.compatibility.canEdit(owner) || owner.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute))) throw new UnsupportedEditError("Affected control content is opaque."); }
   const stages: (() => void)[] = [];
     const placeholder = child(properties, "showingPlcHdr"); let value: string | undefined, font: string | undefined;
     if (["plain-text", "rich-text"].includes(item.kind) && text !== undefined) value = text;
     else if (["dropdown", "combo-box"].includes(item.kind) && choice !== undefined) { const declaration = item.choices.find(item => item.value === choice); if (!declaration) throw new InvalidValueError("Expected a declared control choice value."); value = declaration.label; }
     else if (item.kind === "checkbox" && checked !== undefined) {
       const checkbox = child(properties, "checkbox", w14)!;
-      if (walk(checkbox).some(owner => !xml.compatibility.canEdit(owner) || owner.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute)))) throw new UnsupportedEditError("Checkbox metadata includes unsupported elements or attributes.");
+      if (walk(checkbox, budget).some(owner => !xml.compatibility.canEdit(owner) || owner.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute)))) throw new UnsupportedEditError("Checkbox metadata includes unsupported elements or attributes.");
       for (const name of ["checkedState", "uncheckedState"]) {
         const state = child(checkbox, name, w14), glyph = attr(state, "val", w14), font = attr(state, "font", w14);
         if (!glyph || glyph.length > 6 || [...glyph].some(c => !"0123456789abcdefABCDEF".includes(c)) || !font || font.trim() !== font || [...font].some(c => c.codePointAt(0)! < 32)) throw new UnsupportedEditError("Checkbox requires both declared glyph and font mappings.");
@@ -249,7 +259,7 @@ export async function editDocumentControls(input: Uint8Array, options: DocxOpera
     if (!story) throw new UnsupportedEditError("Controls require an admitted story owner.");
     assertOutsideFields(parseFields(ancestors[story.value.path.length]!, story.value.path, budget, xml.compatibility.content), location.value.path);
     assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
-    if (walk(content).some(n => n.namespace === node.namespace && n.localName === "sdt")) throw new UnsupportedEditError("Scalar filling cannot erase nested controls.");
+    if (walk(content, budget).some(n => n.namespace === node.namespace && n.localName === "sdt")) throw new UnsupportedEditError("Scalar filling cannot erase nested controls.");
     if (item.kind === "picture" && file !== undefined) {
       if (!item.value || typeof item.value !== "object" || item.value.external || !item.value.contentType?.toLowerCase().startsWith("image/")) throw new UnsupportedEditError("Only an existing internal picture occurrence supports filling.");
       picture ??= await acquireControlPng(file as DocxBinaryInput, { ...context, budget });

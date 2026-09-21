@@ -10,6 +10,7 @@ import { addressKey, LocationIndex } from "./location-index.js";
 import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments } from "./operation-types.js";
+import { isXmlContentType } from "./package-xml.js";
 import { DocumentPackage } from "./package.js";
 import { paragraphTextRun } from "./paragraph-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext } from "./publication.js";
@@ -52,7 +53,7 @@ export async function addDocumentFields(input: Uint8Array, request: FieldEditReq
       const target = caption ? options.sequence ?? options.label : options.target;
       instruction = fieldInstruction(caption ? "SEQ" : toc ? "TOC" : options.kind, target, options.levels ?? (toc ? { start: 1, end: 3 } : undefined));
       if (caption && options.sequence === undefined) {
-        for (const candidate of archive.members.filter(m => m.name.endsWith(".xml"))) {
+        for (const candidate of graph.parts.filter(part => isXmlContentType(part.content_type))) {
           const xml = new DocumentXmlEditor(candidate.bytes, {}, undefined, budget);
           const visit = (current: typeof xml.root): boolean => {
             budget.charge("work", 1);

@@ -429,6 +429,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return specifier;
           }
           let publicName = publicSpecifier(specifier);
+          if (publicName === `@poe-platform/${name}` || publicName.startsWith(`@poe-platform/${name}/`)) return publicName;
           const qualifiedName = name === "safe-bash" && Object.keys(source.poeCode?.integration?.privateWorkspaces ?? {})
             .find(candidate => publicName === candidate || publicName.startsWith(candidate + "/"));
           if (qualifiedName) {

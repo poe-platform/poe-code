@@ -176,6 +176,28 @@ function optionalLeftovers() {
   return { volume, data, excluded, options: { rootDir: "/repo", version: "0.1.0", files, bundle } };
 }
 
+it('preserves companion references to conditional public contracts in the same published package', async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = '/repo/packages/mcp-companion';
+  volume.mkdirSync(directory + '/dist', { recursive: true });
+  volume.writeFileSync(directory + '/package.json', JSON.stringify({
+    name: 'mcp-companion', private: true, type: 'module',
+    exports: { '.': { types: './dist/index.d.ts', import: './dist/index.js' } },
+    poeCode: { safeLibraryExports: { 'safe-bash': { './mcp': '.' } } },
+  }));
+  volume.writeFileSync(directory + '/dist/index.js', 'export { commandRuntimeIdentity } from "@poe-platform/safe-bash/contracts";');
+  volume.writeFileSync(directory + '/dist/index.d.ts', 'export type { CommandDefinition } from "@poe-platform/safe-bash/contracts";');
+  await packageSafeLibraries({ ...options, outDir: '/output' });
+  const read = (path: string) => volume.readFileSync('/output/safe-bash/' + path, 'utf8');
+  expect(read('dist/mcp-companion/index.js')).toContain('"@poe-platform/safe-bash/contracts"');
+  expect(read('dist/mcp-companion/index.d.ts')).toContain('"@poe-platform/safe-bash/contracts"');
+  const manifest = JSON.parse(read('package.json'));
+  expect(manifest.exports['./mcp']).toEqual({
+    types: './dist/mcp-companion/index.d.ts', import: './dist/mcp-companion/index.js',
+  });
+  expect(manifest.dependencies).not.toHaveProperty('@poe-platform/safe-bash');
+});
+
 it('ships an optional browser companion with generated assets and optional provider peers', async () => {
   const { volume, options } = optionalLeftovers();
   const directory = '/repo/packages/cloudflare-browser';

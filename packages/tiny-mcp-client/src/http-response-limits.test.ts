@@ -117,3 +117,28 @@ it.each(["slow deletion", "failed deletion"])(
     }
   }
 );
+
+it("keeps a receive-stream failure primary when final initialization and deletion overlap", async () => {
+  const receiving = Promise.withResolvers<Response>(), initialized = Promise.withResolvers<void>();
+  const transport = new HttpTransport({ url: "https://mcp.invalid/limits", fetch: async (_url, init) => {
+    if (init?.method === "GET") return receiving.promise;
+    if (init?.method === "DELETE") return new Response(null, { status: 500 });
+    const request = JSON.parse(String(init?.body));
+    if (request.method === "notifications/initialized") {
+      receiving.resolve(new Response(null, { status: 403 }));
+      await new Promise<void>(resolve => setImmediate(resolve));
+      initialized.resolve();
+      return new Response(null, { status: 202 });
+    }
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: {
+      protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "qa", version: "1" }
+    } }, { headers: { "Mcp-Session-Id": "owned-session" } });
+  } });
+  const client = new McpClient({ clientInfo: { name: "limit-test", version: "1" }, protocolVersion: "2025-03-26" });
+  try {
+    const error = await client.connect(transport).catch(error => error);
+    await initialized.promise;
+    expect(error).toMatchObject({ status: 403, method: "GET", rpcMethod: "notifications/initialized" });
+    expect((await transport.closed).reason).toMatchObject({ status: 500, method: "DELETE" });
+  } finally { receiving.resolve(new Response(null, { status: 405 })); await client.close(); transport.dispose(); await transport.closed; }
+});

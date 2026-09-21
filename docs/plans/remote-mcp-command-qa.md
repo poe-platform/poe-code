@@ -190,3 +190,10 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     summaries, response-byte failure with empty stdout, no tool list/call and
     three distinct session deletions. Repeated values fail before network/binding.
     Inspect auth help and failure screenshots and purge only owned evidence.
+
+29. Final-handshake precedence: hold a real HTTP GET until the initialized POST
+    arrives, then answer GET403 and DELETE500 before finishing initialized202.
+    Native connect must expose GET403 with notifications/initialized provenance;
+    transport.closed retains DELETE500 separately. Generated command diagnostics
+    must report GET403, empty result stdout, exit1 and zero tools/call, with both
+    assigned sessions deleted. Inspect the failure screenshot and purge owned QA.

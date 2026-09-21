@@ -2774,7 +2774,7 @@ export class HttpTransport implements McpTransport {
     try {
       await this.sendPost(serializeJsonRpcMessage({ jsonrpc: "2.0", method: "notifications/initialized" }), signal);
       signal.throwIfAborted();
-      if (this.disposed) throw (await this.closed).reason;
+      if (this.disposed) throw await this.closeReason;
     } catch (error) {
       if (error instanceof HttpTransportError)
         throw new HttpTransportError(error.message, error.status, error.method, "notifications/initialized");

@@ -107,3 +107,68 @@ filesystem root; disposable evidence used the ignored workspace `out` directory.
 
 No push or release is authorized for this task. Stage only owned source/tests,
 this plan and the related specification clarification for one atomic safety fix.
+
+## Follow-up verification: table-cell field boundaries
+
+Inspection of the original engine exposed a complex `REF` instruction beginning
+in one table cell and ending in another being accepted during rename. Original
+memfs SDK and CLI regressions reproduced this before the correction: the SDK
+published a rename instead of rejecting, and CLI dry-run returned exit 0 instead
+of 1. The `reject` policy control already passed. The first SDK probe lacked
+explicit archive encoding and reached a usage error; that probe is not the
+behavioral red evidence. Supplying the original fixture encoding reproduced the
+actual successful unsafe publication.
+
+Prior red/green evidence was inspected in the committed plan and the
+`62d76ffc2` source/test diff. No raw bookmark logs or images remain in the
+disposable evidence directory; the historical failure counts are recorded
+evidence, not a newly replayed historical red run. Current original suites
+independently reverified the green behavior.
+
+Reference traversal now isolates table cells using the existing container stack.
+Incomplete/cross-cell fields reject before applying staged reference changes or
+publishing bytes. Supported table-contained split instructions and original
+multi-run ranges retain their existing tests. No API, operation name, reference
+policy, public model spelling or capability authority changes.
+
+The existing exact JS/security mappings apply unchanged. Re-reading the pinned
+920-object inventory confirms no dedicated bookmark public owner. Related
+Hyperlink and Paragraph, inherited members, enums, collections, helpers and
+public underscore-prefixed types keep their historical dispositions and later
+overlays; these utility tests do not establish whole-public-API coverage.
+
+Executed checks:
+
+- Original bookmark/reference/command suites: 64 tests passed, including both
+  new red cases and the already-passing rejection-policy control.
+- Maintained DOCX lint: ESLint and both TypeScript checks passed, with the
+  existing `operation-types.test.ts` unused-variable warning.
+- Maintained selected DOCX workspace build closure passed.
+- Ordinary maintained DOCX package run: 244 files/5,126 tests passed and one
+  5-second timeout in `control-bindings.test.ts` (unsupported descendant selector).
+  The isolated original suite then passed all 34 tests without retries. This
+  does not turn the failed package invocation into a passed gate; no timeout
+  limit or unrelated implementation was changed.
+- `npm run test --workspace=docx -- --retry=1`: completed successfully,
+  all 245 files and 5,127 tests passed. This is a successful retry-enabled
+  verification after the failed ordinary invocation, not a claim that the
+  initial package gate passed.
+- Original safe-bash bookmark VFS script/stdin/binary-pipe test: 1 passed via
+  the Node/tsx runner on its exact maintained file. The package runner with a
+  name pattern still loaded 1,269 files and was stopped; that broader attempt
+  is not a completed gate.
+
+Manual CLI QA procedure executed with the original in-memory fixture:
+
+1. Build a two-cell table with a multi-run `Survey` bookmark and a
+   `REF Survey` field whose begin/instruction and separator/end occupy separate
+   cells; supply document reads only from memfs.
+2. Invoke the public command engine for `bookmarks set --bookmark 1 --name
+   FinalSurvey --references update --dry-run` with explicit byte sinks.
+3. Capture and inspect actual human output using the repository screenshot
+   command. The image showed a readable `unsupported-edit` diagnostic and
+   exit 1 without document text. Remove the disposable image after inspection.
+
+No downloads, native reference build, product host I/O or product networking
+were used. Renderer/download corpus QA and full object-model conformance are
+not claimed. Historical evidence above remains unchanged.

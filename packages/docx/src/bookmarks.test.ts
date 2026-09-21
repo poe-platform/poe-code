@@ -154,3 +154,16 @@ it("creates conventional hidden bookmark names with the same grammar as internal
   const result = await edit(input, "bookmarks.add", { select: await selected(input, 0, 7), name: "_Coast_1" });
   expect((await docx.inspectDocumentBookmarks(result.bytes, {}, textContext)).items[0]!.name).toBe("_Coast_1");
 });
+
+it.each(["update", "reject"] as const)("rejects a reference field crossing table cells under %s without publication", async references => {
+  const input = await textFixture(table([
+    rangeBody() + `<w:p><w:r><w:fldChar w:fldCharType="begin"/><w:instrText>REF Coast</w:instrText></w:r></w:p>`,
+    `<w:p><w:r><w:fldChar w:fldCharType="separate"/><w:t>Coastal survey</w:t><w:fldChar w:fldCharType="end"/></w:r></w:p>`
+  ]));
+  const volume = Volume.fromJSON({ "/output": "untouched" });
+  await expect(docx.editDocumentBookmarks(input, {
+    operation: "bookmarks.set", options: { bookmark: 1, name: "Bay", references, output: "-" }
+  }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/output", bytes); } } }))
+    .rejects.toMatchObject({ code: "unsupported-edit" });
+  expect(volume.readFileSync("/output", "utf8")).toBe("untouched");
+});

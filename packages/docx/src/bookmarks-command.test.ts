@@ -63,6 +63,16 @@ it("prints malformed bookmark diagnostics in human output", async () => {
   expect(new TextDecoder().decode(result.stdout)).toContain("missing-end");
 });
 
+it("rejects a complex reference crossing table cells through the CLI", async () => {
+  const bytes = await textFixture(table([
+    '<w:p><w:bookmarkStart w:id="5" w:name="Survey"/>' + run("Coastal ") + run("survey") + '<w:bookmarkEnd w:id="5"/></w:p><w:p><w:r><w:fldChar w:fldCharType="begin"/><w:instrText>REF Survey</w:instrText></w:r></w:p>',
+    '<w:p><w:r><w:fldChar w:fldCharType="separate"/><w:t>Cached survey</w:t><w:fldChar w:fldCharType="end"/></w:r></w:p>'
+  ]));
+  const result = await command(bytes, ["bookmarks", "set", "input.docx", "--bookmark", "1", "--name", "FinalSurvey", "--references", "update", "--dry-run", "--json"]);
+  expect(result.exitCode).toBe(1);
+  expect(JSON.parse(new TextDecoder().decode(result.stdout))).toMatchObject({ ok: false, data: null, affected: 0, errors: [{ code: "unsupported-edit" }] });
+});
+
 it.each(["set", "remove"])("rejects bookmarks %s with controlled references equally in CLI and SDK", async action => {
   const bytes = await textFixture(table(['<w:p><w:bookmarkStart w:id="5" w:name="Survey"/>' + run("Coastal ") + run("survey") + '<w:bookmarkEnd w:id="5"/></w:p>']) + '<w:p><w:sdt><w:sdtContent><w:fldSimple w:instr="REF Survey">' + run("Cached survey") + '</w:fldSimple></w:sdtContent></w:sdt></w:p>');
   const references = action === "set" ? "update" : "remove";

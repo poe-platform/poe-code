@@ -3586,6 +3586,8 @@ only with explicit `references: "update"`; `reject` refuses dependent edits.
 Removal requires `remove` or `reject`, retains bookmark content, and unwraps
 supported simple references under `remove`. Complex-field removal and opaque or
 unsafe dependencies reject. Fields are never executed.
+Complex bookmark reference instructions must stay within one story/table-cell
+container; a field split across cells rejects before publication.
 Dependent links or field instructions within tracked or controlled content also
 reject before any reference change is applied; unrelated fields remain intact.
 Existing multi-paragraph ranges within one admitted container can be

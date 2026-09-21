@@ -58,7 +58,7 @@ export function updateBookmarkReferences(
       const dialect = dialectForNamespace(node.namespace);
       const word = dialect !== undefined && node.namespace === documentDialects[dialect].w;
       controlled ||= word && ["ins", "del", "moveFrom", "moveTo", "sdt"].includes(node.localName);
-      const story = word && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName);
+      const story = word && ["body", "hdr", "ftr", "footnote", "endnote", "comment", "tc", "txbxContent"].includes(node.localName);
       const outerFields = fields;
       const outerDeletedTail = deletedTail;
       if (story) { fields = []; deletedTail = ""; }

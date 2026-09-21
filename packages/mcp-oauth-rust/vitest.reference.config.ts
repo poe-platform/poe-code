@@ -16,6 +16,7 @@ const redirects = new Map(
     ["client/authorization-state.js", "state.js"],
     ["client/pkce.js", "pkce.js"],
     ["client/scope.js", "scope.js"],
+    ["client/client-registration.js", "registration.js"],
     ["server/jwks-token-verifier.js", "jwks.js"]
   ].map(([original, native]) => [
     fileURLToPath(new URL(original, new URL("../mcp-oauth/src/", import.meta.url))),

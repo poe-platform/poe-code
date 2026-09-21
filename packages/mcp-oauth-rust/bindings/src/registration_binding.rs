@@ -109,3 +109,17 @@ pub fn parse_client_registration(env: Env, source: Unknown<'_>) -> Result<Native
         value,
     )])))
 }
+
+#[napi]
+pub fn normalize_stored_client(text: Utf16String) -> Result<NativeJson> {
+    let value = mcp_protocol_rust::json::parse_utf16(&text, Default::default())
+        .map_err(|_| napi::Error::from_reason("Invalid OAuth client data"))?;
+    let (key, value) = match mcp_oauth_rust::registration::normalize_stored(&value) {
+        Ok(value) => ("value", value.unwrap_or(Value::Null)),
+        Err(message) => ("error", Value::String(message.encode_utf16().collect())),
+    };
+    Ok(NativeJson(Value::Object(vec![(
+        key.encode_utf16().collect(),
+        value,
+    )])))
+}

@@ -3780,3 +3780,31 @@ Conservative previously unrecorded active04:18:55–04:31:00 segment adds725s,
 bringing recorded actual effort to82,981s (23.05h). The later checkpoint gap is
 excluded; this continuation is measured from04:34:58 UTC. Minimum24-hour actual
 effort remains unfulfilled.
+
+### OAuth Rust stored-client normalization, 2026-09-21 04:41 UTC
+
+Independent Rust stored-client normalization trims own identity fields, validates
+and retains full owned registrations, checks registered client ID/secret equality,
+normalizes supported authentication methods and rejects configured/registered
+method conflicts. The host evaluates identity before method and registration
+getters; registration descriptor admission never calls credential serialization
+hooks. Native and portable reds precede implementation. Root types expose the
+owned registration/client contracts and compare bidirectionally with originals.
+
+All37 Rust cases and5 focused native registration/client groups pass. Focused
+lint/fmt/clippy/types and uncached113-workspace/8-build/338-edge closure pass.
+Reference configuration redirects client-registration imports to the own package.
+The complete original reference run explicitly fails111/335 cases across15 files,
+with224 passing and one unhandled rotating-refresh error: provider transactions,
+initial grants, persistence namespace, profiles, scope, registration lifecycle,
+cancellation and provenance still require reconciliation. No failures are filtered
+or counted as passes. The rebased native route passes63/65 groups, leaving its two
+concurrency groups unresolved. Evidence out/rust-oauth-stored-client-* and
+out/rust-oauth-registration-rebased-unit.log.
+
+Parser9d433b732 is pushed and verified on remote main. The earlier parser commit
+was rebased after preserving concurrent original issuer/expiry work and three
+concurrent Rust persistence/binding commits. Both independently added provider
+Rust test blocks remain. This follow-up does not yet integrate stored-client
+normalization into provider policies. Full goal/minimum effort/release acceptance
+remain incomplete; effort continues beyond04:34:58 boundary.

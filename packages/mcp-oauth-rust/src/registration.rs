@@ -72,3 +72,64 @@ pub fn validate(value: &Value) -> Result<(), &'static str> {
     }
     Ok(())
 }
+
+/// Normalize persisted client identity and retain an owned, validated registration.
+pub fn normalize_stored(value: &Value) -> Result<Option<Value>, &'static str> {
+    let Value::Object(_) = value else {
+        return Ok(None);
+    };
+    let Some(Value::String(id)) = value.get("clientId") else {
+        return Ok(None);
+    };
+    let id = trim_ecmascript(id);
+    if id.is_empty() {
+        return Ok(None);
+    }
+    let secret = match value.get("clientSecret") {
+        None => None,
+        Some(Value::String(secret)) if !trim_ecmascript(secret).is_empty() => {
+            Some(trim_ecmascript(secret))
+        }
+        _ => return Ok(None),
+    };
+    let field = |key: &str, value| (key.encode_utf16().collect(), value);
+    let mut fields = vec![field("clientId", Value::String(id.to_vec()))];
+    if let Some(secret) = secret {
+        fields.push(field("clientSecret", Value::String(secret.to_vec())));
+    }
+    let method = crate::token_auth::normalize(value.get("tokenEndpointAuthMethod"))?;
+    let mut registered_method = None;
+    if let Some(registration) = value.get("registration") {
+        validate(registration)?;
+        let Some(Value::String(registered_id)) = registration.get("client_id") else {
+            unreachable!("validated registration");
+        };
+        let registered_secret = match registration.get("client_secret") {
+            Some(Value::String(secret)) => Some(trim_ecmascript(secret)),
+            _ => None,
+        };
+        if trim_ecmascript(registered_id) != id || registered_secret != secret {
+            return Err("OAuth client registration does not match the client identity");
+        }
+        fields.push(field("registration", registration.clone()));
+        registered_method =
+            crate::token_auth::normalize(registration.get("token_endpoint_auth_method"))?;
+        if method.is_some() && registered_method.is_some() && method != registered_method {
+            return Err(
+                "OAuth token endpoint authentication conflicts with the client registration",
+            );
+        }
+    }
+    if let Some(method) = method.or(registered_method) {
+        let method = match method {
+            crate::token_auth::Method::None => "none",
+            crate::token_auth::Method::Post => "client_secret_post",
+            crate::token_auth::Method::Basic => "client_secret_basic",
+        };
+        fields.push(field(
+            "tokenEndpointAuthMethod",
+            Value::String(method.encode_utf16().collect()),
+        ));
+    }
+    Ok(Some(Value::Object(fields)))
+}

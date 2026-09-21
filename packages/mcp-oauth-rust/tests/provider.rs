@@ -170,3 +170,34 @@ fn full_registration_preserves_json_extensions_and_enforces_nullable_metadata() 
         Err("Invalid OAuth client registration metadata")
     );
 }
+
+#[test]
+fn stored_registration_requires_matching_identity_and_authentication() {
+    use mcp_oauth_rust::registration::normalize_stored;
+    let input = value(
+        r#"{"clientId":" c ","clientSecret":" s ","registration":{"client_id":" c ","client_secret":" s ","token_endpoint_auth_method":"client_secret_basic","extra":true}}"#,
+    );
+    let normalized = normalize_stored(&input).unwrap().unwrap();
+    assert_eq!(normalized.get("registration"), input.get("registration"));
+    assert_eq!(normalized.get("clientId"), Some(&value(r#""c""#)));
+    assert_eq!(
+        normalized.get("tokenEndpointAuthMethod"),
+        Some(&value(r#""client_secret_basic""#))
+    );
+    assert_eq!(
+        normalize_stored(&value(
+            r#"{"clientId":"c","registration":{"client_id":"different"}}"#
+        )),
+        Err("OAuth client registration does not match the client identity")
+    );
+    assert_eq!(
+        normalize_stored(&value(
+            r#"{"clientId":"c","tokenEndpointAuthMethod":"none","registration":{"client_id":"c","token_endpoint_auth_method":"client_secret_basic"}}"#
+        )),
+        Err("OAuth token endpoint authentication conflicts with the client registration")
+    );
+    assert_eq!(
+        normalize_stored(&value(r#"{"clientId":"c","clientSecret":null}"#)),
+        Ok(None)
+    );
+}

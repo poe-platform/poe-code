@@ -109,3 +109,9 @@ import type { OAuthClientRegistration as ReferenceRegistration } from "../../mcp
 const registration: ReferenceRegistration = parseOAuthClientRegistration({ client_id: "c" });
 const ownRegistration: OAuthClientRegistration = registration;
 void ownRegistration;
+
+import { normalizeStoredOAuthClient, type StoredOAuthClient } from "../dist/index.js";
+import type { StoredOAuthClient as ReferenceClient } from "../../mcp-oauth/dist/index.js";
+const storedClient: ReferenceClient | null = normalizeStoredOAuthClient({ clientId: "c" });
+const ownStoredClient: StoredOAuthClient | null = storedClient;
+void ownStoredClient;

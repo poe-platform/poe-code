@@ -11,4 +11,4 @@ export { canonicalizeResourceIndicator } from "./resource.js";
 export { createOAuthClientProvider, createDefaultOAuthClientProvider } from "./provider.js";
 export { createJwksTokenVerifier } from "./jwks.js";
 
-export { parseOAuthClientRegistration } from "./registration.js";
+export { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./registration.js";

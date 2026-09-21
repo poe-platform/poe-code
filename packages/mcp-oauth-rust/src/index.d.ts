@@ -196,3 +196,11 @@ export interface OAuthClientRegistration extends Record<string, unknown> {
   token_endpoint_auth_method?: string | null;
 }
 export declare function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration;
+
+export interface StoredOAuthClient {
+  clientId: string;
+  clientSecret?: string;
+  registration?: OAuthClientRegistration;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+}
+export declare function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | null;

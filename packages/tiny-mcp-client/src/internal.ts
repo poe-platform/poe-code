@@ -2688,6 +2688,7 @@ export class HttpTransport implements McpTransport {
   private readonly oauthProvider: OAuthClientProvider | undefined;
   private readonly oauthMetadataDiscovery: OAuthMetadataDiscovery | undefined;
   private readonly inFlightFetchAbortControllers = new Set<AbortController>();
+  private readonly inFlightOAuthAbortControllers = new Set<AbortController>();
   private readonly openResponseReaders = new Set<ReadableStreamDefaultReader<Uint8Array>>();
   private readonly modernRequests = new Map<RequestId, AbortController>();
   private modernMode = false;
@@ -2767,7 +2768,7 @@ export class HttpTransport implements McpTransport {
     this.rejectLegacyEndpoint = undefined;
     this.resolveLegacyEndpoint = undefined;
     this.toolParameterHeaders.clear();
-    this.abortInFlightFetches();
+    this.abortInFlightFetches(reason);
     this.cancelOpenResponseReaders();
 
     if (!this.writeStream.destroyed && !this.writeStream.writableEnded) {
@@ -2807,13 +2808,14 @@ export class HttpTransport implements McpTransport {
     resolveClosed?.({ reason: closeReason });
   }
 
-  private abortInFlightFetches(): void {
-    for (const controller of this.modernRequests.values()) controller.abort();
+  private abortInFlightFetches(reason: Error): void {
+    for (const controller of this.modernRequests.values()) controller.abort(reason);
     this.modernRequests.clear();
     for (const abortController of this.inFlightFetchAbortControllers) {
-      abortController.abort();
+      abortController.abort(reason);
     }
-
+    for (const controller of this.inFlightOAuthAbortControllers) controller.abort(reason);
+    this.inFlightOAuthAbortControllers.clear();
     this.inFlightFetchAbortControllers.clear();
   }
 
@@ -2904,7 +2906,7 @@ export class HttpTransport implements McpTransport {
       const response = await this.fetchWithOAuthRetry({
         url: postUrl,
         method: "POST",
-        createHeaders: () => this.createPostHeaders(message, modern),
+        createHeaders: signal => this.createPostHeaders(message, modern, signal),
         body: line,
         controller
       });
@@ -2952,7 +2954,8 @@ export class HttpTransport implements McpTransport {
 
   private async createPostHeaders(
     message?: JsonRpcRequest | JsonRpcNotification,
-    modern = false
+    modern = false,
+    signal?: AbortSignal
   ): Promise<Headers> {
     const headers = new Headers(this.headers);
     headers.set("Accept", "application/json, text/event-stream");
@@ -2993,10 +2996,10 @@ export class HttpTransport implements McpTransport {
       headers.set("Mcp-Session-Id", this.sessionId);
       headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
-    return this.authorizeRequestHeaders(headers);
+    return this.authorizeRequestHeaders(headers, signal);
   }
 
-  private async createGetHeaders(): Promise<Headers> {
+  private async createGetHeaders(signal?: AbortSignal): Promise<Headers> {
     const headers = new Headers(this.headers);
     headers.set("Accept", "text/event-stream");
     if (this.sessionId !== undefined) {
@@ -3006,22 +3009,26 @@ export class HttpTransport implements McpTransport {
     if (this.lastEventId !== undefined) {
       headers.set("Last-Event-ID", this.lastEventId);
     }
-    return this.authorizeRequestHeaders(headers);
+    return this.authorizeRequestHeaders(headers, signal);
   }
 
-  private async createDeleteHeaders(sessionId: string): Promise<Headers> {
+  private async createDeleteHeaders(sessionId: string, signal?: AbortSignal): Promise<Headers> {
     const headers = new Headers(this.headers);
     headers.set("Mcp-Session-Id", sessionId);
     headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
-    return this.authorizeRequestHeaders(headers);
+    return this.authorizeRequestHeaders(headers, signal);
   }
 
-  private async authorizeRequestHeaders(headers: Headers): Promise<Headers> {
+  private async authorizeRequestHeaders(headers: Headers, signal?: AbortSignal): Promise<Headers> {
+    signal?.throwIfAborted();
     await this.oauthProvider?.authorizeRequest?.({
       requestUrl: new URL(this.url),
-      headers,
-      fetch: this.fetchImpl,
+      headers, signal,
+      fetch: (url, init) => fetchMcpResponse(this.fetchImpl, url, {
+        ...init, signal: signal === undefined ? init?.signal : init?.signal == null ? signal : AbortSignal.any([signal, init.signal])
+      }),
     });
+    signal?.throwIfAborted();
     return headers;
   }
 
@@ -3066,7 +3073,7 @@ export class HttpTransport implements McpTransport {
   }
 
   private async sendSessionTerminationRequest(sessionId: string, signal: AbortSignal): Promise<void> {
-    const headers = await this.createDeleteHeaders(sessionId);
+    const headers = await this.createDeleteHeaders(sessionId, signal);
     signal.throwIfAborted();
     const response = await fetchMcpResponse(this.fetchImpl, this.url, {
       method: "DELETE",
@@ -3093,7 +3100,7 @@ export class HttpTransport implements McpTransport {
   private async consumeGetSseStream(): Promise<void> {
     const response = await this.fetchWithOAuthRetry({
       method: "GET",
-      createHeaders: () => this.createGetHeaders(),
+      createHeaders: signal => this.createGetHeaders(signal),
     });
     if (this.disposed) {
       void response.body?.cancel().catch(() => undefined);
@@ -3208,7 +3215,7 @@ export class HttpTransport implements McpTransport {
     throw new HttpTransportError(message, response.status, "POST");
   }
 
-  private async maybeHandleUnauthorizedResponse(response: Response): Promise<boolean> {
+  private async maybeHandleUnauthorizedResponse(response: Response, signal: AbortSignal): Promise<boolean> {
     if (response.status !== 401 || this.oauthProvider === undefined) {
       return false;
     }
@@ -3221,14 +3228,18 @@ export class HttpTransport implements McpTransport {
     const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
     const resourceMetadataUrl = challenge?.params.resource_metadata;
     try {
-      const discovery = await discoveryClient.discover(this.url, { resourceMetadataUrl });
+      const discovery = await discoveryClient.discover(this.url, { resourceMetadataUrl, signal });
       const providerResponse = response.clone();
       let result;
       try {
         result = await this.oauthProvider.handleUnauthorized({
           requestUrl: new URL(this.url), response: providerResponse, challenge, discovery,
-          fetch: this.fetchImpl,
+          signal,
+          fetch: (url, init) => fetchMcpResponse(this.fetchImpl, url, {
+            ...init, signal: init?.signal == null ? signal : AbortSignal.any([signal, init.signal])
+          }),
         });
+        signal.throwIfAborted();
       } finally {
         // Cancel both tee branches without awaiting adapter cleanup.
         void providerResponse.body?.cancel().catch(() => undefined);
@@ -3382,34 +3393,30 @@ export class HttpTransport implements McpTransport {
   private async fetchWithOAuthRetry(input: {
     url?: string;
     method: "GET" | "POST";
-    createHeaders: () => Promise<Headers>;
+    createHeaders: (signal: AbortSignal) => Promise<Headers>;
     body?: BodyInit;
     controller?: AbortController;
   }): Promise<Response> {
-    const request = async (): Promise<Response> =>
-      this.fetchWithAbort(
-        input.url ?? this.url,
-        {
-          method: input.method,
-          headers: await input.createHeaders(),
-          body: input.body
-        },
-        input.controller
-      );
-
-    let response = await request();
-    if (await this.maybeHandleUnauthorizedResponse(response)) {
-      response = await request();
-    }
-
-    const oauthError =
-      this.oauthProvider === undefined ? null : this.readOAuthChallengeError(response);
-    if (oauthError !== null) {
-      void response.body?.cancel().catch(() => undefined);
-      throw oauthError;
-    }
-
-    return response;
+    const controller = input.controller ?? new AbortController();
+    this.inFlightOAuthAbortControllers.add(controller);
+    const request = async (): Promise<Response> => {
+      controller.signal.throwIfAborted();
+      const headers = await input.createHeaders(controller.signal);
+      controller.signal.throwIfAborted();
+      return this.fetchWithAbort(input.url ?? this.url, {
+        method: input.method, headers, body: input.body
+      }, controller);
+    };
+    try {
+      let response = await request();
+      if (await this.maybeHandleUnauthorizedResponse(response, controller.signal)) response = await request();
+      const oauthError = this.oauthProvider === undefined ? null : this.readOAuthChallengeError(response);
+      if (oauthError !== null) {
+        void response.body?.cancel().catch(() => undefined);
+        throw oauthError;
+      }
+      return response;
+    } finally { this.inFlightOAuthAbortControllers.delete(controller); }
   }
 
   private readOAuthChallengeError(response: Response): OAuthError | null {

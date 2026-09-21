@@ -41,6 +41,7 @@ export interface OAuthClientProvider {
     requestUrl: URL;
     headers: Headers;
     fetch: OAuthMetadataFetch;
+    signal?: AbortSignal;
   }): Promise<void> | void;
 
   handleUnauthorized(input: {
@@ -49,6 +50,7 @@ export interface OAuthClientProvider {
     challenge: OAuthUnauthorizedChallenge | null;
     discovery: OAuthDiscoveryResult;
     fetch: OAuthMetadataFetch;
+    signal?: AbortSignal;
   }): Promise<{ action: "retry" } | { action: "fail"; error?: Error }> | { action: "retry" } | { action: "fail"; error?: Error };
 }
 

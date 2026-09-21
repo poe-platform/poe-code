@@ -55,7 +55,7 @@ export function createDefaultOAuthClientProvider(
     async authorizeRequest(input): Promise<void> {
       assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
-      const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false);
+      const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false, false, input.signal);
       const accessToken = session?.tokens?.accessToken;
       if (
         session === null ||
@@ -88,7 +88,8 @@ export function createDefaultOAuthClientProvider(
           },
           input.fetch,
           true,
-          forceRefresh
+          forceRefresh,
+          input.signal
         );
 
         if (session?.tokens?.accessToken === undefined) {
@@ -97,6 +98,7 @@ export function createDefaultOAuthClientProvider(
 
         return { action: "retry" } as const;
       } catch (error) {
+        input.signal?.throwIfAborted();
         return {
           action: "fail",
           error: error instanceof Error ? error : new Error(String(error))
@@ -110,10 +112,13 @@ export function createDefaultOAuthClientProvider(
     discovery: OAuthDiscoveryResult | undefined,
     fetch: OAuthMetadataFetch,
     allowInteractive: boolean,
-    forceRefresh = false
+    forceRefresh = false,
+    signal?: AbortSignal
   ): Promise<StoredOAuthSession | null> {
+    signal?.throwIfAborted();
     const canonicalResource = canonicalizeResourceIndicator(resource);
     let session = await loadSession(canonicalResource);
+    signal?.throwIfAborted();
     if (discovery !== undefined && getOwnString(
       discovery.authorizationServerMetadata, "issuer"
     ) !== discovery.authorizationServer) {
@@ -138,7 +143,7 @@ export function createDefaultOAuthClientProvider(
       sessionDiscovery !== undefined &&
       (forceRefresh || isExpired(session.tokens, now))
     ) {
-      session = await refreshSession(canonicalResource, session, sessionDiscovery, fetch);
+      session = await refreshSession(canonicalResource, session, sessionDiscovery, fetch, signal);
       if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
         return session;
       }
@@ -154,15 +159,17 @@ export function createDefaultOAuthClientProvider(
     }
 
     if (options.allowInteractive === false) throw new Error("OAuth interactive authorization is disabled");
-    return authorizeSession(canonicalResource, session, sessionDiscovery, fetch);
+    return authorizeSession(canonicalResource, session, sessionDiscovery, fetch, signal);
   }
 
   async function refreshSession(
     resource: string,
     session: StoredOAuthSession,
     discovery: OAuthDiscoveryResult,
-    fetch: OAuthMetadataFetch
+    fetch: OAuthMetadataFetch,
+    signal?: AbortSignal
   ): Promise<StoredOAuthSession | null> {
+    signal?.throwIfAborted();
     assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
 
     const inFlight = refreshPromises.get(resource);
@@ -191,11 +198,12 @@ export function createDefaultOAuthClientProvider(
               clientSecret: session.client.clientSecret,
               refreshToken: session.tokens.refreshToken,
               resource,
-              fetch,
+              fetch, signal,
               now
             });
             break;
           } catch (error) {
+            signal?.throwIfAborted();
             if (error instanceof OAuthError && error.error === "invalid_grant") {
               const clearedSession = clearSessionTokens(session);
               await saveSession(resource, clearedSession);
@@ -246,8 +254,10 @@ export function createDefaultOAuthClientProvider(
     resource: string,
     existingSession: StoredOAuthSession | null,
     discovery: OAuthDiscoveryResult,
-    fetch: OAuthMetadataFetch
+    fetch: OAuthMetadataFetch,
+    signal?: AbortSignal
   ): Promise<StoredOAuthSession> {
+    signal?.throwIfAborted();
     const inFlight = authorizationPromises.get(resource);
     if (inFlight !== undefined) {
       return inFlight;
@@ -267,7 +277,7 @@ export function createDefaultOAuthClientProvider(
           createServer: options.browser.createServer,
           landingPage: options.browser.landingPage,
           redirectUri: options.browser.redirectUri,
-          signal: options.browser.signal,
+          signal: options.browser.signal === undefined ? signal : signal === undefined ? options.browser.signal : AbortSignal.any([signal, options.browser.signal]),
           timeoutMs: options.browser.timeoutMs
         });
         let resolvedClient: ResolvedOAuthClient | null = null;
@@ -277,7 +287,8 @@ export function createDefaultOAuthClientProvider(
             currentSession,
             discovery,
             loopback.redirectUri,
-            fetch
+            fetch,
+            signal
           );
           const sessionWithoutTokens: StoredOAuthSession = {
             resource,
@@ -310,7 +321,7 @@ export function createDefaultOAuthClientProvider(
             codeVerifier: verifier,
             redirectUri: loopback.redirectUri,
             resource,
-            fetch,
+            fetch, signal,
             now
           });
 
@@ -322,6 +333,7 @@ export function createDefaultOAuthClientProvider(
           await saveSession(resource, session);
           return session;
         } catch (error) {
+          signal?.throwIfAborted();
           if (shouldReRegisterStoredDynamicClient(error, resolvedClient, reRegistrationAttempted)) {
             reRegistrationAttempted = true;
             await clearRegisteredClient(discovery.authorizationServer);
@@ -355,8 +367,10 @@ export function createDefaultOAuthClientProvider(
     existingSession: StoredOAuthSession | null,
     discovery: OAuthDiscoveryResult,
     redirectUri: string,
-    fetch: OAuthMetadataFetch
+    fetch: OAuthMetadataFetch,
+    parentSignal?: AbortSignal
   ): Promise<ResolvedOAuthClient> {
+    parentSignal?.throwIfAborted();
     const configuredClient = normalizeConfiguredClient(options.client);
 
     if (options.client.mode === "static") {
@@ -424,7 +438,8 @@ export function createDefaultOAuthClientProvider(
       getClientMetadata(options.client),
       redirectUri
     );
-    const signal = AbortSignal.timeout(30_000);
+    const deadline = AbortSignal.timeout(30_000);
+    const signal = parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
     const response = await fetchMcpResponse(fetch, registrationEndpoint, {
       method: "POST",
       headers: {

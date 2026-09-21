@@ -32,6 +32,7 @@ export interface OAuthMetadataDiscoveryOptions {
 
 export interface OAuthMetadataLookupOptions {
   resourceMetadataUrl?: string | URL;
+  signal?: AbortSignal;
 }
 
 function defaultOAuthMetadataFetch(input: string | URL, init?: RequestInit): Promise<Response> {
@@ -192,8 +193,10 @@ async function readJsonResponse(response: Response, label: string, signal: Abort
   }
 }
 
-async function fetchMetadata(fetch: OAuthMetadataFetch, location: string, label: string): Promise<unknown> {
-  const signal = AbortSignal.timeout(10_000);
+async function fetchMetadata(fetch: OAuthMetadataFetch, location: string, label: string, parentSignal?: AbortSignal): Promise<unknown> {
+  parentSignal?.throwIfAborted();
+  const deadline = AbortSignal.timeout(10_000);
+  const signal = parentSignal === undefined ? deadline : AbortSignal.any([deadline, parentSignal]);
   const response = await fetchMcpResponse(fetch, location, {
     method: "GET", headers: { Accept: "application/json" }, signal
   });
@@ -325,7 +328,8 @@ export class OAuthMetadataDiscovery {
 
   private async discoverProtectedResource(
     resource: string,
-    resourceMetadataUrl?: string | URL
+    resourceMetadataUrl?: string | URL,
+    signal?: AbortSignal
   ): Promise<{ location: string; metadata: OAuthProtectedResourceMetadata }> {
     const locations = new Set([resolveProtectedResourceMetadataUrl(resource, resourceMetadataUrl)]);
     if (resourceMetadataUrl === undefined) {
@@ -336,11 +340,12 @@ export class OAuthMetadataDiscovery {
     for (const location of locations) {
       try {
         const metadata = validateProtectedResourceMetadata(
-          await fetchMetadata(this.fetchImpl, location, "Protected resource metadata"),
+          await fetchMetadata(this.fetchImpl, location, "Protected resource metadata", signal),
           resource
         );
         return { location, metadata };
       } catch (error) {
+        signal?.throwIfAborted();
         lastError = error;
       }
     }
@@ -349,8 +354,9 @@ export class OAuthMetadataDiscovery {
 
   async discover(
     resourceUrl: string | URL,
-    { resourceMetadataUrl }: OAuthMetadataLookupOptions = {}
+    { resourceMetadataUrl, signal }: OAuthMetadataLookupOptions = {}
   ): Promise<OAuthDiscoveryResult> {
+    signal?.throwIfAborted();
     const cacheKey = canonicalizeResourceIndicator(resourceUrl);
     resolveProtectedResourceMetadataUrl(cacheKey, resourceMetadataUrl);
     const memoryCachedResult = this.memoryCache.get(cacheKey);
@@ -359,6 +365,7 @@ export class OAuthMetadataDiscovery {
     }
 
     const sharedCachedResult = await this.cache?.get(cacheKey);
+    signal?.throwIfAborted();
     if (
       sharedCachedResult !== null &&
       sharedCachedResult !== undefined &&
@@ -374,7 +381,7 @@ export class OAuthMetadataDiscovery {
     }
 
     const { location: resourceMetadataLocation, metadata: resourceMetadata } =
-      await this.discoverProtectedResource(cacheKey, resourceMetadataUrl);
+      await this.discoverProtectedResource(cacheKey, resourceMetadataUrl, signal);
 
     const authorizationServerErrors: string[] = [];
 
@@ -385,7 +392,7 @@ export class OAuthMetadataDiscovery {
       for (const authorizationServerMetadataUrl of metadataLocations) {
         try {
           const authorizationServerMetadata = validateAuthorizationServerMetadata(
-            await fetchMetadata(this.fetchImpl, authorizationServerMetadataUrl, "Authorization server metadata"),
+            await fetchMetadata(this.fetchImpl, authorizationServerMetadataUrl, "Authorization server metadata", signal),
             normalizedAuthorizationServer
           );
 
@@ -402,6 +409,7 @@ export class OAuthMetadataDiscovery {
           await this.cache?.set(cacheKey, structuredClone(result));
           return result;
         } catch (error) {
+          signal?.throwIfAborted();
           authorizationServerErrors.push(
             `${authorizationServerMetadataUrl}: ${
               error instanceof Error ? error.message : String(error)

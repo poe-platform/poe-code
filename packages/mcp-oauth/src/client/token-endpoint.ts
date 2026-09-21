@@ -53,6 +53,7 @@ export async function exchangeAuthorizationCode(input: {
   redirectUri: string;
   resource: string;
   fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
   now: () => number;
 }): Promise<StoredOAuthTokens> {
   const resource = canonicalizeResourceIndicator(input.resource);
@@ -69,6 +70,7 @@ export async function exchangeAuthorizationCode(input: {
       resource
     },
     fetch: input.fetch,
+    signal: input.signal,
     now: input.now
   });
 }
@@ -80,6 +82,7 @@ export async function refreshAccessToken(input: {
   refreshToken: string;
   resource: string;
   fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
   now: () => number;
 }): Promise<StoredOAuthTokens> {
   const resource = canonicalizeResourceIndicator(input.resource);
@@ -94,6 +97,7 @@ export async function refreshAccessToken(input: {
       resource
     },
     fetch: input.fetch,
+    signal: input.signal,
     now: input.now
   });
 }
@@ -104,6 +108,7 @@ async function requestTokens(input: {
   clientSecret?: string;
   params: Record<string, string>;
   fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
   now: () => number;
 }): Promise<StoredOAuthTokens> {
   const body = new URLSearchParams({
@@ -115,7 +120,9 @@ async function requestTokens(input: {
     body.set("client_secret", input.clientSecret);
   }
 
-  const signal = AbortSignal.timeout(30_000);
+  input.signal?.throwIfAborted();
+  const deadline = AbortSignal.timeout(30_000);
+  const signal = input.signal === undefined ? deadline : AbortSignal.any([input.signal, deadline]);
   const response = await fetchMcpResponse(input.fetch, input.tokenEndpoint, {
     method: "POST",
     headers: {

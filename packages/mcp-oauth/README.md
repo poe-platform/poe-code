@@ -75,6 +75,11 @@ accept the same `redirectUri`, `signal` and `timeoutMs` options. Cancellation,
 timeout and explicit close settle pending code waits and release listeners.
 Always close a successful standalone session in `finally`.
 
+Provider request inputs accept an optional `signal`. It reaches callback waits,
+registration, token requests and bounded token-body reads. Cancellation retains
+its original reason and does not retry authorization. Custom providers should
+observe the supplied signal and pass it to any work they start.
+
 Configure `client.metadata.scope` to request a precise scope set; broader
 discovery metadata does not override it.
 

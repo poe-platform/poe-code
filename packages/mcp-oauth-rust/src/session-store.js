@@ -4,8 +4,12 @@ import { createCredentialStoreBindings } from "./auth-store-runtime.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 const { createSecretStore } = createCredentialStoreBindings(native);
-function namedStore(key, options, client) {
-  const defaults = native.oauthStorageDefaults(key, client);
+export function assertPersistenceNamespace(namespace) {
+  if (namespace !== undefined && (typeof namespace !== "string" || namespace.trim() === "" || Buffer.byteLength(namespace, "utf8") > 1024))
+    throw new Error("OAuth persistence namespace must be a nonempty string within 1024 bytes");
+}
+function namedStore(key, options, client, namespace) {
+  const defaults = native.oauthStorageDefaults(namespace === undefined ? key : JSON.stringify([namespace, key]), client);
   const configured = options.fileStore?.filePath;
   const parsed = configured === undefined ? null : path.parse(configured);
   const filename =
@@ -36,33 +40,40 @@ function decodeStored(raw, client) {
   if (Object.hasOwn(result, "error")) throw new Error(result.error);
   return result.value;
 }
-export function createAuthStoreSessionStore(options = {}) {
+export function createAuthStoreSessionStore(options = {}, namespace) {
+  assertPersistenceNamespace(namespace);
   return {
+    async withLock(resource, operation, lockOptions) {
+      const store = namedStore(canonicalizeResourceIndicator(resource), options, false, namespace);
+      if (store.withLock === undefined) throw new Error("OAuth secret-store backend does not support transaction locks");
+      return store.withLock(operation, lockOptions);
+    },
     async load(resource) {
-      const value = await namedStore(canonicalizeResourceIndicator(resource), options, false).get();
+      const value = await namedStore(canonicalizeResourceIndicator(resource), options, false, namespace).get();
       return value === null ? null : decodeStored(value, false);
     },
     async save(resource, session) {
-      await namedStore(canonicalizeResourceIndicator(resource), options, false).set(
+      await namedStore(canonicalizeResourceIndicator(resource), options, false, namespace).set(
         JSON.stringify(session)
       );
     },
     async clear(resource) {
-      await namedStore(canonicalizeResourceIndicator(resource), options, false).delete();
+      await namedStore(canonicalizeResourceIndicator(resource), options, false, namespace).delete();
     }
   };
 }
-export function createAuthStoreClientStore(options) {
+export function createAuthStoreClientStore(options, namespace) {
+  assertPersistenceNamespace(namespace);
   return {
     async load(issuer) {
-      const value = await namedStore(issuer, options, true).get();
+      const value = await namedStore(issuer, options, true, namespace).get();
       return value === null ? null : decodeStored(value, true);
     },
     async save(issuer, client) {
-      await namedStore(issuer, options, true).set(JSON.stringify(client));
+      await namedStore(issuer, options, true, namespace).set(JSON.stringify(client));
     },
     async clear(issuer) {
-      await namedStore(issuer, options, true).delete();
+      await namedStore(issuer, options, true, namespace).delete();
     }
   };
 }

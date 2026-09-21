@@ -1,4 +1,4 @@
-import type { CreateSecretStoreInput } from "./auth-store-types.js";
+import type { CreateSecretStoreInput, SecretStoreLockOptions } from "./auth-store-types.js";
 export type OAuthTokenEndpointAuthMethod = "none" | "client_secret_post" | "client_secret_basic";
 export interface StoredOAuthTokens {
   accessToken: string;
@@ -19,6 +19,7 @@ export interface StoredOAuthSession {
   };
 }
 export interface OAuthSessionStore {
+  withLock?<T>(resource: string, operation: () => Promise<T>, options?: SecretStoreLockOptions): Promise<T>;
   load(resource: string): Promise<StoredOAuthSession | null>;
   save(resource: string, session: StoredOAuthSession): Promise<void>;
   clear(resource: string): Promise<void>;
@@ -88,6 +89,7 @@ export interface DefaultOAuthClientProviderOptions {
     | { mode: "static"; clientId: string; clientSecret?: string; metadata?: OAuthClientMetadata };
   allowInteractive?: boolean;
   sessionLockTimeoutMs?: number;
+  persistenceNamespace?: string;
   browser: LoopbackAuthorizationOptions;
   sessionStore?: OAuthSessionStore;
   authStore?: CreateSecretStoreInput;
@@ -134,7 +136,8 @@ export declare function createJwksTokenVerifier(
   options: JwksTokenVerifierOptions
 ): JwksTokenVerifier;
 export declare function createAuthStoreSessionStore(
-  options?: CreateSecretStoreInput
+  options?: CreateSecretStoreInput,
+  namespace?: string
 ): OAuthSessionStore;
 export declare function canonicalizeResourceIndicator(value: string | URL): string;
 export declare function generateCodeVerifier(): string;

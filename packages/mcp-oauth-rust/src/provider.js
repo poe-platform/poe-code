@@ -3,7 +3,7 @@ import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
-import { createAuthStoreSessionStore, createAuthStoreClientStore } from "./session-store.js";
+import { createAuthStoreSessionStore, createAuthStoreClientStore, assertPersistenceNamespace } from "./session-store.js";
 import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 import { fetchMcpResponse } from "./http.js";
@@ -114,11 +114,12 @@ export function createOAuthClientProvider(options) {
     : createDefaultOAuthClientProvider(options);
 }
 export function createDefaultOAuthClientProvider(options) {
+  assertPersistenceNamespace(options.persistenceNamespace);
   loopbackTarget(options.browser);
   const requestedScope = normalizeOAuthScope(options.client.metadata?.scope);
-  const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
+  const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
   const clientStore =
-    options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
+    options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
   const now = options.now ?? Date.now;
   const registeredClients = new native.NativeProviderClientCache();
   const refreshing = new Map(),

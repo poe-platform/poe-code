@@ -163,3 +163,10 @@ classes, POSIX classes, braces/ranges and extended groups without `fast-glob`.
 Directory matches are batched into one native call. Traversal detects symlink cycles;
 patterns exceeding 16,384 units, 64 nesting levels or 10,000 range alternatives reject.
 `grep` requires the `rg` executable or an injected `searchContent` function.
+
+The internal OpenAI-compatible streaming transport uses Node fetch and owned Rust
+SSE framing/retry policy. It supports the Chat Completions and Responses operations
+needed by the pending provider plugins, with cancellation and bounded error bodies.
+It is development work; the provider plugins are not available yet. The official
+SDK is only a development reference. Mocked streaming benchmarks are faster than
+the SDK, but this does not predict end-to-end model latency or memory superiority.

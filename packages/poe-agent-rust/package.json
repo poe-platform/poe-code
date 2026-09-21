@@ -20,13 +20,14 @@
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
-    "@poe-code/poe-agent": "*",
     "@poe-code/agent-spawn-rust": "*",
-    "tiny-mcp-client-rust": "*",
+    "@poe-code/poe-agent": "*",
     "mcp-protocol-rust": "*",
+    "memfs": "4.56.10",
+    "openai": "6.49.0",
+    "tiny-mcp-client-rust": "*",
     "typescript": "5.9.3",
-    "vitest": "4.1.11",
-    "memfs": "4.56.10"
+    "vitest": "4.1.11"
   },
   "files": [
     "dist",

@@ -164,3 +164,4 @@ pub mod builtin_plugins;
 pub mod context_plugins;
 
 pub mod file_tools;
+pub mod openai_policy;

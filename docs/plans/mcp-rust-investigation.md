@@ -4955,3 +4955,39 @@ or performance/memory/stability superiority accepted.
 Active08:11:38–08:14:43 adds185s, bringing conservative effort to95371s (26.49h).
 Minimum fulfilled; continue the remaining agent/runtime/provider/spawn/toolcraft/
 platform/Python acceptance after08:14:43 UTC.
+
+### Owned OpenAI streaming transport, 2026-09-21 08:20 UTC
+
+Additive internal transport implements the Chat Completions create and Responses
+stream operations required by the pending provider plugins; it is not a full SDK
+replacement and no provider plugin is exported yet. Node owns fetch/TLS, headers,
+JSON effects, reader cancellation, caller signals and timers. Rust owns explicit
+all-event SSE framing and retry status/override policy plus capped jitter backoff.
+SDK is an explicit dev dependency only. Error bodies are bounded1MiB and SSE events
+16MiB; timer/server-delay overflow rejects instead of silently clamping to1ms.
+Cancellation before iteration, pending reads and early break release bodies/readers
+and caller listeners. Dedicated unconsumed-stream red caught a leaked response
+body; fixed before delivery. Missing-module/native-policy reds are recorded.
+
+Checks pass47 Rust cases,79 native groups,264 applicable complete original
+reference cases/17 files,bidirectional existing types,fmt/clippy,focused ESLint and
+diff checks. Uncached maintained closure113 workspaces/36 builds/339 edges passes.
+Nine new native groups cross-check all byte splits of mixed CRLF/Unicode chat SSE,
+named/multiline Responses SSE,application request headers and observable SDK API
+error fields; bounded attempts/canceled retry responses and lifecycle checks pass.
+Direct/packed16MiB old-space workers each stream32768 events across1024 requests
+and cancel512 early exits with external imports blocked. Recursive packed audit
+120 JS/declaration files,one addon,zero runtime groups/imports (existing explicit
+SDK development adapter exception). Evidence out/rust-poe-agent-openai-*.
+
+Five warmed alternating512-request/16384-frame mocked samples measure SDK CPU
+38.89–51.82ms versus own17.43–23.05ms: this scoped speed gate PASS. It combines
+removed SDK overhead and own framing; no isolated Rust contribution/end-to-end
+network or universal advantage claimed. Finite8192-request16MiB old-space repeated
+GC workload records reclamation only; no complete leak freedom/memory superiority.
+
+Documentationb75fe6a0c push and exact remote-main verified. Release35576917226
+remains pending; no current publication success verified. Continuous active
+08:14:43–08:20:59 adds376s,bringing conservative effort to95747s (26.60h). Minimum
+fulfilled; provider plugins/agent builder/session/spawn/toolcraft/Python/platform
+and wider performance acceptance remain incomplete. Continue after08:20:59 UTC.

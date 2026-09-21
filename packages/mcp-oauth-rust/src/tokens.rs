@@ -111,28 +111,27 @@ pub fn read_json_response(text: &[u16], ok: bool, status: f64) -> Result<Value, 
     if ok {
         return payload.ok_or(ResponseError::InvalidObject);
     }
-    let fallback = if status == 503.0 {
-        "temporarily_unavailable"
-    } else {
-        "server_error"
-    };
+    let known = payload.as_ref().and_then(|value|value.get("error")).is_some_and(|value| matches!(value,Value::String(text) if text.iter().copied().any(|unit|!whitespace(unit))));
     let mut fields = vec![];
-    for key in ["error", "error_description", "error_uri"] {
-        if let Some(Value::String(text)) = payload.as_ref().and_then(|value| value.get(key)) {
-            fields.push(property(key, Value::String(text.clone())));
-        } else if key == "error" {
-            fields.push(property(
-                key,
-                Value::String(fallback.encode_utf16().collect()),
-            ));
+    if known {
+        for key in ["error", "error_description", "error_uri"] {
+            if let Some(Value::String(text)) = payload.as_ref().and_then(|value| value.get(key)) {
+                fields.push(property(key, Value::String(text.clone())));
+            }
         }
+    } else {
+        let fallback = if status == 503.0 {
+            "temporarily_unavailable"
+        } else if status >= 500.0 {
+            "server_error"
+        } else {
+            "invalid_response"
+        };
+        fields.push(property(
+            "error",
+            Value::String(fallback.encode_utf16().collect()),
+        ));
     }
-    let known = payload
-        .as_ref()
-        .and_then(|value| value.get("error"))
-        .is_some_and(
-            |value| matches!(value, Value::String(text) if text.iter().copied().any(|unit| !whitespace(unit))),
-        );
     fields.push(property("outcomeKnown", Value::Bool(known)));
     Err(ResponseError::OAuth(Value::Object(fields)))
 }

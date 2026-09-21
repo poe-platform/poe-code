@@ -151,3 +151,37 @@ fn error_outcomes_are_known_only_for_explicit_nonblank_oauth_errors() {
         assert_eq!(error.get("outcomeKnown"), Some(&Value::Bool(known)));
     }
 }
+#[test]
+fn malformed_error_responses_are_terminal_below_server_status_without_credential_echo() {
+    use mcp_oauth_rust::tokens::ResponseError;
+    for status in [400.0, 401.0, 403.0, 404.0, 500.0, 503.0] {
+        for body in [
+            "private-marker",
+            r#"{"error":" ","error_description":"private-marker","error_uri":"private-marker"}"#,
+        ] {
+            let Err(ResponseError::OAuth(error)) =
+                read_json_response(&body.encode_utf16().collect::<Vec<_>>(), false, status)
+            else {
+                panic!()
+            };
+            let expected = if status == 503.0 {
+                "temporarily_unavailable"
+            } else if status >= 500.0 {
+                "server_error"
+            } else {
+                "invalid_response"
+            };
+            assert_eq!(
+                error.get("error"),
+                Some(&Value::String(expected.encode_utf16().collect()))
+            );
+            assert_eq!(error.get("error_description"), None);
+            assert_eq!(error.get("error_uri"), None);
+            assert_eq!(error.get("outcomeKnown"), Some(&Value::Bool(false)));
+            assert_eq!(
+                is_retryable(&expected.encode_utf16().collect::<Vec<_>>(), status),
+                status >= 500.0
+            );
+        }
+    }
+}

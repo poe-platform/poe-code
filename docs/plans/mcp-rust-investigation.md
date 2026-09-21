@@ -4409,3 +4409,32 @@ job skipped. API inspection finds current root35566511319 pending and earlier
 active05:57:48–06:03:20 adds332s, bringing conservative actual effort to88,283s
 (24.52h). Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue
 active work after06:03:20 UTC.
+
+### OAuth malformed endpoint error admission, 2026-09-21 06:05 UTC
+
+Concrete native/original SDK failures and a portable red precede reconciliation
+with evolving original endpoint/registration rejection behavior. Rust classifies
+malformed responses by status:503 temporarily_unavailable, other5xx server_error,
+lower statuses invalid_response. It discards malformed error diagnostic fields,
+retains unknown outcome and does not echo rejected body credentials. Node errors
+use a generic HTTP-status message for unknown outcomes, preserve own-field aliases
+and avoid rereading shape.error to classify retries. Non-OAuth4xx registration
+errors terminate without another DCR attempt or consent wait.
+
+Earlier own native cases hardcoded superseded fallback messages/server_error and
+even failed against the updated original. Updated those assertions to the current
+independently checked contract, retaining malformed UTF8/pollution/size/abort
+coverage and adding outcomeKnown to differential projections. All55 Rust cases,
+88 native groups and all32 complete token-endpoint/registration-lifecycle source
+cases pass. Maintained full unit route now reaches all35 original files:436/451
+pass,15 required resource-import cases fail. Full package acceptance remains
+incomplete. Focused lint/fmt/clippy/types, uncached maintained closure and packed/
+direct16MiB workers pass; workers each add4096 malformed error admissions.
+Audit22 files, one addon, zero runtime groups. No memory/performance advantage
+claimed. Evidence out/rust-oauth-response-errors-*.
+
+Identity3daf42cdf is pushed. Current root35566847112 pending; previous35566511319
+cancelled. No successful current publication verified. Continuous active
+06:03:20–06:05:48 adds148s, bringing conservative actual effort to88,431s (24.56h).
+Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue active work
+after06:05:48 UTC.

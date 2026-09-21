@@ -5,16 +5,18 @@ const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 
 export class OAuthError extends Error {
   constructor(shape, status, outcomeKnown = true) {
-    super(shape.error_description ?? shape.error);
+    const description = Object.hasOwn(shape, "error_description") ? shape.error_description : undefined;
+    const uri = Object.hasOwn(shape, "error_uri") ? shape.error_uri : undefined;
+    super(description ?? (outcomeKnown ? shape.error : `OAuth HTTP response did not contain a valid error (HTTP ${status})`));
     this.name = "OAuthError";
     this.error = shape.error;
-    this.errorDescription = shape.error_description;
-    this.errorUri = shape.error_uri;
-    this.error_description = shape.error_description;
-    this.error_uri = shape.error_uri;
+    this.errorDescription = description;
+    this.errorUri = uri;
+    this.error_description = description;
+    this.error_uri = uri;
     this.status = status;
     this.outcomeKnown = outcomeKnown;
-    this.retryable = native.isRetryableTokenError(shape.error, status);
+    this.retryable = native.isRetryableTokenError(this.error, status);
     this.terminal = !this.retryable;
   }
 }

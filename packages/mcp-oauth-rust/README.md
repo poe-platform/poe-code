@@ -28,6 +28,8 @@ retain case, sort and deduplicate printable ASCII tokens. Token-response scopes
 must be nonempty when supplied; invalid scopes reject after expiry validation. The host adapter bounds token responses
 to 1 MiB, refuses redirects and uses a 30-second request deadline. Public
 `OAuthError` instances preserve protocol fields and retry/terminal classification.
+Malformed non-OAuth errors retain an unknown outcome and a generic HTTP-status
+message, without echoing response credentials. They are terminal below status500.
 
 Loopback sessions use an ephemeral `127.0.0.1` port or your exact registered
 HTTP redirect on `localhost`, `127.0.0.1` or `[::1]`. They support browser or pasted

@@ -30,7 +30,7 @@ test("code exchange and refresh build matching form bodies and consult clocks on
 test("OAuth JSON body failures and protocol errors preserve aliases and retry classification", async () => {
   const own = await import("../dist/tokens.js");
   for (const status of [200,400,503,500]) for (const body of ["not json","[]","{}",'{"error":"invalid_grant","error_description":"bad\\ud800","error_uri":"uri"}','{"error":"","error_description":""}']) {
-    const outcome = async factory => { try { return {value:await factory.readOAuthJsonObjectResponse(new Response(body,{status}))}; } catch(error) { return Object.fromEntries(["name","message","error","errorDescription","errorUri","error_description","error_uri","status","retryable","terminal"].map(key=>[key,error[key]])); } };
+    const outcome = async factory => { try { return {value:await factory.readOAuthJsonObjectResponse(new Response(body,{status}))}; } catch(error) { return Object.fromEntries(["name","message","error","errorDescription","errorUri","error_description","error_uri","status","retryable","terminal","outcomeKnown"].map(key=>[key,error[key]])); } };
     assert.deepEqual(await outcome(own),await outcome(reference));
   }
   for (const status of [400,500,503]) for (const error of ["invalid_grant","server_error","temporarily_unavailable",""]) {
@@ -48,7 +48,7 @@ test("bounded OAuth readers preserve size errors, abort reasons and malformed UT
       const controller = new AbortController();
       const reason = new Error("aborted request"); controller.abort(reason);
       await assert.rejects(factory.readOAuthJsonObjectResponse(new Response("{}", { status }), controller.signal), error => error === reason);
-      const expected = status === 200 ? "OAuth response must be a JSON object" : status === 503 ? "temporarily_unavailable" : "server_error";
+      const expected = status === 200 ? "OAuth response must be a JSON object" : `OAuth HTTP response did not contain a valid error (HTTP ${status})`;
       await assert.rejects(factory.readOAuthJsonObjectResponse(new Response(Uint8Array.of(255), { status })), error => error.message === expected);
     }
   }
@@ -73,7 +73,7 @@ test("inherited token, native envelope and OAuth error fields cannot contaminate
     await compare({});
     await compare({access_token:"t",token_type:"Bearer"});
     const error = await own.readOAuthJsonObjectResponse(new Response("{}", {status:400})).catch(error=>error);
-    assert.equal(error.error,"server_error"); assert.equal(error.errorDescription,undefined); assert.equal(error.errorUri,undefined);
+    assert.equal(error.error,"invalid_response"); assert.equal(error.errorDescription,undefined); assert.equal(error.errorUri,undefined);
   } finally {
     for (const [key,descriptor] of originals) { if (descriptor) Object.defineProperty(Object.prototype,key,descriptor); else delete Object.prototype[key]; }
   }

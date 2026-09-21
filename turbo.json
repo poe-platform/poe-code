@@ -201,6 +201,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "@poe-code/poe-agent-rust#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

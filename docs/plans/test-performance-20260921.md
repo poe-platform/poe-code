@@ -45,7 +45,7 @@ An isolated root script test edit now schedules root only. Package test helper/f
 
 Native DOCX commands include `packages/docx`; adding a file as another positional filter still selects the whole package because Vitest combines those filters as alternatives. `--test-file=<repository-relative-path>` now selects exact owned files through the maintained shared route. One exact workspace is required; native hooks/custom pools/extra native arguments are rejected before builds rather than bypassed. Every requested file must belong to the selected unit task. Default and change-based runs remain complete within their selected tasks.
 
-The built public consumer ran as one selected file after five fresh dependency builds and passed in 1.27 seconds (the child checks ten public cases). The equivalent 472 regression cases are also being exercised through the new maintained root route.
+The built public consumer ran as one selected file after five fresh dependency builds and passed in 1.27 seconds (the child checks ten public cases). The equivalent 472 regression cases also passed through the new maintained root route.
 
 ## Generated output lint
 
@@ -93,7 +93,7 @@ Three deep DOCX child scripts previously replaced all global zero-delay timers w
 
 ## Live test inputs under documentation
 
-A source audit found SafeJS tests importing docs/plans/qualify-realms-and-recovery/legacy-v8.json and related JSON data. A red pure scope test reproduced those edits selecting no tasks because the selector ignored every docs path. Only Markdown documentation is ignored now; non-Markdown docs inputs conservatively retain the full maintained plan, including fixtures, binary inputs and executable harnesses. Three scope/routing files pass 32 cases and focused ESLint passes. The full runner was stopped shortly after startup to incorporate this final correctness fix; code is frozen for the fresh complete acceptance run.
+A source audit found SafeJS tests importing docs/plans/qualify-realms-and-recovery/legacy-v8.json and related JSON data. A red pure scope test reproduced those edits selecting no tasks because the selector ignored every docs path. Only Markdown documentation is ignored now; non-Markdown docs inputs conservatively retain the full maintained plan, including fixtures, binary inputs and executable harnesses. Three scope/routing files pass 32 cases and focused ESLint passes. The full runner was stopped shortly after startup to incorporate this correctness fix. Office production code and compile artifacts were then held steady during the fresh shared acceptance phase; the separately validated affected-selection follow-ups below do not alter its default task membership.
 
 ## Declared native DOCX integration consumers
 
@@ -123,3 +123,17 @@ The native Bash phase reproduced one DOCX list assertion failure. An isolated No
 The remaining native public cleanup setup failed even alone at the unchanged 45-second compiler deadline, and the full-revision pack verifier failed at its unchanged 90-second compiler deadline. V8 profiling pointed to directory-name admission rather than TypeScript checking. The real temporary ancestor contained 21621 names occupying 1181026 indexed characters, above the one-MiB directory-index limit. A memfs regression reproduced 67 scans of the same oversized ancestor.
 
 Oversized stable directories now retain only requested folded components and their canonical spelling or ambiguous/missing result. They share the existing aggregate directory/name/character limits and invocation-local lifetime. Every lookup still samples current ancestor metadata; changes discard cached results, and unstable/incomplete identities still fall back without caching. Child symlink and regular/single-link admission is unchanged. Both oversized limits now require exactly two scans for the package/tool components, with fresh metadata checks throughout. Seven additional sparse-index mutation controls retain rejection after each identity field changes. The maintained Bash runner passes all 531 controls in 24.28s and focused ESLint passes. Real public cleanup and full-revision packing are rerun separately below; neither earlier failed run is counted as passing.
+
+
+## Native acceptance results and fixture recovery
+
+The first native continuation passed op and py-poe-spawn, then passed 522 Bash runner controls. Bash declared 1165 TypeScript files and completed 39694 cases: 38818 passed, 53 failed and 823 skipped in 901.09s. Its failures were the one list-level assertion corrected above, 30 pinned public-tarball/cache controls and 22 public cleanup cases sharing the failed compiler before-hook. The public dependency cache directory was absent. Fetching the pinned public @noble/hashes@2.4.0 and pako@3.0.1 artifacts restored it without changing integrity assertions. A separate verifier run passed all 438 archive/parser controls; only full-revision packing still hit the compiler deadline.
+
+The separately selected maintained native tasks required no artifact builds and retained their npm hooks. SafeJS passed 1411 files and 30340 cases (three files and 48 cases skipped) in 1421.47s; Safe Python passed 1150 files and 83807 cases in 147.58s; terminal-pilot passed nine files and 293 cases in 2.40s. Both mandatory root stress controls passed in 13.35s. Full repository lint passed with 16171 linted/configured files, zero errors and 19 warnings, including root types and workflow lint. Selected DOCX, Office and PPTX checks also passed.
+
+After the oversized-directory fix, all 22 public cleanup cases pass in 66.95s overall with the original compiler and hook deadlines. This entire-file duration includes child cleanup scenarios; the guarded build now finishes within its existing deadline. The targeted full-revision packed-export case passes in 30.15s overall, preserving the 90-second compiler subprocess deadline, clean packed-revision runtime imports, zero runtime requests and negative diagnostic/source-fallback assertions. Its name filter selects exactly the formerly failing case; the 438 separately passing controls are not repeated or counted as additional passes. Earlier failed shared/native commands remain failed commands; corrected selective reruns do not constitute a new full npm test pass. No push or release was requested or performed. Later concurrently produced DOCX audit evidence is left untouched and outside these commits.
+
+
+## Completion
+
+The two-hour improvement window ran from 13:17:41 to 15:17:41 UTC on 2026-09-21. Follow-up verification continued afterward to resolve every observed failure rather than increase deadlines or leave compiler setup broken. Initial pending work and each atomic improvement are committed locally on main. The comparable 472-case DOCX set improved from 47.59s to 13.25s wall time (about 72%, with host contention disclosed). Exact workspace/file routes and affected selection can omit untouched native suites while retaining declared consumers, global inputs, build dependencies and npm hooks. All observed failing cases have passing targeted reruns; a fresh complete npm test pass is not claimed. No remote delivery or release was performed.

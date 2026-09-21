@@ -27,6 +27,7 @@ where
 }
 #[derive(Debug, PartialEq)]
 pub enum Node<T> {
+    Bool(bool),
     String(&'static str),
     Number(f64),
     Opaque(T),

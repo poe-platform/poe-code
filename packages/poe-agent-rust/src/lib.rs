@@ -148,3 +148,5 @@ pub mod tool_results;
 pub mod session_tree;
 
 pub mod transcript;
+
+pub mod plugin_setup;

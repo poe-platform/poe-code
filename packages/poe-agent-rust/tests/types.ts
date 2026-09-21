@@ -146,3 +146,14 @@ const transcriptB: Pick<typeof own, keyof typeof referenceTranscript> = referenc
 const transcriptOptionsA: referenceTranscript.CreateTranscriptWriterOptions = {} as own.CreateTranscriptWriterOptions;
 const transcriptOptionsB: own.CreateTranscriptWriterOptions = {} as referenceTranscript.CreateTranscriptWriterOptions;
 void [transcriptA, transcriptB, transcriptOptionsA, transcriptOptionsB];
+
+import { PluginApiImpl as ReferencePluginApiImpl } from "../../poe-agent/dist/runtime/plugin-api-impl.js";
+import { runPluginSetup as referencePluginSetup } from "../../poe-agent/dist/runtime/plugin-setup.js";
+import type { PluginApi as ReferencePluginApi } from "../../poe-agent/dist/runtime/plugin-types.js";
+const pluginApiA: ReferencePluginApi = new own.PluginApiImpl(new own.RunContext());
+const pluginApiB: own.PluginApi = new ReferencePluginApiImpl(new referenceContext.RunContext());
+const pluginEntriesA: Parameters<typeof referencePluginSetup>[0] = [] as Parameters<typeof own.runPluginSetup>[0];
+const pluginEntriesB: Parameters<typeof own.runPluginSetup>[0] = [] as Parameters<typeof referencePluginSetup>[0];
+const flushA: ReferencePluginApiImpl["flushSetup"] = new own.PluginApiImpl(new own.RunContext()).flushSetup;
+const flushB: own.PluginApiImpl["flushSetup"] = new ReferencePluginApiImpl(new referenceContext.RunContext()).flushSetup;
+void [pluginApiA, pluginApiB, pluginEntriesA, pluginEntriesB, flushA, flushB];

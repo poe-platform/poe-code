@@ -52,3 +52,5 @@ export * from "./tool-results.js";
 export * from "./session-tree.js";
 
 export * from "./transcript.js";
+export { PluginApiImpl } from "./plugin-api.js";
+export { runPluginSetup } from "./plugin-setup.js";

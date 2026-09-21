@@ -22,6 +22,7 @@
     "@napi-rs/cli": "3.10.4",
     "@poe-code/poe-agent": "*",
     "@poe-code/agent-spawn-rust": "*",
+    "tiny-mcp-client-rust": "*",
     "mcp-protocol-rust": "*",
     "typescript": "5.9.3",
     "vitest": "4.1.11",
@@ -29,7 +30,9 @@
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "UNICODE-LICENSE.txt",
+    "MCP-LICENSE.txt"
   ],
   "engines": {
     "node": ">=18.18"

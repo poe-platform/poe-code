@@ -11,6 +11,35 @@ export default defineConfig({
       name: "rust-agent-runtime-reference",
       enforce: "pre",
       transform(code, id) {
+        if (
+          id === path("../poe-agent/src/runtime/plugin-api-impl.test.ts") ||
+          id === path("../poe-agent/src/runtime/plugin-api-impl.in-memory.test.ts")
+        ) {
+          const source = ts.createSourceFile(
+            id,
+            code,
+            ts.ScriptTarget.Latest,
+            true,
+            ts.ScriptKind.TS
+          );
+          const transformed = ts.transform(source, [
+            (context) => (root) =>
+              ts.visitNode(root, function visit(node) {
+                if (ts.isStringLiteral(node) && node.text === "tiny-mcp-client")
+                  return ts.factory.createStringLiteral(path("dist/client/index.js"));
+                return ts.visitEachChild(node, visit, context);
+              })
+          ]);
+          try {
+            let output = ts.createPrinter().printFile(transformed.transformed[0]);
+            output += `\nimport {PluginApiImpl as nativePluginApiContract} from ${JSON.stringify(path("dist/plugin-api.js"))};\nif(PluginApiImpl!==nativePluginApiContract)throw new Error("Plugin API contracts must execute the Rust package");`;
+            if (id === path("../poe-agent/src/runtime/plugin-api-impl.test.ts"))
+              output += `\nimport {runPluginSetup as nativePluginSetupContract} from ${JSON.stringify(path("dist/plugin-setup.js"))};\nif(runPluginSetup!==nativePluginSetupContract)throw new Error("Plugin setup contracts must execute the Rust package");`;
+            return { code: output, map: null };
+          } finally {
+            transformed.dispose();
+          }
+        }
         if (id !== path("../poe-agent/src/runtime/runtime.test.ts")) return;
         const source = ts.createSourceFile(
           id,
@@ -49,6 +78,17 @@ export default defineConfig({
         return { code: output, map: null };
       },
       resolveId(name, importer) {
+        if (
+          importer === path("../poe-agent/src/runtime/plugin-api-impl.test.ts") ||
+          importer === path("../poe-agent/src/runtime/plugin-api-impl.in-memory.test.ts")
+        ) {
+          if (name === "./plugin-api-impl.js") return path("dist/plugin-api.js");
+          if (name === "./plugin-setup.js") return path("dist/plugin-setup.js");
+          if (name === "./errors.js") return path("dist/errors.js");
+          if (name === "./hooks.js") return path("dist/hooks.js");
+          if (name === "./run-context.js") return path("dist/run-context.js");
+          if (name === "./tool-names.js") return path("dist/tool-names.js");
+        }
         if (importer === path("../poe-agent/src/runtime/runtime.test.ts")) {
           if (name === "./run-context.js") return path("dist/run-context.js");
           if (name === "./prompts.js") return path("dist/prompts.js");
@@ -58,7 +98,11 @@ export default defineConfig({
           if (name === "./errors.js") return path("dist/errors.js");
           if (name === "./tool-names.js") return path("dist/tool-names.js");
         }
-        if (importer === path("../poe-agent/src/runtime/transcript.test.ts") && name === "./transcript.js") return path("dist/transcript.js");
+        if (
+          importer === path("../poe-agent/src/runtime/transcript.test.ts") &&
+          name === "./transcript.js"
+        )
+          return path("dist/transcript.js");
         if (
           importer === path("../poe-agent/src/runtime/file-awareness.test.ts") &&
           name === "./file-awareness.js"
@@ -87,6 +131,8 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/runtime/plugin-api-impl.test.ts"),
+      path("../poe-agent/src/runtime/plugin-api-impl.in-memory.test.ts"),
       providers,
       path("../poe-agent/src/runtime/transcript.test.ts"),
       path("../poe-agent/src/runtime/session/session-tree.test.ts"),

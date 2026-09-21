@@ -258,3 +258,10 @@ pub mod tool_results_binding;
 pub mod session_tree_binding;
 
 pub mod transcript_binding;
+
+pub mod plugin_setup_binding;
+
+#[path = "../../../tiny-mcp-client-rust/bindings/src/lib.rs"]
+pub mod embedded_client;
+pub use embedded_client::NativeHttpResponseMessages;
+use mcp_protocol_rust_napi_core::convert;

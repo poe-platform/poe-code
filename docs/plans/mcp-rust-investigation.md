@@ -4598,3 +4598,52 @@ Zero runtime groups; no performance/memory superiority accepted.
 JSON negotiation40d606513 is pushed; current publication unverified. Continuous
 active06:26:57–06:31:25 adds268s, bringing conservative effort to89,968s (24.99h).
 Minimum fulfilled; full rewrite/acceptance incomplete. Continue after06:31:25 UTC.
+
+### Poe agent plugin setup and embedded MCP tools, 2026-09-21 06:44 UTC
+
+Complete original plugin-api/setup and in-memory transport suites plus portable
+reds precede Rust setup phases, bounded cursor tracking and opaque result templates.
+The own agent addon embeds the Rust MCP client/OAuth bindings. Host preparation
+embeds their own JS/declarations and auth-store lock; AST rewrites stdio type imports
+to embedded own declarations. Official SDK references are isolated to explicit
+development helpers. Cargo lock records only own path crates and the permitted
+napi dependency tree. Maintained workspace declaration adds own client as a dev
+build edge; npm lock update is scoped to that declaration. Preserve the concurrent
+root safe-bash lock change independently. MCP/Unicode license notices accompany
+the embedded implementation.
+
+Rust sequences tool/prompt/hook declarations, callback setup, queued discovery and
+cleanup registration. Node retains iterator/callback/property/coercion semantics.
+Initial native live-registration red catches global mutable plugin capture in
+prompt/disposal closures; per-plugin lexical capture repairs it and preserves
+custom iterators, live additions/removals and original undefined rejection behavior.
+Discovery preserves cursor getter reads while Rust tracks opaque identity handles
+and continuation bounds. MCP result templates retain inherited/opaque payloads,
+accessor causes, multimodal content, host interpolation order and terminal errors.
+Setup/discovery failures settle before reverse disposal and retain aggregate causes.
+
+Final maintained checks pass25 Rust cases,38 native groups,156 applicable complete
+reference cases/10 files, including both full new plugin API files. Explicit runtime
+import identity guards prevent original fallback. Bidirectional public PluginApi,
+plugin entries/flush types and lint/fmt/clippy pass. Uncached own closure passes113
+workspaces/36 builds/339 edges. Direct/packed16MiB cumulative workers retain all
+earlier checks. Additional workers each run1024 setup callbacks,1024 disposal hooks,
+1024 tool calls and16 real MCP subprocess cycles/32 multimodal/error calls with all
+external runtime imports blocked. Recursive artifact audit covers76 JS/declaration
+files, one addon, zero runtime groups; only the explicit SDK development adapter
+may contain its two SDK dynamic imports. Evidence out/rust-poe-agent-plugin-setup-*.
+
+Five alternating warmed1024 setup/disposal workloads measure TS2.92–4.97ms against
+native13.72–14.89ms: speed gate FAIL. Isolated16MiB old-space repeated setup/disposal
+exercises65,536 contexts with four forced collections/yields after each8192 batch.
+Post-GC heap7.46→7.53MB; RSS93.5→98.0MB, with near-stable final batches. Finite
+reclamation evidence does not establish universal leak/peak/TS memory superiority.
+Worker RSS includes the parent and is not acceptance. Full execution/built-ins/
+closure/platform/wider performance acceptance remain incomplete.
+
+Client6c9214a8a push completed and remote main inclusion is verified. Root35568626036
+has successful audit/build/checks/bash/cached-unit jobs; uncached unit remains active,
+so no successful current publication is verified. Root35568021206 failed before
+the embedding correction. Continuous active06:31:25–06:44:57 adds812s, bringing
+conservative effort to90,780s (25.22h). Minimum fulfilled; full rewrite/acceptance
+incomplete. Continue active work after06:44:57 UTC.

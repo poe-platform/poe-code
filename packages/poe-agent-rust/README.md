@@ -41,6 +41,18 @@ dependencies and keeps stable order. Its Rust planner uses iterative frames;
 JavaScript getters are evaluated only when the corresponding plugin is visited.
 These foundations support the pending agent builder and execution rewrite.
 
+`runPluginSetup(plugins, context)` registers tools, prompt transforms and hooks
+before each plugin's setup callback, then waits for queued MCP discovery. Completed
+plugins dispose in reverse order. Setup, discovery and disposal failures retain
+their causes, including multiple concurrent failures.
+
+`PluginApiImpl` adds and looks up tools and discovers stdio MCP servers. Discovered
+tools use server namespaces and retain multimodal content, tool signals and
+structured errors. Discovery rejects repeated cursors and continuations beyond
+128 pages. The Rust MCP client and OAuth implementation are embedded in the same
+addon, with no npm runtime dependencies. Node supplies subprocesses, streams and
+plugin callbacks. Built-in plugins and agent execution remain pending.
+
 `createFileAwarenessTracker(cwd)` records normalized file reads and writes in
 ordered, deduplicated Rust sets. Snapshots return independent JavaScript Sets.
 `recordToolFileAwareness` recognizes `read_file`, `write_file` and `edit`,

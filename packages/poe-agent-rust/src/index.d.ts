@@ -7,6 +7,7 @@ export {
 export { InvalidToolNameError } from "./tool-names.js";
 export type {
   AgentPlugin,
+  PluginApi,
   Provider,
   ProviderContext,
   ProviderStreamEvent
@@ -45,3 +46,5 @@ export * from "./tool-results.js";
 export * from "./session-tree.js";
 
 export * from "./transcript.js";
+export { PluginApiImpl } from "./plugin-api.js";
+export { runPluginSetup } from "./plugin-setup.js";

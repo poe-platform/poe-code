@@ -1,8 +1,9 @@
 use napi::{Property, bindgen_prelude::*};
 use napi_derive::napi;
 use poe_agent_rust::transcript::{self, Event, Kind, Node};
-fn encode(env: Env, node: Node<napi::sys::napi_value>) -> Result<napi::sys::napi_value> {
+pub(crate) fn encode(env: Env, node: Node<napi::sys::napi_value>) -> Result<napi::sys::napi_value> {
     match node {
+        Node::Bool(value) => unsafe { bool::to_napi_value(env.raw(), value) },
         Node::Opaque(value) => Ok(value),
         Node::String(value) => unsafe { String::to_napi_value(env.raw(), value.to_owned()) },
         Node::Number(value) => unsafe { f64::to_napi_value(env.raw(), value) },

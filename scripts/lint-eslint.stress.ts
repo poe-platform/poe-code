@@ -12,7 +12,20 @@ describe("guarded configuration bootstrap ordering", () => {
   it("captures the actual metadata cap in inventory phase and clears a fresh initialization", async () => {
     const state = bootstrapModel("opens");
     const options = { ...state.options, lintExclusions(_root: string, _boundaries: unknown, fileSystem: any) {
-      for (let attempt = 0; attempt < 8000001; attempt++) fileSystem.lstatSync(root);
+      // This control exhausts guard accounting against an unchanged root; metadata
+      // mutation is covered separately. Avoid millions of identical memfs lookups.
+      const memory = state.fileSystem;
+      const { lstatSync, readdirSync, realpathSync } = memory;
+      const parent = lstatSync("/"), directory = lstatSync(root);
+      const names = readdirSync("/", { encoding: "buffer" });
+      memory.lstatSync = ((path: string) => path === "/" ? parent : path === root ? directory : lstatSync(path)) as typeof lstatSync;
+      memory.readdirSync = ((path: string, options?: any) => path === "/" && options?.encoding === "buffer" ? names : readdirSync(path, options)) as typeof readdirSync;
+      memory.realpathSync = ((path: string) => path === root ? root : realpathSync(path)) as typeof realpathSync;
+      try {
+        for (let attempt = 0; attempt < 8000001; attempt++) fileSystem.lstatSync(root);
+      } finally {
+        Object.assign(memory, { lstatSync, readdirSync, realpathSync });
+      }
       return { files: [], directories: [] };
     } };
     await guardedInputs.withLintFailureDiagnostics(async (diagnostics: any) => {

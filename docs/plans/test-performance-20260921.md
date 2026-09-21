@@ -78,3 +78,11 @@ An interleaved 1,000-fixture comparison in one process, alternating order, confi
 ## Remaining Office timer delays
 
 PPTX's stored-archive wrapper still delayed each CRC chunk with a timer even after the shared ZIP runtime improvement. Capability discovery likewise delayed every member and each 256 inspected nodes. Both use the shared cooperative scheduler now. Three red tests reproduced three stored-chunk timers, two capability timers and the lack of the shared cancellation hook. All 51 focused checks pass, including an independent 1,025-byte stored payload witness, real event-loop interleaving and abort identity during 300-node inspection. Existing byte/accounting thresholds and inspection output remain unchanged; portable fallback is covered by the shared runtime tests. Selected PPTX lint/type checks validate this change.
+
+## Final validation discipline
+
+The second broad run exposed one old signed-priority assertion and one child import during a focused DOCX rebuild (controls.js was being rewritten). It also observed three newly added PPTX red tests against its already-loaded old source. The focused signed-priority and scheduler checks pass after their respective changes. That mixed live-edit run was stopped; final validation starts from committed code with no overlapping artifact rebuilds. No timeout was raised, and no complete-suite pass is claimed for the interrupted runs.
+
+## Mandatory posttest guard overhead
+
+The root posttest cap-exhaustion control spent 9.9s repeatedly looking up the same unchanged memfs root/parent metadata. Only inside that fixed cap loop, metadata responses are now mocked from the initialized memfs state and restored in finally. The real input guard still performs and charges all eight million metadata operations, rejects the next operation, preserves diagnostics and receipt checks, and initializes fresh state afterward. The separate 16,384-member traversal still uses real memfs and reports the exact same 1,209,401 operations and open/close accounting. Both controls pass: cap control 3.94s, complete stress file 13.20s instead of a representative 21.14s before (host contention applies). No hooks, cases or budget assertions are skipped. Focused stress-source ESLint passes.

@@ -266,7 +266,15 @@ pub fn prepare(name: &str, params: &Value) -> Result<Value, Fault> {
     if name == "press-key"
         && let Some(Value::String(key)) = params.get("key")
     {
-        crate::key_sequence(key).map_err(|e| fault(-32602, String::from_utf16_lossy(&e)))?;
+        crate::key_sequence(key).map_err(|e| {
+            fault(
+                -32602,
+                format!(
+                    "Invalid value for \"key\": {}",
+                    String::from_utf16_lossy(&e)
+                ),
+            )
+        })?;
     }
     validate(&spec.input, params, -32602)?;
     if matches!(name, "create-session" | "resize") {

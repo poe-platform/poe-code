@@ -11,7 +11,7 @@ fn command_surface_and_admission_precede_effect_plans() {
         command::prepare("press-key", &value(r#"{"key":"NotAKey"}"#))
             .unwrap_err()
             .message
-            .contains("key")
+            .contains("Invalid value for \"key\"")
     );
     assert!(command::prepare("wait-for", &value(r#"{"pattern":" "}"#)).is_err());
     assert!(command::prepare("wait-for", &value(r#"{"pattern":"x","timeout":-1}"#)).is_err());

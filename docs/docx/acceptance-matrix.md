@@ -1312,3 +1312,23 @@ inspected screenshot has a documented raster-font glyph limitation. The3872
 boundary-qualified public replay and fresh777-suite/full original obligation
 pipeline remain pending, with zero completed-cohort credit. Only the named F08/F09
 host-depth defect closes; every complete F08–F15/F18 family remains open.
+
+
+### Individual tab-stop review-history guard — 2026-09-21
+
+The [named exact current receipt](tab-stop-property-history-20260921/named-current-requirement-evidence.json)
+retains all576 unchanged original memfs identities:288 genuine pre-fix failures
+and288 valid supported/inactive-history controls. Current576/576 and7829/7829
+assertions in twelve exact maintained uncached suites pass, zero failures/skips.
+Individual position/alignment/leader setters now use the existing bounded review
+history guard before mutation. All3456 independent rebuilt public identities
+pass native model, model SDK, ordered SDK and actual explicitly opted-in CLI;
+publication/dry-run, Strict/Transitional DOCX/DOTX, four carriers and all nine
+native table-history forms retain exact input/destination/member/relationship
+bytes, native history, comments/PI, tab order, live handles, Unicode and formatting.
+Independent SAX assertions, maintained lint/types/selected build and inspected
+actual CLI output pass in scope. Original reports and exact bindings remain
+losslessly preserved. This closes only the named F09/F13/F27 setter bypass;
+additional codecs/prefixes/story/style/limit/depth variants, fresh782 membership,
+all original cohorts/reviewers and full normative reconciliation remain required.
+Full F08–F15/F18 acceptance stays open. No push/publication.

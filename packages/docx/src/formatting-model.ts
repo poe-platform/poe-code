@@ -329,7 +329,9 @@ export class TabStops implements Iterable<TabStop> {
     const nativeAlignment = patch.alignment === undefined ? undefined : tabAlignmentXml(readView(this.owner).root.namespace, patch.alignment.name);
     const binding = formattingXmlOwners.get(this.owner);
     const apply = (xml: DocumentXmlEditor, root: XmlElement) => {
-      const children = activeXmlChildren(xml, ownerBudget(this.owner)), props = child(root, "pPr", children), tabs = props && child(props, "tabs", children);
+      const children = activeXmlChildren(xml, ownerBudget(this.owner));
+      assertFormattingHistoryEditable(xml.root, root, children, ownerBudget(this.owner));
+      const props = child(root, "pPr", children), tabs = props && child(props, "tabs", children);
       const stops = tabs ? children(tabs).filter(node => node.namespace === tabs.namespace && node.localName === "tab") : [], node = stops[index];
       if (!tabs || !node || !xml.compatibility.canEdit(node)) throw new UnsupportedEditError("The tab stop is inside preserved compatibility content.");
       const values: Record<string, string | null> = {};

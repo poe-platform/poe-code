@@ -4,7 +4,7 @@ const resource = "https://resource.example/mcp", issuer = "https://auth.example"
 function fixture(publicInitialization = false) {
   const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26", auth: {
     type: "oauth", clientMode: "static", env: { clientId: "ID" }, redirectUri: "http://127.0.0.1:39141/callback" } }]).configuration.servers[0];
-  const callback = Promise.withResolvers<string>();
+  let callback = Promise.withResolvers<string>();
   const opener = vi.fn(async () => {});
   const observed = vi.fn(async (event: { authorizationUrl: string; redirectUri: string }) => {
     const url = new URL(event.authorizationUrl), redirect = new URL(event.redirectUri);
@@ -13,6 +13,7 @@ function fixture(publicInitialization = false) {
     expect(url.searchParams.get("client_id")).toBe("original");
     redirect.searchParams.set("code", "synthetic-code"); redirect.searchParams.set("state", url.searchParams.get("state")!);
     callback.resolve(redirect.href);
+    callback = Promise.withResolvers<string>();
   });
   const requests: string[] = [];
   const fetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
@@ -69,6 +70,14 @@ it("reuses a fresh authenticated session without emitting another URL or opening
   await authenticateRemoteMcpServer(f.configuration, { binding: f.binding, fetch: f.fetch });
   expect(f.observed).toHaveBeenCalledOnce();
   expect(f.opener).not.toHaveBeenCalled();
+});
+it("explicitly resets the old grant before starting a new consent flow", async () => {
+  const f = fixture(), reset = vi.fn(async () => { await f.binding.oauth.sessionStore().clear(); });
+  const binding = { ...f.binding, oauth: { ...f.binding.oauth, reset } };
+  await authenticateRemoteMcpServer(f.configuration, { binding, fetch: f.fetch, onAuthorizationUrl: f.observed });
+  await authenticateRemoteMcpServer(f.configuration, { binding, fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true });
+  expect(reset).toHaveBeenCalledOnce();
+  expect(f.observed).toHaveBeenCalledTimes(2);
 });
 it("fails explicitly selected browser launch without a configured opener before URL observation", async () => {
   const f = fixture();

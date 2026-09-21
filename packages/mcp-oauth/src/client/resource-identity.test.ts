@@ -135,3 +135,77 @@ it("does not retire credentials when a changed-URL challenge is canceled waiting
   } finally { release.resolve(); await holder; }
   expect((await f.authorize(original)).headers.get("Authorization")).toBe("Bearer access-1");
 });
+
+it("explicitly resets a corrupt named envelope without reading it and withholds stale environment imports", async () => {
+  const f = fixture();
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  const [file] = await f.fs.readdir("/home/test");
+  await f.fs.writeFile(`/home/test/${file}`, "corrupt-private-record");
+  await createResourceBoundOAuthStores(f.authStore, undefined, "catalog").reset(original, { timeoutMs: 1000 });
+  const extra = { client: { mode: "static" as const, clientId: "registered-client" }, initialGrant: { resource: original,
+    tokens: { accessToken: "stale-environment-access", tokenType: "Bearer" as const, expiresAt: null } } };
+  expect((await f.authorize(original, "catalog", extra)).headers.has("Authorization")).toBe(false);
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  expect(f.registrations()).toBe(2);
+});
+
+it("recovers an authenticated envelope with invalid session contents without needing its valid old shape", async () => {
+  const f = fixture(), stores = createResourceBoundOAuthStores(f.authStore, undefined, "catalog");
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  await stores.sessionStore.withLock!(original, () => stores.sessionStore.save(original, { resource: original } as import("./types.js").StoredOAuthSession), { timeoutMs: 1000 });
+  await expect(stores.sessionStore.load(original)).rejects.toThrow("stored OAuth");
+  await stores.reset(original);
+  expect(await stores.sessionStore.load(original)).toBeNull();
+});
+
+it("refuses explicit reset through a credential symlink", async () => {
+  const f = fixture();
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  const [file] = await f.fs.readdir("/home/test");
+  const originalBytes = await f.fs.readFile(`/home/test/${file}`, "utf8");
+  await f.fs.rename(`/home/test/${file}`, "/home/test/target.enc");
+  await f.fs.symlink("/home/test/target.enc", `/home/test/${file}`);
+  await expect(createResourceBoundOAuthStores(f.authStore, undefined, "catalog").reset(original)).rejects.toThrow("symbolic link");
+  expect(await f.fs.readFile("/home/test/target.enc", "utf8")).toBe(originalBytes);
+});
+
+it.each(["", " ", "😀".repeat(257)])("validates the namespace at the public resource store boundary", namespace => {
+  const f = fixture();
+  expect(() => createResourceBoundOAuthStores(f.authStore, namespace, "catalog")).toThrow("namespace");
+});
+
+it("resets only the selected name/profile and removes its registration along with its grant", async () => {
+  const f = fixture();
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  expect(await f.login(original, "other")).toEqual({ action: "retry" });
+  await f.authorize(original, "catalog", { persistenceNamespace: "different-profile" });
+  await createResourceBoundOAuthStores(f.authStore, "different-profile", "catalog").reset(original, { timeoutMs: 1000 });
+  expect((await f.authorize(original)).headers.get("Authorization")).toBe("Bearer access-1");
+  await createResourceBoundOAuthStores(f.authStore, undefined, "catalog").reset(original, { timeoutMs: 1000 });
+  expect((await f.authorize(original)).headers.has("Authorization")).toBe(false);
+  expect((await f.authorize(original, "other")).headers.get("Authorization")).toBe("Bearer access-2");
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  expect(f.registrations()).toBe(3);
+});
+
+it("does not mutate credentials when reset is canceled while waiting for the stable identity lock", async () => {
+  const f = fixture();
+  expect(await f.login(original)).toEqual({ action: "retry" });
+  const entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const stores = createResourceBoundOAuthStores(f.authStore, undefined, "catalog");
+  const holder = stores.sessionStore.withLock!(original, async () => { entered.resolve(); await release.promise; }, { timeoutMs: 1000 });
+  await entered.promise;
+  const controller = new AbortController(), reason = new Error("cancel explicit reset");
+  const reset = stores.reset(changed, { signal: controller.signal, timeoutMs: 1000 }).catch(error => error);
+  try {
+    await setImmediate(); controller.abort(reason);
+    expect(await reset).toBe(reason);
+  } finally { release.resolve(); await holder; }
+  expect((await f.authorize(original)).headers.get("Authorization")).toBe("Bearer access-1");
+});
+
+it.each(["https://user:private-secret@resource.example/mcp", "https://resource.example/mcp#fragment", "file:///private/record"])("rejects an unsafe reset resource before mutation", async resource => {
+  const f = fixture();
+  await expect(createResourceBoundOAuthStores(f.authStore, undefined, "catalog").reset(resource, { timeoutMs: 1000 })).rejects.toThrow("resource");
+  expect(await f.fs.readdir("/home/test").catch(() => [])).toEqual([]);
+});

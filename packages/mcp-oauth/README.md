@@ -103,6 +103,14 @@ returns `void` if a new discovery lookup is needed. It honors `allowInteractive`
 recovers pending refresh outcomes through consent, and returns an owned token
 snapshot. Normal transport request authorization remains noninteractive.
 
+`createResourceBoundOAuthStores(authStore, persistenceNamespace, resourceIdentity)`
+exposes the native named session/client stores and `reset(resource, { signal,
+timeoutMs })`. Reset acquires the raw identity backend lock, so it can recover
+corrupt or undecryptable records without reading their old contents. It atomically
+retires the identity's grant and registrations and writes a marker that suppresses
+stale initial grants. The default lock wait is 30 seconds. Other names/profiles
+are untouched, and symlink paths are still refused.
+
 Configure `client.metadata.scope` to request a precise scope set; broader
 discovery metadata does not override it. Explicit scopes must match the cached
 or imported grant's scope set; ordering, repeated spaces and duplicates are

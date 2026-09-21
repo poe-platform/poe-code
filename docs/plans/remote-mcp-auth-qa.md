@@ -71,3 +71,13 @@ inspection.
     followed by a fresh authenticated connection. Render and inspect auth text
     output and auth help. Test an explicit host browser selection, canceled
     consent and a failed output sink without production credentials.
+
+11. Use a built native named credential store with synthetic files under out.
+    Corrupt its encrypted document and recreate a management Shell with no
+    credential environment values. Run mcp reset catalog --json and prove it
+    succeeds without a network request. Recreate the host again and bind the
+    original environment access token: it must stay withheld by the reset marker.
+    Repeat with an authenticated document whose decrypted session is invalid.
+    Inspect reset/help screenshots. Exercise mcp auth --reset through a host-owned
+    durable reset hook, including cancellation while waiting for the native lock.
+    Do not reset production credentials; purge only this QA's synthetic evidence.

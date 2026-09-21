@@ -15,3 +15,5 @@ export { generateRemoteMcpArtifact, parseRemoteMcpArtifact, remoteMcpArtifactPlu
 export type { RemoteMcpArtifact, ArtifactOptions, ArtifactGenerationOptions, GeneratedRemoteMcpArtifact, ArtifactPluginOptions } from "./artifact.js";
 export { authenticateRemoteMcpServer } from "./authentication.js";
 export type { RemoteMcpAuthorizationRequest, RemoteMcpAuthenticationOptions, RemoteMcpAuthenticationResult } from "./authentication.js";
+export { resetRemoteMcpAuthentication } from "./credential-reset.js";
+export type { RemoteMcpCredentialResetOptions, RemoteMcpCredentialResetResult } from "./credential-reset.js";

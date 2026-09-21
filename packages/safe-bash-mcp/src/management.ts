@@ -4,6 +4,7 @@ import { initRemoteMcpConfiguration, type ConfigurationOptions, type InitRemoteM
 import { generateRemoteMcpArtifact, type ArtifactGenerationOptions } from "./artifact.js";
 import { authenticateRemoteMcpServer, type RemoteMcpAuthenticationOptions, type RemoteMcpAuthenticationResult } from "./authentication.js";
 import type { ConfigurationBindingOptions } from "./runtime-configuration.js";
+import { resetRemoteMcpAuthentication, type RemoteMcpCredentialResetOptions, type RemoteMcpCredentialResetResult } from "./credential-reset.js";
 
 export interface RemoteMcpManagementOptions extends ConfigurationOptions {
   readonly name?: string;
@@ -12,19 +13,25 @@ export interface RemoteMcpManagementOptions extends ConfigurationOptions {
   readonly maxOutputBytes?: number;
   readonly generation?: ArtifactGenerationOptions;
   readonly authentication?: Omit<RemoteMcpAuthenticationOptions, "binding"> & { readonly binding?: ConfigurationBindingOptions };
+  readonly reset?: RemoteMcpCredentialResetOptions;
 }
 
-function authenticationArguments(args: readonly string[]): { name: string; json: boolean; noBrowser?: boolean; requestTimeoutMs?: number } {
+function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number } {
+  const command = args[0];
   let name: string | undefined;
   let json = false;
   let noBrowser: boolean | undefined;
   let requestTimeoutMs: number | undefined;
+  let reset = false;
   for (let index = 1; index < args.length; index++) {
     const arg = args[index];
     if (arg === "--json") {
       if (json) throw new Error("--json can only be supplied once");
       json = true;
-    } else if (arg === "--no-browser" || arg === "--browser" || arg.startsWith("--browser=")) {
+    } else if (command === "auth" && arg === "--reset") {
+      if (reset) throw new Error("--reset can only be supplied once");
+      reset = true;
+    } else if (command === "auth" && (arg === "--no-browser" || arg === "--browser" || arg.startsWith("--browser="))) {
       if (noBrowser !== undefined) throw new Error("Browser selection can only be supplied once");
       const mode = arg === "--no-browser" ? "none" : arg === "--browser" ? args[++index] : arg.slice("--browser=".length);
       if (mode !== "none" && mode !== "host") throw new Error("--browser requires none or host");
@@ -36,15 +43,15 @@ function authenticationArguments(args: readonly string[]): { name: string; json:
       requestTimeoutMs = Number(value);
       if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647) throw new Error("--timeout-ms requires a positive supported millisecond interval");
     } else if (arg === "--") {
-      if (name !== undefined || index + 2 !== args.length) throw new Error("auth requires exactly one server name");
+      if (name !== undefined || index + 2 !== args.length) throw new Error(`${command} requires exactly one server name`);
       name = args[++index];
     } else {
-      if (arg.startsWith("-") || name !== undefined) throw new Error(`Unknown auth argument '${arg}'`);
+      if (arg.startsWith("-") || name !== undefined) throw new Error(`Unknown ${command} argument '${arg}'`);
       name = arg;
     }
   }
-  if (name === undefined) throw new Error("auth requires a server name");
-  return { name, json, noBrowser, requestTimeoutMs };
+  if (name === undefined) throw new Error(`${command} requires a server name`);
+  return { name, json, reset, noBrowser, requestTimeoutMs };
 }
 
 /** Create configuration and artifact commands for a host-owned static remote registry. */
@@ -59,7 +66,7 @@ export function createRemoteMcpManagementCommand(
   const maxInputBytes = commandLimit(options.maxInputBytes ?? 1024 * 1024, "maxInputBytes");
   const maxOutputBytes = commandLimit(options.maxOutputBytes ?? 16 * 1024 * 1024, "maxOutputBytes");
   const factorySignal = options.signal;
-  const authenticationUsage = `Usage: ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host]`;
+  const authenticationUsage = `Usage: ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host] [--reset]`;
   const authenticationGuidance = [
     "Auth verifies access without listing or calling tools. Headless login prints",
     "the complete authorization URL and exact redirect before waiting for consent.",
@@ -67,14 +74,22 @@ export function createRemoteMcpManagementCommand(
     "per authorization attempt. After URL output, connection status goes to stderr.",
     "--no-browser (default) never launches a browser; --browser host uses the",
     "host-configured opener. Cached credentials may connect without another URL.", "",
+    "--reset retires saved OAuth tokens and registrations before new consent.",
     "--timeout-ms <milliseconds> bounds the complete authentication operation",
     "(default 120000). Host callback timeouts may impose a shorter limit."
   ];
   const authenticationHelp = [authenticationUsage, "", ...authenticationGuidance, "", "  --help  Show this help.", ""].join("\n");
+  const resetHelp = [`Usage: ${textLine(shellWord(name))} reset <server> [--json] [--timeout-ms <milliseconds>]`, "",
+    "Retire saved OAuth tokens and registrations for this name/profile.",
+    "Reset needs no credential environment values or network connection. It can",
+    "recover corrupt native records and withholds stale environment-token imports.",
+    "Host-owned persistence requires a host reset hook. Update static bearer/header",
+    "values in the host environment. The default lock wait is 30000 milliseconds.", "", "  --help  Show this help.", ""].join("\n");
   const help = [
     `Usage: ${textLine(shellWord(name))} init [--format json|config|env]`,
     `       ${textLine(shellWord(name))} generate [--format json|config|module]`,
-    `       ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host]`, "",
+    `       ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host] [--reset]`,
+    `       ${textLine(shellWord(name))} reset <server> [--json]`, "",
     "Prepare configuration and an empty credential environment template for the remote registry.", "",
     "Formats:", "  json    Configuration and environment template together (default).",
     "  config  Versioned server configuration with credential references.", "  env     Empty dotenv entries with credential guidance.", "",
@@ -105,14 +120,18 @@ export function createRemoteMcpManagementCommand(
         operation.signal.throwIfAborted();
         let output: string;
         let generationFormat: string | undefined;
-        let authentication: ReturnType<typeof authenticationArguments> | undefined;
+        let authentication: ReturnType<typeof credentialArguments> | undefined;
+        let credentialReset: ReturnType<typeof credentialArguments> | undefined;
         try {
           const args = argumentText(context, maxInputBytes);
           if (args.length === 2 && args[0] === "auth" && args[1] === "--help") output = authenticationHelp;
+          else if (args.length === 2 && args[0] === "reset" && args[1] === "--help") output = resetHelp;
           else if (args.length === 0 || (args.length === 1 && args[0] === "--help") || (args.length === 2 && ["init", "generate"].includes(args[0]) && args[1] === "--help")) output = help;
-          else if (args[0] === "auth") {
-            authentication = authenticationArguments(args);
-            if (!initialization.configuration.servers.some(server => server.name === authentication!.name)) throw new Error(`Unknown remote MCP server '${authentication.name}'`);
+          else if (args[0] === "auth" || args[0] === "reset") {
+            const selected = credentialArguments(args);
+            if (!initialization.configuration.servers.some(server => server.name === selected.name)) throw new Error(`Unknown remote MCP server '${selected.name}'`);
+            if (args[0] === "auth") authentication = selected;
+            else credentialReset = selected;
             output = "";
           }
           else {
@@ -138,6 +157,26 @@ export function createRemoteMcpManagementCommand(
           await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
           return { exitCode: 2 };
         }
+        if (credentialReset !== undefined) {
+          const selected = credentialReset;
+          const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
+          const settings = options.reset;
+          const resetSignal = settings?.signal;
+          let result: RemoteMcpCredentialResetResult;
+          try {
+            result = await resetRemoteMcpAuthentication(server, {
+              ...options, ...settings, binding: settings?.binding ?? options.authentication?.binding,
+              timeoutMs: selected.requestTimeoutMs ?? settings?.timeoutMs,
+              signal: resetSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resetSignal])
+            });
+          } catch (error) {
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
+          await emit(operation, selected.json ? `${JSON.stringify(result)}\n` : `Reset OAuth credentials for ${textLine(shellWord(result.name))}.\n`, maxOutputBytes);
+          return { exitCode: 0 };
+        }
         if (authentication !== undefined) {
           const selected = authentication;
           const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
@@ -151,6 +190,7 @@ export function createRemoteMcpManagementCommand(
             result = await authenticateRemoteMcpServer(server, {
               ...settings, binding: settings?.binding ?? { env: context.env },
               noBrowser: selected.noBrowser ?? settings?.noBrowser ?? true,
+              reset: selected.reset || settings?.reset,
               requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
               signal: authSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, authSignal]),
               async onAuthorizationUrl(request) {

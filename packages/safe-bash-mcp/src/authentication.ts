@@ -3,6 +3,7 @@ import { parseRemoteMcpConfiguration, type RemoteMcpServerConfiguration } from "
 import { bindRemoteMcpConfiguration, type ConfigurationBindingOptions } from "./runtime-configuration.js";
 import { remoteLimits, withRemoteMcpClient } from "./remote.js";
 import type { SchemaFetchOptions } from "./schema.js";
+import { resetRemoteMcpAuthentication } from "./credential-reset.js";
 
 export interface RemoteMcpAuthorizationRequest {
   readonly authorizationUrl: string;
@@ -12,6 +13,8 @@ export interface RemoteMcpAuthenticationOptions extends SchemaFetchOptions {
   readonly binding: ConfigurationBindingOptions;
   /** Defaults to headless URL delivery. Browser launch requires an explicit false. */
   readonly noBrowser?: boolean;
+  /** Explicitly retire old credentials before establishing access again. */
+  readonly reset?: boolean;
   readonly onAuthorizationUrl?: (request: RemoteMcpAuthorizationRequest) => void | Promise<void>;
 }
 export interface RemoteMcpAuthenticationResult {
@@ -58,6 +61,7 @@ export async function authenticateRemoteMcpServer(
   });
   const { tools: ignoredTools, ...server } = bound;
   const settings = { ...options, requestTimeoutMs: limits.requestTimeoutMs, signal };
+  if (options.reset === true) await resetRemoteMcpAuthentication(value, { ...options, signal });
   const provider = server.oauth?.provider;
   const requestUrl = new URL(server.url);
   const fetch = options.fetch ?? globalThis.fetch;

@@ -1,6 +1,8 @@
 export {
   createAuthStoreSessionStore,
 } from "./client/auth-store-session-store.js";
+export { createResourceBoundOAuthStores } from "./client/resource-bound-store.js";
+export type { ResourceBoundOAuthStores } from "./client/resource-bound-store.js";
 export { parseOAuthClientRegistration } from "./client/client-registration.js";
 export {
   createDefaultOAuthClientProvider,

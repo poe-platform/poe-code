@@ -173,6 +173,36 @@ it("reuses a cached grant and emits no second authorization URL", async () => {
   expect(f.observer).toHaveBeenCalledOnce();
 });
 
+it("supports explicit --reset before a new consent flow using the same host persistence", async () => {
+  const f = oauthFixture(), reset = vi.fn(async () => { await f.binding.oauth.sessionStore().clear(); });
+  const command = createRemoteMcpManagementCommand(f.servers, { authentication: { binding: { ...f.binding, oauth: { ...f.binding.oauth, reset } }, fetch: f.fetch, onAuthorizationUrl: f.observer } });
+  expect(await command.execute(f.context)).toEqual({ exitCode: 0 });
+  const carrier = createCommandArguments(["auth", "catalog", "--json", "--reset"]);
+  expect(await command.execute({ ...f.context, args: carrier.args, argumentValues: carrier })).toEqual({ exitCode: 0 });
+  expect(reset).toHaveBeenCalledOnce();
+  expect(f.observer).toHaveBeenCalledTimes(2);
+});
+
+it("resets credentials independently without reading environment values, opening a browser or contacting the server", async () => {
+  const f = oauthFixture(["reset", "catalog", "--json"]), reset = vi.fn(async () => {}), read = vi.fn(() => { throw new Error("do not read ID"); });
+  const env = {}; Object.defineProperty(env, "ID", { get: read, enumerable: true });
+  const command = createRemoteMcpManagementCommand(f.servers, { authentication: { binding: { env, oauth: { ...f.binding.oauth, reset } }, fetch: f.fetch } });
+  expect(await command.execute(f.context)).toEqual({ exitCode: 0 });
+  expect(JSON.parse(f.output().stdout)).toEqual({ name: "catalog", url: server.url, reset: true });
+  expect(reset).toHaveBeenCalledOnce();
+  expect(read).not.toHaveBeenCalled();
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(f.opener).not.toHaveBeenCalled();
+});
+
+it.each(["reset", "reset unknown", "reset catalog other", "reset catalog --browser host", "reset catalog --reset", "reset catalog --json --json"])("rejects invalid reset usage before host mutation: %s", async script => {
+  const f = oauthFixture(script.split(" ")), reset = vi.fn(async () => {});
+  const command = createRemoteMcpManagementCommand(f.servers, { authentication: { binding: { ...f.binding, oauth: { ...f.binding.oauth, reset } }, fetch: f.fetch } });
+  expect(await command.execute(f.context)).toEqual({ exitCode: 2 });
+  expect(reset).not.toHaveBeenCalled();
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+
 it("rejects authorization URL sink failure without invoking the observer or token endpoint", async () => {
   const f = oauthFixture(), failure = new Error("URL sink closed");
   const command = createRemoteMcpManagementCommand(f.servers, { authentication: { binding: f.binding, fetch: f.fetch, onAuthorizationUrl: f.observer } });

@@ -12,6 +12,8 @@ export interface ConfigurationBindingOptions extends ConfigurationOptions {
     readonly sessionLockTimeoutMs?: number;
     readonly browser?: Omit<DefaultOAuthClientProviderOptions["browser"], "redirectUri">;
     readonly sessionStore?: (server: RemoteMcpServerConfiguration) => OAuthSessionStore;
+    /** Host-owned reset must retire credentials and suppress stale initial imports durably. */
+    readonly reset?: (server: RemoteMcpServerConfiguration, options: { signal?: AbortSignal; timeoutMs: number }) => Promise<void>;
     readonly authStore?: DefaultOAuthClientProviderOptions["authStore"];
     readonly now?: () => number;
   };

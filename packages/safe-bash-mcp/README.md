@@ -31,8 +31,9 @@ server identity, capabilities and instructions.
 | `initRemoteMcpConfiguration(servers, options)` | Create versioned configuration and empty credential templates |
 | `parseRemoteMcpConfiguration(value, options)` | Validate and copy configuration from JSON text or an object |
 | `bindRemoteMcpConfiguration(value, options)` | Resolve environment references into runtime server credentials |
-| `createRemoteMcpManagementCommand(servers, options)` | Create the safe-bash `mcp init`, `mcp auth` and `mcp generate` commands |
+| `createRemoteMcpManagementCommand(servers, options)` | Create safe-bash configuration, auth, reset and artifact commands |
 | `authenticateRemoteMcpServer(server, options)` | Establish access explicitly without listing or calling tools |
+| `resetRemoteMcpAuthentication(server, options)` | Retire a named OAuth grant and recover corrupt credential records |
 | `generateRemoteMcpArtifact(configuration, options)` | Discover absent schemas and emit reproducible JSON/ESM data |
 | `parseRemoteMcpArtifact(value, options)` | Validate artifact size, digest and configuration/schema agreement |
 | `remoteMcpArtifactPlugin(artifact, options)` | Bind credentials and register artifact commands without rediscovery |
@@ -227,6 +228,23 @@ connection verifies newly established access after public initialization.
 Management `options.authentication` accepts SDK settings and an optional binding;
 without a host binding it uses the command's environment. For names beginning
 with a dash, put options first and use `mcp auth --json -- '-catalog'`.
+
+Use `mcp auth catalog --reset` or SDK `{ reset: true }` to retire old OAuth tokens
+and registrations before new consent. `mcp reset catalog` performs reset alone,
+without reading credential environment values or connecting. `--json` emits
+`{ name, url, reset: true }`; `--timeout-ms` controls the lock wait (default
+30,000 ms). The SDK counterpart is `resetRemoteMcpAuthentication(server, {
+binding: { oauth: { authStore } }, timeoutMs })`; its binding does not require an
+environment. Management `options.reset` accepts these settings and otherwise
+uses the authentication binding's persistence.
+
+Native reset works even when an encrypted credential document is corrupt. It
+holds the same identity lock as refresh and authorization, replaces the selected
+name/profile's record with a tokenless marker, and prevents old environment
+imports from reviving the reset grant. Other names/profiles remain independent.
+Host-owned persistence requires `binding.oauth.reset(server, { signal,
+timeoutMs })`; the host must retire its credentials and durably suppress stale
+imports. Static bearer/header values remain controlled by the host environment.
 
 Generate a reusable artifact from declarative configuration:
 

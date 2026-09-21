@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "task": "sdk-live-object-model",
+  "status": "scoped-corrections-verified-task-open",
+  "baseline": {
+    "branch": "main",
+    "commit": "ab1fa8d34101e1e7f61272973f3bc28a842043d8",
+    "index": "empty",
+    "working_tree": "Unrelated edits/untracked files recorded by initial Git status; no task-owned product paths initially modified. Preserved outside explicit ownership."
+  },
+  "contracts": {
+    "docs/specs/docx.md": "a3e611eb29a20cb9f3ddfa6d8686cb996ec817d3c1ee1d5ae5b9570fecefb939",
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64"
+  },
+  "research_inputs": {
+    "corpus_manifest_sha256": "e6e63838e0d9ae13616d78eb93af384cfbd1aca5a3557606db5d80f4a864b2ff",
+    "api_inventory_sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "test_inventory_sha256": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797",
+    "denominators": { "downloaded_documents": 23, "reconciled_api_records": 920, "unit_variants": 1609, "expanded_bdd_cases": 650 },
+    "meaning": "Parsed current inventories and both audits; preparation and historical campaign records do not qualify this product revision. No source inventory status promoted."
+  },
+  "delegation": {
+    "integration_exports_git_owner": "root",
+    "destructive_implementation": "live_model_investigation",
+    "document_signature_implementation": "document_table_signature",
+    "independent_review": "live_model_acceptance_audit",
+    "guarded_safe_bash_edits": [],
+    "later_task_implementation": false
+  },
+  "wording_reconciliation": [
+    { "historical": "Document/Paragraph/Run exports absent in teardown and earlier formatting evidence", "current": "Built and source exports present; historical bytes preserved, absence claim not a current blocker." },
+    { "historical": "Public consumer imports poe-code/docx and poe-code/safe-bash/commands/docx", "current": "Both root routes are unadvertised and throw ERR_PACKAGE_PATH_NOT_EXPORTED. Consumers now assert actual standalone docx and explicit @poe-platform/safe-bash/commands/docx built entry points; all eight Shell workflows retained." },
+    { "historical": "Document.add_table third parameter implemented as width", "current": "Pinned research/public API map and typed operation schema require optional style. Source signature now accepts name/owned TableStyle/null; explicit geometry uses admitted section width. Header/comment width parameters remain distinct." }
+  ],
+  "red_evidence": [
+    { "test": "model-destructive-handles.test.ts", "defect": "Identical paragraph replacement retained discarded Run; empty-run clear and canonicalized raw XML children likewise retained replaced identities.", "red": "1 failed/2 passed initial; later raw-child reproduction 2 failed/9 passed." },
+    { "test": "model-destructive-handles.test.ts", "defect": "Paragraph null clear rejected; cached page-break clear rejected.", "red": "2 failed/5 passed." },
+    { "test": "model-destructive-handles.test.ts", "defect": "Retained note marker handle became stale.", "red": "1 failed/7 passed." },
+    { "test": "model-destructive-handles.test.ts", "defect": "Annotated cell replacement silently dropped cross-paragraph bookmark markers.", "red": "1 failed/8 passed; corrected to explicit prepublication refusal, preservation remains unsupported." },
+    { "test": "model-destructive-handles.test.ts", "defect": "Documented nullable add_run rejected null.", "red": "1 failed/12 passed." },
+    { "test": "document-table-signature.test.ts", "defect": "Style argument interpreted as width; derived seven-inch table then rejected by implicit six-and-a-half-inch rendering ceiling.", "red": "Original style RangeError and original wide-page admission failure before corresponding fixes." },
+    { "test": "tests/public-shell.cases.ts", "defect": "Maintained test compilation cannot resolve the two unadvertised root subpaths.", "red": "Initial maintained package lint exited 2 with two TS2307 diagnostics; both runtime resolutions independently failed." }
+  ],
+  "qualified_behavior": [
+    "Destructive Paragraph.text/clear invalidates discarded run/hyperlink/raw XML descendants even with identical serialization.",
+    "Paragraph/Run containers, retained raw pPr/rPr properties, unrelated siblings, bookmarks and note marker owners remain live.",
+    "Run.text/clear retains run formatting and invalidates replaced content children.",
+    "Nullable Paragraph.text clears; nullable Paragraph.add_run creates an empty run; Run.text null still rejects.",
+    "Paragraph cached break clearing removes inert layout metadata and stales removed break handles.",
+    "Original annotation-bearing cell replacement refuses before mutation instead of silently losing markers.",
+    "Inserted bound XML child views remain live and removable; failed transactions restore prior text and handles.",
+    "Document.add_table applies named/owned/default styles transactionally; foreign/wrong-kind/unknown styles leave no inserted table.",
+    "Table rendering uses explicitly admitted section-derived width; original seven-inch geometry and typed-batch style save/reload pass.",
+    "Typed batch rejects saved run handles after paragraph replacement; actual SDK-backed CLI clears null paragraph text with sibling/input retention."
+  ],
+  "api_mapping": [
+    { "id": "docx.text.paragraph.Paragraph.text", "tests": ["model-destructive-handles.test.ts", "model-destructive-batch.test.ts"], "level": "bounded setter and owner evidence; not complete row acceptance" },
+    { "id": "docx.text.paragraph.Paragraph.clear", "tests": ["model-destructive-handles.test.ts"], "level": "owner/properties/cached-break evidence" },
+    { "id": "docx.text.paragraph.Paragraph.add_run", "tests": ["model-destructive-handles.test.ts"], "level": "nullable empty-run creation and ownership" },
+    { "id": "docx.text.run.Run.text", "tests": ["model-destructive-handles.test.ts"], "level": "container/font preservation, deterministic child invalidation, null refusal" },
+    { "id": "docx.text.run.Run.clear", "tests": ["model-destructive-handles.test.ts"], "level": "retained run/font ownership" },
+    { "id": "docx.document.Document.add_table", "tests": ["document-table-signature.test.ts"], "level": "signature/style/width/rollback and typed-batch memfs round-trip" },
+    { "id": "mapped.XmlElementView.children", "tests": ["model-destructive-handles.test.ts"], "level": "model node binding only; generic package binding semantics retained" },
+    { "id": "docx.table._Cell.text", "tests": ["model-destructive-handles.test.ts"], "level": "annotation-loss refusal only; marker-preserving assignment still unsupported" }
+  ],
+  "source_case_accounting": {
+    "newly_promoted_variants": 0,
+    "reason": "These are original contract/ownership regressions. Complete source variants and per-member owner dispositions remain in the existing research registers and require separate exact requalification; no source/reference passes counted as new TypeScript adaptations."
+  },
+  "checks": {
+    "fresh_build": { "command": "npm run build:workspaces -- --workspace=docx --no-cache", "passed": true, "closure": "Derived from maintained workspace declarations, portable filesystem build and design export smoke included." },
+    "package_lint": { "command": "npm run lint --workspace=docx", "passed": true, "errors": 0, "warnings": 1, "warning": "Untouched operation-types.test.ts type-only unused variable." },
+    "package_unit": { "command": "npm test --workspace=docx", "passed": true, "files": 227, "cases": 4985, "failed": 0, "skipped": 0, "duration_seconds": 193.76, "fresh_execution": "Direct maintained Vitest workspace route executes all tests without runner result-cache reuse." },
+    "independent_focused": { "passed": true, "cases": 19, "scope": "New destructive, paired batch and table signature tests." },
+    "built_shell": { "command": "node --import tsx --test packages/docx/tests/public-shell.cases.ts", "passed": true, "cases": 8, "scope": "Built workspace SDK and explicit plugin; no installed-artifact or remote delivery claim." },
+    "independent_review": "Passed bounded node identity, retained properties, transaction rollback, nullable creation and table signature/batch checks."
+  },
+  "visual_evidence": {
+    "command": "npm run screenshot -- cat out/docx-task28-cli.txt",
+    "transcript_sha256": "0bbe0638c9d66f8a5adf7221bb9064463f0c2a1b82f021678b7c23895bc321c9",
+    "screenshot_sha256": "3148e006a36b727451e0cc09da346c772244d7307ed95f9d7392894546f85fa0",
+    "inspection": "Actual human CLI typed cell edit refusal readable without clipping, standard unsupported-edit diagnostic and exit 1; no document passage leaked. Captured transcript only, not a native renderer or document-layout claim."
+  },
+  "remaining_task28": [
+    "Complete per-member/public owner/API/source-case mapping and full graph acceptance are not established by these finite corrections.",
+    "Annotation-preserving whole-cell text replacement remains unsupported; prepublication rejection prevents data loss.",
+    "Historical whole-API gaps and unmatched context/path/view forms remain obligations in their owning tasks; no task marked complete."
+  ],
+  "corpus_campaign": "not run; no downloads/cache fixtures opened or deleted",
+  "readme": "not edited; permission remains pending",
+  "cleanup": "pending reduction/owned temporary cleanup",
+  "delivery": { "consumer_commit": "4af4b0d56", "product_commits": [], "remote_main_verified": false, "push": false, "release": false }
+}

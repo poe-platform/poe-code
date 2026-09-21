@@ -63,18 +63,24 @@ export class Paragraph {
   get text(): string {
     return modelText(this.store.node(this.ref));
   }
-  set text(value: string) {
-    if (typeof value !== "string") throw new InputTypeError("Expected paragraph text.");
-    this.store.change(this.ref.part, (xml) => {
-      const p = this.store.node(this.ref);
-      const props = p.children.find(
-        (child) => child.namespace === p.namespace && child.localName === "pPr"
-      );
-      xml.replaceElement(
-        p,
-        replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value)
-      );
-    });
+  set text(value: string | null) {
+    if (value !== null && typeof value !== "string")
+      throw new InputTypeError("Expected paragraph text or null.");
+    const discarded = [...this.runs, ...this.hyperlinks].map((content) => content.ref);
+    this.store.change(
+      this.ref.part,
+      (xml) => {
+        const p = this.store.node(this.ref);
+        const props = p.children.find(
+          (child) => child.namespace === p.namespace && child.localName === "pPr"
+        );
+        xml.replaceElement(
+          p,
+          replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value ?? "")
+        );
+      },
+      discarded
+    );
   }
   get runs(): readonly Run[] {
     const p = this.store.node(this.ref);
@@ -154,8 +160,8 @@ export class Paragraph {
       }
     });
   }
-  add_run(text?: string, style?: string | CharacterStyle | null): Run {
-    if (text !== undefined && typeof text !== "string")
+  add_run(text?: string | null, style?: string | CharacterStyle | null): Run {
+    if (text !== undefined && text !== null && typeof text !== "string")
       throw new InputTypeError("Expected run text.");
     const styleId =
       style === undefined || style === null
@@ -247,29 +253,39 @@ export class Run {
   }
   set text(value: string) {
     if (typeof value !== "string") throw new InputTypeError("Expected run text.");
-    this.store.change(this.ref.part, (xml) => {
-      const r = this.store.node(this.ref);
-      const props = r.children.find(
-        (child) => child.localName === "rPr" && child.namespace === r.namespace
-      );
-      if (
-        r.children.some(
-          (child) =>
-            !["rPr", "t", "tab", "br", "cr", "lastRenderedPageBreak"].includes(child.localName)
+    const run = this.store.node(this.ref);
+    const discarded = run.children
+      .filter((child) => child.namespace !== run.namespace || child.localName !== "rPr")
+      .map((child) => this.store.ref(this.ref.part, child));
+    this.store.change(
+      this.ref.part,
+      (xml) => {
+        const r = this.store.node(this.ref);
+        const props = r.children.find(
+          (child) => child.localName === "rPr" && child.namespace === r.namespace
+        );
+        if (
+          r.children.some(
+            (child) =>
+              !["rPr", "t", "tab", "br", "cr", "lastRenderedPageBreak"].includes(child.localName)
+          )
         )
-      )
-        throw new UnsupportedEditError("Whole run text cannot discard owned resources.");
-      const fragment = paragraphTextRun(r.namespace, value);
-      const inner = fragment.slice(fragment.indexOf(">") + 1, fragment.lastIndexOf("</"));
-      xml.replaceElement(
-        r,
-        runElementOpen(r).slice(0, -1) +
-          (r.attributes.some((a) => a.name === "xmlns:pi") ? ">" : ` xmlns:pi="${r.namespace}">`) +
-          (props ? xml.sourceXml(props) : "") +
-          inner +
-          `</${r.name}>`
-      );
-    });
+          throw new UnsupportedEditError("Whole run text cannot discard owned resources.");
+        const fragment = paragraphTextRun(r.namespace, value);
+        const inner = fragment.slice(fragment.indexOf(">") + 1, fragment.lastIndexOf("</"));
+        xml.replaceElement(
+          r,
+          runElementOpen(r).slice(0, -1) +
+            (r.attributes.some((a) => a.name === "xmlns:pi")
+              ? ">"
+              : ` xmlns:pi="${r.namespace}">`) +
+            (props ? xml.sourceXml(props) : "") +
+            inner +
+            `</${r.name}>`
+        );
+      },
+      discarded
+    );
   }
   get style(): CharacterStyle | null {
     const r = this.store.node(this.ref);
@@ -404,10 +420,21 @@ export class Run {
       this.store.context.budget.charge("work", 1);
       if (child.namespace !== run.namespace) continue;
       if (child.localName === "lastRenderedPageBreak") {
-        if (text) { yield text; text = ""; }
-        if (paragraph) yield new RenderedPageBreak(this.store, this.store.ref(this.ref.part, child), this.store.ref(this.ref.part, paragraph));
+        if (text) {
+          yield text;
+          text = "";
+        }
+        if (paragraph)
+          yield new RenderedPageBreak(
+            this.store,
+            this.store.ref(this.ref.part, child),
+            this.store.ref(this.ref.part, paragraph)
+          );
       } else if (child.localName === "drawing") {
-        if (text) { yield text; text = ""; }
+        if (text) {
+          yield text;
+          text = "";
+        }
         yield new Drawing(this.store, this.store.ref(this.ref.part, child));
       } else if (["t", "tab", "ptab", "noBreakHyphen", "br", "cr"].includes(child.localName)) {
         text += modelText({ ...run, children: [child] });

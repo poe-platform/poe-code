@@ -299,9 +299,25 @@ export class ModelStore {
     for (const handle of this.handles.values())
       if (handle.node && descendants.has(handle.node)) handle.node = null;
   }
-  change(part: string, action: (xml: DocumentXmlEditor) => void): void {
+  change(
+    part: string,
+    action: (xml: DocumentXmlEditor) => void,
+    discarded: readonly ModelRef[] = []
+  ): void {
     this.writable();
     const old = this.xml(part);
+    const detached = new Set<XmlElement>();
+    const discard = (node: XmlElement): void => {
+      this.context.budget.charge("work", 1);
+      if (
+        node.namespace === old.root.namespace &&
+        ["footnoteRef", "endnoteRef"].includes(node.localName)
+      )
+        return;
+      detached.add(node);
+      for (const child of node.children) discard(child);
+    };
+    for (const ref of discarded) discard(this.node(ref));
     const candidate = new DocumentXmlEditor(old.serialize(), {}, undefined, this.context.budget);
     // Callbacks resolve against the current owner editor; publication occurs only after successful serialization.
     this.editors.set(part, candidate);
@@ -318,6 +334,7 @@ export class ModelStore {
     retained.forEach((handle) => {
       if (handle.node) handle.node = oldToCandidate.get(handle.node) ?? null;
     });
+    const detachedCandidates = new Set([...detached].map((node) => oldToCandidate.get(node)));
     const replacements = new Map<XmlElement, readonly XmlElement[]>();
     const insertions = new Map<XmlElement, { before: XmlElement | undefined; count: number }[]>();
     const fragment = (node: XmlElement, markup: string): readonly XmlElement[] => {
@@ -416,7 +433,34 @@ export class ModelStore {
         });
       };
       reconcile(candidate.root, next.root);
-      for (const handle of retained) if (handle.node) handle.node = map.get(handle.node) ?? null;
+      // Retained note markers may move into a dedicated marker run.
+      const noteMarkers = (root: XmlElement): XmlElement[] => {
+        const result: XmlElement[] = [];
+        const visit = (node: XmlElement): void => {
+          this.context.budget.charge("work", 1);
+          if (
+            node.namespace === root.namespace &&
+            ["footnoteRef", "endnoteRef"].includes(node.localName)
+          )
+            result.push(node);
+          for (const child of node.children) visit(child);
+        };
+        visit(root);
+        return result;
+      };
+      if (discarded.length) {
+        const previous = noteMarkers(candidate.root),
+          current = noteMarkers(next.root);
+        if (previous.length === current.length)
+          previous.forEach((node, index) => {
+            const replacement = current[index]!;
+            if (candidate.sourceXml(node) === next.sourceXml(replacement))
+              map.set(node, replacement);
+          });
+      }
+      for (const handle of retained)
+        if (handle.node)
+          handle.node = detachedCandidates.has(handle.node) ? null : (map.get(handle.node) ?? null);
       this.editors.set(part, next);
       this.revision++;
     } catch (error) {
@@ -444,10 +488,14 @@ export class ModelStore {
     if (!view) {
       view = bindXmlElementView({
         budget: this.context.budget,
+        child: (node) => this.element(this.ref(ref.part, node)),
         read: () => this.xml(ref.part),
         resolve: () => this.node(ref),
         change: (action) => this.transaction(() => this.change(ref.part, action)),
-        removeRoot: () => this.transaction(() => this.change(ref.part, xml => xml.replaceElement(this.node(ref), "")))
+        removeRoot: () =>
+          this.transaction(() =>
+            this.change(ref.part, (xml) => xml.replaceElement(this.node(ref), ""))
+          )
       });
       this.elements.set(ref.id, view);
     }
@@ -557,6 +605,26 @@ export class ModelStore {
         throw new UnsupportedEditError("Whole cell text cannot discard rich blocks.");
       const props = cell.children.find((child) => child.localName === "tcPr");
       const paragraphs = cell.children.filter((child) => child.localName === "p");
+      const annotated = (node: XmlElement): boolean => {
+        this.context.budget.charge("work", 1);
+        return (
+          (node.namespace === cell.namespace &&
+            [
+              "bookmarkStart",
+              "bookmarkEnd",
+              "commentRangeStart",
+              "commentRangeEnd",
+              "proofErr",
+              "permStart",
+              "permEnd",
+              "footnoteRef",
+              "endnoteRef"
+            ].includes(node.localName)) ||
+          node.children.some(annotated)
+        );
+      };
+      if (paragraphs.some(annotated))
+        throw new UnsupportedEditError("Whole cell text cannot discard annotation markers.");
       for (const p of paragraphs) replaceParagraphContent(xml, p, "", "");
       xml.replaceElement(
         cell,

@@ -5135,3 +5135,16 @@ gate remain open for the concrete gaps recorded there. Completed research/campai
 records do not certify whole format or object-model conformance. Unrelated earlier
 status edits are preserved without endorsing them or staging them in teardown.
 README permission remains pending. No push or publication is authorized.
+
+## Task 28 bounded corrections, 2026-09-21
+
+The [current execution record](docx-live-object-model-20260921.md) and
+[scoped evidence receipt](../docx/live-object-model-20260921.json) supersede the
+historical missing Document/Paragraph/Run assertion only for the current built
+exports and verified owner corrections. Original tests reproduce and qualify
+deterministic destructive text invalidation, retained XML property/annotation
+owners, nullable paragraph behavior and failed-edit rollback. Complete per-member
+graph/API/source-case mappings remain unfinished, and annotation-preserving
+whole-cell text replacement remains unsupported with explicit prepublication
+refusal. Task 28 implement/test remain open; later tasks were not started.
+No corpus, whole-format parity, remote-main delivery or release is certified.

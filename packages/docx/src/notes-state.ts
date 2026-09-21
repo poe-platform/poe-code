@@ -5,6 +5,7 @@ import { openDocumentLocations } from "./locations.js";
 import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, isXmlContentType, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 export type NoteKind = "footnote" | "endnote";
 export interface NoteNumbering { readonly format: string; readonly start: number; readonly restart: string }
@@ -38,11 +39,11 @@ function idOf(node: XmlElement): number {
     throw new InvalidPackageError("Note IDs must be bounded integers with an explicit value.");
   return Number(raw);
 }
-function numbering(node: XmlElement | undefined, kind: NoteKind, fallback: NoteNumbering): NoteNumbering {
-  const properties = node?.children.filter(n => n.namespace === node.namespace && n.localName === kind + "Pr") ?? [];
+function numbering(node: XmlElement | undefined, kind: NoteKind, fallback: NoteNumbering, children: (node: XmlElement) => readonly XmlElement[]): NoteNumbering {
+  const properties = node ? children(node).filter(n => n.namespace === node.namespace && n.localName === kind + "Pr") : [];
   if (properties.length > 1) throw new InvalidPackageError("Duplicate note numbering properties.");
   const values = (name: string) => {
-    const nodes = properties[0]?.children.filter(n => n.namespace === properties[0]!.namespace && n.localName === name) ?? [];
+    const nodes = properties[0] ? children(properties[0]).filter(n => n.namespace === properties[0]!.namespace && n.localName === name) : [];
     if (nodes.length > 1) throw new InvalidPackageError("Duplicate note numbering rule.");
     const value = nodes[0] && noteAttribute(nodes[0], "val");
     if (nodes.length && !value) throw new InvalidPackageError("Note numbering rules require a value.");
@@ -71,6 +72,8 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
   const edges = graph.relationships(main);
   const records: NoteRecord[] = [], references: NoteReference[] = [];
   const parts = new Map<NoteKind, string>();
+  const reservedIds = new Map<NoteKind, Set<number>>();
+  const inactiveNotes = new Map<NoteKind, Map<number, boolean>>();
   const stories = document.list("story", { scope: "all-stories" });
   const annotations = document.list("annotation", { scope: "all-stories" });
   const annotationMap = new Map(annotations.map(location => [location.value.part + ":" + location.value.path.join("."), location]));
@@ -81,8 +84,24 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
     const part = matches[0]!.target_part.partname, editor = editors.get(part);
     if (!editor || editor.root.namespace !== w || editor.root.localName !== kind + "s") throw new InvalidPackageError("Note part has an invalid root.");
     parts.set(kind, part);
+    const activeBodies = activeXmlChildren(editor, budget)(editor.root);
+    const active = new Set(activeBodies), reserved = new Set<number>(), inactive = new Map<number, boolean>();
+    const pending = [editor.root];
+    while (pending.length) {
+      const node = pending.pop()!;
+      budget.charge("work", 1);
+      if (node.namespace === w && node.localName === kind) {
+        const raw = noteAttribute(node, "id"), id = raw === undefined ? NaN : Number(raw);
+        if (Number.isSafeInteger(id) && id >= -1) {
+          reserved.add(id);
+          if (!active.has(node)) inactive.set(id, inactive.get(id) !== false && (noteAttribute(node, "type") ?? "normal") === "normal");
+        }
+      }
+      for (const child of node.children) pending.push(child);
+    }
+    reservedIds.set(kind, reserved); inactiveNotes.set(kind, inactive);
     const used = new Set<number>(), types = new Set<string>();
-    for (const node of editor.root.children) {
+    for (const node of activeBodies) {
       budget.charge("work", 1);
       if (node.namespace !== w || node.localName !== kind) continue;
       const id = idOf(node), type = noteAttribute(node, "type") ?? "normal";
@@ -103,11 +122,12 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
       if (node.namespace === w && ["footnoteReference", "endnoteReference"].includes(node.localName)) {
         const kind: NoteKind = node.localName === "footnoteReference" ? "footnote" : "endnote", id = idOf(node);
         const record = byId.get(kind + ":" + id);
-        if (!record || record.type !== "normal") throw new InvalidPackageError("Note reference has no normal note body.");
         const parent = ancestors.at(-1);
         const location = parent?.namespace === w && parent.localName === "r" ? annotationMap.get(part + ":" + path.join(".")) : undefined;
+        if (record ? record.type !== "normal" : location !== undefined || inactiveNotes.get(kind)?.get(id) !== true)
+          throw new InvalidPackageError("Note reference has no normal note body.");
         const reference = { kind, id, node, editor, path, part, location, safe: !!location && ancestors.every(n => n.namespace === w && !["sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple"].includes(n.localName)) };
-        references.push(reference); record.references.push(reference);
+        references.push(reference); record?.references.push(reference);
       }
       node.children.forEach((child, i) => visit(child, [...path, i], [...ancestors, node]));
     };
@@ -116,12 +136,15 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
   const defaults = { format: "decimal", start: 1, restart: "continuous" };
   const settingsEdges = edges.filter(e => e.reltype === r + "/settings" && !e.is_external);
   if (settingsEdges.length > 1) throw new InvalidPackageError("Duplicate settings parts.");
-  const settingsNode = settingsEdges[0] && editors.get(settingsEdges[0].target_part.partname)?.root;
-  const global = { footnote: numbering(settingsNode, "footnote", defaults), endnote: numbering(settingsNode, "endnote", defaults) };
+  const settingsEditor = settingsEdges[0] && editors.get(settingsEdges[0].target_part.partname);
+  const settingsNode = settingsEditor?.root;
+  const settingsChildren = settingsEditor ? activeXmlChildren(settingsEditor, budget) : (node: XmlElement) => node.children;
+  const sectionChildren = activeXmlChildren(mainEditor, budget);
+  const global = { footnote: numbering(settingsNode, "footnote", defaults, settingsChildren), endnote: numbering(settingsNode, "endnote", defaults, settingsChildren) };
   const sections = document.list("section").map(location => {
     let node = mainEditor.root;
     for (const i of location.value.path) node = node.children[i]!;
-    return { section: location.positions.section!, footnote: numbering(node, "footnote", global.footnote), endnote: numbering(node, "endnote", global.endnote) };
+    return { section: location.positions.section!, footnote: numbering(node, "footnote", global.footnote, sectionChildren), endnote: numbering(node, "endnote", global.endnote, sectionChildren) };
   });
-  return { document, archive, main, graph, editors, dialect, w, r, records, references, parts, numbering: { document: global, sections } };
+  return { document, archive, main, graph, editors, dialect, w, r, records, references, parts, reservedIds, inactiveNotes, numbering: { document: global, sections } };
 }

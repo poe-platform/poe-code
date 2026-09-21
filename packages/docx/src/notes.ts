@@ -1,4 +1,5 @@
 import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
@@ -116,7 +117,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
     const owner = state.document.list("story", { scope: "body" })[0]!;
     const body = ancestors[owner.value.path.length]!;
     assertOutsideFields(parseFields(body, owner.value.path, budget, editors.get(main)!.compatibility.content), [...before.value.path, parent.children.length]);
-    const used = new Set(state.records.filter(n => n.kind === kind).map(n => n.id));
+    const used = new Set(state.reservedIds.get(kind));
     let id = 1; while (used.has(id)) { id++; budget.charge("work", 1); }
     let part = state.parts.get(kind);
     if (!part) {
@@ -178,7 +179,7 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
   for (const kind of touched) {
     const part = state.parts.get(kind)!, editor = new DocumentXmlEditor(editors.get(part)!.serialize(), {}, undefined, budget);
     editors.set(part, editor);
-    const used = new Set(state.records.filter(n => n.kind === kind).map(n => n.id));
+    const used = new Set(state.reservedIds.get(kind));
     if (added?.kind === kind) used.add(added.id);
     const missing: string[] = [];
     for (const [type, preferred] of [["separator", -1], ["continuationSeparator", 0]] as const) {
@@ -218,8 +219,8 @@ export async function editDocumentNotes(input: Uint8Array, request: NoteEditRequ
     for (const kind of touched) {
       if (state.references.some(ref => ref.kind === kind && !removedRefs.has(ref) && !ref.safe)) throw new UnsupportedEditError("ID renumbering requires every reference to be editable.");
       const part = state.parts.get(kind)!, noteEditor = new DocumentXmlEditor(staged.get(memberName(part)) ?? graph.getPart(part).bytes, {}, undefined, budget);
-      const nodes = noteEditor.root.children.filter(n => n.namespace === w && n.localName === kind);
-      const used = new Set(nodes.filter(n => (noteAttribute(n, "type") ?? "normal") !== "normal").map(n => Number(noteAttribute(n, "id"))));
+      const nodes = activeXmlChildren(noteEditor, budget)(noteEditor.root).filter(n => n.namespace === w && n.localName === kind);
+      const used = new Set([...(state.inactiveNotes.get(kind)?.keys() ?? []), ...nodes.filter(n => (noteAttribute(n, "type") ?? "normal") !== "normal").map(n => Number(noteAttribute(n, "id")))]);
       const order = referenceOrder.get(kind) ?? [];
       for (const n of nodes) if ((noteAttribute(n, "type") ?? "normal") === "normal" && !order.includes(Number(noteAttribute(n, "id")))) order.push(Number(noteAttribute(n, "id")));
       let next = 1;

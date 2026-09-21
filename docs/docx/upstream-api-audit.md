@@ -1,5 +1,13 @@
 # DOCX Public API Documentation Audit
 
+The [bounded OMML verification record](../plans/docx-omml-equations.md) reconciles
+existing equation utilities with the shared contracts and the stale equation
+investigation status. `Font.math` remains the existing boolean/null WML formatting
+API; physical OMML inspection and explicit fragment edits introduce no expression
+model, conversion or evaluation API. This scoped evidence does not promote
+historical whole-public-API dispositions or exclude public underscore-prefixed,
+inherited, collection, helper or enum obligations.
+
 The later [table and expanded-workflow record](../plans/docx-table-bdd-adaptation.md)
 and [exact 870-row verification](table-bdd-case-verification.json) supersede earlier
 pending statements only for the selected table units and expanded BDD workflows.

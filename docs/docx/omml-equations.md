@@ -1,7 +1,27 @@
 # Bounded OMML equation evidence
 
-Status: Task76 read-only investigation. No new equation utility implementation,
-adaptation, corpus operation or public model parity is verified.
+Status: Bounded equation utilities are implemented. The dated investigation below
+is historical preparation evidence, not the current implementation status.
+
+The current public utilities are `inspectDocumentEquations`,
+`addDocumentEquation` and `replaceDocumentEquation`, exposed through
+`equations list/add/replace` and typed batch operations. They inventory physical
+inline/display units and stored properties, preserve OMML during ordinary text
+replacement, and admit only the explicit matching-dialect fraction/matrix/subscript
+fragment grammar in the format spec. Source-bound whole-unit/paragraph tokens,
+host preflight, explicit byte/VFS capabilities and publication validation constrain
+edits. Unsupported stored math remains preserve-only. No evaluation, conversion,
+rendering or complete math-schema/model coverage is claimed.
+
+Implementation history includes `fec7afeb8` (bounded operations), `e30767726`
+(validation budgets) and `b861c502b` (host namespace preflight). Original regressions
+remain in the equation, property, fragment, XML writer and text replacement suites.
+[Historical completion QA](omml-completion-qa.json) records the manifest-pinned
+45-expression input, its preserve-only inventory and unsuccessful corpus edits;
+those refusals must not be described as successful mutation qualification.
+
+The [current verification plan](../plans/docx-omml-equations.md) records maintained
+checks, exact JavaScript/security mappings and current acquisition limitations.
 
 The sole format contract is [docx.md](../specs/docx.md); office-cli.md and
 office-sdk.md govern shared behavior. Procedures and ownership belong only in
@@ -12,7 +32,7 @@ office-sdk.md govern shared behavior. Procedures and ownership belong only in
 Main at task76 start is b2ba6d7b8565887ec9d6ff05997650c5998d979f after task75
 verified local delivery. F39 requires inline/display OMML inventory/properties,
 unrelated-edit preservation and explicit bounded validated fragment add/replace.
-The current generic selectedRead/selectedEdit command register and parts-only
+The then-current generic selectedRead/selectedEdit command register and parts-only
 equations detail arm do not define safe equation identity, matching-dialect
 fragment grammar, precise placement/replacement scope or property snapshots.
 Current inspection counts oMath and logical text deliberately omits equation text;

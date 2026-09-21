@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { HttpTransport, JsonRpcMessageLayer } from "./index.js";
+import { HttpTransport, JsonRpcMessageLayer, McpClient } from "./index.js";
 
 it("cancels an oversized open SSE body before releasing its reader", async () => {
   const cancel = vi.fn();
@@ -53,3 +53,33 @@ it.each([200, 400])("bounds HTTP %s JSON bodies and propagates the failure", asy
     transport.dispose();
   }
 });
+
+it.each(["declared bytes", "stream bytes", "malformed UTF-8"])(
+  "preserves initialization %s failure while session deletion is pending", async mode => {
+    const deletion = Promise.withResolvers<Response>(), deleting = Promise.withResolvers<void>();
+    const transport = new HttpTransport({ url: "https://mcp.invalid/limits", maxResponseBytes: 8,
+      fetch: async (_url, init) => {
+        if (init?.method === "DELETE") { deleting.resolve(); return deletion.promise; }
+        if (init?.method !== "POST") return new Response(null, { status: 405 });
+        await new Promise<void>(resolve => setImmediate(resolve));
+        const headers = { "Content-Type": "application/json", "Mcp-Session-Id": "failed-initialization",
+          ...(mode === "declared bytes" ? { "Content-Length": "9" } : {}) };
+        return new Response(mode === "malformed UTF-8" ? Uint8Array.of(0xff) : "123456789", { headers });
+      } });
+    const client = new McpClient({ clientInfo: { name: "limit-test", version: "1" }, protocolVersion: "2025-03-26" });
+    const outcome = client.connect(transport).catch(error => error);
+    try {
+      await Promise.race([deleting.promise, outcome.then(error => { throw error; })]);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      deletion.resolve(new Response(null, { status: 204 }));
+      const error = await outcome;
+      expect(error).toBeInstanceOf(Error);
+      if (mode === "malformed UTF-8") expect(error.message).toContain("encoded data");
+      else expect(error.message).toContain("8 bytes");
+      expect((await transport.closed).reason).toBe(error);
+    } finally {
+      deletion.resolve(new Response(null, { status: 204 }));
+      await client.close(); transport.dispose(); await transport.closed;
+    }
+  }
+);

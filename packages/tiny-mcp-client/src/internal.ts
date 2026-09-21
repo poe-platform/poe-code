@@ -2899,7 +2899,12 @@ export class HttpTransport implements McpTransport {
         (parsed.type === "request" && parsed.message.method === "initialize") ||
         (parsed.type === "notification" && parsed.message.method === "notifications/initialized")
       ) {
-        await post;
+        try { await post; }
+        catch (error) {
+          // Preserve the HTTP failure before ending the iterator. Throwing here
+          // destroys its writable with AbortError while session cleanup is pending.
+          this.dispose(error instanceof Error ? error : new Error(String(error)));
+        }
       } else {
         void post.catch((error) => {
           this.dispose(error instanceof Error ? error : new Error(String(error)));

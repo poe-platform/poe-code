@@ -116,20 +116,21 @@ function cellMarkup(xml: DocumentXmlEditor, node: XmlElement, span: number, merg
   const properties = props && preserveCarriers ? runElementOpen(props) + inner + `</${props.name}>` : `<m:tcPr xmlns:m="${node.namespace}">${inner}</m:tcPr>`;
   return runElementOpen(node) + properties + body + `</${node.name}>`;
 }
-function width(grid: Grid, start: number, span: number, row: number): number | undefined {
+function width(grid: Grid, start: number, span: number, row: number, projected: (node: XmlElement) => readonly XmlElement[], preferCells = false): number | undefined {
   const widths = grid.columns.slice(start, start + span).map(n => Number(attribute(n, "w")));
   const total = widths.reduce((a, b) => a + b, 0);
-  if (widths.every(n => Number.isSafeInteger(n) && n > 0) && Number.isSafeInteger(total)) return total;
+  const gridWidth = widths.every(n => Number.isSafeInteger(n) && n > 0) && Number.isSafeInteger(total) ? total : undefined;
+  if (!preferCells && gridWidth !== undefined) return gridWidth;
   let sum = 0;
   for (const cell of grid.physical[row]!.filter(p => p.column < start + span && p.column + p.span > start)) {
-    const props = one(cell.node, "tcPr"), stored = props && one(props, "tcW");
-    if (!stored || attribute(stored, "type") !== "dxa") return undefined;
+    const props = one(cell.node, "tcPr", projected), stored = props && one(props, "tcW", projected);
+    if (!stored || attribute(stored, "type") !== "dxa") return gridWidth;
     const overlap = Math.min(start + span, cell.column + cell.span) - Math.max(start, cell.column);
     const value = Number(attribute(stored, "w")) * overlap / cell.span;
-    if (!Number.isSafeInteger(value) || value <= 0) return undefined;
+    if (!Number.isSafeInteger(value) || value < 0) return gridWidth;
     sum += value;
   }
-  return Number.isSafeInteger(sum) && sum > 0 ? sum : undefined;
+  return Number.isSafeInteger(sum) && sum >= 0 ? sum : gridWidth;
 }
 
 export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selected: XmlElement, operation: "tables.merge" | "tables.split" | "tables.rows.remove", options: { from?: string | undefined; to?: string | undefined; rows?: number | undefined; cols?: number | undefined; join?: string | undefined; distribute?: string | undefined; index?: number | undefined }, budget: DocumentBudget, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
@@ -155,7 +156,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
     for (const owner of crossing) {
       const retained = owner.physical.filter(p => p.row !== r), first = retained[0]!;
       const content = owner.physical.filter(p => p.node === owner.node || !empty(p.node)).map(p => blocks(xml, p.node)).join("");
-      for (const p of retained) patches.set(p.node, cellMarkup(xml, p.node, owner.columnSpan, retained.length > 1 ? p === first ? "restart" : "continue" : undefined, p === first ? content : tag(table.namespace, "p"), width(grid, p.column, p.span, p.row), projected));
+      for (const p of retained) patches.set(p.node, cellMarkup(xml, p.node, owner.columnSpan, retained.length > 1 ? p === first ? "restart" : "continue" : undefined, p === first ? content : tag(table.namespace, "p"), width(grid, p.column, p.span, p.row, projected), projected));
     }
     const rowPatches = new Map<XmlElement, string>();
     for (const row of grid.rows) {
@@ -188,7 +189,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
     const body = physical.filter(p => !empty(p.node)).map(p => blocks(xml, p.node)).join("") || tag(table.namespace, "p");
     for (let r = top; r <= bottom; r++) {
       const local = physical.filter(p => p.row === r);
-      for (const [i, p] of local.entries()) patches.set(p.node, i ? "" : cellMarkup(xml, p.node, right - left + 1, bottom > top ? r === top ? "restart" : "continue" : undefined, r === top ? body : tag(table.namespace, "p"), width(grid, left, right - left + 1, r), projected));
+      for (const [i, p] of local.entries()) patches.set(p.node, i ? "" : cellMarkup(xml, p.node, right - left + 1, bottom > top ? r === top ? "restart" : "continue" : undefined, r === top ? body : tag(table.namespace, "p"), width(grid, left, right - left + 1, r, projected, true), projected));
     }
   } else {
     const body = physical.filter(p => p.node === selected || !empty(p.node)).map(p => blocks(xml, p.node)).join("");
@@ -206,7 +207,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
       for (let c = left; c <= right; c += columnStep) {
         const i = Math.floor((p.row - top) / rowStep) * options.cols! + (c - left) / columnStep;
         const content = first ? distribution ? distribution[i]! : i === 0 ? body : tag(table.namespace, "p") : tag(table.namespace, "p");
-        markup += cellMarkup(xml, p.node, columnStep, rowStep > 1 ? first ? "restart" : "continue" : undefined, content, width(grid, c, columnStep, p.row), projected, c === left);
+        markup += cellMarkup(xml, p.node, columnStep, rowStep > 1 ? first ? "restart" : "continue" : undefined, content, width(grid, c, columnStep, p.row, projected), projected, c === left);
       }
       patches.set(p.node, markup);
     }

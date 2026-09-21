@@ -458,8 +458,9 @@ describe("package ZIP serialization", () => {
       { ...context, signal: running.signal },
       { compression: "auto" }
     );
-    setTimeout(() => running.abort(), 0);
+    setImmediate(() => running.abort());
     await expect(pending).rejects.toMatchObject({ code: "cancelled" });
+    expect(running.signal.aborted).toBe(true);
   });
 
   it("proves the independent reader detects payload and header corruption", async () => {

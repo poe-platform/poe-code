@@ -370,7 +370,7 @@ export class NumberingGraph {
     const w = this.xml.root.namespace;
     const abstractId = this.abstract(Array.from({ length: 9 }, () => kind));
     const id = this.allocate(false);
-    this.newInstances.push(`<nl:num xmlns:nl="${w}" nl:numId="${id}"><nl:abstractNumId nl:val="${abstractId}"/>${start === 1 ? '' : `<nl:lvlOverride nl:ilvl="${level}"><nl:startOverride nl:val="${start}"/></nl:lvlOverride>`}</nl:num>`);
+    this.newInstances.push(`<nl:num xmlns:nl="${w}" nl:numId="${id}"><nl:abstractNumId nl:val="${abstractId}"/><nl:lvlOverride nl:ilvl="${level}"><nl:startOverride nl:val="${start}"/></nl:lvlOverride></nl:num>`);
     return id;
   }
   /** Fork the selected occurrence; retain every effective unedited level and source graph. */

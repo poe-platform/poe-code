@@ -129,3 +129,8 @@ const contextB: Pick<own.RunContext, ContextMethods> = new referenceContext.RunC
 const contextOptionsA: referenceContext.CreateRunContextOptions = {} as own.CreateRunContextOptions;
 const contextOptionsB: own.CreateRunContextOptions = {} as referenceContext.CreateRunContextOptions;
 void [contextA, contextB, contextOptionsA, contextOptionsB];
+
+import * as referenceResults from "../../poe-agent/dist/runtime/tool-results.js";
+const resultsA: typeof referenceResults = own;
+const resultsB: Pick<typeof own, keyof typeof referenceResults> = referenceResults;
+void [resultsA, resultsB];

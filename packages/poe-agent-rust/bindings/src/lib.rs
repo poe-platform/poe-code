@@ -252,3 +252,5 @@ pub mod hooks_binding;
 pub mod prompts_binding;
 
 pub mod run_context_binding;
+
+pub mod tool_results_binding;

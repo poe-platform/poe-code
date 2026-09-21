@@ -68,3 +68,9 @@ Concurrent disposal calls share the ongoing attempt; successful disposal is
 idempotent. Public collections retain their normal JavaScript mutation behavior.
 Rust owns disposal ordering and failed-hook retirement. Successful callback
 references are released after each completed attempt, including failed attempts.
+
+Structured tool-result helpers preserve text, image and error parts, array identity,
+and host serialization/fallback behavior. Rust validates fields in observable
+short-circuit order, including changing/inherited getters, and formats image
+labels without changing UTF-16. Sparse arrays follow JavaScript array traversal.
+These small binding calls remain slower than TypeScript in current benchmarks.

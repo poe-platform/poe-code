@@ -39,3 +39,5 @@ export type { PromptTransform } from "./prompts.js";
 
 export { RunContext, createRunContext } from "./run-context.js";
 export type { DisposeHook, RunContextLogger, CreateRunContextOptions } from "./run-context.js";
+
+export * from "./tool-results.js";

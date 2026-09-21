@@ -4053,3 +4053,42 @@ reference route is running after concurrent credential/resource fixes. Continuou
 active05:13:02–05:15:58 adds176s, bringing conservative effort to85,441s (23.73h).
 Minimum24h remains unfulfilled by959s, and full agent/closure rewrite remains open.
 Work continues after05:15:58 UTC.
+
+### Poe agent Rust structured tool results, 2026-09-21 05:23 UTC
+
+Portable/native reds precede Rust short-circuit part admission and own six result
+helpers. Typed text/image/error parts retain host identity. Empty/sparse arrays,
+opaque values, JSON serialization hooks, fallback conversion and undefined
+serialization outcomes match the reference. Repeated/changing/inherited type
+getters retain original read order; arbitrary thrown values propagate unchanged.
+Image labels preserve UTF16. Host serialization intentionally retains original
+JSON.stringify/String effects rather than introducing stricter protocol admission.
+
+All18 Rust cases,29 native groups and117 applicable complete original cases pass.
+The six result helper declarations compare bidirectionally. No additional original
+SDK cases are counted: the source has no dedicated result-helper describe/file;
+native groups cross-check the actual source directly. Focused lint/fmt/clippy,
+formatting and uncached113-workspace/28-build/338-edge closure pass. Final getter/
+large-type regression also passes. Packed/direct16MiB workers each add8192 probes
+and8192 normalizations; audit covers36 JS/declaration files and one addon with zero
+npm runtime groups. Endpoint heaps~10.4MB and parent-inclusive RSS do not establish
+isolated leak/peak/memory advantage.
+
+Performance gate fails substantially:16384 normalizations/49152 parts original
+~0.30–0.46ms vs final Rust~12.51–13.83ms over seven alternating rounds. A callback
+adapter took~11.77–12.02ms, so replacing callback crossings did not establish a
+speed advantage. The retained direct binding avoids per-probe callback closures,
+property-name CString allocations and arbitrary-length UTF16 type copies: static
+CStr names and VM strict equality compare type literals without copying input.
+This is an allocation/property-effect design choice, not a demonstrated speed or
+total-memory win. Complete Rust execution must amortize binding boundaries; current
+small exported policies fail performance acceptance. Evidence
+out/rust-poe-agent-tool-results-*.
+
+RunContext147cae1e5 is pushed; root publication remains unverified. Refreshed OAuth
+baseline has326/367 original cases pass,41 fail across7 files; native groups pass.
+Auth-method policy work now reduces failures to28 across5 files (339/367 pass),
+including all11 token-auth-provider cases, but full OAuth acceptance remains open.
+Continuous active05:15:58–05:22:35 adds397s, bringing conservative effort to85,838s
+(23.84h). Minimum24h remains unfulfilled by562s. Full rewrite remains incomplete;
+active work continues after05:22:35 UTC.

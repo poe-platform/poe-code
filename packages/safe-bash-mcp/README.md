@@ -157,8 +157,10 @@ Stdout contains the complete MCP result as one JSON value, including all content
 blocks, structured output and metadata. Tool failures and invalid structured
 output return exit code 1; invalid arguments return 2 before connecting. Protocol
 and transport errors produce JSON diagnostics on stderr with codes, data and
-HTTP status when available. Output writes are awaited and cancellation closes
-owned requests. Set `maxOutputBytes` to bound command output (default 16 MiB).
+HTTP status when available. HTTP errors also retain `rpcMethod` when the native
+client identifies a handshake or request phase. Output writes are awaited and
+cancellation closes owned requests. Set `maxOutputBytes` to bound command output
+(default 16 MiB).
 Output schemas and external schema registrations are captured during generation.
 Registration checks all command conflicts before registering any of them.
 Keep an agent's command surface small by passing only its selected server entries

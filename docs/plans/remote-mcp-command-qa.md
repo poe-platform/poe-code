@@ -197,3 +197,8 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     transport.closed retains DELETE500 separately. Generated command diagnostics
     must report GET403, empty result stdout, exit1 and zero tools/call, with both
     assigned sessions deleted. Inspect the failure screenshot and purge owned QA.
+
+30. HTTP diagnostic provenance: initialize successfully, then deny the initialized
+    POST with403. Generated stderr must retain status403, methodPOST and
+    rpcMethod:notifications/initialized, with exit1, empty stdout, zero tool calls
+    and session retirement. Inspect the diagnostic screenshot and purge owned QA.

@@ -131,7 +131,10 @@ export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 
     details.code = error.code;
     if (Object.hasOwn(error, "data")) details.data = error.data;
   }
-  if (error instanceof HttpTransportError) { details.status = error.status; details.method = error.method; }
+  if (error instanceof HttpTransportError) {
+    details.status = error.status; details.method = error.method;
+    if (error.rpcMethod !== undefined) details.rpcMethod = error.rpcMethod;
+  }
   if (error instanceof Error && error.cause !== undefined) details.cause = errorDetails(error.cause, seen, depth + 1);
   if (error instanceof AggregateError) details.errors = error.errors.map(value => errorDetails(value, new Set(seen), depth + 1));
   return details;

@@ -319,6 +319,20 @@ describe("generated remote MCP safe-bash commands", () => {
     expect(JSON.parse(input.error())).toMatchObject({ error: { code: -32001, message: "server failed", data: { data: [1, 2], detail: "preserved" } } });
   });
 
+  it("retains final handshake provenance in HTTP failure diagnostics", async () => {
+    const fixture = remote(), fetch = fixture.fetch.getMockImplementation()!;
+    fixture.fetch.mockImplementation(async (url, init) => {
+      if (init?.method === "POST" && JSON.parse(String(init.body)).method === "notifications/initialized")
+        return new Response(null, { status: 403 });
+      return fetch(url, init);
+    });
+    const input = invocation(["search_items", "--query", "unused"]);
+    expect(await (await command(fixture)).execute(input.context)).toEqual({ exitCode: 1 });
+    expect(input.output()).toBe("");
+    expect(JSON.parse(input.error())).toMatchObject({ error: { status: 403, method: "POST", rpcMethod: "notifications/initialized" } });
+    expect(fixture.requests.some(request => request.method === "tools/call")).toBe(false);
+  });
+
   it("waits for output to drain and retains output larger than 64 KiB", async () => {
     const result = { content: [{ type: "text", text: "x".repeat(150_000) }] };
     const chunks: Uint8Array[] = [];

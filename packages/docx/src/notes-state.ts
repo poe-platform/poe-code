@@ -38,7 +38,7 @@ function idOf(node: XmlElement): number {
   const attribute = noteAttribute(node, "id");
   const raw = attribute === undefined ? undefined : trimXmlWhitespace(attribute);
   const digits = raw?.startsWith("-") || raw?.startsWith("+") ? raw.slice(1) : raw;
-  if (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(raw)) || Number(raw) < -1)
+  if (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(raw)))
     throw new InvalidPackageError("Note IDs must be bounded integers with an explicit value.");
   return Number(raw);
 }
@@ -97,7 +97,7 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
       budget.charge("work", 1);
       if (node.namespace === w && node.localName === kind) {
         const raw = noteAttribute(node, "id"), id = raw === undefined ? NaN : Number(raw);
-        if (Number.isSafeInteger(id) && id >= -1) {
+        if (Number.isSafeInteger(id)) {
           reserved.add(id);
           if (!active.has(node)) inactive.set(id, inactive.get(id) !== false && (noteAttribute(node, "type") ?? "normal") === "normal");
         }

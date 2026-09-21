@@ -220,7 +220,9 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       issue(node, "latent-name", "A latent style exception requires its native name attribute.");
     if (!Object.hasOwn(definitionNames, name)) continue;
     const raw = attr(node, definitionNames[name]!);
-    const id = name === "style" ? raw : integer(raw, name === "footnote" || name === "endnote" ? -1 : 0, name === "comment" ? 2147483647 : Number.MAX_SAFE_INTEGER);
+    const specialNote = (name === "footnote" || name === "endnote") &&
+      ["separator", "continuationSeparator", "continuationNotice"].includes(attr(node, "type") ?? "normal");
+    const id = name === "style" ? raw : integer(raw, specialNote ? -Number.MAX_SAFE_INTEGER : 0, name === "comment" ? 2147483647 : Number.MAX_SAFE_INTEGER);
     const key = `${node.part}:${name}`;
     const entries = definitions.get(key) ?? new Map<string, Node>();
     if (name === "style") {

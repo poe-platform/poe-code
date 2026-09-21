@@ -13,6 +13,7 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (importer === path("../agent-spawn/src/acp/middlewares/middlewares.test.ts")) {
+          if (name === "./spawn-log.js") return path("dist/spawn-log.js");
           if (name === "./session-capture.js") return path("dist/session-capture.js");
           if (name === "./usage-capture.js") return path("dist/usage-capture.js");
           if (name === "../middleware.js") return path("dist/stream.js");
@@ -147,6 +148,7 @@ export default defineConfig({
                       ? [
                           "acp/middlewares/sessionMetadataCapture",
                           "acp/middlewares/sessionCapture",
+                          "acp/middlewares/spawnLog",
                           "acp/middlewares/usageCapture"
                         ]
                       : id === args

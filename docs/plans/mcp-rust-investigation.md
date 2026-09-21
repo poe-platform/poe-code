@@ -6697,3 +6697,27 @@ OAuth e21798cc0 pushed and exact remote main verified; release35620594240 pendin
 No successful current root publication verified. Foreign changes preserved.
 Continuous15:41:00–15:43:00 adds120s,total121315s(33.70h). Minimum fulfilled;
 full objective incomplete. Continue accounting after15:43:00UTC.
+
+### Spawn logging, 2026-09-21 15:48 UTC
+
+Missing logging core/SDK APIs reproduced before implementation. Rust owns Unicode
+scalar filename normalization, UTC filename composition and content-field redaction
+policy. Node owns file handles, safe default-directory checks, raw-meta stripping,
+opaque event identity and append rollback. Default content redaction admits cyclic
+secret inputs/raw metadata without serializing them; include-content retains the
+original serialization contract. Generated UUID logs track byte size; shared paths
+re-stat. Append failure restores the last complete UTF-8 record and disables writes;
+rollback failure throws. No original consumer integration. Maintained33Rust/43native/
+487reference cases in15files and bidirectional types pass. Maintained lint/scoped
+ESLint pass. Final uncached38-build closure passes at concurrency1. Viewed
+out/rust-spawn-log.png. Packed one addon/390audited files/zero npm runtime groups;
+blocked-external direct/packed24MiBworkers each complete previous workloads plus
+256redacted logging contexts in memfs. Existing16MiBcombined failure remains open;
+no performance or total/native-memory superiority asserted. Evidence out/rust-spawn-
+log-*. Initial host AST generation misplaced literal source ranges and produced
+invalid output; corrected before final checks. Foreign changes preserved.
+
+Capture c961a5b79 pushed and exact remote main verified; release35620820562 pending.
+No successful current root publication verified. Continuous15:43:00–15:48:00 adds
+300s,total121615s(33.78h). Minimum fulfilled; full objective incomplete.
+Continue accounting after15:48:00UTC.

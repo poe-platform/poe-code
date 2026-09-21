@@ -109,3 +109,4 @@ export { spawnAcp } from "./spawn-acp.js";
 
 export { sessionCapture, sessionMetadataCapture } from "./session-capture.js";
 export { usageCapture, getCapturedUsage, captureAbortUsage } from "./usage-capture.js";
+export { spawnLog } from "./spawn-log.js";

@@ -18,6 +18,28 @@ fn parse(source: Utf16String) -> Result<Value> {
         .map_err(|_| Error::from_reason("Invalid spawn JSON value"))
 }
 #[napi]
+pub fn spawn_log_redacted_fields(event: String) -> Vec<String> {
+    agent_spawn_rust::logging::redacted_fields(&event)
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect()
+}
+#[napi]
+pub fn spawn_log_filename(
+    parts: Vec<Utf16String>,
+    agent: Utf16String,
+    session: Utf16String,
+    uuid: Utf16String,
+) -> Utf16String {
+    agent_spawn_rust::logging::filename(
+        &parts.iter().map(|s| s.to_vec()).collect::<Vec<_>>(),
+        &agent,
+        &session,
+        &uuid,
+    )
+    .into()
+}
+#[napi]
 pub struct NativeSpawnPlanner {
     planner: agent_spawn_rust::Planner,
 }

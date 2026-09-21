@@ -219,3 +219,10 @@ deltas, avoids counting preloaded event identities twice and attaches observed
 usage to the original cancellation error. Optional cached/cost zeros remain
 present. These capture middlewares wrap the event stream; consume it to observe
 live capture updates.
+
+Add `spawnLog` to your middleware list to write JSONL events. It redacts message
+and tool content by default and always removes raw protocol metadata. Set
+`logContent: true` on the spawn context to include conversation content. Choose
+`logPath`, `logDir` or a safe `logFileName`; default logs stay under your Poe state
+directory. Partial append failures roll back to the last complete UTF-8 record
+and report `logError` while event delivery continues.

@@ -125,3 +125,6 @@ type Capture = Pick<
 const captureOwn: Capture = own;
 const captureReference: Pick<typeof own, keyof Capture> = null as unknown as Capture;
 void [captureOwn, captureReference];
+const logOwn: typeof original.spawnLog = own.spawnLog;
+const logReference: typeof own.spawnLog = null as unknown as typeof original.spawnLog;
+void [logOwn, logReference];

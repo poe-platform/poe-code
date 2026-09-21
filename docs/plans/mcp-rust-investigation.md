@@ -5865,3 +5865,30 @@ No successful current publication verified. Concurrent changes preserved.
 Known12:03:03–12:10:12 adds429s; restart12:13:20–12:14:15 adds55s,total108790s
 (30.22h). Checkpoint interval excluded. Minimum fulfilled;objective incomplete.
 Continue accounting after12:14:15 UTC.
+
+
+### Harness workflow discovery, 2026-09-21 12:18 UTC
+
+Added public workflow-path resolution and injected filesystem discovery. Rust owns
+default glob policy,UTF16 filename matching,normalized containment admission and
+stable exact-name project/global overwrite. Node retains Unicode lowercase,
+locale sorting,platform path handling,filesystem ordering/error identity and
+own-code checks. Original17path references added;all135references/
+9files pass. Core-module/reference missing-surface reds precede implementation;
+an invalid direct-helper case reproduced a slicing panic,now rejected safely.
+No production integration;original packages retained.
+
+Maintained7Rust cases,6native groups,135reference cases and bidirectional covered
+types pass;fmt/clippy pass. Uncached selected117workspaces/18builds/360edges passes.
+Packed39files/one addon,no npm runtime groups;discovery/traversal/queue checks pass
+with external npm resolution disabled. A16MiB-old-generation worker performs
+2048discoveries/262144entry visits/32rejections,retains4.10MiBheap/60.72MiBRSS;
+finite evidence,not total/native memory bounds. Five warmed alternating128discovery
+pairs with64entries/scope:originalwall4.68–5.88ms/CPU4.65–8.68ms,ownwall9.37–10.14ms/
+CPU9.21–10.87ms;scoped performance FAIL. Native crossing cost remains a gap.
+Evidence out/rust-harness-paths-*.
+
+TOML792b88388 exactly verified on remote main;release35598431393 pending;
+compiler35597375742 ongoing,no successful publication verified. Concurrent files
+preserved. Continuous12:14:15–12:18:42 adds267s,total109057s (30.29h).
+Minimum fulfilled;objective incomplete. Continue accounting after12:18:42 UTC.

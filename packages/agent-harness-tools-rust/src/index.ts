@@ -7,3 +7,5 @@ export * from "./sequence.js";
 export {resolveLoopAgent,type ResolveLoopAgentInput} from "./select-agent.js";
 export {skillPlanConfigSection} from "./skill-config.js";
 export {mapSourcePathIntoWorktree} from "./worktree-path.js";
+
+export {discoverWorkflowDocs,resolveWorkflowPath,type DiscoverDocsOptions} from "./paths.js";

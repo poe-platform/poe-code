@@ -171,3 +171,43 @@ impl NativeHarnessQueue {
         ])
     }
 }
+
+#[napi]
+pub fn harness_path_contained(relative: Utf16String, absolute: bool, separator: u32) -> bool {
+    agent_harness_tools_rust::paths::contained(&relative, absolute, separator as u16)
+}
+#[napi]
+pub fn harness_default_glob(subdirectory: Utf16String) -> Utf16String {
+    agent_harness_tools_rust::paths::default_glob(&subdirectory).into()
+}
+#[napi]
+pub fn harness_matches_glob(
+    name: Utf16String,
+    lower_name: Utf16String,
+    glob: Utf16String,
+    lower_glob: Utf16String,
+) -> bool {
+    agent_harness_tools_rust::paths::matches_glob(&name, &lower_name, &glob, &lower_glob)
+}
+#[napi]
+pub fn harness_merge_docs(
+    global_names: Vec<Utf16String>,
+    global_paths: Vec<Utf16String>,
+    project_names: Vec<Utf16String>,
+    project_paths: Vec<Utf16String>,
+) -> Vec<Utf16String> {
+    let global = global_names
+        .into_iter()
+        .zip(global_paths)
+        .map(|(name, path)| (name.to_vec(), path.to_vec()))
+        .collect();
+    let project = project_names
+        .into_iter()
+        .zip(project_paths)
+        .map(|(name, path)| (name.to_vec(), path.to_vec()))
+        .collect();
+    agent_harness_tools_rust::paths::merge_docs(global, project)
+        .into_iter()
+        .map(Utf16String::from)
+        .collect()
+}

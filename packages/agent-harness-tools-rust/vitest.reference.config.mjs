@@ -15,7 +15,7 @@ export default defineConfig({
           (!id.endsWith(".test.ts") && !id.endsWith(".spec.ts") && !id.endsWith("test-helpers.ts"))
         )
           return;
-        const modules = new Map([["./participant.js", "participant"], ["./hooks.js", "hooks"], ["./stage.js", "stage"], ["./runner.js", "runner"], ["./sequence.js", "sequence"], ["./run-queue.js", "run-queue"], ["./select-agent.js", "select-agent"], ["./skill-config.js", "skill-config"], ["./worktree-path.js", "worktree-path"]]);
+        const modules = new Map([["./paths.js", "paths"], ["./participant.js", "participant"], ["./hooks.js", "hooks"], ["./stage.js", "stage"], ["./runner.js", "runner"], ["./sequence.js", "sequence"], ["./run-queue.js", "run-queue"], ["./select-agent.js", "select-agent"], ["./skill-config.js", "skill-config"], ["./worktree-path.js", "worktree-path"]]);
         const source = ts.createSourceFile(
           id,
           code,
@@ -43,7 +43,7 @@ export default defineConfig({
   ],
   test: {
     globals: true,
-    include: ["participant.test.ts", "hooks.test.ts", "stage.test.ts", "runner.test.ts", "sequence.test.ts", "run-queue.test.ts", "select-agent.test.ts", "worktree-path.test.ts"]
+    include: ["paths.test.ts", "participant.test.ts", "hooks.test.ts", "stage.test.ts", "runner.test.ts", "sequence.test.ts", "run-queue.test.ts", "select-agent.test.ts", "worktree-path.test.ts"]
     .map((name) => path(new URL(name, root))),
     environment: "node",
     fileParallelism: false,

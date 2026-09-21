@@ -13,4 +13,10 @@ interface NativeQueue {
  readonly hasWork:boolean;
  readonly items:RunQueueItem[];
 }
-export const native=createRequire(import.meta.url)("./agent-harness-tools-rust.node") as {NativeHarnessQueue:new()=>NativeQueue};
+export const native=createRequire(import.meta.url)("./agent-harness-tools-rust.node") as {
+ NativeHarnessQueue:new()=>NativeQueue;
+ harnessPathContained(relative:string,absolute:boolean,separator:number):boolean;
+ harnessDefaultGlob(subdirectory:string):string;
+ harnessMatchesGlob(name:string,lowerName:string,glob:string,lowerGlob:string):boolean;
+ harnessMergeDocs(globalNames:string[],globalPaths:string[],projectNames:string[],projectPaths:string[]):string[];
+};

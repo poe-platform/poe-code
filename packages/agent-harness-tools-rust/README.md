@@ -10,6 +10,7 @@ The package is additive and has no npm runtime dependencies.
 - Normalize workflow participants with the embedded agent catalog.
 - Run document workflows, hooks, stages and sequences with injected callbacks.
 - Resolve loop agents and map source paths into execution worktrees.
+- Discover workflow documents with project overrides and symlink/traversal checks.
 
 ```ts
 import { createRunQueue } from "@poe-code/agent-harness-tools-rust";
@@ -35,10 +36,20 @@ signals, path resolution, frozen snapshot caching and document workflow adapters
 The agent catalog is embedded in the same addon. Native artifacts have currently
 been validated on macOS arm64.
 
-This first surface does not expose plan storage/discovery, process/runtime
+Workflow discovery keeps filesystem access, platform path normalization, Unicode
+lowercasing and locale sorting in Node. Rust selects default globs, matches names,
+checks normalized containment and merges project/global entries by exact filename.
+Supply your filesystem adapter through `discoverWorkflowDocs({cwd, homeDir,
+subDirectory, fs})`; discovery ignores missing directories and symbolic links.
+
+This first surface does not expose plan storage, process/runtime
 execution, logs, dashboards or workspace transfer. It is not a full replacement
 for the original package. Loop-agent callbacks use a structural symbol cancellation
 type: original SDK callbacks can be supplied, but the original SDK's unique symbol
 prevents the reverse full-module type assignment. Custom array/intrinsic hooks
 and invalid untyped outcomes require further compatibility review. Existing
 production imports remain unchanged.
+
+A local injected-filesystem benchmark of 128 discoveries with 64 entries per
+scope takes about 9–10 ms native versus 5–6 ms in TypeScript. This surface does
+not currently show a performance advantage; real filesystem latency is additional.

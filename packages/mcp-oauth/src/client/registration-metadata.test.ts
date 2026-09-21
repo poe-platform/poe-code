@@ -44,7 +44,7 @@ it("preserves complete registration through the native client store", async () =
   const fs = createFsFromVolume(new Volume()).promises;
   const store = createAuthStoreClientStore({ backend: "file", fileStore: { fs, filePath: "/home/test/clients.enc", salt: "fixture",
     getMachineIdentity: () => ({ hostname: "host", username: "user" }) } });
-  const client = { clientId: "registered", clientSecret: "private-client-secret", registration };
+  const client = { clientId: "registered", clientSecret: "private-client-secret", requestedRedirectUri: "http://127.0.0.1:49152/callback", registration };
   await store.save(issuer, client);
   expect(await store.load(issuer)).toEqual(client);
 });

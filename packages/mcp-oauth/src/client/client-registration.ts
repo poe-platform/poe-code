@@ -1,4 +1,5 @@
 import type { OAuthClientRegistration, StoredOAuthClient } from "./types.js";
+import { loopbackTarget } from "./loopback-authorization.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 
@@ -61,6 +62,14 @@ export function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | 
   if (typeof clientId !== "string" || clientId.trim() === "" ||
     (clientSecret !== undefined && (typeof clientSecret !== "string" || clientSecret.trim() === ""))) return null;
   const client: StoredOAuthClient = { clientId: clientId.trim(), ...(clientSecret === undefined ? {} : { clientSecret: (clientSecret as string).trim() }) };
+  const requestedRedirectUri = Object.hasOwn(record, "requestedRedirectUri") ? record.requestedRedirectUri : undefined;
+  if (requestedRedirectUri !== undefined) {
+    try {
+      if (typeof requestedRedirectUri !== "string") throw new Error("Invalid redirect identity");
+      loopbackTarget({ redirectUri: requestedRedirectUri });
+    } catch { throw new Error("Invalid stored OAuth registration redirect identity"); }
+    client.requestedRedirectUri = requestedRedirectUri as string;
+  }
   const method = normalizeOAuthTokenEndpointAuthMethod(Object.hasOwn(record, "tokenEndpointAuthMethod") ? record.tokenEndpointAuthMethod : undefined);
   if (Object.hasOwn(record, "registration") && record.registration !== undefined) {
     const registration = parseOAuthClientRegistration(record.registration);
@@ -75,4 +84,25 @@ export function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | 
   }
   if (method !== undefined) client.tokenEndpointAuthMethod = method;
   return client;
+}
+
+/** Fresh DCR may describe a normalized loopback port; saved identity stays exact. */
+export function registrationMatchesRedirect(client: StoredOAuthClient, requestedUri: string, fresh = false): boolean {
+  if (client.requestedRedirectUri !== undefined) return client.requestedRedirectUri === requestedUri;
+  const redirects = client.registration?.redirect_uris;
+  if (redirects === undefined || redirects === null || redirects.length === 0) return true;
+  return redirects.some(returnedUri => {
+    if (returnedUri === requestedUri) return true;
+    if (!fresh) return false;
+    let returned: URL, requested: URL;
+    try { returned = new URL(returnedUri); requested = new URL(requestedUri); } catch { return false; }
+    if (requested.protocol !== "http:" || returned.protocol !== "http:" ||
+      !["127.0.0.1", "[::1]", "localhost"].includes(requested.hostname)) return false;
+    const sameHost = returned.hostname === requested.hostname;
+    const normalizedIpv4 = requested.hostname === "127.0.0.1" && returned.hostname === "localhost" && returned.port === "";
+    if (!sameHost && !normalizedIpv4) return false;
+    returned.hostname = requested.hostname;
+    returned.port = requested.port;
+    return returned.href === requested.href;
+  });
 }

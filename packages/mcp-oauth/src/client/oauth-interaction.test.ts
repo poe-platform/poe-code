@@ -33,7 +33,7 @@ function interaction(settings: { allowInteractive?: boolean; redirectUri?: strin
     callback.resolve(redirect.toString());
   });
   const fetch = vi.fn(async (url: string | URL, _init?: RequestInit) => Response.json(String(url).endsWith("/register")
-    ? { client_id: "registered-client", redirect_uris: ["http://localhost/callback"] }
+    ? { client_id: "registered-client", redirect_uris: JSON.parse(String(_init?.body)).redirect_uris }
     : { access_token: "token", token_type: "Bearer", expires_in: 3600 }));
   const metadata = { scope: settings.scope };
   const provider = createDefaultOAuthClientProvider({

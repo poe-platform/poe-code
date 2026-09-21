@@ -30,3 +30,12 @@ inspection.
    after binding and verify expiry does not move. Authorization must not redeem
    a fresh grant. Generate a supplied-schema artifact and check credentials do
    not appear in JSON/module/configuration output.
+
+7. Exercise native registration callback identity against a local synthetic DCR
+   endpoint returning portless localhost metadata. Complete authorization through
+   an actual loopback HTTP callback with state, then code exchange; verify one
+   registration and identical submitted listener URLs throughout. Recreate a
+   headless provider with its expired persisted session and verify silent refresh
+   retains the original client without binding another listener. Reject the next
+   refresh with invalid_grant, permit interaction, and prove exactly one obsolete
+   registration replacement followed by a successful callback/code exchange.

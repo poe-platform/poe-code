@@ -1,4 +1,4 @@
-import { normalizeStoredOAuthClient, parseOAuthClientRegistration } from "./client-registration.js";
+import { normalizeStoredOAuthClient, parseOAuthClientRegistration, registrationMatchesRedirect } from "./client-registration.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 import { isIP } from "node:net";
@@ -485,7 +485,7 @@ export function createDefaultOAuthClientProvider(
     let storedClient = await loadRegisteredClient(discovery.authorizationServer);
     if (storedClient !== null) {
       assertRegistrationIssuer(storedClient, discovery.authorizationServer);
-      if (hasExpiredClientSecret(storedClient, now)) {
+      if (hasExpiredClientSecret(storedClient, now) || !registrationMatchesRedirect(storedClient, redirectUri)) {
         await clearRegisteredClient(discovery.authorizationServer);
         storedClient = null;
       }
@@ -499,7 +499,7 @@ export function createDefaultOAuthClientProvider(
     }
 
     if (registrationEndpoint === undefined) {
-      if (existingSession !== null && existingSession.client.clientId.length > 0 && !hasExpiredClientSecret(existingSession.client, now)) {
+      if (existingSession !== null && existingSession.client.clientId.length > 0 && !hasExpiredClientSecret(existingSession.client, now) && registrationMatchesRedirect(existingSession.client, redirectUri)) {
         return {
           kind: "dynamic",
           fromStoredRegistration: true,
@@ -510,7 +510,7 @@ export function createDefaultOAuthClientProvider(
       throw new Error("Authorization server metadata is missing registration_endpoint");
     }
 
-    if (existingSession !== null && existingSession.client.clientId.length > 0 && !hasExpiredClientSecret(existingSession.client, now)) {
+    if (existingSession !== null && existingSession.client.clientId.length > 0 && !hasExpiredClientSecret(existingSession.client, now) && registrationMatchesRedirect(existingSession.client, redirectUri)) {
       const isConfiguredStaticFallback =
         configuredClient !== null &&
         existingSession.client.clientId === configuredClient.clientId &&
@@ -560,12 +560,15 @@ export function createDefaultOAuthClientProvider(
     assertRegistrationIssuer(registeredClient, discovery.authorizationServer);
     if (hasExpiredClientSecret(registeredClient, now))
       throw new Error("OAuth client secret has expired in the registration response");
-    await saveRegisteredClient(discovery.authorizationServer, registeredClient);
+    if (!registrationMatchesRedirect(registeredClient, redirectUri, true))
+      throw new Error("OAuth registration response does not match the requested redirect URI");
+    const clientWithRedirect = { ...registeredClient, requestedRedirectUri: redirectUri };
+    await saveRegisteredClient(discovery.authorizationServer, clientWithRedirect);
 
     return {
       kind: "dynamic",
       fromStoredRegistration: false,
-      client: registeredClient
+      client: clientWithRedirect
     };
   }
 

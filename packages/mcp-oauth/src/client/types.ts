@@ -97,6 +97,8 @@ export interface OAuthClientRegistration extends Record<string, unknown> {
 
 export interface StoredOAuthClient {
   clientId: string;
+  /** Actual listener URI submitted when this native client was registered. */
+  requestedRedirectUri?: string;
   clientSecret?: string;
   registration?: OAuthClientRegistration;
   tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;

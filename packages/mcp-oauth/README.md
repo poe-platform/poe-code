@@ -132,6 +132,14 @@ but an expired secret is never submitted for refresh. Native DCR can replace
 an expired registration during explicit authorization; caller-owned imports
 must be updated. Headless requests retain the old record and report recovery
 is required without creating a pending refresh marker.
+Native registrations retain `requestedRedirectUri`, the actual listener URI
+submitted to DCR, separately from the full response metadata. Fresh responses
+may normalize a loopback port or represent IPv4 loopback as portless localhost;
+host, path, scheme, query and fragment differences outside that boundary fail.
+Authorization and code exchange always use the actual listener URI. Silent
+refresh keeps its original client regardless of callback changes. At interactive
+authorization, a native registration with an obsolete captured callback is
+replaced; caller-owned full registration imports retain their original identity.
 Set `client.tokenEndpointAuthMethod` to `none`, `client_secret_post` or
 `client_secret_basic`; a full registration can supply the same field as
 `token_endpoint_auth_method`. Public clients never transmit a stored secret.

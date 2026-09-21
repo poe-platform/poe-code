@@ -1895,7 +1895,7 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(headers.get("Authorization")).toBeNull();
   });
 
-  it("persists a dynamically registered client after a failed token exchange and reuses it on the next attempt", async () => {
+  it("persists a dynamically registered client after a failed token exchange and reuses it at the same fixed callback", async () => {
     const sessionStore = createMemorySessionStore();
     const registrationBodies: Array<Record<string, unknown>> = [];
     const authorizationRequests: URL[] = [];
@@ -1997,6 +1997,7 @@ describe("createDefaultOAuthClientProvider", () => {
         }
       },
       browser: {
+        redirectUri: "http://127.0.0.1:39127/callback",
         openBrowser
       },
       sessionStore,
@@ -2032,7 +2033,7 @@ describe("createDefaultOAuthClientProvider", () => {
           (request) => new URL(request.searchParams.get("redirect_uri") ?? "").port
         )
       ).size
-    ).toBe(2);
+    ).toBe(1);
     expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
       client: {
         clientId: "client-1"
@@ -2044,7 +2045,7 @@ describe("createDefaultOAuthClientProvider", () => {
     });
   });
 
-  it("persists dynamically registered clients in auth-store by issuer and reuses them across runs", async () => {
+  it("persists dynamically registered clients in auth-store by issuer and reuses them across runs at the same fixed callback", async () => {
     const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
     const authStore = createAuthStoreConfig(fs);
     const pair = createOAuthPair();
@@ -2060,6 +2061,7 @@ describe("createDefaultOAuthClientProvider", () => {
         }
       },
       browser: {
+        redirectUri: "http://127.0.0.1:39127/callback",
         openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
@@ -2080,6 +2082,7 @@ describe("createDefaultOAuthClientProvider", () => {
         }
       },
       browser: {
+        redirectUri: "http://127.0.0.1:39127/callback",
         openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
@@ -2219,6 +2222,7 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(savedSessions[savedSessions.length - 1]?.client).toEqual({
       clientId: "dynamic-client",
       clientSecret: "dynamic-secret",
+      requestedRedirectUri: new URL(openedAuthorizationUrls[0]!).searchParams.get("redirect_uri"),
       registration: { client_id: "  dynamic-client  ", client_secret: "  dynamic-secret  " }
     });
   });
@@ -2629,6 +2633,7 @@ describe("createDefaultOAuthClientProvider", () => {
         }
       },
       browser: {
+        redirectUri: "http://127.0.0.1:39127/callback",
         openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
@@ -2647,6 +2652,7 @@ describe("createDefaultOAuthClientProvider", () => {
         }
       },
       browser: {
+        redirectUri: "http://127.0.0.1:39127/callback",
         openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
@@ -2700,6 +2706,7 @@ describe("createDefaultOAuthClientProvider", () => {
         }
       },
       browser: {
+        redirectUri: "http://127.0.0.1:39127/callback",
         openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
@@ -2717,6 +2724,7 @@ describe("createDefaultOAuthClientProvider", () => {
         }
       },
       browser: {
+        redirectUri: "http://127.0.0.1:39127/callback",
         openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),

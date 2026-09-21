@@ -6842,3 +6842,24 @@ with a failing native test and repair in progress separately. No current success
 root publication verified. Foreign changes preserved. Continuous16:23:00–16:27:00
 adds240s,total123955s(34.43h). Minimum fulfilled; full objective incomplete.
 Continue accounting after16:27:00UTC.
+
+### Hidden resource-lock option snapshots, 2026-09-21 16:29 UTC
+
+Release35621323705 exposed six newly added resource-import oracle failures.
+Reproduced a missing hidden timeout rejection in a failing native test. Resource
+replacement/transaction adapters now explicitly read signal/timeoutMs on the
+original options receiver after copying enumerable extensions. Non-enumerable
+ceilings and live original AbortSignal identities survive queueing. Maintained
+64Rust/101native/690reference cases46files and types pass; maintained/scoped lint
+pass. Selected sequential uncached8-build closure concurrency1 passes. Packed
+one addon/23audited files/zero npm runtime groups. Direct/packed blocked-external
+16MiBworkers each complete prior OAuth workloads plus96hidden-option transactions
+covering reset/import/transaction, unchanged storage and original cancellation
+identity. Heap limits are not total/native-memory bounds. No visual change.
+Evidence out/rust-oauth-hidden-lock-*. No original consumer integration.
+
+Line buffers103b11ca0 pushed and exact remote main verified. Failed older release
+awaits repaired main validation; no current successful root publication verified.
+Foreign changes preserved. Continuous16:27:00–16:29:00 adds120s,
+total124075s(34.47h). Minimum fulfilled; full objective incomplete.
+Continue accounting after16:29:00UTC.

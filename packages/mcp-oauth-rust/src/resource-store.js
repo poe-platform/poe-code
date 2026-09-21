@@ -68,7 +68,7 @@ export function createResourceBoundOAuthStores(options, namespace, identity) {
     }
   };
   async function replace(record, options) {
-    options = { ...options };
+    options = { ...options, signal: options.signal, timeoutMs: options.timeoutMs };
     options.signal?.throwIfAborted();
     const timeoutMs = options.timeoutMs ?? 30_000;
     if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
@@ -128,7 +128,7 @@ export function createResourceBoundOAuthStores(options, namespace, identity) {
   }
   result.sessionStore = {
     async withLock(resource, operation, options) {
-      options = { ...options };
+      options = { ...options, signal: options?.signal, timeoutMs: options?.timeoutMs };
       if (store.withLock === undefined)
         throw new Error("OAuth resource identity backend must support transaction locks");
       return store.withLock(async () => {

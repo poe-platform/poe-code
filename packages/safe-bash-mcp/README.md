@@ -461,6 +461,8 @@ credential binding. Custom format functions remain host-supplied through
 accept a host registry.
 Generation refuses discovery metadata or external documents that echo a known resolved credential, including
 persisted/rotated grants observed during authorization, with safe diagnostics.
+The guard retains referenced credential values from before and after binding;
+host clocks and store factories cannot remove the original values from this check.
 
 The ESM data module has no dependency imports and can be loaded from any working
 directory. Runtime commands use the host's installed `safe-bash-mcp` library and

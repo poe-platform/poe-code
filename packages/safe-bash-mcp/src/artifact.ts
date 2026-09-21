@@ -86,17 +86,22 @@ export async function generateRemoteMcpArtifact(value: unknown, options: Artifac
   const configuration = parseRemoteMcpConfiguration(value, options);
   for (const server of configuration.servers) validateToolSchemas(server.tools ?? [], { registry: schemaRegistry });
   const absent = configuration.servers.filter(server => server.tools === undefined);
-  const bound = absent.length === 0 ? [] : bindRemoteMcpConfiguration({ version: 1, servers: absent }, options.binding ?? { env: {} });
   const credentials = new Set<string>();
-  for (const server of absent) {
-    const refs = [...Object.values(server.headers ?? {}), ...(server.auth?.type === "bearer" ? [server.auth.token] : server.auth?.type === "oauth"
-      ? [server.auth.credentials.clientId, server.auth.credentials.clientSecret, server.auth.credentials.accessToken, server.auth.credentials.refreshToken] : [])];
-    for (const reference of refs) {
-      const descriptor = Object.getOwnPropertyDescriptor(options.binding?.env ?? {}, reference.env);
-      const value = descriptor?.value as string | undefined;
-      if (value !== undefined && value.trim() !== "") { credentials.add(value); credentials.add(value.trim()); }
+  const captureEnvironmentCredentials = (): void => {
+    for (const server of absent) {
+      const refs = [...Object.values(server.headers ?? {}), ...(server.auth?.type === "bearer" ? [server.auth.token] : server.auth?.type === "oauth"
+        ? [server.auth.credentials.clientId, server.auth.credentials.clientSecret, server.auth.credentials.accessToken, server.auth.credentials.refreshToken] : [])];
+      for (const reference of refs) {
+        const descriptor = Object.getOwnPropertyDescriptor(options.binding?.env ?? {}, reference.env);
+        const value: unknown = descriptor?.value;
+        if (typeof value === "string" && value.trim() !== "") { credentials.add(value); credentials.add(value.trim()); }
+      }
     }
-  }
+  };
+  captureEnvironmentCredentials();
+  const bound = absent.length === 0 ? [] : bindRemoteMcpConfiguration({ version: 1, servers: absent }, options.binding ?? { env: {} });
+  // Host callbacks may change later environment inputs; retain both generations.
+  captureEnvironmentCredentials();
   const runtime = new Map(bound.map(server => {
     const provider = server.oauth?.provider;
     if (provider === undefined) return [server.name, server] as const;

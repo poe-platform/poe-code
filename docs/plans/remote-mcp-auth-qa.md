@@ -294,3 +294,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     one-tool ceiling after discovery. Require three tools/list requests, no
     tools/call and three distinct retired sessions. Inspect safe summary output,
     record results and purge owned synthetic evidence.
+
+28. Discover schemas over actual HTTP using an OAuth imported grant and an
+    explicit API-key header. During binding, replace the caller environment
+    object, mutate its key value from the clock, or mutate it from the selected
+    store factory. Require the original header on every request, while the
+    server echoes that original credential in its initialization identity and
+    an annotation property name. All three generations must reject with a safe
+    credential-reflection diagnostic and emit no artifact. An unrelated
+    nonenumerable environment accessor must remain unread. Require three
+    listings, three distinct retired sessions and no tool, consent or token
+    traffic. Inspect safe summary output and purge owned synthetic evidence.

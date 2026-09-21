@@ -386,3 +386,27 @@ it.each(["tighten", "loosen"])("retains the artifact configuration tool ceiling 
     else { expect(result).toBeInstanceOf(Error); expect(result.message).toContain("tool limit"); }
   } finally { release.resolve(); await outcome; }
 });
+
+it.each(["replace environment", "mutate environment", "store callback"])("quarantines original header credentials after the host chooses to %s during binding", async mutation => {
+  const f = remote(), key = "original-private-header-key";
+  const config = initRemoteMcpConfiguration([{ ...server, headers: { "X-Key": { env: "KEY" } }, auth: {
+    type: "oauth", clientMode: "static", env: { clientId: "ID" }
+  } }]).configuration;
+  const binding = { env: { KEY: key, ID: "original-app", MCP_CATALOG_ACCESS_TOKEN: "private-grant", MCP_CATALOG_EXPIRES_IN: "60" }, oauth: {
+    now: () => { if (mutation === "replace environment") binding.env = { ...binding.env, KEY: "replacement-private-header-key" };
+      if (mutation === "mutate environment") binding.env.KEY = "replacement-private-header-key"; return 1000; },
+    sessionStore: () => { if (mutation === "store callback") binding.env.KEY = "replacement-private-header-key";
+      return { load: async () => null, save: async () => {}, clear: async () => {} }; }
+  } };
+  const fetch: HttpTransportFetch = async (url, init) => {
+    expect(new Headers(init?.headers).get("X-Key")).toBe(key);
+    const response = await f.fetch(url, init);
+    if (!response.ok || response.status === 202 || response.status === 204) return response;
+    const value = await response.json();
+    if (value.result?.serverInfo) value.result.serverInfo.name = key;
+    return Response.json(value);
+  };
+  const error = await generateRemoteMcpArtifact(config, { binding, schema: { fetch } }).catch(error => error);
+  expect(error).toBeInstanceOf(Error);
+  expect(error.message).toContain("resolved credential"); expect(error.message).not.toContain(key);
+});

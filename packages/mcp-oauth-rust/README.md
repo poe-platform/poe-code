@@ -113,6 +113,8 @@ original; full provider conformance is currently incomplete. Integration and
 broader performance validation remain separate work.
 
 `fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.
+Cancellation settles even when an injected host fetch ignores its signal; late
+response bodies are canceled and request abort listeners are retired.
 `readBoundedResponseText` enforces declared and actual byte limits, decodes strict
 UTF-8 incrementally and releases reader locks/tracking entries on completion,
 failure or abort. Length admission uses the allocation-free Rust core.

@@ -1,10 +1,38 @@
 import { createRequire } from "node:module";
 const { NativeResponseBudget, checkHttpRedirect } = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 export async function fetchMcpResponse(fetchImpl, input, init = {}) {
-  const response = await fetchImpl(input, { ...init, redirect: "error" });
-  try { checkHttpRedirect(response.redirected, response.type); }
-  catch (error) { void response.body?.cancel().catch(() => undefined); throw new Error(error.message); }
-  return response;
+  const signal = init.signal;
+  signal?.throwIfAborted();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (error, response) => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener("abort", abort);
+      if (response === undefined) reject(error);
+      else resolve(response);
+    };
+    const abort = () => finish(signal.reason);
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) { abort(); return; }
+    let pending;
+    try { pending = fetchImpl(input, { ...init, redirect: "error" }); }
+    catch (error) { finish(error); return; }
+    void pending.then(response => {
+      if (settled || signal?.aborted) {
+        void response.body?.cancel().catch(() => undefined);
+        if (!settled) abort();
+        return;
+      }
+      try { checkHttpRedirect(response.redirected, response.type); }
+      catch (error) {
+        void response.body?.cancel().catch(() => undefined);
+        finish(new Error(error.message));
+        return;
+      }
+      finish(undefined, response);
+    }, error => finish(error));
+  });
 }
 export async function readBoundedResponseText(response, maxBytes, readers, signal) {
   let budget;

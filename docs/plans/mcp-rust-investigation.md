@@ -4314,3 +4314,27 @@ Explicit authentication3ba1decad is pushed. Current successful root publication
 remains unverified. Continuous active05:44:27–05:52:38 adds491s, bringing conservative
 actual effort to87,641s (24.34h). Minimum24h is fulfilled; full rewrite/acceptance
 remain incomplete. Active work continues after05:52:38 UTC.
+
+### OAuth host fetch cancellation, 2026-09-21 05:54 UTC
+
+Native reds reproduce pending cancellation when injected fetch ignores its signal
+and host invocation after pre-cancellation. The own host adapter now races request
+completion against cancellation, preserves arbitrary abort causes, observes late
+rejections, cancels late bodies and removes abort listeners on success/failure/abort.
+Rust still owns redirect admission; Node must own host promises and cancellation.
+
+All49 Rust cases and85 native groups pass. All8 complete original HTTP fetch cases
+pass. Maintained complete unit route remains failing only for59 required missing
+resource identity/import/token grant cases:378/437 pass. Focused maintained lint,
+types, uncached113-workspace/8-build/338-edge closure and direct/packed16MiB workers
+pass. Each worker adds1024 cancelled host requests, independent late body disposal
+and listener-retirement assertions to prior workloads. No memory/performance
+advantage claimed. Evidence out/rust-oauth-http-cancel-*.
+
+Credential admission083ac18f7 is pushed within concurrent original e8beba756; the
+original credential-import improvement is another author's work. Current root
+publication remains unverified; a later gh run list unexpectedly returned historical
+September4 runs and is not evidence of successful current release. Continuous active
+05:52:38–05:54:27 adds109s, bringing conservative actual effort to87,750s (24.38h).
+Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue after
+05:54:27 UTC.

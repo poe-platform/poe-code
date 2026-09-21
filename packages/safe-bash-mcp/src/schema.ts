@@ -101,13 +101,18 @@ export function snapshotRemoteMcpServer(server: RemoteMcpServer): RemoteMcpServe
 
 function snapshotOAuthOptions(oauth: NonNullable<RemoteMcpServer["oauth"]>): NonNullable<RemoteMcpServer["oauth"]> {
   if ("provider" in oauth) return { provider: oauth.provider };
+  const initialGrant = oauth.initialGrant;
+  const timing = initialGrant === undefined ? undefined : Object.fromEntries(
+    (["expiresAt", "expiresIn", "issuedAt"] as const).filter(field => Object.hasOwn(initialGrant.tokens, field))
+      .map(field => [field, initialGrant.tokens[field]])
+  );
   return {
     ...oauth,
     client: { ...oauth.client,
       ...(oauth.client.metadata === undefined ? {} : { metadata: { ...oauth.client.metadata } }),
       ...(oauth.client.registration === undefined ? {} : { registration: structuredClone(oauth.client.registration) }) },
     browser: snapshotOAuthBrowserOptions(oauth.browser),
-    ...(oauth.initialGrant === undefined ? {} : { initialGrant: { ...oauth.initialGrant, tokens: { ...oauth.initialGrant.tokens } } }),
+    ...(initialGrant === undefined ? {} : { initialGrant: { ...initialGrant, tokens: { ...initialGrant.tokens, ...timing } } }),
     ...(oauth.authStore === undefined ? {} : { authStore: snapshotOAuthPersistenceOptions(oauth.authStore) })
   };
 }

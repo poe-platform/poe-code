@@ -733,3 +733,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Require six MCP POSTs/two retired sessions and full schema/guidance/metadata/
     falsey tool JSON/exact005930. Inspect summary screenshot; purge only owned
     synthetic evidence.
+
+67. Supply native default-provider imports with own nonenumerable expiresAt,
+    expiresIn or issuedAt timing through actual HTTP/SSE schema, generated-tool
+    and resource routes. Require eighteen expired imports withheld from all
+    transport requests. Offline command generation reads no clock and owns the
+    timing before caller mutation. Inherited timing getters remain absent and
+    unread; six unknown-lifetime cases retain access with zero clock reads.
+    Require twenty-four handshakes/seventy-two POSTs/twelve retired HTTP sessions/
+    twelve closed SSE streams, full schema/guidance/text+blob resources/falsey
+    tool JSON/exact005930, and zero store writes/token/consent. Inspect corrected
+    successful summary screenshot; purge only owned synthetic evidence.

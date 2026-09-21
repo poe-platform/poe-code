@@ -18,7 +18,7 @@ import { runElementOpen } from "./run-properties.js";
 import { tableContainerWidth } from "./table-insertion.js";
 import { editMergedTable, mergedTableGrid } from "./table-merge.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
+import { insertTableRowXml, removeTableRowXml, UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
 export type TableEditOperation = "tables.add" | "tables.set" | "tables.rows.add" | "tables.rows.remove" | "tables.columns.add" | "tables.columns.remove" | "tables.merge" | "tables.split";
 export type TableEditRequest = { [K in TableEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[TableEditOperation];
@@ -34,7 +34,6 @@ const orders: Readonly<Record<string, readonly string[]>> = {
   tcPr: "cnfStyle tcW gridSpan hMerge vMerge tcBorders shd noWrap tcMar textDirection tcFitText vAlign hideMark cellIns cellDel cellMerge tcPrChange".split(" "),
   tblCellMar: ["top", "left", "start", "bottom", "right", "end"], tcMar: ["top", "left", "start", "bottom", "right", "end"]
 };
-function children(node: XmlElement, name: string): XmlElement[] { return node.children.filter(c => c.namespace === node.namespace && c.localName === name); }
 function one(node: XmlElement, name: string, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): XmlElement | undefined {
   const found = projected(node).filter(child => child.namespace === node.namespace && child.localName === name);
   if (found.length > 1) throw new UnsupportedEditError("Duplicate table properties cannot be edited.");
@@ -142,8 +141,9 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
     const tablePath = before.value.path.slice(0, ancestors.indexOf(table));
     const key = before.value.part + ":" + tablePath.join(",");
     if (edited.has(key)) throw new InvalidValueError("Overlapping table edits require separate transactions."); edited.add(key);
-    const rows = children(table, "tr"), selectedRow = before.kind === "cell" ? [...ancestors].reverse().find(n => n.namespace === w && n.localName === "tr") : undefined;
+    const rows = projected(table).filter(n => n.namespace === w && n.localName === "tr"), selectedRow = before.kind === "cell" ? [...ancestors].reverse().find(n => n.namespace === w && n.localName === "tr") : undefined;
     const patches = new Map<XmlElement, string>(); let replacement: string;
+    let rowInsertion: { anchor: XmlElement; markup: string; before: boolean } | undefined;
     const logical = mergedTableGrid(table, budget, projected);
     if (request.operation === "tables.set" && opts.cell !== undefined && opts.cell !== before.positions.cell && opts.covered !== "owner") throw new SelectionError("ambiguous-selection", [before.token]);
     if (request.operation === "tables.set") {
@@ -183,17 +183,16 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       if (request.operation !== "tables.rows.remove" && descendants(table).some(c => c.namespace === w && ["fldChar", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd"].includes(c.localName))) throw new UnsupportedEditError("Merge and split cannot move range markers or complex fields.");
       if (request.operation === "tables.rows.remove" && before.kind !== "table") throw new InvalidValueError("Row removal requires a table anchor.");
       if (request.operation === "tables.rows.remove" && descendants(rows[(opts.index ?? 0) - 1] ?? table).some(c => c.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd", "fldChar"].includes(c.localName))) throw new UnsupportedEditError("Structural deletion cannot remove range markers or complex fields.");
-      replacement = editMergedTable(xml, table, node, request.operation, opts, budget);
+      replacement = editMergedTable(xml, table, node, request.operation, opts, budget, projected);
     } else {
       if (before.kind !== "table") throw new InvalidValueError("Row and column operations require a table anchor.");
-      const grid = one(table, "tblGrid"), columns = grid ? children(grid, "gridCol") : [];
+      const grid = one(table, "tblGrid", projected), columns = logical.columns;
       if (!grid || !columns.length || !rows.length) throw new UnsupportedEditError("Structural edits require a nonempty table grid.");
-      if (table.children.some(c => c.namespace !== w || !["tblPr", "tblGrid", "tr"].includes(c.localName)) || grid.children.some(c => c.namespace !== w || c.localName !== "gridCol")) throw new UnsupportedEditError("Structural edits require a rectangular table without wrapped rows or columns.");
+      if (projected(table).some(c => c.namespace !== w || !["tblPr", "tblGrid", "tr"].includes(c.localName)) || projected(grid).some(c => c.namespace !== w || c.localName !== "gridCol")) throw new UnsupportedEditError("Structural edits require a rectangular table without controlled rows or columns.");
       for (const row of rows) {
-        if (row.children.some(c => c.namespace !== w || !["trPr", "tc"].includes(c.localName))) throw new UnsupportedEditError("Structural edits require rectangular rows without wrapped cells.");
-        const props = one(row, "trPr");
-        if (props && ["gridBefore", "gridAfter"].some(name => { const v = one(props, name); return v && attr(v, "val") !== "0"; }) || children(row, "tc").length !== columns.length || children(row, "tc").some(tc => { const p = one(tc, "tcPr"); return p && ["gridSpan", "vMerge", "hMerge"].some(n => one(p, n)); })) throw new UnsupportedEditError("Structural edits require a rectangular unmerged table without omitted cells.");
+        if (projected(row).some(c => c.namespace !== w || !["trPr", "tc"].includes(c.localName))) throw new UnsupportedEditError("Structural edits require rectangular rows without controlled cells.");
       }
+      if (logical.slots.some(slots => Array.from({ length: columns.length }, (_, i) => slots[i]).some(owner => !owner))) throw new UnsupportedEditError("Structural edits require a rectangular table without omitted cells.");
       const rowOperation = request.operation.startsWith("tables.rows."), adding = request.operation.endsWith(".add"), count = rowOperation ? rows.length : columns.length;
       const position = opts.index ?? count + 1;
       if (!Number.isSafeInteger(position) || position < 1) throw new InvalidValueError("Table index must be a positive one-based integer.");
@@ -202,7 +201,7 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       budget.table(rows.length + (rowOperation ? adding ? 1 : -1 : 0), columns.length + (rowOperation ? 0 : adding ? 1 : -1));
       const widths = columns.map(column => Number(attr(column, "w")));
       if (adding && widths.some(value => !Number.isSafeInteger(value) || value <= 0)) throw new UnsupportedEditError("Insertion requires stored positive grid widths.");
-      const emptyCell = (width: number) => element(w, "tc", {}, undefined, element(w, "tcPr", {}, undefined, element(w, "tcW", { w: String(width), type: "dxa" })) + element(w, "p", {}));
+      const emptyCell = (width: number, span = 1, continuation = false) => element(w, "tc", {}, undefined, element(w, "tcPr", {}, undefined, element(w, "tcW", { w: String(width), type: "dxa" }) + (span > 1 ? element(w, "gridSpan", { val: String(span) }) : "") + (continuation ? element(w, "vMerge", { val: "continue" }) : "")) + element(w, "p", {}));
       const insert = (parent: XmlElement, values: readonly XmlElement[], markup: string) => {
         const next = values[position - 1];
         if (next) patches.set(next, markup + xml.sourceXml(next));
@@ -212,9 +211,19 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       if (rowOperation) {
         if (opts.width !== undefined && twips(opts.width) !== widths.reduce((a, b) => a + b, 0)) throw new InvalidValueError("New row width must equal the table grid width.");
         if (adding) {
-          const flags = rows.map(row => header(row)), repeated = position <= flags.filter(Boolean).length;
+          const flags = rows.map(row => header(row, projected)), repeated = position <= flags.filter(Boolean).length;
           flags.splice(position - 1, 0, repeated); validateHeaders(flags);
-          replacement = insert(table, rows, element(w, "tr", {}, undefined, (repeated ? element(w, "trPr", {}, undefined, element(w, "tblHeader", { val: "1" })) : "") + widths.map(emptyCell).join("")));
+          let cells = "";
+          for (let c = 0; c < columns.length;) {
+            const owner = logical.slots[position - 1]?.[c];
+            const continuation = owner !== undefined && owner.row < position - 1 && owner.row + owner.rowSpan > position - 1;
+            const span = continuation ? owner.columnSpan : 1;
+            cells += emptyCell(widths.slice(c, c + span).reduce((a, b) => a + b, 0), span, continuation);
+            c += span;
+          }
+          const markup = element(w, "tr", {}, undefined, (repeated ? element(w, "trPr", {}, undefined, element(w, "tblHeader", { val: "1" })) : "") + cells);
+          rowInsertion = { anchor: rows[position - 1] ?? rows.at(-1)!, markup, before: position <= rows.length };
+          replacement = insert(table, rows, markup);
         } else { patches.set(rows[position - 1]!, ""); replacement = xml.sourceXml(table, patches); }
       } else {
         const width = adding ? opts.width ? twips(opts.width) : Math.floor(tableContainerWidth(before, xml.root, editor.xml(main).root, budget) / (columns.length + 1)) : widths[position - 1]!;
@@ -222,21 +231,35 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
         const gridMarkup = adding ? insert(grid, columns, element(w, "gridCol", { w: String(width) })) : xml.sourceXml(grid, new Map([[columns[position - 1]!, ""]]));
         patches.clear(); patches.set(grid, gridMarkup);
         for (const row of rows) {
-          const cells = children(row, "tc"), local = new Map<XmlElement, string>();
-          if (adding) { const next = cells[position - 1]; const anchor = next ?? cells.at(-1)!; local.set(anchor, next ? emptyCell(width) + xml.sourceXml(anchor) : xml.sourceXml(anchor) + emptyCell(width)); }
-          else local.set(cells[position - 1]!, "");
+          const physical = logical.physical[rows.indexOf(row)]!, local = new Map<XmlElement, string>();
+          const crossing = physical.find(cell => cell.column < position - 1 && cell.column + cell.span > position - 1);
+          const affected = adding ? crossing : physical.find(cell => cell.column <= position - 1 && cell.column + cell.span > position - 1)!;
+          if (affected && (adding || affected.span > 1)) {
+            const span = affected.span + (adding ? 1 : -1), props = one(affected.node, "tcPr", projected), preferred = props && one(props, "tcW", projected);
+            const values = new Map<string, Record<string, string> | null>([["gridSpan", span === 1 ? null : { val: String(span) }]]);
+            const oldWidth = Number(attr(preferred, "w"));
+            if (attr(preferred, "type") === "dxa" && Number.isSafeInteger(oldWidth) && Number.isSafeInteger(width)) {
+              const newWidth = oldWidth + (adding ? width : -width);
+              if (newWidth <= 0) throw new InvalidValueError("Column removal leaves an invalid preferred cell width.");
+              values.set("tcW", { w: String(newWidth), type: "dxa" });
+            }
+            local.set(affected.node, withProperties(xml, affected.node, "tcPr", properties(xml, affected.node, "tcPr", values, undefined, projected), new Map(), projected));
+          } else if (adding) {
+            const next = physical.find(cell => cell.column >= position - 1)?.node, anchor = next ?? physical.at(-1)!.node;
+            local.set(anchor, next ? emptyCell(width) + xml.sourceXml(anchor) : xml.sourceXml(anchor) + emptyCell(width));
+          } else local.set(affected!.node, "");
           patches.set(row, xml.sourceXml(row, local));
         }
-        const props = one(table, "tblPr"), preferred = props && one(props, "tblW");
+        const props = one(table, "tblPr", projected), preferred = props && one(props, "tblW", projected);
         const oldWidth = Number(attr(preferred, "w"));
         if (attr(preferred, "type") === "dxa" && Number.isSafeInteger(oldWidth) && Number.isSafeInteger(width)) {
           const newWidth = oldWidth + (adding ? width : -width);
           if (newWidth <= 0) throw new InvalidValueError("Column removal leaves an invalid preferred table width.");
-          replacement = withProperties(xml, table, "tblPr", properties(xml, table, "tblPr", new Map([["tblW", { w: String(newWidth), type: "dxa" }]])), patches);
+          replacement = withProperties(xml, table, "tblPr", properties(xml, table, "tblPr", new Map([["tblW", { w: String(newWidth), type: "dxa" }]]), undefined, projected), patches, projected);
         } else replacement = xml.sourceXml(table, patches);
       }
       if (!adding) {
-        const removed = rowOperation ? [rows[position - 1]!] : rows.map(row => children(row, "tc")[position - 1]!);
+        const removed = rowOperation ? [rows[position - 1]!] : logical.physical.flat().filter(cell => cell.column === position - 1 && cell.span === 1).map(cell => cell.node);
         if (removed.some(n => descendants(n).some(c => c.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd", "fldChar"].includes(c.localName)))) throw new UnsupportedEditError("Structural deletion cannot remove range markers or complex fields.");
       }
     }
@@ -245,7 +268,9 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
     let resultingTable = candidateRoot;
     for (const index of tablePath) resultingTable = resultingTable.children[index]!;
     const resultingGrid = mergedTableGrid(resultingTable, budget, activeXmlChildren(candidateRoot, budget));
-    xml.replaceElement(table, replacement);
+    if (rowInsertion) xml[insertTableRowXml](rowInsertion.anchor, rowInsertion.markup, rowInsertion.before);
+    else if (request.operation === "tables.rows.remove") xml[removeTableRowXml](table, rows[opts.index! - 1]!, replacement);
+    else xml.replaceElement(table, replacement);
     let resultPath = tablePath;
     if (request.operation === "tables.set" && before.kind === "cell") {
       const owner = logical.owners.find(owner => owner.node === node);

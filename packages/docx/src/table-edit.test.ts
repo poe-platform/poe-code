@@ -89,11 +89,14 @@ it("assigns multiline text to a multi-paragraph cell without extra old paragraph
   expect(paragraphs).toHaveLength(1);
   expect(result.xml).not.toContain('old two');
 });
-it("rejects deleting cross-cell bookmarks and merged structural edits", async () => {
+it("rejects deleting cross-cell bookmarks and retains spans during structural edits", async () => {
   const marked = table().replace(paragraph("A"), '<w:p><w:bookmarkStart w:id="9" w:name="Across"/></w:p>').replace(paragraph("B"), '<w:p><w:bookmarkEnd w:id="9"/></w:p>');
   await expect(edit(marked, "tables.columns.remove", { index: 1 })).rejects.toThrow("range markers");
   const merged = table(row("A", "B")).replace(cell("A") + cell("B"), '<w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr>' + paragraph("joined") + '</w:tc>');
-  await expect(edit(merged, "tables.rows.add", {})).rejects.toThrow("unmerged");
+  const appended = await edit(merged, "tables.rows.add", {});
+  expect(appended.table.children.filter(n => n.localName === "tr")).toHaveLength(2);
+  expect(appended.xml).toContain('<w:gridSpan w:val="2"/>');
+  expect(appended.xml).toContain(paragraph("joined"));
   const result = await edit(merged, "tables.set", { cell: "B1", text: "anchor", covered: "owner" });
   expect(result.xml).toContain('<w:gridSpan w:val="2"/>');
   expect(result.xml).toContain('>anchor<');

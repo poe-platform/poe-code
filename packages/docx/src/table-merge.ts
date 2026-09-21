@@ -69,9 +69,9 @@ export function mergedTableGrid(table: XmlElement, budget: DocumentBudget, proje
 }
 
 type Grid = ReturnType<typeof mergedTableGrid>;
-function closedStructure(table: XmlElement, grid: Grid): void {
-  if (table.children.some(n => n.namespace !== table.namespace || !["tblPr", "tblGrid", "tr"].includes(n.localName)) ||
-      grid.rows.some(row => row.children.some(n => n.namespace !== table.namespace || !["trPr", "tc"].includes(n.localName))) ||
+function closedStructure(table: XmlElement, grid: Grid, projected: (node: XmlElement) => readonly XmlElement[]): void {
+  if (projected(table).some(n => n.namespace !== table.namespace || !["tblPr", "tblGrid", "tr"].includes(n.localName)) ||
+      grid.rows.some(row => projected(row).some(n => n.namespace !== table.namespace || !["trPr", "tc"].includes(n.localName))) ||
       grid.slots.some(row => Array.from({ length: grid.columns.length }, (_, i) => row[i]).some(cell => !cell)))
     throw new UnsupportedEditError("Merge edits require rectangular tables without omitted or wrapped cells.");
 }
@@ -118,8 +118,8 @@ function width(grid: Grid, start: number, span: number, row: number): number | u
   return Number.isSafeInteger(sum) && sum > 0 ? sum : undefined;
 }
 
-export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selected: XmlElement, operation: "tables.merge" | "tables.split" | "tables.rows.remove", options: { from?: string | undefined; to?: string | undefined; rows?: number | undefined; cols?: number | undefined; join?: string | undefined; distribute?: string | undefined; index?: number | undefined }, budget: DocumentBudget): string {
-  const grid = mergedTableGrid(table, budget); closedStructure(table, grid);
+export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selected: XmlElement, operation: "tables.merge" | "tables.split" | "tables.rows.remove", options: { from?: string | undefined; to?: string | undefined; rows?: number | undefined; cols?: number | undefined; join?: string | undefined; distribute?: string | undefined; index?: number | undefined }, budget: DocumentBudget, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
+  const grid = mergedTableGrid(table, budget, projected); closedStructure(table, grid, projected);
   const patches = new Map<XmlElement, string>();
   if (operation === "tables.rows.remove") {
     const r = options.index! - 1;
@@ -145,7 +145,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
     }
     const rowPatches = new Map<XmlElement, string>();
     for (const row of grid.rows) {
-      const local = new Map([...patches].filter(([n]) => row.children.includes(n)));
+      const local = new Map([...patches].filter(([n]) => projected(row).includes(n)));
       if (local.size) rowPatches.set(row, xml.sourceXml(row, local));
     }
     rowPatches.set(grid.rows[r]!, "");
@@ -199,7 +199,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
   }
   const rowPatches = new Map<XmlElement, string>();
   for (const row of grid.rows) {
-    const local = new Map([...patches].filter(([n]) => row.children.includes(n)));
+    const local = new Map([...patches].filter(([n]) => projected(row).includes(n)));
     if (local.size) rowPatches.set(row, xml.sourceXml(row, local));
   }
   return xml.sourceXml(table, rowPatches);

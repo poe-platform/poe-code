@@ -54,6 +54,11 @@ export const appendBodyBlocks = Symbol("append-body-blocks");
 export const insertParagraphBefore = Symbol("insert-paragraph-before");
 export const insertParagraphAfter = Symbol("insert-paragraph-after");
 
+/** Internal table-domain insertion beside an active physical row. */
+export const insertTableRowXml = Symbol("insert-table-row-xml");
+/** Internal checked table-row removal with surviving span promotion. */
+export const removeTableRowXml = Symbol("remove-table-row-xml");
+
 /** Internal style-domain authority for active native definitions. */
 export const replaceActiveStyleXml = Symbol("replace-active-style-xml");
 /** Internal latent-style creation at the selected native style boundary. */
@@ -920,6 +925,45 @@ export class DocumentXmlEditor {
     if (!Number.isSafeInteger(index) || index < 0 || parent.children[index] !== paragraph) unsupported();
     this.#stageInsertion(parent, xml, parent.children[index + 1], true);
     return [...path.slice(0, -1), index + 1];
+  }
+
+  /** Insert a typed row while retaining the physical boundary's original carrier. */
+  [insertTableRowXml](row: XmlElement, xml: string, before: boolean): void {
+    this.#assertOwnedElement(row);
+    if (typeof xml !== "string" || !this.#dialect || row.namespace !== documentDialects[this.#dialect].w || row.localName !== "tr" || !this.#canEdit(row)) unsupported();
+    this.assertShapeEditAllowed(row);
+    const fragment = parseDocumentXml(new TextEncoder().encode(`<root>${xml}</root>`), this.#limits, this.#budget);
+    if (fragment.root.children.length !== 1 || fragment.root.children[0]!.namespace !== row.namespace || fragment.root.children[0]!.localName !== "tr" || fragment.root.content.some(item => item.kind !== "element")) unsupported();
+    const pending = [this.root];
+    while (pending.length) {
+      const parent = pending.pop()!;
+      this.#budget.charge("work", 1 + parent.children.length);
+      const index = parent.children.indexOf(row);
+      if (index >= 0) {
+        this.#stageInsertion(parent, xml, before ? row : parent.children[index + 1], true);
+        return;
+      }
+      for (const child of parent.children) pending.push(child);
+    }
+    unsupported();
+  }
+
+  [removeTableRowXml](table: XmlElement, row: XmlElement, markup: string): void {
+    this.#assertOwnedElement(table);
+    this.#assertOwnedElement(row);
+    if (typeof markup !== "string" || !this.#dialect || table.namespace !== documentDialects[this.#dialect].w || table.localName !== "tbl" || row.namespace !== table.namespace || row.localName !== "tr" || !this.#canEdit(table) || !this.#canEdit(row) || this.#patches.has(table)) unsupported();
+    this.assertShapeEditAllowed(table);
+    const containers = new Set(this.compatibility[compatibilityContainers]), pending = [row];
+    while (pending.length) {
+      const node = pending.pop()!;
+      this.#budget.charge("work", 1 + node.attributes.length);
+      if (!containers.has(node) && (!this.#canEdit(node) || node.attributes.some(a => !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace"].includes(a.namespace) && !this.#canEdit(a)))) unsupported();
+      for (const child of node.children) pending.push(child);
+    }
+    const expected = parseDocumentXml(new TextEncoder().encode(this.sourceXml(this.root, new Map([[row, ""]]))), this.#limits, this.#budget);
+    const candidate = parseDocumentXml(new TextEncoder().encode(this.sourceXml(this.root, new Map([[table, markup]]))), this.#limits, this.#budget);
+    if (opaqueXmlContent(expected.root, this.#budget, this.#profile) !== opaqueXmlContent(candidate.root, this.#budget, this.#profile)) unsupported();
+    this.#stageReplacement(table, markup, false, true);
   }
 
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */

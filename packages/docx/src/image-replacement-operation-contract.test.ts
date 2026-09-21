@@ -16,12 +16,13 @@ it("declares occurrence and explicitly shared replacement receipts without float
   const help = getDocxDiscovery({ operation: "help", inputs: [], options: { operation: "images.replace" } })!.human;
   for (const value of ["occurrence", "shared", "stream", "fallback", "preserve"]) expect(help).toContain(value);
 });
-it("scopes replacement capabilities to direct commands while shared-owner and batch models remain pending", () => {
+it("discovers direct replacement and the admitted ordered utility batch subset", () => {
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data;
   expect(capabilities).toMatchObject({ features: expect.arrayContaining([
     expect.objectContaining({ id: "F32", subsets: expect.arrayContaining([expect.objectContaining({ name: "raster-occurrence-replacement", level: "edit", reason: expect.stringContaining("Direct") })]) }),
     expect.objectContaining({ id: "F35", level: "edit", subsets: expect.arrayContaining([expect.objectContaining({ name: "explicit-shared-raster-replacement", level: "edit" })]) })
   ]) });
   const help = getDocxDiscovery({ operation: "help", inputs: [], options: { operation: "images.replace" } })!.human;
-  expect(help).toContain("batch execution remains unsupported");
+  expect(help).toContain("supports the admitted ordered utility batch subset");
+  expect(help).not.toContain("batch execution remains unsupported");
 });

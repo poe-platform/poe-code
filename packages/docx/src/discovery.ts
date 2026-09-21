@@ -89,13 +89,13 @@ function details(id: string, declaration: DocxOperationSchema): string {
     "Axis frames, offsets, alignments, distances and wrapping require an admitted anchor; inline conversion is unsupported.",
     "Tight/through wrapping requires an explicit native polygon or an admitted retained polygon; no outline is inferred.",
     "Media bytes, relationships and coherent alternate associations remain exact; ambiguous representations reject before publication.",
-    "Utility batch execution and live drawing/collection models remain unsupported.");
+    "Floating geometry editing does not imply a layout engine or inline-to-anchor conversion.");
   if (id === "images.replace") lines.push("",
     "Select one embedded PNG, JPEG, GIF, BMP or TIFF image occurrence by its location or owner-relative index.",
     "Occurrence replacement clones and rebinds its resource; --shared replaces all physical owners of the resolved resource.",
     "Preserve existing extents and crop unless resizing; explicit fit requires both physical dimensions.",
     "Replacement paths require an explicit stream capability. Linked, alternate and fallback carriers refuse before acquisition.",
-    "Supplying fallback is unsupported. Generic utility batch execution remains unsupported; live image-part, drawing and collection models remain pending.");
+    "Supplying fallback is unsupported; SVG/fallback replacement is not supported by this operation.");
   if (id === "images.add") lines.push("",
     "Select a whole paragraph, admitted block container, or the unique body.",
     "Header/footer and note containers require an explicit owner.",
@@ -109,7 +109,10 @@ function details(id: string, declaration: DocxOperationSchema): string {
     "SVG and fallback paths require an explicit stream capability; only explicit CLI file/fallback dashes consume stdin.",
     "SVG admits bounded static XML with local references only. No scripts, external references, fetching or rasterize step; no rendering parity is claimed.",
     "Both original resources are retained exactly as one inline occurrence. A raster source with supplied fallback rejects.",
-    "Floating placement, SVG/fallback replacement, other direct raster insertion, utility batch execution and live drawing/collection models remain unsupported.");
+    "Floating placement, SVG/fallback replacement and direct raster insertion outside PNG/JPEG remain unsupported by this operation.");
+  if (["images.add", "images.set", "images.replace"].includes(id)) lines.push("",
+    "Live inline shape collections, drawing image metadata and image-part views are supported through bounded model operations.",
+    "Discover the typed collection route with docx help batch --operation model.document.Document.inline_shapes.get.");
   if (id === "pack") lines.push("", "INVENTORY is a version 1 JSON path or stdin (-); no directory scan.",
     "Records require sorted canonical part names, VFS paths, content types, byte lengths and SHA-256 hashes.",
     "File inventories grant their directory; stdin records require explicit absolute VFS paths.",

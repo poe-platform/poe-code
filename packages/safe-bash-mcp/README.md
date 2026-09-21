@@ -31,7 +31,7 @@ server identity, capabilities and instructions.
 | `initRemoteMcpConfiguration(servers, options)` | Create versioned configuration and empty credential templates |
 | `parseRemoteMcpConfiguration(value, options)` | Validate and copy configuration from JSON text or an object |
 | `bindRemoteMcpConfiguration(value, options)` | Resolve environment references into runtime server credentials |
-| `createRemoteMcpManagementCommand(servers, options)` | Create safe-bash configuration, auth, reset and artifact commands |
+| `createRemoteMcpManagementCommand(servers, options)` | Create safe-bash configuration, auth, import, reset and artifact commands |
 | `authenticateRemoteMcpServer(server, options)` | Establish access explicitly without listing or calling tools |
 | `importRemoteMcpAuthentication(server, payload, options)` | Atomically persist raw OAuth tokens with their original app |
 | `resetRemoteMcpAuthentication(server, options)` | Retire a named OAuth grant and recover corrupt credential records |
@@ -256,6 +256,15 @@ await importRemoteMcpAuthentication(server, {
   issuedAt: originalIssuedAtMs // Optional for a delayed relative-lifetime import
 }, { binding: { env: {}, oauth: { authStore } } });
 ```
+
+Use `mcp import catalog < /credentials.json` or
+`mcp import catalog --file /credentials.json --json` for the same operation.
+Paths belong to the safe-bash virtual filesystem; `--file -` explicitly selects
+stdin. `--json` emits the public import summary. `--timeout-ms` bounds input,
+discovery and persistence (default 30,000 ms). `mcp import --help` shows payload
+and expiry guidance. Management `options.credentialImport` supplies SDK settings
+and otherwise uses the authentication binding's persistence or shell environment.
+The host's `maxInputBytes` also bounds credential input (default 1 MiB).
 
 The import discovers and validates OAuth metadata, then atomically saves the
 original client and grant for the configured name/profile. It does not initialize,

@@ -1,8 +1,10 @@
-import { commandRuntimeIdentity, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
+import { posix } from "node:path";
+import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
 import { argumentText, commandLimit, emit, errorDetails, shellWord, textLine, validateCommandName } from "./commands.js";
 import { initRemoteMcpConfiguration, type ConfigurationOptions, type InitRemoteMcpServer } from "./configuration.js";
 import { generateRemoteMcpArtifact, type ArtifactGenerationOptions } from "./artifact.js";
 import { authenticateRemoteMcpServer, type RemoteMcpAuthenticationOptions, type RemoteMcpAuthenticationResult } from "./authentication.js";
+import { importRemoteMcpAuthentication, type RemoteMcpCredentialImportOptions, type RemoteMcpCredentialImportResult } from "./credential-import.js";
 import type { ConfigurationBindingOptions } from "./runtime-configuration.js";
 import { resetRemoteMcpAuthentication, type RemoteMcpCredentialResetOptions, type RemoteMcpCredentialResetResult } from "./credential-reset.js";
 
@@ -14,15 +16,17 @@ export interface RemoteMcpManagementOptions extends ConfigurationOptions {
   readonly generation?: ArtifactGenerationOptions;
   readonly authentication?: Omit<RemoteMcpAuthenticationOptions, "binding"> & { readonly binding?: ConfigurationBindingOptions };
   readonly reset?: RemoteMcpCredentialResetOptions;
+  readonly credentialImport?: RemoteMcpCredentialImportOptions;
 }
 
-function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number } {
+function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; file?: string } {
   const command = args[0];
   let name: string | undefined;
   let json = false;
   let noBrowser: boolean | undefined;
   let requestTimeoutMs: number | undefined;
   let reset = false;
+  let file: string | undefined;
   for (let index = 1; index < args.length; index++) {
     const arg = args[index];
     if (arg === "--json") {
@@ -36,6 +40,10 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
       const mode = arg === "--no-browser" ? "none" : arg === "--browser" ? args[++index] : arg.slice("--browser=".length);
       if (mode !== "none" && mode !== "host") throw new Error("--browser requires none or host");
       noBrowser = mode === "none";
+    } else if (command === "import" && (arg === "--file" || arg.startsWith("--file="))) {
+      if (file !== undefined) throw new Error("--file can only be supplied once");
+      file = arg === "--file" ? args[++index] : arg.slice("--file=".length);
+      if (file === undefined || file === "") throw new Error("--file requires a virtual path or - for stdin");
     } else if (arg === "--timeout-ms" || arg.startsWith("--timeout-ms=")) {
       if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
       const value = arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length);
@@ -51,7 +59,7 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
     }
   }
   if (name === undefined) throw new Error(`${command} requires a server name`);
-  return { name, json, reset, noBrowser, requestTimeoutMs };
+  return { name, json, reset, noBrowser, requestTimeoutMs, file };
 }
 
 /** Create configuration and artifact commands for a host-owned static remote registry. */
@@ -85,11 +93,27 @@ export function createRemoteMcpManagementCommand(
     "recover corrupt native records and withholds stale environment-token imports.",
     "Host-owned persistence requires a host reset hook. Update static bearer/header",
     "values in the host environment. The default lock wait is 30000 milliseconds.", "", "  --help  Show this help.", ""].join("\n");
+  const importHelp = [`Usage: ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
+    "Read OAuth credential JSON from stdin (default) or a virtual --file path.",
+    "Use --file - to select stdin explicitly.",
+    "Keep tokens with their original app; full DCR clientInfo is preserved.",
+    "Input: { \"tokens\": { \"access_token\": \"...\", \"token_type\": \"Bearer\" },",
+    "         \"clientInfo\": { \"client_id\": \"original-app\" } }", "",
+    "When clientInfo is absent, supply the original configured client ID/secret.",
+    "OAuth metadata validates the issuer before client and grant are saved together.",
+    "Import never initializes, lists or calls tools. Summaries contain no credentials.",
+    "expires_in uses seconds; absolute expires_at uses epoch seconds and expiresAt",
+    "uses epoch milliseconds. Optional top-level issuedAt uses epoch milliseconds",
+    "for delayed imports. Absolute expiry wins over remaining relative lifetime.", "",
+    "--timeout-ms <milliseconds> bounds input, discovery and persistence (default 30000).",
+    "Host-owned persistence requires an atomic import hook. Input is bounded by",
+    "the host input limit; malformed JSON is rejected without quoting credentials.", "", "  --help  Show this help.", ""].join("\n");
   const help = [
     `Usage: ${textLine(shellWord(name))} init [--format json|config|env]`,
     `       ${textLine(shellWord(name))} generate [--format json|config|module]`,
     `       ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host] [--reset]`,
-    `       ${textLine(shellWord(name))} reset <server> [--json]`, "",
+    `       ${textLine(shellWord(name))} reset <server> [--json]`,
+    `       ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
     "Prepare configuration and an empty credential environment template for the remote registry.", "",
     "Formats:", "  json    Configuration and environment template together (default).",
     "  config  Versioned server configuration with credential references.", "  env     Empty dotenv entries with credential guidance.", "",
@@ -110,7 +134,7 @@ export function createRemoteMcpManagementCommand(
   ].join("\n");
   return {
     name,
-    description: "Initialize, authenticate and generate remote MCP commands",
+    description: "Initialize, authenticate, import and generate remote MCP commands",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context) {
       const signal = factorySignal === undefined ? context.signal : AbortSignal.any([context.signal, factorySignal]);
@@ -121,16 +145,19 @@ export function createRemoteMcpManagementCommand(
         let output: string;
         let generationFormat: string | undefined;
         let authentication: ReturnType<typeof credentialArguments> | undefined;
+        let credentialImport: ReturnType<typeof credentialArguments> | undefined;
         let credentialReset: ReturnType<typeof credentialArguments> | undefined;
         try {
           const args = argumentText(context, maxInputBytes);
           if (args.length === 2 && args[0] === "auth" && args[1] === "--help") output = authenticationHelp;
+          else if (args.length === 2 && args[0] === "import" && args[1] === "--help") output = importHelp;
           else if (args.length === 2 && args[0] === "reset" && args[1] === "--help") output = resetHelp;
           else if (args.length === 0 || (args.length === 1 && args[0] === "--help") || (args.length === 2 && ["init", "generate"].includes(args[0]) && args[1] === "--help")) output = help;
-          else if (args[0] === "auth" || args[0] === "reset") {
+          else if (args[0] === "auth" || args[0] === "reset" || args[0] === "import") {
             const selected = credentialArguments(args);
             if (!initialization.configuration.servers.some(server => server.name === selected.name)) throw new Error(`Unknown remote MCP server '${selected.name}'`);
             if (args[0] === "auth") authentication = selected;
+            else if (args[0] === "import") credentialImport = selected;
             else credentialReset = selected;
             output = "";
           }
@@ -156,6 +183,45 @@ export function createRemoteMcpManagementCommand(
           operation.signal.throwIfAborted();
           await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
           return { exitCode: 2 };
+        }
+        if (credentialImport !== undefined) {
+          const selected = credentialImport;
+          const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
+          const settings = options.credentialImport;
+          const importSignal = settings?.signal;
+          const parentSignal = importSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, importSignal]);
+          let result: RemoteMcpCredentialImportResult;
+          try {
+            parentSignal.throwIfAborted();
+            const requestTimeoutMs = selected.requestTimeoutMs ?? settings?.requestTimeoutMs ?? 30_000;
+            if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647)
+              throw new Error("Import requestTimeoutMs must be a positive supported timer interval");
+            const signal = AbortSignal.any([parentSignal, AbortSignal.timeout(requestTimeoutMs)]);
+            const file = selected.file;
+            let source = context.stdin;
+            if (file !== undefined && file !== "-") {
+              const path = posix.resolve(context.cwd, file);
+              source = context.fs.readStream === undefined
+                ? toByteSource(await context.fs.readFile(path, { signal, maxBytes: maxInputBytes }))
+                : context.fs.readStream(path, { signal });
+            }
+            const bytes = await collectBytes(source, { signal, maxBytes: maxInputBytes });
+            let json: string;
+            try { json = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
+            catch { throw new Error("OAuth credential input must be valid UTF-8"); }
+            result = await importRemoteMcpAuthentication(server, json, {
+              ...options, ...settings, binding: settings?.binding ?? options.authentication?.binding ?? { env: context.env },
+              fetch: settings?.fetch ?? options.authentication?.fetch,
+              requestTimeoutMs,
+              maxImportBytes: settings?.maxImportBytes ?? maxInputBytes, signal
+            });
+          } catch (error) {
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
+          await emit(operation, selected.json ? `${JSON.stringify(result)}\n` : `Imported OAuth credentials for ${textLine(shellWord(result.name))}.\n`, maxOutputBytes);
+          return { exitCode: 0 };
         }
         if (credentialReset !== undefined) {
           const selected = credentialReset;

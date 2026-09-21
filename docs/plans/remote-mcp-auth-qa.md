@@ -81,3 +81,14 @@ inspection.
     Inspect reset/help screenshots. Exercise mcp auth --reset through a host-owned
     durable reset hook, including cancellation while waiting for the native lock.
     Do not reset production credentials; purge only this QA's synthetic evidence.
+
+12. In a built safe-bash Shell, write only synthetic raw OAuth tokens and full DCR
+    metadata to its virtual filesystem. Run mcp import catalog --file /credentials.json
+    --json against real local protected-resource/issuer metadata endpoints. Verify
+    the public summary, no MCP initialization/list/call during import, complete
+    registration metadata and encrypted native persistence. Recreate the host in
+    another process, authenticate its supplied-schema server and prove the cached
+    grant initializes without registration or token redemption. Repeat with input
+    redirection, malformed JSON, invalid UTF-8 and bounded virtual input. Render
+    and inspect focused import help and public JSON output. Purge only synthetic
+    fixtures and generated evidence after review.

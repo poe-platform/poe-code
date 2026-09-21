@@ -16,6 +16,8 @@ The package is additive and has no npm runtime dependencies.
 - Summarize completed plans, follow-up messages and pending work.
 - Generate distinct plan log directories and UTC role filenames.
 - Reject log directories whose canonical ancestors escape the state directory.
+- Replay or follow managed job logs without splitting UTF-8 characters.
+- Wait for decimal exit status with cancellation and symlink checks.
 
 ```ts
 import { createRunQueue } from "@poe-code/agent-harness-tools-rust";
@@ -47,7 +49,7 @@ checks normalized containment and merges project/global entries by exact filenam
 Supply your filesystem adapter through `discoverWorkflowDocs({cwd, homeDir,
 subDirectory, fs})`; discovery ignores missing directories and symbolic links.
 
-This surface does not expose process/runtime execution, log streaming, dashboards or workspace transfer. It is not a full replacement
+This surface does not expose process/runtime execution, dashboards or workspace transfer. It is not a full replacement
 for the original package. Loop-agent callbacks use a structural symbol cancellation
 type: original SDK callbacks can be supplied, but the original SDK's unique symbol
 prevents the reverse full-module type assignment. Custom array/intrinsic hooks
@@ -74,3 +76,10 @@ the owned task-list implementation still apply.
 A local memfs benchmark of 32 discoveries over 32 markdown plans takes about
 34–38 ms native versus 58–65 ms in TypeScript. This scoped result does not establish
 performance on other filesystems or platforms.
+
+`streamLogFile({fs}, jobId, {sinceByte, follow})` yields byte offsets and decoded
+text; `waitForExit({fs}, jobId, {signal})` reads exit status. Rust checks job IDs,
+quotes the `wrapForLogTee` command and finds complete UTF-8 prefixes. Node owns
+file reads, buffers, watchers and timers. The adapter releases watchers even when
+they notify synchronously. It retains the original behavior for incomplete trailing
+UTF-8 bytes when a job exits. These APIs do not execute the generated shell command.

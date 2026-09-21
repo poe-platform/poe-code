@@ -15,3 +15,6 @@ export {ensureSafeRunLogDir,makeRunLogFileName,resolveRunLogDir,slugifyPlanPath,
 export {archivePlan,discoverPlans,openPlanList,parsePlanReadiness,type ArchivePlanOptions,type DiscoverPlansOptions,type OpenPlanListOptions,type PlanReadiness,type PlanRef} from "./plans.js";
 export {comparePlanReadiness,formatPlanReadinessLabel} from "./plan-readiness.js";
 export {formatRunQueueSummary} from "./run-queue-summary.js";
+
+export {streamLogFile,waitForExit,wrapForLogTee,type LogStreamEnv,type LogStreamFs} from "./log-stream.js";
+export type {LogChunk} from "./log-types.js";

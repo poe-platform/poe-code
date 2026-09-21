@@ -5955,3 +5955,34 @@ Logs4dbcb2d1c exactly verified on remote main;release35599205236 pending;
 compiler35597375742 unit ongoing. No successful current publication verified.
 Concurrent changes preserved. Continuous12:22:24–12:27:55 adds331s,total109610s
 (30.45h). Minimum fulfilled;objective incomplete. Continue accounting after12:27:55UTC.
+
+
+### Harness managed log streams, 2026-09-21 12:33 UTC
+
+Added streamLogFile/waitForExit/wrapForLogTee and public stream types. Rust owns
+job-component admission,shell quoting/script construction,canonical decimal exit
+validation/parse and complete UTF8 prefix detection over borrowed Buffers. Node
+retains filesystem/symlink checks,own error-code admission,byte offsets/pending
+buffers,watchers,timers and abort cleanup. Missing core/reference reds precede
+implementation. Exact nineUTF16 shell comparisons exposed/fixed an extra closing
+brace in the own formatter. A synchronous injected watch notification reproduces
+an original watcher leak(oracle closes0);own adapter now releases that returned
+watcher once and suppresses repeated completion. Original package unchanged.
+1280tail-byte framing comparisons,overflow exit numbers and host error identity
+covered. Original incomplete trailing bytes at exit behavior retained.
+
+Maintained16Rust cases,15native groups,194references/15files,bidirectional covered
+types,fmt/clippy/ESLint pass. Uncached selected117workspaces/26builds/361edges passes.
+Packed93files/one addon,no npm runtime groups,external npm resolution blocked;
+all prior scenarios plus log replay/exit/quoting pass.16MiB-old-generation worker
+8192replays/8192exit reads/92274688bytes retains5.19MiBheap/59.22MiBRSS;
+finite evidence,not total/native memory bounds. Five alternating warmed1024replay/
+exit pairs with11264bytes/replay:originalwall19.40–21.60ms/CPU18.76–30.86ms,
+ownwall19.48–24.46ms/CPU19.18–36.18ms;pair results mixed,performance acceptance
+FAIL(no consistent improvement). Evidence out/rust-harness-stream-*.
+
+Plans0d614bf69 exactly verified on remote main;release35599744513 pending;
+compiler35597375742 completed failure,investigating unit log. No successful current
+publication verified. Concurrent changes preserved. Continuous12:27:55–12:33:13
+adds318s,total109928s(30.54h). Minimum fulfilled;objective incomplete.
+Continue accounting after12:33:13UTC.

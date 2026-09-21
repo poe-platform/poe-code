@@ -264,3 +264,22 @@ pub fn harness_queue_summary(
     )
     .into()
 }
+#[napi]
+pub fn harness_safe_job_id(id: Utf16String) -> bool {
+    agent_harness_tools_rust::log_stream::safe_job_id(&id)
+}
+#[napi]
+pub fn harness_utf8_prefix(bytes: Buffer) -> u32 {
+    agent_harness_tools_rust::log_stream::complete_utf8_prefix(&bytes) as u32
+}
+#[napi]
+pub fn harness_decimal_exit_code(value: Utf16String) -> Option<f64> {
+    agent_harness_tools_rust::log_stream::decimal_exit_code(&value)
+}
+#[napi]
+pub fn harness_log_tee(argv: Vec<Utf16String>, job: Utf16String) -> napi::Result<Vec<Utf16String>> {
+    let argv = argv.into_iter().map(|arg| arg.to_vec()).collect::<Vec<_>>();
+    agent_harness_tools_rust::log_stream::tee_command(&argv, &job)
+        .map(|args| args.into_iter().map(Utf16String::from).collect())
+        .map_err(napi::Error::from_reason)
+}

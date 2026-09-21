@@ -477,7 +477,9 @@ host clocks and store factories cannot remove the original values from this chec
 The ESM data module has no dependency imports and can be loaded from any working
 directory. Runtime commands use the host's installed `safe-bash-mcp` library and
 explicit environment binding; every schema is supplied, so loading does not
-rediscover tools. The parser checks a SHA-256 content digest and snapshot/config
+rediscover tools. Recreation captures command policies, selected dependency handles
+and schema format mappings before credential-binding callbacks; the original
+signal and selected host callbacks remain live. The parser checks a SHA-256 content digest and snapshot/config
 agreement before touching credentials. `maxArtifactBytes` bounds generated JSON
 and modules individually, and parsed artifacts (default 32 MiB). Existing
 configuration, discovery, cancellation and credential limits still apply.

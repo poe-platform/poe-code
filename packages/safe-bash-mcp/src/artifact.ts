@@ -172,9 +172,12 @@ export function parseRemoteMcpArtifact(value: unknown, options: ArtifactOptions 
 
 /** Prepare an artifact's commands without rediscovery, using explicit runtime credentials. */
 export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactPluginOptions): Promise<Awaited<ReturnType<typeof remoteMcpCommands>>> {
-  options.commands?.signal?.throwIfAborted();
+  const commands = { ...options.commands,
+    schemaValidation: { ...options.commands?.schemaValidation,
+      ...(options.commands?.schemaValidation?.formats === undefined ? {} : { formats: { ...options.commands.schemaValidation.formats } }) } };
+  commands.signal?.throwIfAborted();
   const artifact = parseRemoteMcpArtifact(value, options);
-  const registry = snapshotRegistry(options.commands?.schemaValidation?.registry, artifactLimit(options)) ?? {};
+  const registry = snapshotRegistry(commands.schemaValidation.registry, artifactLimit(options)) ?? {};
   if (artifact.schemaRegistry !== undefined) for (const [uri, document] of Object.entries(registry)) {
     if (!Object.hasOwn(artifact.schemaRegistry, uri) || canonicalJson(artifact.schemaRegistry[uri]) !== canonicalJson(document))
       throw new Error("MCP artifact schema registry conflict");
@@ -182,10 +185,10 @@ export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactP
   for (const [uri, document] of Object.entries(artifact.schemaRegistry ?? {})) {
     Object.defineProperty(registry, uri, { value: document, enumerable: true, configurable: true, writable: true });
   }
-  const schemaValidation = { ...options.commands?.schemaValidation, registry };
+  const schemaValidation = { ...commands.schemaValidation, registry };
   for (const schema of artifact.schemas) validateToolSchemas(schema.tools, schemaValidation);
   const instructions = new Map(artifact.schemas.map(schema => [schema.name, schema.instructions]));
   const servers = bindRemoteMcpConfiguration(artifact.configuration, options.binding).map(server => ({ ...server,
     ...(instructions.get(server.name) === undefined ? {} : { instructions: instructions.get(server.name) }) }));
-  return remoteMcpCommands(servers, { ...options.commands, schemaValidation });
+  return remoteMcpCommands(servers, { ...commands, schemaValidation });
 }

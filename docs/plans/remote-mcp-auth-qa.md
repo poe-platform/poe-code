@@ -479,3 +479,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     six metadata GETs across three modes and no unintended candidates. Inspect
     safe summary output and purge owned synthetic evidence. Cache writes remain
     part of explicit discovery; only reads/reuse are bypassed.
+
+43. Write and recreate an ESM artifact with supplied tool schemas and an imported
+    native OAuth environment grant. From the supported session-store factory,
+    replace command fetch, input/output/response ceilings, custom format mapping,
+    default acceptance or signal handle. Require offline recreation, the original
+    Authorization on actual local HTTP, complete two-block results/structured
+    query/nested metadata/exact005930 through five calls and five distinct retired
+    sessions. Missing input must still fail before network unless --yes is used;
+    cancellation must retain the original reason before network. Require zero
+    replacement fetches and no consent/metadata/persistence work. Inspect safe
+    summary output and purge only owned written artifact and synthetic evidence.

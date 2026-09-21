@@ -794,6 +794,30 @@ export function createDefaultOAuthClientProvider(options) {
     return completed;
   }
   return {
+    async authenticate(input) {
+      input.signal?.throwIfAborted();
+      validateUrl(input.requestUrl, "Protected resource request URL");
+      const resource = canonicalizeResourceIndicator(input.requestUrl);
+      let session = await ensure(resource, undefined, input.fetch, true, false, input.signal);
+      if (session?.tokens !== undefined && !expired(session.tokens)) return { ...session.tokens };
+      if (
+        session === null &&
+        !initialGrantConsumed &&
+        initialGrant?.resource === resource &&
+        !expired(initialGrant.tokens)
+      )
+        return { ...initialGrant.tokens };
+      if (input.discover === undefined) return;
+      const discovery = await input.discover();
+      input.signal?.throwIfAborted();
+      unwrap(
+        native.providerRequestMatches(resource, canonicalizeResourceIndicator(discovery.resource))
+      );
+      session = await ensure(resource, discovery, input.fetch, true, false, input.signal);
+      if (session?.tokens === undefined || expired(session.tokens))
+        throw new Error("OAuth authentication did not establish a usable grant");
+      return { ...session.tokens };
+    },
     async authorizeRequest(input) {
       validateUrl(input.requestUrl, "Protected resource request URL");
       const url = canonicalizeResourceIndicator(input.requestUrl);

@@ -148,3 +148,7 @@ const pendingRegistrationSession: import("../dist/index.js").StoredOAuthSession 
   }
 };
 void [importedRegistrationOptions, pendingRegistrationSession];
+
+const explicitGrant: Promise<import("../dist/index.js").StoredOAuthTokens | void> | undefined =
+  supplied.authenticate?.({ requestUrl: new URL("https://resource.example/mcp"), fetch });
+void explicitGrant;

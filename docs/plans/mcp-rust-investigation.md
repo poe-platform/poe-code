@@ -4252,3 +4252,36 @@ unverified. Continuous active05:33:23–05:40:22 adds419s, bringing conservative
 effort to86,905s (24.14h). Minimum effort is fulfilled; full rewrite/performance/
 memory/platform/release acceptance remains incomplete. Work continues after
 05:40:22 UTC.
+
+### OAuth explicit authentication, 2026-09-21 05:44 UTC
+
+Native and original SDK reds precede own provider.authenticate and declarations.
+It reuses the portable/native shared session-flow engine for grant recovery,
+refresh and consent. Host glue invokes lazy discovery only when no usable known
+grant exists, verifies discovery/resource binding before consent, preserves abort
+causes and returns independent cached/imported/established token snapshots. Calls
+without discovery recover known grants only. No rejected response/request is
+fabricated. Existing allowInteractive and initial-grant consumption gates remain.
+
+All48 Rust cases,81 native groups and all12 original oauth-interaction cases pass.
+Focused lint/fmt/clippy/formatting, typed authenticate usage, maintained uncached
+113-workspace/8-build/338-edge closure and direct/packed artifact checks pass.
+Initial full SDK execution collided with another reference dependency rebuild and
+could not load toolcraft-schema for2 suites; it was rerun after closure. All35
+source test files now execute. Concurrent source additions introduced raw token
+import/resource session import test files and expanding validation cases. The full
+maintained unit route remains failing:372/431 cases pass,59 fail across resource
+identity(16), resource import(15) and token grant(28). Those own rewrites are
+required next; no provider/full package acceptance is claimed.
+
+Direct/packed16MiB workers each add1024 explicit cached authentications, checking
+lazy discovery/network avoidance and independent token snapshots. Audit covers19
+JS/declaration files, one addon and zero runtime groups. Endpoint heaps~14.2–14.4MB
+and parent-inclusive RSS establish no isolated leak/peak/memory advantage. No
+speed advantage is claimed. Evidence out/rust-oauth-authenticate-*.
+
+Registration trust9efe9596e is pushed and verified within concurrent original token
+parser429e0ee45 work. Root release remains pending/in progress; successful current
+publication remains unverified. Continuous active05:40:22–05:44:27 adds245s, bringing
+conservative effort to87,150s (24.21h). Minimum effort is fulfilled; full rewrite and
+acceptance remain incomplete. Active work continues after05:44:27 UTC.

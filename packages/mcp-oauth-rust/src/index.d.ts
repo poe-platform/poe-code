@@ -64,6 +64,12 @@ export interface OAuthClientMetadata {
   softwareVersion?: string;
 }
 export interface OAuthClientProvider {
+  authenticate?(input: {
+    requestUrl: URL;
+    fetch: OAuthMetadataFetch;
+    discover?: () => Promise<OAuthDiscoveryResult>;
+    signal?: AbortSignal;
+  }): Promise<StoredOAuthTokens | void>;
   authorizeRequest?(input: {
     requestUrl: URL;
     headers: Headers;

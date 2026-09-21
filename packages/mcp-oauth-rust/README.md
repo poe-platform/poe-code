@@ -134,3 +134,8 @@ across persisted sessions and caches, so obsolete callbacks or expired secrets
 require an explicit caller update. Refresh errors never retire caller-owned
 registration caches. Live access tokens remain usable without redeeming an expired
 secret. Unlimited/public-client expiry checks avoid reading the clock.
+
+`provider.authenticate({ requestUrl, fetch, discover, signal })` explicitly establishes
+a grant, reuses cached/imported credentials and invokes lazy discovery only when
+needed. Without discovery it only recovers known grants. It returns owned token
+snapshots and respects cancellation and headless policy before interactive consent.

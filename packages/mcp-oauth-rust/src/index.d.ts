@@ -22,6 +22,11 @@ export interface OAuthSessionStore {
   load(resource: string): Promise<StoredOAuthSession | null>;
   save(resource: string, session: StoredOAuthSession): Promise<void>;
   clear(resource: string): Promise<void>;
+  withLock?<T>(
+    resource: string,
+    operation: () => Promise<T>,
+    options: { signal?: AbortSignal; timeoutMs: number }
+  ): Promise<T>;
 }
 export type OAuthMetadataFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
 export interface OAuthProtectedResourceMetadata extends Record<string, unknown> {
@@ -207,3 +212,10 @@ export interface StoredOAuthClient {
   tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
 }
 export declare function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | null;
+
+export declare function withOAuthSessionTransaction<T>(
+  store: OAuthSessionStore,
+  resource: string,
+  operation: () => Promise<T>,
+  options?: { signal?: AbortSignal; timeoutMs?: number }
+): Promise<T>;

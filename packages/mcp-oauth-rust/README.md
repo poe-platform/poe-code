@@ -47,6 +47,12 @@ including provider JSON extensions. It validates known fields without invoking
 accessors or serialization hooks, with a 64 KiB UTF-8 limit, depth 64 and
 20,000 values. Invalid metadata errors never quote credential input.
 
+`withOAuthSessionTransaction` serializes complete operations for a resource
+across callers sharing a store, while other resources proceed independently.
+Canceled or timed-out waiters cannot release the owner, and failures allow later
+operations to continue. An optional backend `withLock` encloses the operation.
+Rust owns ticket ordering and timeout admission; Node supplies promises and timers.
+
 The default provider supports cached tokens, coalesced refresh/authorization,
 static clients and dynamic registration. Its Rust effect machine owns expiry,
 credential binding, endpoint security, registration plans, PKCE parameters and

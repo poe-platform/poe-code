@@ -115,3 +115,10 @@ import type { StoredOAuthClient as ReferenceClient } from "../../mcp-oauth/dist/
 const storedClient: ReferenceClient | null = normalizeStoredOAuthClient({ clientId: "c" });
 const ownStoredClient: StoredOAuthClient | null = storedClient;
 void ownStoredClient;
+
+import { withOAuthSessionTransaction } from "../dist/index.js";
+import { withOAuthSessionTransaction as referenceTransaction } from "../../mcp-oauth/src/client/session-transaction.js";
+const transactionA: typeof referenceTransaction = withOAuthSessionTransaction;
+const transactionB: typeof withOAuthSessionTransaction = referenceTransaction;
+void transactionA;
+void transactionB;

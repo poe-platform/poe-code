@@ -3808,3 +3808,32 @@ concurrent Rust persistence/binding commits. Both independently added provider
 Rust test blocks remain. This follow-up does not yet integrate stored-client
 normalization into provider policies. Full goal/minimum effort/release acceptance
 remain incomplete; effort continues beyond04:34:58 boundary.
+
+### OAuth Rust transaction ticket core, 2026-09-21 04:45 UTC
+
+Portable/native reds precede a reusable per-resource transaction queue. Rust owns
+ordered predecessor tickets, retirement/resource cleanup and schedulable timeout
+admission. The Node host owns opaque operation promises, abort listeners, timers
+and backend withLock effects. Canceled/timed-out waiters release their own future
+without bypassing an unresolved predecessor. Stores are weakly owned; retired
+queues remove resource state. Other resources proceed independently, failed
+operations permit later operations and arbitrary cancellation causes retain identity.
+
+All39 Rust cases and4 own native transaction groups pass, alongside4 original
+oracle groups. Focused lint/fmt/clippy/types and uncached113-workspace/8-build/
+338-edge closure pass. The static generic transaction API is bidirectionally
+assignable with the original and exposes optional backend locks. Direct/packed
+16MiB workers each add3072 serialized operations and8192 ticket admission/retirement
+cycles, verifying zero retained resources, to the prior callback/scope/token/
+registration/client workloads. Artifact audit covers17 JS/declaration files,
+one addon and zero npm runtime groups. Endpoint heaps~13.6MB and parent-inclusive
+RSS remain workload observations, not isolated leak/peak or speed acceptance.
+Evidence out/rust-oauth-transaction-*. Provider integration into its own Rust
+adapter is the next increment; production originals remain preserved.
+
+Stored-client76adb8d82 was pushed within concurrent cb2292867; delivery verification
+continues separately. Root release35562026746 is pending. A tiny-http package
+release35561781557 succeeded independently, but no current root publication is
+claimed. The mistakenly queried archived workflow named Release returned historical
+runs; current monitoring uses the branch run list and concrete run IDs. Full
+rewrite and minimum24-hour actual effort remain unfinished.

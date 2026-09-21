@@ -12,3 +12,5 @@ export { createOAuthClientProvider, createDefaultOAuthClientProvider } from "./p
 export { createJwksTokenVerifier } from "./jwks.js";
 
 export { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./registration.js";
+
+export { withOAuthSessionTransaction } from "./transaction.js";

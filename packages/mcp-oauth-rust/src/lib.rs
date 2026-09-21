@@ -28,3 +28,5 @@ pub mod scope;
 pub mod token_auth;
 
 pub mod registration;
+
+pub mod transaction;

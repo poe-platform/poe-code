@@ -44,3 +44,5 @@ export {
 } from "./hooks.js";
 
 export { PromptRegistry } from "./prompts.js";
+
+export { RunContext, createRunContext } from "./run-context.js";

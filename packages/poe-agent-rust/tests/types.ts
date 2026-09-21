@@ -109,3 +109,23 @@ import * as referencePrompts from "../../poe-agent/dist/runtime/prompts.js";
 const promptsA: Omit<referencePrompts.PromptRegistry, "copyFrom"> = new own.PromptRegistry();
 const promptsB: Omit<own.PromptRegistry, "copyFrom"> = new referencePrompts.PromptRegistry();
 void [promptsA, promptsB];
+
+import * as referenceContext from "../../poe-agent/dist/runtime/run-context.js";
+type ContextMethods =
+  | "logger"
+  | "messages"
+  | "session"
+  | "mcpServers"
+  | "activeSkills"
+  | "fileAwareness"
+  | "abortController"
+  | "childRuns"
+  | "registerDisposeHook"
+  | "trackChildRun"
+  | "getChildRunCount"
+  | "dispose";
+const contextA: Pick<referenceContext.RunContext, ContextMethods> = new own.RunContext();
+const contextB: Pick<own.RunContext, ContextMethods> = new referenceContext.RunContext();
+const contextOptionsA: referenceContext.CreateRunContextOptions = {} as own.CreateRunContextOptions;
+const contextOptionsB: own.CreateRunContextOptions = {} as referenceContext.CreateRunContextOptions;
+void [contextA, contextB, contextOptionsA, contextOptionsB];

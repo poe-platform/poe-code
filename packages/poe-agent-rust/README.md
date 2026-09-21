@@ -60,3 +60,11 @@ metadata, extension properties and callbacks. The supplied user prompt is restor
 after every transform. Registrations made during compilation are included; copies
 share callbacks within the same implementation. Rust owns live callback ordering
 and Node retains callback execution and object spread effects.
+
+`createRunContext` supplies isolated tools, prompts, hooks, conversation/session
+state, file awareness and child-run tracking. Disposal aborts the context and runs
+cleanup callbacks in reverse order, logs failures and retries only failed callbacks.
+Concurrent disposal calls share the ongoing attempt; successful disposal is
+idempotent. Public collections retain their normal JavaScript mutation behavior.
+Rust owns disposal ordering and failed-hook retirement. Successful callback
+references are released after each completed attempt, including failed attempts.

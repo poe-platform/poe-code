@@ -4017,3 +4017,39 @@ Hook62cba4691 is pushed and verified at remote main; root35563539781 remains pen
 Continuous active05:01:42–05:13:02 adds680s, bringing conservative actual effort to
 85,265s (23.68h). Minimum24h remains unfulfilled by1135s. Full rewrite and root
 publication remain incomplete. Active work continues after05:13:02 UTC.
+
+### Poe agent Rust run contexts, 2026-09-21 05:16 UTC
+
+Portable/native reds precede own RunContext construction and Rust disposal ordering/
+retirement. Public messages/session/MCP/skills/child collections, callbacks, abort
+controllers and injected file trackers retain host identity/mutation. Child promises
+are returned unchanged and removed on either settlement. Rust retains registration
+handles, supplies reverse attempts and restores only failed handles in registration
+order. Node coalesces concurrent attempts, preserves arbitrary AggregateError causes,
+logs every failure and releases successful callbacks after a completed attempt.
+Logger failures occur before survivor replacement, preserving original hooks for
+retry. Abort-listener registrations are captured; later in-flight additions retire
+with the original final replacement. Successful disposal is idempotent. The original
+reentrant abort-listener disposal race is not claimed as independently fixed.
+
+All17 Rust cases,27 native groups and117 applicable complete original cases pass.
+Reference selection adds the entire8-case RunContext describe. Public state/method/
+option types compare bidirectionally excluding nominal tools/prompts/hooks classes.
+Focused lint/fmt/clippy/formatting pass. The first build used16 shared cache hits;
+it was explicitly rerun with --no-cache, producing the maintained113-workspace/
+28-build/338-edge closure, then the complete package unit route passed again.
+This uncached closure also verifies the prior prompt sources; the prior prompt log
+had zero hits but did not disable caching explicitly. Direct/packed16MiB workers
+each add1024 run contexts/disposals and2048 callbacks, with child tracking and
+concurrent/idempotent cleanup. Audit covers34 JS/declaration files and one addon,
+with zero npm runtime/peer/optional dependencies. Endpoint heaps~7.8MB and parent-
+inclusive RSS establish no isolated leak/peak/memory advantage. Speed gate fails:
+2048 contexts/4096 callbacks original~5.16–6.12ms vs Rust~11.34–14.30ms over seven
+alternating rounds. Evidence out/rust-poe-agent-run-context-*.
+
+Prompt147ace956 is pushed and verified at remote main. Root35563805220 remains
+pending; no successful current root publication is claimed. Full current OAuth
+reference route is running after concurrent credential/resource fixes. Continuous
+active05:13:02–05:15:58 adds176s, bringing conservative effort to85,441s (23.73h).
+Minimum24h remains unfulfilled by959s, and full agent/closure rewrite remains open.
+Work continues after05:15:58 UTC.

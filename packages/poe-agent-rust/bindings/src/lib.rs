@@ -250,3 +250,5 @@ pub mod file_awareness_binding;
 pub mod hooks_binding;
 
 pub mod prompts_binding;
+
+pub mod run_context_binding;

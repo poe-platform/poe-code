@@ -27,7 +27,8 @@ export default defineConfig({
           "HookRegistry",
           "hook context factories",
           "applyHookDecision",
-          "PromptRegistry"
+          "PromptRegistry",
+          "RunContext"
         ]);
         const ranges = source.statements
           .filter(
@@ -49,6 +50,7 @@ export default defineConfig({
       },
       resolveId(name, importer) {
         if (importer === path("../poe-agent/src/runtime/runtime.test.ts")) {
+          if (name === "./run-context.js") return path("dist/run-context.js");
           if (name === "./prompts.js") return path("dist/prompts.js");
           if (name === "./hooks.js") return path("dist/hooks.js");
           if (name === "./config.js") return path("dist/config.js");

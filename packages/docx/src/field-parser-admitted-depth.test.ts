@@ -16,5 +16,5 @@ try{const xml=new api.DocumentXmlEditor(new Uint8Array(memory.readFileSync('/xml
     child.stdin.end(JSON.stringify({ strict, carrier, depth }));
   });
   const result = JSON.parse(response) as { ok: boolean; fields: unknown[]; error?: string; stack?: string };
-  expect(result, result.stack ?? result.error).toEqual({ ok: true, fields: [{ kind: "PAGE", result: "Harbor", unsafe: true, pathLength: depth + 2 }] });
+  expect(result, result.stack ?? result.error).toEqual({ ok: true, fields: [{ kind: "PAGE", result: "Harbor", unsafe: carrier === "native", pathLength: depth + 2 }] });
 });

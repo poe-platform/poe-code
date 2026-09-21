@@ -114,8 +114,9 @@ export function parseFields(root: XmlElement, path: readonly number[], budget: D
         if (traversal.length) currentPath.pop();
         continue;
       }
-      if (!active.has(node)) frame.unsafe = true;
-      else {
+      // Reachable physical carriers contain only descendants admitted by the
+      // compatibility projection. Their unselected branches were pruned above.
+      if (active.has(node)) {
         const name = word ? node.localName : "opaque";
         const prohibited = !word || ["sdt", "ins", "del", "moveFrom", "moveTo", "hyperlink", "customXml"].includes(name);
         frame.unsafe ||= prohibited;

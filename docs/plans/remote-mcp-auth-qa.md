@@ -572,3 +572,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     static credentials before clocks/fetch with safe diagnostics. Retain
     disposal-during-authorization no-dispatch coverage. Inspect safe summary
     screenshot and purge only owned synthetic evidence.
+
+52. Exercise malformed newline/NUL static credentials through public schema,
+    registry, command and resource SDK routes; require eight safe failures before
+    network. Reuse the native public snapshot helper and prove independent copied
+    values and empty headers. Compile a strict Node-only public consumer. Through
+    actual HTTP preserve three header representations, four complete listings/
+    guidance, full text/blob resource and virtual-shell complete content/falsey
+    values/nested metadata/exact005930. Retire six distinct sessions without
+    consent/persistence. Inspect the safe summary screenshot and purge owned
+    synthetic evidence.

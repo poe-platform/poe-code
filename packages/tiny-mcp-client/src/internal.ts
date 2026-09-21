@@ -2681,6 +2681,12 @@ export class StdioTransport implements McpTransport {
   }
 }
 
+/** Own and validate static HTTP headers without reflecting malformed values. */
+export function snapshotHttpTransportHeaders(headers?: RequestInit["headers"]): Headers {
+  try { return new Headers(headers); }
+  catch { throw new Error("Invalid HTTP transport headers"); }
+}
+
 export class HttpTransport implements McpTransport {
   readonly readable: Readable;
   readonly writable: Writable;
@@ -2733,8 +2739,7 @@ export class HttpTransport implements McpTransport {
     this.maxResponseBytes = maxResponseBytes;
     this.url = url;
     this.mode = mode;
-    try { this.headers = new Headers(headers); }
-    catch { throw new Error("Invalid HTTP transport headers"); }
+    this.headers = snapshotHttpTransportHeaders(headers);
     this.fetchImpl = fetchImpl;
     this.onWarning = onWarning;
     this.oauthProvider = oauth === undefined

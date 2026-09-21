@@ -1,6 +1,7 @@
 import { snapshotOAuthBrowserOptions, snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
 import {
   MCP_PROTOCOL_VERSIONS,
+  snapshotHttpTransportHeaders,
   type McpProtocolVersion,
   type HttpTransportOptions,
   type ElicitationParams,
@@ -92,7 +93,7 @@ function validateServer(server: RemoteMcpServer, maxTools: number): void {
 
 export function snapshotRemoteMcpServer(server: RemoteMcpServer): RemoteMcpServer {
   return {
-    ...server, headers: new Headers(server.headers),
+    ...server, headers: snapshotHttpTransportHeaders(server.headers),
     ...(server.oauth === undefined ? {} : { oauth: snapshotOAuthOptions(server.oauth) }),
     ...(server.tools === undefined ? {} : { tools: structuredClone([...server.tools]) })
   };

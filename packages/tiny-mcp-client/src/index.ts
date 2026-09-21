@@ -16,6 +16,7 @@ export {
   McpError,
   MCP_PROTOCOL_VERSIONS,
   OAuthMetadataDiscovery,
+  snapshotHttpTransportHeaders,
   StdioTransport,
 } from "./internal.js";
 

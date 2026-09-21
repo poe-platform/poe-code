@@ -31,6 +31,8 @@ Discovery captures server fields, headers, supplied tools and option handles
 before waiting; registry resolution captures every entry before its first
 connection. Later caller edits cannot rename results, change request headers,
 replace the chosen signal, or append servers to the in-progress registry.
+Malformed static headers fail before network requests without reflecting their
+values in SDK diagnostics.
 Aborting the original signal still cancels discovery. Registry snapshots also
 capture OAuth client/grant/browser/persistence configuration and the chosen
 provider/store handles before discovery or command invocation. Custom provider

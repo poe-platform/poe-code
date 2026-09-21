@@ -60,6 +60,8 @@ embedded credentials or fragments; endpoint changes close the connection.
 Both transports accept the same headers, OAuth provider and response limits.
 Static HTTP headers are copied and validated when the transport is constructed,
 before OAuth callbacks run. Invalid headers fail without reflecting their values.
+Use `snapshotHttpTransportHeaders(headers)` to apply the same ownership and safe
+validation when preparing a registry before constructing transports.
 `maxResponseBytes` bounds a complete JSON body or each SSE event (default 16 MiB).
 Receive streams may carry many bounded events and keepalive comments; the limit
 does not cap their lifetime bytes. Use request deadlines and cancellation to

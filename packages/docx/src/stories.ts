@@ -1,4 +1,6 @@
 import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { activeXmlChildren } from "./xml-active-children.js";
+import { compatibilityContainers } from "./compatibility.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
@@ -155,13 +157,17 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
   if (opts.text !== undefined && target) {
     const targetName = staged.has(target.slice(1)) ? target.slice(1) : graph.getPart(target).name;
     const story = new DocumentXmlEditor(staged.get(targetName) ?? graph.getPart(target).bytes, {}, undefined, budget);
+    const projected = activeXmlChildren(story, budget), paragraphs = projected(story.root);
+    const containers = new Set(story.compatibility[compatibilityContainers]);
+    if (story.root.children.some(child => !containers.has(child) && (child.namespace !== w || child.localName !== "p")))
+      throw new UnsupportedEditError("Story text assignment cannot discard tables or opaque blocks; use scoped content operations.");
     // Whole-story assignment is intentionally destructive for simple text, but does not discard fields or opaque blocks.
     const patches = new Map<XmlElement, string>();
-    for (const [index, child] of story.root.children.entries()) {
+    for (const [index, child] of paragraphs.entries()) {
       if (child.namespace !== w || child.localName !== "p") throw new UnsupportedEditError("Story text assignment cannot discard tables or opaque blocks; use scoped content operations.");
       if (index && (child.children.some(c => !["pPr", "r", "hyperlink"].includes(c.localName)) || child.content.some(c => c.kind !== "element" && (c.kind !== "text" || c.text.trim()))))
         throw new UnsupportedEditError("Story text assignment cannot remove paragraph annotations.");
-      const props = child.children.find(c => c.namespace === w && c.localName === "pPr");
+      const props = projected(child).find(c => c.namespace === w && c.localName === "pPr");
       const replacement = replaceParagraphContent(story, child, props ? story.sourceXml(props) : "", index ? "" : opts.text, budget);
       patches.set(child, index ? "" : replacement);
     }

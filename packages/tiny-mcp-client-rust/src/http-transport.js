@@ -40,11 +40,18 @@ export class HttpTransport {
   #read = new PassThrough();
   #write = new PassThrough();
   constructor({ url, mode = "streamable-http", headers = {}, fetch, oauth, oauthDiscoveryCache, onWarning, maxResponseBytes = 16 * 1024 * 1024 }) {
+    let target;
+    try { target = new URL(url); }
+    catch { throw new Error("HTTP transport URL must be an absolute HTTP URL without credentials or fragment"); }
+    if (!["http:", "https:"].includes(target.protocol) || target.username || target.password || target.href.includes("#")) {
+      throw new Error("HTTP transport URL must be an absolute HTTP URL without credentials or fragment");
+    }
+    try { this.#headers = new Headers(headers); }
+    catch { throw new Error("Invalid HTTP transport headers"); }
     try { this.#state = new NativeHttpTransport(maxResponseBytes); }
     catch (error) { throw new Error(error.message); }
-    this.#url = url;
+    this.#url = target.href;
     this.#mode = mode;
-    this.#headers = headers;
     this.#fetch = fetch;
     this.#warning = onWarning;
     this.#provider = oauth === undefined ? undefined : createOAuthClientProvider(oauth);
@@ -195,7 +202,12 @@ export class HttpTransport {
         else headers.set(name, value);
       }
     } else if (method === "GET") {
-      for (const [name, value] of this.#state.getHeaders()) headers.set(name, value);
+      for (const [name, value] of this.#state.getHeaders()) {
+        if (name === "Last-Event-ID") {
+          if (value === "") headers.delete(name);
+          else headers.set(name, Buffer.from(value, "utf8").toString("latin1"));
+        } else headers.set(name, value);
+      }
     } else {
       headers.set("Mcp-Session-Id", session);
       headers.set("MCP-Protocol-Version", this.#state.legacyVersion);
@@ -283,7 +295,9 @@ export class HttpTransport {
         break;
       }
       if (this.#provider !== undefined && (response.status === 401 || response.status === 403)) {
-        const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
+        let challenge;
+        try { challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate")); }
+        catch (error) { void response.body?.cancel().catch(() => undefined); throw error; }
         const error = challenge?.params.error;
         if (error !== undefined && error.length > 0) {
           void response.body?.cancel().catch(() => undefined);
@@ -295,8 +309,8 @@ export class HttpTransport {
   }
   async #unauthorized(response, signal, requestHeaders, presentedTokens) {
     if (response.status !== 401 || this.#provider === undefined || this.#discovery === undefined) return false;
-    const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
     try {
+      const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
       const discovery = await this.#discovery.discover(this.#url, { resourceMetadataUrl: challenge?.params.resource_metadata, signal });
       const providerResponse = response.clone();
       let result;
@@ -345,12 +359,12 @@ export class HttpTransport {
         if (value === undefined) continue;
         this.#emitEvents(parser.push(decoder.decode(value, { stream: true })), context);
         if (context?.completed || (stopAfterInitialization && !this.#initializing)) { void reader.cancel().catch(() => undefined); return; }
-        this.#state.setEventId(parser.lastEventId);
+        if (parser.lastEventId !== null && parser.lastEventId !== undefined) this.#state.setEventId(parser.lastEventId);
       }
       const trailing = decoder.decode();
-      if (trailing.length > 0) { this.#emitEvents(parser.push(trailing), context); this.#state.setEventId(parser.lastEventId); }
+      if (trailing.length > 0) { this.#emitEvents(parser.push(trailing), context); if (parser.lastEventId !== null && parser.lastEventId !== undefined) this.#state.setEventId(parser.lastEventId); }
       this.#emitEvents(parser.flush(), context);
-      this.#state.setEventId(parser.lastEventId);
+      if (parser.lastEventId !== null && parser.lastEventId !== undefined) this.#state.setEventId(parser.lastEventId);
       if (context !== undefined && !context.completed) throw new Error("MCP HTTP stream ended before its final response");
     } catch (error) { void reader.cancel().catch(() => undefined); throw error; }
     finally { signal?.removeEventListener("abort", abort); this.#readers.delete(reader); reader.releaseLock(); }
@@ -361,7 +375,7 @@ export class HttpTransport {
         const endpoint = new URL(message.data, this.#url);
         const resource = new URL(this.#url);
         if (!["http:", "https:"].includes(endpoint.protocol) || endpoint.origin !== resource.origin
-          || endpoint.username || endpoint.password || endpoint.hash) throw new Error("Unsafe legacy SSE endpoint");
+          || endpoint.username || endpoint.password || endpoint.href.includes("#")) throw new Error("Unsafe legacy SSE endpoint");
         if (this.#endpoint !== undefined && this.#endpoint !== endpoint.href)
           throw new Error("Legacy SSE endpoint changed during the active connection");
         this.#endpoint = endpoint.href;

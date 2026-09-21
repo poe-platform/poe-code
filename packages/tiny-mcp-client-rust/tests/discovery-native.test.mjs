@@ -8,7 +8,7 @@ const reference = await tsImport("../../tiny-mcp-client/src/oauth-discovery.ts",
 function outcome(callback) { try { return { value: callback() }; } catch (error) { return { name: error.name, error: error.message }; } }
 
 test("metadata URL admission and exact issuer spelling match the reference", () => {
-  const urls = ["https://Auth.example:443/issuer/", "https://auth.example/a%2Fb?x=1", "https://auth.example/#", "https://auth.example/#f", "https://user:pass@auth.example/a", "http://localhost./mcp", "http://127.1/mcp", "http://0x7f000001/mcp", "http://127.255.0.1/mcp", "http://127.attacker.example/mcp", "http://127.999.0.1/mcp", "http://[::1]/mcp", "http://[::ffff:127.0.0.1]/mcp", "ftp://localhost/mcp", "invalid", "https://例え.test/a", "https://a.test/a\\b", "https://a.test/a?x=1#f"];
+  const urls = ["https://Auth.example:443/issuer/", "https://auth.example/a%2Fb?x=1", "https://auth.example/?", "https://auth.example/#", "https://auth.example/#f", "https://user:pass@auth.example/a", "http://localhost./mcp", "http://127.1/mcp", "http://0x7f000001/mcp", "http://127.255.0.1/mcp", "http://127.attacker.example/mcp", "http://127.999.0.1/mcp", "http://[::1]/mcp", "http://[::ffff:127.0.0.1]/mcp", "ftp://localhost/mcp", "invalid", "https://例え.test/a", "https://a.test/a\\b", "https://a.test/a?x=1#f"];
   for (const url of urls) {
     assert.deepEqual(outcome(() => actual.resolveAuthorizationServerMetadataUrl(url)), outcome(() => reference.resolveAuthorizationServerMetadataUrl(url)), url);
     for (const override of [undefined, "/metadata", "../metadata?q=1", "https://metadata.test/a", "http://evil.test/m", "#fragment", "https://user@meta.test/a", new URL("https://meta.test/a")]) {
@@ -29,13 +29,22 @@ test("native discovery isolates network, external cache and returned snapshots",
   async function run(Discovery) {
     const calls = []; const writes = [];
     const discovery = new Discovery({ fetch: fixtureFetch(calls), cache: { get: () => null, set: (key, value) => { writes.push({ key, value }); value.authorizationServerMetadata.extra.useful = false; } } });
-    const first = await discovery.discover("https://resource.test/mcp#fragment");
+    const first = await discovery.discover("https://resource.test/mcp");
     const pristine = structuredClone(first);
     first.authorizationServerMetadata.extra.useful = "mutated";
     const second = await discovery.discover(new URL("https://resource.test/mcp"));
     return { calls, writes, pristine, second };
   }
   assert.deepEqual(await run(actual.OAuthMetadataDiscovery), await run(reference.OAuthMetadataDiscovery));
+});
+
+test("discovery rejects resource fragments before network or cache access", async () => {
+  for (const Discovery of [actual.OAuthMetadataDiscovery, reference.OAuthMetadataDiscovery]) {
+    const discovery = new Discovery({ fetch: () => assert.fail("unexpected network"), cache: { get: () => assert.fail("unexpected cache read") } });
+    for (const fragment of ["#", "#fragment"]) {
+      await assert.rejects(discovery.discover(`https://resource.test/mcp${fragment}`), { message: "Protected resource URL must not include credentials or fragment" });
+    }
+  }
 });
 
 test("discovery ignores unrelated serialization hooks in shared cached metadata", async () => {
@@ -68,7 +77,7 @@ test("discovery metadata admission and diagnostics match hostile records", async
   }
   const resource = { resource: "https://resource.test/mcp", authorization_servers: ["https://AUTH.test:443/issuer"] };
   const server = { issuer: "https://AUTH.test:443/issuer", authorization_endpoint: "https://auth.test/authorize", token_endpoint: "https://auth.test/token", response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] };
-  const values = [undefined, null, false, 0, "", "relative", "https://evil.test/", "https://user:pass@evil.test/", "http://evil.test/", "https://evil.test/#fragment", "\ud800", [], {}, [null], ["code"], ["S256"], ["https://AUTH.test:443/issuer"]];
+  const values = [undefined, null, false, 0, "", "relative", "https://evil.test/", "https://user:pass@evil.test/", "http://evil.test/", "https://evil.test/#fragment", "https://resource.test/mcp#", "\ud800", [], {}, [null], ["code"], ["S256"], ["https://AUTH.test:443/issuer"]];
   for (const field of Object.keys(resource)) for (const value of values) {
     const input = { ...resource, [field]: value };
     assert.deepEqual(await run(actual.OAuthMetadataDiscovery, input, server), await run(reference.OAuthMetadataDiscovery, input, server), `${field}: ${JSON.stringify(value)}`);
@@ -100,8 +109,10 @@ test("default discovery fetch resolves the platform implementation at request ti
 test("shared cached metadata preserves sparse arrays accepted by the original", async () => {
   const cached = {
     resource: "https://resource.test/mcp", resourceMetadataUrl: "https://resource.test/metadata",
+    // eslint-disable-next-line no-sparse-arrays -- Sparse metadata arrays are the compatibility input under test.
     resourceMetadata: { resource: "https://resource.test/mcp", authorization_servers: [, "https://AUTH.test:443/issuer"] },
     authorizationServer: "https://AUTH.test:443/issuer", authorizationServerMetadataUrl: "https://auth.test/.well-known/oauth-authorization-server/issuer",
+    // eslint-disable-next-line no-sparse-arrays -- Sparse metadata arrays are the compatibility input under test.
     authorizationServerMetadata: { issuer: "https://AUTH.test:443/issuer", authorization_endpoint: "https://auth.test/authorize", token_endpoint: "https://auth.test/token", response_types_supported: [, "code"], code_challenge_methods_supported: [, "S256"] }
   };
   async function run(Discovery) {

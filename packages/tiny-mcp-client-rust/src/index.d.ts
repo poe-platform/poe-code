@@ -521,6 +521,12 @@ export interface OAuthDiscoveryCache {
 }
 export interface OAuthMetadataDiscoveryOptions { fetch?: OAuthMetadataFetch; cache?: OAuthDiscoveryCache; }
 export interface OAuthMetadataLookupOptions { resourceMetadataUrl?: string | URL; signal?: AbortSignal; }
+export declare class OAuthMetadataError extends Error {
+  readonly phase: "protected-resource" | "authorization-server";
+  readonly status?: number;
+  constructor(phase: "protected-resource" | "authorization-server", message: string, status?: number);
+  static is(value: unknown): value is OAuthMetadataError;
+}
 export declare class OAuthMetadataDiscovery {
   constructor(options?: OAuthMetadataDiscoveryOptions);
   discover(resourceUrl: string | URL, options?: OAuthMetadataLookupOptions): Promise<OAuthDiscoveryResult>;

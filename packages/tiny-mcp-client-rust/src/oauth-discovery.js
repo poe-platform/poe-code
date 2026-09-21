@@ -2,11 +2,24 @@ import { createRequire } from "node:module";
 import { canonicalizeResourceIndicator } from "./oauth/resource.js";
 import { fetchMcpResponse, readBoundedResponseText } from "./oauth/http.js";
 const native = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
+const metadataErrorBrand = Symbol.for("poe-platform.tiny-mcp-client.OAuthMetadataError");
+export class OAuthMetadataError extends Error {
+  static is(value) {
+    return value instanceof Error && Object.getOwnPropertyDescriptor(value, metadataErrorBrand)?.value === true;
+  }
+  constructor(phase, message, status) {
+    super(message);
+    this.name = "OAuthMetadataError";
+    this.phase = phase;
+    this.status = status;
+    Object.defineProperty(this, metadataErrorBrand, { value: true });
+  }
+}
 
 function admitUrl(url, label, issuer = false) {
   try {
     native.checkDiscoveryUrl({ protocol: url.protocol, hostname: url.hostname,
-      credentials: url.username !== "" || url.password !== "", fragment: url.hash !== "", query: url.search !== "" }, label, issuer);
+      credentials: url.username !== "" || url.password !== "", fragment: url.href.includes("#"), query: url.href.includes("?") }, label, issuer);
   } catch (error) { throw new Error(error.message); }
 }
 
@@ -14,7 +27,16 @@ function metadataPolicy(command, input, expected, normalized) {
   let outcome;
   try { outcome = native.discoveryMetadataPolicy(command, input, expected, normalized); }
   catch (error) { throw new Error(error.message); }
-  if (Object.hasOwn(outcome, "error")) throw new Error(outcome.error);
+  if (Object.hasOwn(outcome, "error")) {
+    if (command === "resource_bound" && outcome.error.startsWith("Protected resource metadata resource mismatch")
+      || command === "resource" && outcome.error === "Protected resource metadata resource must not include fragment") {
+      throw new OAuthMetadataError("protected-resource", outcome.error);
+    }
+    if (command === "issuer" && outcome.error.startsWith("Authorization server metadata issuer mismatch")) {
+      throw new OAuthMetadataError("authorization-server", outcome.error);
+    }
+    throw new Error(outcome.error);
+  }
   return outcome.value;
 }
 
@@ -35,7 +57,7 @@ export function resolveAuthorizationServerMetadataUrl(issuer) {
 }
 
 export function resolveProtectedResourceMetadataUrl(resourceUrl, resourceMetadataUrl) {
-  const resource = new URL(canonicalizeResourceIndicator(resourceUrl));
+  const resource = new URL(typeof resourceUrl === "string" ? resourceUrl : resourceUrl.toString());
   admitUrl(resource, "Protected resource URL");
   let location;
   if (resourceMetadataUrl !== undefined) {
@@ -79,8 +101,8 @@ async function fetchMetadata(fetchImpl, location, label, parentSignal) {
     method: "GET", headers: { Accept: "application/json" }, signal
   });
   if (!response.ok) {
-    await response.body?.cancel().catch(() => undefined);
-    throw new Error(`${label} request failed (${`${response.status} ${response.statusText}`.trim()})`);
+    void response.body?.cancel().catch(() => undefined);
+    throw new OAuthMetadataError(label === "Protected resource metadata" ? "protected-resource" : "authorization-server", `${label} request failed (${`${response.status} ${response.statusText}`.trim()})`, response.status);
   }
   const text = await readBoundedResponseText(response, 1024 * 1024, undefined, signal);
   try { return JSON.parse(text); }
@@ -97,6 +119,19 @@ function cachedDiscovery(value, resource) {
   const authorizationServerMetadata = authorizationMetadata(value.authorizationServerMetadata, issuer);
   return structuredClone({ resource, resourceMetadataUrl, resourceMetadata, authorizationServer: issuer,
     authorizationServerMetadataUrl, authorizationServerMetadata });
+}
+
+async function waitForCache(operation, signal) {
+  if (signal === undefined) return operation;
+  let abort;
+  try {
+    return await new Promise((resolve, reject) => {
+      abort = () => reject(signal.reason);
+      signal.addEventListener("abort", abort, { once: true });
+      Promise.resolve(operation).then(resolve, reject);
+      if (signal.aborted) abort();
+    });
+  } finally { signal.removeEventListener("abort", abort); }
 }
 
 export class OAuthMetadataDiscovery {
@@ -117,19 +152,19 @@ export class OAuthMetadataDiscovery {
   async discover(resourceUrl, { resourceMetadataUrl, signal } = {}) {
     signal?.throwIfAborted();
     const resource = canonicalizeResourceIndicator(resourceUrl);
-    const firstLocation = resolveProtectedResourceMetadataUrl(resource, resourceMetadataUrl);
+    const firstLocation = resolveProtectedResourceMetadataUrl(resourceUrl, resourceMetadataUrl);
     const memorySlot = this.#index.get(resource);
     if (memorySlot !== null && memorySlot !== undefined && resourceMetadataUrl === undefined) {
       return structuredClone(this.#snapshots.get(memorySlot));
     }
-    const shared = await this.#cache?.get(resource);
+    const shared = resourceMetadataUrl === undefined ? await waitForCache(this.#cache?.get(resource), signal) : undefined;
     signal?.throwIfAborted();
     if (shared !== null && shared !== undefined && resourceMetadataUrl === undefined) {
       try {
         const result = cachedDiscovery(shared, resource);
         this.#retain(resource, result);
         return result;
-      } catch { await this.#cache?.delete?.(resource); }
+      } catch { await waitForCache(this.#cache?.delete?.(resource), signal); }
     }
     const resourceLocations = new Set([firstLocation]);
     if (resourceMetadataUrl === undefined) resourceLocations.add(new URL("/.well-known/oauth-protected-resource", resource).toString());
@@ -154,12 +189,12 @@ export class OAuthMetadataDiscovery {
             resourceMetadata, authorizationServer: issuer, authorizationServerMetadataUrl: location,
             authorizationServerMetadata: metadata };
           this.#retain(resource, result);
-          await this.#cache?.set(resource, structuredClone(result));
+          await waitForCache(this.#cache?.set(resource, structuredClone(result)), signal);
           return result;
         } catch (error) { signal?.throwIfAborted(); errors.push(`${location}: ${error instanceof Error ? error.message : String(error)}`); }
       }
     }
-    throw new Error(`Unable to load authorization server metadata for ${resource}: ${errors.join("; ")}`);
+    throw new OAuthMetadataError("authorization-server", `Unable to load authorization server metadata for ${resource}: ${errors.join("; ")}`);
   }
 }
 
@@ -173,6 +208,10 @@ export function parseBearerWwwAuthenticateHeader(headerValue) {
   const entries = native.parseBearerChallenge(headerValue);
   if (entries === null) return null;
   const params = Object.create(null);
-  for (const [name, value] of entries) params[name.toLowerCase()] = value;
+  for (const [name, value] of entries) {
+    const parameterName = name.toLowerCase();
+    if (Object.hasOwn(params, parameterName)) throw new Error("Bearer challenge must not repeat authentication parameters");
+    params[parameterName] = value;
+  }
   return { scheme: "Bearer", params, raw: headerValue };
 }

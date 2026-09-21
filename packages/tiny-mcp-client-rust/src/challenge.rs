@@ -92,7 +92,7 @@ fn param(input: &[u16], start: usize) -> Option<(AuthParam, usize)> {
 
 /// Returns the first parameter-bearing Bearer challenge, or the first bare
 /// Bearer challenge when none has parameters. Duplicate parameters stay ordered
-/// so the host can apply its Unicode lowercase primitive before last-write wins.
+/// so the host can apply its Unicode lowercase primitive before rejecting repeats.
 pub fn parse_bearer(input: &[u16]) -> Option<AuthParams> {
     let mut index = 0;
     let mut first_bearer = None;

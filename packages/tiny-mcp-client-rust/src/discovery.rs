@@ -113,14 +113,19 @@ pub fn metadata_policy(
         });
     }
     match command {
-        "resource" => Ok(Value::String(
-            required(
+        "resource" => {
+            let resource = required(
                 input,
                 "resource",
                 "Protected resource metadata must include a resource string",
-            )?
-            .to_vec(),
-        )),
+            )?;
+            if resource.contains(&u16::from(b'#')) {
+                return Err(
+                    "Protected resource metadata resource must not include fragment".into(),
+                );
+            }
+            Ok(Value::String(resource.to_vec()))
+        }
         "resource_bound" => {
             if normalized != expected {
                 return Err(mismatch(

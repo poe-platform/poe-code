@@ -2865,6 +2865,41 @@ across512 images; corresponding MCP bytes4,977,024→6,361,984. Each image is va
 and reconstructs all rows. Fixed-Huffman compression tuning remains possible.
 Evidence under out/rust-terminal-png-fast-* and rust-terminal-png-mcp-performance-*.
 
+### Terminal PNG MCP additive delivery (2026-09-21 UTC)
+
+`terminal-png-mcp-rust` packages a single addon with own stdio MCP and terminal
+Rust cores. The portable tool definition/schema, argument admission, rendering
+and CLI grammar are Rust-owned. A libuv AsyncTask computes rendering off the
+Node event loop. Node supplies callback/stdio transport, image wrapping and CLI
+executable detection, with no external npm runtime imports or SDK delegation.
+The tool/server name stays compatible; the executable/package has the Rust suffix.
+Existing production imports/defaults/release wiring are preserved.
+
+Failing core/addon absence preceded implementations. Native CLI comparisons
+exposed repeated short flags and exact diagnostics, corrected against Node's
+actual parseArgs. A strict type red exposed additive own session methods and a
+transport overload; AST preparation now omits those declaration extensions from
+the compatible public interface. All six original SDK cases pass (one root,
+five CLI including real/symlink executable detection), plus three Rust groups,
+four native groups, bidirectional root/CLI types and fmt/clippy for both crates.
+Official MCP SDK InMemoryTransport discovers and calls the actual own image tool.
+Native checks verify asynchronous event-loop progress and eight independent calls.
+Maintained uncached nine-workspace closure succeeds; no models/filesystem fixtures.
+
+Fresh direct and packed16MiB workers each complete512 image tool calls, zlib
+PNG row decoding, imported/executable help and a real CLI stdio initialize/list/
+image-call exchange through EOF. External production imports are blocked in the
+workers and every shipped JS/declaration passes an AST import audit. Archive has
+one addon and zero runtime/peer/optional dependency groups. Font/Unicode licenses
+are included. Help/unknown-option screenshots were inspected and are clear.
+Evidence out/rust-terminal-png-mcp-*. Own packaged artifacts removed after checks.
+
+The preceding compression refinement reports final serial selected timings and
+1,024 further-call memory evidence. Rendering still inherits the terminal core's
+incomplete general SVG/shaping and pixel differences. Full malformed/getter,
+cross-platform/aggregate/performance acceptance and the poe-agent closure remain
+unfinished. This package delivery does not complete the overall rewrite goal.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

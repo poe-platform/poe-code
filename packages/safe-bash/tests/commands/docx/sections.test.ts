@@ -252,7 +252,11 @@ test("docx list creation and restarts publish through the optional Shell with in
     assert.notEqual(ids[0], ids[1]);
     const nums = ids.map(id => numbering.children.find(n => n.localName === "num" && attribute(n, "numId") === id)!);
     assert.equal(attribute(child(nums[0]!, "abstractNumId"), "val"), attribute(child(nums[1]!, "abstractNumId"), "val"));
-    assert.equal(attribute(child(child(nums[1]!, "lvlOverride"), "startOverride"), "val"), "4");
+    const overrides = nums[1]!.children.filter(n => n.namespace === wordNamespace && n.localName === "lvlOverride");
+    const restarted = overrides.find(n => attribute(n, "ilvl") === "1")!;
+    const retained = overrides.find(n => attribute(n, "ilvl") === "0")!;
+    assert.equal(attribute(child(restarted, "startOverride"), "val"), "4");
+    assert.equal(attribute(child(retained, "startOverride"), "val"), "1");
     const saved = new Uint8Array(volume.readFileSync("/work/restarted.docx") as Uint8Array);
     const failed = await shell.exec('docx lists set restarted.docx --paragraph 4 --level 9 --in-place --json');
     assert.equal(failed.exitCode, 2);

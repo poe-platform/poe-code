@@ -11,19 +11,26 @@ const certPath = new URL("./tls/cert.pem", import.meta.url);
 let cert: Buffer;
 let origin: string;
 let server: ReturnType<typeof createServer>;
-before(async () => {
-  cert = await readFile(certPath);
-  server = createServer({ cert, key: await readFile(new URL("./tls/key.pem", import.meta.url)) }, (request, response) => {
-    response.sendDate = false;
-    response.setHeader("Connection", "close");
-    if (request.url === "/downgrade") { response.writeHead(302, { Location: "http://127.0.0.1:1/private" }); response.end(); }
-    else response.end(Buffer.from([0, 255, 72, 84, 84, 80, 83]));
-  });
-  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address(); assert.ok(address && typeof address !== "string");
-  origin = `https://127.0.0.1:${address.port}`;
+let acquisition: Promise<void> | undefined;
+before(() => {
+  acquisition = (async () => {
+    cert = await readFile(certPath);
+    server = createServer({ cert, key: await readFile(new URL("./tls/key.pem", import.meta.url)) }, (request, response) => {
+      response.sendDate = false;
+      response.setHeader("Connection", "close");
+      if (request.url === "/downgrade") { response.writeHead(302, { Location: "http://127.0.0.1:1/private" }); response.end(); }
+      else response.end(Buffer.from([0, 255, 72, 84, 84, 80, 83]));
+    });
+    await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address(); assert.ok(address && typeof address !== "string");
+    origin = `https://127.0.0.1:${address.port}`;
+  })();
+  return acquisition;
 });
-after(async () => { await new Promise<void>((resolve, reject) => { server.close(error => error ? reject(error) : resolve()); server.closeAllConnections(); }); });
+after(async () => {
+  await acquisition;
+  if (server) await new Promise<void>((resolve, reject) => { server.close(error => error ? reject(error) : resolve()); server.closeAllConnections(); });
+});
 
 test("HTTPS verifies injected CA without mutating global TLS state", async () => {
   const before = process.env.NODE_TLS_REJECT_UNAUTHORIZED;

@@ -63,7 +63,15 @@ function invocation(volume: Volume, args: string[]) {
 }
 it("extracts explicit parts and repacks an explicit hashed manifest through the command engine", async () => {
   const volume = Volume.fromJSON({ "/out": null, "/unrelated": "keep" });
-  volume.writeFileSync("/deck.pptx", await createPresentation({}, context));
+  // This checks package extraction/repacking, not presentation creation. Keep
+  // four original parts so every command still processes a multi-part manifest.
+  const encode = (text: string) => new TextEncoder().encode(text);
+  volume.writeFileSync("/deck.pptx", Buffer.from(storedArchive([
+    { name: "[Content_Types].xml", bytes: encode('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="xml" ContentType="application/xml"/><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/main.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/></Types>') },
+    { name: "_rels/.rels", bytes: encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="main" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="main.xml"/></Relationships>') },
+    { name: "main.xml", bytes: encode('<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:notesSz cx="6858000" cy="9144000"/></p:presentation>') },
+    { name: "metadata.xml", bytes: encode('<metadata>original roundtrip bytes</metadata>') }
+  ])));
   const extract = await engine.execute(
     invocation(volume, [
       "extract",

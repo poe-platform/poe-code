@@ -529,24 +529,27 @@ describe("MC-002 independent public replay and checkpoints", () => {
   it.each(["object", "map"])(
     "keeps aliases through three completed %s-registry replays",
     async (shape) => {
+      // Completed replay checks identity; long loops belong to partial checkpoints.
+      const source = checkpointSource.replaceAll('index < 80', 'index < 3');
+      const expected = [true, true, true, true, 2, 11, 12, 9];
       const read = vi.fn(async (count: number) => count + 10);
       const exports = { data: { count: 0 }, read };
       const modules: ModuleRegistry =
         shape === "map" ? new Map([["api", new Map(Object.entries(exports))]]) : { api: exports };
-      let result = await run(checkpointSource, {
+      let result = await run(source, {
         modules,
         budget: new Budget({ maxSteps: 10_000 })
       });
-      expect(result).toMatchObject({ ok: true, returnValue: checkpointExpected });
+      expect(result).toMatchObject({ ok: true, returnValue: expected });
       const replacement = vi.fn(async () => 999);
       for (let repeat = 0; repeat < 3; repeat += 1) {
-        const snapshot = restore(JSON.parse(await dump(result)), { source: checkpointSource });
-        result = await run(checkpointSource, {
+        const snapshot = restore(JSON.parse(await dump(result)), { source });
+        result = await run(source, {
           snapshot,
           modules: { api: { read: replacement } },
           budget: new Budget({ maxSteps: 10_000 })
         });
-        expect(result).toMatchObject({ ok: true, returnValue: checkpointExpected });
+        expect(result).toMatchObject({ ok: true, returnValue: expected });
       }
       expect(read.mock.calls).toEqual([[1], [2]]);
       expect(replacement).not.toHaveBeenCalled();

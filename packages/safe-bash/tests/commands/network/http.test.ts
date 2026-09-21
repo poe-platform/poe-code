@@ -3,8 +3,9 @@ import { after, before, test } from "node:test";
 import { run, server, type TestServer } from "./helpers.js";
 
 let host: TestServer;
-before(async () => { host = await server(); });
-after(async () => { await host.close(); });
+let acquisition: Promise<TestServer> | undefined;
+before(async () => { acquisition = server(); host = await acquisition; });
+after(async () => { await (await acquisition)?.close(); });
 
 test("per-hop authorization and cross-origin custom credentials are removed", async () => {
   const destination = await server();

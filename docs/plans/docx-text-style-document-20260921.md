@@ -54,3 +54,14 @@ even header and footer slot. Remove the first binding, verify retained relations
 and live Unicode paragraph, save/reload, then remove the final binding and verify
 relationship/part retirement and stale old handle. This validates existing product
 behavior and calls for original tests only, with its own atomic test commit.
+
+## Bounded delivery
+
+Allocation is locally committed at `1fcb78930`; stored text-token correction and
+eight exact public cached-break cases at `5dcff856d`. Shared-story assertions
+are a separate test-only delivery. Receipts are in `docs/docx` under
+`text-style-document-20260921.json`, `text-token-boundaries-20260921.json` and
+`shared-story-boundaries-20260921.json`. Complete case/API reconciliation remains
+open; later tasks stay pending. Root historical bash screenshot route is absent,
+and the available screenshot font cannot render the CJK/emoji sample. Neither
+limitation is counted as successful visual integration or document rendering.

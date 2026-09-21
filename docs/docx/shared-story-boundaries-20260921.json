@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-text-style-document",
+  "status": "supplemental-shared-story-boundaries-verified-task-open",
+  "scope": "Six default/first/even header/footer shared-relationship variants; existing behavior validated, no product correction",
+  "tests": {
+    "path": "packages/docx/src/shared-story-boundaries.test.ts",
+    "cases": [
+      "header/default",
+      "header/first",
+      "header/even",
+      "footer/default",
+      "footer/first",
+      "footer/even"
+    ],
+    "result": "6 passed, 695 ms total. Exact main XML after first binding removal and exact surviving story XML; Unicode/false formatting, save/reload, final graph retirement and stale retained handles."
+  },
+  "public_mappings": {
+    "types": "Public _Header and _Footer retain inherited HeaderFooter container behavior; names beginning with underscore stay public.",
+    "linkage": "is_linked_to_previous: boolean (read/write); false means a local binding even when another section references the same story relationship.",
+    "relationship": "Part.rels.at(owner-scoped ID) returns relationship; target_part.partname is typed PackURI, use toString() for lexical value. get(missing ID) returns null.",
+    "ownership": "Removing first binding preserves the relationship and live story; removing last binding retires unshared relationship/part and invalidates retained paragraph. Shared live edit retains original required container.",
+    "language_security": "Synchronous admitted typed SDK views; always-async explicit byte admission/save; scoped relationship IDs and guarded single publication. Original memfs fixture, no host I/O or fetched targets."
+  },
+  "tdd": "Test-only increment; initial assertion mistakenly compared PackURI with a string, corrected to documented toString(). All behavioral assertions then passed without changing product code. This was not a reproduced product defect.",
+  "maintained_checks": {
+    "test": "npm test --workspace=docx: 5180 passed in 250 files, including these 6 cases; latest stronger exact XML assertions separately passed all 6.",
+    "lint": "npm run lint --workspace=docx: passed ESLint and source/test TypeScript; one unchanged type-only unused-variable warning.",
+    "build": "Selected docx workspace build closure passed at the final product revision; test-only assertions need no product rebuild"
+  },
+  "remaining": "Complete exact source-case and public-API reconciliation remains open. These are supplemental boundaries and do not count as six exact pinned-source adaptations. Later tasks pending; no README, push or release."
+}

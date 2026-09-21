@@ -1,0 +1,1 @@
+{"compilerOptions":{"noEmit":true,"strict":true,"skipLibCheck":true,"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext"},"include":["tests/types.ts"]}

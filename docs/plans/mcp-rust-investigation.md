@@ -2732,6 +2732,59 @@ No runtime behavior or TypeScript imports change. The maintained HTTP package's
 native tests independently exercise the combined artifact; implementation remains
 additive and the overall rewrite remains incomplete.
 
+### Own HTTP MCP OAuth fixture — 2026-09-21
+
+Added private `tiny-http-mcp-oauth-test-server-rust` with one combined napi-rs
+artifact and embedded own Rust-family HTTP/client/OAuth adapters. Zero npm runtime,
+peer or optional dependency groups. Rust owns option normalization/diagnostics,
+scopes/TTL/path/issuer/resource validation, pending/active admission, listener
+generations, own-code ephemeral retry admission, temporary-port collision rules,
+cleanup result priority, revocation rejection and CLI values/output. Existing own
+Rust cores implement MCP sessions/tools/auth, JWKS and OAuth grants/replay.
+Node performs URL/HTTP/key/signature/reservation/parallel-close transport; no
+runtime TypeScript or external SDK delegation. Production imports/defaults remain.
+
+Failing-first core/addon/module absence preceded implementation. A failing core
+case refined temporary collision rejection into another reservation rather than
+configured-collision failure. Binding embedding reproduced a private-import
+warning; the prerequisite's existing type now has a public Rust re-export.
+A failing static import-graph check also caught an unused SDK testing adapter and
+a client declaration re-export pointing at another npm package. Packaging now
+omits unused development testing/CLI adapters and rewrites declarations to own
+relative modules, with an AST check over every shipped host/declaration.
+Incidental napi acronym naming and mismatched in-memory HTTP registries were
+validated tooling errors and corrected. The expiry test initially mocked only
+Date.now at verification, whereas the verifier intentionally uses new Date;
+the corrected fixture issues an already-expired valid token instead. No expiry
+implementation bug was demonstrated or changed.
+
+All 18 actual SDK fixture cases (11 root, 5 CLI, 2 lifecycle),5 own transport cases,
+5 Rust groups, 3 native groups and bidirectional root/CLI declaration checks pass.
+The SDK lifecycle mocks target the corresponding own adapters; CLI literals use
+the required suffix. Own tests include an official SDK client handshake/tools,
+revocation, deficient scopes, expired credentials, bootstrap recovery, stable
+captured scopes and stale handle protection. Root discovery independently passes
+all 5 own cases. SDK filesystem/network fixtures remain in memory; no models.
+Maintained uncached 16-workspace closure: 105 workspaces / 307 dependency edges.
+The HTTP prerequisite separately passes 443 Vitest cases, 48 native groups, Rust
+and lint. Formatting and clippy deny warnings for both new crates.
+
+Direct and packed 16MiB workers each pass 32 real localhost listener cycles,
+32 complete discovery/DCR/PKCE flows through the own client,2048 echo calls,
+32 direct-token/revocation checks, repeated close and CLI help. Strict production
+import guards prohibit external packages. Exactly one addon in the npm archive.
+Help and invalid numeric flag screenshots inspected: clear/aligned/readable.
+Evidence under `out/rust-mcp-oauth-fixture-*`. Bounded real listener/token timings
+initially overlap (native 4.0–5.5ms, SDK 4.8–5.5ms); after 1024 further rounds, sampled
+heap 9.88/12.10MB and buffers 76KB each, but RSS 286/213MB. Concurrent sampling and
+allocator/GC effects prevent a general speed or memory claim. Extended retention
+checks remain in progress. Aggregate/malformed/getter/cross-platform/performance
+acceptance, terminal renderers and the poe-agent closure remain unfinished.
+
+Conservative resumed effort segment 23:10:05–23:49:57 UTC is recorded; compaction
+23:49:57–23:54:31 is excluded. Work resumed 23:54:31. The frozen blocked goal tool
+counter is not used to imply that 24 hours have been achieved or the goal is done.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

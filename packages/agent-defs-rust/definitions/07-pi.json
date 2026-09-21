@@ -17,5 +17,49 @@
         "light": "#242424"
       }
     }
+  },
+  "spawnConfig": {
+    "kind": "cli",
+    "adapter": "pi",
+    "defaultArgs": [
+      "--mode",
+      "json",
+      "--print"
+    ],
+    "defaultArgsPosition": "beforePrompt",
+    "modelFlag": "--model",
+    "modelStripProviderPrefix": false,
+    "modes": {
+      "yolo": [
+        "--tools",
+        "read,bash,edit,write,grep,find,ls",
+        "--approve"
+      ],
+      "edit": [
+        "--tools",
+        "read,edit,write,grep,find,ls",
+        "--no-approve"
+      ],
+      "read": [
+        "--tools",
+        "read,grep,find,ls",
+        "--no-approve"
+      ]
+    },
+    "stdinMode": {
+      "omitPrompt": true,
+      "extraArgs": []
+    },
+    "interactive": {
+      "defaultArgs": []
+    },
+    "order": 3,
+    "resume": {
+      "position": "beforePrompt",
+      "argsTemplate": [
+        "--session",
+        "{{threadId}}"
+      ]
+    }
   }
 }

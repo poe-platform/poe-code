@@ -74,5 +74,68 @@
   "skillConfig": {
     "globalSkillDir": "~/.claude/skills",
     "localSkillDir": ".claude/skills"
+  },
+  "spawnConfig": {
+    "kind": "cli",
+    "adapter": "claude",
+    "promptFlag": "-p",
+    "modelFlag": "--model",
+    "modelStripProviderPrefix": true,
+    "defaultArgs": [
+      "--output-format",
+      "stream-json",
+      "--verbose"
+    ],
+    "modes": {
+      "yolo": [
+        "--dangerously-skip-permissions"
+      ],
+      "auto": [
+        "--permission-mode",
+        "auto"
+      ],
+      "edit": [
+        "--permission-mode",
+        "acceptEdits",
+        "--allowedTools",
+        "Bash,Read,Write,Edit,Glob,Grep,NotebookEdit"
+      ],
+      "read": [
+        "--permission-mode",
+        "plan",
+        "--allowedTools",
+        "Read,Glob,Grep",
+        "--disallowedTools",
+        "Bash,Write,Edit,MultiEdit,NotebookEdit"
+      ]
+    },
+    "stdinMode": {
+      "omitPrompt": true,
+      "extraArgs": [
+        "--input-format",
+        "text"
+      ]
+    },
+    "interactive": {
+      "defaultArgs": []
+    },
+    "order": 0,
+    "mcp": {
+      "channel": "args",
+      "format": "json"
+    },
+    "modelTransforms": [
+      {
+        "operation": "replace",
+        "from": ".",
+        "to": "-"
+      }
+    ],
+    "resume": {
+      "argsTemplate": [
+        "--resume",
+        "{{threadId}}"
+      ]
+    }
   }
 }

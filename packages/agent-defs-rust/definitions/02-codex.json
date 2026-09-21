@@ -63,5 +63,71 @@
   "skillConfig": {
     "globalSkillDir": "~/.codex/skills",
     "localSkillDir": ".codex/skills"
+  },
+  "spawnConfig": {
+    "kind": "cli",
+    "adapter": "codex",
+    "promptFlag": "exec",
+    "modelFlag": "--model",
+    "modelStripProviderPrefix": true,
+    "defaultArgs": [
+      "--skip-git-repo-check",
+      "--json"
+    ],
+    "mcpArgsBeforeCommand": true,
+    "modes": {
+      "yolo": [
+        "--dangerously-bypass-approvals-and-sandbox"
+      ],
+      "auto": [
+        "-s",
+        "danger-full-access",
+        "-c",
+        "approval_policy=\"on-request\"",
+        "-c",
+        "approvals_reviewer=\"auto_review\""
+      ],
+      "edit": [
+        "-s",
+        "workspace-write"
+      ],
+      "read": [
+        "-s",
+        "read-only",
+        "--enable",
+        "use_legacy_landlock"
+      ]
+    },
+    "stdinMode": {
+      "omitPrompt": true,
+      "extraArgs": [
+        "-"
+      ]
+    },
+    "interactive": {
+      "defaultArgs": [
+        "-a",
+        "never"
+      ]
+    },
+    "order": 1,
+    "mcp": {
+      "channel": "args",
+      "format": "codex"
+    },
+    "resume": {
+      "position": "beforePrompt",
+      "commandOptionsPosition": "beforeResume",
+      "argsTemplate": [
+        "resume",
+        "{{threadId}}"
+      ],
+      "hintArgsTemplate": [
+        "resume",
+        "-C",
+        "{{cwd}}",
+        "{{threadId}}"
+      ]
+    }
   }
 }

@@ -3250,3 +3250,24 @@ is verified. Remaining agent-spawn/poe-agent, provider/config/task/runtime/desig
 closure and overall goal are unfinished. The inherited active02:08:44–02:41:05 UTC
 segment (1,941s) is now recorded; work resumed02:43:12 UTC after the checkpoint gap.
 The24-hour minimum actual effort remains unfulfilled.
+
+### Declarative spawn metadata, 2026-09-21 03:03 UTC
+
+Own agent-defs-rust provider files now optionally declare CLI/ACP spawn descriptors.
+The Rust registry validates these as objects and keeps them separate from public
+agent metadata. A custom-provider test was red before implementation and verifies
+one-file registration and malformed-descriptor rejection. Seven existing provider
+files contain launch/mode/stdin/resume/model/MCP declarations; callable original
+functions were translated to declarative templates/recipes, not copied as runtime
+code. CLI ordering is explicit business metadata, while agent ids/export names are
+derived from the existing provider file. There are no provider-id switches in the
+runtime. This is the input foundation for agent-spawn-rust, not a completed spawn
+engine. Focused maintained catalog tests, lint and uncached build pass.
+
+ACP feat184aed2fe and workspace-registration fix90fd872e2 are verified ancestors
+of remote main after rebasing on the concurrent documentation commit. The latter
+fix adds safe-bash-mcp to root development dependencies and lock metadata; both
+existing workspace-completeness cases now pass, JSON formatting and npm ci dry-run
+pass. Release35555963233 is pending. No publication is verified. An experimental
+ACP conversion through host JSON.parse did not improve the measured throughput
+and was discarded; the failing packet performance advantage gate remains open.

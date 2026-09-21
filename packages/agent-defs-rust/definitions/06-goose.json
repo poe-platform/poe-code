@@ -35,5 +35,83 @@
     "globalSkillDir": "~/.agents/skills",
     "localSkillDir": ".agents/skills",
     "dirNote": "Goose discovers skills from the shared .agents/skills convention, not a goose-specific directory."
+  },
+  "spawnConfig": {
+    "kind": "cli",
+    "adapter": "native",
+    "promptFlag": "--text",
+    "modelFlag": "--model",
+    "modelStripProviderPrefix": false,
+    "defaultArgs": [
+      "run",
+      "--output-format",
+      "stream-json"
+    ],
+    "defaultArgsPosition": "beforePrompt",
+    "mcpArgsPosition": "beforePrompt",
+    "modes": {
+      "yolo": {
+        "env": {
+          "GOOSE_DISABLE_KEYRING": "1",
+          "GOOSE_MODE": "auto"
+        }
+      },
+      "edit": {
+        "env": {
+          "GOOSE_DISABLE_KEYRING": "1",
+          "GOOSE_MODE": "smart_approve"
+        }
+      },
+      "read": {
+        "env": {
+          "GOOSE_DISABLE_KEYRING": "1",
+          "GOOSE_MODE": "chat"
+        }
+      }
+    },
+    "stdinMode": {
+      "omitPrompt": true,
+      "extraArgs": [
+        "--instructions",
+        "-"
+      ],
+      "automaticFallback": false
+    },
+    "interactive": {
+      "defaultArgs": [
+        "session"
+      ],
+      "defaultArgsPosition": "beforePrompt"
+    },
+    "order": 5,
+    "mcp": {
+      "channel": "args",
+      "format": "goose"
+    },
+    "resume": {
+      "argsTemplate": [
+        "--resume",
+        "--session-id",
+        "{{threadId}}"
+      ],
+      "hintArgsTemplate": [
+        "run",
+        "--resume",
+        "--session-id",
+        "{{threadId}}",
+        "--text",
+        "continue"
+      ]
+    }
+  },
+  "acpSpawnConfig": {
+    "kind": "acp",
+    "env": {
+      "GOOSE_DISABLE_KEYRING": "1"
+    },
+    "skipAuth": true,
+    "acpArgs": [
+      "acp"
+    ]
   }
 }

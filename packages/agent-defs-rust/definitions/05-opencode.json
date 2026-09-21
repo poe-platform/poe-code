@@ -38,5 +38,61 @@
   "skillConfig": {
     "globalSkillDir": "~/.config/opencode/skills",
     "localSkillDir": ".opencode/skills"
+  },
+  "spawnConfig": {
+    "kind": "cli",
+    "adapter": "opencode",
+    "promptFlag": "run",
+    "modelFlag": "--model",
+    "modelStripProviderPrefix": false,
+    "defaultArgs": [
+      "--format",
+      "json"
+    ],
+    "modes": {
+      "yolo": [],
+      "edit": [],
+      "read": [
+        "--agent",
+        "plan"
+      ]
+    },
+    "interactive": {
+      "defaultArgs": [],
+      "promptFlag": "--prompt"
+    },
+    "order": 4,
+    "mcp": {
+      "channel": "env",
+      "format": "opencode"
+    },
+    "modelTransforms": [
+      {
+        "operation": "ensurePrefix",
+        "prefix": "poe/"
+      }
+    ],
+    "resume": {
+      "argsTemplate": [
+        "--session",
+        "{{threadId}}"
+      ],
+      "hintArgsTemplate": [
+        "{{cwd}}",
+        "--session",
+        "{{threadId}}"
+      ]
+    }
+  },
+  "acpSpawnConfig": {
+    "kind": "acp",
+    "skipAuth": true,
+    "acpArgs": [
+      "acp"
+    ],
+    "mcp": {
+      "channel": "env",
+      "format": "opencode"
+    }
   }
 }

@@ -266,3 +266,14 @@ fn skill_descriptors_are_optional_private_metadata_from_one_agent_file() {
     );
     assert!(Registry::from_json([r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"skillConfig":[]}"#]).is_err());
 }
+#[test]
+fn spawn_descriptors_live_in_the_provider_file_and_are_not_public_metadata() {
+    let source = r#"{"exportName":"custom","definition":{"id":"custom","label":"Custom","summary":"Own provider"},"spawnConfig":{"kind":"cli","defaultArgs":[],"modes":{"read":[]}},"acpSpawnConfig":{"kind":"acp","acpArgs":["--acp"]}}"#;
+    let registry = Registry::from_json([source]).unwrap();
+    let definition = &registry.definitions()[0];
+    assert!(definition.spawn_config.is_some());
+    assert!(definition.acp_spawn_config.is_some());
+    assert!(definition.metadata.get("spawnConfig").is_none());
+    assert!(definition.metadata.get("acpSpawnConfig").is_none());
+    assert!(Registry::from_json([r#"{"exportName":"bad","definition":{"id":"bad","label":"Bad","summary":"Bad"},"spawnConfig":false}"#]).is_err());
+}

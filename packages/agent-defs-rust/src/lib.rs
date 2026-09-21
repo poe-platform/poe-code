@@ -17,6 +17,8 @@ pub struct Definition {
     /// Hook bridges derive support from the same declarative agent file.
     pub hook_config: Option<Value>,
     pub skill_config: Option<Value>,
+    pub spawn_config: Option<Value>,
+    pub acp_spawn_config: Option<Value>,
     id: Vec<u16>,
     aliases: Vec<Vec<u16>>,
     capabilities: Vec<Vec<u16>>,
@@ -169,6 +171,15 @@ impl Registry {
             {
                 return Err("Agent skill configuration object is required");
             }
+            let spawn_config = value.get("spawnConfig").cloned();
+            let acp_spawn_config = value.get("acpSpawnConfig").cloned();
+            if [spawn_config.as_ref(), acp_spawn_config.as_ref()]
+                .into_iter()
+                .flatten()
+                .any(|config| !matches!(config, Value::Object(_)))
+            {
+                return Err("Agent spawn configuration object is required");
+            }
             let Value::Object(fields) = &mut metadata else {
                 return Err("Agent definition object is required");
             };
@@ -197,6 +208,8 @@ impl Registry {
                 mcp_config,
                 hook_config,
                 skill_config,
+                spawn_config,
+                acp_spawn_config,
                 id,
                 aliases,
                 capabilities,

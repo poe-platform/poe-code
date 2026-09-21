@@ -29,5 +29,54 @@
   "skillConfig": {
     "globalSkillDir": "~/.gemini/skills",
     "localSkillDir": ".gemini/skills"
+  },
+  "acpSpawnConfig": {
+    "kind": "acp",
+    "env": {
+      "GEMINI_SANDBOX": "false"
+    },
+    "skipAuth": true,
+    "argsRecipe": [
+      {
+        "args": [
+          "--acp"
+        ]
+      },
+      {
+        "when": "model",
+        "args": [
+          "--model",
+          {
+            "option": "model"
+          }
+        ]
+      },
+      {
+        "whenDefined": "mcpServers",
+        "args": [
+          "--allowed-mcp-server-names",
+          {
+            "keysOf": "mcpServers",
+            "join": ","
+          },
+          "--skip-trust"
+        ]
+      },
+      {
+        "args": [
+          "--approval-mode",
+          {
+            "mapOf": "mode",
+            "default": "auto",
+            "values": {
+              "yolo": "yolo",
+              "auto": "default",
+              "edit": "auto_edit",
+              "read": "plan"
+            }
+          }
+        ]
+      }
+    ]
   }
 }

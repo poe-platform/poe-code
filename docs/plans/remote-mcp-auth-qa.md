@@ -256,3 +256,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     and resources/read RPCs. Await the server-observed receive-stream close in
     each mode; replacement providers must never run. Inspect the safe summary
     screenshot, record results and purge only the owned synthetic evidence.
+
+25. Bind two supplied-schema OAuth servers using a host session factory that
+    replaces or removes its own caller option on the first invocation. Bind a
+    third case with a relative imported lifetime and a clock that removes the
+    factory before provider construction. Require the original factory for all
+    five providers, live reads of all selected stores and no replacement/native
+    fallback. Generate commands without any HTTP work, then invoke them against
+    an actual node:http MCP, verifying original per-server grants, complete
+    results and exact005930. Require five retired sessions and zero tools/list.
+    Keep a stable session ID on each fixture connection and answer unsupported
+    receive-stream GET with405. Inspect safe summary output and purge owned data.

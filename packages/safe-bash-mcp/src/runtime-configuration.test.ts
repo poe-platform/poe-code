@@ -269,3 +269,37 @@ it.each(["private-token\nInjected: yep", "private-token\u0000", "private-tokenä¸
   expect(String(error)).not.toContain("private-token");
   expect(sessionStore).not.toHaveBeenCalled();
 });
+
+it.each(["replace", "remove"])("retains the selected session factory when the first host store callback chooses to %s it", async mutation => {
+  const config = initRemoteMcpConfiguration([{ ...server, auth: oauth }, { ...server, name: "second", url: "https://second.example/mcp", auth: oauth }]).configuration;
+  const originalStores = [memoryStore(), memoryStore()], replacement = vi.fn(() => memoryStore());
+  const policy: { sessionStore?: (server: unknown) => ReturnType<typeof memoryStore> } = {};
+  const selected = vi.fn(() => {
+    if (mutation === "replace") policy.sessionStore = replacement;
+    else delete policy.sessionStore;
+    return originalStores[selected.mock.calls.length - 1];
+  });
+  policy.sessionStore = selected;
+  const bound = bindRemoteMcpConfiguration(config, { env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "catalog-grant", MCP_SECOND_ACCESS_TOKEN: "second-grant" }, oauth: policy });
+  expect(selected).toHaveBeenCalledTimes(2);
+  expect(replacement).not.toHaveBeenCalled();
+  for (const [index, current] of bound.entries()) {
+    const headers = new Headers();
+    await current.oauth!.provider.authorizeRequest!({ requestUrl: new URL(current.url), headers, fetch: vi.fn(async () => { throw new Error("unexpected network"); }) });
+    expect(headers.get("Authorization")).toBe(`Bearer ${index === 0 ? "catalog" : "second"}-grant`);
+    expect(originalStores[index].load).toHaveBeenCalled();
+  }
+});
+
+it("retains the host session factory selected before the imported-grant clock callback", async () => {
+  const store = memoryStore(), sessionStore = vi.fn(() => store);
+  const policy: { sessionStore?: () => ReturnType<typeof memoryStore>; now: () => number } = { sessionStore, now: () => { delete policy.sessionStore; return 1000; } };
+  const [bound] = bindRemoteMcpConfiguration(configuration(), {
+    env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "clock-grant", MCP_CATALOG_EXPIRES_IN: "60" }, oauth: policy
+  });
+  expect(sessionStore).toHaveBeenCalledOnce();
+  const headers = new Headers();
+  await bound.oauth!.provider.authorizeRequest!({ requestUrl: new URL(bound.url), headers, fetch: vi.fn(async () => { throw new Error("unexpected network"); }) });
+  expect(headers.get("Authorization")).toBe("Bearer clock-grant");
+  expect(store.load).toHaveBeenCalled();
+});

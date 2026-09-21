@@ -27,6 +27,7 @@ export interface BoundRemoteMcpServer extends Omit<RemoteMcpServer, "oauth"> {
 
 /** Resolve explicit environment references into runtime-only credentials without network or artifact writes. */
 export function bindRemoteMcpConfiguration(value: unknown, options: ConfigurationBindingOptions): BoundRemoteMcpServer[] {
+  options = { ...options, ...(options.oauth === undefined ? {} : { oauth: { ...options.oauth } }) };
   const configuration = parseRemoteMcpConfiguration(value, options);
   const read = credentialEnvironmentReader(options);
   const publicValue = (reference: PublicEnvironmentReference): string | undefined => read(reference) ?? reference.fallback;

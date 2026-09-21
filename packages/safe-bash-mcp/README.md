@@ -263,7 +263,9 @@ used in artifacts. Do not serialize runtime server entries as configuration.
 OAuth uses the native provider and defaults to headless operation. Set
 `oauth.allowInteractive: true` and `oauth.browser.openBrowser` to enable login.
 Configured scope and exact redirect values come from environment references or
-their public fallbacks. Supply `oauth.sessionStore(server)` for host-owned
+their public fallbacks. Binding captures the selected OAuth option handles before
+calling host clocks or store factories, so those callbacks cannot replace the
+factory used for later servers. Supply `oauth.sessionStore(server)` for host-owned
 persistence, or `oauth.authStore` for the native secret-store backend.
 `oauth.sessionLockTimeoutMs` bounds transaction lock acquisition (default 30 s).
 Set `auth.tokenEndpointAuthMethod` to `none`, `client_secret_post` or

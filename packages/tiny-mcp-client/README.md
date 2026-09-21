@@ -36,6 +36,9 @@ Unsupported pins fail before connection setup.
 `Tool` includes MCP `outputSchema` when a server advertises typed tool output.
 `CallToolResult.structuredContent` preserves modern JSON values; legacy servers
 require an object. Complete `content[]` blocks remain available in either case.
+`callTool` captures its signal and progress token when called. Later edits to
+the options object cannot leave a finished call's progress token active; progress
+notifications remain available while that call is pending.
 
 Set `requestTimeoutMs` on `McpClient` or `timeoutMs` on individual requests.
 Numeric deadlines must be finite, nonnegative and no greater than

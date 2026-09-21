@@ -564,6 +564,7 @@ export class McpClient {
   }
 
   async callTool(params: CallToolParams, options: CallToolOptions = {}): Promise<CallToolResult> {
+    options = { ...options };
     const messageLayer = this.getMessageLayerOrThrow();
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.tools === undefined) {

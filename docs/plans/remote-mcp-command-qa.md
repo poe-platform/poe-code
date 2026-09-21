@@ -237,3 +237,15 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     values/Unicode metadata/exact005930 and nine distinct retired sessions.
     Require zero discovery/credential/consent traffic, inspect safe summary
     screenshot and purge only owned evidence.
+
+35. Through actual HTTP and legacy SSE native tool calls, cover all three
+    supported legacy revisions. Replace/remove borrowed progress options from a
+    selected host OAuth callback; require the original outgoing token, complete
+    content/falsey structured values/nested metadata/exact005930, active progress
+    before result and no late progress after completion. Use a subsequent ordered
+    log notification to prove the late event was consumed before assertions.
+    Retain the original live signal when its borrowed handle is replaced. Require
+    eighteen full calls/twelve active updates/eighteen ignored late updates,
+    eighteen closed receive streams/nine retired HTTP sessions and zero metadata/
+    token/tool-discovery/consent. Inspect summary screenshot and purge only owned
+    synthetic evidence.

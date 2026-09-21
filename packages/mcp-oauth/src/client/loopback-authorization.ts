@@ -31,7 +31,7 @@ export interface LoopbackAuthorizationSession {
 export function snapshotLoopbackAuthorizationOptions(options: LoopbackAuthorizationOptions): LoopbackAuthorizationOptions {
   return { ...options, openBrowser: options.openBrowser?.bind(options), readLine: options.readLine?.bind(options), createServer: options.createServer?.bind(options),
     callbackPath: options.callbackPath, redirectUri: options.redirectUri, signal: options.signal, timeoutMs: options.timeoutMs,
-    landingPage: options.landingPage === undefined ? undefined : { ...options.landingPage } };
+    landingPage: options.landingPage === undefined ? undefined : { ...options.landingPage, title: options.landingPage.title, body: options.landingPage.body } };
 }
 
 /** Authorization callback denial, retaining the provider diagnostic for host observers. */

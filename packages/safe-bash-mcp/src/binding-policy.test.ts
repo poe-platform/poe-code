@@ -22,7 +22,7 @@ class Listener extends EventEmitter {
   close = vi.fn(() => this);
 }
 
-it.each(["opener", "landing page"])("captures the selected browser %s before the imported-grant clock runs", async mutation => {
+it.each(["opener", "landing page", "hidden landing page"])("captures the selected browser %s before the imported-grant clock runs", async mutation => {
   const listener = new Listener(), replacement = vi.fn(async () => { throw new Error("replacement browser selected"); });
   let page = "", now = 1000, session: import("mcp-oauth").StoredOAuthSession | null = null;
   const original = vi.fn(async (value: string) => {
@@ -32,6 +32,7 @@ it.each(["opener", "landing page"])("captures the selected browser %s before the
   });
   const browser = { openBrowser: original, createServer: () => listener as unknown as http.Server,
     landingPage: { title: "Original title", body: "Original body" } };
+  if (mutation === "hidden landing page") for (const field of ["title", "body"]) Object.defineProperty(browser.landingPage, field, { enumerable: false });
   const [bound] = bindRemoteMcpConfiguration(configuration, { env, oauth: { allowInteractive: true, browser,
     now: () => { if (mutation === "opener") browser.openBrowser = replacement;
       else { browser.landingPage.title = "Replacement title"; browser.landingPage.body = "Replacement body"; } return now; },

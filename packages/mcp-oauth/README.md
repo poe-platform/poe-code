@@ -131,6 +131,8 @@ A browser callback cannot redirect a later code exchange by changing caller
 metadata. Metadata loaded from a host session store is copied before clock or
 fetch callbacks, retaining the original refresh endpoint and persisted extensions. Explicit authentication owns metadata when lazy discovery returns;
 the selected discovery method retains its original receiver and live host state.
+Browser and standalone loopback snapshots also retain declared landing-page
+title/body values regardless of enumerability; served text remains HTML escaped.
 Browser and standalone loopback snapshots retain declared redirects, deadlines,
 cancellation and selected host hooks regardless of property enumerability.
 Browser callback hooks retain their original receiver and live host state.

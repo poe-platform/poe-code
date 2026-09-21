@@ -325,7 +325,9 @@ snapshots, alongside the selected live clock and session-store handles,
 regardless of property enumerability. Selected clock methods retain their
 original host receiver, including private class state.
 Browser snapshots also retain the selected opener, input reader, listener
-factory, redirect, cancellation signal and authorization deadline.
+factory, redirect, cancellation signal and authorization deadline. Declared
+landing-page title/body values survive nonenumerable properties and remain
+HTML escaped in the callback response.
 The selected host methods retain their original receiver and live host state,
 including class methods that use private fields.
 Native client snapshots also retain mode, app ID/secret, token-auth method and

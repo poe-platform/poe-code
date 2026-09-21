@@ -53,3 +53,16 @@ it.each(["signal", "timeoutMs", "redirectUri", "callbackPath", "createServer", "
     } finally { session?.close(); defaultFactory.mockRestore(); vi.useRealTimers(); }
   }
 );
+
+it.each(["title", "body"] as const)("retains hidden landing-page %s and owns it before browser callbacks", async field => {
+  const listener = new Listener(), page = { title: "Original title <005930>", body: "Original body & complete" };
+  Object.defineProperty(page, field, { enumerable: false });
+  const session = await createLoopbackAuthorizationSession({ createServer: () => listener as unknown as http.Server,
+    landingPage: page, openBrowser: async () => { page.title = "Replacement title"; page.body = "Replacement body"; } });
+  try {
+    const pending = session.waitForCode("https://auth.example/authorize?state=expected"), end = vi.fn();
+    listener.emit("request", { url: "/callback?state=expected&code=005930" }, { writeHead: vi.fn(), end });
+    expect(await pending).toBe("005930"); expect(end.mock.calls[0][0]).toContain("Original title &lt;005930&gt;");
+    expect(end.mock.calls[0][0]).toContain("Original body &amp; complete"); expect(end.mock.calls[0][0]).not.toContain("Replacement");
+  } finally { session.close(); }
+});

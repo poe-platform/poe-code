@@ -1,6 +1,6 @@
 # Remote MCP pinned file inventory
 
-This is the remaining-work inventory for upstream pin
+This is the file inventory for upstream pin
 `e5450d49070b48ab988d74aaf060800a493e51bc`. It enumerates every
 TypeScript source below `src` and every `.test.ts`/`.test.mjs` below `tests`.
 The requirement/lesson evidence is in `remote-mcp-source-audit.md` and the
@@ -437,7 +437,8 @@ be read before counting that finding resolved.
 There are no pending complete reads in the scoped source/test inventory.
 Generated-tool scalar CLI/SDK policies, cleanup/error precedence checks and
 public consumer types are reconciled by later increments in the main ledger
-and acceptance audit. Remaining work includes continued operation-level runtime
-input ownership, updating evidence after subsequent changes and the requested
-fourteen-hour meaningful-work duration. This inventory does not close those
-gates or claim remote delivery.
+and acceptance audit. Declared operation-level policy ownership is now reconciled
+through the later validated fixes and current-build workflow. Any further change
+requires updated scoped evidence. The requested fourteen-hour meaningful-work
+duration and final completion reconciliation remain pending; this inventory does
+not close those gates or claim remote delivery.

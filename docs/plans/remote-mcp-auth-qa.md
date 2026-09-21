@@ -1000,3 +1000,18 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     preserve complete output and independently observe session/stream cleanup.
     Inspect actual status/output evidence in a successful screenshot; purge owned
     instrumentation and logs after recording verification.
+
+87. Final current-build workflow: for each actual HTTP/SSE endpoint initialize
+    explicit app/scope/query-redirect references and empty env guidance, authorize
+    through a real state/S256 callback, discover every tool page, archive external
+    input/output documents, and require byte-equal repeated JSON/ESM generation.
+    Import written module data from cwd /; recreated help/metadata/default-error
+    paths stay offline. Preserve complete tool and resource results through SDK,
+    management and virtual redirection. Expire the grant and invoke two independently
+    recreated providers concurrently; require one rotating redemption per resource
+    after a durable tokenless intent. Reset must suppress retired grants; both SDK
+    and management imports atomically recover the original app and anchored timing.
+    Require no DCR, client-document fallback, widened scopes or credential echoes;
+    independently await callback/HTTP/SSE cleanup and inspect actual current CLI
+    results/status/initialization guidance in a successful screenshot. Record
+    exact observations and purge only owned instrumentation/module/log evidence.

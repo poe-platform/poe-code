@@ -1,6 +1,6 @@
 import { posix } from "node:path";
 import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
-import { argumentText, commandLimit, emit, errorDetails, shellWord, textLine, validateCommandName } from "./commands.js";
+import { argumentText, commandLimit, emit, errorDetails, positiveArgument, shellWord, textLine, validateCommandName } from "./commands.js";
 import { initRemoteMcpConfiguration, type ConfigurationOptions, type InitRemoteMcpServer } from "./configuration.js";
 import { generateRemoteMcpArtifact, type ArtifactGenerationOptions } from "./artifact.js";
 import { authenticateRemoteMcpServer, type RemoteMcpAuthenticationOptions, type RemoteMcpAuthenticationResult } from "./authentication.js";
@@ -20,15 +20,6 @@ export interface RemoteMcpManagementOptions extends ConfigurationOptions {
   readonly reset?: RemoteMcpCredentialResetOptions;
   readonly credentialImport?: RemoteMcpCredentialImportOptions;
   readonly resources?: RemoteMcpResourceOptions & { readonly binding?: ConfigurationBindingOptions };
-}
-
-function positiveArgument(value: string | undefined, flag: string, maximum = Number.MAX_SAFE_INTEGER): number {
-  if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9"))
-    throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
-  const result = Number(value);
-  if (!Number.isSafeInteger(result) || result < 1 || result > maximum)
-    throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
-  return result;
 }
 
 const generationFlags = {

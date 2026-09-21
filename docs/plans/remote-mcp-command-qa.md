@@ -170,3 +170,15 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     and verify every assigned session receives DELETE. Buffered initialization
     responses and generic transport state transitions remain covered by the
     maintained native transport tests. Purge only owned fixtures and screenshots.
+
+27. Generated execution policies: use supplied tools with fields named timeoutMs,
+    maxResponseBytes, maxInputBytes and maxOutputBytes, plus a tool literally named
+    --timeout-ms. Override timeout/response settings before the selected tool and
+    preserve all same-named field flags after it. Repeat through a written ESM
+    artifact and recreated host without tools/list. Bound virtual UTF-8 stdin,
+    complete output JSON and stalled native RPC calls; invalid/repeated settings
+    fail before connecting, response failures retire assigned sessions and input/
+    output settings cannot raise host ceilings. Require specific bounded output
+    diagnostics with empty result stdout. Inspect help and failure screenshots.
+    Serialize QA runs sharing a written artifact so each imports its own endpoint.
+    Purge only owned fixture files and screenshots.

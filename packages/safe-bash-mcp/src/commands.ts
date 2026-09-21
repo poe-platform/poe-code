@@ -19,6 +19,42 @@ export function commandLimit(value: number, name: string): number {
   return value;
 }
 
+export function positiveArgument(value: string | undefined, flag: string, maximum = Number.MAX_SAFE_INTEGER): number {
+  if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9"))
+    throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
+  const result = Number(value);
+  if (!Number.isSafeInteger(result) || result < 1 || result > maximum)
+    throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
+  return result;
+}
+
+const executionFlags = {
+  "--timeout-ms": "requestTimeoutMs", "--max-response-bytes": "maxResponseBytes",
+  "--max-input-bytes": "maxInputBytes", "--max-output-bytes": "maxOutputBytes"
+} as const;
+type ExecutionPolicy = Partial<Record<typeof executionFlags[keyof typeof executionFlags], number>>;
+
+const executionHelp = ["Execution options (before the tool name):",
+  "  --timeout-ms <milliseconds>  Override the request deadline.",
+  "  --max-response-bytes <bytes> Override the HTTP response limit.",
+  "  --max-input-bytes <bytes>    Limit input within the host ceiling.",
+  "  --max-output-bytes <bytes>   Limit output within the host ceiling.",
+  "Use -- before a literal tool name beginning with a dash.", ""];
+
+function executionArguments(args: readonly string[]): { index: number; policy: ExecutionPolicy } {
+  const policy: ExecutionPolicy = {};
+  let index = 0;
+  for (; index < args.length; index++) {
+    const arg = args[index], flag = arg.split("=", 1)[0];
+    if (!Object.hasOwn(executionFlags, flag)) break;
+    const key = executionFlags[flag as keyof typeof executionFlags];
+    if (policy[key] !== undefined) throw new Error(`${flag} can only be supplied once`);
+    policy[key] = positiveArgument(arg === flag ? args[++index] : arg.slice(flag.length + 1), flag,
+      key === "requestTimeoutMs" ? 2_147_483_647 : Number.MAX_SAFE_INTEGER);
+  }
+  return { index, policy };
+}
+
 export function validateCommandName(name: string): void {
   if (typeof name !== "string" || name.length === 0 || [...name].some(char => char === "/" || char === "\0" || char.trim() === ""))
     throw new Error("Remote MCP command name must be nonempty and contain no whitespace, slash or NUL");
@@ -45,8 +81,8 @@ function instructionLines(instructions?: string): string[] {
 }
 
 function toolHelp(name: string, parser: ToolArgumentParser, description?: string, instructions?: string): string {
-  const prefix = `${shellWord(name)} ${parser.toolName.startsWith("-") ? "-- " : ""}${shellWord(parser.toolName)}`;
-  const lines = [`Usage: ${textLine(prefix)} [arguments]`, "", ...(description ? [textLine(description), ""] : []), ...instructionLines(instructions), "Arguments:"];
+  const prefix = `${shellWord(name)} [execution options] ${parser.toolName.startsWith("-") ? "-- " : ""}${shellWord(parser.toolName)}`;
+  const lines = [`Usage: ${textLine(prefix)} [arguments]`, "", ...(description ? [textLine(description), ""] : []), ...instructionLines(instructions), ...executionHelp, "Arguments:"];
   for (const parameter of parser.parameters)
     lines.push(`  ${parameter.flag} <value>${parameter.required ? " (required)" : ""}${parameter.description ? `  ${textLine(parameter.description)}` : ""}`);
   lines.push("", "  --raw <json>  Provide a complete JSON object; use - to read stdin.",
@@ -101,8 +137,10 @@ export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 
   return details;
 }
 
+class CommandOutputLimitError extends Error {}
+
 export async function emit(operation: OutputOperation, text: string, maxBytes: number): Promise<void> {
-  if (Buffer.byteLength(text, "utf8") > maxBytes) throw new Error("MCP command output byte limit exceeded");
+  if (Buffer.byteLength(text, "utf8") > maxBytes) throw new CommandOutputLimitError("MCP command output byte limit exceeded");
   const bytes = new TextEncoder().encode(text);
   for (let offset = 0; offset < bytes.length; offset += 16 * 1024) {
     operation.signal.throwIfAborted();
@@ -165,7 +203,7 @@ export async function createRemoteMcpCommands(
       tool, parser: compileToolArguments(tool, settings.schemaValidation),
       output: tool.outputSchema === undefined ? undefined : compileJsonSchema(structuredClone(tool.outputSchema), settings.schemaValidation)
     }]));
-    const summary = [`Usage: ${textLine(shellWord(server.name))} <tool> [arguments]`, "", ...instructionLines(schema.instructions), "Tools:",
+    const summary = [`Usage: ${textLine(shellWord(server.name))} [execution options] <tool> [arguments]`, "", ...instructionLines(schema.instructions), ...executionHelp, "Tools:",
       ...[...tools.values()].map(({ tool }) => `  ${textLine(shellWord(tool.name))}${tool.description ? `  ${textLine(tool.description)}` : ""}`),
       ...(tools.size === 0 ? ["  No tools advertised."] : []), "", `Run ${textLine(shellWord(server.name))} <tool> --help for arguments or --schema for JSON metadata.`].join("\n") + "\n";
     return {
@@ -176,59 +214,73 @@ export async function createRemoteMcpCommands(
         const signal = settings.signal === undefined ? context.signal : AbortSignal.any([context.signal, settings.signal]);
         const operation = createOutputOperation({ signal, registerCleanup: context.registerCleanup }, context.stdout);
         const errors = operation.child(context.stderr);
+        let outputLimit = maxOutputBytes;
         try {
           operation.signal.throwIfAborted();
           let entry: PreparedTool | undefined;
           let argumentsValue: Record<string, unknown> | undefined;
           let help: string | undefined;
+          let policy: ExecutionPolicy = {};
+          let inputLimit = maxInputBytes;
           try {
             const args = argumentText(context, maxInputBytes);
-            if (args.length === 0 || args[0] === "--help") {
+            const execution = executionArguments(args);
+            policy = execution.policy;
+            inputLimit = Math.min(maxInputBytes, policy.maxInputBytes ?? maxInputBytes);
+            outputLimit = Math.min(maxOutputBytes, policy.maxOutputBytes ?? maxOutputBytes);
+            if (args.reduce((bytes, arg) => bytes + Buffer.byteLength(arg, "utf8"), 0) > inputLimit)
+              throw new Error("MCP argument byte limit exceeded");
+            if (execution.index === args.length || args[execution.index] === "--help") {
               help = summary;
             } else {
-              const literal = args[0] === "--";
-              const name = args[literal ? 1 : 0];
+              const literal = args[execution.index] === "--";
+              const name = args[execution.index + (literal ? 1 : 0)];
               const selected = tools.get(name);
               if (!selected) throw new Error(`Unknown MCP tool '${name ?? ""}'`);
               entry = selected;
-              const inputs = args.slice(literal ? 2 : 1);
+              const inputs = args.slice(execution.index + (literal ? 2 : 1));
               const inspection = toolInspection(inputs);
               if (inspection !== undefined) {
                 help = inspection === "help" ? toolHelp(server.name, entry.parser, entry.tool.description, schema.instructions)
                   : `${JSON.stringify(entry.tool)}\n`;
-              } else argumentsValue = entry.parser.parse(await stdinArguments(context, inputs, operation.signal, maxInputBytes), {
-                yes: settings.yes, maxInputBytes
+              } else argumentsValue = entry.parser.parse(await stdinArguments(context, inputs, operation.signal, inputLimit), {
+                yes: settings.yes, maxInputBytes: inputLimit
               });
             }
           } catch (error) {
             operation.signal.throwIfAborted();
-            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, outputLimit);
             return { exitCode: 2 };
           }
           if (help !== undefined) {
-            await emit(operation, help, maxOutputBytes);
+            await emit(operation, help, outputLimit);
             return { exitCode: 0 };
           }
           const selected = entry!;
           let result: CallToolResult;
           try {
-            result = await withRemoteMcpClient(server, { ...settings, signal: operation.signal },
+            result = await withRemoteMcpClient(server, { ...settings, ...policy, signal: operation.signal },
               client => client.callTool({ name: selected.tool.name, arguments: argumentsValue }, { signal: operation.signal }));
           } catch (error) {
             operation.signal.throwIfAborted();
-            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, outputLimit);
             return { exitCode: 1 };
           }
-          await emit(operation, `${JSON.stringify(result)}\n`, maxOutputBytes);
+          await emit(operation, `${JSON.stringify(result)}\n`, outputLimit);
           if (result.isError) return { exitCode: 1 };
           if (selected.output) {
             const validation = selected.output.validate(result.structuredContent);
             if (!validation.ok) {
-              await emit(errors, `${JSON.stringify({ error: { message: `Invalid tool output: ${formatIssues(validation.issues)}` } })}\n`, maxOutputBytes);
+              await emit(errors, `${JSON.stringify({ error: { message: `Invalid tool output: ${formatIssues(validation.issues)}` } })}\n`, outputLimit);
               return { exitCode: 1 };
             }
           }
           return { exitCode: 0 };
+        } catch (error) {
+          operation.signal.throwIfAborted();
+          if (!(error instanceof CommandOutputLimitError)) throw error;
+          await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, outputLimit);
+          return { exitCode: 1 };
         } finally { await operation.close(); }
       }
     };

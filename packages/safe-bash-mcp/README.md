@@ -137,6 +137,15 @@ Help uses supplied or discovered schemas without connecting again. Tool and
 server help retain multiline server instructions with terminal
 control characters escaped. Artifact loading preserves archived instructions.
 For tool names beginning with a dash, use `catalog -- '--tool' [arguments]`.
+Place execution settings before the tool name:
+`catalog --timeout-ms 1000 --max-response-bytes=4194304 search_items --query example`.
+`--timeout-ms` overrides `requestTimeoutMs` for each native request, including
+connection setup; `--max-response-bytes` overrides the HTTP response budget.
+`--max-input-bytes` and `--max-output-bytes` can tighten the corresponding host
+ceilings. All four accept positive integers, separated or with `=`, and repeated
+settings fail before connecting. Flags after the tool name belong to its schema;
+for example a tool field named `timeoutMs` keeps its own `--timeout-ms` flag.
+Execution settings also work before `--` when selecting a literal tool name.
 Use inline flags such as `--query=--help` for literal values beginning with
 `--`. `--raw -` and `--raw=-` read a bounded UTF-8 JSON object from virtual
 stdin, supporting shell input redirection and pipelines.

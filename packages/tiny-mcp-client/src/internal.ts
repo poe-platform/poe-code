@@ -2747,6 +2747,7 @@ export class HttpTransport implements McpTransport {
   }
 
   async completeInitialization(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void> {
+    validateRequestTimer(options.timeoutMs, "timeoutMs");
     const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
     const signals = [options.signal, deadline].filter((signal): signal is AbortSignal => signal !== undefined);
     const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);
@@ -3735,6 +3736,12 @@ export class SseParser {
   }
 }
 
+function validateRequestTimer(value: number, name: string): void {
+  // Node reduces overflowing timers to 1ms rather than retaining the requested deadline.
+  if (!Number.isFinite(value) || value < 0 || value > 2_147_483_647)
+    throw new Error(`${name} must be a non-negative finite number no greater than 2147483647`);
+}
+
 interface PendingRequest {
   resolve: (result: unknown) => void;
   reject: (error: unknown) => void;
@@ -3794,9 +3801,7 @@ export class JsonRpcMessageLayer {
     inputClosedReason?: Promise<Error>,
     private readonly maxConcurrentRequests = 128
   ) {
-    if (!Number.isFinite(requestTimeoutMs) || requestTimeoutMs < 0) {
-      throw new Error("requestTimeoutMs must be a non-negative finite number");
-    }
+    validateRequestTimer(requestTimeoutMs, "requestTimeoutMs");
     if (!Number.isSafeInteger(maxConcurrentRequests) || maxConcurrentRequests < 1)
       throw new Error("maxConcurrentRequests must be a positive safe integer");
 
@@ -3857,9 +3862,7 @@ export class JsonRpcMessageLayer {
     if (this.disposedError !== undefined) throw this.disposedError;
     const timeoutMs =
       options.timeoutMs === null ? null : (options.timeoutMs ?? this.requestTimeoutMs);
-    if (timeoutMs !== null && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) {
-      throw new Error("timeoutMs must be a non-negative finite number");
-    }
+    if (timeoutMs !== null) validateRequestTimer(timeoutMs, "timeoutMs");
     if (this.exchangeControllers.size >= this.maxConcurrentRequests)
       throw new Error("JSON-RPC request capacity exceeded");
     if (params !== undefined && !isJsonValue(params)) {
@@ -3986,9 +3989,7 @@ export class JsonRpcMessageLayer {
     const timeoutMs =
       options.timeoutMs === null ? null : (options.timeoutMs ?? this.requestTimeoutMs);
 
-    if (timeoutMs !== null && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) {
-      throw new Error("timeoutMs must be a non-negative finite number");
-    }
+    if (timeoutMs !== null) validateRequestTimer(timeoutMs, "timeoutMs");
     if (options.onRequestId !== undefined) {
       options.onRequestId(id);
     }

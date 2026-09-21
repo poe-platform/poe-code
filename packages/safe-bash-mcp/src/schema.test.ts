@@ -36,6 +36,12 @@ function remote(pages: unknown[]) {
 }
 
 describe("remote MCP schemas", () => {
+  it.each([2_147_483_648, Number.MAX_SAFE_INTEGER])("rejects overflowing request deadlines even for supplied schemas: %s", async requestTimeoutMs => {
+    const fetch = vi.fn<HttpTransportFetch>();
+    await expect(fetchRemoteMcpSchema({ ...server, tools: [] }, { fetch, requestTimeoutMs })).rejects.toThrow("requestTimeoutMs");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("returns supplied instructions with authoritative schemas without connecting", async () => {
     const fetch = vi.fn<HttpTransportFetch>();
     expect(await fetchRemoteMcpSchema({ ...server, tools: [], instructions: "Read first\nThen act" }, { fetch })).toMatchObject({ instructions: "Read first\nThen act" });

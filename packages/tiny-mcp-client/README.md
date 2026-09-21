@@ -24,6 +24,11 @@ await client.close();
 
 `Tool` includes MCP `outputSchema` when a server advertises typed tool output. `CallToolResult` includes `structuredContent?: Record<string, unknown>` for typed results; legacy/content-block tools still use `content[]`.
 
+Set `requestTimeoutMs` on `McpClient` or `timeoutMs` on individual requests.
+Numeric deadlines must be finite, nonnegative and no greater than
+2,147,483,647 ms; oversized values fail before a request is sent. Individual
+JSON-RPC requests also accept `timeoutMs: null` to disable their timer.
+
 ## Transports
 
 | Transport                       | Description                                                                                                 |

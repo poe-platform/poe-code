@@ -7,11 +7,13 @@ function positiveLimit(value: number, name: string): number {
 }
 
 export function remoteLimits(options: SchemaFetchOptions) {
+  const requestTimeoutMs = positiveLimit(options.requestTimeoutMs ?? 30_000, "requestTimeoutMs");
+  if (requestTimeoutMs > 2_147_483_647) throw new Error("requestTimeoutMs must not exceed 2147483647");
   return {
     maxPages: positiveLimit(options.maxPages ?? 100, "maxPages"),
     maxTools: positiveLimit(options.maxTools ?? 10_000, "maxTools"),
     maxResponseBytes: positiveLimit(options.maxResponseBytes ?? 16 * 1024 * 1024, "maxResponseBytes"),
-    requestTimeoutMs: positiveLimit(options.requestTimeoutMs ?? 30_000, "requestTimeoutMs")
+    requestTimeoutMs
   };
 }
 

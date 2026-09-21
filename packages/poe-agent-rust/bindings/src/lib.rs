@@ -248,3 +248,5 @@ pub mod config_binding;
 pub mod file_awareness_binding;
 
 pub mod hooks_binding;
+
+pub mod prompts_binding;

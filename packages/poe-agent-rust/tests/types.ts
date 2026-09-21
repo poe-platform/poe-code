@@ -104,3 +104,8 @@ void hookCallA;
 void hookCallB;
 void hookResultA;
 void hookResultB;
+
+import * as referencePrompts from "../../poe-agent/dist/runtime/prompts.js";
+const promptsA: Omit<referencePrompts.PromptRegistry, "copyFrom"> = new own.PromptRegistry();
+const promptsB: Omit<own.PromptRegistry, "copyFrom"> = new referencePrompts.PromptRegistry();
+void [promptsA, promptsB];

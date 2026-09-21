@@ -3988,3 +3988,32 @@ release35563113958 is in progress; no successful root publication is claimed.
 Prompt pipelines, RunContext disposal/lifecycle, plugin setup, agent builder and
 execution/runtime/remaining closure are required next. Full goal and minimum
 24-hour effort remain open; work continues from05:01:42 ledger boundary.
+
+### Poe agent Rust prompt transforms, 2026-09-21 05:13 UTC
+
+Portable/native reds precede live Rust callback ordering and own PromptRegistry.
+Sequential transforms retain opaque extension properties and arbitrary callback/
+getter failures, restore original userPrompt after every transform and include
+registrations made during compilation. Callback invocation retains undefined this.
+Copies snapshot the source before appending, including self-copy, and require the
+same private-field implementation. Offset overflow rejects atomically in the core.
+
+All16 Rust cases,24 native groups and109 applicable complete original cases pass.
+The reference route adds the entire7-case PromptRegistry describe; no unfinished
+execution describes count as passes. Public-method declarations compare both ways
+excluding nominal copyFrom. Focused lint/fmt/clippy, maintained uncached113-workspace/
+28-build/338-edge closure and packed artifact checks pass. A preliminary unit run
+included the intentionally missing RunContext native test; those own pending reds
+were moved to out until this atomic prompt improvement was validated successfully.
+Direct/packed16MiB workers each add1024 compiles and2048 transforms. Audit covers32
+JS/declaration files and one addon, with zero npm runtime/peer/optional dependencies.
+Endpoint heaps~10.5–10.8MB and parent-inclusive RSS do not establish peak/leak/memory
+advantage. Prompt speed gate fails:4096 compiles/8192 callbacks over seven alternating
+rounds take original~0.71–0.89ms vs Rust~1.72–1.84ms. Earlier hook speed gate also
+fails:4096 dispatches/8192 callbacks original~1.69–1.82ms vs Rust~9.29–10.52ms.
+Evidence out/rust-poe-agent-prompts-* and out/rust-poe-agent-hooks-benchmark.json.
+
+Hook62cba4691 is pushed and verified at remote main; root35563539781 remains pending.
+Continuous active05:01:42–05:13:02 adds680s, bringing conservative actual effort to
+85,265s (23.68h). Minimum24h remains unfulfilled by1135s. Full rewrite and root
+publication remain incomplete. Active work continues after05:13:02 UTC.

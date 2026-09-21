@@ -54,3 +54,9 @@ references. Abort errors retain disposal causes; legacy rejection warns once.
 Rust owns callback ordering and staged decision policy, while Node executes
 callbacks, property effects and disposal. `copyFrom` accepts registries from the
 same implementation, matching the original private-field restriction.
+
+`PromptRegistry` compiles sequential prompt transforms while retaining opaque
+metadata, extension properties and callbacks. The supplied user prompt is restored
+after every transform. Registrations made during compilation are included; copies
+share callbacks within the same implementation. Rust owns live callback ordering
+and Node retains callback execution and object spread effects.

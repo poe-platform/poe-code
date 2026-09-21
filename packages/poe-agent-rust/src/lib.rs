@@ -138,3 +138,5 @@ pub mod config;
 pub mod file_awareness;
 
 pub mod hooks;
+
+pub mod prompts;

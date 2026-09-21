@@ -42,3 +42,5 @@ export {
   applyHookDecision,
   dispatchHook
 } from "./hooks.js";
+
+export { PromptRegistry } from "./prompts.js";

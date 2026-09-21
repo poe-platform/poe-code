@@ -33,3 +33,6 @@ export { createFileAwarenessTracker, recordToolFileAwareness } from "./file-awar
 export type { FileAwarenessTracker } from "./file-awareness.js";
 
 export * from "./hooks.js";
+
+export { PromptRegistry } from "./prompts.js";
+export type { PromptTransform } from "./prompts.js";

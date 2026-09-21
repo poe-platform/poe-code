@@ -95,6 +95,30 @@ it("preserves nested fields used inside instruction text", async () => {
   expect(result.xml).toContain(field.replace(">Cached<", ">Updated<"));
 });
 
+it.each([false, true])("fills an empty formatted simple cache in its existing run (%s)", async strict => {
+  const properties = '<w:rPr><w:i/><w:color w:val="246813"/></w:rPr>';
+  const field = `<w:fldSimple w:instr=' MERGEFIELD  &quot;Coast&quot; &#92;* MERGEFORMAT ' w:dirty='on' w:fldLock='1'><w:r>${properties}</w:r><w:r><w:rPr><w:b/></w:rPr></w:r></w:fldSimple>`;
+  const result = await edit(await textFixture(`<w:p>${field}</w:p>`, {}, strict), { field: 1, result: "North coast" });
+  expect(result.xml).toContain(field.slice(0, field.indexOf("><w:r>") + 1));
+  const root = docx.parseDocumentXml(new TextEncoder().encode(result.xml)).root;
+  const owner = root.children[0]!.children[0]!.children[0]!;
+  expect(owner.children).toHaveLength(2);
+  expect(owner.children[0]!.children.map(node => node.localName)).toEqual(["rPr", "t"]);
+  expect(owner.children[0]!.children[1]!.text).toBe("North coast");
+  expect(result.xml).toContain(properties);
+  expect(result.xml).toContain('<w:r><w:rPr><w:b/></w:rPr></w:r>');
+});
+
+it.each([false, true])("fills an empty formatted complex cache in its existing result run (%s)", async strict => {
+  const begin = '<w:r><w:fldChar w:fldCharType="begin" w:dirty="off" w:fldLock="on"/></w:r>';
+  const cache = '<w:r><w:rPr><w:i/><w:color w:val="246813"/></w:rPr></w:r>';
+  const field = begin + instruction + marker("separate") + cache + marker("end");
+  const result = await edit(await textFixture(`<w:p>${field}</w:p>`, {}, strict), { field: 1, result: "Coastal report" });
+  expect(result.xml).toContain(begin + instruction + marker("separate"));
+  expect(result.xml).toContain('<w:r><w:rPr><w:i/><w:color w:val="246813"/></w:rPr><w:t');
+  expect(result.xml).toContain('>Coastal report</w:t></w:r>' + marker("end"));
+});
+
 it.each(["sym", "noBreakHyphen", "footnoteReference", "mystery"])("rejects unsupported cached content without publishing: %s", async name => {
   const input = await textFixture(`<w:p><w:fldSimple w:instr=" PAGE ">${styled}<w:r><w:${name}/></w:r></w:fldSimple></w:p>`);
   let writes = 0;

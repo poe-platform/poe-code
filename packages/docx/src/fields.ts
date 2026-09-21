@@ -127,7 +127,8 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
     }
     if (options.result !== undefined && options.result !== field.result) {
       if (!field.text.length) {
-        if (field.form === "simple") editor.insertChildren(field.node, paragraphTextRun(field.node.namespace, options.result));
+        if (field.emptyResultRun) editor.insertChildren(field.emptyResultRun, textMarkup(field.emptyResultRun, options.result));
+        else if (field.form === "simple") editor.insertChildren(field.node, paragraphTextRun(field.node.namespace, options.result));
         else editor.replaceElement(field.separator!, editor.sourceXml(field.separator!) + textMarkup(field.node, options.result));
       }
       field.text.forEach((node, i) => {

@@ -36,6 +36,22 @@ it("advertises only bounded field listing and result editing", () => {
   expect(discovery("help", "fields", "set").human).not.toContain("--run ");
   expect(discovery("schema", "fields", "list").data).toMatchObject({ operations: [{ input: { properties: { field: { type: "integer", minimum: 1 } } } }] });
 });
+it.each(["simple", "complex"])("preserves empty %s cache formatting through direct CLI flags", async form => {
+  const cache = '<w:r><w:rPr><w:i/></w:rPr></w:r>';
+  const field = form === "simple"
+    ? '<w:fldSimple w:instr=" PAGE " w:fldLock="on">' + cache + '</w:fldSimple>'
+    : '<w:r><w:fldChar w:fldCharType="begin" w:fldLock="on"/><w:instrText> PAGE </w:instrText><w:fldChar w:fldCharType="separate"/></w:r>' + cache + '<w:r><w:fldChar w:fldCharType="end"/></w:r>';
+  const bytes = await textFixture(`<w:p>${field}</w:p>`);
+  const result = await command(bytes, ["fields", "set", "input.docx", "--field", "1", "--result", "8", "--output", "-"]);
+  expect(result.exitCode).toBe(0);
+  expect(result.stderr).toBe("");
+  const archive = await docx.readDocumentArchive(result.stdout, textContext);
+  const xml = new TextDecoder().decode(archive.members.find(member => member.name === "word/document.xml")!.bytes);
+  expect(xml).toContain('<w:r><w:rPr><w:i/></w:rPr><w:t');
+  expect(xml).toContain('>8</w:t></w:r>');
+  expect(xml).toContain('w:fldLock="on"');
+  expect(xml).toContain(form === "simple" ? 'w:instr=" PAGE "' : '<w:instrText> PAGE </w:instrText>');
+});
 it.each([
   ["fields", "add", "--kind", "PAGE", "--result", "4", "--update", "false"],
   ["toc", "add", "--levels", "2-4", "--title", "Contents"],

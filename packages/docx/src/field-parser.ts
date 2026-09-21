@@ -22,6 +22,7 @@ export interface ParsedField {
   unsafe: boolean;
   endPath?: readonly number[];
   instructionNested?: boolean;
+  emptyResultRun?: XmlElement;
 }
 export const fieldAttribute = (node: XmlElement, name: string) => node.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
 
@@ -100,6 +101,9 @@ export function parseFields(root: XmlElement, path: readonly number[], budget: D
     unsafe ||= prohibited;
     if (stack.length && !["fldSimple", "fldChar", "instrText", "t", "r", "tab", "br", "cr"].includes(name)) for (const field of stack) field.unsupported = true;
     if (prohibited || name === "br" && ![undefined, "textWrapping"].includes(fieldAttribute(node, "type"))) for (const field of stack) field.unsupported = true;
+    const current = stack.at(-1);
+    if (name === "r" && current?.separated && !current.emptyResultRun && node.children.every(child => child.namespace === node.namespace && child.localName === "rPr"))
+      current.emptyResultRun = node;
     let simple: ParsedField | undefined;
     if (name === "fldSimple") simple = begin(node, path, true, unsafe);
     else if (name === "fldChar") {

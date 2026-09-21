@@ -3271,3 +3271,46 @@ existing workspace-completeness cases now pass, JSON formatting and npm ci dry-r
 pass. Release35555963233 is pending. No publication is verified. An experimental
 ACP conversion through host JSON.parse did not improve the measured throughput
 and was discarded; the failing packet performance advantage gate remains open.
+
+### Spawn planning baseline, 2026-09-21 03:15 UTC
+
+The additive private agent-spawn-rust package implements CLI launch planning, the
+immutable CLI/ACP registry, permission-mode admission, model transformations,
+resume templates, UTF-8/NUL stdin fallback, prompt redaction, MCP serializers and
+environment merge/deletion. Own Rust provider files are the single declarative
+input: ids/export names derive from agent metadata, callbacks materialize generic
+Rust recipes and no runtime provider-id branches are present. An independent
+custom-provider portable test builds a new launch by supplying one definition.
+Original production consumers and implementation packages remain unchanged.
+
+This is explicitly a planning baseline, not the completed agent-spawn rewrite:
+process execution, retries/parallel runs, adapters/streaming, telemetry,
+resources/runtime/workspace bridges, logs and remaining exports are unfinished.
+Shipped declarations advertise only the implemented baseline. Node still handles
+registry object materialization and host identity restoration; core admission,
+models, templates, argument ordering, serializers and environment policy are Rust.
+Manual development-only contract generation imports original declarations only.
+
+3 portable Rust cases,4 native groups and97 applicable original tests pass. The
+native checks compare1440 full launch permutations and300 ACP recipe combinations,
+preserve lone surrogates in models/MCP arguments and exercise prototype-named
+servers/env keys and environment deletion. All buildSpawnArgs/configs/mode cases
+run against own modules; actual spawn/API inventory describes are not counted.
+Original tests reproduced the wrong MCP/mode validation order. Further native reds
+reproduced Goose surrogate loss and Gemini null-server flags; UTF-16 concatenation
+and declarative recipe truthiness fix these. The latter is separate catalog
+commit f59e60d95, verified on remote main. Public planning APIs have bidirectional
+TypeScript contracts. Display argument construction avoids cloning prompt payloads
+before redaction.
+
+Focused lint/fmt/clippy, unit/types, npm ci dry-run and maintained explicit uncached
+112-workspace/21-build/333-edge closure pass. Direct/packed16MiB workers each run
+8192 plans,8192 MCP serializers and8192 environment merges while retaining256 plans.
+All22 packaged JS/declaration files, including generated provider submodules, pass
+recursive AST import auditing. One addon and zero npm runtime/peer/optional
+contexts pass. Endpoint heap~7.7/~8.1MB; RSS includes parent TypeScript tooling and
+is not isolated leak/peak acceptance. Fresh-process planning performance evidence
+is out/rust-agent-spawn-benchmark.json; no broad speed/memory advantage is claimed.
+Evidence out/rust-agent-spawn-*; remaining aggregate/getter/platform/Python and
+full agent acceptance remain open. Latest release35556765333 is pending; no
+publication is verified. The24-hour minimum effort and overall goal remain open.

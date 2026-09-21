@@ -979,7 +979,8 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   rectangular row/column insertion/deletion are implemented by the
   [table editing milestone](../plans/docx-table-editing.md). The
   [merged-cell milestone](../plans/docx-merged-cells.md) adds merge/split and span-aware
-  row removal. Live table model batches, span insertion and column removal remain pending.
+  row removal. The [table and expanded-workflow milestone](../plans/docx-table-bdd-adaptation.md)
+  also qualifies live table model batches. Span insertion and column removal remain pending.
 - **Links/bookmarks/fields.** Link add/set requires exactly one target or bookmark;
   external target accepts absolute https/http/mailto only and is never fetched;
   destinations may remain unresolved (section 9.1). Removing a link unwraps its

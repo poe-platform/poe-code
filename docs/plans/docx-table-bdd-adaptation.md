@@ -61,6 +61,10 @@ Whole office SDK conformance, rendered source parity, a full safe-bash runtime g
 
 ### Current requalification
 
+The later [status verification](../docx/table-bdd-status-verification-20260921.md)
+records fresh maintained gates and corrects section 9.1's stale table-batch
+statement only. Renderer QA remains not run; no product correction was required.
+
 Root owns this restored plan and
 `docs/docx/table-bdd-requalification-20260921.md` only. The current
 [verification record](../docx/table-bdd-requalification-20260921.md) separates

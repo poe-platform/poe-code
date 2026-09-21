@@ -953,3 +953,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     offline. Require eight complete remote calls/24 MCP POSTs/four HTTP retirements/
     four server-observed SSE closes. Inspect actual recreated result/error JSON
     and successful summary screenshot; purge owned synthetic evidence.
+
+83. Supply hidden root artifact/configuration/tool ceilings, binding/schema
+    handles and external registry maps through SDK/management generation across
+    actual HTTP/SSE. Require twelve failures before transport, four bounded small
+    artifact failures after discovery, four preserved archives and two byte-equal
+    JSON/ESM repeats. Protocol tool input/output roots retain type:object alongside
+    their external references. Import module data from cwd /; all four recreated
+    help operations stay offline and four complete calls validate the archived
+    registry without reinjection, preserving two blocks/false/zero/exact005930/
+    full metadata. Require42 MCP POSTs/63 requests/seven HTTP retirements/seven
+    server-observed SSE closes. Inspect actual management error and full archived
+    registry JSON in the successful screenshot; purge owned evidence. Earlier
+    written-module/separate-process portability evidence remains independently
+    recorded in the artifact QA plan.

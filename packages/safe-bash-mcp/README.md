@@ -508,8 +508,10 @@ before output, while the host's command output limit still bounds stdout.
 Shell redirection works for all formats. Host-selected SDK
 generation settings are available as management `options.generation`. Generation
 captures configuration ceilings and discovery option handles at entry; caller
-changes while discovery waits cannot replace its selected signal or limits. Discovery
-uses the command's environment unless the host supplies an explicit binding.
+changes while discovery waits cannot replace its selected signal or limits.
+Declared artifact/configuration/tool ceilings, binding, schema settings and external
+registry handles also survive nonenumerable options through SDK/management
+generation. Discovery uses the command's environment unless the host supplies an explicit binding.
 
 Server/tool ordering and nested JSON keys are stable; semantic arrays retain
 their order. Artifacts contain no generation timestamp, temporary filesystem

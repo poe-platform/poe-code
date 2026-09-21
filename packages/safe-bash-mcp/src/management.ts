@@ -415,6 +415,7 @@ export function createRemoteMcpManagementCommand(
               maxTools: generationPolicy.maxTools ?? generation?.maxTools ?? options.maxTools,
               maxConfigurationBytes: generationPolicy.maxConfigurationBytes ?? generation?.maxConfigurationBytes ?? options.maxConfigurationBytes,
               maxArtifactBytes: generationPolicy.maxArtifactBytes ?? generation?.maxArtifactBytes,
+              schemaRegistry: generation?.schemaRegistry,
               binding: generation?.binding ?? { env: context.env },
               schema: { ...snapshotRemoteMcpSchemaOptions(generation?.schema ?? {}),
                 requestTimeoutMs: generationPolicy.requestTimeoutMs ?? generation?.schema?.requestTimeoutMs,

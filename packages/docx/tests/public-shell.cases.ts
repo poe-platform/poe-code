@@ -2,10 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
 import * as sdk from "docx";
-import * as rootSdk from "poe-code/docx";
 import { Shell, agentCommands, FsError } from "@poe-platform/safe-bash";
 import { docxCommands, type DocxCommandEngine } from "@poe-platform/safe-bash/commands/docx";
-import { docxCommands as rootCommands } from "poe-code/safe-bash/commands/docx";
 import type { FileSystem, FileStat } from "@poe-platform/safe-bash/contracts";
 
 const limits: sdk.ArchiveLimits = {
@@ -47,12 +45,13 @@ function fixture() {
   return { volume, fs, shell };
 }
 
-test("built package and root subpaths expose the same SDK and plugin", () => {
-  assert.equal(rootSdk.createDocumentArchive, sdk.createDocumentArchive);
-  assert.equal(rootSdk.replaceDocumentText, sdk.replaceDocumentText);
-  assert.equal(rootCommands, docxCommands);
-  assert.ok(import.meta.resolve("poe-code/docx").endsWith("/dist/index.js"));
-  assert.ok(import.meta.resolve("poe-code/safe-bash/commands/docx").endsWith("/dist/commands/docx/index.js"));
+test("built public package exports expose the SDK and explicit plugin", () => {
+  assert.equal(typeof sdk.createDocumentArchive, "function");
+  assert.equal(typeof sdk.replaceDocumentText, "function");
+  assert.equal(typeof sdk.Document, "function");
+  assert.equal(typeof docxCommands, "function");
+  assert.ok(import.meta.resolve("docx").endsWith("/dist/index.js"));
+  assert.ok(import.meta.resolve("@poe-platform/safe-bash/commands/docx").endsWith("/dist/commands/docx/index.js"));
 });
 
 test("built shell creates from JSON stdin and retains binary bytes through pipes and redirection", async () => {

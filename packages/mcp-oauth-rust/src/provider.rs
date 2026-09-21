@@ -27,6 +27,11 @@ pub fn normalize_client(value: &Value, configured: bool) -> Option<Value> {
     if let Some(secret) = secret {
         fields.push(property("clientSecret", Value::String(secret)));
     }
+    for key in ["registration", "tokenEndpointAuthMethod"] {
+        if let Some(value) = value.get(key) {
+            fields.push(property(key, value.clone()));
+        }
+    }
     Some(Value::Object(fields))
 }
 pub fn normalize_tokens(value: &Value) -> Option<Value> {
@@ -479,6 +484,10 @@ pub fn registered_client(payload: &Value) -> Result<Value, String> {
     let mut fields = vec![property("clientId", Value::String(id))];
     if let Some(secret) = trimmed(payload, "client_secret") {
         fields.push(property("clientSecret", Value::String(secret)));
+    }
+    fields.push(property("registration", payload.clone()));
+    if let Some(method) = payload.get("token_endpoint_auth_method") {
+        fields.push(property("tokenEndpointAuthMethod", method.clone()));
     }
     Ok(Value::Object(fields))
 }

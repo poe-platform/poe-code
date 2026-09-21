@@ -1,3 +1,4 @@
+import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
@@ -12,7 +13,7 @@ import {
   OAuthError
 } from "./tokens.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
-const CLIENT = ["clientId", "clientSecret"];
+const CLIENT = ["clientId", "clientSecret", "registration", "tokenEndpointAuthMethod"];
 const TOKENS = ["accessToken", "tokenType", "expiresAt", "refreshToken", "scope"];
 const METADATA = [
   "issuer",
@@ -111,6 +112,7 @@ export function createOAuthClientProvider(options) {
     : createDefaultOAuthClientProvider(options);
 }
 export function createDefaultOAuthClientProvider(options) {
+  const requestedScope = normalizeOAuthScope(options.client.metadata?.scope);
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
   const clientStore =
     options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
@@ -364,15 +366,7 @@ export function createDefaultOAuthClientProvider(options) {
       signal
     });
     const payload = await readOAuthJsonObjectResponse(response, signal);
-    const normalized = unwrap(
-      native.providerRegisteredClient(
-        JSON.stringify(project(payload, ["client_id", "client_secret"]))
-      )
-    );
-    const client = {
-      clientId: normalized.clientId,
-      clientSecret: Object.hasOwn(normalized, "clientSecret") ? normalized.clientSecret : undefined
-    };
+    const client = unwrap(native.providerRegisteredClient(JSON.stringify(payload)));
     await saveClient(discovery.authorizationServer, client);
     return { kind: "dynamic", fromStoredRegistration: false, client };
   }
@@ -391,6 +385,7 @@ export function createDefaultOAuthClientProvider(options) {
             resource,
             authorizationServer: discovery.authorizationServer,
             client: client.client,
+            ...(requestedScope === undefined ? {} : { requestedScope }),
             discovery: {
               resourceMetadataUrl: discovery.resourceMetadataUrl,
               resourceMetadata: discovery.resourceMetadata,

@@ -126,3 +126,14 @@ fn cached_tokens_require_the_configured_static_client_identity() {
             .contains("different OAuth client")
     );
 }
+
+#[test]
+fn dynamic_registration_metadata_survives_client_normalization() {
+    use mcp_oauth_rust::provider::registered_client;
+    let payload =
+        value(r#"{"client_id":"dynamic","token_endpoint_auth_method":"none","extra":true}"#);
+    let registered = registered_client(&payload).unwrap();
+    assert_eq!(registered.get("registration"), Some(&payload));
+    let normalized = normalize_client(&registered, false).unwrap();
+    assert_eq!(normalized.get("registration"), Some(&payload));
+}

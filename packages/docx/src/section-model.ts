@@ -328,12 +328,19 @@ class HeaderFooter {
     const edge = graph.relationships(this.section.ref.part).find((edge) => edge.rId === id);
     if (!edge || edge.is_external) throw new InvalidValueError("Invalid story binding.");
     // Inactive alternatives still own their stored relationship references.
-    const referenced = (node: XmlElement): boolean => {
+    const pending = [store.xml(this.section.ref.part).root];
+    store.context.budget.charge("retainedBytes", 8);
+    let shared = false;
+    while (pending.length) {
+      const node = pending.pop()!;
       store.context.budget.charge("work", 1 + node.attributes.length);
-      return node !== local && node.attributes.some(attr => attr.namespace === r && attr.value === id)
-        || node.children.some(referenced);
-    };
-    const shared = referenced(store.xml(this.section.ref.part).root);
+      if (node !== local && node.attributes.some(attr => attr.namespace === r && attr.value === id)) {
+        shared = true;
+        break;
+      }
+      store.context.budget.charge("retainedBytes", node.children.length * 8);
+      for (let index = node.children.length - 1; index >= 0; index--) pending.push(node.children[index]!);
+    }
     const otherEdge = retainedRelationshipTargets(graph, store.context.budget, [{owner: this.section.ref.part, id: id!}]).has(asciiKey(edge.target_part.partname));
     store.transaction(() => {
       store.change(this.section.ref.part, (xml) => xml.replaceElement(this.local()!, ""));

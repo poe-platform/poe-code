@@ -31,8 +31,12 @@ Discovery captures server fields, headers, supplied tools and option handles
 before waiting; registry resolution captures every entry before its first
 connection. Later caller edits cannot rename results, change request headers,
 replace the chosen signal, or append servers to the in-progress registry.
-Aborting the original signal still cancels discovery. Runtime provider/store
-objects and caches remain host dependencies.
+Aborting the original signal still cancels discovery. Registry snapshots also
+capture OAuth client/grant/browser/persistence configuration and the chosen
+provider/store handles before discovery or command invocation. Custom provider
+objects, selected stores/callbacks/AbortSignals, environment values and caches
+remain live host dependencies. Supplied-schema generation performs no credential
+binding, store construction or network requests.
 Supply `instructions` on a registry entry to keep known server guidance without
 discovery. Explicit instructions take precedence over discovered guidance.
 

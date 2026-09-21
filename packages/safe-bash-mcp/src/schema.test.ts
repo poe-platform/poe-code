@@ -36,6 +36,33 @@ function remote(pages: unknown[]) {
 }
 
 describe("remote MCP schemas", () => {
+  it("captures later registry OAuth provider selection before the first discovery waits", async () => {
+    const fixture = remote([{ tools: [tool] }, { tools: [tool] }]), fetch = fixture.fetch.getMockImplementation()!;
+    const initialized = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+    fixture.fetch.mockImplementation(async (url, init) => {
+      if (String(url) === server.url && init?.method === "POST" && JSON.parse(String(init.body)).method === "initialize") {
+        initialized.resolve(); await resume.promise;
+      }
+      return fetch(url, init);
+    });
+    const original = vi.fn(async ({ headers }: { headers: Headers }) => { headers.set("Authorization", "Bearer original-selection"); });
+    const replacement = vi.fn(async ({ headers }: { headers: Headers }) => { headers.set("Authorization", "Bearer replacement-selection"); });
+    const oauth = { provider: { authorizeRequest: original, handleUnauthorized: async () => ({ action: "fail" as const }) } };
+    const later = { name: "later", url: "https://later.example/mcp", protocolVersion: "2025-03-26" as const, oauth };
+    const pending = resolveRemoteMcpSchemas([{ ...server, protocolVersion: "2025-03-26" }, later], { fetch: fixture.fetch });
+    const outcome = pending.catch(error => error);
+    try {
+      await initialized.promise;
+      oauth.provider = { ...oauth.provider, authorizeRequest: replacement };
+      resume.resolve();
+      expect(await outcome).toHaveLength(2);
+      expect(original).toHaveBeenCalled();
+      expect(replacement).not.toHaveBeenCalled();
+      const posts = fixture.fetch.mock.calls.filter(([url, init]) => String(url) === later.url && init?.method === "POST");
+      for (const [, init] of posts) expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer original-selection");
+    } finally { resume.resolve(); await outcome; }
+  });
+
   it.each(["identity", "headers", "signal handle"])("snapshots %s before asynchronous schema discovery", async mode => {
     const fixture = remote([{ tools: [tool] }]), fetch = fixture.fetch.getMockImplementation()!;
     const initialized = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();

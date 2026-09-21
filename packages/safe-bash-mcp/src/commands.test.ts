@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
 import {
   CommandRegistry, createCommandArguments, toByteSource,
   type CommandContext, type CommandDefinition, type ByteSink
 } from "@poe-platform/safe-bash/contracts";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import type { CallToolResult, HttpTransportFetch, Tool } from "tiny-mcp-client";
+import type { DefaultOAuthClientProviderOptions } from "mcp-oauth";
 import { createRemoteMcpCommands, remoteMcpCommands } from "./index.js";
 
 const tool: Tool = { name: "search_items", description: "Find catalog items", inputSchema: {
@@ -63,6 +65,61 @@ async function command(fixture = remote(), tools: readonly Tool[] = [tool]): Pro
 }
 
 describe("generated remote MCP safe-bash commands", () => {
+  it("captures the chosen custom OAuth provider while retaining its live implementation", async () => {
+    const fixture = remote();
+    const provider = { authorizeRequest: async ({ headers }: { headers: Headers }) => { headers.set("Authorization", "Bearer original-provider"); },
+      handleUnauthorized: async () => ({ action: "fail" as const }) };
+    const oauth = { provider };
+    const [definition] = await createRemoteMcpCommands([{ ...server, oauth }], { fetch: fixture.fetch });
+    const replacement = vi.fn(async () => { throw new Error("replacement provider selected"); });
+    oauth.provider = { authorizeRequest: replacement, handleUnauthorized: provider.handleUnauthorized };
+    provider.authorizeRequest = async ({ headers }) => { headers.set("Authorization", "Bearer original-provider-live"); };
+    const input = invocation(["search_items", "--query", "005930"]);
+    expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+    expect(replacement).not.toHaveBeenCalled();
+    const posts = fixture.fetch.mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(posts.length).toBeGreaterThan(0);
+    for (const [, init] of posts) expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer original-provider-live");
+  });
+
+  it.each(["client", "registration", "grant", "scope", "callback", "store handle"])("captures default OAuth %s configuration before generated commands are invoked", async mutation => {
+    const fixture = remote();
+    const grant = { accessToken: "original-private-grant", tokenType: "Bearer" as const, expiresAt: null, scope: "read" };
+    const oauth: DefaultOAuthClientProviderOptions = { client: { mode: "static", clientId: "original-app", metadata: { scope: "read" }, registration: { client_id: "original-app" } },
+      initialGrant: { resource: server.url, tokens: grant }, allowInteractive: false, browser: {},
+      sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } };
+    const [definition] = await createRemoteMcpCommands([{ ...server, oauth }], { fetch: fixture.fetch });
+    expect(fixture.fetch).not.toHaveBeenCalled();
+    if (mutation === "client") oauth.client.clientId = "";
+    else if (mutation === "registration") Object.defineProperty(oauth.client.registration!, "client_id", {
+      enumerable: true, get() { throw new Error("Caller registration reread after generation"); }
+    });
+    else if (mutation === "grant") grant.accessToken = "replacement-private-grant";
+    else if (mutation === "scope") oauth.client.metadata!.scope = "write";
+    else if (mutation === "callback") oauth.browser.redirectUri = "https://remote.example/unsafe-callback";
+    else oauth.sessionStore = { load: async () => { throw new Error("replacement store selected"); }, save: async () => {}, clear: async () => {} };
+    const input = invocation(["search_items", "--query", "005930"]);
+    expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+    expect(JSON.parse(input.output())).toEqual(success);
+    for (const [, init] of fixture.fetch.mock.calls.filter(([, init]) => init?.method === "POST"))
+      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer original-private-grant");
+  });
+
+  it("captures nested native persistence configuration without touching it during offline generation", async () => {
+    const fixture = remote(), fs = createFsFromVolume(new Volume()).promises;
+    const authStore = { backend: "file" as const, fileStore: { fs, salt: "generation-persistence", filePath: "/original/session.enc" } };
+    const oauth: DefaultOAuthClientProviderOptions = { client: { mode: "static", clientId: "original-app" }, authStore,
+      initialGrant: { resource: server.url, tokens: { accessToken: "original-private-grant", tokenType: "Bearer", expiresAt: null } },
+      allowInteractive: false, browser: {} };
+    const [definition] = await createRemoteMcpCommands([{ ...server, oauth }], { fetch: fixture.fetch });
+    expect(await fs.readdir("/")).toEqual([]);
+    authStore.fileStore.filePath = "/replacement/session.enc";
+    const input = invocation(["search_items", "--query", "005930"]);
+    expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+    expect((await fs.readdir("/original")).every(name => name.endsWith(".lock"))).toBe(true);
+    await expect(fs.readdir("/replacement")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("prints only the exact selected tool metadata offline and snapshots it before caller mutation", async () => {
     const fixture = remote();
     const selected: Tool = { ...tool, name: "API-post-page.detail", annotations: { readOnlyHint: true },

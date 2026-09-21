@@ -204,3 +204,18 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     short-circuits environment reads, compile a strict external TypeScript
     consumer of resolveSecretStoreBackend and native factories through public
     built exports, inspect safe summary output and purge the owned evidence.
+
+21. Hold the first initialization in a two-server real HTTP registry discovery.
+    Replace the later entry's OAuth provider wrapper, then update the originally
+    selected custom provider implementation and release initialization. Require
+    the original selected object with its live implementation on every later
+    request. Generate a second custom-provider command offline, replace only its
+    wrapper and invoke successfully. Generate a supplied-schema default-OAuth
+    command with an original app, registration, scoped literal grant and native
+    persistence path. Before invoking, mutate app/scope/grant/callback/path and
+    install a throwing getter on caller registration. Require original
+    Authorization headers, no caller registration reread, original lock path,
+    no replacement directory, complete JSON output and exact005930 arguments.
+    Generation must perform neither network nor persistence access. Require two
+    tools/list operations, two calls and four distinct retired HTTP sessions.
+    Inspect safe summary output, record results and purge owned evidence.

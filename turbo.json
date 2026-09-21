@@ -161,6 +161,31 @@
       "dependsOn": [
         "build"
       ]
+    },
+    "terminal-pilot-rust#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "tiny-http-mcp-oauth-test-server-rust#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "tiny-http-mcp-server-rust#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "tiny-oauth-test-server-rust#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "tiny-stdio-mcp-test-server-rust#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
     }
   }
 }

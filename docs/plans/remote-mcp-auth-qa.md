@@ -246,3 +246,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     one. Hook policy and final status must retain the original signal. Require
     three distinct retired sessions and no tool list/call. Inspect safe summary
     output, record results and purge only owned evidence.
+
+24. Gate the initial modern HTTP initialization POST, then return405 to negotiate
+    legacy SSE for a direct resource read. While it waits, replace the custom
+    OAuth provider wrapper or mutate the default imported access grant. Run the
+    two modes sequentially against actual node:http sockets. Require original
+    Authorization on all five requests, an exact resource URI, complete text,
+    base64 blob and nested metadata, and only initialize, initialized notification
+    and resources/read RPCs. Await the server-observed receive-stream close in
+    each mode; replacement providers must never run. Inspect the safe summary
+    screenshot, record results and purge only the owned synthetic evidence.

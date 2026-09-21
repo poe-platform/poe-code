@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import type { HttpTransportFetch } from "tiny-mcp-client";
+import type { RemoteMcpServer } from "./schema.js";
 import { accessRemoteMcpResources, createRemoteMcpManagementCommand } from "./index.js";
 
 const server = { name: "docs", url: "https://docs.example/mcp", protocolVersion: "2025-03-26" as const };
@@ -41,6 +42,46 @@ it("reads complete text and binary contents with metadata through the native cli
   const f = remote();
   expect(await accessRemoteMcpResources(server, { operation: "read", uri: "file:///remote/readme" }, { fetch: f.fetch })).toEqual(read);
   expect(f.requests).toContainEqual(expect.objectContaining({ method: "resources/read", params: { uri: "file:///remote/readme" } }));
+});
+
+it.each(["custom provider", "default grant"])("retains OAuth %s through negotiated legacy SSE resource fallback", async mode => {
+  const entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>(), cancel = vi.fn();
+  const replacement = vi.fn(async ({ headers }: { headers: Headers }) => { headers.set("Authorization", "Bearer replacement-private-grant"); });
+  const oauth: NonNullable<RemoteMcpServer["oauth"]> = mode === "custom provider" ? {
+    provider: { authorizeRequest: async ({ headers }) => { headers.set("Authorization", "Bearer original-private-grant"); },
+      handleUnauthorized: async () => ({ action: "fail" }) }
+  } : { client: { mode: "static", clientId: "original-app" }, allowInteractive: false, browser: {},
+    initialGrant: { resource: server.url, tokens: { accessToken: "original-private-grant", tokenType: "Bearer", expiresAt: null } },
+    sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } };
+  let stream!: ReadableStreamDefaultController<Uint8Array>;
+  const encoder = new TextEncoder(), methods: string[] = [];
+  const fetch = vi.fn<HttpTransportFetch>(async (url, init) => {
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer original-private-grant");
+    if (String(url) === server.url && init?.method === "POST") {
+      entered.resolve(); await resume.promise;
+      return new Response(null, { status: 405 });
+    }
+    if (init?.method === "GET") return new Response(new ReadableStream({ start(controller) {
+      stream = controller; controller.enqueue(encoder.encode("event: endpoint\ndata: /messages\n\n"));
+    }, cancel }), { headers: { "Content-Type": "text/event-stream" } });
+    expect(String(url)).toBe("https://docs.example/messages");
+    const request = JSON.parse(String(init?.body)); methods.push(request.method);
+    if (request.id !== undefined) stream.enqueue(encoder.encode(`data: ${JSON.stringify({ jsonrpc: "2.0", id: request.id,
+      result: request.method === "initialize" ? { protocolVersion: "2025-03-26", capabilities: { resources: {} }, serverInfo: { name: "legacy", version: "1" } } : read })}\n\n`));
+    return new Response(null, { status: 202 });
+  });
+  const pending = accessRemoteMcpResources({ ...server, oauth }, { operation: "read", uri: "file:///remote/readme" }, { fetch });
+  const outcome = pending.catch(error => error);
+  try {
+    await entered.promise;
+    if ("provider" in oauth) oauth.provider = { ...oauth.provider, authorizeRequest: replacement };
+    else oauth.initialGrant!.tokens.accessToken = "replacement-private-grant";
+    resume.resolve();
+    expect(await outcome).toEqual(read);
+    expect(replacement).not.toHaveBeenCalled();
+    expect(methods).toEqual(["initialize", "notifications/initialized", "resources/read"]);
+    expect(cancel).toHaveBeenCalledOnce();
+  } finally { resume.resolve(); await outcome; }
 });
 it("lists resource templates without synthetic tools", async () => {
   const f = remote();

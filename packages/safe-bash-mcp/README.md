@@ -193,6 +193,8 @@ Results preserve text, base64 blobs, metadata and `nextCursor` as JSON. Pass
 `--cursor <nextCursor>` to request another listing page. `mcp resource --help`
 explains the formats; `resources.binding` and `resources.fetch` select explicit
 runtime credentials and a host transport adapter, with the usual headless policy.
+Resource operations capture OAuth configuration before connecting, retaining the
+selected credentials and provider through negotiated HTTP/SSE fallback.
 The SDK accepts `{ operation: "list" | "templates", cursor?: string }` or
 `{ operation: "read", uri: string }`. `maxInputBytes` bounds its request JSON
 (default 1 MiB); `requestTimeoutMs` bounds the complete resource operation.

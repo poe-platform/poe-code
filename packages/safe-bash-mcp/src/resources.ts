@@ -2,7 +2,7 @@ import type { McpClient } from "tiny-mcp-client";
 import { isJsonValue } from "toolcraft-schema";
 import { commandLimit } from "./commands.js";
 import { remoteLimits, withRemoteMcpClient } from "./remote.js";
-import { preflightRemoteMcpServers, type RemoteMcpServer, type SchemaFetchOptions } from "./schema.js";
+import { preflightRemoteMcpServers, snapshotRemoteMcpServer, type RemoteMcpServer, type SchemaFetchOptions } from "./schema.js";
 
 export type RemoteMcpResourceRequest =
   | { readonly operation: "list" | "templates"; readonly cursor?: string }
@@ -42,7 +42,7 @@ export async function accessRemoteMcpResources(
   const snapshot = snapshotRemoteMcpResourceRequest(request, commandLimit(options.maxInputBytes ?? 1024 * 1024, "maxInputBytes"));
   preflightRemoteMcpServers([server], options);
   const { tools: ignoredTools, ...connection } = server;
-  const owned = { ...connection, headers: new Headers(connection.headers) };
+  const owned = snapshotRemoteMcpServer(connection);
   const deadline = AbortSignal.timeout(limits.requestTimeoutMs);
   const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
   return withRemoteMcpClient(owned, { ...options, signal }, async client => {

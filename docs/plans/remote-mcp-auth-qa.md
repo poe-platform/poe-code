@@ -664,3 +664,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     separately for host browser-hook completion before counting its response
     reads; require three released listeners by successful same-port rebinding.
     Inspect safe summary screenshot and purge only owned synthetic evidence.
+
+61. Before cache/network access reject original named/empty resource lookup
+    fragments and SDK/generated/management explicit metadata empty fragments.
+    Through actual metadata reject empty issuer query/fragment before issuer
+    fetch and empty authorization/token/registration endpoint fragments before
+    activation across all three routes. Retain full typed SDK exhausted-discovery
+    diagnostics and safe CLI phase/empty stdout. Evict an empty-fragment cached
+    metadata location and save fresh complete metadata. Retain escaped delimiters
+    in exact resource path/query and issuer path, falsey extensions/exact005930.
+    Require thirteen resource GETs/twenty-nine issuer GETs/eight unauthorized MCP
+    requests and zero grants/token/tool/consent. Inspect safe summary screenshot
+    and purge only owned evidence.

@@ -76,7 +76,7 @@ function isLoopbackHostname(hostname: string): boolean {
 }
 
 function assertSecureUrl(url: URL, label: string): void {
-  if (url.username !== "" || url.password !== "" || url.hash !== "") {
+  if (url.username !== "" || url.password !== "" || url.href.includes("#")) {
     throw new Error(`${label} must not include credentials or fragment`);
   }
   if (url.protocol === "https:") {
@@ -167,11 +167,6 @@ function validateAuthorizationServerMetadata(
     } catch {
       throw new Error(`Authorization server metadata ${field} must be an absolute URL`);
     }
-    if (endpoint.username !== "" || endpoint.password !== "" || endpoint.hash !== "") {
-      throw new Error(
-        `Authorization server metadata ${field} must not include credentials or fragment`
-      );
-    }
     assertSecureUrl(endpoint, `Authorization server metadata ${field}`);
   }
 
@@ -235,7 +230,7 @@ export function resolveProtectedResourceMetadataUrl(
   resourceUrl: string | URL,
   resourceMetadataUrl?: string | URL
 ): string {
-  const resource = new URL(canonicalizeResourceIndicator(resourceUrl));
+  const resource = new URL(typeof resourceUrl === "string" ? resourceUrl : resourceUrl.toString());
   assertSecureUrl(resource, "Protected resource URL");
 
   if (resourceMetadataUrl !== undefined) {
@@ -257,7 +252,7 @@ export function resolveProtectedResourceMetadataUrl(
 function validateAuthorizationServerIssuer(issuer: string | URL): string {
   const input = typeof issuer === "string" ? issuer : issuer.toString();
   const url = new URL(input);
-  if (url.search.length > 0 || url.hash.length > 0) {
+  if (url.href.includes("?") || url.href.includes("#")) {
     throw new Error("Authorization server issuer must not include query or fragment");
   }
 
@@ -302,15 +297,6 @@ function validateCachedDiscovery(value: unknown, resource: string): OAuthDiscove
   }
   const resourceMetadata = validateProtectedResourceMetadata(value.resourceMetadata, resource);
   const resourceMetadataLocation = new URL(value.resourceMetadataUrl);
-  if (
-    resourceMetadataLocation.username !== "" ||
-    resourceMetadataLocation.password !== "" ||
-    resourceMetadataLocation.hash !== ""
-  ) {
-    throw new Error(
-      "Cached OAuth discovery metadata location must not include credentials or fragment"
-    );
-  }
   assertSecureUrl(resourceMetadataLocation, "Cached OAuth discovery metadata location");
   const issuer = validateAuthorizationServerIssuer(value.authorizationServer);
   if (!resourceMetadata.authorization_servers.includes(issuer)) {
@@ -390,7 +376,7 @@ export class OAuthMetadataDiscovery {
   ): Promise<OAuthDiscoveryResult> {
     signal?.throwIfAborted();
     const cacheKey = canonicalizeResourceIndicator(resourceUrl);
-    resolveProtectedResourceMetadataUrl(cacheKey, resourceMetadataUrl);
+    resolveProtectedResourceMetadataUrl(resourceUrl, resourceMetadataUrl);
     const memoryCachedResult = this.memoryCache.get(cacheKey);
     if (memoryCachedResult !== undefined && resourceMetadataUrl === undefined) {
       return structuredClone(memoryCachedResult);

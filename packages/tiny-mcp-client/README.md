@@ -117,6 +117,10 @@ Protected-resource metadata HTTP failures also expose their numeric `status`.
 Advertised resource identities reject named and empty fragments before issuer
 discovery; malformed shared-cache identities are evicted. Resource queries and
 percent-escaped hash data remain part of the exact resource identity.
+Discovery lookup, metadata and endpoint URLs reject empty fragments too.
+Issuer identifiers reject named or empty query/fragment components; escaped
+delimiters in their paths remain valid. Original lookup fragments fail before
+cache access, and cached metadata locations with empty fragments are evicted.
 Rejected metadata bodies start cleanup without delaying failure or caller
 cancellation. Host cleanup may finish later; its rejection remains observed.
 `OAuthMetadataError.is(value)` recognizes separately bundled native copies.

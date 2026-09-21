@@ -84,6 +84,15 @@ registration, token requests and bounded token-body reads. Cancellation retains
 its original reason and does not retry authorization. Custom providers should
 observe the supplied signal and pass it to any work they start.
 
+`authorizeRequest` may return an owned token snapshot for the request it
+authorized. The HTTP client supplies that snapshot as `presentedTokens`, along
+with the actual request's `requestHeaders`, to `handleUnauthorized`. Providers
+that return `void` remain supported. The native provider compares the rejected
+snapshot with persisted credentials: delayed 401s retry with a newer grant
+without redeeming its refresh token again. A proven current token is refreshed
+on 401 even when the server omits `error="invalid_token"`. Invalid provenance
+fails without quoting token values.
+
 Configure `client.metadata.scope` to request a precise scope set; broader
 discovery metadata does not override it.
 

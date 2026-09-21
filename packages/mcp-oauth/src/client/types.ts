@@ -42,7 +42,7 @@ export interface OAuthClientProvider {
     headers: Headers;
     fetch: OAuthMetadataFetch;
     signal?: AbortSignal;
-  }): Promise<void> | void;
+  }): Promise<StoredOAuthTokens | void> | StoredOAuthTokens | void;
 
   handleUnauthorized(input: {
     requestUrl: URL;
@@ -51,6 +51,10 @@ export interface OAuthClientProvider {
     discovery: OAuthDiscoveryResult;
     fetch: OAuthMetadataFetch;
     signal?: AbortSignal;
+    /** Headers actually attached to this rejected request. */
+    requestHeaders?: Headers;
+    /** Owned snapshot returned when this request was authorized, or null if absent. */
+    presentedTokens?: StoredOAuthTokens | null;
   }): Promise<{ action: "retry" } | { action: "fail"; error?: Error }> | { action: "retry" } | { action: "fail"; error?: Error };
 }
 

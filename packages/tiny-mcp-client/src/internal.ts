@@ -14,6 +14,7 @@ import {
   OAuthError,
   type OAuthClientProvider,
   type OAuthClientProviderOptions,
+  type StoredOAuthTokens,
 } from "mcp-oauth";
 export { fetchMcpResponse } from "mcp-oauth";
 import type { Tool as CoreTool, ContentItem as CoreContentItem, ResourceContents as CoreResourceContents, Server as TinyStdioMcpServer } from "tiny-stdio-mcp-server";
@@ -2689,6 +2690,7 @@ export class HttpTransport implements McpTransport {
   private readonly oauthMetadataDiscovery: OAuthMetadataDiscovery | undefined;
   private readonly inFlightFetchAbortControllers = new Set<AbortController>();
   private readonly inFlightOAuthAbortControllers = new Set<AbortController>();
+  private readonly oauthRequestTokens = new WeakMap<Headers, StoredOAuthTokens>();
   private readonly openResponseReaders = new Set<ReadableStreamDefaultReader<Uint8Array>>();
   private readonly modernRequests = new Map<RequestId, AbortController>();
   private modernMode = false;
@@ -3021,13 +3023,14 @@ export class HttpTransport implements McpTransport {
 
   private async authorizeRequestHeaders(headers: Headers, signal?: AbortSignal): Promise<Headers> {
     signal?.throwIfAborted();
-    await this.oauthProvider?.authorizeRequest?.({
+    const tokens = await this.oauthProvider?.authorizeRequest?.({
       requestUrl: new URL(this.url),
       headers, signal,
       fetch: (url, init) => fetchMcpResponse(this.fetchImpl, url, {
         ...init, signal: signal === undefined ? init?.signal : init?.signal == null ? signal : AbortSignal.any([signal, init.signal])
       }),
     });
+    if (tokens !== undefined) this.oauthRequestTokens.set(headers, { ...tokens });
     signal?.throwIfAborted();
     return headers;
   }
@@ -3215,7 +3218,7 @@ export class HttpTransport implements McpTransport {
     throw new HttpTransportError(message, response.status, "POST");
   }
 
-  private async maybeHandleUnauthorizedResponse(response: Response, signal: AbortSignal): Promise<boolean> {
+  private async maybeHandleUnauthorizedResponse(response: Response, signal: AbortSignal, requestHeaders: Headers, presentedTokens: StoredOAuthTokens | null): Promise<boolean> {
     if (response.status !== 401 || this.oauthProvider === undefined) {
       return false;
     }
@@ -3235,6 +3238,8 @@ export class HttpTransport implements McpTransport {
         result = await this.oauthProvider.handleUnauthorized({
           requestUrl: new URL(this.url), response: providerResponse, challenge, discovery,
           signal,
+          requestHeaders: new Headers(requestHeaders),
+          presentedTokens,
           fetch: (url, init) => fetchMcpResponse(this.fetchImpl, url, {
             ...init, signal: init?.signal == null ? signal : AbortSignal.any([signal, init.signal])
           }),
@@ -3399,17 +3404,21 @@ export class HttpTransport implements McpTransport {
   }): Promise<Response> {
     const controller = input.controller ?? new AbortController();
     this.inFlightOAuthAbortControllers.add(controller);
-    const request = async (): Promise<Response> => {
+    const request = async (): Promise<{ response: Response; headers: Headers; tokens: StoredOAuthTokens | null }> => {
       controller.signal.throwIfAborted();
       const headers = await input.createHeaders(controller.signal);
+      const headerSnapshot = new Headers(headers);
+      const tokens = this.oauthRequestTokens.get(headers) ?? null;
       controller.signal.throwIfAborted();
-      return this.fetchWithAbort(input.url ?? this.url, {
+      const response = await this.fetchWithAbort(input.url ?? this.url, {
         method: input.method, headers, body: input.body
       }, controller);
+      return { response, headers: headerSnapshot, tokens };
     };
     try {
-      let response = await request();
-      if (await this.maybeHandleUnauthorizedResponse(response, controller.signal)) response = await request();
+      let attempt = await request();
+      if (await this.maybeHandleUnauthorizedResponse(attempt.response, controller.signal, attempt.headers, attempt.tokens)) attempt = await request();
+      const response = attempt.response;
       const oauthError = this.oauthProvider === undefined ? null : this.readOAuthChallengeError(response);
       if (oauthError !== null) {
         void response.body?.cancel().catch(() => undefined);

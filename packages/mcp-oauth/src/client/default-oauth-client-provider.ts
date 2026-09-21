@@ -72,7 +72,7 @@ export function createDefaultOAuthClientProvider(
   let initialGrantConsumed = false;
 
   return {
-    async authorizeRequest(input): Promise<void> {
+    async authorizeRequest(input): Promise<StoredOAuthTokens | void> {
       assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false, false, input.signal);
@@ -80,7 +80,7 @@ export function createDefaultOAuthClientProvider(
       if (session === null && !initialGrantConsumed && initialGrant?.resource === requestUrl &&
         initialGrant.tokens !== undefined && !isExpired(initialGrant.tokens, now)) {
         input.headers.set("Authorization", `Bearer ${initialGrant.tokens.accessToken}`);
-        return;
+        return { ...initialGrant.tokens };
       }
       if (
         session === null ||
@@ -94,6 +94,7 @@ export function createDefaultOAuthClientProvider(
       assertRequestMatchesResource(requestUrl, session.resource);
 
       input.headers.set("Authorization", `Bearer ${accessToken}`);
+      return { ...session.tokens };
     },
 
     async handleUnauthorized(input) {
@@ -102,9 +103,24 @@ export function createDefaultOAuthClientProvider(
         const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
         const resource = canonicalizeResourceIndicator(input.discovery.resource);
         assertRequestMatchesResource(requestUrl, resource);
-        const forceRefresh =
-          (hasCachedAccessToken(await loadSession(resource)) || (!initialGrantConsumed && initialGrant?.resource === resource)) &&
-          input.challenge?.params.error === "invalid_token";
+        const cached = await loadSession(resource);
+        const currentTokens = cached?.tokens ?? (!initialGrantConsumed && initialGrant?.resource === resource ? initialGrant.tokens : undefined);
+        let rejectedCurrentGrant = hasCachedAccessToken(cached) || (!initialGrantConsumed && initialGrant?.resource === resource);
+        let presentedTokens = input.presentedTokens;
+        if (input.presentedTokens !== undefined) {
+          rejectedCurrentGrant = false;
+          if (input.presentedTokens !== null) {
+            const presented = normalizeStoredTokens(input.presentedTokens);
+            const header = input.requestHeaders?.get("Authorization") ?? "";
+            const separator = header.indexOf(" ");
+            if (presented === undefined || header.slice(0, separator).toLowerCase() !== "bearer" || header.slice(separator + 1).trim() !== presented.accessToken)
+              throw new Error("OAuth rejected-request provenance does not match its authorization header");
+            presentedTokens = presented;
+            rejectedCurrentGrant = currentTokens !== undefined && sameTokenGrant(currentTokens, presented);
+          }
+        }
+        const challengeError = input.challenge?.params.error;
+        const forceRefresh = rejectedCurrentGrant && (challengeError === "invalid_token" || (input.presentedTokens !== undefined && challengeError === undefined));
         const session = await ensureAuthorizedSession(
           resource,
           {
@@ -114,7 +130,8 @@ export function createDefaultOAuthClientProvider(
           input.fetch,
           true,
           forceRefresh,
-          input.signal
+          input.signal,
+          presentedTokens
         );
 
         if (session?.tokens?.accessToken === undefined) {
@@ -138,7 +155,8 @@ export function createDefaultOAuthClientProvider(
     fetch: OAuthMetadataFetch,
     allowInteractive: boolean,
     forceRefresh = false,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    rejectedTokens?: StoredOAuthTokens | null
   ): Promise<StoredOAuthSession | null> {
     signal?.throwIfAborted();
     const canonicalResource = canonicalizeResourceIndicator(resource);
@@ -167,6 +185,8 @@ export function createDefaultOAuthClientProvider(
       initialGrantConsumed = true;
       signal?.throwIfAborted();
     }
+    if (forceRefresh && rejectedTokens !== undefined && (rejectedTokens === null || session?.tokens === undefined || !sameTokenGrant(session.tokens, rejectedTokens)))
+      forceRefresh = false;
     const sessionDiscovery = resolveDiscovery(discovery, session);
 
     if (session?.tokens !== undefined && !forceRefresh && !isExpired(session.tokens, now)) {
@@ -611,6 +631,11 @@ function resolveDiscovery(
     authorizationServerMetadataUrl: "",
     authorizationServerMetadata: metadata as OAuthAuthorizationServerMetadata
   };
+}
+
+function sameTokenGrant(left: StoredOAuthTokens, right: StoredOAuthTokens): boolean {
+  return left.accessToken === right.accessToken && left.refreshToken === right.refreshToken &&
+    left.tokenType === right.tokenType && left.expiresAt === right.expiresAt && left.scope === right.scope;
 }
 
 function clearSessionTokens(session: StoredOAuthSession): StoredOAuthSession {

@@ -25,6 +25,22 @@ const value = await store.get(); // "secret-value"
 await store.delete();
 ```
 
+Both built-in backends expose `store.withLock(operation, { signal, timeoutMs })`
+for transactions spanning a read, external operation and write. Independent
+instances and processes serialize the same encrypted file or Keychain
+service/account; unrelated identities proceed independently. The default
+acquisition timeout is 30 seconds. Cancellation during acquisition does not
+release the active owner's lock. Individual `get`, `set` and `delete` calls do
+not implicitly acquire it.
+
+Locks use private filesystem claim directories, containing PID/random names
+and numeric tickets without credentials. Dead-owner claims are recovered;
+live claims are never stolen because of age. Empty directories remain so an
+arriving contender cannot race directory removal. Keychain lock storage defaults
+to `~/.auth-store/keychain-locks`; `keychainStore.lock` can select another
+directory or filesystem adapter. Injected encrypted-file adapters need
+`readdir` support when using transactions.
+
 ## Backends
 
 | `backendEnvVar` value | Platform | Backend        |

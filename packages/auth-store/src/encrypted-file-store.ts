@@ -4,6 +4,7 @@ import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
 import { hasOwnErrorCode } from "./error-codes.js";
 import type { SecretStore } from "./types.js";
+import { withSecretStoreFileLock, type SecretStoreLockOptions, type SecretStoreLockFileSystem } from "./transaction-lock.js";
 
 const derivedKeyCache = new Map<string, Promise<Buffer>>();
 
@@ -27,6 +28,7 @@ export interface MachineIdentity {
 }
 
 export interface EncryptedFileStoreFileSystem {
+  readdir?(path: string): Promise<string[]>;
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   writeFile(
     path: string,
@@ -124,6 +126,12 @@ export class EncryptedFileStore implements SecretStore {
     } catch {
       return null;
     }
+  }
+
+  async withLock<T>(operation: () => Promise<T>, options: SecretStoreLockOptions = {}): Promise<T> {
+    await this.assertCredentialPathHasNoSymbolicLinks(`${this.filePath}.lock`);
+    if (this.fs.readdir === undefined) throw new Error("Secret-store transaction locks require filesystem readdir support");
+    return withSecretStoreFileLock(this.fs as SecretStoreLockFileSystem, `${this.filePath}.lock`, operation, options);
   }
 
   async set(value: string): Promise<void> {

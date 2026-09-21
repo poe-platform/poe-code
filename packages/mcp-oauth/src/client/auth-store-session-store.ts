@@ -27,6 +27,11 @@ export function createAuthStoreSessionStore(
   options: CreateSecretStoreInput = {}
 ): OAuthSessionStore {
   return {
+    async withLock(resource, operation, lockOptions) {
+      const store = createResourceSecretStore(resource, options);
+      if (store.withLock === undefined) throw new Error("OAuth secret-store backend does not support transaction locks");
+      return store.withLock(operation, lockOptions);
+    },
     async load(resource: string): Promise<StoredOAuthSession | null> {
       const store = createResourceSecretStore(resource, options);
       const value = await store.get();

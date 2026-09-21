@@ -1,5 +1,10 @@
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { promises as nodeFs } from "node:fs";
+import { homedir } from "node:os";
+import path from "node:path";
 import type { SecretStore } from "./types.js";
+import { withSecretStoreFileLock, type SecretStoreLockFileSystem, type SecretStoreLockOptions } from "./transaction-lock.js";
 
 const SECURITY_CLI = "security";
 const KEYCHAIN_ITEM_NOT_FOUND_EXIT_CODE = 44;
@@ -24,17 +29,22 @@ export interface KeychainStoreInput {
   runCommand?: KeychainCommandRunner;
   service: string;
   account: string;
+  lock?: { fs?: SecretStoreLockFileSystem; directory?: string };
 }
 
 export class KeychainStore implements SecretStore {
   private readonly runCommand: KeychainCommandRunner;
   private readonly service: string;
   private readonly account: string;
+  private readonly lockFs: SecretStoreLockFileSystem;
+  private readonly lockDirectory: string;
 
   constructor(input: KeychainStoreInput) {
     this.runCommand = input.runCommand ?? runSecurityCommand;
     this.service = input.service.trim();
     this.account = input.account.trim();
+    this.lockFs = input.lock?.fs ?? nodeFs;
+    this.lockDirectory = input.lock?.directory ?? path.join(homedir(), ".auth-store", "keychain-locks");
     if (this.service.length === 0) {
       throw new Error("Keychain service must not be empty");
     }
@@ -58,6 +68,11 @@ export class KeychainStore implements SecretStore {
     }
 
     throw createSecurityCliFailure("read secret from macOS Keychain", result);
+  }
+
+  async withLock<T>(operation: () => Promise<T>, options: SecretStoreLockOptions = {}): Promise<T> {
+    const identity = createHash("sha256").update(JSON.stringify([this.service, this.account])).digest("hex");
+    return withSecretStoreFileLock(this.lockFs, path.join(this.lockDirectory, identity), operation, options);
   }
 
   async set(value: string): Promise<void> {

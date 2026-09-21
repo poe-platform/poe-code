@@ -115,7 +115,12 @@ active owner's lock. Custom stores may implement
 transaction across store instances or processes. The hook must honor acquisition
 cancellation and keep the lock until the operation settles. The timeout bounds
 acquisition, while token and browser operations retain their own deadlines.
-Cross-process locking for the native secret-store backend is under development.
+The native `auth-store` session adapter implements this hook for both encrypted
+files and Keychain identities, including across independent processes. Locks
+cover the complete read, refresh/authorization and persisted winner. Dead-owner
+claims are recovered without stealing a live transaction. A process crash or
+cancellation after refresh redemption but before persistence is still an
+uncertain token outcome; recovery for that case is under development.
 
 ## Environment Variables
 

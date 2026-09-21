@@ -6752,3 +6752,36 @@ Logging493903b2e pushed and exact remote main verified; release35621323705 pendi
 No successful current root publication verified. Foreign changes preserved.
 Continuous15:48:00–15:56:00 adds480s,total122095s(33.92h). Minimum fulfilled;
 full objective incomplete. Continue accounting after15:56:00UTC.
+
+### Owned tool-action summaries, 2026-09-21 16:13 UTC
+
+Missing core/SDK summary engine reproduced before implementation. Rust scans shell
+quotes, literal variables, bounded nested shell wrappers, pipelines, redirects,
+directory prefixes, search flags and sed programs without shell-quote or execution.
+UTF-16 paths remain intact; oversized command inputs use a bounded label while the
+original source remains in details. Rust owns business verbs and generic tool-name
+formatting. Node retains private input getter receivers, cyclic extras, inherited
+JavaScript verb properties, ANSI cleanup and100-codepoint labels. An inherited
+constructor oracle failed, then Rust-supplied host verb snapshots repaired intrinsic
+interop, including __proto__. No original consumer integration. Maintained35Rust/
+45native/562reference cases in16files and bidirectional internal-summary types pass.
+Final maintained lint/scoped ESLint pass. Selected uncached38-build closure passes
+at concurrency1. Viewed out/rust-spawn-tool-summary.png.
+
+Packed one addon/397audited files/zero npm runtime groups. Final sequential direct/
+packed blocked-external24MiBworkers each complete prior spawn/stream/ACP/capture/log
+workloads plus16384summaries. Sampled final JS heap12.49–12.89MiB; existing combined
+16MiBacceptance failure remains open. Limits do not bound total/native memory.
+Final sequential five alternating warmed8192-summary pairs measure23.68–26.68ms
+owned vs46.01–48.74ms original for the selected command mix. Scope only; no general
+superiority asserted. A premature pack-dependent worker and a late import after
+memfs loader substitution failed diagnostically; final workers preload before
+substitution and pass. Earlier concurrent benchmark is not acceptance evidence.
+Evidence out/rust-spawn-tool-summary-*.
+
+Design7d8ab31fc pushed and exact remote main verified. Older ACP release35618532475
+failed only the two already repaired OAuth cases. Logging release35621323705 has
+build/audit success and remaining checks in_progress; no current successful root
+publication verified. Foreign changes preserved. Continuous15:56:00–16:13:00 adds
+1020s,total123115s(34.20h), including prepared checklist work. Minimum fulfilled;
+full objective incomplete. Continue accounting after16:13:00UTC.

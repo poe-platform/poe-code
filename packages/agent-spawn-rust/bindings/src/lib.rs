@@ -18,6 +18,41 @@ fn parse(source: Utf16String) -> Result<Value> {
         .map_err(|_| Error::from_reason("Invalid spawn JSON value"))
 }
 #[napi]
+pub fn spawn_tool_verbs() -> NativeJson {
+    NativeJson(Value::Object(
+        agent_spawn_rust::tool_summary::VERBS
+            .iter()
+            .map(|(name, verb)| {
+                (
+                    name.encode_utf16().collect(),
+                    Value::String(verb.encode_utf16().collect()),
+                )
+            })
+            .collect(),
+    ))
+}
+#[napi]
+pub fn spawn_tool_summary(
+    kind: String,
+    title: Utf16String,
+    detail: Utf16String,
+    target: Utf16String,
+    query: Option<Utf16String>,
+    location: Option<Utf16String>,
+    inherited_verb: Option<Utf16String>,
+) -> Utf16String {
+    agent_spawn_rust::tool_summary::action(
+        &kind,
+        &title,
+        &detail,
+        &target,
+        query.as_deref(),
+        location.as_deref(),
+        inherited_verb.as_deref(),
+    )
+    .into()
+}
+#[napi]
 pub fn spawn_log_redacted_fields(event: String) -> Vec<String> {
     agent_spawn_rust::logging::redacted_fields(&event)
         .iter()

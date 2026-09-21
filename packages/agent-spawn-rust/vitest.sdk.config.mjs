@@ -12,6 +12,7 @@ export default defineConfig({
       name: "rust-spawn-planning-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if(importer===path("../agent-spawn/src/acp/tool-summary.test.ts")&&name==="./tool-summary.js")return path("dist/tool-summary.js");
         if (importer === path("../agent-spawn/src/acp/middlewares/middlewares.test.ts")) {
           if (name === "./spawn-log.js") return path("dist/spawn-log.js");
           if (name === "./session-capture.js") return path("dist/session-capture.js");
@@ -249,6 +250,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../agent-spawn/src/acp/tool-summary.test.ts"),
       args,
       path("../agent-spawn/src/acp/middlewares/middlewares.test.ts"),
       path("../agent-spawn/src/spawn-interactive.test.ts"),

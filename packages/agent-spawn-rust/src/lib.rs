@@ -10,6 +10,7 @@ pub mod parallel;
 pub mod render;
 pub mod retry;
 pub mod stream;
+pub mod tool_summary;
 use agent_defs_rust::{Definition, Registry};
 use mcp_protocol_rust::{json::Value, strings::trim_ecmascript};
 pub(crate) fn s(v: &str) -> Value {

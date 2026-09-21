@@ -44,3 +44,39 @@ pub fn task_active_filename(filename: Utf16String) -> Option<TaskFilename> {
     })
 }
 pub use config_mutations_rust_napi_core::*;
+#[napi]
+pub fn task_gh_issue_number(id: Utf16String) -> Option<f64> {
+    task_list_rust::github::issue_number(&id).map(|n| n as f64)
+}
+#[napi(object)]
+pub struct TaskGhRepo {
+    pub owner: Utf16String,
+    pub name: Utf16String,
+}
+#[napi]
+pub fn task_gh_repo(repo: Utf16String) -> Option<TaskGhRepo> {
+    task_list_rust::github::parse_repo(&repo).map(|(owner, name)| TaskGhRepo {
+        owner: owner.into(),
+        name: name.into(),
+    })
+}
+#[napi]
+pub fn task_gh_json(
+    source: Utf16String,
+) -> napi::Result<mcp_protocol_rust_napi_core::convert::NativeJson> {
+    mcp_protocol_rust::json::parse_utf16(
+        &source,
+        mcp_protocol_rust::json::Limits {
+            max_bytes: usize::MAX,
+            max_nodes: usize::MAX,
+            max_depth: 512,
+        },
+    )
+    .map(mcp_protocol_rust_napi_core::convert::NativeJson)
+    .map_err(|error| napi::Error::from_reason(error.to_string()))
+}
+#[path = "../../../process-runner-rust/bindings/src/lib.rs"]
+mod runner;
+pub use runner::*;
+#[napi]
+pub const USER_ERROR_NAME: &str = user_error_rust::USER_ERROR_NAME;

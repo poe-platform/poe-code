@@ -25,7 +25,9 @@
     "typescript": "5.9.3",
     "vitest": "4.1.11",
     "memfs": "4.56.10",
-    "@poe-code/config-mutations-rust": "*"
+    "@poe-code/config-mutations-rust": "*",
+    "@poe-code/process-runner-rust": "*",
+    "@poe-code/user-error-rust": "*"
   },
   "files": [
     "dist",

@@ -8,6 +8,10 @@ license="MIT"
 crate-type=["cdylib"]
 [dependencies]
 task-list-rust={path=".."}
+process-runner-rust={path="../../process-runner-rust"}
+user-error-rust={path="../../user-error-rust"}
+mcp-protocol-rust={path="../../mcp-protocol-rust"}
+mcp-protocol-rust-napi-core={path="../../mcp-protocol-rust/bindings/shared"}
 config-mutations-rust-napi-core={path="../../config-mutations-rust/bindings/shared"}
 napi={version="=3.12.6",default-features=false,features=["napi6"]}
 napi-derive="=3.6.7"

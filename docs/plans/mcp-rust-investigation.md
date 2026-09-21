@@ -5427,3 +5427,38 @@ Concurrent original OAuth/safe-bash changes/commits preserved. Continuous
 10:11:13–10:15:44 adds271s,total102182s (28.38h). Minimum fulfilled; full
 closure/runtime/platform/performance acceptance incomplete. Continue accounting
 after10:15:44 UTC.
+
+### Task-list GitHub backend and sync, 2026-09-21 10:21 UTC
+
+Additive GitHub issue/project storage,GraphQL client/auth resolution and project
+verification/sync now expose original public APIs. Rust validates canonical decimal
+safe issue numbers and exactUTF16 repository components,parses strict GraphQL JSON,
+and exposes reusable ordered label-state resolution. Own runner bindings/host
+adapter and UserError embed into the same addon without npm runtime imports.
+Network,callbacks,project/query orchestration and array-method effects remain in
+Node; do not describe this as a completely native backend. GraphQL parse limits
+nesting to512 and wraps syntax failures in SyntaxError. No live credentials,
+GitHub requests or external mutations used during implementation/tests.
+
+Missing GitHub core/native artifact reds precede implementation. Maintained12 Rust
+cases,6 native groups,194full original references/11files,bidirectional covered
+public state/open/auth/project APIs/types,fmt/clippy,whole host ESLint/diff pass.
+Uncached maintained selected closure115workspaces/19builds/350edges passes.
+Packed34JS/declaration files,one addon,zero runtime groups/imports. Direct/packed
+16MiB workers each finish4096mockGraphQL queries/4096project verifications/4096
+no-op syncs,with own proto metadata,unpairedUTF16 and overflowing-number JSON;
+final JS heaps10.67/10.55MB,RSS83.4/85.6MB. Finite coverage only,not full native
+allocation/leak/platform stability acceptance.
+
+Five alternating warmed64mockqueries/64items each: originalCPU2.388–3.244ms/
+wall2.427–2.892ms versus ownCPU11.486–12.028ms/wall11.434–11.719ms,scoped performance
+FAIL. Returning parsed object graphs across NAPI is material overhead versus Node
+JSON.parse; no claim of Rust performance superiority. Evidence
+out/rust-task-list-github-*. YAML-file storage/migration and remaining closure/full
+runtime/performance work remain. Root lock contains only own added dev closure edges.
+
+Markdownffc8af5c6 exact remote-main verified,release35587882109 pending; registry
+35583768081 in_progress; publication remains unverified. Concurrent original
+OAuth/safe-bash changes/commits preserved. Continuous10:15:44–10:21:03 adds319s,
+total102501s (28.47h). Minimum fulfilled without claiming goal completion.
+Continue accounting after10:21:03 UTC.

@@ -10,9 +10,13 @@ export default defineConfig({
       name: "own-task-state-reference",
       enforce: "pre",
       transform(code, id) {
-        if (!id.startsWith(path(root)) || !id.endsWith(".test.ts")) return;
+        if (!id.startsWith(path(root)) || (!id.endsWith(".test.ts") && !id.endsWith(".spec.ts")))
+          return;
         const modules = new Map([
           ["./state.js", "state"],
+          ["./gh-issues.js", "backends/gh-issues"],
+          ["./gh-issues-client.js", "backends/gh-issues-client"],
+          ["./gh-issues-sync.js", "backends/gh-issues-sync"],
           ["../open.js", "open"],
           ["./markdown-dir.js", "backends/markdown-dir"],
           ["./state-machine.js", "state-machine"],
@@ -50,7 +54,14 @@ export default defineConfig({
       "state.test.ts",
       "state-machine.test.ts",
       "backends/utils.test.ts",
-      "backends/markdown-dir.test.ts"
+      "backends/markdown-dir.test.ts",
+      "backends/gh-issues.test.ts",
+      "backends/gh-issues-client.test.ts",
+      "backends/gh-issues-sync.test.ts",
+      "backends/gh-issues-sync-create.spec.ts",
+      "backends/gh-issues-sync-errors.spec.ts",
+      "backends/gh-issues-sync-idempotent.spec.ts",
+      "backends/gh-issues-sync-verify.spec.ts"
     ].map((name) => path(new URL(name, root))),
     environment: "node",
     fileParallelism: false,

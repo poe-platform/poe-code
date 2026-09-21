@@ -10,6 +10,7 @@ additive implementation.
 - Rust transition validation and shortest event-path discovery.
 - TypeScript error classes and task interfaces matching the existing package.
 - Markdown storage with atomic writes, locks, ordering, archive and passthrough frontmatter.
+- GitHub issue/project storage, canonical issue identities, label states and project sync.
 
 ```typescript
 import {
@@ -36,10 +37,17 @@ Markdown frontmatter is parsed and serialized by the owned Rust YAML implementat
 file I/O and lifecycle callbacks remain host operations. Atomic writes and locks
 protect task updates. Passthrough mode supports existing plan documents.
 
-This private package currently covers Markdown storage, states, errors, interfaces
-and file-operation helpers. YAML-file/GitHub storage, migration and project sync
-are still being implemented. Other backend types are currently rejected by
-openTaskList. It is not yet a complete replacement for task-list.
+GitHub storage supports project status or declarative label states. Supply a token
+and fetch implementation to control authentication and transport. Project verification
+reports missing states; sync requires `yes: true` to create missing project resources.
+Rust validates issue/repository identities and parses GraphQL JSON, with a maximum
+JSON nesting depth of 512. Network calls, project orchestration and callbacks remain
+in Node. Native identity parsing retains UTF-16 strings and safe integer boundaries.
+
+This private package currently covers Markdown/GitHub storage, project sync, states,
+errors, interfaces and file-operation helpers. YAML-file storage and migration are
+still being implemented; YAML-file is currently rejected by openTaskList.
+It is not yet a complete replacement for task-list.
 No npm runtime dependencies or changes to existing consumers are introduced.
 Current native artifact validation covers macOS arm64; other platforms and Python
 bindings remain pending. Native crossings do not imply faster small operations.

@@ -22,3 +22,27 @@ void [
   task,
   list
 ];
+const open: typeof original.openTaskList = own.openTaskList;
+const reverseOpen: typeof own.openTaskList = original.openTaskList;
+const verify: typeof original.verifyGhProject = own.verifyGhProject;
+const reverseVerify: typeof own.verifyGhProject = original.verifyGhProject;
+const sync: typeof original.syncGhProject = own.syncGhProject;
+const reverseSync: typeof own.syncGhProject = original.syncGhProject;
+const auth: typeof original.resolveAuth = own.resolveAuth;
+const reverseAuth: typeof own.resolveAuth = original.resolveAuth;
+const deps: original.GhIssuesBackendDeps = {} as own.GhIssuesBackendDeps;
+const reverseDeps: own.GhIssuesBackendDeps = {} as original.GhIssuesBackendDeps;
+const error: original.GhProjectSyncError = {} as own.GhProjectSyncError;
+void [
+  open,
+  reverseOpen,
+  verify,
+  reverseVerify,
+  sync,
+  reverseSync,
+  auth,
+  reverseAuth,
+  deps,
+  reverseDeps,
+  error
+];

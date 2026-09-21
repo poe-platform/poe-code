@@ -1,3 +1,5 @@
+import { ghIssuesBackend } from "./backends/gh-issues.js";
+import { resolveAuth, resolveEndpoint } from "./backends/gh-issues-client.js";
 import * as fsPromises from "node:fs/promises";
 import { markdownDirBackend } from "./backends/markdown-dir.js";
 import { validateMachine } from "./state-machine.js";
@@ -6,6 +8,7 @@ import type {
   BackendFactory,
   BackendDeps,
   OpenMarkdownDirOptions,
+  OpenGhIssuesOptions,
   OpenTaskListOptions,
   TaskList,
   TaskListFs
@@ -26,6 +29,8 @@ export async function openTaskList(options: OpenTaskListOptions): Promise<TaskLi
   switch (type) {
     case "markdown-dir":
       return openFileBackend(options as FileBackendOptions);
+    case "gh-issues":
+      return openGhIssuesBackend(options as OpenGhIssuesOptions);
     default:
       throw new Error(`Unknown task list backend type "${String(type)}".`);
   }
@@ -63,6 +68,28 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
   };
 
   return factory(deps);
+}
+
+async function openGhIssuesBackend(options: OpenGhIssuesOptions): Promise<TaskList> {
+  const auth = getOwnProperty(options, "auth") as OpenGhIssuesOptions["auth"];
+  const explicitToken =
+    auth && hasOwnProperty(auth, "token") ? (auth.token as string | undefined) : undefined;
+  const endpoint = resolveEndpoint();
+  const defaults = getOwnProperty(options, "defaults") as OpenGhIssuesOptions["defaults"];
+
+  return ghIssuesBackend({
+    repo: getOwnProperty(options, "repo") as OpenGhIssuesOptions["repo"],
+    project: getOwnProperty(options, "project") as OpenGhIssuesOptions["project"],
+    filter: getOwnProperty(options, "filter") as OpenGhIssuesOptions["filter"],
+    state: getOwnProperty(options, "state") as OpenGhIssuesOptions["state"],
+    stateMachine: getOwnProperty(options, "stateMachine") as OpenGhIssuesOptions["stateMachine"],
+    defaults: {
+      metadata: readDefaultMetadata(defaults)
+    },
+    token: await resolveAuth({ explicitToken }),
+    endpoint,
+    fetch: getOwnProperty(options, "fetch") as OpenGhIssuesOptions["fetch"]
+  });
 }
 
 function readDefaultMetadata(defaults: { metadata?: Record<string, unknown> } | undefined) {

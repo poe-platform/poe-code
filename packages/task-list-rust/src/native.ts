@@ -1,5 +1,8 @@
 import { createRequire } from "node:module";
 export const native = createRequire(import.meta.url)("./task-list-rust.node") as {
+  taskGhIssueNumber(id: string): number | null;
+  taskGhRepo(repo: string): { owner: string; name: string } | null;
+  taskGhJson(source: string): unknown;
   taskSplitDocument(
     content: string,
     passthrough: boolean

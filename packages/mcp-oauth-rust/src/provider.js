@@ -126,12 +126,17 @@ export function createDefaultOAuthClientProvider(options) {
   async function loadSession(resource) {
     const value = await sessionStore.load(resource);
     if (value === null) return null;
-    const normalized = native.providerNormalizeSession(
-      JSON.stringify({
-        client: project(ownEntry(value, "client"), CLIENT),
-        tokens: project(ownEntry(value, "tokens"), TOKENS)
-      })
-    );
+    let normalized;
+    try {
+      normalized = native.providerNormalizeSession(
+        JSON.stringify({
+          client: project(ownEntry(value, "client"), CLIENT),
+          tokens: project(ownEntry(value, "tokens"), TOKENS)
+        })
+      );
+    } catch (error) {
+      throw new Error(error.message);
+    }
     return {
       ...value,
       client: normalized.client ?? { clientId: "" },

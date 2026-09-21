@@ -22,3 +22,5 @@ pub mod response;
 pub mod session;
 pub mod state;
 pub mod tokens;
+
+pub mod scope;

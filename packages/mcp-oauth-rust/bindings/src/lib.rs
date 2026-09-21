@@ -318,3 +318,17 @@ pub fn loopback_target_allowed(source: Utf16String, fixed: bool) -> bool {
     mcp_protocol_rust::json::parse_utf16(&source, Default::default())
         .is_ok_and(|value| mcp_oauth_rust::loopback::valid_target(&value, fixed))
 }
+
+#[napi]
+pub fn normalize_oauth_scope(value: Unknown<'_>) -> Result<Option<Utf16String>> {
+    let input = match value.get_type()? {
+        napi::ValueType::Undefined => None,
+        napi::ValueType::String => Some(Value::String(
+            unsafe { value.cast::<Utf16String>()? }.to_vec(),
+        )),
+        _ => Some(Value::Null),
+    };
+    mcp_oauth_rust::scope::normalize(input.as_ref())
+        .map(|value| value.map(Utf16String::from))
+        .map_err(napi::Error::from_reason)
+}

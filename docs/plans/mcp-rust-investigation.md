@@ -3668,7 +3668,7 @@ publication, overall rewrite and minimum24-hour effort remain unfinished.
 Active04:03:46–04:18:55 UTC adds909s; total82256s (22.85h), minimum remaining
 4144s (1h09m04s). Work continues beyond this recorded boundary.
 
-### OAuth Rust authorized-token snapshots, 2026-09-21 04:23 UTC
+### OAuth Rust authorized-token snapshots, 2026-09-21 04:20 UTC
 
 A valid-current-client native red reproduces authorizeRequest returning undefined
 instead of the normalized grant. Success now returns a fresh snapshot after
@@ -3685,3 +3685,34 @@ now passes with this increment. Callback commitb89dafb9b was pushed; remote
 verification continues separately. Provider/client/scope/storage conformance
 failures still require follow-up. No release or overall/minimum-effort completion
 is claimed. Work continues beyond04:18:55 effort boundary.
+
+### OAuth Rust scope reconciliation, 2026-09-21 04:25 UTC
+
+Current token-scope reds reproduce stricter original grammar. The reusable Rust
+scope core rejects nonstrings, controls, non-ASCII, quotes and backslashes,
+canonicalizes printable ASCII token sets in lexical order and preserves case.
+Token-response scope validation occurs after expiry completion/clock effects;
+supplied empty sets have the original token-response-specific diagnostic.
+Provider-loaded token scopes use checked Rust normalization with host Error shape;
+invalid clients retain original token-admission short-circuit behavior.
+
+All32 Rust cases and2 focused native scope groups pass, including2048 seeded
+ASCII/invalid-value comparisons and expiry/clock failure priority. The old Rust
+invalid-optional-scope expectation is updated against reproduced current-source
+contract evidence. Full token-native suite now passes5/6 groups; the remaining
+form/header failure is the newly added token endpoint auth-method contract and is
+required follow-up, not waived. Focused lint/fmt/clippy/formatting/types and explicit
+uncached113-workspace/8-build/338-edge closure pass. Direct/packed16MiB workers add
+8192 scope canonicalizations to512 callback listener cycles each. Artifact audit
+covers15 JS/declaration files, one addon and zero npm runtime groups. Heap endpoints
+~9.6MB and parent-inclusive RSS remain bounded evidence only. Evidence
+out/rust-oauth-scope-*. Complete provider/storage/auth-method conformance remains
+unfinished, alongside the full agent/runtime/closure and minimum24-hour effort.
+
+Snapshot push562172709 was rejected because remote main advanced. Nonoverlapping
+remote changes were rebased with automatic preservation/restoration of tracked
+uncommitted edits; untracked edits remained present. The rewritten snapshot
+commit80a63c201 was pushed and is verified on remote main; the concurrent original
+registration commit was preserved without taking ownership. Callbackb89dafb9b is
+also verified on remote main. Release35560793819 is pending; no successful
+publication is verified. Work continues beyond04:18:55 recorded effort boundary.

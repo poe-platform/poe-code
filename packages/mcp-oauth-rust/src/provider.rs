@@ -55,7 +55,7 @@ pub fn normalize_tokens(value: &Value) -> Option<Value> {
     if let Some(refresh) = refresh {
         fields.push(property("refreshToken", Value::String(refresh)));
     }
-    if let Some(scope) = trimmed(value, "scope") {
+    if let Some(scope) = crate::scope::normalize(value.get("scope")).ok()? {
         fields.push(property("scope", Value::String(scope)));
     }
     Some(Value::Object(fields))
@@ -498,4 +498,11 @@ pub fn authorization_plan(input: &Value, entropy: &[u8]) -> Result<Value, String
         property("endpoint", Value::String(endpoint.to_vec())),
         property("params", Value::Object(params)),
     ]))
+}
+
+pub fn normalize_tokens_checked(value: &Value) -> Result<Option<Value>, String> {
+    if matches!(value, Value::Object(_)) {
+        crate::scope::normalize(value.get("scope")).map_err(str::to_owned)?;
+    }
+    Ok(normalize_tokens(value))
 }

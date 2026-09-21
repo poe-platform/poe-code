@@ -20,7 +20,7 @@ fn trimmed(value: Option<&Value>) -> Option<Vec<u16>> {
 pub struct TokenFields {
     access: Vec<u16>,
     refresh: Option<Vec<u16>>,
-    scope: Option<Vec<u16>>,
+    scope: Option<Value>,
     expires: Option<f64>,
 }
 impl TokenFields {
@@ -51,7 +51,7 @@ impl TokenFields {
         Ok(Self {
             access,
             refresh: trimmed(payload.get("refresh_token")),
-            scope: trimmed(payload.get("scope")),
+            scope: payload.get("scope").cloned(),
             expires,
         })
     }
@@ -81,8 +81,12 @@ impl TokenFields {
         if let Some(refresh) = &self.refresh {
             fields.push(property("refreshToken", Value::String(refresh.clone())));
         }
-        if let Some(scope) = &self.scope {
-            fields.push(property("scope", Value::String(scope.clone())));
+        let scope = crate::scope::normalize(self.scope.as_ref())?;
+        if self.scope.is_some() && scope.is_none() {
+            return Err("Invalid OAuth scope syntax in token response");
+        }
+        if let Some(scope) = scope {
+            fields.push(property("scope", Value::String(scope)));
         }
         Ok(Value::Object(fields))
     }

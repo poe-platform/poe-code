@@ -65,3 +65,37 @@ fn oauth_json_responses_require_objects_and_own_error_fields() {
         read_json_response(&"not json".encode_utf16().collect::<Vec<_>>(), false, 503.0).is_err()
     );
 }
+#[test]
+fn oauth_scope_sets_validate_ascii_sort_deduplicate_and_defer_until_after_expiry() {
+    use mcp_oauth_rust::scope::normalize;
+    assert_eq!(
+        normalize(Some(&value(r#""write read write  READ""#))).unwrap(),
+        Some("READ read write".encode_utf16().collect())
+    );
+    assert_eq!(normalize(Some(&value(r#""   ""#))).unwrap(), None);
+    for invalid in [
+        r#"null"#,
+        r#"123"#,
+        r#""read\twrite""#,
+        r#""\ud800""#,
+        r#""read\\write""#,
+        r#""read\"write""#,
+    ] {
+        assert_eq!(
+            normalize(Some(&value(invalid))),
+            Err("Invalid OAuth scope syntax")
+        );
+    }
+    let fields = TokenFields::parse(&value(
+        r#"{"access_token":"t","token_type":"Bearer","expires_in":0,"scope":"\ud800"}"#,
+    ))
+    .unwrap();
+    assert_eq!(
+        fields.complete(Some(0.5)),
+        Err("OAuth token response has invalid expires_in")
+    );
+    assert_eq!(
+        fields.complete(Some(0.0)),
+        Err("Invalid OAuth scope syntax")
+    );
+}

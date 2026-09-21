@@ -20,7 +20,9 @@ behavior. Host bindings supply operating-system randomness; protocol logic stays
 in Rust.
 
 Token exchange and refresh validate token fields and expiry in Rust, encode OAuth
-form bodies and classify protocol errors. The host adapter bounds token responses
+form bodies and classify protocol errors. Scope sets reject invalid syntax,
+retain case, sort and deduplicate printable ASCII tokens. Token-response scopes
+must be nonempty when supplied; invalid scopes reject after expiry validation. The host adapter bounds token responses
 to 1 MiB, refuses redirects and uses a 30-second request deadline. Public
 `OAuthError` instances preserve protocol fields and retry/terminal classification.
 

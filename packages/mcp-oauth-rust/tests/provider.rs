@@ -21,14 +21,14 @@ fn session_flow_requests_fresh_clocks_at_each_original_expiry_check() {
     assert_eq!(flow.next(Some(1000.0)), Effect::Use);
 }
 #[test]
-fn normalization_rejects_invalid_refresh_but_ignores_invalid_optional_scope() {
+fn normalization_rejects_invalid_refresh_and_invalid_optional_scope() {
     assert!(normalize_client(&value(r#"{"clientId":" c ","clientSecret":null}"#), false).is_none());
     assert!(normalize_client(&value(r#"{"clientId":" c ","clientSecret":" "}"#), true).is_some());
     assert!(
         normalize_tokens(&value(
             r#"{"accessToken":" t ","tokenType":"Bearer","expiresAt":null,"scope":12}"#
         ))
-        .is_some()
+        .is_none()
     );
     assert!(
         normalize_tokens(&value(

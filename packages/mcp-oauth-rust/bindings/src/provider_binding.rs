@@ -20,7 +20,8 @@ pub fn provider_normalize_session(text: Utf16String) -> Result<NativeJson> {
     let input = parse(&text)?;
     let client = provider::normalize_client(input.get("client").unwrap_or(&Value::Null), false);
     let tokens = if client.is_some() {
-        input.get("tokens").and_then(provider::normalize_tokens)
+        provider::normalize_tokens_checked(input.get("tokens").unwrap_or(&Value::Null))
+            .map_err(napi::Error::from_reason)?
     } else {
         None
     };

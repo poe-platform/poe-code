@@ -1,4 +1,5 @@
 import type { CreateSecretStoreInput } from "./auth-store-types.js";
+export type OAuthTokenEndpointAuthMethod = "none" | "client_secret_post" | "client_secret_basic";
 export interface StoredOAuthTokens {
   accessToken: string;
   refreshToken?: string;

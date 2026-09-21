@@ -20,7 +20,10 @@ behavior. Host bindings supply operating-system randomness; protocol logic stays
 in Rust.
 
 Token exchange and refresh validate token fields and expiry in Rust, encode OAuth
-form bodies and classify protocol errors. Scope sets reject invalid syntax,
+form bodies and classify protocol errors. Token helpers support public clients,
+POST secrets and HTTP Basic authentication with form-encoded credentials.
+Explicit public-client authentication never sends an available secret. Caller
+cancellation combines with the request deadline. Scope sets reject invalid syntax,
 retain case, sort and deduplicate printable ASCII tokens. Token-response scopes
 must be nonempty when supplied; invalid scopes reject after expiry validation. The host adapter bounds token responses
 to 1 MiB, refuses redirects and uses a 30-second request deadline. Public

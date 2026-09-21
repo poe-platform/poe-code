@@ -3716,3 +3716,35 @@ commit80a63c201 was pushed and is verified on remote main; the concurrent origin
 registration commit was preserved without taking ownership. Callbackb89dafb9b is
 also verified on remote main. Release35560793819 is pending; no successful
 publication is verified. Work continues beyond04:18:55 recorded effort boundary.
+
+### OAuth Rust token endpoint authentication, 2026-09-21 04:28 UTC
+
+The remaining token-native form/header failure reproduces new original defaults
+and authentication methods. Independent Rust plans now select public-client,
+client_secret_post or client_secret_basic authentication, reject unsupported
+methods/missing secrets, form-encode credentials before standard padded base64
+and omit Basic client credentials from the body. Explicit public clients never
+send an available secret. Node supplies Headers/fetch and combines caller signals
+with the original30-second deadline; pre-aborted reasons retain identity.
+
+The valid native form/header red precedes implementation. All33 Rust cases,
+10 complete focused native token/scope/auth groups and28 complete original token/
+auth/bounds/lifecycle cases pass.128 seeded Unicode credentials across four
+method/default settings compare actual Headers/body/results with the original.
+Missing secrets and unsupported methods reject before fetch. Focused lint/fmt/
+clippy/formatting/types and uncached113-workspace/8-build/338-edge closure pass.
+Direct/packed16MiB workers each add768 real mocked-fetch token exchanges (256
+per method) to8192 scope canonicalizations and512 callback listener cycles.
+Artifact audit covers15 JS/declaration files, one addon and zero npm runtime
+groups. Endpoint heap~14MB includes newly created deadline signals; it is not
+isolated peak/leak acceptance or a memory advantage claim. Evidence
+out/rust-oauth-token-auth-*. The prior scope increment also passes the complete
+original token-endpoint suite16 cases (out/rust-oauth-scope-sdk.log).
+
+Provider-selected auth methods, full registration metadata, refresh outcome/
+transaction/client/scope/provenance/profile/initial-grant contracts and complete
+aggregate/getter acceptance remain required follow-up. Source adapters still
+have bounded parser/value interoperability constraints. The full agent/runtime/
+closure, release publication and minimum24-hour effort remain unfinished. Scope
+commit4657d5d53 was pushed; remote verification continues separately. Work
+continues beyond04:18:55 effort boundary.

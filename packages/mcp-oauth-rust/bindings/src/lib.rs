@@ -332,3 +332,34 @@ pub fn normalize_oauth_scope(value: Unknown<'_>) -> Result<Option<Utf16String>> 
         .map(|value| value.map(Utf16String::from))
         .map_err(napi::Error::from_reason)
 }
+
+#[napi]
+pub fn token_auth_plan(
+    params: Utf16String,
+    id: Utf16String,
+    secret: Option<Utf16String>,
+    method: Unknown<'_>,
+) -> Result<convert::NativeJson> {
+    let method = match method.get_type()? {
+        napi::ValueType::Undefined | napi::ValueType::Null => None,
+        napi::ValueType::String => Some(Value::String(
+            unsafe { method.cast::<Utf16String>()? }.to_vec(),
+        )),
+        _ => Some(Value::Bool(false)),
+    };
+    let params = mcp_protocol_rust::json::parse_utf16(&params, Default::default())
+        .map_err(|_| napi::Error::from_reason("Invalid OAuth token request parameter"))?;
+    let plan = mcp_oauth_rust::token_auth::plan(&params, &id, secret.as_deref(), method.as_ref())
+        .map_err(napi::Error::from_reason)?;
+    let mut fields = vec![(
+        "body".encode_utf16().collect(),
+        Value::String(plan.body.encode_utf16().collect()),
+    )];
+    if let Some(value) = plan.authorization {
+        fields.push((
+            "authorization".encode_utf16().collect(),
+            Value::String(value.encode_utf16().collect()),
+        ));
+    }
+    Ok(convert::NativeJson(Value::Object(fields)))
+}

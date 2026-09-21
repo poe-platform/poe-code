@@ -99,3 +99,37 @@ fn oauth_scope_sets_validate_ascii_sort_deduplicate_and_defer_until_after_expiry
         Err("Invalid OAuth scope syntax")
     );
 }
+#[test]
+fn token_auth_plans_encode_basic_credentials_and_never_duplicate_secrets() {
+    use mcp_oauth_rust::token_auth::plan;
+    let params = value(r#"{"grant_type":"refresh_token","resource":"https://resource.example/"}"#);
+    let id = "client: a+🐈".encode_utf16().collect::<Vec<_>>();
+    let secret = "secret: b+🐈".encode_utf16().collect::<Vec<_>>();
+    let basic = plan(
+        &params,
+        &id,
+        Some(&secret),
+        Some(&value(r#""client_secret_basic""#)),
+    )
+    .unwrap();
+    assert!(!basic.body.contains("client_id="));
+    assert!(!basic.body.contains("client_secret="));
+    assert_eq!(
+        basic.authorization,
+        Some(
+            "Basic Y2xpZW50JTNBK2ElMkIlRjAlOUYlOTAlODg6c2VjcmV0JTNBK2IlMkIlRjAlOUYlOTAlODg=".into()
+        )
+    );
+    let public = plan(&params, &id, Some(&secret), Some(&value(r#""none""#))).unwrap();
+    assert!(public.body.contains("client_id="));
+    assert!(!public.body.contains("client_secret="));
+    assert_eq!(public.authorization, None);
+    assert_eq!(
+        plan(&params, &id, None, Some(&value(r#""client_secret_post""#))).unwrap_err(),
+        "OAuth token endpoint authentication requires a client secret"
+    );
+    assert_eq!(
+        plan(&params, &id, None, Some(&value(r#""private_key_jwt""#))).unwrap_err(),
+        "Unsupported OAuth token endpoint authentication method"
+    );
+}

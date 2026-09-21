@@ -24,3 +24,5 @@ pub mod state;
 pub mod tokens;
 
 pub mod scope;
+
+pub mod token_auth;

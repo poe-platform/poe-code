@@ -12,6 +12,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Normalize Claude, Codex, Cursor, native, OpenCode and Pi JSONL streams into shared events.
 - Frame UTF-8 streams into lines and compose middleware with repeated-next guards.
 - Convert ACP session updates into render events while preserving opaque inputs and plan entries.
+- Capture native OTLP traces, logs and metrics using declarative agent overlays.
 
 ```typescript
 import { buildSpawnArgs, listSpawnableAgents } from '@poe-code/agent-spawn-rust';
@@ -27,7 +28,7 @@ console.log(launch.binaryName, launch.displayArgs);
 
 An omitted permission mode selects `auto`. Agents without an unattended approval channel reject it; `yolo` requires an explicit request. Large UTF-8 prompts and embedded NULs use stdin where the selected agent supports automatic fallback. Display arguments redact prompt text while execution arguments preserve it.
 
-This private, experimental package currently supplies registry and argument planning. Full agent execution, telemetry and runtime/resource bridges are still being implemented. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
+This private, experimental package currently supplies registry and argument planning. Full agent execution and runtime/resource bridges are still being implemented. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
 
 ```typescript
 import { createSpawnRetry } from '@poe-code/agent-spawn-rust';
@@ -79,3 +80,22 @@ for (const event of sessionUpdateToEvents(update, state)) render(event);
 ```
 
 The render state exposes mutable sets/maps so callers can clear or adjust tool history. It retains tool IDs until cleared or discarded. Conversion preserves input and plan-entry identity, formats opaque output through standard JavaScript effects, and handles terminal updates arriving before starts. Structured conversion fields currently use the same bounded Rust parser; complete unrestricted host-value interoperability remains under review.
+
+```typescript
+import { startNativeOtelCapture } from '@poe-code/agent-spawn-rust';
+
+const capture = await startNativeOtelCapture('codex');
+if (capture) {
+  // Add capture.env and capture.args to the agent launch.
+  const records = await capture.drain();
+  console.log(records);
+}
+```
+
+Native capture listens on an ephemeral loopback port and supplies agent-specific
+arguments, OTLP environment variables and a unique correlation ID. Unsupported
+agents warn and return `undefined`. JSON payloads retain their parsed values;
+protobuf bytes remain base64. Malformed JSON receives HTTP 400. Set the second
+argument to `true` to request prompt and tool content. `drain()` closes the
+receiver and returns its captured records. Bodies and records have no size cap,
+matching the existing API; use finite capture sessions when memory is constrained.

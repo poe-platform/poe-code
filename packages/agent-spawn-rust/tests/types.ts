@@ -55,3 +55,8 @@ type Render = Pick<typeof original, "createToolRenderState" | "sessionUpdateToEv
 const m: Render = own;
 const n: Pick<typeof own, keyof Render> = null as unknown as Render;
 void [m, n];
+
+type Otel = Pick<typeof original, "startNativeOtelCapture">;
+const otelOriginal: Otel = own;
+const otelOwn: Pick<typeof own, keyof Otel> = null as unknown as Otel;
+void [otelOriginal, otelOwn];

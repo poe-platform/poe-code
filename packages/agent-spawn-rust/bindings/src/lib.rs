@@ -19,6 +19,24 @@ impl NativeSpawnPlanner {
         }
     }
     #[napi]
+    pub fn telemetry_supported(&self, input: String) -> bool {
+        self.planner.telemetry_supported(&input)
+    }
+    #[napi]
+    pub fn telemetry_plan(
+        &self,
+        input: String,
+        endpoint: String,
+        correlation: String,
+        content: bool,
+    ) -> NativeJson {
+        NativeJson(
+            self.planner
+                .telemetry_plan(&input, &endpoint, &correlation, content)
+                .unwrap_or(Value::Null),
+        )
+    }
+    #[napi]
     pub fn supports_mode(&self, input: String, mode: String) -> bool {
         self.planner.supports_mode(&input, &mode)
     }
@@ -467,4 +485,9 @@ pub fn spawn_render_output(content: Utf16String) -> Result<Utf16String> {
         Value::String(value) => Ok(value.into()),
         _ => Err(Error::from_reason("Invalid tool output")),
     }
+}
+
+#[napi]
+pub fn spawn_otel_signal(path: Utf16String) -> Option<String> {
+    agent_spawn_rust::otel::signal(&path).map(str::to_owned)
 }

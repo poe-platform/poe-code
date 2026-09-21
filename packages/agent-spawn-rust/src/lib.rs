@@ -2,6 +2,7 @@
 pub mod adapters;
 pub mod command;
 pub mod mcp;
+pub mod otel;
 pub mod parallel;
 pub mod render;
 pub mod retry;

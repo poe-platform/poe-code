@@ -12,6 +12,11 @@ export default defineConfig({
       name: "rust-spawn-planning-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (
+          importer === path("../agent-spawn/src/native-otel.test.ts") &&
+          name === "./native-otel.js"
+        )
+          return path("dist/native-otel.js");
         if (importer === path("../agent-spawn/src/retry.test.ts") && name === "./retry.js")
           return path("dist/retry.js");
         if (importer === path("../agent-spawn/src/parallel.test.ts")) {
@@ -117,6 +122,7 @@ export default defineConfig({
       args,
       configs,
       types,
+      path("../agent-spawn/src/native-otel.test.ts"),
       path("../agent-spawn/src/retry.test.ts"),
       path("../agent-spawn/src/parallel.test.ts"),
       path("../agent-spawn/src/run-command.test.ts"),

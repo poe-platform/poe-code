@@ -159,3 +159,5 @@ export { adaptClaude, adaptCodex, adaptNative, getAdapter } from "./adapters.js"
 export { readLines, applyMiddlewares } from "./stream.js";
 
 export { createToolRenderState, sessionUpdateToEvents } from "./render.js";
+
+export { startNativeOtelCapture } from "./native-otel.js";

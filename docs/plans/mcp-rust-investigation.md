@@ -6218,3 +6218,35 @@ pending;35602764806 in_progress;plans35599744513 failed OAuth unit/publication
 skipped. No successful current publication verified. Continuous13:16:33–13:26:01
 adds568s,total113096s(31.42h). Minimum fulfilled;full objective incomplete.
 Continue accounting after13:26:01UTC.
+
+### Agent-spawn native OTel capture, 2026-09-21 13:32 UTC
+
+Added startNativeOtelCapture and owned capture/record types. Rust derives support,
+aliases, environment overlays, correlation attributes and agent arguments from
+the existing owned declarative catalog; no provider branches. Rust matches exact
+case-sensitive OTLP suffixes without allocating route templates. Node owns an
+ephemeral loopback listener, byte framing, platform UUIDs, JSON effects and drain.
+Unsupported agents warn without allocating a receiver. Receiver bodies/records
+remain uncapped, matching the SDK; finite sessions are necessary. Missing core
+API red precedes implementation. No production imports changed.
+
+Maintained19Rust cases,16native groups,315references/12files(including5OTel
+reference cases),covered types,fmt/clippy/ESLint pass. Native OTel comparisons
+also cover aliases/content flags,unknown agents,chunk combinations,JSON primitive/
+array/null payloads,protobuf byte preservation,invalid JSON,path/case/query suffix
+boundaries,startup-address errors and socket exception identity. Uncached selected
+117workspaces/22builds/363edges passes. Packed44files/one addon/40audited sources
+and declarations,zero runtime npm groups and external resolution blocked passes.
+Direct/packed16MiBworkers each complete8192mocked captures,16384records,8192JSON
+rejections and8192receiver closes;retainedheap13.40/13.38MiB,shared RSS143.16/
+122.36MiB. Finite mock evidence,not native memory bounds or cross-platform proof.
+
+Five alternating warmed4096mocked empty captures:ownwall17.65–25.83ms/CPU17.59–
+37.13ms vs originalwall3.43–9.22ms/CPU3.40–30.17ms. Consistent performance
+acceptance FAIL on repeated tiny startup/overlay construction;no network-cost or
+agent-execution speed claim. Evidence out/rust-spawn-otel-*.
+OAuth06afee954 committed,pushed and exact remote main verified separately.
+Release35605641955 pending;earlier35602764806 unit in_progress while all other
+validation jobs succeeded. No successful publication verified. Concurrent changes
+preserved. Continuous13:26:01–13:32:52 adds411s,total113507s(31.53h).
+Minimum fulfilled;full objective incomplete. Continue accounting after13:32:52UTC.

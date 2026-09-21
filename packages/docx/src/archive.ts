@@ -76,7 +76,8 @@ export function archiveSettings(context: ArchiveContext): {
     maxExtraBytes: Infinity, maxCommentBytes: Infinity, maxRetainedBytes: Infinity,
     chunkSize: 65536, ...context.limits
   };
-  const signal = context.budget ? AbortSignal.any([context.signal, context.budget.signal]) : context.signal;
+  const signal = context.budget && context.signal !== context.budget.signal
+    ? AbortSignal.any([context.signal, context.budget.signal]) : context.signal;
   const keys = [
     "maxArchiveBytes",
     "maxEntryBytes",

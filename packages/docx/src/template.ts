@@ -135,18 +135,19 @@ export async function applyDocumentTemplate(input: Uint8Array, options: DocxOper
       const records = value as readonly DocxTemplateRecord[];
       const scalarRecords = records.map(record => ({ values: record.values.filter(value => !Array.isArray(value.value)) as readonly { binding: string; value: string | number | boolean }[] }));
       const region = await current(before);
-      await editDocumentControlRepeats(input, { select: region.location.token, data: scalarRecords, dryRun: true }, { ...staged, [templateRepeatAdmission]: true });
-      const inventory = (await inspectDocumentControls(input, {}, staged)).items;
-      const items = inventory.filter(item => item.kind === "repeating-item" && inside(region.location, item.location) && !inventory.some(parent => parent.kind === "repeating-section" && parent.location.value.path.length > region.location.value.path.length && inside(region.location, parent.location) && inside(parent.location, item.location)));
-      for (let index = items.length - 1; index >= 0; index--) {
-        const item = items[index]!;
-        const nested = declarations(inventory.filter(candidate => inside(item.location, candidate.location)), budget, item).filter(field => field.control.kind === "repeating-section");
-        const nestedRecord = records[index] ?? { values: nested.map(field => ({ binding: field.control.tag!, value: [] })) };
-        await fill(nested, nestedRecord);
+      const repeated = await editDocumentControlRepeats(input, { select: region.location.token, data: scalarRecords, dryRun: true }, { ...staged, [templateRepeatAdmission]: true });
+      if (field.fields.some(field => field.control.kind === "repeating-section")) {
+        const inventory = (await inspectDocumentControls(input, {}, staged)).items;
+        const items = inventory.filter(item => item.kind === "repeating-item" && inside(region.location, item.location) && !inventory.some(parent => parent.kind === "repeating-section" && parent.location.value.path.length > region.location.value.path.length && inside(region.location, parent.location) && inside(parent.location, item.location)));
+        for (let index = items.length - 1; index >= 0; index--) {
+          const item = items[index]!;
+          const nested = declarations(inventory.filter(candidate => inside(item.location, candidate.location)), budget, item).filter(field => field.control.kind === "repeating-section");
+          const nestedRecord = records[index] ?? { values: nested.map(field => ({ binding: field.control.tag!, value: [] })) };
+          await fill(nested, nestedRecord);
+        }
       }
       if (top) {
-        const after = (await current(before)).location;
-        changes.push({ kind: "replace", before, after });
+        changes.push({ kind: "replace", before, after: repeated.changes[0]!.after });
       }
     }
   };

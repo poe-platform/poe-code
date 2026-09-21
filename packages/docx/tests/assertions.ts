@@ -6,10 +6,12 @@ import { SaxesParser } from "saxes";
 type Parts = ReadonlyMap<string, Uint8Array>;
 const decoder = new TextDecoder("utf-8", { fatal: true });
 
-// Deliberately limited to small, single-disk ZIP32 test outputs without descriptors.
+// Deliberately bounded single-disk ZIP32 test outputs without descriptors.
 // No production ZIP reader, CRC implementation or decompressor is reused.
-export function readPackage(bytes: Uint8Array): Map<string, Uint8Array> {
-  assert(bytes.length >= 22 && bytes.length <= 1048576, "ZIP size");
+export function readPackage(bytes: Uint8Array, limits = {
+  maxArchiveBytes: 1048576, maxEntryBytes: 262144, maxTotalBytes: 1048576
+}): Map<string, Uint8Array> {
+  assert(bytes.length >= 22 && bytes.length <= limits.maxArchiveBytes, "ZIP size");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const u16 = (at: number) => view.getUint16(at, true);
   const u32 = (at: number) => view.getUint32(at, true);
@@ -38,7 +40,7 @@ export function readPackage(bytes: Uint8Array): Map<string, Uint8Array> {
     const crc = u32(cursor + 16),
       compressed = u32(cursor + 20),
       size = u32(cursor + 24);
-    assert(size <= 262144 && (total += size) <= 1048576, "ZIP expanded limit");
+    assert(size <= limits.maxEntryBytes && (total += size) <= limits.maxTotalBytes, "ZIP expanded limit");
     const nameLength = u16(cursor + 28);
     const next = cursor + 46 + nameLength + u16(cursor + 30) + u16(cursor + 32);
     assert(next <= end, "ZIP central extent");
@@ -70,7 +72,7 @@ export function readPackage(bytes: Uint8Array): Map<string, Uint8Array> {
     const input = bytes.subarray(start, start + compressed);
     let payload: Uint8Array;
     if (method === 8) {
-      const result = zlib.inflateRawSync(input, { maxOutputLength: 262144, info: true }) as unknown as {
+      const result = zlib.inflateRawSync(input, { maxOutputLength: limits.maxEntryBytes, info: true }) as unknown as {
         buffer: Uint8Array;
         engine: { bytesWritten: number };
       };
@@ -113,8 +115,8 @@ export function assertHashes(parts: Parts, expected: Readonly<Record<string, str
 
 type XmlNode = { name: string; attributes: Record<string, string>; children: (XmlNode | string)[] };
 const expanded = (uri: string, local: string) => `{${uri}}${local}`;
-export function xmlStructure(bytes: Uint8Array): XmlNode {
-  assert(bytes.length <= 262144, "XML size");
+export function xmlStructure(bytes: Uint8Array, maxBytes = 262144): XmlNode {
+  assert(bytes.length <= maxBytes, "XML size");
   const parser = new SaxesParser({ xmlns: true });
   const stack: XmlNode[] = [];
   const document: XmlNode = { name: "#document", attributes: {}, children: [] };
@@ -184,7 +186,15 @@ function unique(values: (string | undefined)[], label: string): Set<string> {
   return new Set(values as string[]);
 }
 
-export function assertPackageLinks(parts: Parts): void {
+export function assertPackageLinks(parts: Parts, maxXmlBytes = 262144): void {
+  const structures = new Map<string, XmlNode>();
+  const xml = (name: string): XmlNode => {
+    const bytes = parts.get(name);
+    assert(bytes, `missing part ${name}`);
+    let structure = structures.get(name);
+    if (!structure) { structure = xmlStructure(bytes, maxXmlBytes); structures.set(name, structure); }
+    return structure;
+  };
   const ct = "http://schemas.openxmlformats.org/package/2006/content-types";
   const pr = "http://schemas.openxmlformats.org/package/2006/relationships";
   const relUris = [
@@ -204,7 +214,7 @@ export function assertPackageLinks(parts: Parts): void {
     const slash = name.lastIndexOf("/");
     return `${name.slice(0, slash + 1)}_rels/${name.slice(slash + 1)}.rels`;
   };
-  const declarations = nodes(partXml(parts, "[Content_Types].xml"));
+  const declarations = nodes(xml("[Content_Types].xml"));
   assert.equal(declarations[1]!.name, expanded(ct, "Types"), "content types namespace");
   const overrides = declarations.filter((n) => n.name === expanded(ct, "Override"));
   const defaults = declarations.filter((n) => n.name === expanded(ct, "Default"));
@@ -225,12 +235,13 @@ export function assertPackageLinks(parts: Parts): void {
     assert(declaration?.attributes["{}ContentType"], `undeclared type ${name}`);
     return declaration.attributes["{}ContentType"];
   };
-  for (const [name, bytes] of parts) {
+  for (const name of parts.keys()) {
     if (name === "[Content_Types].xml") continue;
     const type = contentType(name);
     if (name.endsWith(".xml")) {
-      const root = nodes(xmlStructure(bytes))[1]!;
-      for (const node of nodes(xmlStructure(bytes)))
+      const structure = xml(name);
+      const root = nodes(structure)[1]!;
+      for (const node of nodes(structure))
         if (
           Object.keys(node.attributes).some((key) =>
             relUris.some((uri) =>
@@ -262,7 +273,7 @@ export function assertPackageLinks(parts: Parts): void {
     }
     if (!name.endsWith(".rels")) continue;
     assert.equal(type, "application/vnd.openxmlformats-package.relationships+xml");
-    const tree = nodes(xmlStructure(bytes));
+    const tree = nodes(xml(name));
     assert.equal(tree[1]!.name, expanded(pr, "Relationships"), "relationships namespace");
     const edges = tree.slice(2);
     assert(
@@ -289,7 +300,7 @@ export function assertPackageLinks(parts: Parts): void {
       const targetName = decodeURIComponent(target.pathname.slice(1));
       assert(parts.has(targetName), `missing target ${target.pathname}`);
       if (targetName.endsWith(".xml")) {
-        const targetRoot = nodes(partXml(parts, targetName))[1]!;
+        const targetRoot = nodes(xml(targetName))[1]!;
         const local = targetRoot.name.slice(targetRoot.name.indexOf("}") + 1);
         const role = local === "document" ? "officeDocument" : wordRoots[local];
         if (role)
@@ -300,7 +311,7 @@ export function assertPackageLinks(parts: Parts): void {
       }
     }
     if (owner)
-      for (const node of nodes(partXml(parts, owner))) {
+      for (const node of nodes(xml(owner))) {
         for (const [attribute, value] of Object.entries(node.attributes)) {
           for (const uri of [
             "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
@@ -311,7 +322,7 @@ export function assertPackageLinks(parts: Parts): void {
         }
       }
   }
-  const rootEdges = nodes(partXml(parts, "_rels/.rels"), expanded(pr, "Relationship"));
+  const rootEdges = nodes(xml("_rels/.rels"), expanded(pr, "Relationship"));
   assert.equal(
     rootEdges.filter((edge) =>
       relUris.some((uri) => edge.attributes["{}Type"] === `${uri}/officeDocument`)

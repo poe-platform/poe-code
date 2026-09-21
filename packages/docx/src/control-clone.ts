@@ -36,6 +36,7 @@ export class ControlClonePlanner {
   readonly #context: ReturnType<typeof archiveSettings>;
   readonly #package: DocumentPackage;
   readonly #identities = new Map<string, Set<number>>();
+  readonly #nextIdentity: Map<string, number>;
   readonly #names = new Set<string>();
   readonly #relationships = new Map<string, { id: string; edge: PackageRelationship }[]>();
   readonly #admittedMedia = new Set<string>();
@@ -43,6 +44,7 @@ export class ControlClonePlanner {
   readonly #source = new Map<string, DocumentXmlEditor>();
   constructor(archive: DocumentArchive, context: ArchiveContext) {
     this.#context = archiveSettings(context); this.#package = new DocumentPackage(archive, this.#context.limits, this.#context.budget);
+    this.#context.budget.charge("retainedBytes", 96); this.#nextIdentity = new Map();
     const storyParts = new Map(Object.entries({ "document.main": "document", "template.main": "document", header: "hdr", footer: "ftr", footnotes: "footnotes", endnotes: "endnotes", comments: "comments" }).map(([kind, root]) => [`application/vnd.openxmlformats-officedocument.wordprocessingml.${kind}+xml`, root]));
     for (const part of this.#package.parts) {
       const root = storyParts.get(parseMediaType(part.content_type)); if (root === undefined) continue;
@@ -59,7 +61,7 @@ export class ControlClonePlanner {
     }
   }
   #taken(kind: string): Set<number> { let values = this.#identities.get(kind); if (!values) { values = new Set(); this.#identities.set(kind, values); } return values; }
-  #allocate(kind: string): string { const values = this.#taken(kind); let value = 1; while (values.has(value)) { this.#context.budget.charge("work", 1); value++; } if (value > 2147483647) throw new UnsupportedEditError("Template identities are exhausted."); values.add(value); return String(value); }
+  #allocate(kind: string): string { const values = this.#taken(kind), next = this.#nextIdentity.get(kind); let value = next ?? 1; while (values.has(value)) { this.#context.budget.charge("work", 1); value++; } if (value > 2147483647) throw new UnsupportedEditError("Template identities are exhausted."); if (next === undefined) this.#context.budget.charge("retainedBytes", 64 + kind.length * 2); values.add(value); this.#nextIdentity.set(kind, value + 1); return String(value); }
   admit(xml: DocumentXmlEditor, item: XmlElement): XmlElement[] {
     const all = nodes(item, this.#context.budget), budget = this.#context.budget;
     const supported = new Set("comment sdt sdtPr sdtEndPr sdtContent id tag alias lock text richText picture date dateFormat lid calendar storeMappedDataAs dropDownList comboBox listItem showingPlcHdr placeholder docPart temporary color appearance p pPr r rPr t tab br cr tbl tblPr tblGrid gridCol tr trPr tc tcPr tblStyle tblW tblInd tblBorders top left bottom right insideH insideV tblLayout tblCellMar tcW vAlign cantSplit tblHeader jc spacing ind keepNext keepLines pageBreakBefore widowControl numPr ilvl numId pStyle rStyle b bCs i iCs u strike dstrike caps smallCaps sz szCs rFonts lang highlight shd vertAlign noProof position kern w fitText rtl cs vanish webHidden textDirection drawing hyperlink bookmarkStart bookmarkEnd commentRangeStart commentRangeEnd commentReference".split(" "));
@@ -192,8 +194,16 @@ export class ControlClonePlanner {
         const id = `rId${ordinal}`; additions.push({ id, edge }); this.#relationships.set(owner, additions); change(node, attr.localName, id, attr.namespace);
       }
     }
+    budget.charge("retainedBytes", 96); const affected = new Set<XmlElement>();
+    for (const changed of attributeChanges.keys()) {
+      let ancestor: XmlElement | undefined = changed;
+      while (ancestor && !affected.has(ancestor)) {
+        budget.charge("work", 1); budget.charge("retainedBytes", 32);
+        affected.add(ancestor); ancestor = owners.get(ancestor);
+      }
+    }
     const render = (node: XmlElement): string => {
-      const nested = new Map<XmlElement, string>(); for (const child of node.children) if (all.some(owner => attributeChanges.has(owner) && nodes(child, this.#context.budget).includes(owner))) nested.set(child, render(child));
+      const nested = new Map<XmlElement, string>(); for (const child of node.children) if (affected.has(child)) nested.set(child, render(child));
       return attributeChanges.has(node) || node === item ? opening(node, attributeChanges.get(node)) + xml.sourceXml(node, nested, true) + `</${node.name}>` : xml.sourceXml(node, nested);
     };
     const result = render(item); budget.charge("retainedBytes", result.length * 8); budget.charge("work", result.length); return { xml: result };

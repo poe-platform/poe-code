@@ -1,6 +1,5 @@
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
-import type { CompatibilityContent } from "./compatibility.js";
 import { xmlValue } from "./create-content.js";
 import { parseFields, assertOutsideFields } from "./field-parser.js";
 import { assertOutsideRevisionRanges, containsRevision } from "./revision-markup.js";
@@ -49,12 +48,10 @@ function walk(node: XmlElement): XmlElement[] { return [node, ...node.children.f
 function owners(root: XmlElement, path: readonly number[]): XmlElement[] {
   const result = [root]; for (const index of path) result.push(result.at(-1)!.children[index]!); return result;
 }
-function logicalText(content: XmlElement, xml: DocumentXmlEditor): string {
-  const children = new Map<XmlElement, XmlElement[]>();
-  const index = (nodes: readonly CompatibilityContent[]) => { for (const node of nodes) if ("source" in node) { children.set(node.source, node.content.filter(n => "source" in n).map(n => n.source)); index(node.content); } }; index(xml.compatibility.content);
+function logicalText(content: XmlElement, children: (node: XmlElement) => readonly XmlElement[]): string {
   const visit = (node: XmlElement): string => node.localName === "t" && node.namespace === content.namespace ? node.text :
     node.namespace === content.namespace && ["tab", "br", "cr"].includes(node.localName) ? node.localName === "tab" ? "\t" : "\n" :
-      (children.get(node) ?? []).map(visit).join(node.localName === "sdtContent" && (children.get(node) ?? []).every(n => n.localName === "p") ? "\n" : "");
+      children(node).map(visit).join(node.localName === "sdtContent" && children(node).every(n => n.localName === "p") ? "\n" : "");
   return visit(content);
 }
 export function inspectControlSnapshot(node: XmlElement, location: Location<"control">, archive: ReturnType<DocumentArchiveEditor["snapshot"]>, context: ArchiveContext, xml: DocumentXmlEditor): ControlSnapshot {
@@ -71,7 +68,7 @@ export function inspectControlSnapshot(node: XmlElement, location: Location<"con
     const type = kinds[0];
     const names: Readonly<Record<string, ControlSnapshot["kind"]>> = { text: "plain-text", checkbox: "checkbox", dropDownList: "dropdown", comboBox: "combo-box", date: "date", picture: "picture", richText: "rich-text", repeatingSection: "repeating-section", repeatingSectionItem: "repeating-item" };
     kind = type ? names[type.localName]! : "rich-text";
-    value = logicalText(content, xml);
+    value = logicalText(content, children);
     if (["repeating-section", "repeating-item"].includes(kind)) value = null;
     if (kind === "checkbox") { const checked = attr(child(type!, "checked", w14), "val", w14); value = checked === "1" || checked === "true"; if (!["0", "1", "true", "false"].includes(checked ?? "")) throw new UnsupportedEditError("Malformed checkbox state."); }
     if (kind === "dropdown" || kind === "combo-box") {

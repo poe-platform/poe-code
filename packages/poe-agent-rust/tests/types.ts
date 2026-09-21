@@ -179,3 +179,14 @@ const executionOptionsB: Omit<own.RunAcpCoreOptions, "runContext"> = {} as Omit<
   "runContext"
 >;
 void [executionModelA, executionModelB, executionOptionsA, executionOptionsB];
+
+import { AgentHost as ReferenceAgentHost } from "../../poe-agent/dist/runtime/agent-host.js";
+const hostA: ReferenceAgentHost["handle"] = new own.AgentHost({} as own.AgentHostOptions).handle;
+const hostB: own.AgentHost["fork"] = new ReferenceAgentHost(
+  {} as ConstructorParameters<typeof ReferenceAgentHost>[0]
+).fork;
+const hostSpawnA: import("../../poe-agent/dist/runtime/agent-host.js").AgentHostSpawnClient =
+  {} as own.AgentHostSpawnClient;
+const hostSpawnB: own.AgentHostSpawnClient =
+  {} as import("../../poe-agent/dist/runtime/agent-host.js").AgentHostSpawnClient;
+void [hostA, hostB, hostSpawnA, hostSpawnB];

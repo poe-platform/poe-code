@@ -4727,3 +4727,48 @@ built-ins/closure/platform/wider performance acceptance remain incomplete.
 Model streamb2d03eddc push completed; remote inclusion verified. Current successful
 root publication remains unverified. Continue active effort after the prior07:03:11
 checkpoint; minimum24h fulfilled, overall rewrite remains incomplete.
+
+### Poe agent host tools, forks and injected ACP spawn, 2026-09-21 07:18 UTC
+
+Full original AgentHost.handle/fork/spawn describes plus portable host-state reds
+precede own host. Rust owns invocation close admission, fork numbering, yielded
+ACP event layouts and UTF16 spawned output. Node owns client/callback/generator
+execution, notification hooks, linked child cancellation and disposal. Forks copy
+own registries into isolated contexts, track children and retain single lifecycle
+events. Tool abort attempts generator.return once even if it rejects. Spawn collects
+text chunks from an injected client independently of parent abort and always disposes.
+No production integration or npm runtime edge. Own process/in-memory factory/default
+agent-session adapters remain pending; the complete original spawn describe uses its
+in-memory client as an explicit development fixture while an import identity guard
+proves own AgentHost executes. Native artifact workers inject standalone own test
+clients and do not depend on the fixture.
+
+An additional differential red catches eager emitter short circuit skipping the
+original unconditional yielded-type getter when no emitter exists. Rust now separates
+classification from payload mapping; payload getters still execute only on emission.
+Spawn chunk coercion uses Node default-hint concatenation via raw napi invocation,
+retaining Unicode/lone surrogates, changing getters and primitive failure causes.
+Complete native comparisons cover stream/coercion/disposal failures and callback
+read order. Maintained checks pass35 Rust cases,54 native groups,197 complete original
+reference cases/10 files (14 newly selected host cases),bidirectional client/host
+types and fmt/clippy. Uncached closure113 workspaces/36 builds/339 edges passes.
+One test/build overlap temporarily removed original reference dist; a concurrent
+schema build produced another missing-entry race. After maintained schema closure
+and settled builds, complete maintained unit route passes; no case counted as pass
+while its fixture was unavailable. Keep builds and artifact-dependent tests sequential.
+
+Direct/packed16MiB workers each execute512 streamed tools/notifications,64 isolated
+forks and128 parent-aborted injected-client spawns/cleanups with external imports
+blocked. Cumulative execution,model-stream,plugin/MCP workers pass; recursive audit84
+JS/declaration files,one addon,zero runtime groups. Evidence out/rust-poe-agent-host-*.
+Five alternating warmed4096-streamed-tool/8192-yield samples measure TS3.33–6.07ms
+versus Rust11.28–14.20ms; speed gate FAIL. Isolated16MiB old-space workload creates/
+disposes32,768 contexts and tools with four collections/yields per4096 batch.
+Post-GC heap7.61→6.44MB and RSS89.3→97.9MB provide finite reclamation evidence only.
+No universal stability/memory/speed superiority accepted.
+
+Executione88ab9554 is pushed; exact remote main delivery verified. Root35568626036
+uncached unit step remains in_progress; latest release queues remain pending, so no
+current successful publication verified. Continuous active07:03:11–07:18:08 adds897s,
+bringing conservative effort to92,771s (25.77h). Minimum fulfilled; overall rewrite/
+closure/platform/acceptance incomplete. Continue after07:18:08 UTC.

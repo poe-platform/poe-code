@@ -58,7 +58,10 @@ export default defineConfig({
           "applyHookDecision",
           "PromptRegistry",
           "RunContext",
-          "runAcpCore"
+          "runAcpCore",
+          "AgentHost.handle",
+          "AgentHost.fork",
+          "AgentHost.spawn"
         ]);
         const ranges = source.statements
           .filter(
@@ -76,6 +79,48 @@ export default defineConfig({
             output.slice(0, start) +
             [...output.slice(start, end)].map((char) => (char === "\n" ? char : " ")).join("") +
             output.slice(end);
+        const hostSource = ts.createSourceFile(
+          id,
+          output,
+          ts.ScriptTarget.Latest,
+          true,
+          ts.ScriptKind.TS
+        );
+        const hostTransformed = ts.transform(hostSource, [
+          (context) => (root) =>
+            ts.visitNode(root, function visit(node) {
+              if (
+                ts.isImportDeclaration(node) &&
+                ts.isStringLiteral(node.moduleSpecifier) &&
+                node.moduleSpecifier.text === "./agent-host.js"
+              ) {
+                const items = node.importClause.namedBindings.elements;
+                const ownItems = items.filter((item) => item.name.text === "AgentHost");
+                const referenceItems = items.filter((item) => item.name.text !== "AgentHost");
+                const declaration = (items, module) =>
+                  ts.factory.createImportDeclaration(
+                    undefined,
+                    ts.factory.createImportClause(
+                      false,
+                      undefined,
+                      ts.factory.createNamedImports(items)
+                    ),
+                    ts.factory.createStringLiteral(module)
+                  );
+                return [
+                  declaration(ownItems, path("dist/agent-host.js")),
+                  declaration(referenceItems, path("../poe-agent/dist/runtime/agent-host.js"))
+                ];
+              }
+              return ts.visitEachChild(node, visit, context);
+            })
+        ]);
+        try {
+          output = ts.createPrinter().printFile(hostTransformed.transformed[0]);
+        } finally {
+          hostTransformed.dispose();
+        }
+        output += `\nimport {AgentHost as nativeHostContract} from ${JSON.stringify(path("dist/agent-host.js"))};\nif(AgentHost!==nativeHostContract)throw new Error("Host contracts must execute the Rust package");`;
         output += `\nimport {runAcpCore as nativeExecutionContract} from ${JSON.stringify(path("dist/acp-core.js"))};\nif(runAcpCore!==nativeExecutionContract)throw new Error("Execution contracts must execute the Rust package");`;
         return { code: output, map: null };
       },

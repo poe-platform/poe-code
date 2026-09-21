@@ -56,3 +56,9 @@ export type {
   AcpModelRequestMessage,
   AcpModelToolDefinition
 } from "./acp-model.js";
+export { AgentHost } from "./agent-host.js";
+export type {
+  AgentHostOptions,
+  AgentHostSpawnClient,
+  AgentHostSpawnSession
+} from "./agent-host.js";

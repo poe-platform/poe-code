@@ -271,3 +271,5 @@ use mcp_protocol_rust_napi_core::convert;
 pub mod execution_binding;
 
 pub mod model_messages_binding;
+
+pub mod agent_host_binding;

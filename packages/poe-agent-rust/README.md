@@ -17,7 +17,7 @@ const provider = resolveProvider(providers, "openai/gpt-5");
 const model = await provider.createModel("openai/gpt-5", context);
 ```
 
-This private experimental package currently provides runtime foundations. Agent builders, host tool/fork/spawn execution, built-in plugins and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
+This private experimental package currently provides runtime foundations. Agent builders, built-in plugins and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
 
 ```typescript
 import { createAgentSessionStore } from "@poe-code/poe-agent-rust";
@@ -51,7 +51,7 @@ tools use server namespaces and retain multimodal content, tool signals and
 structured errors. Discovery rejects repeated cursors and continuations beyond
 128 pages. The Rust MCP client and OAuth implementation are embedded in the same
 addon, with no npm runtime dependencies. Node supplies subprocesses, streams and
-plugin callbacks. Built-in plugins and agent host execution remain pending.
+plugin callbacks. Built-in plugins and higher-level session adapters remain pending.
 
 `createFileAwarenessTracker(cwd)` records normalized file reads and writes in
 ordered, deduplicated Rust sets. Snapshots return independent JavaScript Sets.
@@ -120,3 +120,12 @@ admission, terminal/stop/disposal state, iteration numbering and message layouts
 Node schedules asynchronous operations and performs callback, spread, serialization
 and AbortSignal effects. This remains a hybrid runtime; small mocked runs are
 currently slower than TypeScript.
+
+`AgentHost` executes plugin tools, forwards progress/text yields and dispatches
+notification hooks. Forks copy tools, prompts and hooks into isolated child contexts
+while tracking child runs and linking parent cancellation. `spawn(prompt)` consumes
+an injected ACP client, collects text chunks and disposes the client after success
+or failure. Spawn cancellation is independent of the parent, matching the original.
+Rust owns invocation close admission, fork numbering, event layouts and UTF16 spawn
+output. Node owns generators, clients and callbacks. Pass `createSpawnSession` in
+the constructor; process/in-memory spawn factories are still being implemented.

@@ -859,7 +859,16 @@ export class Relationships implements Iterable<string> {
   }
   get length(): number { return this.rows().length; }
   has(id: string): boolean { if (typeof id !== "string") throw new InputTypeError("Expected a relationship ID."); return this.rows().some(row => row.rId === id); }
-  get(id: string, defaultValue: RelationshipView | null = null): RelationshipView | null { if (typeof id !== "string") throw new InputTypeError("Expected a relationship ID."); const row = this.rows().find(row => row.rId === id); return row ? this.view(row) : defaultValue; }
+  get(id: string, defaultValue: RelationshipView | null = null): RelationshipView | null {
+    if (typeof id !== "string") throw new InputTypeError("Expected a relationship ID.");
+    if (defaultValue !== null) {
+      if (!(defaultValue instanceof RelationshipView) || !defaultValue.belongsPackage(this.#package))
+        throw new InputTypeError("Expected a relationship default owned by this package.");
+      void defaultValue.rId;
+    }
+    const row = this.rows().find(row => row.rId === id);
+    return row ? this.view(row) : defaultValue;
+  }
   at(id: string): RelationshipView { const view = this.get(id); if (!view) throw new MissingKeyError("Relationship ID was not found."); return view; }
   *keys(): IterableIterator<string> { for (const row of this.rows()) yield row.rId; }
   *values(): IterableIterator<RelationshipView> { for (const row of this.rows()) yield this.view(row); }
@@ -918,7 +927,15 @@ export class Relationships implements Iterable<string> {
   }
   update(entries: Iterable<readonly [string, RelationshipView]>): void { this.#package[packageEditRelationships](this.#owner, this.assignedRows(entries)); }
   setdefault(id: string, value: RelationshipView): RelationshipView { const existing = this.get(id); if (existing) return existing; this.update([[id, value]]); return this.at(id); }
-  pop(id: string, fallback?: RelationshipView | null): RelationshipView | null { const found = this.get(id); if (!found) { if (fallback === null || fallback instanceof RelationshipView) return fallback; throw new MissingKeyError("Relationship ID was not found."); } this.delete(id); return found; }
+  pop(id: string, fallback?: RelationshipView | null): RelationshipView | null {
+    const found = this.get(id, fallback);
+    if (!this.has(id)) {
+      if (fallback !== undefined) return found;
+      throw new MissingKeyError("Relationship ID was not found.");
+    }
+    this.delete(id);
+    return found;
+  }
   popitem(): readonly [string, RelationshipView] { const id = [...this.keys()].at(-1); if (id === undefined) throw new MissingKeyError("Relationship collection is empty."); return Object.freeze([id, this.pop(id)!]); }
   copy(): ReadonlyMap<string, RelationshipView> { return new Map(this.items()); }
 }

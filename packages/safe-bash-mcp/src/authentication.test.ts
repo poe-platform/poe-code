@@ -1,5 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { createServer } from "node:http";
 
 vi.mock("node:crypto", async importOriginal => {
   const actual = await importOriginal<typeof import("node:crypto")>();
@@ -11,6 +12,15 @@ import { authenticateRemoteMcpServer, createRemoteMcpManagementCommand, generate
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 const resource = "https://resource.example/mcp", issuer = "https://auth.example";
+function createListener() {
+  const listener = createServer();
+  vi.spyOn(listener, "listen").mockImplementation((...args) => {
+    const ready = args.at(-1); if (typeof ready === "function") queueMicrotask(() => ready()); return listener;
+  });
+  vi.spyOn(listener, "address").mockReturnValue({ address: "127.0.0.1", family: "IPv4", port: 39141 });
+  vi.spyOn(listener, "close").mockReturnValue(listener);
+  return listener;
+}
 function fixture(publicInitialization = false, scope?: string, clientId = "original") {
   const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26", auth: {
     type: "oauth", clientMode: "static", env: { clientId: "ID" }, ...(scope === undefined ? {} : { scope }), redirectUri: "http://127.0.0.1:39141/callback" } }]).configuration.servers[0];
@@ -43,7 +53,7 @@ function fixture(publicInitialization = false, scope?: string, clientId = "origi
   let session: import("mcp-oauth").StoredOAuthSession | null = null;
   const binding = { env: { ID: clientId }, oauth: { now: () => 1000, sessionStore: () => ({ load: async () => session,
     save: async (_key: string, value: import("mcp-oauth").StoredOAuthSession) => { session = value; }, clear: async () => { session = null; } }),
-    browser: { openBrowser: opener, readLine: () => callback.promise } } };
+    browser: { createServer: createListener, openBrowser: opener, readLine: () => callback.promise } } };
   return { configuration, binding, fetch, observed, opener, requests };
 }
 it.each(["noBrowser", "reset", "onAuthorizationUrl"] as const)("retains hidden explicit-auth %s", async field => {
@@ -304,7 +314,7 @@ it("captures browser cancellation policy used by authorization URL delivery", as
 });
 it("fails explicitly selected browser launch without a configured opener before URL observation", async () => {
   const f = fixture();
-  await expect(authenticateRemoteMcpServer(f.configuration, { binding: { ...f.binding, oauth: { ...f.binding.oauth, browser: { readLine: f.binding.oauth.browser.readLine } } },
+  await expect(authenticateRemoteMcpServer(f.configuration, { binding: { ...f.binding, oauth: { ...f.binding.oauth, browser: { ...f.binding.oauth.browser, openBrowser: undefined } } },
     fetch: f.fetch, noBrowser: false, onAuthorizationUrl: f.observed })).rejects.toThrow("Host browser opener");
   expect(f.observed).not.toHaveBeenCalled();
   expect(f.fetch.mock.calls.some(([url]) => String(url).endsWith("/token"))).toBe(false);

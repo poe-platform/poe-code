@@ -1,9 +1,19 @@
 import { expect, it, vi } from "vitest";
+import { createServer } from "node:http";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "@poe-platform/safe-bash/contracts";
 import { createRemoteMcpManagementCommand } from "./index.js";
 const server = { name: "catalog", url: "https://resource.example/mcp", tools: [], protocolVersion: "2025-03-26" as const,
   auth: { type: "bearer" as const, env: "TOKEN" } };
+function createListener() {
+  const listener = createServer();
+  vi.spyOn(listener, "listen").mockImplementation((...args) => {
+    const ready = args.at(-1); if (typeof ready === "function") queueMicrotask(() => ready()); return listener;
+  });
+  vi.spyOn(listener, "address").mockReturnValue({ address: "127.0.0.1", family: "IPv4", port: 39141 });
+  vi.spyOn(listener, "close").mockReturnValue(listener);
+  return listener;
+}
 function fixture(authentication: { maxResponseBytes?: number } = {}) {
   const requests: string[] = [];
   const fetch = vi.fn(async (_url: string | URL, init?: RequestInit) => {
@@ -137,7 +147,7 @@ function oauthFixture(args = ["auth", "catalog", "--json"], tokenFailures = 0) {
   });
   const binding = { env: { ID: "host-client" }, oauth: { now: () => 1000, sessionStore: () => ({ load: async () => session,
     save: async (_key: string, value: import("mcp-oauth").StoredOAuthSession) => { session = value; }, clear: async () => { session = null; } }),
-    browser: { openBrowser: opener, readLine: () => callback.promise } } };
+    browser: { createServer: createListener, openBrowser: opener, readLine: () => callback.promise } } };
   const servers = [{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26" as const, auth: {
     type: "oauth" as const, clientMode: "static" as const, env: { clientId: "ID" }, redirectUri: "http://127.0.0.1:39141/callback" } }];
   const carrier = createCommandArguments(args), controller = new AbortController();

@@ -22,7 +22,7 @@ export function createTerminalPilotRuntime({launchPilot=TerminalPilot.launch}={}
    const reservation=admission(state.reserve(params.command,name));
    const task=(async()=>{
     const pilot=await getPilot();
-    if(reservation.replaced!==null){try{pilot.deleteSession(reservation.replaced);}catch{}}
+    if(reservation.replaced!==null){try{pilot.deleteSession(reservation.replaced);}catch{ /* Intentionally ignore this failure. */ }}
     const session=await pilot.newSession({command:params.command,args:params.args,cwd:params.cwd,cols:params.cols,rows:params.rows,observe:params.observe});
     admission(state.commit(reservation.name,session.id,session.exitCode===null));
     return{name:reservation.name,session};

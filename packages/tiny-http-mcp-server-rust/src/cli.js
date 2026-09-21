@@ -25,7 +25,7 @@ function waitForShutdown(shutdown,forceShutdown,graceMs,listen,schedule,abortSig
   const cleanup=()=>{cancelGrace();removeSignals();abortSignal.removeEventListener('abort',abort);};
   const finish=forced=>{if(!state.settle())return;cleanup();resolve(forced);};
   const abort=()=>finish(false);
-  const force=()=>{if(state.settled)return;try{forceShutdown();}catch{}finish(true);};
+  const force=()=>{if(state.settled)return;try{forceShutdown();}catch{ /* Intentionally ignore this failure. */ }finish(true);};
   const signal=()=>{
    const action=state.signal();
    if(action==='force'){force();return;}if(action==='ignore')return;
@@ -38,7 +38,7 @@ function waitForShutdown(shutdown,forceShutdown,graceMs,listen,schedule,abortSig
 }
 export function isCliInvocation(argv,moduleUrl,realpath=realpathSync){
  const entry=argv.at(1);if(typeof entry!=='string')return false;
- const paths=[pathToFileURL(entry).href];try{paths.push(pathToFileURL(realpath(entry)).href);}catch{}
+ const paths=[pathToFileURL(entry).href];try{paths.push(pathToFileURL(realpath(entry)).href);}catch{ /* Intentionally ignore this failure. */ }
  return paths.includes(moduleUrl);
 }
 export async function runCli(args=process.argv.slice(2),dependencies={}){
@@ -64,7 +64,7 @@ export async function runCli(args=process.argv.slice(2),dependencies={}){
   await dependencies.waitForShutdown(shutdown);return 0;
  }catch(error){
   shutdownAbort?.abort();
-  if(handle!==undefined){try{if(shutdownStarted)handle.closeAllConnections();else await handle.close();}catch{}}
+  if(handle!==undefined){try{if(shutdownStarted)handle.closeAllConnections();else await handle.close();}catch{ /* Intentionally ignore this failure. */ }}
   stderr.write(`${error instanceof Error?error.message:String(error)}\n`);return 1;
  }
 }

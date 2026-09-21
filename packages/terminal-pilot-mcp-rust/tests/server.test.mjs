@@ -105,5 +105,5 @@ test('CLI carries only JSON-RPC on stdout and stdin EOF terminates its owned pro
   child.stdin.end();assert.deepEqual(await exited,{code:0,signal:null});assert.equal(stderr,'');assert.equal(text,'');
   assert.throws(()=>process.kill(pid,0),error=>error.code==='ESRCH');
   pid=undefined;
- }finally{if(child.exitCode===null&&child.signalCode===null){child.kill('SIGKILL');await exited;}if(pid!==undefined){try{process.kill(pid,'SIGKILL');}catch{}}}
+ }finally{if(child.exitCode===null&&child.signalCode===null){child.kill('SIGKILL');await exited;}if(pid!==undefined){try{process.kill(pid,'SIGKILL');}catch{ /* Intentionally ignore this failure. */ }}}
 });

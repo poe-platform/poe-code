@@ -31,7 +31,7 @@ test("SDK and stream setup failures close created transports and await server cl
   assert.equal(serverClosed, 1);
   await assert.rejects(connection.send({ jsonrpc: "2.0", method: "ping" }), { message: "Not connected" });
   let streamEnded = false;
-  const streamServer = { async connect(transport) { for await (const _chunk of transport.readable) {} streamEnded = true; } };
+  const streamServer = { async connect(transport) { for await (const chunk of transport.readable) { void chunk; } streamEnded = true; } };
   await assert.rejects(native.createTestPair(streamServer, () => ({ async connect() { throw reason; }, async close() {} })), error => error === reason);
   assert.equal(streamEnded, true);
 });

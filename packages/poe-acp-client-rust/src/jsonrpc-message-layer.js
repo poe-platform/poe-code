@@ -119,7 +119,7 @@ export class JsonRpcMessageLayer {
       if (action.type === "notification") {
         try {
           Promise.resolve(handler(message.params, { method: message.method })).catch(() => {});
-        } catch {}
+        } catch { /* Intentionally ignore this failure. */ }
       } else {
         (async () => {
           let response;

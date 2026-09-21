@@ -199,7 +199,7 @@ test("audit records preserve opaque fields and callback read order while tool ap
         };
       }
     });
-    results.push({ reads, lines: lines.map(({ ts, ...rest }) => rest) });
+    results.push({ reads, lines: lines.map(({ ts, ...rest }) => { void ts; return rest; }) });
     const cause = { failed: true },
       bad = create("/audit", {
         ...fs,

@@ -14,7 +14,7 @@ export class StreamableHttpTransport{
   this.observability=options.observability??{};this.nextRequest=1;this.requestIdGenerator=options.requestIdGenerator??(()=>`req-${this.nextRequest++}`);
   this.sessions=new Map();this.streams=new Map();this.expiryTimers=new Map();this.history=new native.NativeHttpEventHistory(this.settings.maxSseEventHistory,this.settings.maxResponseBytes);
   this.responses=new WeakMap();this.modern=new Map();this.modernStreams=new Set();this.activeTools=0;this.closed=false;
-  if(this.sessionIdGenerator!==undefined){this.expiry=setInterval(()=>{try{this.purgeExpired();}catch{}},Math.min(this.settings.sessionTtlMs,60000));this.expiry.unref();}
+  if(this.sessionIdGenerator!==undefined){this.expiry=setInterval(()=>{try{this.purgeExpired();}catch{ /* Intentionally ignore this failure. */ }},Math.min(this.settings.sessionTtlMs,60000));this.expiry.unref();}
  }
  call(command,input={}){return this.policy.call(command,command==='session_update'||command==='tool_ok'?input:JSON.stringify(input));}
  subject(request){const value=request.auth?.subject??request.auth?.clientId;return value!==undefined&&value.length>0?value:undefined;}
@@ -33,7 +33,7 @@ export class StreamableHttpTransport{
  }
  async handleRequest(request,response){
   const start=Date.now(),originInfo=native.httpRequestOrigin(JSON.stringify(request.headers),Boolean(request.socket?.encrypted),this.settings.trustedProxy);
-  let endpointOrigin;try{endpointOrigin=new URL(`${originInfo.protocol}://${originInfo.host}`).origin;}catch{}
+  let endpointOrigin;try{endpointOrigin=new URL(`${originInfo.protocol}://${originInfo.host}`).origin;}catch{ /* Intentionally ignore this failure. */ }
   const plan=this.call('http',{method:request.method,headers:request.headers,endpointOrigin,closed:this.closed,encrypted:Boolean(request.socket?.encrypted)});
   const requestId=plan.requestId??this.requestIdGenerator(),sessionId=plan.sessionId;
   this.responses.set(response,{requestId,origin:plan.origin});

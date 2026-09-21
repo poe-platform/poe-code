@@ -49,7 +49,7 @@ export function files(run){
     default:throw new Error(`Unknown skill filesystem operation ${operation}`);
    }
    return JSON.stringify(value);
-  }catch(error){let code;try{code=admittedCode(operation,error);}catch(classificationError){error=classificationError;}return JSON.stringify({error:errors.push(error)-1,code});}
+  }catch(error){let code;let failure=error;try{code=admittedCode(operation,error);}catch(classificationError){failure=classificationError;}return JSON.stringify({error:errors.push(failure)-1,code});}
  };
  const readBytes=path=>{try{return {content:fs.readFileSync(path)};}catch(error){return {error:errors.push(error)-1};}};
  const result=run(callback,readBytes);

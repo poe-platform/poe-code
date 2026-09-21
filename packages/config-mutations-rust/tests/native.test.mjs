@@ -59,6 +59,7 @@ test('invalid parents reject before value hooks and missing paths preserve toJSO
  assert.equal(json.modifyAtPath('{}',withPathHook,true),expectedEdit('{}',withPathHook,true));
 });
 test('V8 serialization preserves Date, toJSON, getters, holes and its errors',()=>{
+// eslint-disable-next-line no-sparse-arrays -- Sparse inputs verify preservation of array holes.
  let calls=0;const value={date:new Date('2020-01-02Z'),get observed(){calls++;return {toJSON(){return 'custom';}};},array:[,undefined,Infinity,-0,'\uD800']};
  const expected=JSON.stringify(value,null,2)+'\n';assert.equal(calls,1);
  assert.equal(json.jsonFormat.serialize(value),expected);assert.equal(calls,2);
@@ -66,6 +67,7 @@ test('V8 serialization preserves Date, toJSON, getters, holes and its errors',()
  assert.throws(()=>json.jsonFormat.serialize({big:1n}),TypeError);
 });
 test('merge and prune retain patch identities and evaluate getters in original order',()=>{
+// eslint-disable-next-line no-sparse-arrays -- Sparse inputs verify preservation of array holes.
  const date=new Date();const replacement={x:1};const array=[,date];const base={nested:{keep:1},array};
  const patch={nested:{next:2},new:replacement,array,ignored:undefined};
  const result=json.jsonFormat.merge(base,patch);

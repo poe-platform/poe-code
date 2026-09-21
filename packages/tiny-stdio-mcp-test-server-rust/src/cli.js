@@ -21,4 +21,4 @@ export async function runCli(args=process.argv.slice(2)){
  }catch(error){process.stderr.write((error instanceof Error?error.message:String(error))+'\n');return 1;}
 }
 let entry=process.argv[1];
-if(entry!==undefined){try{entry=realpathSync(entry);}catch{}if(pathToFileURL(entry).href===import.meta.url)runCli().then(code=>{process.exitCode=code;});}
+if(entry!==undefined){try{entry=realpathSync(entry);}catch{ /* Intentionally ignore this failure. */ }if(pathToFileURL(entry).href===import.meta.url)runCli().then(code=>{process.exitCode=code;});}

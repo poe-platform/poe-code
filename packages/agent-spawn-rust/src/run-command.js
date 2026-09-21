@@ -55,7 +55,7 @@ export function runCommand(command, args, input) {
           try {
             process.kill(-child.pid, signal);
             return;
-          } catch {}
+          } catch { /* Intentionally ignore this failure. */ }
         }
         child.kill(signal);
       },

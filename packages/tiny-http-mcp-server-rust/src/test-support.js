@@ -104,13 +104,13 @@ async function fetchInMemory(server,url,init){
   if(finished)return response;
   if(chunk!==undefined)response.write(chunk);else markHeaders();
   finished=true;response.writableEnded=true;cleanup();
-  try{controller.close();}catch{}response.emit('finish');response.emit('close');return response;
+  try{controller.close();}catch{ /* Intentionally ignore this failure. */ }response.emit('finish');response.emit('close');return response;
  };
  response.destroy=error=>{
   if(finished)return response;
   finished=true;response.destroyed=true;cleanup();request.destroy();
   if(!response.headersSent)rejectHeaders(error??new Error('Response closed before headers'));
-  try{if(error===undefined)controller.close();else controller.error(error);}catch{}
+  try{if(error===undefined)controller.close();else controller.error(error);}catch{ /* Intentionally ignore this failure. */ }
   response.emit('close');return response;
  };
  const onAbort=()=>response.destroy(aborted(signal));

@@ -9,8 +9,8 @@ export function createDockerRunner(options){
   try{const[command,...args]=buildDockerRunArgs({engine,context,image:options.image,command:spec.command,args:spec.args??[],cwd:spec.cwd,env:spec.env,envFilePath:envFile?.path,mounts:options.mounts??[],ports:options.ports??[],network:options.network,containerName:name,detached:false,interactive:plan.interactive,tty:spec.tty??false,rm:true,extraArgs:options.extraArgs??[]});child=childProcess.spawn(command,args,{stdio:plan.inherit?'inherit':plan.modes});}catch(error){envFile?.cleanup();throw error;}
   const state=new native.DockerRun(name);let resolveResult;const result=new Promise(resolve=>{resolveResult=resolve;}),timers=new Set();let cleanupAbort=()=>{};
   const settle=code=>{const exitCode=state.finish(code);if(exitCode===null)return;cleanupAbort();for(const timer of timers)clearTimeout(timer);timers.clear();envFile?.cleanup();resolveResult({exitCode});};
-  const control=signal=>{try{const run=childProcess.spawn(engine,[...buildContextArgs(engine,context),...state.control(signal)],{stdio:'ignore'});run.once('error',()=>{});run.unref();}catch{}};
-  const terminate=signal=>{try{child.kill(signal);}catch{}};
+  const control=signal=>{try{const run=childProcess.spawn(engine,[...buildContextArgs(engine,context),...state.control(signal)],{stdio:'ignore'});run.once('error',()=>{});run.unref();}catch{ /* Intentionally ignore this failure. */ }};
+  const terminate=signal=>{try{child.kill(signal);}catch{ /* Intentionally ignore this failure. */ }};
   const schedule=(callback,delay)=>{const timer=setTimeout(()=>{timers.delete(timer);callback();},delay);timer?.unref?.();timers.add(timer);};
   const abort=()=>{if(!state.abort())return;control('SIGTERM');schedule(()=>{terminate('SIGTERM');schedule(()=>terminate('SIGKILL'),native.DOCKER_ABORT_FORCE_GRACE_MS);},native.DOCKER_ABORT_GRACE_MS);};
   const signal=spec.signal;if(signal!==undefined){if(signal.aborted)abort();else{signal.addEventListener('abort',abort,{once:true});cleanupAbort=()=>signal.removeEventListener('abort',abort);}}

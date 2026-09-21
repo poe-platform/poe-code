@@ -63,6 +63,7 @@ export class StdioTransport {
   }
   getStderrOutput() { return this.#stderr.snapshot(); }
   dispose(_reason = new Error("Stdio transport disposed")) {
+    void _reason;
     if (this.#disposed) return;
     this.#disposed = true;
     const child = this.#child;

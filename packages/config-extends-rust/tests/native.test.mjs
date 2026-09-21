@@ -8,6 +8,7 @@ test('native document parsing retains date aliases after prompt replacement',()=
  assert.equal(result.data.prompt,'Body');assert.ok(result.data.first instanceof Date);assert.equal(result.data.first,result.data.second);
 });
 test('foreign merging retains opaque identities, null prototypes, sparse array maps and safe keys',()=>{
+// eslint-disable-next-line no-sparse-arrays -- Sparse inputs verify preservation of array holes.
  const opaque=new Date(),plain=Object.assign(Object.create(null),{leaf:opaque}),array=[plain,,opaque];
  const high=JSON.parse('{"__proto__":{"owner":"safe"},"remove":null,"prompt":""}');high.items=array;
  const result=mergeLayers([{source:'high',data:high},{source:'low',data:{prompt:'inherited',remove:true}}]);

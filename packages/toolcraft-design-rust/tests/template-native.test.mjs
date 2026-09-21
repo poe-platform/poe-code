@@ -24,7 +24,7 @@ test('native template discovery and partial expansion match the original',()=>{
 });
 test('native renderer supports scopes, scalar rules, escaping, partials, yield and validation',()=>{
  const cases=[
- ['Hello {{name}}',{name:'K'}],['{{name}} {{{name}}} {{&name}}',{name:'<K> & / ` = \"'}],
+ ['Hello {{name}}',{name:'K'}],['{{name}} {{{name}}} {{&name}}',{name:'<K> & / ` = "'}],
  ['{{#items}}[{{name}}/{{repo}}]{{/items}}',{repo:'acme-app',items:[{name:'one'},{name:'two'}]}],
  ['{{#issue}}{{title}}/{{repo}}{{/issue}}',{repo:'acme/app',issue:{title:'Bug'}}],
  ['{{^items}}none{{/items}}{{^missing}} missing{{/missing}}',{items:[]}],
@@ -76,6 +76,7 @@ test('native generated template cases match output and error precedence',()=>{
  }
 });
 test('native data render keeps sparse arrays, numeric values, cycles and own descriptor values',()=>{
+// eslint-disable-next-line no-sparse-arrays -- Sparse inputs verify preservation of array holes.
  const cases=[{values:[undefined,null,false,0,-0,NaN,Infinity,-Infinity,1e-7,1e21,12n]}, {values:[,'K',]}, Object.assign(Object.create(null),{name:'K',values:[{name:'child'}]}),{name:new Date('2026-08-26')}];
  const cycle={name:'K'};cycle.self=cycle;cases.push(cycle);
  const shared={name:'child'};cases.push({repo:'parent',values:[shared,shared]});

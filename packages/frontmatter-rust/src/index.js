@@ -62,7 +62,7 @@ function assertAcyclic(root){
    active.add(value);const values=Array.isArray(value)?value:Object.values(value);
    tasks.push({kind:'leave',value},{kind:'next',iterator:values[Symbol.iterator]()});
   }
- }catch(error){for(let index=tasks.length-1;index>=0;index--){const task=tasks[index];if(task.kind==='next')try{task.iterator.return?.();}catch{}}throw error;}
+ }catch(error){for(let index=tasks.length-1;index>=0;index--){const task=tasks[index];if(task.kind==='next')try{task.iterator.return?.();}catch{ /* Intentionally ignore this failure. */ }}throw error;}
 }
 export function stringifyFrontmatter(frontmatter,body){
  try{

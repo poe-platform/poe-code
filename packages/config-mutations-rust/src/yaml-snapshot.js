@@ -38,7 +38,7 @@ export function graphSnapshot(root,aliasDuplicateObjects=true){
  }
  }catch(error){
   for(let i=tasks.length-1;i>=0;i--){const task=tasks[i];if(task.kind!=='next')continue;
-   try{if(typeof task.iterator.return==='function')task.iterator.return();}catch{}
+   try{if(typeof task.iterator.return==='function')task.iterator.return();}catch{ /* Intentionally ignore this failure. */ }
   }
   throw error;
  }

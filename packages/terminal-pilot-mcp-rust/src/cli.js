@@ -10,5 +10,5 @@ export async function runCli(args=process.argv.slice(2),output=process.stderr){
  await main();return 0;
 }
 let isCli=false;
-try{isCli=process.argv[1]!==undefined&&realpathSync(process.argv[1])===realpathSync(fileURLToPath(import.meta.url));}catch{}
+try{isCli=process.argv[1]!==undefined&&realpathSync(process.argv[1])===realpathSync(fileURLToPath(import.meta.url));}catch{ /* Intentionally ignore this failure. */ }
 if(isCli)process.exitCode=await runCli();

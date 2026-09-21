@@ -145,6 +145,7 @@ test("model collection preserves accessor order, arbitrary stream causes and emi
       await assert.rejects(
         collect({
           response: {
+// eslint-disable-next-line require-yield -- This generator verifies failure before the first yielded value.
             events: (async function* () {
               throw reason;
             })()
@@ -187,7 +188,7 @@ test("emitters are read at the original stage and retain direct-text versus help
       },
       get emit() {
         reads.push("emit");
-        return function (event) {
+        return function () {
           reads.push(this === options ? "options" : "none");
         };
       }

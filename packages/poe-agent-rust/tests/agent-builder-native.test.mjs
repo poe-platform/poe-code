@@ -96,6 +96,7 @@ test("caller acknowledgement rejects unknown and duplicate acknowledgements and 
     .tools({
       name: "echo",
       inputSchema: {},
+// eslint-disable-next-line require-yield -- This generator verifies failure before the first yielded value.
       call: async function* () {
         throw Error("caller handles");
       }

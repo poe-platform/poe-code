@@ -39,7 +39,7 @@ export async function createHttpTestPairWithTinyClient(server,clientOptions={}){
   client=new McpClient({clientInfo:{name:'tiny-http-test-client',version:'1.0.0'},...clientOptions});
   transport=new HttpTransport({url:handle.url,fetch:async(input,init={})=>{
    let jsonRpcMethod;
-   if(typeof init.body==='string'&&init.body.length>0){try{const parsed=JSON.parse(init.body);if(typeof parsed.method==='string')jsonRpcMethod=parsed.method;}catch{}}
+   if(typeof init.body==='string'&&init.body.length>0){try{const parsed=JSON.parse(init.body);if(typeof parsed.method==='string')jsonRpcMethod=parsed.method;}catch{ /* Intentionally ignore this failure. */ }}
    const response=await nodeFetch(input,init);
    requests.push({method:init.method??'GET',sessionId:new Headers(init.headers).get('mcp-session-id'),jsonRpcMethod,responseContentType:response.headers.get('content-type')});
    return response;

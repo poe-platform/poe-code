@@ -47,7 +47,7 @@ export function mergeLayers(layers){
    case 'entries':result=[];for(const[name,value]of Object.entries(values[id]))result.push([name,intern(value)]);break;
    case 'sequence':{const sequence=key?values[id]:Object.values(values[id]);const iterator=sequence[Symbol.iterator]();result=nextIterator++;iterators.set(result,iterator);break;}
    case 'next':{let item;try{item=iterators.get(id).next();}catch(error){iterators.delete(id);throw error;}result=item.done?null:intern(item.value);break;}
-   case 'close':{const iterator=iterators.get(id);iterators.delete(id);if(key)try{iterator.return?.();}catch{}result=true;break;}
+   case 'close':{const iterator=iterators.get(id);iterators.delete(id);if(key)try{iterator.return?.();}catch{ /* Intentionally ignore this failure. */ }result=true;break;}
    case 'create':result=intern(id===null?{}:Object.create(Object.getPrototypeOf(values[id])));break;
    case 'define':Object.defineProperty(values[id],key,{value:values[value],enumerable:true,configurable:true,writable:true});result=true;break;
    case 'map':if(arrayDepth>=maxForeignArrayDepth)throw new Error(`Maximum foreign array depth exceeded (${maxForeignArrayDepth}).`);arrayDepth++;try{result=intern(values[id].map(entry=>values[native.extendsForeignClone(intern(entry),key+1,hook)]));}finally{arrayDepth--;}break;

@@ -13,7 +13,7 @@ export function createHostRunner(options={}){
   if(plan.detached)child.unref();
   const kill=signal=>{const group=state.killTarget(child.pid,process.platform==='win32');if(group!==null){process.kill(group,signal);return;}child.kill(signal);};
   let resolveResult;const result=new Promise(resolve=>{resolveResult=resolve;});
-  const abort=()=>{try{kill('SIGTERM');}catch{}};
+  const abort=()=>{try{kill('SIGTERM');}catch{ /* Intentionally ignore this failure. */ }};
   let bound=false;
   if(spec.signal!==undefined){if(spec.signal.aborted)abort();else{spec.signal.addEventListener('abort',abort,{once:true});bound=true;}}
   const complete=code=>{const exitCode=state.finish(code);if(exitCode===null)return;if(bound){spec.signal.removeEventListener('abort',abort);bound=false;}resolveResult({exitCode});};

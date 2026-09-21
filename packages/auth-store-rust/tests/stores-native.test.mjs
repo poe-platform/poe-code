@@ -46,7 +46,7 @@ test("backend selection and default-path validation match the reference", async 
   for(const directory of ["../escape","a\\..\\b","/absolute","C:\\absolute",".app","a/b",""]) for(const file of [""," ",".","..","a/b","a\\b","a","/a","a/"]) {
     let expected;
     for(const factory of [reference,own]) {
-      const result=await outcome(()=>new factory.EncryptedFileStore({...config(memory()),filePath:undefined,getHomeDirectory:()=>"/home/test",defaultDirectory:directory,defaultFileName:file}) && "created");
+      const result=await outcome(()=>{new factory.EncryptedFileStore({...config(memory()),filePath:undefined,getHomeDirectory:()=>"/home/test",defaultDirectory:directory,defaultFileName:file});return "created";});
       if(factory===reference)expected=result;else assert.deepEqual(result,expected);
     }
   }

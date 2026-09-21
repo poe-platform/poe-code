@@ -16,7 +16,7 @@
     "test": "cd ../.. && vitest run packages/safe-bash-mcp/src",
     "lint": "eslint src && tsc --noEmit"
   },
-  "dependencies": { "tiny-mcp-client": "*" },
+  "dependencies": { "tiny-mcp-client": "*", "toolcraft-schema": "*" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",

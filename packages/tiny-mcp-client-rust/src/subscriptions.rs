@@ -160,9 +160,9 @@ impl SubscriptionState {
         if subscription_id(result) != Some(id) {
             return Err("Invalid subscription completion ID".into());
         }
-        if !Id::from(id)
+        if Id::from(id)
             .and_then(|id| self.entries.get(&id))
-            .is_some_and(|entry| entry.accepted.is_some())
+            .is_none_or(|entry| entry.accepted.is_none())
         {
             return Err("Subscription completed before acknowledgement".into());
         }

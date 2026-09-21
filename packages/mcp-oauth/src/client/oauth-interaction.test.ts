@@ -137,6 +137,17 @@ it("requests configured scopes even when discovery advertises wider permissions"
   expect(fixture.authorization().searchParams.get("scope")).toBe("read");
 });
 
+it.each(["invalid_token", "insufficient_scope"])("keeps explicit consent scopes when a %s challenge requests broader permissions", async error => {
+  const f = interaction({ scope: "read offline_access" });
+  expect(await f.provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+    challenge: { scheme: "Bearer", params: { error, scope: "read write admin" } }, discovery, fetch: f.fetch })).toEqual({ action: "retry" });
+  expect(f.authorization().searchParams.get("scope")).toBe("offline_access read");
+  expect(JSON.parse(String(f.fetch.mock.calls[0]?.[1]?.body)).scope).toBe("offline_access read");
+  expect(f.session()?.requestedScope).toBe("offline_access read");
+  expect((await f.authorize()).get("Authorization")).toBe("Bearer token");
+  expect(f.openBrowser).toHaveBeenCalledOnce();
+});
+
 it("reuses a scoped authorization when the token endpoint omits scope", async () => {
   const fixture = interaction({ scope: "read" });
   expect(await fixture.run()).toEqual({ action: "retry" });

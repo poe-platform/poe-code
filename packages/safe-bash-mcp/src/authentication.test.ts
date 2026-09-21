@@ -1,9 +1,9 @@
 import { expect, it, vi } from "vitest";
-import { authenticateRemoteMcpServer, initRemoteMcpConfiguration } from "./index.js";
+import { authenticateRemoteMcpServer, generateRemoteMcpArtifact, initRemoteMcpConfiguration } from "./index.js";
 const resource = "https://resource.example/mcp", issuer = "https://auth.example";
-function fixture(publicInitialization = false) {
+function fixture(publicInitialization = false, scope?: string) {
   const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26", auth: {
-    type: "oauth", clientMode: "static", env: { clientId: "ID" }, redirectUri: "http://127.0.0.1:39141/callback" } }]).configuration.servers[0];
+    type: "oauth", clientMode: "static", env: { clientId: "ID" }, ...(scope === undefined ? {} : { scope }), redirectUri: "http://127.0.0.1:39141/callback" } }]).configuration.servers[0];
   let callback = Promise.withResolvers<string>();
   const opener = vi.fn(async () => {});
   const observed = vi.fn(async (event: { authorizationUrl: string; redirectUri: string }) => {
@@ -42,6 +42,29 @@ it("explicitly authenticates even with supplied schemas, emits the complete URL 
   expect(f.observed).toHaveBeenCalledOnce();
   expect(f.opener).not.toHaveBeenCalled();
   expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
+});
+
+it.each([undefined, "read"])("retains init/artifact consent scope and environment precedence despite a broader challenge: %s", async override => {
+  const f = fixture(false, "read offline_access");
+  const artifact = await generateRemoteMcpArtifact({ version: 1, servers: [f.configuration] });
+  const expected = override ?? "offline_access read";
+  const binding = { ...f.binding, env: { ...f.binding.env, ...(override === undefined ? {} : { MCP_CATALOG_SCOPE: override }) } };
+  const fetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
+    const response = await f.fetch(input, init);
+    if (String(input).includes(".well-known")) return Response.json({ ...await response.json(), scopes_supported: ["read", "write", "admin", "offline_access"] });
+    if (response.status === 401) return new Response(null, { status: 401, headers: { "WWW-Authenticate":
+      'Bearer resource_metadata="https://resource.example/.well-known/oauth-protected-resource/mcp", error="insufficient_scope", scope="read write admin"' } });
+    return response;
+  });
+  const onAuthorizationUrl = async (event: { authorizationUrl: string; redirectUri: string }) => {
+    expect(new URL(event.authorizationUrl).searchParams.get("scope")).toBe(expected);
+    await f.observed(event);
+  };
+  await authenticateRemoteMcpServer(artifact.artifact.configuration.servers[0], { binding, fetch, onAuthorizationUrl });
+  expect((await binding.oauth.sessionStore().load())?.requestedScope).toBe(expected);
+  expect(artifact.artifact.configuration).toEqual({ version: 1, servers: [f.configuration] });
+  expect(f.observed).toHaveBeenCalledOnce();
+  expect(f.opener).not.toHaveBeenCalled();
 });
 
 it("isolates separate-origin OAuth JSON requests from MCP Accept, tenant and protocol headers", async () => {

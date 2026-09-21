@@ -112,3 +112,19 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     stores independently, prohibit browser interaction, recursively inspect native
     files for absence of plaintext synthetic credentials, and purge only the
     concurrency fixture directory under out after recording results.
+
+14. Configure an explicit read offline_access scope through init, generate a
+    supplied-schema artifact, and authenticate against a real local HTTP issuer
+    advertising read/write/admin/offline_access. Return an initial 401 with an
+    insufficient_scope challenge advertising read/write/admin. The authorization
+    URL must request exactly offline_access read, with verified state, S256 PKCE
+    and identical loopback redirect throughout callback/code exchange. Recreate
+    native encrypted stores for headless cached access, advance the host clock
+    past expiry and verify one silent rotating refresh retains the requested
+    scope even when token responses omit scope. Repeat with an explicit scope
+    environment override of read: consent requests only read and the issuer may
+    correctly withhold a refresh token. Check init env/config screenshots and
+    unchanged generated configuration, prohibit tools/list and tools/call, inspect
+    native files for plaintext synthetic credentials, and purge the QA-owned out
+    directory after recording results. Absent explicit scope stays omitted; the
+    native provider does not infer consent permissions from advertised scopes.

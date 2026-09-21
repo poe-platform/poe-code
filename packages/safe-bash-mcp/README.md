@@ -66,6 +66,15 @@ same implementation handles native MCP requests and OAuth network operations.
 Provide it again through `commands.fetch` when loading an artifact; runtime
 functions are host dependencies and are not serialized into generated files.
 
+Remote form and URL input requests decline immediately by default. Use
+`onWarning` to observe the hint, or supply `onElicitationRequest(params, context)`
+to handle them through your host. The context includes `server.name`,
+`server.url` and the native cancellation signal. The host owns prompts, consent
+and accepted form values; the library never opens an input URL or a terminal.
+The same hook works in command options and artifact `commands` options and must
+be supplied again when recreating a host. Invalid requests/responses fail before
+a continuation is sent, and canceled hooks cannot resume the remote operation.
+
 Compile a discovered or supplied tool to parse CLI arguments with its complete
 JSON Schema:
 

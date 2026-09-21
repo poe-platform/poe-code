@@ -83,3 +83,18 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     headless OAuth policy and nonzero protocol-failure diagnostics. Test bounded
     input, complete deadlines and pre-aborted host signals before credential
     binding. Inspect the resource help/result screenshot and purge own fixtures.
+
+13. For server input, use actual modern HTTP input_required responses and legacy
+    server-initiated elicitation/create requests over an HTTP receive stream.
+    Advertise form and URL capabilities without sampling or roots. With no host
+    handler, decline immediately and observe only a safe generic hint through
+    onWarning; never follow an input URL or render untrusted prompt controls.
+    Preserve the final complete server result. Recreate supplied-schema artifact
+    hosts with explicit onElicitationRequest callbacks; require full typed form
+    parameters, server identity, native signal, exact accept/decline/cancel values
+    and retained requestState during modern continuations. Verify malformed input
+    and host responses fail before a continuation, invalid discovery elicitation
+    stays rejected by the modern protocol, and canceling a stalled hook preserves
+    cancellation identity without another request. Await real legacy stream close
+    events, inspect result/hint screenshots, record observations and purge only
+    this QA's synthetic fixtures under out.

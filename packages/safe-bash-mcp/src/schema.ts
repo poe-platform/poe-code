@@ -1,5 +1,8 @@
 import {
   type HttpTransportOptions,
+  type ElicitationParams,
+  type ElicitationResult,
+  type McpRequestContext,
   type Implementation,
   type ServerCapabilities,
   type Tool
@@ -37,7 +40,14 @@ export interface SchemaFetchOptions {
   readonly maxTools?: number;
   readonly maxResponseBytes?: number;
   readonly requestTimeoutMs?: number;
+  /** Handle server input explicitly. Without a hook, input is declined. */
+  readonly onElicitationRequest?: RemoteMcpElicitationHandler;
 }
+
+export interface RemoteMcpElicitationContext extends McpRequestContext {
+  readonly server: { readonly name: string; readonly url: string };
+}
+export type RemoteMcpElicitationHandler = (params: ElicitationParams, context: RemoteMcpElicitationContext) => ElicitationResult | Promise<ElicitationResult>;
 
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

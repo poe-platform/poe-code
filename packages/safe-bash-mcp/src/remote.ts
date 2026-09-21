@@ -26,10 +26,18 @@ export async function withRemoteMcpClient<T>(
 ): Promise<T> {
   options.signal?.throwIfAborted();
   const limits = remoteLimits(options);
+  const identity = { name: server.name, url: server.url };
   const client = new McpClient({
     clientInfo: { name: "safe-bash-mcp", version: "0.0.1" },
     protocolVersion: server.protocolVersion,
-    requestTimeoutMs: limits.requestTimeoutMs
+    requestTimeoutMs: limits.requestTimeoutMs,
+    capabilities: { elicitation: { form: {}, url: {} } },
+    onElicitationRequest: (params, context) => {
+      if (options.onElicitationRequest !== undefined)
+        return options.onElicitationRequest(params, { ...context, server: { ...identity } });
+      options.onWarning?.("Remote MCP requested input; provide onElicitationRequest to handle it.");
+      return { action: "decline" };
+    }
   });
   const transport = new HttpTransport({
     url: server.url, mode, headers: server.headers, oauth: server.oauth,

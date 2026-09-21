@@ -88,6 +88,17 @@ it("restores the grant after a definitive OAuth rejection without consuming it",
   expect(f.session().tokens).toEqual(initial.tokens);
 });
 
+it("retires an invalid_grant before independent providers can replay the original import", async () => {
+  const f = fixture(), fetch = vi.fn(async () => Response.json({ error: "invalid_grant" }, { status: 400 }));
+  expect(await f.authorize(fetch)).toBeNull();
+  expect(f.session().tokens).toBeUndefined();
+  expect(f.session()).not.toHaveProperty("refreshState");
+  expect(f.session().client).toEqual(initial.client);
+  expect(await f.authorize(fetch)).toBeNull();
+  expect(await f.authorize(fetch)).toBeNull();
+  expect(fetch).toHaveBeenCalledOnce();
+});
+
 it("retries a definitive transient OAuth rejection once and persists the winner", async () => {
   const f = fixture(), fetch = vi.fn().mockResolvedValueOnce(Response.json({ error: "temporarily_unavailable" }, { status: 503 }))
     .mockResolvedValueOnce(Response.json({ access_token: "winner", refresh_token: "rotated", token_type: "Bearer", expires_in: 3600 }));

@@ -41,6 +41,22 @@ it("replaces corrupt native documents without decrypting old credentials", async
   await f.stores.importSession(grant());
   expect(await f.stores.sessionStore.load(resource)).toEqual(grant());
 });
+it("retains concurrent imports for different named servers using one native backing configuration", async () => {
+  const f = fixture();
+  const imports = Array.from({ length: 12 }, (_, index) => {
+    const session = grant();
+    session.tokens!.accessToken = `private-access-${index}`;
+    session.tokens!.refreshToken = `private-refresh-${index}`;
+    return { name: `catalog-${index}`, session };
+  });
+  await Promise.all(imports.map(({ name, session }) => createResourceBoundOAuthStores(f.authStore, undefined, name).importSession(session)));
+  await createResourceBoundOAuthStores(f.authStore, undefined, imports[0].name).reset(resource);
+  for (const { name, session } of imports.slice(1)) {
+    const reloaded = createResourceBoundOAuthStores(f.authStore, undefined, name);
+    expect(await reloaded.sessionStore.load(resource)).toEqual(session);
+    expect(await reloaded.clientStore.load(issuer)).toEqual(session.client);
+  }
+});
 it("waits for the stable native lock before replacing client and tokens", async () => {
   const f = fixture(), entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
   const owner = f.stores.sessionStore.withLock!(resource, async () => { entered.resolve(); await release.promise; }, {});

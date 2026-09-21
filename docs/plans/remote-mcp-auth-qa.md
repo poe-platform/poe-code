@@ -142,3 +142,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     its values empty. Caller-supplied registration metadata must remain generic;
     do not add provider names or implicit allowlist impersonation. Record the
     outcome and purge only the QA-owned out directory.
+
+16. Use a real local legacy SSE server whose receive GET initially returns401
+    with OAuth resource metadata. Configure transport:sse and a static app with
+    client_secret_post; advertise that method and no DCR endpoint. Complete the
+    actual native state/S256/loopback callback and verify the original app ID/
+    secret appear only in the token form, with no Basic header. The authenticated
+    GET must accept text/event-stream, then announce a same-origin /messages
+    endpoint; POST must accept application/json, text/event-stream and send
+    initialized notification. Recreate a host against the same grant and verify
+    one consent/exchange, two initialized receive streams, and both streams
+    eventually closed. Await actual server close events instead of assuming
+    remote closure happens within one scheduler tick. No tools/list/call or
+    provider-specific endpoint rewrites. Record results and purge QA-owned out.

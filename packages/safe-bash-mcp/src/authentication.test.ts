@@ -44,6 +44,37 @@ it("explicitly authenticates even with supplied schemas, emits the complete URL 
   expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
 });
 
+it("completes native OAuth for a pinned legacy SSE GET challenge before the endpoint handshake", async () => {
+  const f = fixture();
+  const cancel = vi.fn();
+  const encoder = new TextEncoder();
+  let stream: ReadableStreamDefaultController<Uint8Array>;
+  const calls: string[] = [];
+  const fetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url !== resource && url !== "https://resource.example/messages") return f.fetch(input, init);
+    if (new Headers(init?.headers).get("Authorization") !== "Bearer private-access")
+      return new Response(null, { status: 401, headers: { "WWW-Authenticate": 'Bearer resource_metadata="https://resource.example/.well-known/oauth-protected-resource/mcp"' } });
+    if (init?.method === "GET") return new Response(new ReadableStream({
+      start(controller) {
+        stream = controller;
+        controller.enqueue(encoder.encode("event: endpoint\ndata: /messages\n\n"));
+      }, cancel
+    }), { headers: { "Content-Type": "text/event-stream" } });
+    expect(url).toBe("https://resource.example/messages");
+    const request = JSON.parse(String(init?.body));
+    calls.push(request.method);
+    if (request.id !== undefined) stream.enqueue(encoder.encode(`data: ${JSON.stringify({ jsonrpc: "2.0", id: request.id,
+      result: { protocolVersion: "2025-03-26", serverInfo: { name: "legacy", version: "1" }, capabilities: { tools: {} } } })}\n\n`));
+    return new Response(null, { status: 202 });
+  });
+  const result = await authenticateRemoteMcpServer({ ...f.configuration, transport: "sse" }, { binding: f.binding, fetch, onAuthorizationUrl: f.observed });
+  expect(result.serverInfo?.name).toBe("legacy");
+  expect(calls).toEqual(["initialize", "notifications/initialized"]);
+  expect(f.observed).toHaveBeenCalledOnce();
+  expect(cancel).toHaveBeenCalledOnce();
+});
+
 it("carries the configured OAuth client name through an artifact into native dynamic registration", async () => {
   const f = fixture();
   const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26",

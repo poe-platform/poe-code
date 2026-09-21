@@ -21,13 +21,25 @@ function fixture(client: DefaultOAuthClientProviderOptions["client"]) {
   return { fetch, session: () => session, run: (selected = discovery) => provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
     challenge: null, discovery: selected, fetch }), authorize: () => provider.authorizeRequest!({ requestUrl: new URL(resource), headers: new Headers(), fetch }) };
 }
-it("uses a configured Basic method during code exchange and persisted silent refresh", async () => {
-  const f = fixture({ mode: "static", clientId: "client", clientSecret: "private-secret", tokenEndpointAuthMethod: "client_secret_basic" });
+it.each(["client_secret_basic", "client_secret_post"] as const)("uses configured %s during code exchange and persisted silent refresh", async tokenEndpointAuthMethod => {
+  const f = fixture({ mode: "static", clientId: "client", clientSecret: "private-secret", tokenEndpointAuthMethod });
   expect(await f.run()).toEqual({ action: "retry" });
-  expect(new Headers(f.fetch.mock.calls[0]?.[1]?.headers).get("Authorization")).toBe(`Basic ${Buffer.from("client:private-secret").toString("base64")}`);
   f.session()!.tokens!.expiresAt = 0;
   await f.authorize();
-  expect(new Headers(f.fetch.mock.calls[1]?.[1]?.headers).get("Authorization")).toBe(`Basic ${Buffer.from("client:private-secret").toString("base64")}`);
+  expect(f.fetch).toHaveBeenCalledTimes(2);
+  for (const [url, init] of f.fetch.mock.calls) {
+    expect(String(url)).toBe(`${issuer}/token`);
+    const body = new URLSearchParams(String(init?.body));
+    if (tokenEndpointAuthMethod === "client_secret_basic") {
+      expect(new Headers(init?.headers).get("Authorization")).toBe(`Basic ${Buffer.from("client:private-secret").toString("base64")}`);
+      expect(body.has("client_id")).toBe(false);
+      expect(body.has("client_secret")).toBe(false);
+    } else {
+      expect(new Headers(init?.headers).has("Authorization")).toBe(false);
+      expect(body.get("client_id")).toBe("client");
+      expect(body.get("client_secret")).toBe("private-secret");
+    }
+  }
 });
 it("refuses cached grants with a different explicitly selected authentication method", async () => {
   const f = fixture({ mode: "static", clientId: "client", clientSecret: "private-secret", tokenEndpointAuthMethod: "client_secret_basic" });

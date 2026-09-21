@@ -83,6 +83,26 @@ it("reports missing required environment references without consulting the proce
   expect(() => bindRemoteMcpConfiguration(configuration(), { env: {} })).toThrow("APP_ID");
 });
 
+it("requires configured authentication rather than reading unrelated grants after a remote 401", async () => {
+  const readToken = vi.fn(() => "unrelated-token");
+  const env = Object.defineProperty({}, "MCP_CATALOG_ACCESS_TOKEN", { get: readToken });
+  const sessionStore = vi.fn(() => memoryStore());
+  const bound = bindRemoteMcpConfiguration(initRemoteMcpConfiguration([server]).configuration, { env, oauth: { sessionStore } });
+  const fetch = vi.fn<HttpTransportFetch>(async () => new Response(null, { status: 401, headers: {
+    "WWW-Authenticate": 'Bearer resource_metadata="https://catalog.example/.well-known/oauth-protected-resource/mcp"'
+  } }));
+  const commands = await createRemoteMcpCommands(bound, { fetch });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+  try {
+    const result = await shell.exec("catalog find");
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stderr).error.status).toBe(401);
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(sessionStore).not.toHaveBeenCalled();
+    expect(readToken).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+
 it("never evaluates accessor or inherited environment values", () => {
   const getter = vi.fn(() => "secret");
   const env = Object.defineProperty({}, "APP_ID", { get: getter });

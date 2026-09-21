@@ -1,7 +1,7 @@
 import { normalizeStoredOAuthClient } from "./client-registration.js";
 import crypto from "node:crypto";
 import path from "node:path";
-import { createSecretStore, type CreateSecretStoreInput, type SecretStore } from "auth-store";
+import { createSecretStore, resolveSecretStoreBackend, type CreateSecretStoreInput, type SecretStore } from "auth-store";
 import type { OAuthSessionStore, StoredOAuthSession, StoredOAuthClient } from "./types.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 
@@ -93,7 +93,7 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput, name
 
 function snapshotPersistenceOptions(options: CreateSecretStoreInput): CreateSecretStoreInput {
   return {
-    ...options,
+    ...options, backend: resolveSecretStoreBackend(options),
     ...(options.fileStore === undefined ? {} : { fileStore: { ...options.fileStore } }),
     ...(options.keychainStore === undefined ? {} : { keychainStore: { ...options.keychainStore,
       ...(options.keychainStore.lock === undefined ? {} : { lock: { ...options.keychainStore.lock } }) } })

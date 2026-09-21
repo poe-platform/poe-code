@@ -64,6 +64,8 @@ aborting the original signal still cancels authorization.
 Native session and client persistence factories also capture file paths, salts,
 Keychain identities, lock locations and selected filesystem/command handles.
 Mutating these settings cannot redirect a later read or write.
+The factories resolve the selected backend environment variable once at creation;
+later environment changes cannot move a transaction between file and Keychain.
 
 `createJwksTokenVerifier(options)` accepts:
 

@@ -89,6 +89,42 @@ it("retains the original host filesystem dependency after option-handle replacem
   expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toEqual(session);
 });
 
+it.each(["session", "client"] as const)("captures the environment-selected backend for a %s store", async kind => {
+  const f = fixture(), env = { MCP_POLICY_BACKEND: "file" };
+  const runCommand = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 44 }));
+  const options = { fileStore: f.options.fileStore, env, backendEnvVar: "MCP_POLICY_BACKEND", platform: "darwin" as const,
+    keychainStore: { service: "fixture", account: "fixture", runCommand } };
+  env.MCP_POLICY_BACKEND = "file";
+  if (kind === "session") {
+    const store = createAuthStoreSessionStore(options);
+    await store.withLock!(resource, async () => {
+      env.MCP_POLICY_BACKEND = "keychain";
+      await store.save(resource, session);
+      expect(await createAuthStoreSessionStore({ ...options, backend: "file" }).load(resource)).toEqual(session);
+    }, { timeoutMs: 1000 });
+  } else {
+    const store = createAuthStoreClientStore(options), client = { clientId: "original-client" };
+    env.MCP_POLICY_BACKEND = "keychain";
+    await store.save(issuer, client);
+    expect(await createAuthStoreClientStore({ ...options, backend: "file" }).load(issuer)).toEqual(client);
+  }
+  expect(runCommand).not.toHaveBeenCalled();
+});
+
+it("captures an ambient backend selection without rereading it during a transaction", async () => {
+  const f = fixture(), backendEnvVar = "MCP_AMBIENT_POLICY_BACKEND";
+  vi.stubEnv(backendEnvVar, "file");
+  try {
+    const options = { fileStore: f.options.fileStore, backendEnvVar };
+    const store = createAuthStoreSessionStore(options);
+    await store.withLock!(resource, async () => {
+      vi.stubEnv(backendEnvVar, "invalid-replacement");
+      await store.save(resource, session);
+    }, { timeoutMs: 1000 });
+    expect(await createAuthStoreSessionStore({ ...options, backend: "file" }).load(resource)).toEqual(session);
+  } finally { vi.unstubAllEnvs(); }
+});
+
 it("uses the provider's namespace consistently while preserving another profile's pending refresh", async () => {
   const f = fixture();
   await createAuthStoreSessionStore(f.options, "profile-a").save(resource, session);

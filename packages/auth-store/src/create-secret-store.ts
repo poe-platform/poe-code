@@ -30,7 +30,7 @@ const storeFactories: Record<
 export function createSecretStore(
   input: CreateSecretStoreInput
 ): CreateSecretStoreResult {
-  const backend = resolveBackend(input);
+  const backend = resolveSecretStoreBackend(input);
   const platform = input.platform ?? process.platform;
 
   if (backend === "keychain" && platform !== MACOS_PLATFORM) {
@@ -44,7 +44,8 @@ export function createSecretStore(
   return { backend, store };
 }
 
-function resolveBackend(input: CreateSecretStoreInput): StoreBackend {
+/** Select and validate a backend without constructing a store or accessing credentials. */
+export function resolveSecretStoreBackend(input: CreateSecretStoreInput): StoreBackend {
   const envVar = input.backendEnvVar ?? DEFAULT_BACKEND_ENV_VAR;
   const configuredBackend =
     input.backend ?? getOwnEnvValue(input.env, envVar) ?? getOwnEnvValue(process.env, envVar);

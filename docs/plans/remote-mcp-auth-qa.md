@@ -193,3 +193,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     empty, and encrypted files must contain none of the synthetic tokens. Purge
     only this QA's data before a visual rerun, then record results and purge its
     entire owned out directory and screenshot.
+
+20. Select native encrypted persistence through an explicit host backend
+    environment variable, then through a task-owned ambient variable. After
+    creating each session store and acquiring its file lock, change the variable
+    to Keychain or an invalid value and save/load a pending-intent record. Require
+    the originally selected encrypted record and lock throughout, no Keychain
+    command invocation and no unrelated environment getter access. Restore the
+    task-owned process variable in finally. Verify explicit backend selection
+    short-circuits environment reads, compile a strict external TypeScript
+    consumer of resolveSecretStoreBackend and native factories through public
+    built exports, inspect safe summary output and purge the owned evidence.

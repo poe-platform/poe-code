@@ -25,6 +25,10 @@ const value = await store.get(); // "secret-value"
 await store.delete();
 ```
 
+Use `resolveSecretStoreBackend(options)` to select and validate the backend
+without constructing a store or reading credentials. Pass the returned backend
+explicitly when deferred operations must keep the same environment selection.
+
 Both built-in backends expose `store.withLock(operation, { signal, timeoutMs })`
 for transactions spanning a read, external operation and write. Independent
 instances and processes serialize the same encrypted file or Keychain

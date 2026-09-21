@@ -6785,3 +6785,32 @@ build/audit success and remaining checks in_progress; no current successful root
 publication verified. Foreign changes preserved. Continuous15:56:00–16:13:00 adds
 1020s,total123115s(34.20h), including prepared checklist work. Minimum fulfilled;
 full objective incomplete. Continue accounting after16:13:00UTC.
+
+### Terminal checklist and scoped ACP writers, 2026-09-21 16:23 UTC
+
+Missing core/SDK terminal/checklist APIs reproduced before implementation. Rust
+owns terminal width ranges, tab accounting, width truncation, visible cursor and
+conceal effects, and focused checklist formatting. Built-in Intl.Segmenter supplies
+grapheme boundaries; host callbacks preserve status/content getter order and
+original exception identity. Scoped ACP writers support terminal/Markdown/JSON
+checklists. Only formatAgentPlan/renderAgentPlan/getAcpWriter/withAcpWriter are
+present in the ACP namespace; full ACP/styled ANSI/Markdown parity remains open.
+A 400-digit SGR integer conceal-reset oracle failed, then nonfinite parameter
+normalization repaired it. Maintained22Rust/28native groups/75reference cases in
+5files and bidirectional partial ACP types pass. Full/shared/scoped lint passes.
+Final sequential selected uncached6-build closure at concurrency1 passes.
+
+Packed one addon/14audited files/zero npm runtime groups. Final sequential direct/
+packed blocked-external16MiBworkers each complete prior design workloads plus
+8192plans and async writer contexts; final JS heap6.48–7.26MiB. Limits do not bound
+total/native memory. Viewed out/rust-design-plan.png: layout is readable; screenshot
+font lacks some Unicode glyphs. Five alternating warmed4096-plan pairs with12
+entries measure82.16–85.59ms owned vs12.21–12.93ms original. Performance gate FAIL;
+frequent cross-boundary callbacks remain a cost. No superiority claim or consumer
+integration. Evidence out/rust-design-plan-*.
+
+Summary76cabb720 pushed and remote main verified. Release35621323705 remains
+in_progress; latest35624143845 pending. No current successful root publication
+verified. Foreign changes preserved. Continuous16:13:00–16:23:00 adds600s,
+total123715s(34.37h). Minimum fulfilled; full objective incomplete.
+Continue accounting after16:23:00UTC.

@@ -55,3 +55,7 @@ type Visual = Pick<typeof originalDesign,"color"|"text"|"typography"|"brands"|"b
 const visualOriginal:Visual=design;
 const visualOwn:Pick<typeof design,keyof Visual>=null as unknown as Visual;
 void[visualOriginal,visualOwn];
+type Plans=Pick<typeof originalDesign.acp,"formatAgentPlan"|"renderAgentPlan"|"getAcpWriter"|"withAcpWriter">;
+const plansOriginal:Plans=design.acp;
+const plansOwn:Pick<typeof design.acp,keyof Plans>=null as unknown as Plans;
+void[plansOriginal,plansOwn];

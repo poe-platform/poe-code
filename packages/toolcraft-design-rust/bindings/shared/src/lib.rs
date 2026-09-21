@@ -409,3 +409,83 @@ pub fn design_log_render(
     )
     .into()
 }
+#[napi(object)]
+pub struct DesignSegmentsReply {
+    pub segments: Vec<Utf16String>,
+    pub error: bool,
+}
+#[napi(object)]
+pub struct DesignPlanReadReply {
+    pub text: Utf16String,
+    pub error: bool,
+}
+fn design_segments(
+    segment: &Function<'_, Utf16String, DesignSegmentsReply>,
+    text: &[u16],
+) -> Result<Vec<Vec<u16>>> {
+    let reply = segment.call(text.to_vec().into())?;
+    if reply.error {
+        return Err(Error::from_reason("Terminal grapheme host failed"));
+    }
+    Ok(reply.segments.into_iter().map(|s| s.to_vec()).collect())
+}
+#[napi]
+pub fn design_grapheme_width(text: Utf16String) -> u32 {
+    toolcraft_design_rust::terminal::grapheme_width(&text) as u32
+}
+#[napi]
+pub fn design_display_width(segments: Vec<Utf16String>, start: f64) -> f64 {
+    toolcraft_design_rust::terminal::display_width(
+        &segments.into_iter().map(|s| s.to_vec()).collect::<Vec<_>>(),
+        start,
+    )
+}
+#[napi]
+pub fn design_expand_tabs(segments: Vec<Utf16String>, start: f64) -> Result<Utf16String> {
+    toolcraft_design_rust::terminal::expand_tabs(
+        &segments.into_iter().map(|s| s.to_vec()).collect::<Vec<_>>(),
+        start,
+    )
+    .map(Into::into)
+    .map_err(|reason| Error::new(Status::GenericFailure, reason))
+}
+#[napi]
+pub fn design_truncate_width(segments: Vec<Utf16String>, width: f64) -> Utf16String {
+    toolcraft_design_rust::terminal::truncate_overflow(
+        &segments.into_iter().map(|s| s.to_vec()).collect::<Vec<_>>(),
+        width,
+    )
+    .into()
+}
+#[napi]
+pub fn design_plain_terminal_text(
+    text: Utf16String,
+    segment: Function<'_, Utf16String, DesignSegmentsReply>,
+) -> Result<Utf16String> {
+    toolcraft_design_rust::terminal::plain(&text, |text| design_segments(&segment, text))
+        .map(Into::into)
+}
+#[napi]
+pub fn design_agent_plan(
+    length: u32,
+    read: Function<'_, FnArgs<(u32, bool)>, DesignPlanReadReply>,
+    segment: Function<'_, Utf16String, DesignSegmentsReply>,
+) -> Result<NativeJson> {
+    let (text, detail) = toolcraft_design_rust::terminal::plan(
+        length as usize,
+        |index, content| {
+            let reply = read.call((index as u32, content).into())?;
+            if reply.error {
+                Err(Error::from_reason("Plan entry host failed"))
+            } else {
+                Ok(reply.text.to_vec())
+            }
+        },
+        |text| design_segments(&segment, text),
+    )?;
+    let mut fields = vec![("text".encode_utf16().collect(), Value::String(text))];
+    if let Some(detail) = detail {
+        fields.push(("detail".encode_utf16().collect(), Value::String(detail)));
+    }
+    Ok(NativeJson(Value::Object(fields)))
+}

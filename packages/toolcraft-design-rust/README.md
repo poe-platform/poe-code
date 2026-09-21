@@ -20,6 +20,23 @@ console.log(text.command('poe-agent'));
 console.log(color.green.bold('Completed'));
 ```
 
+`acp.formatAgentPlan(entries)` produces a compact checklist around the active
+step and keeps the full checklist in `detail` when it is shortened. Previews
+respect Unicode graphemes and terminal widths. Cursor controls and hidden terminal
+strings become safe visible text. `acp.renderAgentPlan` uses the current output
+format; `acp.withAcpWriter` routes rendered lines to your view throughout async work.
+
+```ts
+import {acp} from 'toolcraft-design-rust';
+
+const entries = [{content: 'Review changes', status: 'in_progress' as const}];
+console.log(acp.formatAgentPlan(entries).text);
+const lines: string[] = [];
+await acp.withAcpWriter(line => lines.push(line), async () => {
+  acp.renderAgentPlan(entries);
+});
+```
+
 ```ts
 import {renderTemplate,resolveTemplatePartials} from 'toolcraft-design-rust';
 

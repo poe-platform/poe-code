@@ -15,6 +15,7 @@ import { replaceCellContent } from "./cell-content.js";
 import { editDocumentParagraphs } from "./paragraph-edit.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
+import { storedBooleanValue } from "./stored-lexical.js";
 import { tableContainerWidth } from "./table-insertion.js";
 import { editMergedTable, mergedTableGrid } from "./table-merge.js";
 import { resolveDocxSelection } from "./simple-selection.js";
@@ -96,7 +97,13 @@ function descendants(node: XmlElement, children: (node: XmlElement) => readonly 
   }
   return result;
 }
-function header(row: XmlElement, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): boolean { const props = one(row, "trPr", projected), flag = props && one(props, "tblHeader", projected); return Boolean(flag && !["0", "false", "off"].includes(attr(flag, "val") ?? "1")); }
+function header(row: XmlElement, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): boolean {
+  const props = one(row, "trPr", projected), flag = props && one(props, "tblHeader", projected);
+  if (!flag) return false;
+  const value = storedBooleanValue(attr(flag, "val") ?? "1");
+  if (value === null) throw new UnsupportedEditError("Invalid repeated table header policy value.");
+  return value;
+}
 function validateHeaders(flags: readonly boolean[]): void {
   let ended = false;
   for (const value of flags) { if (value && ended) throw new InvalidValueError("Repeated headers must be consecutive leading rows."); if (!value) ended = true; }

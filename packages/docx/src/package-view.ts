@@ -16,7 +16,9 @@ import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
 import { parseDocumentXml } from "./package-xml.js";
 import { Image, type ImageModelInput, type ImageModelContext } from "./image-model.js";
-import type { DocumentModelInput } from "./model-input.js";
+import { acquireDocumentModelInput, type DocumentModelInput } from "./model-input.js";
+import { modelContext } from "./model-context.js";
+import { readDocumentArchive } from "./admission.js";
 import type { DocumentModelContext } from "./model-context.js";
 import type { Length } from "./formatting-values.js";
 import { Comments } from "./review-model.js";
@@ -95,8 +97,11 @@ export class PackageView {
   readonly #images = new Map<string, Image>();
   constructor(binding: PackageViewBinding) { this.#binding = binding; }
   static async open(input: DocumentModelInput, context?: DocumentModelContext): Promise<PackageView> {
-    const { Document } = await import("./document-model.js");
-    const document = await Document(input, context);
+    const settings = modelContext(context);
+    const bytes = await acquireDocumentModelInput(input, settings);
+    const archive = await readDocumentArchive(bytes, settings);
+    const { bindAdmittedDocument } = await import("./document-model.js");
+    const document = await bindAdmittedDocument(archive, settings);
     const owner = document.part.package;
     owner.after_unmarshal();
     return owner;

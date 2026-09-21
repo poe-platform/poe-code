@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "task": "sdk-async-capabilities",
+  "scope": "Package factory ownership, not whole API or source-case parity",
+  "inputs": {
+    "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "docs/docx/upstream-test-inventory.json": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+  },
+  "red_before_code": {
+    "cases": 2,
+    "failures": [
+      "Immediate caller byte mutation invalidated package admission",
+      "Immediate caller path mutation selected /later instead of /original"
+    ]
+  },
+  "mapping": {
+    "source_members": [
+      "docx.package.Package.open",
+      "docx.opc.package.OpcPackage.open"
+    ],
+    "target": "PackageView.open(input: DocumentModelInput, context?: DocumentModelContext): Promise<PackageView>",
+    "source_case": "tests/opc/test_package.py::DescribeOpcPackage::it_can_open_a_pkg_file",
+    "security": "Explicit owned Uint8Array, byte source or token-bearing VFS path replaces host path/file authority. Matching binaryResolver required; no implicit network.",
+    "ownership": "Capture context/input before first suspension; bind the same ModelStore/DocumentView after admission. No duplicate acquisition or budget reservation.",
+    "defaults": "Package open requires an input, matching the documented required argument. Null/undefined creation remains Document only. Context defaults remain deterministic."
+  },
+  "original_tests": [
+    "packages/docx/src/package-admission-ownership.test.ts"
+  ],
+  "focused": {
+    "cases": 4,
+    "passed": 4
+  },
+  "checks": {
+    "workspace_unit": "Final combined maintained execution recorded in async-capabilities.json",
+    "workspace_lint": "Final combined maintained lint passed, one unchanged type-only unused-variable warning",
+    "fresh_build": "Final combined selected workspace closure passed; portable filesystem build only"
+  },
+  "limits": "No historical inventories rewritten, complete public behavior/source cases/renderer qualification claimed, or unsupported members hidden. Later tasks remain pending. Local delivery only."
+}

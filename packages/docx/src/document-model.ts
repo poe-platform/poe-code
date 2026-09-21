@@ -191,6 +191,14 @@ export async function Document(
           settings
         )
       : await readDocumentArchive(await acquireDocumentModelInput(input, settings), settings);
+  return bindAdmittedDocument(archive, settings);
+}
+
+/** Internal binding after owned admission, shared by document and package factories. */
+export async function bindAdmittedDocument(
+  archive: import("./admission.js").AdmittedDocumentArchive,
+  settings: import("./model-context.js").AdmittedModelContext
+): Promise<DocumentView> {
   const store = new ModelStore(archive, settings, archive.mainPart);
   await store.package[packageAdmitImages]();
   return store.document;

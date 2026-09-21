@@ -1,0 +1,164 @@
+import { createHash } from "node:crypto";
+import { expect, it, vi } from "vitest";
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import type { HttpTransportFetch, Tool } from "tiny-mcp-client";
+import { generateRemoteMcpArtifact, initRemoteMcpConfiguration, parseRemoteMcpArtifact, remoteMcpArtifactPlugin } from "./index.js";
+
+const tool: Tool = { name: "search_items", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+  outputSchema: { type: "object", properties: { query: { type: "string" } } }, annotations: { readOnlyHint: true } };
+const server = { name: "catalog", url: "https://catalog.example/mcp", protocolVersion: "2025-03-26" as const };
+function remote() {
+  const requests: { method: string; params?: unknown }[] = [];
+  const fetch = vi.fn<HttpTransportFetch>(async (_url, init) => {
+    if (init?.method === "DELETE") return new Response(null, { status: 204 });
+    const request = JSON.parse(String(init?.body)); requests.push(request);
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    const result = request.method === "initialize" ? { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "catalog-server", version: "1" }, instructions: "Prefer reads" }
+      : request.method === "tools/list" ? { tools: [tool] } : { content: [{ type: "text", text: "first" }, { type: "text", text: "second" }], structuredContent: request.params.arguments };
+    return Response.json({ jsonrpc: "2.0", id: request.id, result });
+  });
+  return { fetch, requests };
+}
+
+it("generates credential-reference artifacts from supplied schemas without reading credentials or connecting", async () => {
+  const { configuration } = initRemoteMcpConfiguration([{ ...server, tools: [tool], auth: { type: "bearer", env: "CATALOG_TOKEN" } }]);
+  const fetch = vi.fn<HttpTransportFetch>(), env = { get CATALOG_TOKEN(): string { throw new Error("must not read secret"); } };
+  const generated = await generateRemoteMcpArtifact(configuration, { binding: { env }, schema: { fetch } });
+  expect(fetch).not.toHaveBeenCalled();
+  expect(generated.artifact.configuration.servers[0].auth).toEqual({ type: "bearer", token: { env: "CATALOG_TOKEN" } });
+  expect(generated.artifact.schemas[0].tools).toEqual([tool]);
+  expect(parseRemoteMcpArtifact(generated.json)).toEqual(generated.artifact);
+});
+
+it("is reproducible across server/tool/schema key order while preserving semantic array order", async () => {
+  const first = { ...tool, inputSchema: { ...tool.inputSchema, properties: { z: { enum: ["b", "a"] }, query: { type: "string" } } } };
+  const second = { ...tool, inputSchema: { required: ["query"], properties: { query: { type: "string" }, z: { enum: ["b", "a"] } }, type: "object" } };
+  const a = initRemoteMcpConfiguration([{ ...server, name: "zeta", tools: [] }, { ...server, tools: [{ ...first, name: "z-tool" }, first] }]).configuration;
+  const b = initRemoteMcpConfiguration([{ ...server, tools: [second, { ...second, name: "z-tool" }] }, { ...server, name: "zeta", tools: [] }]).configuration;
+  const left = await generateRemoteMcpArtifact(a), right = await generateRemoteMcpArtifact(b);
+  expect(left.json).toBe(right.json); expect(left.module).toBe(right.module);
+  expect(left.artifact.configuration.servers.map(s => s.name)).toEqual(["catalog", "zeta"]);
+  expect(left.artifact.configuration.servers[0].tools?.[0].inputSchema.properties?.z.enum).toEqual(["b", "a"]);
+});
+
+it("discovers absent schemas, preserves server metadata and excludes resolved credentials", async () => {
+  const f = remote(), { configuration } = initRemoteMcpConfiguration([{ ...server, auth: { type: "bearer", env: "TOKEN" } }]);
+  const generated = await generateRemoteMcpArtifact(configuration, { binding: { env: { TOKEN: "private-token-value" } }, schema: { fetch: f.fetch } });
+  expect(generated.artifact.schemas[0]).toMatchObject({ source: "discovered", serverInfo: { name: "catalog-server", version: "1" }, capabilities: { tools: {} }, instructions: "Prefer reads", tools: [tool] });
+  expect(generated.artifact.configuration.servers[0].tools).toEqual([tool]);
+  expect(generated.json).not.toContain("private-token-value"); expect(generated.module).not.toContain("private-token-value");
+  expect(f.requests.map(r => r.method)).toEqual(["initialize", "notifications/initialized", "tools/list"]);
+});
+
+it("refuses to serialize credentials echoed into discovery metadata", async () => {
+  const f = remote(), { configuration } = initRemoteMcpConfiguration([{ ...server, auth: { type: "bearer", env: "TOKEN" } }]);
+  const fetch: HttpTransportFetch = async (url, init) => {
+    const response = await f.fetch(url, init);
+    if (!response.ok || response.status === 202 || response.status === 204) return response;
+    const value = await response.json();
+    if (value.result?.serverInfo) value.result.serverInfo.name = "private-token-value";
+    return Response.json(value);
+  };
+  const error = await generateRemoteMcpArtifact(configuration, { binding: { env: { TOKEN: "private-token-value" } }, schema: { fetch } }).catch(error => error);
+  expect(error).toBeInstanceOf(Error);
+  expect(error.message).toContain("resolved credential");
+  expect(error.message).not.toContain("private-token-value");
+});
+
+it("also quarantines discovery echoes of persisted runtime grants absent from the environment", async () => {
+  const f = remote(), issuer = "https://auth.example";
+  const { configuration } = initRemoteMcpConfiguration([{ ...server, auth: { type: "oauth", clientMode: "static", env: { clientId: "ID" } } }]);
+  const fetch: HttpTransportFetch = async (url, init) => {
+    const response = await f.fetch(url, init);
+    if (!response.ok || response.status === 202 || response.status === 204) return response;
+    const value = await response.json();
+    if (value.result?.serverInfo) value.result.serverInfo.name = "persisted-private-token";
+    return Response.json(value);
+  };
+  const sessionStore = { load: async () => ({ resource: server.url, authorizationServer: issuer, client: { clientId: "qa-client" },
+    tokens: { accessToken: "persisted-private-token", refreshToken: "persisted-private-refresh", tokenType: "Bearer" as const, expiresAt: null },
+    discovery: { resourceMetadataUrl: `${server.url}/metadata`, resourceMetadata: { resource: server.url, authorization_servers: [issuer] }, authorizationServerMetadata: {
+      issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"]
+    } } }), save: async () => {}, clear: async () => {} };
+  const error = await generateRemoteMcpArtifact(configuration, { binding: { env: { ID: "qa-client" }, oauth: { sessionStore: () => sessionStore } }, schema: { fetch } }).catch(error => error);
+  expect(error).toBeInstanceOf(Error);
+  expect(error.message).toContain("resolved credential");
+  expect(error.message).not.toContain("persisted-private-token");
+});
+
+it("imports a dependency-free ESM artifact and runs it in a real Shell using runtime credentials", async () => {
+  const f = remote(), { configuration } = initRemoteMcpConfiguration([{ ...server, tools: [tool], auth: { type: "bearer", env: "TOKEN" } }]);
+  const generated = await generateRemoteMcpArtifact(configuration);
+  const module = await import(`data:text/javascript;base64,${Buffer.from(generated.module).toString("base64")}`);
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  shell.use(await remoteMcpArtifactPlugin(module.default, { binding: { env: { TOKEN: "runtime-secret" } }, commands: { fetch: f.fetch } }));
+  try {
+    const result = await shell.exec("catalog search_items --query '005930'");
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ structuredContent: { query: "005930" }, content: [{ text: "first" }, { text: "second" }] });
+    expect(f.requests.some(r => r.method === "tools/list")).toBe(false);
+    expect(f.fetch.mock.calls.every(([,init]) => new Headers(init?.headers).get("Authorization") === "Bearer runtime-secret")).toBe(true);
+  } finally { await shell.dispose(); }
+});
+
+it("preserves prototype-named schema keys and adversarial strings through generated ESM", async () => {
+  const special = { ...tool, name: "__proto__", description: 'literal \\n </script> ${ignored} \u2028', inputSchema: { type: "object", properties: { ["__proto__"]: { type: "string" } } } };
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [special] }]).configuration);
+  const module = await import(`data:text/javascript;base64,${Buffer.from(generated.module).toString("base64")}`);
+  expect(module.default.configuration.servers[0].tools[0]).toEqual(special);
+  expect(Object.hasOwn(module.default.configuration.servers[0].tools[0].inputSchema.properties, "__proto__")).toBe(true);
+});
+
+it("rejects changed artifacts before consulting environments or providers", async () => {
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration);
+  const changed = structuredClone(generated.artifact); changed.configuration.servers[0].url = "https://other.example/mcp";
+  const env = { get TOKEN(): string { throw new Error("read secret"); } };
+  await expect(remoteMcpArtifactPlugin(changed, { binding: { env } })).rejects.toThrow("digest");
+  const { digest: ignoredDigest, ...payload } = generated.artifact;
+  expect(generated.artifact.digest).toHaveLength(64);
+  expect(createHash("sha256").update(JSON.stringify(payload)).digest("hex")).toBe(generated.artifact.digest);
+});
+
+it("rejects internally inconsistent snapshots even with a recomputed digest", async () => {
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration);
+  const changed = structuredClone(generated.artifact); changed.schemas[0].url = "https://other.example/mcp";
+  const { digest: ignoredDigest, ...payload } = changed;
+  changed.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+  expect(() => parseRemoteMcpArtifact(changed)).toThrow("schema/configuration mismatch");
+});
+
+it("preserves typed, nested, array and raw inputs through an imported artifact and real Shell", async () => {
+  const f = remote();
+  const rich: Tool = { ...tool, name: "search-items", inputSchema: { type: "object", required: ["query"], properties: {
+    query: { type: "string" }, count: { type: "integer" }, settings: { type: "object" }, rows: { type: "array", items: { type: "object" } }
+  } } };
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [rich] }]).configuration);
+  const module = await import(`data:text/javascript;base64,${Buffer.from(generated.module).toString("base64")}`);
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  shell.use(await remoteMcpArtifactPlugin(module.default, { binding: { env: {} }, commands: { fetch: f.fetch } }));
+  try {
+    const scripts = [
+      ["catalog search-items --query '1715771790.000000' --count 5", { query: "1715771790.000000", count: 5 }],
+      ["catalog search-items query=005930 count:=5", { query: "005930", count: 5 }],
+      ["catalog search-items query:00123 settings:'{\"nested\":[1,2]}'", { query: "00123", settings: { nested: [1, 2] } }],
+      ["catalog search-items --query x --rows '{\"a\":1,\"b\":2},{\"a\":3}'", { query: "x", rows: [{ a: 1, b: 2 }, { a: 3 }] }],
+      ["catalog search-items --raw '{\"query\":\"00123\",\"settings\":{\"x\":[1,2]},\"rows\":[{\"a\":1}]}'", { query: "00123", settings: { x: [1, 2] }, rows: [{ a: 1 }] }]
+    ] as const;
+    for (const [script, expected] of scripts) {
+      const result = await shell.exec(script);
+      expect(result.exitCode).toBe(0);
+      expect(JSON.parse(result.stdout).structuredContent).toEqual(expected);
+    }
+    expect(f.requests.some(r => r.method === "tools/list")).toBe(false);
+  } finally { await shell.dispose(); }
+});
+
+it("bounds generated and parsed artifact bytes and observes cancellation before discovery", async () => {
+  const configuration = initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration;
+  await expect(generateRemoteMcpArtifact(configuration, { maxArtifactBytes: 100 })).rejects.toThrow("artifact byte limit");
+  const generated = await generateRemoteMcpArtifact(configuration);
+  expect(() => parseRemoteMcpArtifact(generated.json, { maxArtifactBytes: 100 })).toThrow("artifact byte limit");
+  const controller = new AbortController(), reason = new Error("cancel generation"), fetch = vi.fn<HttpTransportFetch>(); controller.abort(reason);
+  await expect(generateRemoteMcpArtifact(configuration, { schema: { fetch, signal: controller.signal } })).rejects.toBe(reason);
+  expect(fetch).not.toHaveBeenCalled();
+});

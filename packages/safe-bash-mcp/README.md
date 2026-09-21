@@ -31,7 +31,10 @@ server identity, capabilities and instructions.
 | `initRemoteMcpConfiguration(servers, options)` | Create versioned configuration and empty credential templates |
 | `parseRemoteMcpConfiguration(value, options)` | Validate and copy configuration from JSON text or an object |
 | `bindRemoteMcpConfiguration(value, options)` | Resolve environment references into runtime server credentials |
-| `createRemoteMcpManagementCommand(servers, options)` | Create the safe-bash `mcp init` command |
+| `createRemoteMcpManagementCommand(servers, options)` | Create the safe-bash `mcp init` and `mcp generate` commands |
+| `generateRemoteMcpArtifact(configuration, options)` | Discover absent schemas and emit reproducible JSON/ESM data |
+| `parseRemoteMcpArtifact(value, options)` | Validate artifact size, digest and configuration/schema agreement |
+| `remoteMcpArtifactPlugin(artifact, options)` | Bind credentials and register artifact commands without rediscovery |
 
 Use `headers` or the client's `oauth` options for credentials. URLs must use
 HTTP or HTTPS without embedded credentials or fragments. Discovery supports
@@ -166,4 +169,39 @@ Persisted rotated or cleared grants take precedence over imported environment
 tokens. A fresh import avoids discovery; an expired or explicitly rejected grant
 binds validated discovery before refreshing with its original client.
 
-Reproducible artifact generation is under development.
+Generate a reusable artifact from declarative configuration:
+
+```ts
+import { generateRemoteMcpArtifact, remoteMcpArtifactPlugin } from "safe-bash-mcp";
+
+const generated = await generateRemoteMcpArtifact(configuration, {
+  binding: { env: environmentSnapshot },
+  schema: { signal: controller.signal }
+});
+// Persist generated.json or generated.module with your host's file API.
+shell.use(await remoteMcpArtifactPlugin(generated.artifact, {
+  binding: { env: environmentSnapshot }
+}));
+```
+
+`mcp generate` prints the JSON artifact. Use `--format config` for resolved
+configuration or `--format module` for an ESM data module that exports the
+artifact as default. Shell redirection works for all formats. Host-selected SDK
+generation settings are available as management `options.generation`; discovery
+uses the command's environment unless the host supplies an explicit binding.
+
+Server/tool ordering and nested JSON keys are stable; semantic arrays retain
+their order. Artifacts contain no generation timestamp, temporary filesystem
+path or resolved credential values. Only absent schemas require credential
+binding and network discovery. Server identity, capabilities, instructions,
+annotations and complete input/output schemas remain in the snapshot. Generation
+refuses discovery metadata that echoes a known resolved credential, including
+persisted/rotated grants observed during authorization, with safe diagnostics.
+
+The ESM data module has no dependency imports and can be loaded from any working
+directory. Runtime commands use the host's installed `safe-bash-mcp` library and
+explicit environment binding; every schema is supplied, so loading does not
+rediscover tools. The parser checks a SHA-256 content digest and snapshot/config
+agreement before touching credentials. `maxArtifactBytes` bounds generated JSON
+and modules individually, and parsed artifacts (default 32 MiB). Existing
+configuration, discovery, cancellation and credential limits still apply.

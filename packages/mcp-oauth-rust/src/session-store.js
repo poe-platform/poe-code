@@ -20,6 +20,7 @@ function namedStore(key, options, client, namespace) {
     ...options,
     fileStore: {
       ...options.fileStore,
+      throwOnInvalidDocument: true,
       filePath: parsed === null ? undefined : path.join(parsed.dir, filename),
       salt: options.fileStore?.salt ?? defaults.salt,
       defaultDirectory: options.fileStore?.defaultDirectory || defaults.directory,

@@ -30,6 +30,7 @@ export interface EncryptedFileStoreInput {
   fs?: EncryptedFileStoreFileSystem;
   filePath?: string;
   salt: string;
+  throwOnInvalidDocument?: boolean;
   defaultDirectory?: string;
   defaultFileName?: string;
   getMachineIdentity?: () => MachineIdentity | Promise<MachineIdentity>;

@@ -49,9 +49,11 @@ export function createCredentialStoreBindings(native) {
     #identity;
     #random;
     #keyPromise = null;
+    #throwOnInvalidDocument;
     constructor(input) {
       this.#fs = input.fs ?? defaultFs;
       this.#salt = input.salt;
+      this.#throwOnInvalidDocument = input.throwOnInvalidDocument ?? false;
       if (input.filePath === undefined) {
         const home = (input.getHomeDirectory ?? homedir)();
         const directory = input.defaultDirectory ?? ".auth-store";
@@ -149,17 +151,24 @@ export function createCredentialStoreBindings(native) {
         throw error;
       }
       const document = native.parseDocument(raw);
-      if (document === null) return null;
+      if (document === null) {
+        if (this.#throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
+        return null;
+      }
       const key = await this.#getKey();
       try {
         const iv = Buffer.from(document.iv, "base64"),
           tag = Buffer.from(document.authTag, "base64"),
           ciphertext = Buffer.from(document.ciphertext, "base64");
-        if (iv.byteLength !== 12 || tag.byteLength !== 16) return null;
+        if (iv.byteLength !== 12 || tag.byteLength !== 16) {
+          if (this.#throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
+          return null;
+        }
         const decipher = createDecipheriv("aes-256-gcm", key, iv);
         decipher.setAuthTag(tag);
         return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
       } catch {
+        if (this.#throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
         return null;
       }
     }

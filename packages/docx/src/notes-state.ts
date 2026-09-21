@@ -55,8 +55,8 @@ function numbering(node: XmlElement | undefined, kind: NoteKind, fallback: NoteN
   const storedStart = values("numStart"), restart = values("numRestart");
   const start = storedStart === undefined ? undefined : trimXmlWhitespace(storedStart);
   const digits = start?.startsWith("+") || start?.startsWith("-") ? start.slice(1) : start;
-  if (start !== undefined && (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(start)) || Number(start) < 1))
-    throw new InvalidPackageError("Note numbering start must be a positive integer.");
+  if (start !== undefined && (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(start))))
+    throw new InvalidPackageError("Note numbering start must be a bounded integer.");
   if (restart !== undefined && !["continuous", "eachSect", "eachPage"].includes(restart)) throw new InvalidPackageError("Unknown note numbering restart rule.");
   return { format: values("numFmt") ?? fallback.format, start: start === undefined ? fallback.start : Number(start), restart: restart ?? fallback.restart };
 }

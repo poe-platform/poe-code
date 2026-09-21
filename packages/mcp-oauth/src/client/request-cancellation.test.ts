@@ -76,3 +76,45 @@ it("cancels stalled token bodies with the request signal while retaining tokenle
     expect(save.mock.calls[0]?.[1]).not.toHaveProperty("tokens");
   } finally { try { body.close(); } catch { /* Cancelled. */ } await pending; }
 });
+
+it("settles unauthorized-request cancellation during a stalled provenance read without later redemption", async () => {
+  const entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>(), controller = new AbortController();
+  const fetch = vi.fn(async () => { throw new Error("canceled request must not redeem"); });
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, allowInteractive: false, browser: {},
+    sessionStore: { load: async () => { entered.resolve(); await release.promise; return null; }, save: async () => {}, clear: async () => {} } });
+  const reason = new Error("cancel provenance read");
+  const pending = Promise.resolve(provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+    discovery, challenge: null, fetch, signal: controller.signal })).catch(error => error);
+  try {
+    await entered.promise; controller.abort(reason);
+    expect(await Promise.race([pending, setImmediate().then(() => "still waiting")])).toBe(reason);
+    expect(fetch).not.toHaveBeenCalled();
+  } finally { release.resolve(); await pending; }
+  await setImmediate();
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+it("settles explicit-auth cancellation while its selected lazy discovery callback is stalled", async () => {
+  const entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>(), controller = new AbortController();
+  const openBrowser = vi.fn(), fetch = vi.fn(async () => { throw new Error("canceled discovery must not continue"); });
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: { openBrowser },
+    sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } });
+  const reason = { canceled: "lazy-discovery" };
+  const pending = provider.authenticate!({ requestUrl: new URL(resource), fetch, signal: controller.signal,
+    discover: async () => { entered.resolve(); await release.promise; return discovery; } }).catch(error => error);
+  try {
+    await entered.promise; controller.abort(reason);
+    expect(await Promise.race([pending, setImmediate().then(() => "still waiting")])).toBe(reason);
+  } finally { release.resolve(); await pending; }
+  await setImmediate();
+  expect(openBrowser).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+});
+
+it("rejects an already canceled unauthorized request before reading credentials", async () => {
+  const load = vi.fn(async () => null), reason = new Error("already canceled");
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: {},
+    sessionStore: { load, save: async () => {}, clear: async () => {} } });
+  await expect(provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }), discovery,
+    challenge: null, fetch: vi.fn(), signal: AbortSignal.abort(reason) })).rejects.toBe(reason);
+  expect(load).not.toHaveBeenCalled();
+});

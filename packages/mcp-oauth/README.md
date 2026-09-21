@@ -95,7 +95,11 @@ Always close a successful standalone session in `finally`.
 
 Provider request inputs accept an optional `signal`. It reaches callback waits,
 registration, token requests and bounded token-body reads. Cancellation retains
-its original reason and does not retry authorization. Custom providers should
+its original reason and does not retry authorization. Native provider calls
+also settle cancellation while host persistence or lazy discovery callbacks are
+waiting. An unfinished transaction keeps its lease until its host work finishes;
+following callers must wait or reach their own lock-acquisition limit. This
+prevents overlap with a pending refresh-intent write. Custom providers should
 observe the supplied signal and pass it to any work they start.
 
 `authorizeRequest` may return an owned token snapshot for the request it

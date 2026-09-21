@@ -268,6 +268,9 @@ calling host clocks or store factories, so those callbacks cannot replace the
 factory used for later servers. Supply `oauth.sessionStore(server)` for host-owned
 persistence, or `oauth.authStore` for the native secret-store backend.
 `oauth.sessionLockTimeoutMs` bounds transaction lock acquisition (default 30 s).
+Cancellation settles native provider calls while a host store callback waits.
+Its unfinished transaction retains the lease until that callback finishes, so
+later requests cannot bypass an outstanding refresh-intent write.
 Set `auth.tokenEndpointAuthMethod` to `none`, `client_secret_post` or
 `client_secret_basic` to select token authentication. This public setting is
 preserved by init and generated artifacts; credentials remain environment

@@ -1,4 +1,5 @@
 import type { OAuthSessionStore } from "./types.js";
+import { waitForOAuthOperation } from "./cancellable-operation.js";
 
 const queues = new WeakMap<OAuthSessionStore, Map<string, Promise<void>>>();
 
@@ -21,6 +22,7 @@ export async function withOAuthSessionTransaction<T>(
   const current = new Promise<void>(resolve => { release = resolve; });
   const tail = previous.then(() => current);
   pending.set(resource, tail);
+  let running: Promise<T> | undefined;
   try {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let rejectWait!: (reason?: unknown) => void;
@@ -36,11 +38,14 @@ export async function withOAuthSessionTransaction<T>(
       options.signal?.removeEventListener("abort", abort);
     }
     options.signal?.throwIfAborted();
-    return store.withLock === undefined ? await operation() : await store.withLock(resource, operation, {
+    running = (async () => store.withLock === undefined ? operation() : store.withLock(resource, operation, {
       signal: options.signal, timeoutMs: Math.max(0, timeoutMs - (performance.now() - started))
-    });
+    }))();
+    return await waitForOAuthOperation(running, options.signal);
   } finally {
-    release();
+    // Cancellation settles the caller, but unfinished host work still owns the lease.
+    if (running === undefined) release();
+    else void running.then(release, release);
     void tail.then(() => { if (pending.get(resource) === tail) pending.delete(resource); });
   }
 }

@@ -267,3 +267,20 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     results and exact005930. Require five retired sessions and zero tools/list.
     Keep a stable session ID on each fixture connection and answer unsupported
     receive-stream GET with405. Inspect safe summary output and purge owned data.
+
+26. Use built native providers with a host store over an actual local token
+    endpoint. Gate the first session read, backend-lock callback, refresh-intent
+    write or rejected-request provenance read; cancel with an identifiable
+    original reason. Require caller settlement before releasing the callback.
+    For transaction-owned work, start a follower and require its read/redemption
+    to remain blocked. After release, read/lock followers may refresh exactly
+    once each; the intent-write follower must reject retained pending intent
+    without redemption. Provenance cancellation must never continue afterward.
+    Separately gate lazy explicit discovery and require prompt cancellation with
+    no consent/token traffic. An already canceled rejection must not read any
+    credentials. Run explicit library authentication with a50ms operation
+    deadline and gated persistence; require TimeoutError before callback release
+    and no MCP traffic. Record two safe follower refreshes and zero canceled
+    redemption/replay, inspect the corrected safe summary screenshot and purge
+    only owned evidence. A backend-lock gate must have zero session reads until
+    the lock callback resumes.

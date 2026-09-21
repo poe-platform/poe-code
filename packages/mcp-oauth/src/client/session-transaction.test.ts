@@ -119,3 +119,48 @@ it("captures lock policy while retaining the host backend lock dependency", asyn
   expect(await f.authorize(provider)).toBe("Bearer winner");
   expect(withLock).toHaveBeenCalledOnce();
 });
+
+it.each(["read", "backend lock"])("settles cancellation during a stalled host %s while retaining the transaction lease", async phase => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const load = f.store.load;
+  if (phase === "read") f.store.load = vi.fn(async key => { entered.resolve(); await release.promise; return load(key); });
+  else f.store.withLock = vi.fn(async (_key, operation) => { entered.resolve(); await release.promise; return operation(); });
+  const controller = new AbortController(), reason = new Error("cancel stalled persistence");
+  const owner = f.authorize(f.provider(), controller.signal).catch(error => error);
+  let follower: Promise<string | null> | undefined;
+  try {
+    await entered.promise;
+    controller.abort(reason);
+    expect(await Promise.race([owner, setImmediate().then(() => "still waiting")])).toBe(reason);
+    follower = f.authorize();
+    await setImmediate();
+    expect(f.fetch).not.toHaveBeenCalled();
+    if (phase === "read") expect(f.store.load).toHaveBeenCalledOnce();
+    else expect(f.store.withLock).toHaveBeenCalledOnce();
+  } finally {
+    release.resolve(); f.finish.resolve(); await Promise.allSettled([owner, ...(follower === undefined ? [] : [follower])]);
+  }
+  expect(await owner).toBe(reason);
+  if (follower !== undefined) expect(await follower).toBe("Bearer winner");
+  expect(f.fetch).toHaveBeenCalledTimes(follower === undefined ? 0 : 1);
+});
+
+it("retains an unfinished refresh-intent write after caller cancellation and prevents a following redemption", async () => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const save = f.store.save;
+  f.store.save = vi.fn(async (key, session) => { entered.resolve(); await release.promise; await save(key, session); });
+  const controller = new AbortController(), reason = { canceled: "intent-write" };
+  const owner = f.authorize(f.provider(), controller.signal).catch(error => error);
+  let follower: Promise<unknown> | undefined;
+  try {
+    await entered.promise; controller.abort(reason);
+    expect(await Promise.race([owner, setImmediate().then(() => "still waiting")])).toBe(reason);
+    follower = f.authorize().catch(error => error);
+    await setImmediate();
+    expect(f.store.load).toHaveBeenCalledOnce();
+    expect(f.fetch).not.toHaveBeenCalled();
+  } finally { release.resolve(); f.finish.resolve(); await Promise.allSettled([owner, ...(follower === undefined ? [] : [follower])]); }
+  expect(await owner).toBe(reason);
+  expect(await follower).toMatchObject({ message: expect.stringContaining("outcome is unknown") });
+  expect(f.fetch).not.toHaveBeenCalled();
+});

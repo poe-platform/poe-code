@@ -33,6 +33,7 @@ import {
 } from "./token-endpoint.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 import { withOAuthSessionTransaction } from "./session-transaction.js";
+import { waitForOAuthOperation } from "./cancellable-operation.js";
 
 const MAX_JS_DATE_MS = 8_640_000_000_000_000;
 
@@ -102,7 +103,7 @@ export function createDefaultOAuthClientProvider(
       if (session === null && !initialGrantConsumed && initialGrant?.resource === resource &&
         initialGrant.tokens !== undefined && !isExpired(initialGrant.tokens, now)) return { ...initialGrant.tokens };
       if (input.discover === undefined) return;
-      const discovery = await input.discover();
+      const discovery = await waitForOAuthOperation(input.discover(), input.signal);
       input.signal?.throwIfAborted();
       assertRequestMatchesResource(resource, canonicalizeResourceIndicator(discovery.resource));
       session = await ensureAuthorizedSession(resource, discovery, input.fetch, true, false, input.signal);
@@ -137,11 +138,12 @@ export function createDefaultOAuthClientProvider(
 
     async handleUnauthorized(input) {
       try {
+        input.signal?.throwIfAborted();
         assertNoAccessTokenInUrl(input.requestUrl, "Protected resource request URL");
         const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
         const resource = canonicalizeResourceIndicator(input.discovery.resource);
         assertRequestMatchesResource(requestUrl, resource);
-        const cached = await loadSession(resource);
+        const cached = await waitForOAuthOperation(loadSession(resource), input.signal);
         const currentTokens = cached?.tokens ?? (!initialGrantConsumed && initialGrant?.resource === resource ? initialGrant.tokens : undefined);
         let rejectedCurrentGrant = hasCachedAccessToken(cached) || (!initialGrantConsumed && initialGrant?.resource === resource);
         let presentedTokens = input.presentedTokens;

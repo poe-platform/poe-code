@@ -51,7 +51,7 @@ export async function withRemoteMcpClient<T>(
       await client.connect(transport, { signal: options.signal });
     } catch (primaryError) {
       options.signal?.throwIfAborted();
-      if (server.transport !== undefined || mode !== "streamable-http" ||
+      if (server.transport !== undefined || server.protocolVersion === "2026-07-28" || mode !== "streamable-http" ||
           !(primaryError instanceof HttpTransportError) || primaryError.method !== "POST" ||
           (primaryError.rpcMethod !== undefined && primaryError.rpcMethod !== "initialize" && primaryError.rpcMethod !== "server/discover") ||
           (primaryError.status !== 404 && primaryError.status !== 405)) throw primaryError;

@@ -62,6 +62,12 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     vendor-specific transport modes from hostnames or retry authentication errors
     with legacy SSE.
 
+    Also pin protocolVersion to 2026-07-28 against an endpoint that rejects modern
+    discovery but supports legacy initialization. Direct commands and recreated
+    artifacts must exit 1 after only server/discover, with no initialize, tool
+    call or SSE attempt. Unknown caller pins fail before any network request.
+    A host that omits the pin must retain automatic legacy negotiation and calls.
+
 11. Generate a dependency-free ESM artifact with two tools sharing a dashed
     name prefix and one exact dotted name. Include a required field named schema,
     annotations and an output schema. Write the module, change the native host's

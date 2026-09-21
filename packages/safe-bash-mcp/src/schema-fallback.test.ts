@@ -4,6 +4,13 @@ import { fetchRemoteMcpSchema } from "./index.js";
 
 const server = { name: "legacy", url: "https://legacy.example/sse", protocolVersion: "2025-03-26" as const };
 
+it.each([404, 405])("does not downgrade a modern protocol pin to legacy SSE after HTTP %s", async status => {
+  const fetch = vi.fn<HttpTransportFetch>(async () => new Response("legacy only", { status }));
+  await expect(fetchRemoteMcpSchema({ ...server, protocolVersion: "2026-07-28" }, { fetch }))
+    .rejects.toMatchObject({ code: -32601, message: "Modern discovery unavailable" });
+  expect(fetch).toHaveBeenCalledOnce();
+});
+
 it.each([404, 405])("automatically negotiates legacy SSE on POST %s during setup", async status => {
   let stream: ReadableStreamDefaultController<Uint8Array>;
   const cancel = vi.fn();

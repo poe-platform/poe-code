@@ -1,5 +1,5 @@
 import { describe, expect, it, onTestFinished, vi } from "vitest";
-import { createInMemoryTransportPair, JsonRpcMessageLayer, McpClient, type ClientCapabilities } from "./internal.js";
+import { createInMemoryTransportPair, JsonRpcMessageLayer, McpClient, McpError, type ClientCapabilities } from "./internal.js";
 
 function setup() {
   const { clientTransport, serverTransport } = createInMemoryTransportPair();
@@ -13,6 +13,40 @@ function setup() {
 }
 
 describe("modern client negotiation", () => {
+  it("does not downgrade an explicit modern pin when discovery is unsupported", async () => {
+    const { server, clientTransport } = setup();
+    server.onRequest("server/discover", () => { throw new McpError(-32601, "Discovery unsupported"); });
+    const initialize = vi.fn(() => ({ protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "legacy", version: "1" } }));
+    server.onRequest("initialize", initialize);
+    const client = new McpClient({ clientInfo: { name: "test", version: "1" }, protocolVersion: "2026-07-28" });
+    await expect(client.connect(clientTransport)).rejects.toMatchObject({ code: -32601, message: "Discovery unsupported" });
+    expect(initialize).not.toHaveBeenCalled(); expect(client.state).toBe("disconnected");
+  });
+
+  it("does not downgrade an explicit modern pin after its discovery deadline", async () => {
+    vi.useFakeTimers();
+    const { server, clientTransport } = setup(); onTestFinished(() => vi.useRealTimers());
+    server.onRequest("server/discover", () => new Promise(() => {}));
+    const initialize = vi.fn(() => ({ protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "legacy", version: "1" } }));
+    server.onRequest("initialize", initialize);
+    const client = new McpClient({ clientInfo: { name: "test", version: "1" }, protocolVersion: "2026-07-28", requestTimeoutMs: 20 });
+    const outcome = client.connect(clientTransport).catch(error => error);
+    await vi.advanceTimersByTimeAsync(20);
+    expect(await outcome).toMatchObject({ message: 'JSON-RPC request "server/discover" timed out after 20ms' });
+    expect(initialize).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each(["2099-01-01", "auto", null, 42])("rejects unsupported caller protocol pins before discovery: %j", async protocolVersion => {
+    const { server, clientTransport } = setup();
+    const discover = vi.fn(() => ({ resultType: "complete", supportedVersions: ["2026-07-28"],
+      capabilities: {}, ttlMs: 0, cacheScope: "private" }));
+    server.onRequest("server/discover", discover);
+    const client = new McpClient({ clientInfo: { name: "test", version: "1" }, protocolVersion: protocolVersion as never });
+    await expect(client.connect(clientTransport)).rejects.toThrow("protocolVersion");
+    expect(client.state).toBe("disconnected");
+    expect(discover).not.toHaveBeenCalled();
+  });
+
   it("uses the configured request deadline for explicit modern discovery", async () => {
     vi.useFakeTimers();
     const { server, clientTransport } = setup();

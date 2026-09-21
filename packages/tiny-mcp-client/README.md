@@ -22,6 +22,11 @@ console.log(result.structuredContent);
 await client.close();
 ```
 
+Omit `protocolVersion` for automatic modern discovery and legacy negotiation.
+Set it to `"2025-03-26"` or `"2026-07-28"` to pin a protocol. A modern pin
+rejects failed or timed-out discovery without sending legacy initialization.
+Unsupported pins fail before connection setup.
+
 `Tool` includes MCP `outputSchema` when a server advertises typed tool output.
 `CallToolResult.structuredContent` preserves modern JSON values; legacy servers
 require an object. Complete `content[]` blocks remain available in either case.

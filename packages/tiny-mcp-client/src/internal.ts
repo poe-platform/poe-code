@@ -215,6 +215,8 @@ export class McpClient {
 
   async connect(transport: McpTransport, options: { signal?: AbortSignal } = {}): Promise<ConnectResult> {
     options.signal?.throwIfAborted();
+    if (this.options.protocolVersion !== undefined && this.options.protocolVersion !== MCP_PROTOCOL_VERSION && this.options.protocolVersion !== "2026-07-28")
+      throw new Error("Unsupported protocolVersion; use 2025-03-26 or 2026-07-28");
     if (this.currentState !== "disconnected" && this.currentState !== "closed") {
       throw new Error("MCP client is already connected");
     }
@@ -428,6 +430,7 @@ export class McpClient {
           : Math.min(this.options.requestTimeoutMs ?? 30_000, 1000) });
       } catch (error) {
         options.signal?.throwIfAborted();
+        if (this.options.protocolVersion === "2026-07-28") throw error;
         if (error instanceof McpError && [-32020, -32021, -32022].includes(error.code)) throw error;
       }
       if (discovery !== undefined) {

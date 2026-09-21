@@ -6485,3 +6485,26 @@ No successful current root publication verified. New original OAuth snapshot/
 clock drift independently reproduced safely,not yet repaired. Concurrent changes
 preserved. Continuous14:16:33–14:23:59 adds446s,total116574s(32.38h).
 Minimum fulfilled;full objective incomplete. Continue accounting after14:23:59UTC.
+
+### OAuth persistence and live clock ownership, 2026-09-21 14:32 UTC
+
+Reproduced evolving original persistence/clock contracts with failing native and
+reference comparisons before implementation. Added public
+`snapshotOAuthPersistenceOptions`, retaining hidden policies, private/prototype
+file and keychain callback receivers, filesystem dependencies and lock settings.
+Provider captures raw timing before persistence effects but validates relative
+lifetimes after store construction so its bound clock observes live host state.
+Raw token imports retain hidden expiry fields and bound clocks. No integration.
+
+Maintained64Rust cases/99native groups/682reference cases in46files and covered
+bidirectional types pass. fmt/clippy/shared checks/ESLint pass. Final selected
+uncached8-build closure passes at concurrency1. Packed27files/one addon/zero npm
+runtime groups and blocked-external-import direct/packed16MiBworkers pass broad
+OAuth workloads. These host contract repairs do not establish a speed or memory
+advantage. Evidence out/rust-oauth-persistence-ownership-* plus separate red logs.
+
+Resource8a99ba609 pushed and exact remote main verified. Root release35605641955
+still unit in_progress;other validation jobs succeeded. No successful current
+root publication verified. Foreign changes preserved. Continuous14:23:59–14:32:04
+adds485s,total117059s(32.52h). Minimum fulfilled;full objective incomplete.
+Continue accounting after14:32:04UTC.

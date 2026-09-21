@@ -12,9 +12,14 @@ import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
 import {
   createAuthStoreSessionStore,
   createAuthStoreClientStore,
-  assertPersistenceNamespace
+  assertPersistenceNamespace,
+  snapshotOAuthPersistenceOptions
 } from "./session-store.js";
-import { createLoopbackAuthorizationSession, loopbackTarget, snapshotLoopbackAuthorizationOptions } from "./loopback.js";
+import {
+  createLoopbackAuthorizationSession,
+  loopbackTarget,
+  snapshotLoopbackAuthorizationOptions
+} from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 import { fetchMcpResponse } from "./http.js";
 import { waitForOAuthOperation } from "./cancellable-operation.js";
@@ -131,10 +136,16 @@ export function createOAuthClientProvider(options) {
     : createDefaultOAuthClientProvider(options);
 }
 export function createDefaultOAuthClientProvider(options) {
+  const clock = options.now?.bind(options) ?? Date.now;
   options = {
     ...options,
     client: { ...options.client },
-    browser: snapshotLoopbackAuthorizationOptions(options.browser)
+    browser: snapshotLoopbackAuthorizationOptions(options.browser),
+    now: clock,
+    authStore:
+      options.authStore === undefined
+        ? undefined
+        : snapshotOAuthPersistenceOptions(options.authStore)
   };
   assertPersistenceNamespace(options.persistenceNamespace);
   loopbackTarget(options.browser);
@@ -150,24 +161,6 @@ export function createDefaultOAuthClientProvider(options) {
     throw new Error(
       "OAuth resourceIdentity requires native-owned persistence; custom stores own their resource trust policy"
     );
-  const resourceStores =
-    options.resourceIdentity === undefined
-      ? undefined
-      : createResourceBoundOAuthStores(
-          options.authStore ?? {},
-          options.persistenceNamespace,
-          options.resourceIdentity
-        );
-  const sessionStore =
-    resourceStores?.sessionStore ??
-    options.sessionStore ??
-    createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
-  const clientStore =
-    resourceStores?.clientStore ??
-    (options.authStore === undefined
-      ? null
-      : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
-  const clock = options.now ?? Date.now;
   const now = () => {
     const timestamp = clock();
     try {
@@ -192,11 +185,41 @@ export function createDefaultOAuthClientProvider(options) {
     tokenEndpointAuthMethod: options.client.tokenEndpointAuthMethod
   });
   const configuredTokenMethod = requestedTokenMethod ?? configuredClient?.tokenEndpointAuthMethod;
+  const suppliedGrant = options.initialGrant;
+  let capturedGrant;
+  if (suppliedGrant !== undefined) {
+    const value = suppliedGrant.tokens;
+    let tokens = value;
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+      const expiresAt = ownEntry(value, "expiresAt"),
+        expiresIn = ownEntry(value, "expiresIn"),
+        issuedAt = ownEntry(value, "issuedAt");
+      tokens = { ...value, expiresAt, expiresIn, issuedAt };
+    }
+    capturedGrant = { resource: suppliedGrant.resource, tokens };
+  }
+  const resourceStores =
+    options.resourceIdentity === undefined
+      ? undefined
+      : createResourceBoundOAuthStores(
+          options.authStore ?? {},
+          options.persistenceNamespace,
+          options.resourceIdentity
+        );
+  const sessionStore =
+    resourceStores?.sessionStore ??
+    options.sessionStore ??
+    createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
+  const clientStore =
+    resourceStores?.clientStore ??
+    (options.authStore === undefined
+      ? null
+      : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
   let initialGrant;
-  if (options.initialGrant !== undefined) {
+  if (capturedGrant !== undefined) {
     let url;
     try {
-      url = new URL(options.initialGrant.resource);
+      url = new URL(capturedGrant.resource);
     } catch {
       throw new Error("OAuth initial grant resource must be an absolute HTTP URL");
     }
@@ -210,7 +233,7 @@ export function createDefaultOAuthClientProvider(options) {
         "OAuth initial grant resource must be an HTTP URL without credentials or fragments"
       );
     const imported = JSON.stringify(
-      project(options.initialGrant.tokens, [...TOKENS, "expiresIn", "issuedAt"])
+      project(capturedGrant.tokens, [...TOKENS, "expiresIn", "issuedAt"])
     );
     let clockRequired;
     try {

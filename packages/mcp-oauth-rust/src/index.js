@@ -22,3 +22,4 @@ export { createResourceBoundOAuthStores } from "./resource-store.js";
 
 export { normalizeOAuthScope } from "./scope.js";
 export { waitForOAuthOperation } from "./cancellable-operation.js";
+export { snapshotOAuthPersistenceOptions } from "./session-store.js";

@@ -161,17 +161,34 @@ void [grantImportA, grantImportB];
 
 import { createResourceBoundOAuthStores } from "../dist/index.js";
 const identityStores = createResourceBoundOAuthStores({ backend: "file" }, "profile", "catalog");
-const identityReset: Promise<void> = identityStores.reset("https://resource.example/mcp", { timeoutMs: 1000 });
+const identityReset: Promise<void> = identityStores.reset("https://resource.example/mcp", {
+  timeoutMs: 1000
+});
 void [identityStores.initialGrantAllowed, identityReset];
 
 import { createResourceBoundOAuthStores as referenceResourceStores } from "../../mcp-oauth/src/client/resource-bound-store.js";
 const resourceStoreA: typeof referenceResourceStores = createResourceBoundOAuthStores;
 const resourceStoreB: typeof createResourceBoundOAuthStores = referenceResourceStores;
-const importedIdentitySession: Promise<void> = identityStores.importSession(pendingRegistrationSession, { timeoutMs: 1000 });
+const importedIdentitySession: Promise<void> = identityStores.importSession(
+  pendingRegistrationSession,
+  { timeoutMs: 1000 }
+);
 void [resourceStoreA, resourceStoreB, importedIdentitySession];
 
 import type { ImportedOAuthTokens } from "../dist/index.js";
 import { normalizeOAuthScope } from "../dist/index.js";
-const importedPublicTokens: ImportedOAuthTokens = { accessToken: "a", tokenType: "Bearer", expiresIn: 2, issuedAt: 0 };
+const importedPublicTokens: ImportedOAuthTokens = {
+  accessToken: "a",
+  tokenType: "Bearer",
+  expiresIn: 2,
+  issuedAt: 0
+};
 const normalizedPublicScope: string | undefined = normalizeOAuthScope("write read");
 void [importedPublicTokens, normalizedPublicScope];
+
+import { snapshotOAuthPersistenceOptions } from "../dist/index.js";
+import type { snapshotOAuthPersistenceOptions as OriginalSnapshot } from "mcp-oauth";
+const snapshotOriginal: typeof OriginalSnapshot = snapshotOAuthPersistenceOptions;
+const snapshotOwn: typeof snapshotOAuthPersistenceOptions =
+  null as unknown as typeof OriginalSnapshot;
+void [snapshotOriginal, snapshotOwn];

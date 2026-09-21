@@ -4,21 +4,49 @@ import { createCredentialStoreBindings } from "./auth-store-runtime.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 const { createSecretStore, resolveSecretStoreBackend } = createCredentialStoreBindings(native);
-export function snapshotPersistenceOptions(options) {
-  const snapshot = {
+export function snapshotOAuthPersistenceOptions(options) {
+  const file = options.fileStore,
+    keychain = options.keychainStore,
+    lock = keychain?.lock;
+  return {
     ...options,
-    ...(options.fileStore === undefined ? {} : { fileStore: { ...options.fileStore } }),
-    ...(options.keychainStore === undefined
+    backend: options.backend,
+    env: options.env,
+    platform: options.platform,
+    backendEnvVar: options.backendEnvVar,
+    ...(file === undefined
+      ? {}
+      : {
+          fileStore: {
+            ...file,
+            fs: file.fs,
+            filePath: file.filePath,
+            salt: file.salt,
+            defaultDirectory: file.defaultDirectory,
+            defaultFileName: file.defaultFileName,
+            throwOnInvalidDocument: file.throwOnInvalidDocument,
+            getHomeDirectory: file.getHomeDirectory?.bind(file),
+            getMachineIdentity: file.getMachineIdentity?.bind(file),
+            getRandomBytes: file.getRandomBytes?.bind(file)
+          }
+        }),
+    ...(keychain === undefined
       ? {}
       : {
           keychainStore: {
-            ...options.keychainStore,
-            ...(options.keychainStore.lock === undefined
+            ...keychain,
+            service: keychain.service,
+            account: keychain.account,
+            runCommand: keychain.runCommand?.bind(keychain),
+            ...(lock === undefined
               ? {}
-              : { lock: { ...options.keychainStore.lock } })
+              : { lock: { ...lock, fs: lock.fs, directory: lock.directory } })
           }
         })
   };
+}
+export function snapshotPersistenceOptions(options) {
+  const snapshot = snapshotOAuthPersistenceOptions(options);
   snapshot.backend = resolveSecretStoreBackend(snapshot);
   return snapshot;
 }
@@ -34,6 +62,7 @@ export function assertPersistenceNamespace(namespace) {
 const SESSION_DEFAULTS = native.oauthStorageDefaults("", false);
 const CLIENT_DEFAULTS = native.oauthStorageDefaults("", true);
 export function createNamedSecretStore(key, options, defaults, namespace) {
+  options = snapshotOAuthPersistenceOptions(options);
   const { hash } = native.oauthStorageDefaults(
     namespace === undefined ? key : JSON.stringify([namespace, key]),
     false

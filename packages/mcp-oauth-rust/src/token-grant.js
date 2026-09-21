@@ -1,7 +1,12 @@
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 export function parseOAuthTokenGrant(value, options = {}) {
-  options = { ...options };
+  options = {
+    ...options,
+    expiresAt: options.expiresAt,
+    issuedAt: options.issuedAt,
+    now: options.now?.bind(options)
+  };
   const invalid = () => new Error("Invalid OAuth token grant");
   let grant;
   try {
@@ -21,7 +26,7 @@ export function parseOAuthTokenGrant(value, options = {}) {
     throw invalid();
   }
   const anchor =
-    typeof lifetime === "number" ? options.issuedAt ?? (options.now ?? Date.now)() : undefined;
+    typeof lifetime === "number" ? (options.issuedAt ?? (options.now ?? Date.now)()) : undefined;
   try {
     return grant.complete(anchor);
   } catch {

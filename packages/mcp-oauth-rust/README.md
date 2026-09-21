@@ -93,7 +93,7 @@ Complete session operations serialize per store and resource. Refreshes persist 
 tokenless intent before redemption; uncertain outcomes require new authorization.
 Request cancellation aborts token reads and callback waits. Provider, request,
 discovery and persistence options are snapshotted before asynchronous work;
-invalid clocks reject without concealing callback failures. Rejected requests
+invalid clocks reject without concealing callback failures. Private and prototype persistence callbacks retain their original receiver, and hidden backend policies remain explicit. Imported grant timing is captured before persistence setup; lifetime clocks observe live host state after store construction. `snapshotOAuthPersistenceOptions` exposes the same owned policy capture for custom coordinators. Rejected requests
 retain their full grant provenance, so delayed 401s reuse a newer persisted winner.
 Cached tokens must match the configured static client ID and secret. Successful request
 authorization returns an owned normalized token snapshot as well as attaching the

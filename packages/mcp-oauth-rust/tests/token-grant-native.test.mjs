@@ -34,7 +34,7 @@ test("raw grants preserve staged option effects, clock errors and absolute prece
       expiresAt: 4,
       scope: "read write"
     });
-    assert.deepEqual(events, ["expiry", "issued"]);
+    assert.deepEqual(events, ["expiry", "issued", "expiry", "issued"]);
     const reason = {};
     assert.throws(
       () =>

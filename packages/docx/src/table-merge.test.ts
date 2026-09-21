@@ -185,3 +185,65 @@ it("combines defined cell widths when the table grid has no stored widths", asyn
   const merged = await edit(source, "tables.merge", { from: "A1", to: "B1", join: "paragraphs" });
   expect(merged.xml).toContain('m:w="2000"');
 });
+
+it.each(["tcPr", "p"])("rejects paragraph distribution of opaque %s blocks without publishing", async name => {
+  const opaque = `<e:${name} xmlns:e="urn:coastal:retained">Retained payload</e:${name}>`;
+  const source = table(row(cell("North", '<w:gridSpan w:val="2"/>')))
+    .replace(paragraph("North"), paragraph("North") + opaque + paragraph("East"));
+  await expect(edit(source, "tables.split", { cell: "B1", rows: 1, cols: 2, distribute: "paragraphs" }))
+    .rejects.toMatchObject({ code: "unsupported-edit" });
+});
+
+it("rejects opaque blocks outside the editable profile even with anchor distribution", async () => {
+  const opaque = '<e:tcPr xmlns:e="urn:coastal:retained">Retained payload</e:tcPr>';
+  const source = table(row(cell("North", '<w:gridSpan w:val="2"/>')))
+    .replace(paragraph("North"), paragraph("North") + opaque + paragraph("East"));
+  await expect(edit(source, "tables.split", { cell: "B1", rows: 1, cols: 2, distribute: "anchor" }))
+    .rejects.toMatchObject({ code: "unsupported-edit" });
+});
+
+it.each([1, 2, 3])("retains nested content and displaced continuation paragraphs when deleting row %s through combined spans", async index => {
+  const nested = table(row(cell("Inner west"), cell("Inner east")));
+  const source = table(
+    row(cell("Owner", '<w:gridSpan w:val="2"/><w:vMerge w:val="restart"/>')),
+    row(cell("Middle payload", '<w:gridSpan w:val="2"/><w:vMerge/>')),
+    row(cell("Last payload", '<w:gridSpan w:val="2"/><w:vMerge/>'))
+  ).replace(paragraph("Owner"), nested + paragraph("Owner"));
+  const result = await edit(source, "tables.rows.remove", { index, join: "paragraphs" });
+  expect(result.details).toMatchObject({ rows: 2, columns: 2, cells: [
+    { row: 1, column: 1, rowSpan: 2, columnSpan: 2, text: "Inner west\tInner east\nOwner\nMiddle payload\nLast payload" }
+  ] });
+  const locations = await openDocumentLocations(result.bytes, textContext);
+  const owner = locations.cell(locations.at("table", 1).token, "A1").token;
+  for (const coordinate of ["B1", "A2", "B2"])
+    expect(locations.cell(locations.at("table", 1).token, coordinate).token).toBe(owner);
+  expect(result.xml).toContain('m:val="restart"');
+  expect(result.xml).toContain('m:val="continue"');
+});
+
+it.each([
+  { start: '<w:gridSpan w:val="2"/><w:vMerge w:val="restart"/>', continuation: '<w:vMerge/>', extra: cell("Neighbor") },
+  { start: '<w:gridSpan w:val="2"/>', continuation: '<w:gridSpan w:val="2"/><w:vMerge/>', extra: "" },
+  { start: '<w:gridSpan w:val="2"/><w:vMerge w:val="restart"/>', continuation: '<w:gridSpan w:val="2"/><w:vMerge w:val="invalid"/>', extra: "" }
+])("rejects malformed combined-span continuations without publishing: %j", async ({ start, continuation, extra }) => {
+  const source = table(row(cell("Owner", start)), row(cell("Payload", continuation), extra));
+  await expect(edit(source, "tables.split", { cell: "A1", rows: 2, cols: 2, distribute: "anchor" })).rejects.toThrow();
+});
+
+it.each([
+  { source: square, operation: "tables.merge", options: { from: "A1", to: "B2", join: "reject" }, flags: ["--from", "A1", "--to", "B2", "--join", "reject"] },
+  { source: table(row(cell("Only paragraph", '<w:gridSpan w:val="2"/>'))), operation: "tables.split", options: { cell: "A1", rows: 1, cols: 2, distribute: "paragraphs" }, flags: ["--cell", "A1", "--rows", "1", "--cols", "2", "--distribute", "paragraphs"] },
+  { source: table(row(cell("Owner", '<w:gridSpan w:val="2"/>'))), operation: "tables.split", options: { cell: "A1", rows: 2, cols: 1, distribute: "anchor" }, flags: ["--cell", "A1", "--rows", "2", "--cols", "1", "--distribute", "anchor"] },
+  { source: table(row(cell("Owner", '<w:gridSpan w:val="2"/><w:vMerge w:val="restart"/>')), row(cell("", '<w:gridSpan w:val="2"/><w:vMerge/>'))), operation: "tables.rows.remove", options: { index: 1 }, flags: ["--index", "1"] },
+  { source: table(row(cell("Owner", '<w:gridSpan w:val="2"/>'))), operation: "tables.rows.remove", options: { index: 1 }, flags: ["--index", "1"] }
+])("classifies admitted $operation content and grid policy failures consistently in SDK and CLI", async ({ source, operation, options, flags }) => {
+  await expect(edit(source, operation, options)).rejects.toMatchObject({ code: "unsupported-edit" });
+  const bytes = await textFixture(source), volume = Volume.fromJSON({ "/out": "", "/err": "" });
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
+    args: [...operation.split("."), "-", "--table", "1", ...flags, "--dry-run", "--json"].map(s => new TextEncoder().encode(s)),
+    cwd: "/", signal: textContext.signal, filesystem: { async readFile() { throw new Error("Unexpected file read"); } },
+    stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(chunk) { volume.appendFileSync("/out", chunk); } }, stderr: { async write(chunk) { volume.appendFileSync("/err", chunk); } }
+  });
+  expect(result.exitCode).toBe(1);
+  expect(JSON.parse(volume.readFileSync("/out", "utf8") as string)).toMatchObject({ operation, ok: false, data: null, affected: 0, errors: [{ code: "unsupported-edit" }] });
+});

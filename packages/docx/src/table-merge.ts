@@ -118,9 +118,9 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
   if (operation === "tables.rows.remove") {
     const r = options.index! - 1;
     if (!grid.rows[r]) throw new SelectionError("missing-selection");
-    if (grid.rows.length === 1) throw new InvalidValueError("Removal must retain one row.");
+    if (grid.rows.length === 1) throw new UnsupportedEditError("Removal must retain one row.");
     const crossing = grid.owners.filter(o => o.rowSpan > 1 && o.row <= r && o.row + o.rowSpan > r);
-    if (crossing.length && options.join !== "paragraphs") throw new InvalidValueError("Deleting through spans requires an explicit paragraphs join.");
+    if (crossing.length && options.join !== "paragraphs") throw new UnsupportedEditError("Deleting through spans requires an explicit paragraphs join.");
     if (crossing.length) {
       // Joining continuations can cross ranges anchored in neighboring retained cells.
       const pending = [table];
@@ -156,7 +156,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
     if (!owner) throw new InvalidValueError("Split requires a logical cell anchor.");
     top = owner.row; left = owner.column; bottom = top + owner.rowSpan - 1; right = left + owner.columnSpan - 1;
     if (owner.rowSpan % options.rows! !== 0 || owner.columnSpan % options.cols! !== 0 || owner.rowSpan * owner.columnSpan === 1)
-      throw new InvalidValueError("Split dimensions must divide the existing merged grid slots.");
+      throw new UnsupportedEditError("Split dimensions must divide the existing merged grid slots.");
   }
   if (!grid.slots[top]?.[left] || !grid.slots[bottom]?.[right]) throw new SelectionError("missing-selection");
   const owners = grid.owners.filter(o => o.row <= bottom && o.row + o.rowSpan > top && o.column <= right && o.column + o.columnSpan > left);
@@ -164,7 +164,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
     throw new SelectionError("ambiguous-selection");
   const physical = grid.physical.flat().filter(p => owners.includes(p.owner));
   if (operation === "tables.merge") {
-    if (options.join === "reject" && physical.some(p => !empty(p.node))) throw new InvalidValueError("Merge content requires paragraphs join.");
+    if (options.join === "reject" && physical.some(p => !empty(p.node))) throw new UnsupportedEditError("Merge content requires paragraphs join.");
     const body = physical.filter(p => !empty(p.node)).map(p => blocks(xml, p.node)).join("") || tag(table.namespace, "p");
     for (let r = top; r <= bottom; r++) {
       const local = physical.filter(p => p.row === r);
@@ -177,7 +177,7 @@ export function editMergedTable(xml: DocumentXmlEditor, table: XmlElement, selec
       const content = physical.filter(p => p.node === selected || !empty(p.node));
       if (content.some(p => p.node.children.some(n => n.localName !== "tcPr" && (n.namespace !== table.namespace || n.localName !== "p")) || p.node.content.some(c => c.kind !== "element" && (c.kind !== "text" || c.text.trim())))) throw new UnsupportedEditError("Paragraph distribution requires only paragraph blocks.");
       distribution = content.flatMap(p => children(p.node, "p").map(n => fragment(xml, n)));
-      if (distribution.length !== options.rows! * options.cols!) throw new InvalidValueError("Paragraph distribution requires one paragraph per resulting cell.");
+      if (distribution.length !== options.rows! * options.cols!) throw new UnsupportedEditError("Paragraph distribution requires one paragraph per resulting cell.");
     }
     for (const p of physical) {
       let markup = "";

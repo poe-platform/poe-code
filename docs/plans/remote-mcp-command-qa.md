@@ -143,3 +143,11 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     With supplied schemas, exercise --max-configuration-bytes and
     --max-artifact-bytes without credential reads or requests. Inspect generation
     help and policy-failure screenshots. Purge only this QA's owned evidence.
+
+24. Resource limits: configure host resource input/response limits of one byte.
+    Against a real local HTTP endpoint, override with --max-input-bytes=100 and
+    --max-response-bytes 4096 and verify complete text/blob/metadata output with
+    no tools/list. Lower input to one byte and verify exit2 before initialization;
+    lower response to one byte and verify exit1, empty result stdout and session
+    retirement. Inspect resource help and byte-limit diagnostic screenshots and
+    purge only this QA's owned fixtures.

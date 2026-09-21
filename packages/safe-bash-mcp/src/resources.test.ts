@@ -188,3 +188,48 @@ it("routes resource list/read/templates through management SDK parity and virtua
     expect(f.fetch).not.toHaveBeenCalled();
   } finally { await shell.dispose(); }
 });
+
+it.each([" ", "="])("overrides host resource input/response limits using %j", async separator => {
+  const f = remote();
+  const definition = createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch, maxInputBytes: 1, maxResponseBytes: 1 } });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
+  try {
+    const result = await shell.exec(`mcp resource docs memo://one --max-input-bytes${separator}100 --max-response-bytes${separator}4096`);
+    expect(result.exitCode).toBe(0); expect(result.stderr).toBe(""); expect(JSON.parse(result.stdout)).toEqual(read);
+    expect(f.requests.some(request => request.method === "tools/list")).toBe(false);
+  } finally { await shell.dispose(); }
+});
+it("rejects a resource request exceeding the selected UTF-8 input limit before credential binding", async () => {
+  const f = remote(), readToken = vi.fn(() => { throw new Error("must remain unread"); });
+  const binding = { env: Object.defineProperty({}, "TOKEN", { enumerable: true, get: readToken }) };
+  const definition = createRemoteMcpManagementCommand([{ ...server, auth: { type: "bearer", env: "TOKEN" } }], { resources: { fetch: f.fetch, binding } });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
+  try {
+    const result = await shell.exec("mcp resource docs --cursor éé --max-input-bytes=35");
+    expect(result.exitCode).toBe(2); expect(result.stdout).toBe(""); expect(result.stderr).toContain("input byte limit");
+    expect(readToken).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+it("enforces a CLI resource response budget and retires initialization ownership", async () => {
+  const f = remote(), shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([
+    createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch } })
+  ]) });
+  try {
+    const result = await shell.exec("mcp resource docs memo://one --max-response-bytes=1");
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe(""); expect(result.stderr).toContain("byte");
+    expect(f.requests.some(request => request.method === "resources/read")).toBe(false);
+    expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
+  } finally { await shell.dispose(); }
+});
+it("rejects malformed/repeated resource policy values before network", async () => {
+  const f = remote(), shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([
+    createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch } })
+  ]) });
+  try {
+    for (const flag of ["--max-input-bytes", "--max-response-bytes"]) for (const suffix of ["", "=", "=0", "=-1", "=1.5", "=1e3", "=9007199254740992", "=2 " + flag + "=3"]) {
+      const result = await shell.exec(`mcp resource docs ${flag}${suffix}`);
+      expect(result.exitCode).toBe(2); expect(result.stdout).toBe(""); expect(result.stderr).toContain(flag);
+    }
+    expect(f.fetch).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});

@@ -41,18 +41,21 @@ const generationFlags = {
 } as const;
 type GenerationPolicy = Partial<Record<typeof generationFlags[keyof typeof generationFlags], number>>;
 
-function resourceArguments(args: readonly string[], maxInputBytes: number): { name: string; request: RemoteMcpResourceRequest; requestTimeoutMs?: number } {
+function resourceArguments(args: readonly string[], maxInputBytes: number): { name: string; request: RemoteMcpResourceRequest; requestTimeoutMs?: number; maxInputBytes?: number; maxResponseBytes?: number } {
   const positional: string[] = [];
   let cursor: string | undefined;
   let templates = false;
-  let requestTimeoutMs: number | undefined;
+  const policy: Partial<Record<"requestTimeoutMs" | "maxInputBytes" | "maxResponseBytes", number>> = {};
   let literal = false;
   for (let index = 1; index < args.length; index++) {
     const arg = args[index];
     if (!literal && arg === "--") { literal = true; continue; }
-    if (!literal && (arg === "--timeout-ms" || arg.startsWith("--timeout-ms="))) {
-      if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
-      requestTimeoutMs = positiveArgument(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length), "--timeout-ms", 2_147_483_647);
+    const flag = arg.split("=", 1)[0];
+    if (!literal && ["--timeout-ms", "--max-input-bytes", "--max-response-bytes"].includes(flag)) {
+      const key = flag === "--timeout-ms" ? "requestTimeoutMs" : flag === "--max-input-bytes" ? "maxInputBytes" : "maxResponseBytes";
+      if (policy[key] !== undefined) throw new Error(`${flag} can only be supplied once`);
+      policy[key] = positiveArgument(arg === flag ? args[++index] : arg.slice(flag.length + 1), flag,
+        key === "requestTimeoutMs" ? 2_147_483_647 : Number.MAX_SAFE_INTEGER);
     } else if (!literal && arg === "--templates") {
       if (templates) throw new Error("--templates can only be supplied once");
       templates = true;
@@ -70,7 +73,7 @@ function resourceArguments(args: readonly string[], maxInputBytes: number): { na
   if (uri !== undefined && (templates || cursor !== undefined)) throw new Error("Resource reads cannot use --templates or --cursor");
   const request: RemoteMcpResourceRequest = uri === undefined ? { operation: templates ? "templates" : "list", ...(cursor === undefined ? {} : { cursor }) }
     : { operation: "read", uri };
-  return { name, request: snapshotRemoteMcpResourceRequest(request, maxInputBytes), requestTimeoutMs };
+  return { name, request: snapshotRemoteMcpResourceRequest(request, Math.min(maxInputBytes, policy.maxInputBytes ?? maxInputBytes)), ...policy };
 }
 
 function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; file?: string } {
@@ -150,6 +153,9 @@ export function createRemoteMcpManagementCommand(
     "Complete results are JSON, including metadata and nextCursor; provide that",
     "cursor explicitly to request the next page. No tools are discovered or called.",
     "--timeout-ms <milliseconds> bounds the complete resource operation (default 30000).",
+    "--max-input-bytes <bytes> bounds the UTF-8 request JSON (default 1048576).",
+    "--max-response-bytes <bytes> bounds transport responses (default 16777216).",
+    "CLI values override host resource settings; the host command input limit also applies.",
     "  --help  Show this help.", ""].join("\n");
   const importHelp = [`Usage: ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
     "Read OAuth credential JSON from stdin (default) or a virtual --file path.",
@@ -277,7 +283,8 @@ export function createRemoteMcpManagementCommand(
             const [bound] = bindRemoteMcpConfiguration({ version: 1, servers: [server] }, settings?.binding ?? { env: context.env });
             const result = await accessRemoteMcpResources(bound, selected.request, { ...settings,
               requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
-              maxInputBytes: Math.min(maxInputBytes, settings?.maxInputBytes ?? maxInputBytes), signal });
+              maxResponseBytes: selected.maxResponseBytes ?? settings?.maxResponseBytes,
+              maxInputBytes: Math.min(maxInputBytes, selected.maxInputBytes ?? settings?.maxInputBytes ?? maxInputBytes), signal });
             output = `${JSON.stringify(result)}\n`;
           } catch (error) {
             operation.signal.throwIfAborted();

@@ -173,6 +173,11 @@ The SDK accepts `{ operation: "list" | "templates", cursor?: string }` or
 (default 1 MiB); `requestTimeoutMs` bounds the complete resource operation.
 Management `--timeout-ms <milliseconds>` overrides that SDK/host setting
 (default 30,000 ms), including initialization and the resource request.
+`--max-input-bytes <bytes>` overrides the resource request limit, and
+`--max-response-bytes <bytes>` overrides the native transport response limit
+(default 16 MiB). Both accept positive integers, separated or with `=`. The
+host's management input limit also applies. Oversized request JSON fails before
+credential binding; response failures return nonzero status and no result JSON.
 
 Prepare credential configuration without reading secrets or connecting:
 

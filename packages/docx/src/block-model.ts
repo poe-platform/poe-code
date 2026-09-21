@@ -354,17 +354,25 @@ export class Run {
   }
   *iter_inner_content(): IterableIterator<string | RenderedPageBreak | Drawing> {
     const run = this.store.node(this.ref);
-    const findParagraph = (node: XmlElement, paragraph?: XmlElement): XmlElement | undefined => {
-      this.store.context.budget.charge("work", 1);
-      const owner = node.localName === "p" && node.namespace === run.namespace ? node : paragraph;
-      if (node === run) return owner;
-      for (const child of node.children) {
-        const found = findParagraph(child, owner);
-        if (found) return found;
+    const pending: { node: XmlElement; paragraph?: XmlElement | undefined }[] = [
+      { node: this.store.xml(this.ref.part).root }
+    ];
+    const budget = this.store.context.budget;
+    budget.charge("retainedBytes", 16);
+    let paragraph: XmlElement | undefined;
+    while (pending.length) {
+      const frame = pending.pop()!;
+      budget.charge("work", 1);
+      const owner = frame.node.localName === "p" && frame.node.namespace === run.namespace
+        ? frame.node : frame.paragraph;
+      if (frame.node === run) {
+        paragraph = owner;
+        break;
       }
-      return undefined;
-    };
-    const paragraph = findParagraph(this.store.xml(this.ref.part).root);
+      budget.charge("retainedBytes", frame.node.children.length * 16);
+      for (let index = frame.node.children.length - 1; index >= 0; index--)
+        pending.push({ node: frame.node.children[index]!, paragraph: owner });
+    }
     let text = "";
     for (const child of activeModelChildren(this.store, this.ref.part)(run)) {
       this.store.context.budget.charge("work", 1);

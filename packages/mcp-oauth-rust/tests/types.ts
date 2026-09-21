@@ -122,3 +122,29 @@ const transactionA: typeof referenceTransaction = withOAuthSessionTransaction;
 const transactionB: typeof withOAuthSessionTransaction = referenceTransaction;
 void transactionA;
 void transactionB;
+
+const importedRegistrationOptions: DefaultOAuthClientProviderOptions = {
+  client: {
+    mode: "dynamic",
+    registration: { client_id: "c" },
+    tokenEndpointAuthMethod: "client_secret_basic"
+  },
+  browser: {}
+};
+const pendingRegistrationSession: import("../dist/index.js").StoredOAuthSession = {
+  resource: "https://resource.example/mcp",
+  authorizationServer: "https://auth.example",
+  client: {
+    clientId: "c",
+    registration: { client_id: "c" },
+    tokenEndpointAuthMethod: "client_secret_basic"
+  },
+  refreshState: "pending",
+  requestedScope: "read",
+  discovery: {
+    resourceMetadataUrl: "https://resource.example/meta",
+    resourceMetadata: {},
+    authorizationServerMetadata: {}
+  }
+};
+void [importedRegistrationOptions, pendingRegistrationSession];

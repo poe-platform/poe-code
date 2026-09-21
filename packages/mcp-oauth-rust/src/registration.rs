@@ -137,6 +137,14 @@ pub fn normalize_stored(value: &Value) -> Result<Option<Value>, &'static str> {
             Value::String(method.encode_utf16().collect()),
         ));
     }
+    if let Some(ownership) = value.get("registrationOwnership") {
+        if !matches!(ownership,Value::String(value) if value.iter().copied().eq("caller".encode_utf16()))
+            || value.get("registration").is_none()
+        {
+            return Err("Invalid stored OAuth registration ownership");
+        }
+        fields.push(field("registrationOwnership", ownership.clone()));
+    }
     Ok(Some(Value::Object(fields)))
 }
 
@@ -155,4 +163,42 @@ pub fn redirect_pair_allowed(
         && (requested_host == returned_host
             || (requested_host == "127.0.0.1" && returned_host == "localhost" && returned_no_port))
         && normalized_equal
+}
+
+pub fn assert_issuer(client: &Value, issuer: &[u16]) -> Result<(), &'static str> {
+    if let Some(Value::String(stored)) = client
+        .get("registration")
+        .and_then(|value| value.get("issuer"))
+        && stored != issuer
+    {
+        return Err("OAuth client registration issuer does not match the authorization server");
+    }
+    Ok(())
+}
+pub fn secret_expiry(client: &Value) -> Option<f64> {
+    if client.get("clientSecret").is_none()
+        || matches!(client.get("tokenEndpointAuthMethod"),Some(Value::String(value)) if value.iter().copied().eq("none".encode_utf16()))
+    {
+        return None;
+    }
+    match client
+        .get("registration")
+        .and_then(|value| value.get("client_secret_expires_at"))
+    {
+        Some(Value::Number(expiry)) if *expiry != 0.0 => Some(*expiry),
+        _ => None,
+    }
+}
+
+pub fn caller_owned(client: &Value) -> bool {
+    matches!(client.get("registrationOwnership"),Some(Value::String(value)) if value.iter().copied().eq("caller".encode_utf16()))
+}
+pub fn imported_client(existing: Option<&Value>, stored: Option<&Value>) -> u32 {
+    if existing.is_some_and(caller_owned) {
+        1
+    } else if stored.is_some_and(caller_owned) {
+        2
+    } else {
+        0
+    }
 }

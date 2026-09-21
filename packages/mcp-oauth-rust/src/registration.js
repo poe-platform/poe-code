@@ -43,6 +43,9 @@ export function normalizeStoredOAuthClient(value) {
   unwrap(identity);
   if (Object.hasOwn(value, "registration") && value.registration !== undefined)
     identity.registration = parseOAuthClientRegistration(value.registration);
+  identity.registrationOwnership = project(
+    Object.hasOwn(value, "registrationOwnership") ? value.registrationOwnership : undefined
+  );
   return unwrap(identity);
 }
 

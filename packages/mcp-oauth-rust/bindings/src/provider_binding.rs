@@ -379,3 +379,37 @@ pub fn provider_assert_scope(text: Utf16String, phase: u32) -> Result<NativeJson
     };
     Ok(result(check.map(|()| Value::Null).map_err(str::to_owned)))
 }
+
+#[napi]
+pub fn provider_assert_registration_issuer(
+    text: Utf16String,
+    issuer: Utf16String,
+) -> Result<NativeJson> {
+    Ok(result(
+        mcp_oauth_rust::registration::assert_issuer(&parse(&text)?, &issuer)
+            .map(|()| Value::Null)
+            .map_err(str::to_owned),
+    ))
+}
+#[napi]
+pub fn provider_secret_needs_clock(text: Utf16String) -> Result<bool> {
+    Ok(mcp_oauth_rust::registration::secret_expiry(&parse(&text)?).is_some())
+}
+#[napi]
+pub fn provider_secret_expired(text: Utf16String, now: f64) -> Result<bool> {
+    Ok(mcp_oauth_rust::registration::secret_expiry(&parse(&text)?)
+        .is_some_and(|expiry| expiry <= now / 1000.0))
+}
+
+#[napi]
+pub fn provider_caller_owned(text: Utf16String) -> Result<bool> {
+    Ok(mcp_oauth_rust::registration::caller_owned(&parse(&text)?))
+}
+#[napi]
+pub fn provider_imported_client(text: Utf16String) -> Result<u32> {
+    let value = parse(&text)?;
+    Ok(mcp_oauth_rust::registration::imported_client(
+        value.get("existing"),
+        value.get("stored"),
+    ))
+}

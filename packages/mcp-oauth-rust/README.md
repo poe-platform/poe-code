@@ -126,3 +126,11 @@ are attached. Refresh retains the previous scope when omitted and rejects change
 profiles while leaving the pending outcome marker intact. Code exchange rejects a
 supplied broader scope. Client metadata is captured at provider creation, so later
 caller mutation cannot change the authorization request's scope.
+
+Registrations bind to the exact authorization-server issuer. Known expired secrets
+are rejected before refresh; native-owned registrations can be replaced during
+interactive authorization. Imported registrations keep durable caller ownership
+across persisted sessions and caches, so obsolete callbacks or expired secrets
+require an explicit caller update. Refresh errors never retire caller-owned
+registration caches. Live access tokens remain usable without redeeming an expired
+secret. Unlimited/public-client expiry checks avoid reading the clock.

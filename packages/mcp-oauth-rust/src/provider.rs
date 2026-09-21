@@ -29,6 +29,7 @@ pub fn normalize_client(value: &Value, configured: bool) -> Option<Value> {
     }
     for key in [
         "registration",
+        "registrationOwnership",
         "tokenEndpointAuthMethod",
         "requestedRedirectUri",
     ] {

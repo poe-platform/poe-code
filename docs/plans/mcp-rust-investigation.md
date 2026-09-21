@@ -4208,3 +4208,47 @@ in pending registration trust code, and reran the complete maintained Rust lint
 route successfully (out/rust-oauth-provider-registration-lint.log). No lint failure
 is waived. The corrective scope change is committed separately from registration
 trust implementation. Minimum24h is fulfilled; full rewrite remains incomplete.
+
+### OAuth registration trust and durable ownership, 2026-09-21 05:40 UTC
+
+Portable and original SDK reds precede exact issuer admission, lazy client-secret
+expiry facts and registration replacement gates in Rust. Stored/imported/fresh DCR
+issuer mismatches reject before persistence/token submission. Known expired secrets
+reject headless refresh; interactive authorization can replace native-owned expired
+or obsolete registrations. Public/unlimited/unknown expiry does not invoke the clock.
+Live access tokens remain usable without submitting an expired secret.
+
+Concurrent original changes added durable registrationOwnership and5 related
+regressions while this improvement was pending. Rust admission now preserves the
+caller marker only with a complete registration and rejects invalid ownership.
+Configured imports acquire caller ownership, retained through native normalization,
+persisted sessions and registration caches. Existing caller registrations take
+precedence over native replacement, require explicit expiry/callback updates and
+remain cached after invalid_client refresh failures. Original property effects,
+arbitrary ownership getter causes and recursive extension ownership cross-check.
+
+All48 Rust cases and79 native groups pass. Entire registration-binding/redirect/
+metadata, token-auth-provider and scope-isolation files pass92/92 cases after fresh
+original SDK builds. Full maintained package unit route still fails:369/388 original
+cases pass,19 fail in explicit authenticate/resource-identity files. Focused lint/
+fmt/clippy/formatting, declarations and maintained uncached113-workspace/8-build/
+338-edge closure pass. Public registration/method options, pending refresh state,
+scope and client ownership declarations now expose implemented behavior. New typed
+usage fixtures first failed for missing registration fields, then passed after the
+own declarations were updated; a preliminary pre-build type run read stale dist
+and was rerun after closure. Removed the duplicate weaker withLock overload.
+
+Direct/packed16MiB workers each add24,576 registration trust/ownership operations
+to prior workloads. A preliminary worker record omitted registration client_id and
+secret before ownership normalization; the valid fixture was corrected and both
+artifact routes pass. Audit covers19 JS/declaration files, one addon and zero npm
+runtime groups. Endpoint heaps~11.7–11.8MB and parent-inclusive RSS establish no
+isolated leak/peak/memory advantage; no speed acceptance is claimed. Evidence
+out/rust-oauth-provider-registration-*.
+
+Agent session4acbe53b4 and scope-lint correction1aa19b7bb are pushed and verified on
+remote main. Root35565119728 is in progress; successful publication remains
+unverified. Continuous active05:33:23–05:40:22 adds419s, bringing conservative actual
+effort to86,905s (24.14h). Minimum effort is fulfilled; full rewrite/performance/
+memory/platform/release acceptance remains incomplete. Work continues after
+05:40:22 UTC.

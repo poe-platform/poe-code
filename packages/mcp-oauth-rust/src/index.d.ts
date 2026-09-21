@@ -10,8 +10,10 @@ export interface StoredOAuthTokens {
 export interface StoredOAuthSession {
   resource: string;
   authorizationServer: string;
-  client: { clientId: string; clientSecret?: string };
+  client: StoredOAuthClient;
   tokens?: StoredOAuthTokens;
+  refreshState?: "pending";
+  requestedScope?: string;
   discovery: {
     resourceMetadataUrl: string;
     resourceMetadata: Record<string, unknown>;
@@ -19,7 +21,6 @@ export interface StoredOAuthSession {
   };
 }
 export interface OAuthSessionStore {
-  withLock?<T>(resource: string, operation: () => Promise<T>, options?: SecretStoreLockOptions): Promise<T>;
   load(resource: string): Promise<StoredOAuthSession | null>;
   save(resource: string, session: StoredOAuthSession): Promise<void>;
   clear(resource: string): Promise<void>;
@@ -85,12 +86,33 @@ export interface OAuthClientProvider {
 }
 export interface DefaultOAuthClientProviderOptions {
   client:
-    | { mode: "dynamic"; clientId?: string; clientSecret?: string; metadata?: OAuthClientMetadata }
-    | { mode: "static"; clientId: string; clientSecret?: string; metadata?: OAuthClientMetadata };
+    | {
+        mode: "dynamic";
+        clientId?: string;
+        clientSecret?: string;
+        metadata?: OAuthClientMetadata;
+        registration?: OAuthClientRegistration;
+        tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+      }
+    | {
+        mode: "static";
+        clientId: string;
+        clientSecret?: string;
+        metadata?: OAuthClientMetadata;
+        registration?: OAuthClientRegistration;
+        tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+      };
   allowInteractive?: boolean;
   sessionLockTimeoutMs?: number;
   persistenceNamespace?: string;
-  initialGrant?: { resource: string; tokens: Omit<StoredOAuthTokens, "expiresAt"> & { expiresAt?: number | null; expiresIn?: number; issuedAt?: number } };
+  initialGrant?: {
+    resource: string;
+    tokens: Omit<StoredOAuthTokens, "expiresAt"> & {
+      expiresAt?: number | null;
+      expiresIn?: number;
+      issuedAt?: number;
+    };
+  };
   browser: LoopbackAuthorizationOptions;
   sessionStore?: OAuthSessionStore;
   authStore?: CreateSecretStoreInput;
@@ -210,6 +232,7 @@ export interface OAuthClientRegistration extends Record<string, unknown> {
 export declare function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration;
 
 export interface StoredOAuthClient {
+  registrationOwnership?: "caller";
   requestedRedirectUri?: string;
   clientId: string;
   clientSecret?: string;

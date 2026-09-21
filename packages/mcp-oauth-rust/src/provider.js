@@ -156,6 +156,7 @@ export function createDefaultOAuthClientProvider(options) {
     clientSecret:
       optionalString(options.client.clientSecret) ?? optionalString(registration?.client_secret),
     registration,
+    ...(registration === undefined ? {} : { registrationOwnership: "caller" }),
     tokenEndpointAuthMethod: options.client.tokenEndpointAuthMethod
   });
   const configuredTokenMethod = requestedTokenMethod ?? configuredClient?.tokenEndpointAuthMethod;
@@ -207,6 +208,12 @@ export function createDefaultOAuthClientProvider(options) {
   function expired(tokens) {
     return (
       tokens.expiresAt !== null && native.isStoredTokenExpired(tokens.expiresAt, Number(now()))
+    );
+  }
+  function secretExpired(client) {
+    const text = JSON.stringify(client);
+    return (
+      native.providerSecretNeedsClock(text) && native.providerSecretExpired(text, Number(now()))
     );
   }
   async function loadSession(resource) {
@@ -302,6 +309,20 @@ export function createDefaultOAuthClientProvider(options) {
       resource,
       async () => {
         let session = await loadSession(resource);
+        if (session !== null)
+          unwrap(
+            native.providerAssertRegistrationIssuer(
+              JSON.stringify(session.client),
+              session.authorizationServer
+            )
+          );
+        if (configuredClient !== null && discovery !== undefined)
+          unwrap(
+            native.providerAssertRegistrationIssuer(
+              JSON.stringify(configuredClient),
+              discovery.authorizationServer
+            )
+          );
         if (session !== null && initialGrant?.resource === resource) initialGrantConsumed = true;
         const input = {
           configured: {
@@ -416,6 +437,18 @@ export function createDefaultOAuthClientProvider(options) {
             case "continue":
               break;
             case "refresh":
+              if (secretExpired(session.client)) {
+                if (
+                  !interactive ||
+                  options.allowInteractive === false ||
+                  options.client.mode === "static" ||
+                  configuredClient?.registration !== undefined
+                )
+                  throw new Error(
+                    "OAuth client secret has expired; authorize again or update the imported registration"
+                  );
+                return authorizeSession(resource, clearTokens(session), resolved, fetch, signal);
+              }
               session = await refreshSession(resource, session, resolved, fetch, signal);
               flow.refreshed(JSON.stringify(session?.tokens ?? null));
               break;
@@ -472,13 +505,15 @@ export function createDefaultOAuthClientProvider(options) {
               code = oauth ? error.error : "",
               status = oauth ? error.status : 0;
             let action = retries.refresh(oauth, code, status);
-            if (action === "load")
+            if (action === "load") {
+              const registered = await loadClient(discovery.authorizationServer);
               action = retries.refresh(
                 oauth,
                 code,
                 status,
-                (await loadClient(discovery.authorizationServer)) !== null
+                registered !== null && !native.providerCallerOwned(JSON.stringify(registered))
               );
+            }
             if (action === "clear") {
               const cleared = clearTokens(session);
               await sessionStore.save(resource, cleared);
@@ -537,14 +572,63 @@ export function createDefaultOAuthClientProvider(options) {
     const initial = unwrap(
       native.providerInitialClient(JSON.stringify(configured), hasRegistration)
     );
-    if (!Object.hasOwn(initial, "action") || initial.action !== "load") return initial;
-    const stored = await loadClient(discovery.authorizationServer);
+    if (!Object.hasOwn(initial, "action") || initial.action !== "load") {
+      unwrap(
+        native.providerAssertRegistrationIssuer(
+          JSON.stringify(initial.client),
+          discovery.authorizationServer
+        )
+      );
+      if (secretExpired(initial.client))
+        throw new Error("OAuth client secret has expired; update the imported registration");
+      return initial;
+    }
+    let stored = await loadClient(discovery.authorizationServer);
+    const importedIndex = native.providerImportedClient(
+      JSON.stringify({ existing: existing?.client, stored })
+    );
+    const imported =
+      importedIndex === 1 ? existing.client : importedIndex === 2 ? stored : undefined;
+    if (imported !== undefined) {
+      unwrap(
+        native.providerAssertRegistrationIssuer(
+          JSON.stringify(imported),
+          discovery.authorizationServer
+        )
+      );
+      if (secretExpired(imported))
+        throw new Error("OAuth client secret has expired; update the imported registration");
+      if (!registrationMatchesRedirect(imported, redirect))
+        throw new Error(
+          "OAuth imported registration does not match the configured redirect URI; update its callback configuration"
+        );
+      return { kind: "static", fromStoredRegistration: false, client: imported };
+    }
+    if (stored !== null) {
+      unwrap(
+        native.providerAssertRegistrationIssuer(
+          JSON.stringify(stored),
+          discovery.authorizationServer
+        )
+      );
+      if (secretExpired(stored) || !registrationMatchesRedirect(stored, redirect)) {
+        await clearClient(discovery.authorizationServer);
+        stored = null;
+      }
+    }
+    const usableExisting =
+      stored === null &&
+      existing !== null &&
+      !secretExpired(existing.client) &&
+      registrationMatchesRedirect(existing.client, redirect)
+        ? existing
+        : null;
     const plan = unwrap(
       native.providerDynamicClient(
         JSON.stringify({
           options: configured,
           stored,
-          existing: existing === null ? null : { client: existing.client }
+          existing: usableExisting === null ? null : { client: usableExisting.client }
         }),
         hasRegistration
       )
@@ -586,6 +670,14 @@ export function createDefaultOAuthClientProvider(options) {
         ? undefined
         : registrationMethod);
     if (responseMethod !== undefined) normalized.tokenEndpointAuthMethod = responseMethod;
+    unwrap(
+      native.providerAssertRegistrationIssuer(
+        JSON.stringify(normalized),
+        discovery.authorizationServer
+      )
+    );
+    if (secretExpired(normalized))
+      throw new Error("OAuth client secret has expired in the registration response");
     if (!registrationMatchesRedirect(normalized, redirect, true))
       throw new Error("OAuth client registration does not match the requested redirect URI");
     const client = { ...normalized, requestedRedirectUri: redirect };

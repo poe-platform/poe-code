@@ -106,6 +106,17 @@ it("retains embedded targets that still have another incoming binding", async ()
   const parts = readPackage(new Uint8Array(env.volume.readFileSync("/out/result.docx") as Uint8Array)); assertPackageLinks(parts);
   expect(parts.get("word/embeddings/item.bin")).toEqual(new Uint8Array([8, 3, 5]));
 });
+it("removes repeated object carriers sharing one binding exactly once", async () => {
+  const input = await fixture('<w:p><w:r><w:object xmlns:o="urn:schemas-microsoft-com:office:office"><o:OLEObject r:id="payload"/></w:object></w:r></w:p>', true), env = publication(input);
+  const data = await sanitizeDocument(input, { remove: ["objects"], output: "/out/result.docx" }, { ...textContext, encoding, filesystem: env.fs });
+  expect(data.actions[0]!.affected).toBe(2);
+  expect(data.actions[0]!.records).toHaveLength(2);
+  expect(data.removedRelationships).toEqual([{ owner: "/word/document.xml", id: "payload" }]);
+  expect(data.removedParts).toEqual(["/word/embeddings/item.bin"]);
+  const parts = readPackage(new Uint8Array(env.volume.readFileSync("/out/result.docx") as Uint8Array)); assertPackageLinks(parts);
+  expect(new TextDecoder().decode(parts.get("word/document.xml"))).not.toContain("OLEObject");
+  expect(env.volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
+});
 it("removes classic comment identities and all owned markers preserving labels", async () => {
   const input = await textFixture(`<w:p><w:commentRangeStart w:id="7"/>${run("Selected")}<w:commentRangeEnd w:id="7"/><w:r><w:commentReference w:id="7"/></w:r></w:p>`, { comments: { kind: "comments", xml: `<w:comments xmlns:w="${w}"><w:comment w:id="7" w:author="Reviewer"><w:p>${run("Check")}</w:p></w:comment></w:comments>` } });
   const env = publication(input), data = await sanitizeDocument(input, { remove: ["comments"], output: "/out/result.docx" }, { ...textContext, encoding, filesystem: env.fs });

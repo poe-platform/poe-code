@@ -354,3 +354,30 @@ pub fn harness_runtime_admission(read: Function<'_, String, bool>) -> napi::Resu
     agent_harness_tools_rust::execution::admit(|fact| read.call(fact.name().to_owned()))
         .map(|error| error.map(|error| error.name().to_owned()))
 }
+#[napi]
+pub fn harness_binary_detectors(name: Utf16String) -> NativeJson {
+    NativeJson(Value::Array(
+        agent_harness_tools_rust::binary::detectors(&name)
+            .into_iter()
+            .enumerate()
+            .map(|(index, probe)| {
+                object(vec![
+                    ("command", string(probe.command)),
+                    ("nameIndex", Value::Number((probe.args.len() - 1) as f64)),
+                    (
+                        "requiresOutput",
+                        Value::Bool(!agent_harness_tools_rust::binary::valid(
+                            index as u32,
+                            true,
+                            false,
+                        )),
+                    ),
+                    (
+                        "args",
+                        Value::Array(probe.args.into_iter().map(Value::String).collect()),
+                    ),
+                ])
+            })
+            .collect(),
+    ))
+}

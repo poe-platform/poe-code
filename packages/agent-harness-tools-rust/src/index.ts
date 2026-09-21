@@ -25,3 +25,5 @@ export {createPoeCommandSession,runPoeCommand,type PoeCommandSession} from "./ru
 export {applyRuntimeOverrides,resolvePoeCommandExecution,UnsupportedRuntimeCapabilityError,type RuntimeOverrideOptions} from "./poe-command-execution.js";
 
 export * from "./workspace-transfer.js";
+
+export {createBinaryExistsDetectors,type BinaryExistsDetector,type BinaryExistsDetectorResult} from "./binary-exists.js";

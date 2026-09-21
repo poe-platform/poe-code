@@ -20,6 +20,9 @@ interface NativeQueue {
   readonly items: RunQueueItem[];
 }
 export const native = createRequire(import.meta.url)("./agent-harness-tools-rust.node") as {
+  harnessBinaryDetectors(
+    name: string
+  ): Array<{ command: string; args: string[]; nameIndex: number; requiresOutput: boolean }>;
   harnessRuntimeAdmission(read: (fact: string) => boolean): "detach" | "transfer" | null;
   NativeHarnessCommand: new () => {
     running(): void;

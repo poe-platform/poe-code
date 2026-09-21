@@ -6129,3 +6129,34 @@ dev-only. Runtime8e1f803e4 exactly verified on remote main. Plans release3559974
 in_progress;no successful current publication verified. Concurrent edits preserved.
 Continuous12:58:45–13:01:27 adds162s,total111622s(31.01h). Minimum fulfilled;
 objective incomplete. Continue accounting after13:01:27UTC.
+
+### Harness binary probe definitions, 2026-09-21 13:06 UTC
+
+Added createBinaryExistsDetectors and detector/result types. Rust supplies exact
+UTF16 command/argument templates and portable exit/output validation policy.
+The shell program never incorporates the caller's name;it uses a positional
+argument. Node admits immutable templates once and constructs fresh argument
+arrays/callbacks with original lazy field reads and JavaScript trimming. No probe
+is executed. Missing core red precedes implementation. No production imports changed.
+
+Maintained25Rust cases,24native groups,262references/20files,covered types,
+fmt/clippy/ESLint pass. Native comparisons cover Unicode/surrogates/NUL/hostile-name
+programs,exit numeric/type boundaries,Unicode whitespace,array independence,getter
+order and exception identity. Uncached selected117workspaces/30builds/363edges
+passes. Packed216files/one addon,no runtime groups and external npm blocked passes
+all prior cases plus binary probes.16MiBworker65536constructions/196608mocked
+validations retains5.77MiBheap/60.59MiBRSS;finite evidence,not total/native bounds.
+
+Initial8192constructions/24576validations per pair:own20.69–23.75ms vs original
+0.41–1.25ms. Cached immutable admission removes per-probe crossings:own0.50–0.60ms/
+CPU0.50–2.31ms vs original0.31–1.03ms/CPU0.31–2.08ms. Four of five wall pairs remain
+slower;consistent-performance acceptance FAIL. Measures Node callback hot paths,
+not Rust computation or startup. Evidence out/rust-harness-binary-*.
+
+Transfer45c27af4c exactly verified remote main. Plans release35599744513 now fails
+unit in mcp-oauth-rust(instead of the earlier repaired TOML scope). Build/audit/checks/
+cached-unit/Bash pass;publication skipped. Detailed evidence saved under
+out/rust-harness-plans-release-failure.log;next scope is validating those OAuth
+failures. No successful publication verified. Concurrent edits preserved.
+Continuous13:01:27–13:06:24 adds297s,total111919s(31.09h). Minimum fulfilled;
+objective incomplete. Continue accounting after13:06:24UTC.

@@ -23,6 +23,7 @@ The package is additive and has no npm runtime dependencies.
 - Reuse an execution environment through command sessions.
 - Resolve runtime configuration and overrides before executing commands.
 - Upload filtered workspaces and download changes with conflict checks.
+- Build cross-platform binary probes without interpolating names into shell code.
 
 ```ts
 import { createRunQueue } from "@poe-code/agent-harness-tools-rust";
@@ -121,3 +122,9 @@ refuses or overwrites local conflicts. Supply local and remote filesystem adapte
 through `env.fs` and `env.remoteFs`. The owned process-runner implementation shares
 the harness addon: Rust owns ignore rules, content hashes, conflict state and upload
 transaction effects; Node executes filesystem operations and retains file buffers.
+
+`createBinaryExistsDetectors(name)` supplies `which`, `where` and a shell fallback.
+The name is always passed as an argument. Rust defines the probe programs and
+validation policy; Node caches those immutable templates and supplies fresh argument
+arrays and callbacks. The callbacks keep JavaScript's whitespace and getter behavior.
+No probe is executed by this function.

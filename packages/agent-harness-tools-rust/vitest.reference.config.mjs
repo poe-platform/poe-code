@@ -19,6 +19,7 @@ export default defineConfig({
         )
           return;
         const modules = new Map([
+          ["./binary-exists.js", "binary-exists"],
           ["./workspace-transfer.js", "workspace-transfer"],
           ["./poe-command-execution.js", "poe-command-execution"],
           ["./run-poe-command.js", "run-poe-command"],
@@ -93,6 +94,7 @@ export default defineConfig({
   test: {
     globals: true,
     include: [
+      "binary-exists.test.ts",
       "workspace-transfer.test.ts",
       "poe-command-execution.test.ts",
       "run-poe-command.test.ts",

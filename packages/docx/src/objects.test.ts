@@ -21,6 +21,36 @@ it("keeps embedded relationship parts out of the object candidate inventory", as
 });
 const carrier = (id: string, shape: string, image = "preview") =>
   `<w:p><w:r><w:object xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml"><v:shape id="${shape}"><v:imagedata r:id="${image}"/></v:shape><o:OLEObject Type="Embed" ShapeID="${shape}" r:id="${id}"/></w:object></w:r></w:p>`;
+it("reports incoming shared descendant references without expanding unrelated owner graphs", async () => {
+  const input = await chartFixture({
+    definitions: [],
+    body: carrier("ole", "shapeA"),
+    resources: [
+      { name: "word/embeddings/object.bin", type: oleMime, bytes: payload },
+      { name: "word/media/preview.png", type: "image/png", bytes: preview },
+      { name: "word/media/shared.bin", type: "application/octet-stream", bytes: Uint8Array.of(9) },
+      { name: "word/other.bin", type: "application/octet-stream", bytes: Uint8Array.of(8) }
+    ],
+    relationships: [
+      { owner: "/word/document.xml", id: "ole", type: r + "/oleObject", target: "embeddings/object.bin" },
+      { owner: "/word/document.xml", id: "preview", type: r + "/image", target: "media/preview.png" },
+      { owner: "/word/media/preview.png", id: "child", type: r + "/image", target: "shared.bin" },
+      { owner: "/word/media/shared.bin", id: "cycle", type: r + "/image", target: "preview.png" },
+      { owner: "/word/other.bin", id: "shared", type: r + "/image", target: "media/shared.bin" },
+      { owner: "/word/media/shared.bin", id: "linked", type: r + "/image", target: "https://user:secret@example.invalid/?token=hidden", external: true }
+    ]
+  });
+  const result = await inspectDocumentObjects(input, {}, chartContext);
+  expect(result.items[0]!.details.graphParts.map(part => part.part)).toEqual([
+    "/word/embeddings/object.bin", "/word/media/preview.png", "/word/media/shared.bin"
+  ]);
+  expect(result.items[0]!.references).toContainEqual({
+    owner: "/word/other.bin", id: "shared", type: r + "/image", target: "media/shared.bin", external: false
+  });
+  expect(result.items[0]!.references.filter(edge => edge.id === "cycle")).toHaveLength(1);
+  expect(JSON.stringify(result)).not.toContain("secret");
+  expect(JSON.stringify(result)).not.toContain("hidden");
+});
 async function fixture(
   body = carrier("ole", "shapeA") + carrier("ole", "shapeB") + paragraph("Unrelated prose")
 ) {

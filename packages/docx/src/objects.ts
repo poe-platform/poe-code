@@ -291,11 +291,7 @@ async function inventory(
         (record.owner === owner &&
           previews.some((preview) => preview.relationshipId === record.edge.rId)) ||
         visited.has(record.owner) ||
-        (!record.edge.is_external &&
-          (record.edge.target_part.partname === target?.part ||
-            previews.some(
-              (preview) => preview.resource?.part === record.edge.target_part.partname
-            )))
+        (!record.edge.is_external && visited.has(record.edge.target_part.partname))
       ) {
         budget.charge(
           "retainedBytes",

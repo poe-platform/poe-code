@@ -190,3 +190,15 @@ const hostSpawnA: import("../../poe-agent/dist/runtime/agent-host.js").AgentHost
 const hostSpawnB: own.AgentHostSpawnClient =
   {} as import("../../poe-agent/dist/runtime/agent-host.js").AgentHostSpawnClient;
 void [hostA, hostB, hostSpawnA, hostSpawnB];
+
+import referenceSkillsPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-skills.js";
+import referenceScratchpadPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-scratchpad.js";
+import referenceMcpPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-mcp.js";
+import referencePolicyPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-policy.js";
+const builtinSkillsA: typeof referenceSkillsPlugin = own.skillsPlugin;
+const builtinSkillsB: typeof own.skillsPlugin = referenceSkillsPlugin;
+const builtinScratchA: typeof referenceScratchpadPlugin = own.scratchpadPlugin;
+const builtinMcpA: typeof referenceMcpPlugin = own.mcpPlugin;
+const builtinPolicyA: typeof referencePolicyPlugin = own.policyPlugin;
+const builtinPolicyB: typeof own.policyPlugin = referencePolicyPlugin;
+void [builtinSkillsA, builtinSkillsB, builtinScratchA, builtinMcpA, builtinPolicyA, builtinPolicyB];

@@ -129,3 +129,12 @@ or failure. Spawn cancellation is independent of the parent, matching the origin
 Rust owns invocation close admission, fork numbering, event layouts and UTF16 spawn
 output. Node owns generators, clients and callbacks. Pass `createSpawnSession` in
 the constructor; process/in-memory spawn factories are still being implemented.
+
+Built-in `mcpPlugin`, `policyPlugin`, `maxIterationsPlugin`, `scratchpadPlugin`,
+`skillsPlugin` and `spawnPlugin` support plugin-based runs. Policy stores the mode
+at session start, checks tool metadata and calls optional tool validators. Scratchpad
+notes and normalized skill definitions live in Rust, preserving UTF16 keys/values.
+Skills guidance lists active definitions, tags and available tool names while Node
+preserves custom iterators, getters and metadata. Spawn arguments use shared Rust
+scalar validation; Node executes the injected spawn callback. Other built-ins and
+the complete built-in configuration registry remain in progress.

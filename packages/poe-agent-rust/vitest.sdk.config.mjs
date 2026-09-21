@@ -11,6 +11,73 @@ export default defineConfig({
       name: "rust-agent-runtime-reference",
       enforce: "pre",
       transform(code, id) {
+        if (id === path("../poe-agent/src/plugins/plugins.test.ts")) {
+          const source = ts.createSourceFile(
+            id,
+            code,
+            ts.ScriptTarget.Latest,
+            true,
+            ts.ScriptKind.TS
+          );
+          const selected = new Set([
+            "poe-agent-plugin-max-iterations",
+            "poe-agent-plugin-scratchpad"
+          ]);
+          const filtered = ts.factory.updateSourceFile(
+            source,
+            source.statements.filter(
+              (statement) =>
+                !ts.isExpressionStatement(statement) ||
+                !ts.isCallExpression(statement.expression) ||
+                statement.expression.expression.getText(source) !== "describe" ||
+                !ts.isStringLiteral(statement.expression.arguments[0]) ||
+                selected.has(statement.expression.arguments[0].text)
+            )
+          );
+          const output =
+            ts.createPrinter().printFile(filtered) +
+            `\nimport nativeScratch from ${JSON.stringify(path("dist/plugin-scratchpad.js"))};\nimport nativeMaximum from ${JSON.stringify(path("dist/plugin-max-iterations.js"))};\nif(scratchpad!==nativeScratch||maxIterations!==nativeMaximum)throw new Error("Built-in contracts must execute the Rust package");`;
+          return { code: output, map: null };
+        }
+        if (id === path("../poe-agent/src/plugins/poe-agent-plugin-policy.test.ts")) {
+          const source = ts.createSourceFile(
+            id,
+            code,
+            ts.ScriptTarget.Latest,
+            true,
+            ts.ScriptKind.TS
+          );
+          const transformed = ts.transform(source, [
+            (context) => (root) =>
+              ts.visitNode(root, function visit(node) {
+                if (ts.isStringLiteral(node) && node.text === "tiny-mcp-client")
+                  return ts.factory.createStringLiteral(path("dist/client/index.js"));
+                return ts.visitEachChild(node, visit, context);
+              })
+          ]);
+          try {
+            const output =
+              ts.createPrinter().printFile(transformed.transformed[0]) +
+              `\nimport nativePolicy from ${JSON.stringify(path("dist/plugin-policy.js"))};\nif(policyPlugin!==nativePolicy)throw new Error("Policy contracts must execute the Rust package");`;
+            return { code: output, map: null };
+          } finally {
+            transformed.dispose();
+          }
+        }
+        if (id === path("../poe-agent/src/plugins/poe-agent-plugin-mcp.test.ts"))
+          return {
+            code:
+              code +
+              `\nimport nativeMcp from ${JSON.stringify(path("dist/plugin-mcp.js"))};\nif(mcpPlugin!==nativeMcp)throw new Error("MCP plugin contracts must execute the Rust package");`,
+            map: null
+          };
+        if (id === path("../poe-agent/src/plugins/plugin-args.test.ts"))
+          return {
+            code:
+              code +
+              `\nimport {getOptionalNumber as nativeArgument} from ${JSON.stringify(path("dist/plugin-args.js"))};\nif(getOptionalNumber!==nativeArgument)throw new Error("Argument contracts must execute the Rust package");`,
+            map: null
+          };
         if (
           id === path("../poe-agent/src/runtime/plugin-api-impl.test.ts") ||
           id === path("../poe-agent/src/runtime/plugin-api-impl.in-memory.test.ts")
@@ -126,6 +193,29 @@ export default defineConfig({
       },
       resolveId(name, importer) {
         if (
+          [
+            path("../poe-agent/src/plugins/plugins.test.ts"),
+            path("../poe-agent/src/plugins/poe-agent-plugin-policy.test.ts"),
+            path("../poe-agent/src/plugins/poe-agent-plugin-mcp.test.ts"),
+            path("../poe-agent/src/plugins/plugin-args.test.ts")
+          ].includes(importer)
+        ) {
+          const modules = new Map([
+            ["./poe-agent-plugin-mcp.js", "plugin-mcp"],
+            ["./poe-agent-plugin-policy.js", "plugin-policy"],
+            ["./poe-agent-plugin-max-iterations.js", "plugin-max-iterations"],
+            ["./poe-agent-plugin-scratchpad.js", "plugin-scratchpad"],
+            ["./poe-agent-plugin-skills.js", "plugin-skills"],
+            ["./poe-agent-plugin-spawn.js", "plugin-spawn"],
+            ["./plugin-args.js", "plugin-args"],
+            ["../runtime/hooks.js", "hooks"],
+            ["../runtime/run-context.js", "run-context"],
+            ["../runtime/acp-core.js", "acp-core"],
+            ["../runtime/plugin-setup.js", "plugin-setup"]
+          ]);
+          if (modules.has(name)) return path("dist/" + modules.get(name) + ".js");
+        }
+        if (
           importer === path("../poe-agent/src/runtime/plugin-api-impl.test.ts") ||
           importer === path("../poe-agent/src/runtime/plugin-api-impl.in-memory.test.ts")
         ) {
@@ -179,6 +269,10 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/plugins/plugins.test.ts"),
+      path("../poe-agent/src/plugins/poe-agent-plugin-policy.test.ts"),
+      path("../poe-agent/src/plugins/poe-agent-plugin-mcp.test.ts"),
+      path("../poe-agent/src/plugins/plugin-args.test.ts"),
       path("../poe-agent/src/runtime/plugin-api-impl.test.ts"),
       path("../poe-agent/src/runtime/plugin-api-impl.in-memory.test.ts"),
       providers,

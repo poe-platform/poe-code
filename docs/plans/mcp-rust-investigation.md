@@ -4772,3 +4772,44 @@ uncached unit step remains in_progress; latest release queues remain pending, so
 current successful publication verified. Continuous active07:03:11–07:18:08 adds897s,
 bringing conservative effort to92,771s (25.77h). Minimum fulfilled; overall rewrite/
 closure/platform/acceptance incomplete. Continue after07:18:08 UTC.
+
+### Poe agent built-in MCP/policy/skills/scratchpad/spawn/limits, 2026-09-21 07:26 UTC
+
+Portable builtin state/validation reds and four additional reference suites fail
+before own artifact availability. Added own mcpPlugin,policyPlugin,maxIterationsPlugin,
+scratchpadPlugin,skillsPlugin,spawnPlugin plus shared plugin argument/option helpers.
+Rust owns overwritten UTF16 scratchpad notes, normalized skill definitions and
+membership, guidance formatting, scalar finite/integer/ECMAScript-blank validation,
+iteration comparison and policy diagnostics/permissive-mode classification. Node
+retains property reads, Object.entries/custom iterator/trim effects, callback receivers,
+metadata spreads, path/fs operations and optional policy/spawn callbacks. MCP wrapping
+uses own native-backed configuration clone and own discovery. No production integration.
+Shared own-code ENOENT detection uses own descriptors, never inherited error codes.
+Remaining option-object/array traversal runs in Node to retain its observable effects.
+
+Maintained checks pass38 Rust cases,59 native groups,227 complete reference cases/
+14 files,typed builtin assignment and fmt/clippy. Explicit built-in/argument/policy
+import guards prove original fallback cannot pass. Full policy suite borrows original
+file/shell metadata/validators as development fixtures; own production imports remain
+relative/built-in only. Seeded64 skills configurations,UTF16 note replacement,late
+getter/stringification order,primitive callback/format failures,scalar numeric/string
+boundaries and optional value identity cross-check against originals. Uncached closure
+113 workspaces/36 builds/339 edges passes. Direct/packed16MiB workers each exercise
+4096 note writes,1024 skill prompts,512 denied policy contexts/cleanups and128 injected
+spawn calls with external imports blocked. Cumulative host/plugin/real-MCP workloads
+pass; recursive artifact audit103 JS/declaration files,one addon,zero runtime groups.
+One initial artifact worker had an unmatched option-object brace; corrected fixture
+passes before any acceptance. Evidence out/rust-poe-agent-builtins-*.
+
+Five alternating warmed16,384 skill-prompt samples measure TS8.44–14.57ms versus
+Rust37.17–41.71ms; speed gate FAIL. Isolated16MiB old-space workload creates65,536
+scratchpad/skills plugins and1,048,576 same-key note replacements. Four forced
+collections/yields per4096 pair batch keep post-GC heap7.47→7.51MB,RSS85.1→88.4MB.
+Finite reclamation evidence only; no universal memory/speed/stability superiority.
+Other built-ins,registry,builder,session adapters,full closure and platform/performance
+acceptance remain incomplete.
+
+Hostaf2d00d03 push completed; exact remote main delivery verified. Root35568626036
+uncached unit remains in_progress and no current successful release verified.
+Continuous active07:18:08–07:25:45 adds457s, bringing conservative effort to93,228s
+(25.90h). Minimum fulfilled; full rewrite remains incomplete. Continue after07:25:45.

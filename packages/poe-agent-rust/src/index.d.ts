@@ -62,3 +62,10 @@ export type {
   AgentHostSpawnClient,
   AgentHostSpawnSession
 } from "./agent-host.js";
+export { default as mcpPlugin } from "./plugin-mcp.js";
+export { default as policyPlugin, POLICY_MODES } from "./plugin-policy.js";
+export type { PolicyMode, PolicyPluginOptions } from "./plugin-policy.js";
+export { default as maxIterationsPlugin } from "./plugin-max-iterations.js";
+export { default as scratchpadPlugin } from "./plugin-scratchpad.js";
+export { default as skillsPlugin } from "./plugin-skills.js";
+export { default as spawnPlugin } from "./plugin-spawn.js";

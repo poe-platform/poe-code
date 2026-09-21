@@ -141,3 +141,6 @@ type LogCatalog = Pick<
 const logCatalogOwn: LogCatalog = own;
 const logCatalogReference: Pick<typeof own, keyof LogCatalog> = null as unknown as LogCatalog;
 void [logCatalogOwn, logCatalogReference];
+const logReaderOwn: typeof original.readSpawnLog = own.readSpawnLog;
+const logReaderReference: typeof own.readSpawnLog = null as unknown as typeof original.readSpawnLog;
+void [logReaderOwn, logReaderReference];

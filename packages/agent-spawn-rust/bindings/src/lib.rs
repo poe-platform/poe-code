@@ -742,3 +742,52 @@ pub fn spawn_log_catalog_latest(
             .collect::<Vec<_>>(),
     ))
 }
+
+#[napi(object)]
+pub struct SpawnLogRecord {
+    pub line_number: f64,
+    pub text: Utf16String,
+}
+#[napi(object)]
+pub struct SpawnLogBatch {
+    pub text: Utf16String,
+    pub layout: Float64Array,
+}
+impl From<agent_spawn_rust::log_reader::Record> for SpawnLogRecord {
+    fn from(record: agent_spawn_rust::log_reader::Record) -> Self {
+        Self {
+            line_number: record.line_number as f64,
+            text: record.text.into(),
+        }
+    }
+}
+#[napi]
+#[derive(Default)]
+pub struct NativeSpawnLogReader {
+    state: agent_spawn_rust::log_reader::LogReader,
+}
+#[napi]
+impl NativeSpawnLogReader {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn push(&mut self, chunk: Utf16String) -> SpawnLogBatch {
+        let records = self.state.push(&chunk);
+        let mut text = Vec::with_capacity(records.iter().map(|record| record.text.len()).sum());
+        let mut layout = Vec::with_capacity(records.len() * 2);
+        for record in records {
+            text.extend(record.text);
+            layout.extend([text.len() as f64, record.line_number as f64]);
+        }
+        SpawnLogBatch {
+            text: text.into(),
+            layout: Float64Array::new(layout),
+        }
+    }
+    #[napi]
+    pub fn end(&mut self) -> Option<SpawnLogRecord> {
+        self.state.end().map(Into::into)
+    }
+}

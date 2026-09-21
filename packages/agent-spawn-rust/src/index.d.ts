@@ -114,3 +114,5 @@ export { spawnLog } from "./spawn-log.js";
 export { listSpawnLogs, findLatestLog, pickRandomLog } from "./log-catalog.js";
 export { getDefaultSpawnLogDir } from "./spawn-log-path.js";
 export type { LogEntry } from "./log-catalog.js";
+export { readSpawnLog } from "./log-reader.js";
+export type { ReadSpawnLogOptions, MalformedSpawnLogRecord } from "./log-reader.js";

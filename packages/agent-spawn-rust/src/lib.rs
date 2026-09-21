@@ -3,6 +3,7 @@ pub mod adapters;
 pub mod capture;
 pub mod command;
 pub mod execution;
+pub mod log_reader;
 pub mod logging;
 pub mod mcp;
 pub mod otel;

@@ -238,4 +238,39 @@ const sample = await pickRandomLog('codex');
 ```
 
 The catalog checks the default log directory for symbolic links, sorts filenames
-and derives validated UTC timestamps. Reading and replaying logs remain unavailable.
+and derives validated UTC timestamps. Stream a saved run as ACP session updates:
+
+```ts
+import { readSpawnLog } from '@poe-code/agent-spawn-rust';
+
+for await (const update of readSpawnLog('run.jsonl', {
+  onMalformedRecord: ({ lineNumber, message }) => console.error(lineNumber, message),
+})) {
+  consume(update);
+}
+```
+
+The reader accepts current session updates and legacy events, skips blank lines,
+and reports malformed records with their original line numbers. Set `strict: true`
+to reject malformed records. Early return closes the file and stream. Terminal
+replay rendering remains unavailable.
+
+Rust callers can frame and decode records directly, without loading Node:
+
+```rust
+use agent_spawn_rust::log_reader::{DecodedRecord, LogReader};
+
+let mut reader = LogReader::default();
+let chunk: Vec<u16> = "{\"event\":\"agent_message\",\"text\":\"hello\"}\n".encode_utf16().collect();
+for record in reader.push(&chunk) {
+    match record.decode(Default::default()) {
+        Ok(DecodedRecord::Updates(updates)) => println!("{} updates", updates.len()),
+        Ok(DecodedRecord::Unknown) => eprintln!("Unknown record at {}", record.line_number),
+        Err(error) => eprintln!("{}: {error}", record.line_number),
+    }
+}
+```
+
+Call `reader.end()` for a final unterminated record. Rust decoding uses explicit
+JSON byte, depth and node budgets; the Node adapter retains `JSON.parse` semantics
+and its diagnostics.

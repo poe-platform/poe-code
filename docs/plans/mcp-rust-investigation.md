@@ -6,9 +6,9 @@ Latest status (2026-09-21): the full objective is **incomplete**. The minimum
 retain their original implementations. Individual tested checkpoints are delivered
 on main; this is not acceptance of complete SDK parity or superior performance.
 
-Current source-level root export inventory: agent-spawn has nine missing original
+Current source-level root export inventory: agent-spawn has eight missing original
 runtime names; toolcraft-design has 79. This inventory checks names only. Agent
-rendering, log reading/replay, autonomous/dashboard execution, full terminal
+rendering, log replay, autonomous/dashboard execution, full terminal
 Markdown/UI, unrestricted intrinsic/proxy interop, YAML aliases/CST/complex keys,
 platform artifacts and comparative total/native-memory acceptance remain open.
 Toolcraft's broader Rust counterpart is absent. These gaps prevent calling this
@@ -20,6 +20,19 @@ references. Combined spawn 16 MiB acceptance remains failed; 24 MiB workers pass
 Old-generation limits and shared RSS do not establish lower total/native memory.
 Python can reuse the same Rust cores through a future PyO3/maturin binding exception;
 no Python implementation or performance superiority is claimed in this round.
+
+Authorized next phase (2026-09-21): after completing the current rewrite and its
+acceptance gates, complete the Rust spawn library and add Python integration.
+Reuse the language-neutral core with separate Node and Python bindings; Python
+must not route through Node. Ship Python wheels with no external Python runtime
+packages, retaining the native binding tooling exception. Cover process and stream
+lifetimes, asyncio cancellation, callback/GIL safety, errors and cross-language
+parity before making performance, stability or memory claims. Existing consumers
+remain unchanged. This follow-up is authorized, but not yet implemented.
+
+Latest additive checkpoint: `agent-spawn-rust` now reads saved JSONL runs, with
+Rust framing/location ownership, direct Rust decoding and Node-specific JSON
+diagnostics. Scope and final verification are recorded at the end of this ledger.
 
 Historical checkpoints follow.
 
@@ -7038,3 +7051,49 @@ Foreign package-lock/harness/plan changes are untouched. Continuous16:53:00–
 16:59:10 adds370s,total125885s(34.97h). The24-hour minimum is fulfilled; the full
 objective is incomplete at the Monday-noon checkpoint. Any further work should
 continue accounting after16:59:10UTC.
+
+2026-09-21 post-deadline continuation: saved spawn-log reading checkpoint.
+Reproduced missing Rust framing/decoding and missing Node readSpawnLog APIs with
+failing tests before implementation. Rust owns incremental CR/LF/CRLF framing,
+ECMAScript whitespace removal, physical line locations and consumed-buffer
+release. Record::decode accepts explicit foundation JSON limits, preserves raw
+update values and maps legacy records using the owned ACP core. Unknown legacy
+event names produce no updates; unknown parsed shapes remain distinct. Node
+retains JSON.parse diagnostics, prototype observations, original option getter
+receivers and callback error identities. Iterator return, callback/strict failure
+and IO creation/consumption failure close streams and file handles. No consumer
+or CLI integration; terminal replay remains absent.
+
+Three binding refinements reduced per-record allocation/delegation: direct outer
+generator yields, parallel data and bulk Rust span copies, then a contiguous
+UTF16 text buffer with paired end-offset/line-number Float64Array metadata. A
+failing batch-layout test preceded each binding shape change. Unicode/lone
+surrogate offsets, blank-line locations and split CRLF boundaries pass. No mutable
+Rust borrow crosses a callback. The typed array owns its transferred storage.
+
+Final maintained package checks:42Rust tests,53native groups,583original SDK
+reference cases17files, bidirectional read API types and maintained/scoped lint.
+All21reader/catalog cases from the original replay test file run against the owned
+SDK; its two terminal rendering cases are explicitly excluded, not counted as
+passes. Selected sequential uncached38-build closure passes. After the final
+binding refinements the maintained package route rebuilds the actual native
+artifact and repeats all package cases. Fresh packed audit:one addon,406JS/type
+files,zero external npm runtime/peer/optional groups. Direct and fresh packed
+blocked-import16MiB old-generation workers each read131072records, report65536
+malformed diagnostics and close64early-return iterators. Final JS heap11.37–
+13.87MiB; young/native/total memory are outside that limit and not comparative.
+
+Initial warmed4-cycle five-sample32768-record benchmark: owned48.65–73.72ms,
+reference24.41–31.07ms. Final warmed16-cycle sustained five alternating131072-
+record samples: owned wall67.56–82.20ms, reference67.61–77.78ms; owned CPU66.28–
+75.02ms, reference65.89–81.49ms. Results are competitive/mixed, not a consistent
+speed advantage. Earlier streaming/checklist/line-buffer/ACP gates and combined
+spawn16MiB failure remain open. Name inventory now has8missing original spawn
+runtime exports; full behavior/namespace/platform acceptance remains incomplete.
+
+The latest user steering authorizes complete Rust spawn plus Python integration
+as the next phase after current acceptance. This is recorded near the ledger's
+opening; Python implementation has not begun. Foreign lockfile, harness and
+safe-bash plan changes remain untouched. Root release91c1432d5 is still pending
+at17:27:02UTC; no successful publication verified. Owned temporary reader logs,
+benchmarks and packed copies are purged after delivery; maintained tests remain.

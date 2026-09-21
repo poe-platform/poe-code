@@ -52,3 +52,4 @@ export { spawnLog } from "./spawn-log.js";
 
 export { listSpawnLogs, findLatestLog, pickRandomLog } from "./log-catalog.js";
 export { getDefaultSpawnLogDir } from "./spawn-log-path.js";
+export { readSpawnLog } from "./log-reader.js";

@@ -69,3 +69,44 @@ it("keeps successful admission distinct from a later work-limited inspection", a
   await expect(readDocumentArchive(input, { ...textContext, budget: new DocumentBudget({ work: ceiling }) })).resolves.toMatchObject({ kind: "docx" });
   await expect(inspectDocument(input, { ...textContext, budget: new DocumentBudget({ work: ceiling }) })).rejects.toMatchObject({ code: "limit-exceeded" });
 });
+
+it("keeps admitted cross-kind next styles unpublished through text, round trip and metadata edits", async () => {
+  const styles =
+    '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="paragraph" w:styleId="SurveyBody"><w:name w:val="Survey body"/><w:next w:val="SurveyMark"/></w:style><w:style w:type="character" w:styleId="SurveyMark"><w:name w:val="Survey mark"/></w:style></w:styles>';
+  const input = await textFixture(paragraph("River observations"), {
+    styles: { kind: "styles", xml: styles }
+  });
+  const volume = Volume.fromJSON({
+    "/source": Buffer.from(input),
+    "/destination": "Keep destination"
+  });
+  const before = volume.toJSON();
+  const archive = await readDocumentArchive(input, textContext);
+  expect((await inspectDocument(input, textContext)).counts.paragraphs).toBe(1);
+  const refusal = {
+    code: "invalid-package",
+    diagnostics: expect.arrayContaining([
+      expect.objectContaining({ code: "style-next-type", part: "/word/styles.xml" })
+    ])
+  };
+  await expect(extractDocumentText(input, textContext)).rejects.toMatchObject(refusal);
+  let writes = 0;
+  const sink = {
+    async write() {
+      writes++;
+    }
+  };
+  await expect(
+    writeDocumentArchive(archive, sink, { order: "input", compression: "store" }, textContext)
+  ).rejects.toMatchObject(refusal);
+  await expect(
+    editDocumentProperties(
+      input,
+      { operation: "properties.set", name: "core:title", value: "Survey final", output: "-" },
+      { ...textContext, encoding: { order: "input", compression: "store" }, stdout: sink }
+    )
+  ).rejects.toMatchObject(refusal);
+  expect(writes).toBe(0);
+  expect(volume.toJSON()).toEqual(before);
+  expect(input).toEqual(new Uint8Array(volume.readFileSync("/source") as Buffer));
+});

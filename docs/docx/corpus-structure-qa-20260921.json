@@ -1,0 +1,1956 @@
+{
+  "version": 1,
+  "executedAt": "2026-09-21T21:17:21.243Z",
+  "manifestSha256": "e6e63838e0d9ae13616d78eb93af384cfbd1aca5a3557606db5d80f4a864b2ff",
+  "apiInventorySha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+  "node": "v22.22.2",
+  "profiles": {
+    "default": {
+      "archive": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 67108864,
+        "maxTotalBytes": 268435456,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 536870912,
+        "chunkSize": 65536
+      },
+      "document": {},
+      "effectiveDocumentLimits": {
+        "compressedInput": 67108864,
+        "expandedPackage": 268435456,
+        "zipEntries": 10000,
+        "xmlPartBytes": 33554432,
+        "xmlNodes": 2000000,
+        "xmlDepth": 256,
+        "embeddedMediaBytes": 67108864,
+        "retainedBytes": 536870912,
+        "serializedOutput": 268435456,
+        "batchOperations": 1000,
+        "matches": 100000,
+        "insertedNodes": 1000000,
+        "tableCells": 100000,
+        "tableRows": 10000,
+        "tableColumns": 1024,
+        "diagnosticBytes": 65536,
+        "work": 536870912
+      }
+    },
+    "large": {
+      "archive": {
+        "maxArchiveBytes": 67108864,
+        "maxEntryBytes": 67108864,
+        "maxTotalBytes": 536870912,
+        "maxMembers": 10000,
+        "maxPathBytes": 4096,
+        "maxDepth": 256,
+        "maxExtraBytes": 65536,
+        "maxCommentBytes": 65536,
+        "maxRetainedBytes": 2147483648,
+        "chunkSize": 65536
+      },
+      "document": {
+        "expandedPackage": 536870912,
+        "xmlNodes": 5000000,
+        "retainedBytes": 2147483648,
+        "work": 8589934592
+      },
+      "effectiveDocumentLimits": {
+        "compressedInput": 67108864,
+        "expandedPackage": 536870912,
+        "zipEntries": 10000,
+        "xmlPartBytes": 33554432,
+        "xmlNodes": 5000000,
+        "xmlDepth": 256,
+        "embeddedMediaBytes": 67108864,
+        "retainedBytes": 2147483648,
+        "serializedOutput": 268435456,
+        "batchOperations": 1000,
+        "matches": 100000,
+        "insertedNodes": 1000000,
+        "tableCells": 100000,
+        "tableRows": 10000,
+        "tableColumns": 1024,
+        "diagnosticBytes": 65536,
+        "work": 8589934592
+      }
+    }
+  },
+  "acquisition": [
+    {
+      "id": "circular-economy",
+      "expectedSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "expectedBytes": 8320866,
+      "actualSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "actualBytes": 8320866,
+      "status": "pass"
+    },
+    {
+      "id": "housing-supply-interim",
+      "expectedSha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "expectedBytes": 6360759,
+      "actualSha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "actualBytes": 6360759,
+      "status": "pass"
+    },
+    {
+      "id": "gst-reforms-interim",
+      "expectedSha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "expectedBytes": 6009233,
+      "actualSha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "actualBytes": 6009233,
+      "status": "pass"
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "expectedSha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "expectedBytes": 101772,
+      "actualSha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "actualBytes": 101772,
+      "status": "pass"
+    },
+    {
+      "id": "gst-reforms-interim-appendixc",
+      "expectedSha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "expectedBytes": 187689,
+      "actualSha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "actualBytes": 187689,
+      "status": "pass"
+    },
+    {
+      "id": "gst-reforms-interim-appendixd",
+      "expectedSha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "expectedBytes": 273146,
+      "actualSha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "actualBytes": 273146,
+      "status": "pass"
+    },
+    {
+      "id": "gst-reforms-interim-appendixe",
+      "expectedSha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "expectedBytes": 157148,
+      "actualSha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "actualBytes": 157148,
+      "status": "pass"
+    },
+    {
+      "id": "gst-reforms-interim-sp1",
+      "expectedSha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "expectedBytes": 264839,
+      "actualSha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "actualBytes": 264839,
+      "status": "pass"
+    },
+    {
+      "id": "ministry-for-the-environment-annual-report-2024-2025",
+      "expectedSha256": "38ada5fb0c2292569f77b33147934075e6e63e3c0a09d537597dc18d921331ec",
+      "expectedBytes": 10219701,
+      "actualSha256": "d02032286070b4dd9d8fbd985a7bdca8af8edf52b89ff177db3bfcb2c8a9c43d",
+      "actualBytes": 212,
+      "status": "unrun",
+      "reason": "pin mismatch"
+    },
+    {
+      "id": "our-atmosphere-and-climate-2023",
+      "expectedSha256": "82cdd2b8c196156e93d28695baac8c588ab5eddc9d045c12703594e642046764",
+      "expectedBytes": 5425219,
+      "actualSha256": "d02032286070b4dd9d8fbd985a7bdca8af8edf52b89ff177db3bfcb2c8a9c43d",
+      "actualBytes": 212,
+      "status": "unrun",
+      "reason": "pin mismatch"
+    },
+    {
+      "id": "scotland-annual-progress-report-2026-template-v1",
+      "expectedSha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "expectedBytes": 157858,
+      "actualSha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "actualBytes": 157858,
+      "status": "pass"
+    },
+    {
+      "id": "our-future-rm-system-developing-the-npf",
+      "expectedSha256": "7e4029e0b9ffc027c2773fa4e98fab489fc8d2ad1e8e89d6e8a21e6fbdb42646",
+      "expectedBytes": 21125727,
+      "actualSha256": "d02032286070b4dd9d8fbd985a7bdca8af8edf52b89ff177db3bfcb2c8a9c43d",
+      "actualBytes": 212,
+      "status": "unrun",
+      "reason": "pin mismatch"
+    },
+    {
+      "id": "new-zealands-second-emissions-reduction-plan-discussion-document",
+      "expectedSha256": "95463f5bb15f790ab3279cc89ab34fa36026041e2c4984d70d3e87ede5d32ba8",
+      "expectedBytes": 13582467,
+      "actualSha256": "d02032286070b4dd9d8fbd985a7bdca8af8edf52b89ff177db3bfcb2c8a9c43d",
+      "actualBytes": 212,
+      "status": "unrun",
+      "reason": "pin mismatch"
+    },
+    {
+      "id": "national-climate-change-risk-assessment-main-report",
+      "expectedSha256": "3192775a32f659061d48dda1c81005ffbbe526ca1b6b3a026c5a5dacccfbd417",
+      "expectedBytes": 7275939,
+      "actualSha256": "d02032286070b4dd9d8fbd985a7bdca8af8edf52b89ff177db3bfcb2c8a9c43d",
+      "actualBytes": 212,
+      "status": "unrun",
+      "reason": "pin mismatch"
+    },
+    {
+      "id": "mental-health-review",
+      "expectedSha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "expectedBytes": 9290427,
+      "actualSha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "actualBytes": 9290427,
+      "status": "pass"
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-1",
+      "expectedSha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+      "expectedBytes": 20543015,
+      "actualSha256": "d02032286070b4dd9d8fbd985a7bdca8af8edf52b89ff177db3bfcb2c8a9c43d",
+      "actualBytes": 212,
+      "status": "unrun",
+      "reason": "pin mismatch"
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-2",
+      "expectedSha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "expectedBytes": 7944279,
+      "actualSha256": "d02032286070b4dd9d8fbd985a7bdca8af8edf52b89ff177db3bfcb2c8a9c43d",
+      "actualBytes": 212,
+      "status": "unrun",
+      "reason": "pin mismatch"
+    },
+    {
+      "id": "wales-race-equality-response-images",
+      "expectedSha256": "bee94bc194b894f38c03cdf84ca4cfe5a65df580048ee2d33887171fc135b410",
+      "expectedBytes": 20568111,
+      "status": "unrun",
+      "reason": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "wales-citizen-voice-easy-read",
+      "expectedSha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+      "expectedBytes": 4409375,
+      "status": "unrun",
+      "reason": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "expectedSha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "expectedBytes": 338641,
+      "actualSha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "actualBytes": 338641,
+      "status": "pass"
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "expectedSha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "expectedBytes": 31195,
+      "actualSha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "actualBytes": 31195,
+      "status": "pass"
+    },
+    {
+      "id": "un-mauritius-core-ar",
+      "expectedSha256": "299029d8c5bd354f1693b96f099e92d81a97b90ce50e939a8c38e1ffff8ba476",
+      "expectedBytes": 123678,
+      "actualSha256": "299029d8c5bd354f1693b96f099e92d81a97b90ce50e939a8c38e1ffff8ba476",
+      "actualBytes": 123678,
+      "status": "pass"
+    },
+    {
+      "id": "accessibility-review-prose",
+      "expectedSha256": "6357e7f4eb7fb369207d5df87765f3bcd266ecbb8a1ed23c006207df50b4c83d",
+      "expectedBytes": 388962,
+      "actualSha256": "6357e7f4eb7fb369207d5df87765f3bcd266ecbb8a1ed23c006207df50b4c83d",
+      "actualBytes": 388962,
+      "status": "pass"
+    }
+  ],
+  "runs": [
+    {
+      "id": "circular-economy",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 650
+        },
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 649
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 638
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        }
+      },
+      "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "circular-economy",
+      "profile": "large",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 193,
+          "elapsedMs": 7703
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 2655,
+            "runs": 11888,
+            "tables": 56,
+            "rows": 585,
+            "cells": 920,
+            "images": 99,
+            "sections": 30,
+            "comments": 0,
+            "footnotes": 121,
+            "endnotes": 2,
+            "fields": 108,
+            "controls": 41,
+            "equations": 0,
+            "cachedPages": 166
+          },
+          "parts": 193,
+          "elapsedMs": 10316
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "0671f8d13f5ec8b4903a6e0d3be2515e6b54421c2570b4ad973069f4289c5e50",
+          "codePoints": 443941,
+          "segments": 12739,
+          "elapsedMs": 11735
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "18ffe6cceee902de8adefe55e8bde6951486e0508897c8648c969d04058d868a",
+          "outputBytes": 8156866,
+          "elapsedMs": 12396,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 193,
+            "untouchedManifestSha256": "c4b0494cf1ab7626d7030b6b0c189bcac5793ae49db31f670aa48d1b15834348",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "0769295cd7335948453dbcf8339d98396c8702e4185ed80f821cb25d0ae6178d",
+          "outputBytes": 8156841,
+          "elapsedMs": 19314,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 192,
+            "untouchedManifestSha256": "9b514d34af9bfad2c5caceaf09f3299335db06abb650528c2e4f27206fcfcca4",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "housing-supply-interim",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 493
+        },
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 491
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 503
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        }
+      },
+      "sourceSha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "housing-supply-interim",
+      "profile": "large",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 141,
+          "elapsedMs": 4867
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 2213,
+            "runs": 7625,
+            "tables": 96,
+            "rows": 472,
+            "cells": 726,
+            "images": 107,
+            "sections": 24,
+            "comments": 0,
+            "footnotes": 18,
+            "endnotes": 2,
+            "fields": 79,
+            "controls": 32,
+            "equations": 0,
+            "cachedPages": 136
+          },
+          "parts": 141,
+          "elapsedMs": 6271
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "16b2149ba00152e8aa5f8c5272a8951b1bed10ac1d9dbd6a544eb1ff74c8657b",
+          "codePoints": 345473,
+          "segments": 9553,
+          "elapsedMs": 6600
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "9733641a40a95b24047ec837ec1d4c54f70b089f7455e202104f1d0eb12d06a3",
+          "outputBytes": 6300171,
+          "elapsedMs": 7793,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 141,
+            "untouchedManifestSha256": "33fe7331509aa950433da119a1d33116156964caeeb0e29940581a8da591f36c",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "9126ff52b4cc445b799cb0a1b7f339639e773d5fdaa0277e795434181038fe53",
+          "outputBytes": 6300171,
+          "elapsedMs": 10073,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 140,
+            "untouchedManifestSha256": "2c79ff4c4ceb18ea73172678a1ce35377918b7ccd21cc794f3b837d8b78e19c0",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 527
+        },
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 543
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 576
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        }
+      },
+      "sourceSha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim",
+      "profile": "large",
+      "actions": {
+        "admission": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container.",
+          "elapsedMs": 906
+        },
+        "inspect": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container.",
+          "elapsedMs": 935
+        },
+        "text": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container.",
+          "elapsedMs": 865
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        }
+      },
+      "sourceSha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 41,
+          "elapsedMs": 1173
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 228,
+            "runs": 1618,
+            "tables": 6,
+            "rows": 23,
+            "cells": 53,
+            "images": 0,
+            "sections": 2,
+            "comments": 0,
+            "footnotes": 12,
+            "endnotes": 2,
+            "fields": 27,
+            "controls": 2,
+            "equations": 59,
+            "cachedPages": 15
+          },
+          "parts": 41,
+          "elapsedMs": 1611
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "a0b83471ff3dd1942c48d99ce3a88ce589933888dbd04d81be3c91f88864b5a4",
+          "codePoints": 41085,
+          "segments": 1645,
+          "elapsedMs": 1682
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "e0e50f8d014697dbd8029a6b5183d720ccf665d18f0b54c620bf4b99d598589a",
+          "outputBytes": 93392,
+          "elapsedMs": 1774,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 41,
+            "untouchedManifestSha256": "6d26ac5e6e9a2a286b959c087828c13cbdac732906fa707d443fb4eb7937bb1c",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "4f2ed00c3baf36c2ecb3ce33b1651df82c1266687ef405928b7123b695664cbd",
+          "outputBytes": 93342,
+          "elapsedMs": 2150,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 40,
+            "untouchedManifestSha256": "723cc1217d4d1116990114ab3c8b27d7e4c12c91d3f2b14b9aca285e07672aa8",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixc",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 41,
+          "elapsedMs": 3067
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 1061,
+            "runs": 3001,
+            "tables": 41,
+            "rows": 298,
+            "cells": 864,
+            "images": 0,
+            "sections": 5,
+            "comments": 0,
+            "footnotes": 4,
+            "endnotes": 2,
+            "fields": 56,
+            "controls": 2,
+            "equations": 0,
+            "cachedPages": 29
+          },
+          "parts": 41,
+          "elapsedMs": 4207
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "81daac6fea1aed9c9935f23a6af9cdea26b582c28b43abaf35eaab3b304fe407",
+          "codePoints": 64917,
+          "segments": 3924,
+          "elapsedMs": 4367
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "53eb9f7acc4064f3211bf24c37b6f74c652f561e834720124ad1b51b5354942d",
+          "outputBytes": 175213,
+          "elapsedMs": 4138,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 41,
+            "untouchedManifestSha256": "b73c71f74f067d46e1a53883078ec295fc3b29ce32e5b6eee1217d297d61d81a",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "ecb72f57f9e86d533f0f520b363a02df86405558ef0202f60a903e2d985f99e9",
+          "outputBytes": 175204,
+          "elapsedMs": 5904,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 40,
+            "untouchedManifestSha256": "7308a5f3cad150b0e617644772fda03d1ff47cf37e0b9bd20ebeebc784c27541",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixd",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 50,
+          "elapsedMs": 1520
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 312,
+            "runs": 2655,
+            "tables": 4,
+            "rows": 17,
+            "cells": 95,
+            "images": 9,
+            "sections": 2,
+            "comments": 0,
+            "footnotes": 18,
+            "endnotes": 2,
+            "fields": 3,
+            "controls": 3,
+            "equations": 0,
+            "cachedPages": 19
+          },
+          "parts": 50,
+          "elapsedMs": 2003
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "71a4f800c080f288195ae28365459e9723379d1274db9b68b35d085aff8f9d87",
+          "codePoints": 51296,
+          "segments": 2803,
+          "elapsedMs": 2105
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "f42258ba1d8f617b4ca53a094d59e0360139b2992af4186b71ae1247b5377a53",
+          "outputBytes": 260032,
+          "elapsedMs": 10320,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 50,
+            "untouchedManifestSha256": "456770e6e1fb92634be349996053125d048cca5ffb08fd71e86b12952b8b9c90",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "49bc4c085f564a76373ac697da5f2dccb89e69594aa16de26af5cae14a7e48dc",
+          "outputBytes": 260014,
+          "elapsedMs": 2773,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 49,
+            "untouchedManifestSha256": "6344bd2046ed1f0ea9db2fe0b234fb8f9f82e578d5d8dcc3b43099bbe931f2a2",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixe",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 52,
+          "elapsedMs": 873
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 206,
+            "runs": 725,
+            "tables": 4,
+            "rows": 20,
+            "cells": 63,
+            "images": 6,
+            "sections": 2,
+            "comments": 0,
+            "footnotes": 8,
+            "endnotes": 2,
+            "fields": 6,
+            "controls": 5,
+            "equations": 0,
+            "cachedPages": 13
+          },
+          "parts": 52,
+          "elapsedMs": 1072
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "ebb13dacf1f00eff37ffbef38597f08c88b4b8c05cec8daf8278ae1442397e07",
+          "codePoints": 33633,
+          "segments": 845,
+          "elapsedMs": 1139
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "9ba51dc92a49a3badd508e5c044502e820ce8022a4e9347ae376b7ca3466cbc1",
+          "outputBytes": 149276,
+          "elapsedMs": 1337,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 52,
+            "untouchedManifestSha256": "46f49f661d210bd3e921972eb3ee715b239d44de44c4a9866cf5900f9efcff3d",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "403960f9c36f2e84ab3e970d998e94e989d1df2154ff1bb89fe58aae04de0b82",
+          "outputBytes": 149263,
+          "elapsedMs": 2187,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 51,
+            "untouchedManifestSha256": "13d4d41e4b20b0288d31450794f0386d85a61fe88b5ddf67b1985fa7bc01777a",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "gst-reforms-interim-sp1",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 51,
+          "elapsedMs": 2214
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 231,
+            "runs": 2816,
+            "tables": 3,
+            "rows": 8,
+            "cells": 8,
+            "images": 10,
+            "sections": 3,
+            "comments": 0,
+            "footnotes": 11,
+            "endnotes": 2,
+            "fields": 14,
+            "controls": 2,
+            "equations": 0,
+            "cachedPages": 20
+          },
+          "parts": 51,
+          "elapsedMs": 3036
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "3043c65c8e9de6da3a08ee325dd55240cfd300aaa7fd2d23459d25e90df357c8",
+          "codePoints": 47985,
+          "segments": 2884,
+          "elapsedMs": 3127
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "ef2b18c2bd025da8b6ec260a480d9b9b786ffe0020700cef7af773a8f89fc933",
+          "outputBytes": 253087,
+          "elapsedMs": 2977,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 51,
+            "untouchedManifestSha256": "ccf77adfe017bc5bffa554712ff44659c9a494df016c0230645e9343d77ee5e8",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "670bfc5967620d21b1de15c44a05dafd20bd91c1d81604f438a01dcdac12d67f",
+          "outputBytes": 253031,
+          "elapsedMs": 4028,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 50,
+            "untouchedManifestSha256": "0ca7eeefd6d27060d4644f9d9f06ded420dd88bb5663d954d253a79a38df31d9",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "scotland-annual-progress-report-2026-template-v1",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container.",
+          "elapsedMs": 188
+        },
+        "inspect": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container.",
+          "elapsedMs": 186
+        },
+        "text": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Invalid document OPC container.",
+          "elapsedMs": 196
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        }
+      },
+      "sourceSha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "mental-health-review",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 577
+        },
+        "inspect": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 571
+        },
+        "text": {
+          "status": "reject",
+          "code": "limit-exceeded",
+          "message": "Document work limit exceeded.",
+          "elapsedMs": 582
+        },
+        "roundTrip": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        },
+        "edit": {
+          "status": "unrun",
+          "reason": "Admission rejected"
+        }
+      },
+      "sourceSha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "mental-health-review",
+      "profile": "large",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 160,
+          "elapsedMs": 10026
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 5432,
+            "runs": 21828,
+            "tables": 138,
+            "rows": 928,
+            "cells": 1765,
+            "images": 182,
+            "sections": 31,
+            "comments": 0,
+            "footnotes": 85,
+            "endnotes": 2,
+            "fields": 87,
+            "controls": 16,
+            "equations": 0,
+            "cachedPages": 320
+          },
+          "parts": 160,
+          "elapsedMs": 14363
+        },
+        "text": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Staged document validation failed.",
+          "elapsedMs": 12198
+        },
+        "roundTrip": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Staged document validation failed.",
+          "elapsedMs": 12237
+        },
+        "edit": {
+          "status": "reject",
+          "code": "invalid-package",
+          "message": "Staged document validation failed.",
+          "elapsedMs": 13252
+        }
+      },
+      "sourceSha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 50,
+          "elapsedMs": 1851
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 496,
+            "runs": 2281,
+            "tables": 8,
+            "rows": 17,
+            "cells": 37,
+            "images": 1,
+            "sections": 3,
+            "comments": 0,
+            "footnotes": 3,
+            "endnotes": 3,
+            "fields": 12,
+            "controls": 0,
+            "equations": 0,
+            "cachedPages": 25
+          },
+          "parts": 50,
+          "elapsedMs": 2352
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "0bbc9cad0102781b8540b395724a2fb8d5ccdd68971f99f7e62a275b2df410a4",
+          "codePoints": 30319,
+          "segments": 2080,
+          "elapsedMs": 3283
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "b383e0ea8666a6e3c6e1a7ac2f07a8032fe062ab2458e438a13e5ae2193f8c07",
+          "outputBytes": 329749,
+          "elapsedMs": 2526,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 50,
+            "untouchedManifestSha256": "5c1d227921439f4498215db06fff98b5318bba8e5c414d4fad8b994a9a9edd42",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "4fea99a543a7c2271e77e5c82f616978a20ad0e57a28d26994bcfa32bc90346e",
+          "outputBytes": 329775,
+          "elapsedMs": 3206,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 49,
+            "untouchedManifestSha256": "8218f798b4f8cc6c54f4cee58d60c048e5bdf82e305f4778d5a72d2ec9bbd464",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "870e805a921cd4f09c6ea5c29da969dd44569e81f7c30c3a8c943630287c20a6",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 17,
+          "elapsedMs": 398
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 113,
+            "runs": 391,
+            "tables": 1,
+            "rows": 1,
+            "cells": 1,
+            "images": 0,
+            "sections": 1,
+            "comments": 0,
+            "footnotes": 2,
+            "endnotes": 2,
+            "fields": 1,
+            "controls": 1,
+            "equations": 0,
+            "cachedPages": 5
+          },
+          "parts": 17,
+          "elapsedMs": 516
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "13d00fc1d81c374922b9d68d4d10734d89b630c718cb3d562c27b1959901a5d6",
+          "codePoints": 4553,
+          "segments": 483,
+          "elapsedMs": 518
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "8992bfa49246ed203f9495f80de59642b300c1ac17bce20c9f830dc4e20d7c40",
+          "outputBytes": 28079,
+          "elapsedMs": 549,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 17,
+            "untouchedManifestSha256": "95beeb248436c74f6d395e6e76a61e23f584599eaee450cd575ef6d1f0b1bca1",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "85e284a6b84a737f7576f1ab9f51de0457429c2cc5e928bfd9adda2aea3e2f41",
+          "outputBytes": 28100,
+          "elapsedMs": 691,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 16,
+            "untouchedManifestSha256": "f72c677c7857d31917a4e292d9f944b78bd0e923c73b222f71f760f7f5c3bfe1",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "a96c37ee8b824ae0f2bc8cab0ffddfd40c37f1b3a642d18a24a827db1e0121b3",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "un-mauritius-core-ar",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 27,
+          "elapsedMs": 1205
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 675,
+            "runs": 1816,
+            "tables": 18,
+            "rows": 137,
+            "cells": 330,
+            "images": 3,
+            "sections": 1,
+            "comments": 0,
+            "footnotes": 3,
+            "endnotes": 2,
+            "fields": 4,
+            "controls": 0,
+            "equations": 0,
+            "cachedPages": 32
+          },
+          "parts": 27,
+          "elapsedMs": 1641
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "477c18e5603f3efdd423f9874d73b6126388fda31997a12d376d73906c6fd679",
+          "codePoints": 72750,
+          "segments": 2783,
+          "elapsedMs": 1686
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "30d9e7671cbbf9f707d6726900c8a241753a192dd1f9ae4ceabecfcde0463cac",
+          "outputBytes": 116003,
+          "elapsedMs": 1606,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 27,
+            "untouchedManifestSha256": "e6e6b36759f2834b8557370dad2a4a2e5752928a30a6edecb58e0f6389c7d5bb",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "928e9b48802551e7b06b382ccdfce472bc2cd90eafa7fb3600e8f72ed4a0ae8e",
+          "outputBytes": 116011,
+          "elapsedMs": 2096,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 26,
+            "untouchedManifestSha256": "036e244b9d99b1d9a76866b3ca21f6d583fa4bb7a94b409b7c31af28fce38f2d",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "299029d8c5bd354f1693b96f099e92d81a97b90ce50e939a8c38e1ffff8ba476",
+      "sourceUnchanged": true
+    },
+    {
+      "id": "accessibility-review-prose",
+      "profile": "default",
+      "actions": {
+        "admission": {
+          "status": "pass",
+          "members": 17,
+          "elapsedMs": 435
+        },
+        "inspect": {
+          "status": "pass",
+          "counts": {
+            "paragraphs": 144,
+            "runs": 661,
+            "tables": 0,
+            "rows": 0,
+            "cells": 0,
+            "images": 1,
+            "sections": 1,
+            "comments": 0,
+            "footnotes": 0,
+            "endnotes": 0,
+            "fields": 1,
+            "controls": 0,
+            "equations": 0,
+            "cachedPages": 12
+          },
+          "parts": 17,
+          "elapsedMs": 542
+        },
+        "text": {
+          "status": "pass",
+          "textSha256": "c1aaea25d81d6465b5566af23ce72efaf2cb3be9645f473a7be1e024d5435387",
+          "codePoints": 21092,
+          "segments": 798,
+          "elapsedMs": 545
+        },
+        "roundTrip": {
+          "status": "pass",
+          "outputSha256": "4645a10bcee3aa838efca7f93ceb36ee86530b5029d0f0c83c1cb5741f38dc8a",
+          "outputBytes": 371186,
+          "elapsedMs": 638,
+          "independent": {
+            "status": "pass",
+            "changedParts": [],
+            "untouchedParts": 17,
+            "untouchedManifestSha256": "96a23c4c4bd8282029a3f116f9443e8d28045ded93702baae2379aa6258aca7f",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        },
+        "edit": {
+          "status": "pass",
+          "operation": "properties.set",
+          "name": "core:title",
+          "value": "Coastal structure qualification",
+          "outputSha256": "7b61f7bfa789318d0c7efbfd7c1b3cdfd355fc3baeb550eb8d01d423980254de",
+          "outputBytes": 371211,
+          "elapsedMs": 743,
+          "independent": {
+            "status": "pass",
+            "changedParts": ["docProps/core.xml"],
+            "untouchedParts": 16,
+            "untouchedManifestSha256": "82f1e9ed05f5918986e0efe8503f2aaed30eabd5fd7f9b415f88a8dfa7751501",
+            "checks": [
+              "CRC",
+              "XML",
+              "content types",
+              "relationship IDs/targets",
+              "member set",
+              "untouched bytes/SHA-256",
+              "selected title/other metadata"
+            ]
+          }
+        }
+      },
+      "sourceSha256": "6357e7f4eb7fb369207d5df87765f3bcd266ecbb8a1ed23c006207df50b4c83d",
+      "sourceUnchanged": true
+    }
+  ],
+  "independentCensus": [
+    {
+      "id": "mental-health-review",
+      "status": "pass",
+      "expandedBytes": 16460416,
+      "members": 160,
+      "counts": {
+        "p": 5432,
+        "r": 21828,
+        "tbl": 138,
+        "tr": 928,
+        "tc": 1765,
+        "sectPr": 31,
+        "fldSimple": 6,
+        "fldChar": 243,
+        "footnote": 88,
+        "endnote": 4,
+        "sdt": 16,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "gst-reforms-interim",
+      "status": "reject",
+      "reason": "('missing type', '[trash]/0000.dat')"
+    },
+    {
+      "id": "circular-economy",
+      "status": "pass",
+      "expandedBytes": 13664151,
+      "members": 193,
+      "counts": {
+        "p": 2657,
+        "r": 11890,
+        "tbl": 56,
+        "tr": 585,
+        "tc": 920,
+        "sectPr": 30,
+        "fldSimple": 17,
+        "fldChar": 273,
+        "footnote": 124,
+        "endnote": 4,
+        "sdt": 41,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "scotland-annual-progress-report-2026-template-v1",
+      "status": "reject",
+      "reason": "('missing type', '[trash]/0000.dat')"
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "status": "pass",
+      "expandedBytes": 615485,
+      "members": 41,
+      "counts": {
+        "p": 228,
+        "r": 1884,
+        "tbl": 6,
+        "tr": 23,
+        "tc": 53,
+        "sectPr": 2,
+        "fldSimple": 12,
+        "fldChar": 45,
+        "footnote": 15,
+        "endnote": 4,
+        "sdt": 2,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "un-mauritius-core-ar",
+      "status": "pass",
+      "expandedBytes": 717996,
+      "members": 27,
+      "counts": {
+        "p": 675,
+        "r": 1816,
+        "tbl": 18,
+        "tr": 137,
+        "tc": 330,
+        "sectPr": 1,
+        "fldSimple": 0,
+        "fldChar": 12,
+        "footnote": 5,
+        "endnote": 4,
+        "sdt": 0,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixc",
+      "status": "pass",
+      "expandedBytes": 1611090,
+      "members": 41,
+      "counts": {
+        "p": 1061,
+        "r": 3001,
+        "tbl": 41,
+        "tr": 298,
+        "tc": 864,
+        "sectPr": 5,
+        "fldSimple": 35,
+        "fldChar": 63,
+        "footnote": 7,
+        "endnote": 4,
+        "sdt": 2,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "hk-values-story-teacher",
+      "status": "pass",
+      "expandedBytes": 206928,
+      "members": 17,
+      "counts": {
+        "p": 113,
+        "r": 391,
+        "tbl": 1,
+        "tr": 1,
+        "tc": 1,
+        "sectPr": 1,
+        "fldSimple": 0,
+        "fldChar": 3,
+        "footnote": 4,
+        "endnote": 4,
+        "sdt": 1,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "wa-outcome-standards-tracked",
+      "status": "pass",
+      "expandedBytes": 1477590,
+      "members": 50,
+      "counts": {
+        "p": 518,
+        "r": 2509,
+        "tbl": 8,
+        "tr": 17,
+        "tc": 37,
+        "sectPr": 3,
+        "fldSimple": 0,
+        "fldChar": 36,
+        "footnote": 6,
+        "endnote": 6,
+        "sdt": 0,
+        "ins": 199,
+        "del": 345
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixd",
+      "status": "pass",
+      "expandedBytes": 2065103,
+      "members": 50,
+      "counts": {
+        "p": 312,
+        "r": 2655,
+        "tbl": 4,
+        "tr": 17,
+        "tc": 95,
+        "sectPr": 2,
+        "fldSimple": 1,
+        "fldChar": 6,
+        "footnote": 21,
+        "endnote": 4,
+        "sdt": 3,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "housing-supply-interim",
+      "status": "pass",
+      "expandedBytes": 9201080,
+      "members": 141,
+      "counts": {
+        "p": 2217,
+        "r": 7641,
+        "tbl": 96,
+        "tr": 472,
+        "tc": 726,
+        "sectPr": 24,
+        "fldSimple": 9,
+        "fldChar": 210,
+        "footnote": 21,
+        "endnote": 4,
+        "sdt": 32,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "gst-reforms-interim-sp1",
+      "status": "pass",
+      "expandedBytes": 1689005,
+      "members": 51,
+      "counts": {
+        "p": 231,
+        "r": 2816,
+        "tbl": 3,
+        "tr": 8,
+        "tc": 8,
+        "sectPr": 3,
+        "fldSimple": 8,
+        "fldChar": 18,
+        "footnote": 14,
+        "endnote": 4,
+        "sdt": 2,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "accessibility-review-prose",
+      "status": "pass",
+      "expandedBytes": 547402,
+      "members": 17,
+      "counts": {
+        "p": 144,
+        "r": 661,
+        "tbl": 0,
+        "tr": 0,
+        "tc": 0,
+        "sectPr": 1,
+        "fldSimple": 0,
+        "fldChar": 3,
+        "footnote": 0,
+        "endnote": 0,
+        "sdt": 0,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    },
+    {
+      "id": "gst-reforms-interim-appendixe",
+      "status": "pass",
+      "expandedBytes": 845030,
+      "members": 52,
+      "counts": {
+        "p": 212,
+        "r": 731,
+        "tbl": 4,
+        "tr": 20,
+        "tc": 63,
+        "sectPr": 2,
+        "fldSimple": 2,
+        "fldChar": 12,
+        "footnote": 11,
+        "endnote": 4,
+        "sdt": 5,
+        "ins": 0,
+        "del": 0
+      },
+      "existingCoreTitle": true
+    }
+  ],
+  "independentValidation": {
+    "tool": "Python standard-library zipfile and ElementTree",
+    "notProven": [
+      "full OOXML schema validity",
+      "layout/rendering",
+      "external resources",
+      "signature verification",
+      "whole public API coverage"
+    ]
+  },
+  "baselineCommit": "a67375a1310920a1b7a16d748e63ac1e04245a40",
+  "sourceTreeSha256": "9988a1f172679b9cd41bd3946001379ccd7c818ae91ca043679c525199216906",
+  "sourceTreeState": "Current working source; unrelated changes preserved. No clean-release qualification.",
+  "apiAuditSha256": "a0ac2730b5719aab7255df57d72fe9fb72db270f63ca0977534fa8019827e93f",
+  "campaign": "Current-source manifest-pinned disposable structure QA",
+  "scope": "Only corpus structural qualification; no product code, README, push or release.",
+  "statuses": {
+    "pass": "Executed assertions succeeded; round-trip/edit outputs independently validated.",
+    "reject": "Explicit package/profile/limit refusal; not successful editing.",
+    "fail": "Unexpected error or violated invariant.",
+    "unrun": "Not executed, with acquisition or admission reason."
+  },
+  "discovery": [
+    {
+      "args": ["schema", "properties", "set", "--json"],
+      "exitCode": 0,
+      "operation": "schema",
+      "ok": true,
+      "version": 1
+    },
+    {
+      "args": ["schema", "text", "replace", "--json"],
+      "exitCode": 0,
+      "operation": "schema",
+      "ok": true,
+      "version": 1
+    },
+    {
+      "args": ["capabilities", "--json"],
+      "exitCode": 0,
+      "operation": "capabilities",
+      "ok": true,
+      "version": 1
+    }
+  ],
+  "semanticRejection": {
+    "valid": false,
+    "diagnostics": [
+      {
+        "code": "style-next-type",
+        "part": "/word/styles.xml",
+        "location": "/styles[1]/style[217]/next[3]"
+      }
+    ],
+    "warnings": [
+      "Partial schema and semantic validation only; no full conformance certification.",
+      "Container integrity requires byte admission; protection, signatures and extension semantics are unvalidated."
+    ]
+  },
+  "successfulLargeCases": ["circular-economy", "housing-supply-interim"],
+  "summary": {
+    "manifestFiles": 23,
+    "pinnedDownloads": 14,
+    "acquisitionUnrun": 9,
+    "successfulRoundTripAndEditFiles": 11,
+    "packageRejectedFiles": 2,
+    "admittedButSemanticallyRejectedFiles": 1,
+    "successfulLargeFiles": 2,
+    "actionStatuses": {
+      "reject": 21,
+      "unrun": 12,
+      "pass": 57,
+      "fail": 0
+    }
+  },
+  "originalRegressions": [
+    {
+      "finding": "Default work limit refusal and source/publication retention",
+      "file": "packages/docx/src/corpus-structure-regression.test.ts",
+      "test": "refuses exhausted work without publishing or changing source bytes"
+    },
+    {
+      "finding": "Unchanged mixed-structure round trip and title-only edit",
+      "file": "packages/docx/src/corpus-structure-regression.test.ts",
+      "test": "round trips mixed structures and changes only selected core title bytes"
+    },
+    {
+      "finding": "Bracketed auxiliary path refusal",
+      "file": "packages/docx/src/corpus-structure-regression.test.ts",
+      "test": "rejects bracketed auxiliary part paths before any metadata output"
+    },
+    {
+      "finding": "Missing part content-type mapping",
+      "file": "packages/docx/src/package-behavior-variants.test.ts",
+      "test": "Missing content type mapping fails before graph acceptance"
+    },
+    {
+      "finding": "Admission does not imply completion under the same resource capacity",
+      "file": "packages/docx/src/corpus-structure-regression.test.ts",
+      "test": "keeps successful admission distinct from a later work-limited inspection"
+    },
+    {
+      "finding": "Cross-kind next-style semantic refusal after admission",
+      "file": "packages/docx/src/large-profile.test.ts",
+      "test": "rejects a next-style relationship between different definition kinds"
+    },
+    {
+      "finding": "Explicit large ceilings do not change defaults or permit caller increases",
+      "file": "packages/docx/src/large-profile.test.ts",
+      "test": "honors trusted node ceilings and lower-only operation limits before memfs edits"
+    },
+    {
+      "finding": "Admission/inspect success does not imply semantic text/serialization/edit support; no bytes published on refusal",
+      "file": "packages/docx/src/corpus-structure-regression.test.ts",
+      "test": "keeps admitted cross-kind next styles unpublished through text, round trip and metadata edits",
+      "disposition": "New original memfs regression, reproduced from measured style-next-type refusal before authoring; no product implementation changed."
+    }
+  ],
+  "regressionDisposition": "Existing small original regressions cover earlier findings. New original in-memory regression qualifies post-admission semantic rejection across text, round trip and metadata edit; no binary/source wording copied and no product implementation or artificial red run.",
+  "retention": {
+    "sources": "14 downloaded inputs and 22 successful output packages are disposable; remove after receipt extraction.",
+    "permanentTests": "Original authored in-memory regressions only; no downloaded assets or full campaign report embedded in tests.",
+    "temporaryRoot": "repository /out/docx-structure-20260921; host /out was read-only",
+    "sourceCount": 14,
+    "outputCount": 22,
+    "cleanup": "Complete: removed all 14 downloaded inputs, 22 successful outputs, temporary helper scripts and full run logs after extracting compact evidence."
+  },
+  "laterTasks": "Pending; no historical model inventory status promoted, no full API/schema/layout coverage claim.",
+  "checks": {
+    "docxLint": {
+      "command": "npm run lint --workspace=docx",
+      "exitCode": 0,
+      "warnings": 1
+    },
+    "initialUnit": {
+      "command": "npm run test:unit --workspace=docx",
+      "exitCode": 1,
+      "passed": 5188,
+      "failed": 2,
+      "reason": "Two five-second timeouts during concurrent execution; both pass in the subsequent complete single-worker run without timeout or product changes."
+    },
+    "unitRecheck": {
+      "command": "npm run test:unit --workspace=docx -- packages/docx/src/dummy-text.test.ts packages/docx/src/field-structures.test.ts --maxWorkers=1",
+      "exitCode": 0,
+      "status": "pass",
+      "filesPassed": 252,
+      "testsPassed": 5191,
+      "scope": "The maintained command includes all DOCX tests; additional positional file filters do not narrow that directory selection. Full 252-file verification includes the new regression.",
+      "timeoutsUnchanged": true
+    },
+    "optionalNativeSchemas": {
+      "command": "npm run test:schemas --workspace=docx",
+      "exitCode": 1,
+      "status": "unrun",
+      "casesUnrun": 10,
+      "reason": "DOCX_SCHEMA_ROOT absent; no pinned schema closure available; not counted as passes."
+    },
+    "focusedRegression": {
+      "command": "npx vitest run packages/docx/src/corpus-structure-regression.test.ts --maxWorkers=1",
+      "exitCode": 0,
+      "passed": 5
+    },
+    "finalDocxLint": {
+      "command": "npm run lint --workspace=docx",
+      "exitCode": 0,
+      "warnings": 1
+    },
+    "documentationFormatting": {
+      "command": "npx prettier --check docs/plans/docx-corpus-structure-qa.md docs/docx/corpus-structure-qa-20260921.md docs/docx/corpus-structure-qa-20260921.json",
+      "status": "pass",
+      "exitCode": 0
+    },
+    "logSha256": {
+      "unit.log": "62aa1ef9d38fe1a441c5aebfd436e1af1202f5ffa1c88a010cfc99d9ca96cdb3",
+      "timeout-recheck.log": "f815a68468aff483b139d5cd96ece7a07f152274e836756b886d21738a72e47e",
+      "regression.log": "274ad2a1fab78dc0344dae3e7ab03b9b319ca006228b103f84198afef5582ca2",
+      "final-lint.log": "db28f6e0d30c11b7c9d07eec6133b6663f69c355d523632cf4755f87705c81c2",
+      "schema.log": "8737a0be4c5fb376dae695e99bfae84607f12ab8227d70279faf28881c04437c"
+    }
+  },
+  "finalSourceTreeSha256": "494810aef63e20e96df555187cce8eb581f4156d481bfccb79efae0e84a58dc5",
+  "sourceTreeChanges": ["packages/docx/src/corpus-structure-regression.test.ts"],
+  "productImplementationUnchanged": true,
+  "productSourceTreeSha256": "5c403d06c7e49eeb4a8774195ec956157076ac81e2212e75d6803f3af3225cae",
+  "documentLimitDefaults": {
+    "compressedInput": 67108864,
+    "expandedPackage": 268435456,
+    "zipEntries": 10000,
+    "xmlPartBytes": 33554432,
+    "xmlNodes": 2000000,
+    "xmlDepth": 256,
+    "embeddedMediaBytes": 67108864,
+    "retainedBytes": 536870912,
+    "serializedOutput": 268435456,
+    "batchOperations": 1000,
+    "matches": 100000,
+    "insertedNodes": 1000000,
+    "tableCells": 100000,
+    "tableRows": 10000,
+    "tableColumns": 1024,
+    "diagnosticBytes": 65536,
+    "work": 536870912
+  }
+}

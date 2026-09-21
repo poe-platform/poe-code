@@ -101,6 +101,9 @@ names beginning with a dash, use `catalog -- '--tool' [arguments]`.
 Use inline flags such as `--query=--help` for literal values beginning with
 `--`. `--raw -` and `--raw=-` read a bounded UTF-8 JSON object from virtual
 stdin, supporting shell input redirection and pipelines.
+For a large or multiline payload, use `catalog search_items --raw - < /input.json`
+with a complete JSON object in the virtual filesystem. Named string values
+beginning with `@` remain literal.
 
 Stdout contains the complete MCP result as one JSON value, including all content
 blocks, structured output and metadata. Tool failures and invalid structured
@@ -110,6 +113,8 @@ HTTP status when available. Output writes are awaited and cancellation closes
 owned requests. Set `maxOutputBytes` to bound command output (default 16 MiB).
 Output schemas and external schema registrations are captured during generation.
 Registration checks all command conflicts before registering any of them.
+Save the full response with `catalog search_items --query example > /response.json`.
+Redirection writes to the shell's virtual filesystem and preserves the response.
 
 Prepare credential configuration without reading secrets or connecting:
 
@@ -316,7 +321,7 @@ Server/tool ordering and nested JSON keys are stable; semantic arrays retain
 their order. Artifacts contain no generation timestamp, temporary filesystem
 path or resolved credential values. Only absent schemas require credential
 binding and network discovery. Server identity, capabilities, instructions,
-annotations and complete input/output schemas remain in the snapshot. Generation
+annotations and complete input/output schemas remain in the snapshot.
 Supply external JSON Schema documents with generation `schemaRegistry`; they
 are snapshotted before discovery, included in the digest, and loaded without
 separate host registrations. Missing references fail generation. An archived

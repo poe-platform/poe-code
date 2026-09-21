@@ -32,3 +32,5 @@ pub mod registration;
 pub mod transaction;
 
 pub mod grant;
+
+pub mod resource_credentials;

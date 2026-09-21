@@ -13,10 +13,11 @@ pub fn validate_session(value: &Value) -> bool {
     let Some(client) = value.get("client") else {
         return false;
     };
-    if !nonblank(client.get("clientId"))
-        || client
-            .get("clientSecret")
-            .is_some_and(|value| !nonblank(Some(value)))
+    if !crate::registration::normalize_stored(client).is_ok_and(|value| value.is_some())
+        || value.get("requestedScope").is_some_and(|value| !nonblank(Some(value)))
+        || value.get("refreshState").is_some_and(|state| {
+            !matches!(state,Value::String(text) if text.iter().copied().eq("pending".encode_utf16())) || value.get("tokens").is_some()
+        })
     {
         return false;
     }

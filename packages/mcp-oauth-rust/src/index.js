@@ -16,3 +16,5 @@ export { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./regi
 export { withOAuthSessionTransaction } from "./transaction.js";
 
 export { parseOAuthTokenGrant } from "./token-grant.js";
+
+export { createResourceBoundOAuthStores } from "./resource-store.js";

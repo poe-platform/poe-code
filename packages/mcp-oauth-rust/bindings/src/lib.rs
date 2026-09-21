@@ -369,3 +369,5 @@ pub mod registration_binding;
 pub mod transaction_binding;
 
 pub mod grant_binding;
+
+pub mod resource_binding;

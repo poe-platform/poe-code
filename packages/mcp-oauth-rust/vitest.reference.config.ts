@@ -11,6 +11,7 @@ const redirects = new Map(
     ["resource-indicator.js", "resource.js"],
     ["client/default-oauth-client-provider.js", "provider.js"],
     ["client/auth-store-session-store.js", "session-store.js"],
+    ["client/resource-bound-store.js", "resource-store.js"],
     ["client/loopback-authorization.js", "loopback.js"],
     ["client/token-endpoint.js", "tokens.js"],
     ["client/token-grant.js", "token-grant.js"],

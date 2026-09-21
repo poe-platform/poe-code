@@ -283,6 +283,10 @@ impl NativeProviderClientCache {
         Ok(())
     }
     #[napi]
+    pub fn clear(&self) {
+        self.state.borrow_mut().clear();
+    }
+    #[napi]
     pub fn remove(&self, issuer: Utf16String) {
         self.state.borrow_mut().remove(issuer.as_ref());
     }

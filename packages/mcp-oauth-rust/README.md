@@ -46,6 +46,11 @@ once and returns independent normalized credentials. Absolute overrides retain
 precedence while invalid overridden timing still rejects. Clock callback failures
 preserve their original cause.
 Optional persistence namespaces isolate profiles sharing a resource or issuer.
+`resourceIdentity` gives a named server one locked credential history. Changing
+its URL retires tokens and registrations; reverting the URL keeps old grants
+retired. `createResourceBoundOAuthStores(...).reset(resource)` explicitly replaces
+corrupt credentials with a replay tombstone under the same stable lock. Peeking
+at another URL leaves history untouched.
 Session transactions use the backing credential lock across independent provider instances.
 Session admission runs in Rust and client registration loads retain all validated metadata.
 Malformed stored JSON reports an explicit recovery error. The package ships these

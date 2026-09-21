@@ -3,6 +3,7 @@ import {
   parseOAuthClientRegistration,
   registrationMatchesRedirect
 } from "./registration.js";
+import { createResourceBoundOAuthStores } from "./resource-store.js";
 import { withOAuthSessionTransaction } from "./transaction.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
@@ -137,13 +138,15 @@ export function createDefaultOAuthClientProvider(options) {
         JSON.stringify({ method: scalar(options.client.tokenEndpointAuthMethod) })
       )
     ) ?? undefined;
+  if (options.resourceIdentity !== undefined && options.sessionStore !== undefined)
+    throw new Error("OAuth resourceIdentity requires native-owned persistence; custom stores own their resource trust policy");
+  const resourceStores = options.resourceIdentity === undefined ? undefined :
+    createResourceBoundOAuthStores(options.authStore ?? {}, options.persistenceNamespace, options.resourceIdentity);
   const sessionStore =
-    options.sessionStore ??
+    resourceStores?.sessionStore ?? options.sessionStore ??
     createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
-  const clientStore =
-    options.authStore === undefined
-      ? null
-      : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
+  const clientStore = resourceStores?.clientStore ??
+    (options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
   const now = options.now ?? Date.now;
   const registration =
     options.client.registration === undefined
@@ -309,6 +312,10 @@ export function createDefaultOAuthClientProvider(options) {
       resource,
       async () => {
         let session = await loadSession(resource);
+        if (resourceStores !== undefined) {
+          registeredClients.clear();
+          if (!resourceStores.initialGrantAllowed) initialGrantConsumed = true;
+        }
         if (session !== null)
           unwrap(
             native.providerAssertRegistrationIssuer(

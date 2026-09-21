@@ -28,3 +28,33 @@ fn client_storage_preserves_own_secret_json_value_and_accepts_empty_client_id() 
     assert_eq!(client.get("extra"), Some(&Value::Bool(true)));
     assert!(read_stored_client(&value("{}")).is_err());
 }
+#[test]
+fn persisted_sessions_enforce_pending_intents_requested_scope_and_registration_identity() {
+    let base = r#"{"resource":"r","authorizationServer":"a","client":{"clientId":"c"},"discovery":{"resourceMetadataUrl":"u","resourceMetadata":{},"authorizationServerMetadata":{}}}"#;
+    let mut pending = value(base);
+    let Value::Object(fields) = &mut pending else {
+        panic!()
+    };
+    fields.push((
+        "refreshState".encode_utf16().collect(),
+        Value::String("pending".encode_utf16().collect()),
+    ));
+    assert!(validate_session(&pending));
+    let Value::Object(fields) = &mut pending else {
+        panic!()
+    };
+    fields.push((
+        "tokens".encode_utf16().collect(),
+        value(r#"{"accessToken":"t","tokenType":"Bearer","expiresAt":null}"#),
+    ));
+    assert!(!validate_session(&pending));
+    for extra in [r#", "requestedScope":"""#, r#", "refreshState":"other""#] {
+        let source = format!("{}{}{}", &base[..base.len() - 1], extra, "}");
+        assert!(!validate_session(&value(&source)));
+    }
+    let source = base.replace(
+        r#""clientId":"c""#,
+        r#""clientId":"c","registration":{"client_id":"different"}"#,
+    );
+    assert!(!validate_session(&value(&source)));
+}

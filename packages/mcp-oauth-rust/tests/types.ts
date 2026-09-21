@@ -158,3 +158,8 @@ import { parseOAuthTokenGrant as referenceTokenGrant } from "../../mcp-oauth/src
 const grantImportA: typeof referenceTokenGrant = parseOAuthTokenGrant;
 const grantImportB: typeof parseOAuthTokenGrant = referenceTokenGrant;
 void [grantImportA, grantImportB];
+
+import { createResourceBoundOAuthStores } from "../dist/index.js";
+const identityStores = createResourceBoundOAuthStores({ backend: "file" }, "profile", "catalog");
+const identityReset: Promise<void> = identityStores.reset("https://resource.example/mcp", { timeoutMs: 1000 });
+void [identityStores.initialGrantAllowed, identityReset];

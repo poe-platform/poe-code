@@ -4369,3 +4369,43 @@ Host cancellation03eea691e is pushed. Successful current root publication remain
 unverified. Continuous active05:54:27–05:57:48 adds201s, bringing conservative actual
 effort to87,951s (24.43h). Minimum effort fulfilled; full rewrite/acceptance
 incomplete. Continue active work after05:57:48 UTC.
+
+### OAuth durable resource identities, 2026-09-21 06:03 UTC
+
+Portable and complete original SDK reds precede Rust-owned document admission,
+generation history, session/client ownership and retirement. Native state serializes
+its own document, retains the same URL, retires grants/registrations on a URL change,
+refuses generation overflow without changing state and preserves tombstones on
+reversion/clear/reset. Node provides URL semantics, encrypted storage and raw locks.
+Peeks leave history untouched; only transaction owners reconcile URL changes.
+Explicit reset bypasses corrupt reads but writes under the same stable backend lock.
+Namespaces/identities keep independent filenames/accounts.
+
+Own provider.resourceIdentity selects its own stores, rejects custom persistence,
+clears native registration caches within every locked transition and suppresses
+environment replay after retirement. Existing session admission also now rejects
+contradictory pending-refresh tokens, empty requestedScope and mismatched registration
+identity after a concrete failing portable regression. Owned runtime defaults/hash
+are reused by the generalized named secret-store implementation.
+
+All54 Rust cases pass; all7 focused native identity/session groups and all21 original
+identity cases pass. Types, lint/fmt/clippy, maintained uncached113-workspace/8-build/
+338-edge closure and direct/packed16MiB workers pass. Each worker adds12,288 identity
+transitions with serialization/reload and registration/replay retirement assertions.
+Audit22 JS/declaration files, one addon, zero runtime groups. Endpoint heap~8.5–11.8MB
+and parent-inclusive RSS establish no peak/leak/memory advantage. No speed claim.
+
+The maintained complete unit route fails2/88 native groups because concurrent
+original token-error classification changed; those failures are not waived and will
+be reconciled next. Separate complete original cross-check executes all35 files,
+423/451 cases pass,28 fail: token-endpoint9, registration-lifecycle4, resource-import15.
+Original source added14 cases during this improvement. Atomic session import and
+updated endpoint errors remain required; full package acceptance incomplete. Evidence
+out/rust-oauth-resource-identity-*.
+
+Raw import9b3c9c215 is pushed. Concrete root35565724263 was cancelled and its release
+job skipped. API inspection finds current root35566511319 pending and earlier
+35566225666 in progress; no successful current publication verified. Continuous
+active05:57:48–06:03:20 adds332s, bringing conservative actual effort to88,283s
+(24.52h). Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue
+active work after06:03:20 UTC.

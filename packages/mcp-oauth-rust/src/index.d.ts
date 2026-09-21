@@ -91,6 +91,7 @@ export interface OAuthClientProvider {
     | { action: "fail"; error?: Error };
 }
 export interface DefaultOAuthClientProviderOptions {
+  resourceIdentity?: string;
   client:
     | {
         mode: "dynamic";
@@ -260,3 +261,15 @@ export interface OAuthTokenGrantImportOptions {
   readonly now?: () => number;
 }
 export declare function parseOAuthTokenGrant(value: unknown, options?: OAuthTokenGrantImportOptions): StoredOAuthTokens;
+
+export interface ResourceBoundOAuthStores {
+  readonly sessionStore: OAuthSessionStore;
+  readonly clientStore: {
+    load(issuer: string): Promise<StoredOAuthClient | null>;
+    save(issuer: string, client: StoredOAuthClient): Promise<void>;
+    clear(issuer: string): Promise<void>;
+  };
+  readonly initialGrantAllowed: boolean;
+  reset(resource: string, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
+}
+export declare function createResourceBoundOAuthStores(options: CreateSecretStoreInput, namespace: string | undefined, identity: string): ResourceBoundOAuthStores;

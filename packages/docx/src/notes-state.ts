@@ -7,6 +7,7 @@ import { InvalidPackageError, isXmlContentType, type XmlElement } from "./packag
 import { DocumentXmlEditor } from "./xml-write.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { trimXmlWhitespace } from "./stored-lexical.js";
+import { compatibilityContainers } from "./compatibility.js";
 
 export type NoteKind = "footnote" | "endnote";
 export interface NoteNumbering { readonly format: string; readonly start: number; readonly restart: string }
@@ -121,16 +122,19 @@ export async function openNotes(input: Uint8Array, context: ArchiveContext) {
   }
   const byId = new Map(records.map(record => [record.kind + ":" + record.id, record]));
   for (const [part, editor] of editors) {
+    const containers = new Set(editor.compatibility[compatibilityContainers]);
     const visit = (node: XmlElement, path: readonly number[], ancestors: readonly XmlElement[]) => {
       budget.charge("work", 1);
       if (node.namespace === w && ["footnoteReference", "endnoteReference"].includes(node.localName)) {
         const kind: NoteKind = node.localName === "footnoteReference" ? "footnote" : "endnote", id = idOf(node);
         const record = byId.get(kind + ":" + id);
-        const parent = ancestors.at(-1);
+        let parentPosition = ancestors.length - 1;
+        while (parentPosition > 0 && containers.has(ancestors[parentPosition]!)) parentPosition--;
+        const parent = ancestors[parentPosition];
         const location = parent?.namespace === w && parent.localName === "r" ? annotationMap.get(part + ":" + path.join(".")) : undefined;
         if (record ? record.type !== "normal" : location !== undefined || inactiveNotes.get(kind)?.get(id) !== true)
           throw new InvalidPackageError("Note reference has no normal note body.");
-        const reference = { kind, id, node, editor, path, part, location, safe: !!location && ancestors.every(n => n.namespace === w && !["sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple"].includes(n.localName)) };
+        const reference = { kind, id, node, editor, path, part, location, safe: !!location && ancestors.every(n => containers.has(n) || n.namespace === w && !["sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple"].includes(n.localName)) };
         references.push(reference); record?.references.push(reference);
       }
       node.children.forEach((child, i) => visit(child, [...path, i], [...ancestors, node]));

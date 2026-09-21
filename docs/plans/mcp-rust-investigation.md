@@ -5365,3 +5365,32 @@ in_progress; publication unverified. Missing task-list/poe-code-config/harness
 counterparts,wider spawn/runtime/platform/performance acceptance remain.
 Continuous09:49:55–10:03:10 adds795s,total101543s (28.21h). Minimum fulfilled without
 claiming completion. Continue accounting after10:03:10 UTC.
+
+### Task-list state foundation, 2026-09-21 10:11 UTC
+
+Additive private @poe-code/task-list-rust now provides task interfaces/errors,
+default/custom state discovery/assertions, native UTF16 identity/name validation,
+and file-operation helpers. Rust exposes standalone Machine validation, ordered
+selection, legacy reverse transitions and shortest event paths. Host retains
+callback identity, custom source membership, locale/date ordering and filesystem
+operations. Missing Rust/native exports failed before implementation. A new
+wildcard getter-count test reproduced two target reads; adapter now reads once.
+Storage backends, moveTasks and GitHub project sync remain absent: this increment
+is not a completed package rewrite and has no production integration.
+
+Maintained6 Rust cases,3 native groups,38 original references/3files,bidirectional
+covered-state types,fmt/clippy,host ESLint and diff pass. Uncached maintained
+selected closure115workspaces/7builds/347edges passes after fixing native tooling
+that overwrote the host index declaration. Packed artifact12JS/declaration files,
+one addon,zero runtime groups/imports. Direct/packed16MiB workers each execute
+16384identity validations/16384legacy transitions/32768event selections and machine
+validations,using7.63/7.48MB final JS heap. Finite artifact/memory evidence only;
+no speed,platform or general leak/stability superiority claim. Evidence
+out/rust-task-list-*. Root lock scoped to20added workspace/link lines.
+
+Registry release35583768081 remains in_progress; providers35586695819 pending;
+publication remains unverified. Concurrent safe-bash/OAuth edits/commits preserved.
+Checkpoint active interval10:03:10–10:04:20 adds70s; checkpoint pause excluded.
+Continuous10:06:15–10:11:13 adds298s,total101911s (28.31h). Minimum fulfilled;
+remaining closure/runtime/performance acceptance incomplete. Continue accounting
+after10:11:13 UTC.

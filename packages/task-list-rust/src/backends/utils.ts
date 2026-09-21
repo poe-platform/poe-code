@@ -1,0 +1,215 @@
+import { native } from "../native.js";
+import { randomUUID } from "node:crypto";
+import path from "node:path";
+import type { ListFilter, Task, TaskListFs } from "../types.js";
+
+const LOCK_WAIT_MS = 30_000;
+const LOCK_RETRY_MS = 10;
+
+export interface OrderedEntry {
+  task: Task;
+  raw: Record<string, unknown>;
+}
+
+export function compareCreated(left: OrderedEntry, right: OrderedEntry): number {
+  const leftCreated = typeof left.raw.created === "string" ? left.raw.created : "";
+  const rightCreated = typeof right.raw.created === "string" ? right.raw.created : "";
+
+  if (leftCreated === "" && rightCreated === "") {
+    return left.task.qualifiedId.localeCompare(right.task.qualifiedId);
+  }
+  if (leftCreated === "") return 1;
+  if (rightCreated === "") return -1;
+
+  const leftTimestamp = Date.parse(leftCreated);
+  const rightTimestamp = Date.parse(rightCreated);
+  if (Number.isNaN(leftTimestamp)) {
+    return Number.isNaN(rightTimestamp) ? leftCreated.localeCompare(rightCreated) : 1;
+  }
+  if (Number.isNaN(rightTimestamp)) return -1;
+  return leftTimestamp - rightTimestamp;
+}
+
+export function applyOrder(entries: OrderedEntry[], order: ListFilter["order"]): Task[] {
+  if (order === "alphabetical") {
+    return sortTasks(entries.map((entry) => entry.task));
+  }
+  if (order === "created") {
+    return [...entries].sort(compareCreated).map((entry) => entry.task);
+  }
+  return entries.map((entry) => entry.task);
+}
+
+export function hasErrorCode(error: unknown, code: string): boolean {
+  return (
+    !!error &&
+    typeof error === "object" &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === code
+  );
+}
+
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function sortStrings(values: string[]): string[] {
+  return [...values].sort((left, right) => left.localeCompare(right));
+}
+
+export function sortTasks(tasks: Task[]): Task[] {
+  return [...tasks].sort((left, right) => left.qualifiedId.localeCompare(right.qualifiedId));
+}
+
+export function isTrimmedPrintableIdentifier(value: string): boolean {
+  return native.taskPrintableIdentifier(value);
+}
+
+export function validateTaskId(id: string): string {
+  if (!native.taskValidId(id)) {
+    throw new Error(`Invalid task id "${id}".`);
+  }
+
+  return id;
+}
+
+export function validateTaskName(name: string): string {
+  if (!native.taskVisibleName(name)) {
+    throw new Error("Task name must not be empty.");
+  }
+
+  return name;
+}
+
+export async function statIfExists(
+  fs: TaskListFs,
+  filePath: string
+): Promise<Awaited<ReturnType<TaskListFs["stat"]>> | undefined> {
+  try {
+    return await fs.stat(filePath);
+  } catch (error) {
+    if (hasErrorCode(error, "ENOENT")) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+export async function rejectSymbolicLinkComponents(
+  fs: TaskListFs,
+  filePath: string
+): Promise<void> {
+  const resolvedPath = path.resolve(filePath);
+  const rootPath = path.parse(resolvedPath).root;
+  const components = resolvedPath.slice(rootPath.length).split(path.sep).filter(Boolean);
+  let currentPath = rootPath;
+
+  for (const component of components) {
+    currentPath = path.join(currentPath, component);
+
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        if (currentPath === "/tmp") {
+          continue;
+        }
+        throw new Error(`Path "${filePath}" contains a symbolic link.`);
+      }
+    } catch (error) {
+      if (hasErrorCode(error, "ENOENT")) {
+        return;
+      }
+
+      throw error;
+    }
+  }
+}
+
+export async function writeAtomically(
+  fs: TaskListFs,
+  filePath: string,
+  content: string
+): Promise<void> {
+  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let tempCreated = false;
+
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await fs.rename(tempPath, filePath);
+    tempCreated = false;
+  } catch (error) {
+    if (tempCreated || !hasErrorCode(error, "EEXIST")) {
+      try {
+        await fs.unlink(tempPath);
+      } catch (unlinkError) {
+        if (!hasErrorCode(unlinkError, "ENOENT")) {
+          throw unlinkError;
+        }
+      }
+    }
+
+    throw error;
+  }
+}
+
+export async function withFileLock<T>(
+  fs: TaskListFs,
+  lockPath: string,
+  operation: () => Promise<T>
+): Promise<T> {
+  await rejectSymbolicLinkComponents(fs, lockPath);
+  await fs.mkdir(path.dirname(lockPath), { recursive: true });
+  const ownerPath = path.join(lockPath, `${process.pid}-${randomUUID()}`);
+  const deadline = Date.now() + LOCK_WAIT_MS;
+
+  for (;;) {
+    await rejectSymbolicLinkComponents(fs, lockPath);
+    try {
+      await fs.mkdir(lockPath);
+      break;
+    } catch (error) {
+      if (!hasErrorCode(error, "EEXIST")) {
+        throw error;
+      }
+
+      if (Date.now() >= deadline) {
+        throw new Error(
+          `Timed out waiting for task-list lock: ${lockPath}. ` +
+            "An abandoned or legacy lock must only be removed after confirming all task-list operations have stopped."
+        );
+      }
+
+      await new Promise((done) => setTimeout(done, LOCK_RETRY_MS));
+    }
+  }
+
+  await rejectSymbolicLinkComponents(fs, ownerPath);
+  await fs.mkdir(ownerPath);
+
+  let outcome: { result: T } | { error: unknown };
+  try {
+    outcome = { result: await operation() };
+  } catch (error) {
+    outcome = { error };
+  }
+
+  try {
+    await rejectSymbolicLinkComponents(fs, ownerPath);
+    await fs.rmdir(ownerPath);
+    await fs.rmdir(lockPath);
+  } catch (error) {
+    if ("error" in outcome) {
+      throw new AggregateError(
+        [outcome.error, error],
+        "Task-list operation and lock release failed"
+      );
+    }
+    throw error;
+  }
+
+  if ("error" in outcome) throw outcome.error;
+  return outcome.result;
+}

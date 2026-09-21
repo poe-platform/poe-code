@@ -119,9 +119,11 @@ export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 
   seen.add(error);
   if (OAuthMetadataError.is(error)) {
     const phase = error.phase === "protected-resource" || error.phase === "authorization-server" ? error.phase : undefined;
-    return { name: "OAuthMetadataError", message: phase === "protected-resource" ? "OAuth protected resource metadata failed"
-      : phase === "authorization-server" ? "OAuth authorization server metadata failed" : "OAuth metadata failed",
-      ...(phase === undefined ? {} : { phase }) };
+    const status = typeof error.status === "number" && Number.isInteger(error.status) && error.status >= 400 && error.status <= 599 ? error.status : undefined;
+    const message = phase === "protected-resource" ? "OAuth protected resource metadata failed"
+      : phase === "authorization-server" ? "OAuth authorization server metadata failed" : "OAuth metadata failed";
+    return { name: "OAuthMetadataError", message: status === undefined ? message : `${message} (HTTP ${status})`,
+      ...(phase === undefined ? {} : { phase }), ...(status === undefined ? {} : { status }) };
   }
   if (OAuthAuthorizationError.is(error)) {
     const code = publicOAuthErrorCodes.has(error.error) ? error.error : undefined;

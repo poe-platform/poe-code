@@ -43,7 +43,7 @@ export class OAuthMetadataError extends Error {
     return value instanceof Error && Object.getOwnPropertyDescriptor(value, metadataErrorBrand)?.value === true;
   }
 
-  constructor(readonly phase: "protected-resource" | "authorization-server", message: string) {
+  constructor(readonly phase: "protected-resource" | "authorization-server", message: string, readonly status?: number) {
     super(message);
     this.name = "OAuthMetadataError";
     Object.defineProperty(this, metadataErrorBrand, { value: true });
@@ -193,11 +193,12 @@ function validateAuthorizationServerMetadata(
   return value as OAuthAuthorizationServerMetadata;
 }
 
-async function readJsonResponse(response: Response, label: string, signal: AbortSignal): Promise<unknown> {
+async function readJsonResponse(response: Response, phase: OAuthMetadataError["phase"], signal: AbortSignal): Promise<unknown> {
+  const label = phase === "protected-resource" ? "Protected resource metadata" : "Authorization server metadata";
   if (!response.ok) {
     await response.body?.cancel().catch(() => undefined);
     const statusDescriptor = `${response.status} ${response.statusText}`.trim();
-    throw new Error(`${label} request failed (${statusDescriptor})`);
+    throw new OAuthMetadataError(phase, `${label} request failed (${statusDescriptor})`, response.status);
   }
 
   const text = await readBoundedResponseText(response, 1024 * 1024, undefined, signal);
@@ -208,14 +209,14 @@ async function readJsonResponse(response: Response, label: string, signal: Abort
   }
 }
 
-async function fetchMetadata(fetch: OAuthMetadataFetch, location: string, label: string, parentSignal?: AbortSignal): Promise<unknown> {
+async function fetchMetadata(fetch: OAuthMetadataFetch, location: string, phase: OAuthMetadataError["phase"], parentSignal?: AbortSignal): Promise<unknown> {
   parentSignal?.throwIfAborted();
   const deadline = AbortSignal.timeout(10_000);
   const signal = parentSignal === undefined ? deadline : AbortSignal.any([deadline, parentSignal]);
   const response = await fetchMcpResponse(fetch, location, {
     method: "GET", headers: { Accept: "application/json" }, signal
   });
-  return readJsonResponse(response, label, signal);
+  return readJsonResponse(response, phase, signal);
 }
 
 function resolveWellKnownMetadataUrl(inputUrl: string | URL, suffix: string): string {
@@ -368,7 +369,7 @@ export class OAuthMetadataDiscovery {
     for (const location of locations) {
       try {
         const metadata = validateProtectedResourceMetadata(
-          await fetchMetadata(this.fetchImpl, location, "Protected resource metadata", signal),
+          await fetchMetadata(this.fetchImpl, location, "protected-resource", signal),
           resource
         );
         return { location, metadata };
@@ -420,7 +421,7 @@ export class OAuthMetadataDiscovery {
       for (const authorizationServerMetadataUrl of metadataLocations) {
         try {
           const authorizationServerMetadata = validateAuthorizationServerMetadata(
-            await fetchMetadata(this.fetchImpl, authorizationServerMetadataUrl, "Authorization server metadata", signal),
+            await fetchMetadata(this.fetchImpl, authorizationServerMetadataUrl, "authorization-server", signal),
             normalizedAuthorizationServer
           );
 

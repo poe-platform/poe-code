@@ -612,3 +612,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     casts/deep imports. Preserve separately bundled/nested classifications and
     ordinary same-named host errors; withhold malformed phases. Inspect safe CLI
     summary screenshot and purge only owned synthetic evidence.
+
+56. Return actual403/502 metadata responses with synthetic reflected reason
+    phrases and unended private bodies. SDK errors retain complete original
+    messages/reasons and typed numeric status. Generated tools/management auth
+    retain only safe phase/status, nonzero exit and empty result stdout. Require
+    six rejected metadata GETs/four unauthorized MCP requests and six server-
+    observed canceled bodies before shutdown. Require zero body echoes/grants/
+    token/tool/consent traffic; compile strict Node-only public status use without
+    casts/deep imports. Withhold malformed mutated statuses, inspect safe summary
+    screenshot and purge only owned evidence.

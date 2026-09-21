@@ -15,6 +15,18 @@ it.each(["resource", "issuer"] as const)("retains SDK metadata %s mismatch detai
     phase: mode === "resource" ? "protected-resource" : "authorization-server" });
 });
 
+it.each([403, 502])("retains SDK HTTP %s metadata status/diagnostics while withholding reflected reason phrases from CLI", async status => {
+  const resource = "https://resource.example/mcp";
+  const failure = await discoverOAuthMetadata(resource, { resourceMetadataUrl: `${resource}/metadata`,
+    fetch: async () => new Response("private-body", { status, statusText: "private-reflected-reason" }) }).catch(error => error);
+  expect(failure).toBeInstanceOf(Error);
+  expect(failure.message).toContain("private-reflected-reason");
+  expect(JSON.stringify(errorDetails(failure))).not.toContain("private-");
+  expect(failure.status).toBe(status);
+  expect(errorDetails(failure)).toEqual({ name: "OAuthMetadataError", phase: "protected-resource", status,
+    message: `OAuth protected resource metadata failed (HTTP ${status})` });
+});
+
 it("recognizes separately bundled native metadata diagnostics inside aggregate causes", async () => {
   vi.resetModules();
   const foreign = await import("tiny-mcp-client");
@@ -29,7 +41,7 @@ it("recognizes separately bundled native metadata diagnostics inside aggregate c
 });
 
 it("withholds malformed metadata phases and preserves ordinary same-named host errors", () => {
-  const malformed = Object.assign(new OAuthMetadataError("protected-resource", "private-diagnostic"), { phase: "private-reflected-phase" });
+  const malformed = Object.assign(new OAuthMetadataError("protected-resource", "private-diagnostic"), { phase: "private-reflected-phase", status: "private-reflected-status" });
   expect(errorDetails(malformed)).toEqual({ name: "OAuthMetadataError", message: "OAuth metadata failed" });
   const host = Object.assign(new Error("original host diagnostic"), { name: "OAuthMetadataError", phase: "protected-resource" });
   expect(OAuthMetadataError.is(host)).toBe(false);

@@ -34,7 +34,7 @@ replace the chosen signal, or append servers to the in-progress registry.
 Malformed static headers fail before network requests without reflecting their
 values in SDK diagnostics. Native OAuth metadata binding mismatches and exhausted
 authorization server discovery retain complete SDK diagnostics; CLI output
-reports only the safe failure phase.
+reports the safe failure phase and available numeric HTTP status.
 Aborting the original signal still cancels discovery. Registry snapshots also
 capture OAuth client/grant/browser/persistence configuration and the chosen
 provider/store handles before discovery or command invocation. Custom provider

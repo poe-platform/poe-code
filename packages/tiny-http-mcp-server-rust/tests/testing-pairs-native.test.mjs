@@ -23,7 +23,9 @@ test('standalone tiny-client pairs execute real embedded native client classes',
 test('tiny-client pair connection failure closes its handle and preserves original error',async()=>{
  let closes=0,forced=0;
  const server={listenHttp:async()=>({url:'not a URL',close:async()=>{closes++;},closeAllConnections:()=>{forced++;}})};
- await assert.rejects(createHttpTestPairWithTinyClient(server),/Invalid URL|invalid url/i);
+ await assert.rejects(createHttpTestPairWithTinyClient(server),{
+  message:'HTTP transport URL must be an absolute HTTP URL without credentials or fragment',
+ });
  assert.equal(closes,1);assert.equal(forced,0);
 });
 

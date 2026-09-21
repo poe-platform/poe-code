@@ -3463,3 +3463,17 @@ No successful publication is verified. Active03:21:02–03:41:16 UTC (1214s) is 
 recorded, excluding the inherited checkpoint gap. Conservative total80122s
 (22.26h), minimum remaining6278s (1h44m38s). Work continues beyond this boundary;
 minimum24-hour actual effort and the full goal remain unfinished.
+
+### Root private-workspace metadata reconciliation, 2026-09-21 03:43 UTC
+
+The failed fresh-unit job106205397911 from retry release35557365606 reproduces
+locally: standalone-package-metadata forbids the safe-bash-mcp root development
+dependency required by workspace-deps for test/build membership. The existing
+publication assertion now verifies no runtime dependency/export/bin/files entry,
+explicit private workspace status, and development-only registration. Production
+metadata/implementation/release wiring is untouched by this test correction.
+Both whole focused suites pass21 cases after the red reproduction; focused ESLint
+and diff whitespace checks pass. Evidence out/rust-root-private-workspace-* and
+out/rust-release-35557365606-unit.log. Stream-framing commit7efd29145 was pushed;
+remote ancestry/release verification will continue separately. Goal and minimum
+24-hour effort remain unfinished; no publication is verified.

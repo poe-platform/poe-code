@@ -203,7 +203,10 @@ describe("standalone package publish metadata", () => {
     expect(rootPackage.exports?.["./safe-bash-mcp"]).toBeUndefined();
     expect(rootPackage.bin?.["poe-safe-bash-mcp"]).toBeUndefined();
     expect(rootPackage.files).not.toContain("packages/safe-bash-mcp/dist");
-    expect(rootPackage.devDependencies?.["safe-bash-mcp"]).toBeUndefined();
+    // Test/build registration does not add a published runtime entry point.
+    expect(rootPackage.dependencies?.["safe-bash-mcp"]).toBeUndefined();
+    expect(rootPackage.devDependencies?.["safe-bash-mcp"]).toBe("*");
+    expect(readPackageJson("packages/safe-bash-mcp/package.json").private).toBe(true);
   });
 
   it("keeps dev-only tiny test servers out of the published package", () => {

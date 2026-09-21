@@ -5,3 +5,8 @@ test('own PTY is a real controlling terminal and reports size, output and exit',
 test('PTY input, resize and SIGTERM use the own native transport',async()=>{
  const pty=new native.NativeTerminalPty('/bin/sh',['-c','printf ready; read value; stty size; printf "got:%s\\n" "$value"'],process.cwd(),JSON.stringify(process.env),80,24);pty.resize(91,27);pty.write(Buffer.from('hello\n'));let output='';const deadline=Date.now()+3000;while(Date.now()<deadline){output+=pty.read().toString();if(pty.exitCode!==null&&pty.exitCode!==undefined){output+=pty.read().toString();break;}await new Promise(resolve=>setTimeout(resolve,2));}assert.ok(output.includes("27 91"));assert.ok(output.includes("got:hello"));const sleeping=new native.NativeTerminalPty('/bin/sh',['-c','exec sleep 60'],process.cwd(),JSON.stringify(process.env),80,24);sleeping.signal(15);for(let n=0;n<100&&sleeping.exitCode==null;n++)await new Promise(resolve=>setTimeout(resolve,2));assert.notEqual(sleeping.exitCode,null);
 });
+test('explicit PTY disposal releases the owned transport and rejects future effects',()=>{
+ const pty=new native.NativeTerminalPty('/bin/sh',['-c','exec sleep 60'],process.cwd(),JSON.stringify(process.env),80,24);
+ pty.dispose();pty.dispose();
+ assert.throws(()=>pty.read(),/disposed/);assert.throws(()=>pty.write(Buffer.from('late')),/disposed/);
+});

@@ -2,6 +2,7 @@
 pub mod buffer;
 pub mod pty;
 pub mod screen;
+pub mod session;
 pub fn strip_ansi(input: &[u16]) -> Vec<u16> {
     let mut result = Vec::with_capacity(input.len());
     let mut i = 0;

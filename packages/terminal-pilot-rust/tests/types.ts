@@ -10,3 +10,12 @@ type BufferContract=Pick<reference.TerminalBuffer,keyof reference.TerminalBuffer
 const bufferA:BufferContract=new own.TerminalBuffer(8,3);
 const bufferB:own.TerminalBuffer=null as unknown as BufferContract;
 void [stripA,stripB,keyA,keyB,screenA,screenB,bufferA,bufferB];
+type SessionContract=Pick<reference.TerminalSession,keyof reference.TerminalSession>;
+const sessionA:SessionContract=null as unknown as own.TerminalSession;
+const sessionB:own.TerminalSession=null as unknown as SessionContract;
+type PilotContract=Pick<reference.TerminalPilot,keyof reference.TerminalPilot>;
+type OwnPilotContract=Pick<own.TerminalPilot,keyof own.TerminalPilot>;
+type PublicReturns<T>={[K in keyof T]:T[K] extends (...args:infer A)=>Promise<reference.TerminalSession>? (...args:A)=>Promise<SessionContract>:T[K] extends (...args:infer A)=>reference.TerminalSession? (...args:A)=>SessionContract:T[K] extends (...args:infer A)=>reference.TerminalSession[]? (...args:A)=>SessionContract[]:T[K]};
+const pilotA:PublicReturns<PilotContract>=null as unknown as OwnPilotContract;
+const pilotB:PublicReturns<OwnPilotContract>=null as unknown as PilotContract;
+void [sessionA,sessionB,pilotA,pilotB];

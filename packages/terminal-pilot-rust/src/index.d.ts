@@ -11,3 +11,18 @@ export declare class TerminalScreen{
  constructor(options:{lines:string[];rawLines:string[];cursor:{row:number;col:number};size:{rows:number;cols:number}});
  readonly text:string;contains(substring:string):boolean;line(index:number):string;
 }
+export interface NewSessionOptions {command:string;args?:string[];cwd?:string;env?:Record<string,string>;cols?:number;rows?:number;observe?:boolean;}
+export type WaitForOptions={timeout?:number;scope?:'history'|'screen'};
+export type HistoryOptions={last?:number};
+export declare class TerminalSession{
+ readonly id:string;readonly command:string;readonly pid:number;exitCode:number|null;
+ constructor(options:Omit<NewSessionOptions,'env'>&{id:string;env?:Record<string,string|undefined>});
+ type(text:string):Promise<void>;fill(text:string):Promise<void>;press(key:TerminalKey):Promise<void>;send(raw:string):Promise<void>;signal(sig:string):Promise<void>;
+ waitFor(pattern:string|RegExp,opts?:WaitForOptions):Promise<string>;waitForQuiet(ms:number):Promise<void>;
+ screen():Promise<TerminalScreen>;history(opts?:HistoryOptions):Promise<string[]>;resize(cols:number,rows:number):Promise<void>;
+ waitForExit(opts?:{timeout?:number}):Promise<number>;close():Promise<number>;on(event:'exit',cb:(code:number)=>void):void;
+}
+export declare class TerminalPilot{
+ static launch():Promise<TerminalPilot>;newSession(opts:NewSessionOptions):Promise<TerminalSession>;
+ getSession(id:string):TerminalSession;deleteSession(id:string):void;sessions():TerminalSession[];close():Promise<void>;
+}

@@ -211,10 +211,206 @@ impl ObjectFinalize for NativeTerminalScreen {
         Ok(())
     }
 }
+#[napi(custom_finalize)]
+pub struct NativeTerminalSession {
+    inner: terminal_pilot_rust::session::Session,
+    reported: i64,
+}
+#[napi]
+impl NativeTerminalSession {
+    #[napi(constructor)]
+    pub fn new(env: Env, id: Utf16String, cols: f64, rows: f64, now: f64) -> Result<Self> {
+        let inner = terminal_pilot_rust::session::Session::new(id.to_vec(), cols, rows, now)
+            .map_err(Error::from_reason)?;
+        let reported = inner.retained_bytes() as i64;
+        env.adjust_external_memory(reported)?;
+        Ok(Self { inner, reported })
+    }
+    #[napi]
+    pub fn data(&mut self, env: Env, data: Utf16String, now: f64) -> Result<()> {
+        let result = self.inner.data(&data, now);
+        self.account(env)?;
+        result.map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn input(&self, data: Utf16String) -> Result<Utf16String> {
+        self.inner
+            .input(&data)
+            .map(Into::into)
+            .map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn fill(&self, data: Utf16String) -> Result<Utf16String> {
+        self.inner
+            .fill(&data)
+            .map(Into::into)
+            .map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn resize(&mut self, env: Env, cols: f64, rows: f64) -> Result<()> {
+        let result = self.inner.resize(cols, rows);
+        self.account(env)?;
+        result.map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn validate_geometry(&self, cols: f64, rows: f64) -> Result<()> {
+        terminal_pilot_rust::session::geometry(cols, rows)
+            .map(|_| ())
+            .map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn history(&self, last: Option<f64>) -> Result<Vec<Utf16String>> {
+        self.inner
+            .history(last)
+            .map(|lines| lines.into_iter().map(Into::into).collect())
+            .map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn screen_lines(&self) -> Vec<Utf16String> {
+        self.inner
+            .screen_lines()
+            .into_iter()
+            .map(Into::into)
+            .collect()
+    }
+    #[napi(getter)]
+    pub fn cursor(&self) -> ScreenCursor {
+        let (col, row) = self.inner.cursor();
+        ScreenCursor {
+            row: row as f64,
+            col: col as f64,
+        }
+    }
+    #[napi(getter)]
+    pub fn size(&self) -> ScreenSize {
+        let (cols, rows) = self.inner.size();
+        ScreenSize {
+            rows: rows as f64,
+            cols: cols as f64,
+        }
+    }
+    #[napi]
+    pub fn validate_wait(&self, duration: f64, scope: String) -> Result<()> {
+        self.inner
+            .validate_wait(duration, &scope)
+            .map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn validate_timeout(&self, duration: f64) -> Result<()> {
+        terminal_pilot_rust::session::timeout(duration).map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn match_string(&self, pattern: Utf16String, screen: bool) -> Option<Utf16String> {
+        self.inner.match_string(&pattern, screen).map(Into::into)
+    }
+    #[napi]
+    pub fn match_lines(&self, screen: bool) -> Vec<Utf16String> {
+        self.inner
+            .match_lines(screen)
+            .into_iter()
+            .map(Into::into)
+            .collect()
+    }
+    #[napi]
+    pub fn wait_error(
+        &self,
+        elapsed: f64,
+        duration: f64,
+        pattern: Utf16String,
+    ) -> Option<Utf16String> {
+        self.inner
+            .wait_error(elapsed, duration, &pattern)
+            .map(Into::into)
+    }
+    #[napi]
+    pub fn quiet_remaining(&self, duration: f64, now: f64) -> Result<f64> {
+        self.inner
+            .quiet_remaining(duration, now)
+            .map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn mark_exit(&mut self, code: i32) -> bool {
+        self.inner.mark_exit(code)
+    }
+    #[napi(getter)]
+    pub fn exit_code(&self) -> Option<i32> {
+        self.inner.exit_code()
+    }
+    #[napi]
+    pub fn begin_close(&mut self, now: f64) {
+        self.inner.begin_close(now);
+    }
+    #[napi]
+    pub fn abort_close(&mut self) {
+        self.inner.abort_close();
+    }
+    #[napi]
+    pub fn close_step(&self, now: f64) -> Result<NativeJson> {
+        use terminal_pilot_rust::session::CloseAction;
+        let (key, value) = match self.inner.close_step(now).map_err(Error::from_reason)? {
+            CloseAction::Wait(ms) => ("wait", ms),
+            CloseAction::Signal(sig) => ("signal", f64::from(sig)),
+            CloseAction::Done(code) => ("done", f64::from(code)),
+        };
+        Ok(NativeJson(object(vec![(key, Value::Number(value))])))
+    }
+    #[napi]
+    pub fn signal_sent(&mut self, now: f64) {
+        self.inner.signal_sent(now);
+    }
+}
+impl NativeTerminalSession {
+    fn account(&mut self, env: Env) -> Result<()> {
+        let bytes = self.inner.retained_bytes() as i64;
+        if bytes != self.reported {
+            env.adjust_external_memory(bytes - self.reported)?;
+            self.reported = bytes;
+        }
+        Ok(())
+    }
+}
+impl ObjectFinalize for NativeTerminalSession {
+    fn finalize(self, env: Env) -> Result<()> {
+        env.adjust_external_memory(-self.reported)?;
+        Ok(())
+    }
+}
+#[napi]
+#[derive(Default)]
+pub struct NativeTerminalPilot {
+    inner: terminal_pilot_rust::session::Pilot,
+}
+#[napi]
+impl NativeTerminalPilot {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn register(&mut self, id: Utf16String) -> Result<()> {
+        self.inner.register(id.to_vec()).map_err(Error::from_reason)
+    }
+    #[napi]
+    pub fn contains(&self, id: Utf16String) -> bool {
+        self.inner.contains(&id)
+    }
+    #[napi]
+    pub fn exited(&mut self, id: Utf16String) {
+        self.inner.exited(&id);
+    }
+    #[napi]
+    pub fn remove(&mut self, id: Utf16String) {
+        self.inner.remove(&id);
+    }
+    #[napi]
+    pub fn ids(&self, active: bool) -> Vec<Utf16String> {
+        self.inner.ids(active).into_iter().map(Into::into).collect()
+    }
+}
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 #[napi]
 pub struct NativeTerminalPty {
-    inner: terminal_pilot_rust::pty::Pty,
+    inner: Option<terminal_pilot_rust::pty::Pty>,
 }
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 #[napi]
@@ -253,15 +449,21 @@ impl NativeTerminalPty {
             rows: dimension(rows)?,
         })
         .map_err(|e| Error::from_reason(e.to_string()))?;
-        Ok(Self { inner })
+        Ok(Self { inner: Some(inner) })
     }
     #[napi(getter)]
-    pub fn pid(&self) -> u32 {
-        self.inner.pid()
+    pub fn pid(&self) -> Result<u32> {
+        Ok(self
+            .inner
+            .as_ref()
+            .ok_or_else(|| Error::from_reason("PTY has been disposed."))?
+            .pid())
     }
     #[napi]
     pub fn read(&mut self) -> Result<Buffer> {
         self.inner
+            .as_mut()
+            .ok_or_else(|| Error::from_reason("PTY has been disposed."))?
             .read()
             .map(Into::into)
             .map_err(|e| Error::from_reason(e.to_string()))
@@ -269,25 +471,37 @@ impl NativeTerminalPty {
     #[napi]
     pub fn write(&mut self, data: Buffer) -> Result<()> {
         self.inner
+            .as_mut()
+            .ok_or_else(|| Error::from_reason("PTY has been disposed."))?
             .write(&data)
             .map_err(|e| Error::from_reason(e.to_string()))
     }
     #[napi]
     pub fn resize(&self, cols: f64, rows: f64) -> Result<()> {
         self.inner
+            .as_ref()
+            .ok_or_else(|| Error::from_reason("PTY has been disposed."))?
             .resize(dimension(cols)?, dimension(rows)?)
             .map_err(|e| Error::from_reason(e.to_string()))
     }
     #[napi]
     pub fn signal(&mut self, signal: i32) -> Result<()> {
         self.inner
+            .as_mut()
+            .ok_or_else(|| Error::from_reason("PTY has been disposed."))?
             .signal(signal)
             .map_err(|e| Error::from_reason(e.to_string()))
     }
     #[napi(getter)]
     pub fn exit_code(&mut self) -> Result<Option<i32>> {
         self.inner
+            .as_mut()
+            .ok_or_else(|| Error::from_reason("PTY has been disposed."))?
             .exit_code()
             .map_err(|e| Error::from_reason(e.to_string()))
+    }
+    #[napi]
+    pub fn dispose(&mut self) {
+        self.inner.take();
     }
 }

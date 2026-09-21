@@ -1,4 +1,5 @@
-import{createRequire}from'node:module';const native=createRequire(import.meta.url)('./terminal-pilot-rust.node');
+import{native}from'./native.js';
+export{TerminalSession,TerminalPilot}from'./session-host.js';
 export const stripAnsi=native.stripAnsi;
 export function keyToSequence(key){const result=native.terminalKeySequence(key);if(result.fault!==undefined)throw new Error(result.fault);return result.value;}
 export class TerminalBuffer extends native.NativeTerminalBuffer{constructor(cols,rows){super(cols,rows);Object.defineProperty(this,'displayBuffer',{value:Object.defineProperties({},{cursorX:{get:()=>this.cursorX,enumerable:true},cursorY:{get:()=>this.cursorY,enumerable:true},data:{get:()=>this.nativeCells.map(row=>row.map(cell=>{if(cell===null)return null;const value=[cell.code,cell.text];if(cell.width===2)Object.defineProperty(value,'width',{value:2,configurable:true});if(cell.style!=='')Object.defineProperty(value,'style',{value:cell.style,writable:true,configurable:true});return value;})),enumerable:true}})});}}

@@ -2976,6 +2976,52 @@ completion of terminal-pilot or the overall goal. Conservative active segment
 23:54:31–01:20:00 UTC is recorded. No24-hour effort or goal completion claimed;
 work continues beyond this boundary and the frozen blocked counter stays unchanged.
 
+### Terminal session and pilot lifecycle delivery (2026-09-21 UTC)
+
+Own portable Rust Session now retains terminal state/raw history, normalizes
+carriage-return/backspace rewrites, validates geometry/timeouts/history/scope,
+matches literal lines and owns quiet timing, exit admission and retryable close
+escalation (250ms natural grace, SIGTERM1000ms, SIGKILL1000ms). Rust Pilot owns
+ordered registration/active retention/removal. Node adapters supply environment,
+UTF-8 decoding, PTY polling, timers, event subscriptions and ECMAScript RegExp
+evaluation. Production SDK delegation is absent. Public TerminalSession/Pilot
+exports and public structural TypeScript contracts are now available.
+
+Five lifecycle/registry Rust absence reds and public export absence red precede
+implementation. An additional explicit-disposal red exposes missing native
+disposal; optional owned transport state now releases the descriptor immediately,
+with idempotent disposal and safe errors on later effects. Eleven Rust tests,
+nine native groups,238 applicable original SDK cases and five own Vitest cases
+pass (243 total Vitest). Two node-pty spawn-helper filesystem tests are omitted
+as incompatible architecture, not counted. Four own cases exercise split UTF-8,
+exit-tail draining, Unicode scalar typing/cadence, failure propagation and
+shared close/concurrent waits with cleaned timers. Another compares256 generated
+16-piece streaming histories/screens with original sessions, including split
+controls/surrogates/combining sequences, rewrites, resize and literal/global/
+sticky pattern waits. Fmt/clippy, bidirectional public contracts and explicit
+uncached25-workspace build pass (108 workspaces/317 edges).
+
+Fresh direct/packed16MiB workers each complete128 real interactive sessions,
+concurrent exit waits, frozen styled snapshots and retained closed session
+objects. Prior4,096-buffer packed checks still pass, all shipped JS/declaration
+imports pass AST audit, package has one addon and zero runtime/peer/optional npm
+groups. Selected separate processes with128 further retained macOS sessions:
+native mean creation5.98ms/roundtrip37.43ms versus SDK1.57ms/35.60ms. Native
+RSS50.41→57.87MB, SDK60.11→65.93MB; native heap4.71→4.97MB versus5.43→6.45MB.
+TTY-path descriptors remain0→0 in the native workload versus8→136 in the SDK;
+this path-filtered count is not an aggregate descriptor proof. Creation is slower
+and deserves a separate spawn-path investigation; no general performance
+acceptance claimed. Evidence out/rust-terminal-pilot-session-*.
+
+Raw session history is intentionally retained and unbounded, including after
+exit, matching original lifetime semantics; no bounded-history acceptance.
+CLI/commands/named runtime/pilot MCP, Linux execution/Windows support, general
+width/shaping and the remaining agent closure are unfinished. Inherited latest
+commit d61a0142e is verified on origin/main; release remains pending. Earlier
+SDK-pin release35550571891 build/audit now pass and unit/Bash stages are running,
+with no verified publication. Active segment resumes01:24:12 UTC after the
+checkpoint gap. Full goal and24-hour effort remain incomplete.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

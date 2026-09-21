@@ -42,9 +42,11 @@ export class McpClient {
     const generation = unwrap(this.#core.beginConnect()).generation;
     let layer;
     try {
-      const closedReason = transport.closed
-        .then((event) => event.reason)
+      const closedReason = (transport.closeReason ?? transport.closed
+        .then((event) => event.reason))
         .catch((error) => (error instanceof Error ? error : new Error(String(error))));
+      let primaryCloseReason;
+      void closedReason.then(reason => { primaryCloseReason = reason; });
       layer = new JsonRpcMessageLayer(
         transport.readable,
         transport.writable,
@@ -60,7 +62,7 @@ export class McpClient {
       transport.closed.then(
         (event) => {
           if (this.#transport !== transport || this.#generation !== generation) return;
-          layer.dispose(event.reason);
+          layer.dispose(primaryCloseReason ?? event.reason);
           this.#layer = undefined;
           this.#transport = undefined;
           this.#core.connectionClosed(generation);

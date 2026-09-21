@@ -373,6 +373,7 @@ export interface McpTransport {
     readable: Readable;
     writable: Writable;
     closed: Promise<McpTransportClosedEvent>;
+    closeReason?: Promise<Error>;
     dispose(reason?: Error): void;
     filterTools?(tools: Tool[], reset?: boolean): Tool[];
     completeInitialization?(options: { signal?: AbortSignal; timeoutMs: number; protocolVersion?: string }): Promise<void>;
@@ -423,6 +424,7 @@ export declare class HttpTransport implements McpTransport {
   readonly readable: Readable;
   readonly writable: Writable;
   readonly closed: Promise<McpTransportClosedEvent>;
+  readonly closeReason: Promise<Error>;
   constructor(options: HttpTransportOptions);
   filterTools(tools: Tool[], reset?: boolean): Tool[];
   completeInitialization(options: { signal?: AbortSignal; timeoutMs: number; protocolVersion?: string }): Promise<void>;

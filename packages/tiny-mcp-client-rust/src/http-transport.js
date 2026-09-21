@@ -36,6 +36,7 @@ export class HttpTransport {
   #readers = new Set();
   #initializing = false;
   #resolveClosed;
+  #resolveCloseReason;
   #read = new PassThrough();
   #write = new PassThrough();
   constructor({ url, mode = "streamable-http", headers = {}, fetch, oauth, oauthDiscoveryCache, onWarning, maxResponseBytes = 16 * 1024 * 1024 }) {
@@ -50,6 +51,7 @@ export class HttpTransport {
     this.#discovery = oauth === undefined ? undefined : new OAuthMetadataDiscovery({ fetch: this.#fetchWithAbort.bind(this), cache: oauthDiscoveryCache });
     this.readable = this.#read;
     this.writable = this.#write;
+    this.closeReason = new Promise(resolve => { this.#resolveCloseReason = resolve; });
     this.closed = new Promise(resolve => { this.#resolveClosed = resolve; });
     for (const stream of [this.#read, this.#write]) stream.once("error", error => {
       this.dispose(error instanceof Error ? error : new Error(String(error)));
@@ -80,7 +82,7 @@ export class HttpTransport {
     try {
       await this.#sendPost(line, this.#state.prepare(line), controller);
       signal.throwIfAborted();
-      if (this.#state.disposed) throw (await this.closed).reason;
+      if (this.#state.disposed) throw await this.closeReason;
     } catch (error) {
       if (error instanceof HttpTransportError)
         throw new HttpTransportError(error.message, error.status, error.method, "notifications/initialized");
@@ -92,14 +94,16 @@ export class HttpTransport {
   dispose(reason = new Error("HTTP transport disposed")) {
     const disposal = this.#state.dispose();
     if (disposal === null) return;
+    this.#resolveCloseReason?.(reason);
+    this.#resolveCloseReason = undefined;
     this.#rejectEndpoint?.(reason);
     this.#resolveEndpoint = undefined;
     this.#rejectEndpoint = undefined;
-    for (const slot of disposal.slots) this.#controllers.get(slot)?.abort();
+    for (const slot of disposal.slots) this.#controllers.get(slot)?.abort(reason);
     this.#controllers.clear();
-    for (const controller of this.#fetches) controller.abort();
+    for (const controller of this.#fetches) controller.abort(reason);
     this.#fetches.clear();
-    for (const controller of this.#oauthControllers) controller.abort();
+    for (const controller of this.#oauthControllers) controller.abort(reason);
     this.#oauthControllers.clear();
     for (const reader of this.#readers) void reader.cancel().catch(() => undefined);
     this.#readers.clear();
@@ -143,7 +147,10 @@ export class HttpTransport {
       const post = this.#state.prepare(line);
       if (post.cancelled) { this.#controllers.get(post.cancelSlot)?.abort(); continue; }
       const work = this.#sendPost(line, post);
-      if (post.ordered) await work;
+      if (post.ordered) {
+        try { await work; }
+        catch (error) { this.dispose(error instanceof Error ? error : new Error(String(error))); }
+      }
       else void work.catch(error => { this.dispose(error instanceof Error ? error : new Error(String(error))); });
     }
   }

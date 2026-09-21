@@ -5595,3 +5595,23 @@ semantics or full native/platform/performance acceptance.
 Migration5dbbfbb77 exact remote-main verified; release35590995162 pending;
 successful publication remains unverified. Continuous10:51:31–10:53:16 adds105s,
 total104246s (28.96h). Continue accounting after10:53:16 UTC.
+
+### Client initialization cleanup conformance, 2026-09-21 11:00 UTC
+
+Registry release35583768081 completed failure: owned client reference suite
+failed six current original initialization/receive-stream fixtures. Focused local
+suite reproduces6failures/14cases. Ordered POST work escaping the writable async
+iterator emits AbortError before pending session deletion completes. Transport now
+handles ordered errors before iterator exit and exposes primary closeReason
+separately from closed cleanup outcome. Client consumes primary reason when
+available; final initialization reads primary reason,not DELETE cleanup error.
+Transport disposal aborts outstanding work with primary reason/identity retained.
+Original TypeScript production files unchanged.
+
+Maintained39Rust cases,70native groups,344references/43files and types pass;
+fmt/clippy/focusedhostESLint pass. Uncached declared selected116workspaces/15builds/
+354edges passes. Evidence out/rust-client-initialize-cleanup-*. Prior failure is
+reported distinctly from delivery; successful publication remains unverified.
+Schema62b31535a exact remote-main verified. Config foundation in progress remains
+uncommitted; unrelated concurrent commits/files preserved. Continuous10:53:16–
+11:00:15 adds419s,total104665s (29.07h). Continue accounting after11:00:15 UTC.

@@ -2,7 +2,7 @@ import { expect, it, vi } from "vitest";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 import type { HttpTransportFetch, StoredOAuthSession } from "tiny-mcp-client";
-import { bindRemoteMcpConfiguration, createRemoteMcpCommands, initRemoteMcpConfiguration } from "./index.js";
+import { bindRemoteMcpConfiguration, createRemoteMcpCommands, fetchRemoteMcpSchema, initRemoteMcpConfiguration } from "./index.js";
 
 const tool = { name: "find", inputSchema: { type: "object" } };
 const server = { name: "catalog", url: "https://catalog.example/mcp", tools: [tool], protocolVersion: "2025-03-26" as const };
@@ -14,6 +14,57 @@ function memoryStore() {
   let session: StoredOAuthSession | null = null;
   return { load: vi.fn(async () => session), save: vi.fn(async (_resource: string, value: StoredOAuthSession) => { session = value; }), clear: vi.fn(async () => { session = null; }) };
 }
+
+it("lets the native OAuth provider replace stale static Authorization while preserving other headers", async () => {
+  const [bound] = bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "original-client", MCP_CATALOG_ACCESS_TOKEN: "current-access" }, oauth: { sessionStore: () => memoryStore() } });
+  const fetch = vi.fn<HttpTransportFetch>(async (_url, init) => {
+    const headers = new Headers(init?.headers);
+    expect(headers.get("Authorization")).toBe("Bearer current-access");
+    expect(headers.get("X-Tenant")).toBe("tenant");
+    const request = JSON.parse(String(init?.body));
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: request.method === "initialize"
+      ? { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "catalog", version: "1" } }
+      : { tools: [tool] } });
+  });
+  // Direct native SDK callers can combine headers; declarative configuration
+  // rejects this ambiguity before binding.
+  expect((await fetchRemoteMcpSchema({ ...bound, tools: undefined, headers: { authorization: "Bearer retired-access", "X-Tenant": "tenant" } }, { fetch })).tools).toEqual([tool]);
+  expect(fetch).toHaveBeenCalledTimes(3);
+});
+
+it("discovers schemas with a silently refreshed cached grant and reuses its rotation in a new binding", async () => {
+  const issuer = "https://auth.example", store = memoryStore();
+  await store.save(server.url, { resource: server.url, authorizationServer: issuer, client: { clientId: "original-client" },
+    tokens: { accessToken: "expired-access", refreshToken: "original-refresh", tokenType: "Bearer", expiresAt: 0 },
+    discovery: { resourceMetadataUrl: `${server.url}/metadata`, resourceMetadata: { resource: server.url, authorization_servers: [issuer] },
+      authorizationServerMetadata: { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } } });
+  const openBrowser = vi.fn(), readLine = vi.fn();
+  const fetch = vi.fn<HttpTransportFetch>(async (url, init) => {
+    if (String(url) === `${issuer}/token`) {
+      const form = new URLSearchParams(String(init?.body));
+      expect(form.get("grant_type")).toBe("refresh_token");
+      expect(form.get("refresh_token")).toBe("original-refresh");
+      expect(form.get("client_id")).toBe("original-client");
+      return Response.json({ access_token: "rotated-access", refresh_token: "rotated-refresh", token_type: "Bearer", expires_in: 3600 });
+    }
+    expect(String(url)).toBe(server.url);
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer rotated-access");
+    const request = JSON.parse(String(init?.body));
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: request.method === "initialize"
+      ? { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "catalog", version: "1" } }
+      : { tools: [tool] } });
+  });
+  for (let run = 0; run < 2; run++) {
+    const [bound] = bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "original-client" }, oauth: { now: () => 1000, sessionStore: () => store, browser: { openBrowser, readLine } } });
+    expect((await fetchRemoteMcpSchema({ ...bound, tools: undefined }, { fetch })).tools).toEqual([tool]);
+  }
+  expect(fetch.mock.calls.filter(([url]) => String(url) === `${issuer}/token`)).toHaveLength(1);
+  expect(openBrowser).not.toHaveBeenCalled();
+  expect(readLine).not.toHaveBeenCalled();
+  expect((await store.load())?.tokens?.refreshToken).toBe("rotated-refresh");
+});
 
 it("binds bearer and header references without changing the declarative configuration", () => {
   const config = initRemoteMcpConfiguration([{ ...server, auth: { type: "bearer", env: "TOKEN" }, headers: { "X-Key": { env: "KEY" } } }]).configuration;

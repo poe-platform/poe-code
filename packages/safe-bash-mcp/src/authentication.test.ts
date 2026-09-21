@@ -112,3 +112,17 @@ it("bounds headless consent and a stalled URL observer with the complete operati
   expect(f.opener).not.toHaveBeenCalled();
   expect(f.fetch.mock.calls.some(([url]) => String(url).endsWith("/token"))).toBe(false);
 });
+
+it.each([400, 403, 500])("preserves post-consent HTTP %s failures without a misleading SSE retry", async status => {
+  const f = fixture();
+  const fetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
+    if (String(input) === resource && init?.method === "POST" && new Headers(init.headers).get("Authorization") === "Bearer private-access")
+      return new Response("stateful initialization rejected", { status });
+    return f.fetch(input, init);
+  });
+  await expect(authenticateRemoteMcpServer(f.configuration, { binding: f.binding, fetch, onAuthorizationUrl: f.observed })).rejects.toMatchObject({ status, method: "POST" });
+  expect(f.observed).toHaveBeenCalledOnce();
+  expect(f.opener).not.toHaveBeenCalled();
+  expect(fetch.mock.calls.filter(([url]) => String(url) === resource).every(([, init]) => init?.method === "POST")).toBe(true);
+  expect((await f.binding.oauth.sessionStore().load())?.tokens?.accessToken).toBe("private-access");
+});

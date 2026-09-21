@@ -1225,3 +1225,20 @@ source snapshots remain retained, with lossless compressed execution evidence.
 This closes the named F18/F27 list boundary defect only. Every remaining full
 F08–F15/F18 requirement, public variant, renderer review and fresh aggregate gate
 remains open; canceled predecessors have zero aggregate credit. No push/release.
+
+The [active block list continuation correction](text-style-user-edge-audit-20260920/list-block-continuation-final-focused-verification.json)
+retains192 genuine original memfs failures and320 passing baseline controls.
+All512 unchanged original cases and2103 neighboring cases now pass across nine
+maintained suites, with zero skips/unrun cases. A package-domain active-child
+lookup now continues the existing list when its preceding block paragraph is in
+Choice/Fallback/ProcessContent, preserving the custom numbering part exactly.
+Explicit start1 remains separate-instance intent. Body/cell anchors, both kinds
+and dialects, default level0/explicit level1 and direct/ordered SDK/actual opted-in
+CLI retain independent binding, graph/member, carrier/trivia and run/paragraph
+formatting assertions. Maintained package lint/type checks and selected build
+passed; the actual human CLI screenshot was inspected for readable ASCII layout,
+with zero Unicode glyph-renderer credit. Original source, red/green reports,
+logs and canceled766-suite replay are retained losslessly. This closes only the
+named F05/F18 continuation defect. The fresh767-suite gate, all remaining family
+public variants and full normative/renderer reconciliation remain open; nothing
+was pushed or released.

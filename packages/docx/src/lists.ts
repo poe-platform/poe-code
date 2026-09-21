@@ -70,7 +70,7 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
     if (ancestors.some(n => n.namespace === w && (["ins", "del", "moveFrom", "moveTo"].includes(n.localName) || graph.child(graph.child(n, "pPr"), "pPrChange"))))
       throw new UnsupportedEditError("Tracked list paragraphs require revision operations.");
     if (node.namespace !== w || !["p", "body", "tc", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(node.localName)) throw new UnsupportedEditError("Expected a supported list paragraph or block container.");
-    let previous = node.localName === "p" ? node : node.children.filter(n => n.namespace === w && n.localName === "p").at(-1);
+    let previous = node.localName === "p" ? node : graph.children(node).filter(n => n.namespace === w && n.localName === "p").at(-1);
     if (request.operation === "lists.set") previous = node;
     const existing = previous ? graph.paragraph(previous) : undefined;
     const level = options.level ?? (request.operation === "lists.set" ? existing?.level ?? 0 : 0);

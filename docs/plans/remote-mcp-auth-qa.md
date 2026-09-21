@@ -721,3 +721,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     token response's invalid clock before activation, retaining durable pending
     refresh after its one redemption. Require three total installation/pending
     writes. Inspect summary screenshot and purge only owned evidence.
+
+66. Bypass metadata discovery with direct native hooks/host stores and supply
+    named/empty issuer queries while retaining valid flow endpoints. Require
+    twelve direct/stored/generated/encrypted-import/read failures with safe
+    diagnostics before token/consent/host writes; preserve two valid original
+    grants when invalid replacement discovery selects a new issuer. Encrypted
+    malformed client records remain unchanged and explicit valid import recovers
+    them. Retain percent-escaped question/hash delimiters in the exact issuer
+    path through native state/S256 callback/code exchange/recreated silent refresh.
+    Require six MCP POSTs/two retired sessions and full schema/guidance/metadata/
+    falsey tool JSON/exact005930. Inspect summary screenshot; purge only owned
+    synthetic evidence.

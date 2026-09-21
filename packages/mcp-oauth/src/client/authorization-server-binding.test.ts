@@ -195,3 +195,63 @@ it.each(["authorization_endpoint", "token_endpoint", "registration_endpoint"] as
     expect(openBrowser).toHaveBeenCalledOnce(); expect(fetch).not.toHaveBeenCalled();
   }
 );
+
+
+it.each(["?", "?private=marker"])("rejects a direct discovery issuer query before authorization: %s", query => {
+  const metadata = discovery("https://auth.example" + query);
+  Object.assign(metadata.authorizationServerMetadata, { authorization_endpoint: "https://auth.example/authorize", token_endpoint: "https://auth.example/token" });
+  const openBrowser = vi.fn(async () => { throw new Error("browser reached"); }), save = vi.fn(async () => {});
+  const fetch = vi.fn(async () => Response.json({ access_token: "private-access", token_type: "Bearer" }));
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: { openBrowser },
+    sessionStore: { load: async () => null, save, clear: async () => {} } });
+  return provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }), challenge: null,
+    discovery: metadata, fetch }).then(result => {
+    expect(result).toMatchObject({ action: "fail", error: { message: "Authorization server issuer must not include query or fragment" } });
+    expect(openBrowser).not.toHaveBeenCalled(); expect(save).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+it.each(["?", "?private=marker"])("rejects a stored issuer query before token redemption: %s", async query => {
+  const metadata = discovery("https://auth.example" + query);
+  Object.assign(metadata.authorizationServerMetadata, { authorization_endpoint: "https://auth.example/authorize", token_endpoint: "https://auth.example/token" });
+  const session: StoredOAuthSession = { resource, authorizationServer: metadata.authorizationServer, client: { clientId: "client" },
+    tokens: { accessToken: "private-access", refreshToken: "private-refresh", tokenType: "Bearer", expiresAt: 0 },
+    discovery: { resourceMetadataUrl: metadata.resourceMetadataUrl, resourceMetadata: metadata.resourceMetadata,
+      authorizationServerMetadata: metadata.authorizationServerMetadata } };
+  const save = vi.fn(async () => {}), fetch = vi.fn(async () => Response.json({ access_token: "fresh", token_type: "Bearer" }));
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: {}, now: () => 1000,
+    allowInteractive: false, sessionStore: { load: async () => session, save, clear: async () => {} } });
+  await expect(provider.authorizeRequest!({ requestUrl: new URL(resource), headers: new Headers(), fetch }))
+    .rejects.toThrow(new Error("Authorization server issuer must not include query or fragment"));
+  expect(save).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+});
+
+
+it("retains escaped query delimiters in direct issuer paths", async () => {
+  const metadata = discovery("https://auth.example/path%3Fdata%23data");
+  const openBrowser = vi.fn(async () => { throw new Error("browser reached"); });
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: { openBrowser },
+    sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } });
+  expect(await provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+    challenge: null, discovery: metadata, fetch: vi.fn() })).toMatchObject({ action: "fail", error: { message: "browser reached" } });
+  expect(openBrowser).toHaveBeenCalledOnce();
+});
+
+
+it.each(["?", "?private=marker"])("keeps a valid persisted grant when new discovery has an invalid issuer query: %s", async query => {
+  const oldMetadata = discovery(oldIssuer), newMetadata = discovery(newIssuer + query);
+  Object.assign(newMetadata.authorizationServerMetadata, { authorization_endpoint: newIssuer + "/authorize", token_endpoint: newIssuer + "/token" });
+  const original: StoredOAuthSession = { resource, authorizationServer: oldIssuer, client: { clientId: "client" },
+    tokens: { accessToken: "private-access", refreshToken: "private-refresh", tokenType: "Bearer", expiresAt: 100_000 },
+    discovery: { resourceMetadataUrl: oldMetadata.resourceMetadataUrl, resourceMetadata: oldMetadata.resourceMetadata,
+      authorizationServerMetadata: oldMetadata.authorizationServerMetadata } };
+  let session: StoredOAuthSession | null = original;
+  const clear = vi.fn(async () => { session = null; }), save = vi.fn(async (_key: string, next: StoredOAuthSession) => { session = next; });
+  const fetch = vi.fn(async () => { throw new Error("unexpected network"); }), openBrowser = vi.fn(async () => { throw new Error("unexpected consent"); });
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: { openBrowser }, now: () => 1000,
+    sessionStore: { load: async () => session, save, clear } });
+  expect(await provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+    challenge: null, discovery: newMetadata, fetch })).toMatchObject({ action: "fail", error: { message: "Authorization server issuer must not include query or fragment" } });
+  expect(clear).not.toHaveBeenCalled(); expect(save).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled(); expect(openBrowser).not.toHaveBeenCalled();
+  expect(session).toBe(original);
+});

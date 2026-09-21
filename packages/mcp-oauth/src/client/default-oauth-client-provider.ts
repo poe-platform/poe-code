@@ -214,6 +214,11 @@ export function createDefaultOAuthClientProvider(
     rejectedTokens?: StoredOAuthTokens | null
   ): Promise<StoredOAuthSession | null> {
     signal?.throwIfAborted();
+    if (discovery !== undefined) {
+      if (getOwnString(discovery.authorizationServerMetadata, "issuer") !== discovery.authorizationServer)
+        throw new Error("OAuth discovery authorization-server issuer mismatch");
+      assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
+    }
     const canonicalResource = canonicalizeResourceIndicator(resource);
     return withOAuthSessionTransaction(sessionStore, canonicalResource, async () => {
       let session = await loadSession(canonicalResource);
@@ -225,11 +230,6 @@ export function createDefaultOAuthClientProvider(
       if (configuredClient !== null && discovery !== undefined) assertRegistrationIssuer(configuredClient, discovery.authorizationServer);
       if (session !== null && initialGrant?.resource === canonicalResource) initialGrantConsumed = true;
       signal?.throwIfAborted();
-      if (discovery !== undefined && getOwnString(
-        discovery.authorizationServerMetadata, "issuer"
-      ) !== discovery.authorizationServer) {
-        throw new Error("OAuth discovery authorization-server issuer mismatch");
-      }
       if (session !== null && (
         canonicalizeResourceIndicator(session.resource) !== canonicalResource
         || getOwnString(session.discovery.authorizationServerMetadata, "issuer") !== session.authorizationServer
@@ -240,7 +240,6 @@ export function createDefaultOAuthClientProvider(
       }
       if (session === null && discovery !== undefined && !initialGrantConsumed && initialGrant?.resource === canonicalResource &&
         initialGrant.tokens !== undefined && initialGrant.client !== null) {
-        assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
         session = { resource: canonicalResource, authorizationServer: discovery.authorizationServer,
           client: initialGrant.client, tokens: initialGrant.tokens,
           ...(requestedScope === undefined ? {} : { requestedScope }), discovery: toStoredDiscovery(discovery) };
@@ -959,23 +958,25 @@ function isLoopbackHostname(hostname: string): boolean {
   );
 }
 
-function assertSecureUrl(value: string, label: string): void {
+function assertSecureUrl(value: string, label: string): URL {
   const url = new URL(value);
   if (url.username !== "" || url.password !== "" || url.href.includes("#")) {
     throw new Error(`${label} must not include credentials or fragment`);
   }
   if (url.protocol === "https:") {
-    return;
+    return url;
   }
 
   if (url.protocol === "http:" && isLoopbackHostname(url.hostname)) {
-    return;
+    return url;
   }
 
   throw new Error(`${label} must use https unless it targets a loopback host`);
 }
 
 function assertSecureOAuthFlowEndpoints(metadata: OAuthAuthorizationServerMetadata): void {
+  const issuer = assertSecureUrl(requireOwnString(metadata, "issuer", "Authorization server metadata"), "Authorization server issuer");
+  if (issuer.href.includes("?")) throw new Error("Authorization server issuer must not include query or fragment");
   const authorizationEndpoint = requireOwnString(
     metadata,
     "authorization_endpoint",

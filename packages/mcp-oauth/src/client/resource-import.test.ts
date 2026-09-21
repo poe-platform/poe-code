@@ -168,7 +168,7 @@ it("rejects an empty-fragment issuer in a stored client map without rewriting th
 });
 
 it("retains escaped hash data through explicit import and reset", async () => {
-  const f = fixture(), session = grant(), escapedResource = resource + "/literal%23data?value=%23", escapedIssuer = issuer + "/literal%23data";
+  const f = fixture(), session = grant(), escapedResource = resource + "/literal%23data?value=%23", escapedIssuer = issuer + "/literal%23data%3Fdata";
   session.resource = escapedResource; session.discovery.resourceMetadata.resource = escapedResource;
   session.authorizationServer = escapedIssuer; session.discovery.authorizationServerMetadata.issuer = escapedIssuer;
   await f.stores.importSession(session);
@@ -178,4 +178,20 @@ it("retains escaped hash data through explicit import and reset", async () => {
   await fresh.reset(escapedResource);
   expect(await fresh.sessionStore.load(escapedResource)).toBeNull();
   expect(await fresh.clientStore.load(escapedIssuer)).toBeNull();
+});
+
+
+it.each(["?", "?private=marker"])("rejects an imported issuer query before replacing credentials: %s", async query => {
+  const f = fixture(), session = grant();
+  session.authorizationServer += query; session.discovery.authorizationServerMetadata.issuer = session.authorizationServer;
+  await expect(f.stores.importSession(session)).rejects.toThrow(new Error("Invalid OAuth import session or resource binding"));
+  expect(await f.fs.readdir("/home/test").catch(() => [])).toEqual([]);
+});
+
+it.each(["?", "?private=marker"])("rejects a stored client-map issuer query without rewriting it: %s", async query => {
+  const f = fixture(); await f.stores.reset(resource); await f.stores.clientStore.save(issuer + query, grant().client);
+  const [file] = await f.fs.readdir("/home/test"), before = await f.fs.readFile(`/home/test/${file}`, "utf8");
+  await expect(createResourceBoundOAuthStores(f.authStore, undefined, "catalog").sessionStore.load(resource))
+    .rejects.toThrow(new Error("Invalid stored OAuth resource client"));
+  expect(await f.fs.readFile(`/home/test/${file}`, "utf8")).toBe(before);
 });

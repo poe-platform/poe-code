@@ -48,7 +48,7 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
         const resource = new URL(session.resource), issuer = new URL(session.authorizationServer),
           advertisedResource = new URL(session.discovery.resourceMetadata.resource);
         if ([resource, issuer, advertisedResource].some(url => !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.href.includes("#")) ||
-          session.discovery.authorizationServerMetadata.issuer !== session.authorizationServer ||
+          issuer.href.includes("?") || session.discovery.authorizationServerMetadata.issuer !== session.authorizationServer ||
           canonicalizeResourceIndicator(advertisedResource) !== canonicalizeResourceIndicator(resource))
           throw new Error("Invalid binding");
         session.client = normalizeStoredOAuthClient(session.client)!;
@@ -97,7 +97,7 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
       const normalized = normalizeStoredOAuthClient(client);
       let url: URL;
       try { url = new URL(issuer); } catch { throw new Error("Invalid stored OAuth resource client issuer"); }
-      if (normalized === null || !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.href.includes("#"))
+      if (normalized === null || !["http:", "https:"].includes(url.protocol) || url.username || url.password || url.href.includes("?") || url.href.includes("#"))
         throw new Error("Invalid stored OAuth resource client");
       Object.defineProperty(record.clients, issuer, { value: normalized, enumerable: true, configurable: true, writable: true });
     }

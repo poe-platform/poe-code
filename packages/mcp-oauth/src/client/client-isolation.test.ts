@@ -26,6 +26,30 @@ it.each([
   expect(fetch).not.toHaveBeenCalled(); expect(save).not.toHaveBeenCalled(); expect(clear).not.toHaveBeenCalled();
 });
 
+it.each(["expired", "pending"])("checks an explicitly configured dynamic app before redeeming or recovering a %s grant", async state => {
+  const session: StoredOAuthSession = state === "pending" ? { ...initial, tokens: undefined, refreshState: "pending" }
+    : { ...initial, tokens: { ...initial.tokens!, expiresAt: 0 } };
+  const save = vi.fn(async () => {}), clear = vi.fn(async () => {}), fetch = vi.fn(async () => Response.json({ access_token: "bad", token_type: "Bearer" }));
+  const openBrowser = vi.fn();
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "dynamic", clientId: "other-client" }, browser: { openBrowser }, allowInteractive: true,
+    sessionStore: { load: async () => session, save, clear } });
+  const headers = new Headers();
+  await expect(provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch })).rejects.toThrow("different OAuth client");
+  expect(headers.has("Authorization")).toBe(false);
+  expect(fetch).not.toHaveBeenCalled(); expect(openBrowser).not.toHaveBeenCalled(); expect(save).not.toHaveBeenCalled(); expect(clear).not.toHaveBeenCalled();
+});
+
+it.each([
+  { clientId: " original-client ", clientSecret: " original-secret " },
+  {}
+])("reuses the original dynamic grant when app configuration matches or registration remains native-owned: %j", async client => {
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "dynamic", ...client }, browser: {}, allowInteractive: false,
+    sessionStore: { load: async () => initial, save: async () => {}, clear: async () => {} } });
+  const fetch = vi.fn(async () => Response.json({ access_token: "bad", token_type: "Bearer" })), headers = new Headers();
+  await provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch });
+  expect(headers.get("Authorization")).toBe("Bearer original-private-token"); expect(fetch).not.toHaveBeenCalled();
+});
+
 it("accepts the original normalized static client without changing its stored credentials", async () => {
   const fetch = vi.fn(async () => Response.json({ access_token: "bad", token_type: "Bearer" }));
   const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: " original-client ", clientSecret: " original-secret " }, browser: {},
@@ -43,4 +67,18 @@ it("binds a configured dynamic import to its original client instead of another 
   const headers = new Headers();
   await expect(provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch })).rejects.toThrow("different OAuth client");
   expect(headers.has("Authorization")).toBe(false); expect(fetch).not.toHaveBeenCalled();
+});
+
+it.each([
+  { clientId: "other-client", clientSecret: "other-secret" },
+  { clientId: "original-client", clientSecret: "other-secret" },
+  { clientId: "original-client" }
+])("refuses a cached dynamic grant from another explicitly configured app without an initial import: %j", async client => {
+  const save = vi.fn(async () => {}), clear = vi.fn(async () => {}), fetch = vi.fn(async () => Response.json({ access_token: "bad", token_type: "Bearer" }));
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "dynamic", ...client }, browser: {}, allowInteractive: false,
+    sessionStore: { load: async () => initial, save, clear } });
+  const headers = new Headers();
+  await expect(provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch })).rejects.toThrow("different OAuth client");
+  expect(headers.has("Authorization")).toBe(false);
+  expect(fetch).not.toHaveBeenCalled(); expect(save).not.toHaveBeenCalled(); expect(clear).not.toHaveBeenCalled();
 });

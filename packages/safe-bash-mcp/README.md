@@ -230,6 +230,10 @@ binding additionally uses the configured server name as its logical identity:
 changing its URL retires saved sessions and registrations, and reverting the
 URL does not revive them. A retired identity withholds old environment-token
 imports; authorize it again to establish a new grant.
+An explicit client ID/secret must match the cached grant's original app, in
+both static and dynamic modes. A changed app or explicit scope fails before
+using or refreshing that grant; select separate persistence or reset/import
+credentials for the new configuration.
 Existing access-token imports require the original client ID; refresh-token/expiry fields
 require an access token. `expiresAt` is a decimal Unix epoch millisecond value.
 Optional `expiresIn` references supply lifetime in seconds, anchored once at

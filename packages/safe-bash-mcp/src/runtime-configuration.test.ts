@@ -83,6 +83,26 @@ it("reports missing required environment references without consulting the proce
   expect(() => bindRemoteMcpConfiguration(configuration(), { env: {} })).toThrow("APP_ID");
 });
 
+it("rejects another cached app through a generated command with an explicit dynamic client and no imported token", async () => {
+  const store = memoryStore(), issuer = "https://auth.example";
+  await store.save(server.url, { resource: server.url, authorizationServer: issuer, client: { clientId: "original-client" },
+    tokens: { accessToken: "private-original-token", tokenType: "Bearer", expiresAt: null },
+    discovery: { resourceMetadataUrl: `${server.url}/metadata`, resourceMetadata: { resource: server.url, authorization_servers: [issuer] },
+      authorizationServerMetadata: { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } } });
+  store.save.mockClear();
+  const config = initRemoteMcpConfiguration([{ ...server, auth: { ...oauth, clientMode: "dynamic" } }]).configuration;
+  const bound = bindRemoteMcpConfiguration(config, { env: { APP_ID: "other-client" }, oauth: { sessionStore: () => store } });
+  const fetch = vi.fn<HttpTransportFetch>(async () => { throw new Error("must not send another app's token"); });
+  const commands = await createRemoteMcpCommands(bound, { fetch });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+  try {
+    const result = await shell.exec("catalog find");
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("different OAuth client"); expect(result.stderr).not.toContain("private-original-token");
+    expect(fetch).not.toHaveBeenCalled(); expect(store.save).not.toHaveBeenCalled(); expect(store.clear).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+
 it("requires configured authentication rather than reading unrelated grants after a remote 401", async () => {
   const readToken = vi.fn(() => "unrelated-token");
   const env = Object.defineProperty({}, "MCP_CATALOG_ACCESS_TOKEN", { get: readToken });

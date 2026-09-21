@@ -155,3 +155,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     eventually closed. Await actual server close events instead of assuming
     remote closure happens within one scheduler tick. No tools/list/call or
     provider-specific endpoint rewrites. Record results and purge QA-owned out.
+
+17. Generate a supplied-schema dynamic-OAuth artifact with an explicit client-ID
+    environment reference. Use three separate built hosts and a synthetic native
+    encrypted store: import a fresh grant for the original app; recreate with a
+    different app ID and no initial token; recreate with the original ID. Require
+    the changed-app command to fail before any MCP/issuer network request without
+    altering the saved grant, while the original app still completes its tool
+    call. Also verify changed/omitted explicit secrets, expired grants and pending
+    refresh outcomes in focused native regressions. Dynamic registration without
+    an explicit app must still reuse its saved native client. Inspect the safe CLI
+    diagnostic screenshot, check encrypted files for plaintext synthetic tokens,
+    record results and purge only this QA's fixture directory under out.

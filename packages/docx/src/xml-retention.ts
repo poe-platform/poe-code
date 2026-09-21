@@ -11,7 +11,7 @@ export function opaqueXmlContent(root: XmlElement, budget: DocumentBudget, profi
   const records: unknown[] = [];
   const nativeProperties = (node: XmlElement) =>
     (node.namespace === documentDialects.strict.w || node.namespace === documentDialects.transitional.w)
-    && ["pPr", "rPr", "sectPr", "tabs"].includes(node.localName);
+    && ["pPr", "rPr", "sectPr", "tabs", "tblPr", "trPr", "tcPr"].includes(node.localName);
   interface Frame {
     node: XmlElement;
     inherited: ReadonlyMap<string, readonly string[]>;

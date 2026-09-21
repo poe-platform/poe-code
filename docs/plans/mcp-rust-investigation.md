@@ -5800,3 +5800,44 @@ Servicedc70cffbe verified exactly on remote main;release35594515828 pending,
 publication unverified. Concurrent OAuth/safe-bash work preserved. Continuous
 11:30:47–11:34:58 adds251s,total106621s (29.62h). Objective incomplete.
 Continue accounting after11:34:58 UTC.
+
+### Owned static schema compiler, 2026-09-21 12:03 UTC
+
+Added both compiler entry points with an owned Rust static TypeScript lexer,
+exported scope extraction, primitive metadata validation, fragment merging and
+JSON Schema emission. Node retains source/file access, POSIX module candidates,
+Unicode-independent platform path handling, graph traversal and document metadata
+hooks. Both original and additive package imports accepted;compiler-free core
+entry remains separate. Native source retention defers field extraction until
+whole graph collection,matching source/document-getter error phase. Admission
+limits16MiUTF16/source,1000000tokens,512delimiter depth,128literal/template depth,
+2048files/64Mi units graph;failed file admission retains prior sources.
+
+Missing core and redirected-reference reds precede additions. Differential reds
+reproduced/repaired empty required arrays,generic calls/type separators,adjacent
+exports,ASI,declaration comparisons,Unicode line separators/escaped identifiers,
+non-finite numeric defaults,regexp lexical boundaries and rejection priority.
+116normal/error/literal differential comparisons plus graph cycles/import order,
+source phase,filesystem injection,resource transactions and owned-import cases
+now pass. JSX-like malformed-source recovery differs from ts-morph;the original
+forcesScriptKind.TS and can recover/ignore later source,while owned lexer rejects
+unterminated strings. This and broader malformed/general TypeScript parsing are
+not full replacement acceptance. No production integration.
+
+Maintained18Rust cases,85native groups,all185original references/8files,full
+bidirectional public runtime module types,fmt/clippy/ESLint pass. Exact runtime
+export membership matches original. Uncached selected117workspaces/19builds/
+360edges passes. Packed106JS/declarations,one addon,zero npm runtime groups/
+external imports. Direct/packed16MiB workers each128complete17source graph
+compilations,2176source visits,16384primitive fields,128nesting rejections;
+heaps7.79/7.92MiB,RSS72.89/74.91MiB;not total/native bounds. Five alternating
+warmed17source/16scope/128field pairs: originalwall59.66–82.84ms/
+CPU102.92–181.84ms versus ownwall0.47–0.67ms/CPU0.47–3.86ms;better each pair,
+scoped compiler PASS. This does not repair prior config/state/service performance
+failures or prove general Rust advantage. Evidence out/rust-poe-config-compiler-*.
+
+Storee3b5f3587 exactly verified on remote main;release35594857859 in_progress,
+audit/build/checks/unit-cached/bash jobs successful,unit ongoing,publication
+unverified. Concurrent OAuth/tiny-client/safe-bash changes preserved. Continuous
+11:34:58–12:03:03 adds1685s,total108306s (30.09h). Minimum fulfilled;full objective
+incomplete. Continue accounting after12:03:03 UTC.

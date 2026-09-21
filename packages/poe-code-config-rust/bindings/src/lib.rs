@@ -319,3 +319,55 @@ pub fn config_service_shape(value: Utf16String) -> bool {
 pub fn config_parse_stored(text: Utf16String) -> Option<NativeJson> {
     poe_code_config_rust::stored::parse(&text).map(NativeJson)
 }
+
+#[napi]
+#[derive(Default)]
+pub struct NativeConfigSchemaCompiler {
+    sources: Vec<(String, Vec<u16>)>,
+    units: usize,
+}
+#[napi]
+impl NativeConfigSchemaCompiler {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn scan(&mut self, path: String, text: Utf16String) -> Result<Vec<Utf16String>> {
+        if self.sources.len() >= 2048 || text.len() > 64 * 1024 * 1024 - self.units {
+            return Err(Error::from_reason(
+                "Static schema graph budget exceeded (2048files/64Mi units).",
+            ));
+        }
+        let imports = poe_code_config_rust::compiler::scan(
+            &path,
+            &text,
+            poe_code_config_rust::compiler::Mode::Imports,
+        )
+        .map_err(Error::from_reason)?
+        .imports
+        .into_iter()
+        .map(Into::into)
+        .collect();
+        self.units += text.len();
+        self.sources.push((path, text.to_vec()));
+        Ok(imports)
+    }
+    #[napi]
+    pub fn finish(&mut self) -> Result<NativeJson> {
+        let sources = std::mem::take(&mut self.sources)
+            .into_iter()
+            .map(|(path, text)| {
+                poe_code_config_rust::compiler::scan(
+                    &path,
+                    &text,
+                    poe_code_config_rust::compiler::Mode::All,
+                )
+                .map_err(Error::from_reason)
+            })
+            .collect::<Result<_>>()?;
+        poe_code_config_rust::compiler::compile(sources, Value::Object(vec![]))
+            .map(NativeJson)
+            .map_err(Error::from_reason)
+    }
+}

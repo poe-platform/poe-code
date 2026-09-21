@@ -12,6 +12,7 @@ Node addon. The package is additive and has no npm runtime dependencies.
 - Compose pipeline, experiment and loop callbacks.
 - Track template images and runtime jobs with serialized atomic mutations.
 - Save configured services, migrate legacy credentials and remove global/project layers with rollback.
+- Compile static typed scopes into JSON Schema from source maps or file entry points.
 
 ```ts
 import { createConfigStore, defineScope } from "@poe-code/poe-code-config-rust";
@@ -49,7 +50,15 @@ Rust owns stable file deduplication, optional primitive text normalization and
 API shape admission. The owned provider/agent catalogs share the same addon. Node
 retains service metadata hooks, I/O, layered migration and rollback.
 
-This surface does not yet expose TypeScript schema compilation. It is not a full replacement
-for the original package. Existing production imports remain unchanged. Native
+The compiler uses an owned static TypeScript lexer and scope extractor, with
+primitive fields and the original schema diagnostics. It accepts both original
+and additive scope imports. Node retains module-path resolution, source access
+and document metadata hooks; no TypeScript compiler or schema library ships at
+runtime. Limits are 16 Mi UTF16 units per source, one million tokens, 512 delimiter
+levels, 128 literal/template levels and 2048 files / 64 Mi units per graph.
+Malformed-source recovery and JSX-like input are not full AST-parser parity.
+
+All current runtime exports are present and all eight original test files pass.
+This remains short of full replacement acceptance. Existing production imports remain unchanged. Native
 artifacts have currently been validated on macOS arm64; performance and broader
 platform acceptance remain under review.

@@ -1,6 +1,7 @@
 import type {ConfigDocument} from "./types.js";
 import {createRequire} from "node:module";
 interface ConfigNative {
+ NativeConfigSchemaCompiler:new()=>{scan(path:string,text:string):string[];finish():import("./compile/schema-types.js").JsonSchemaDocument};
  configParseStored(text:string):ConfigDocument|null;
  configServiceFiles(values:string[]):string[];
  configServiceText(value:string):string|null;

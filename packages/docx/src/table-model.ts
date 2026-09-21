@@ -472,7 +472,8 @@ export class _Cell {
           table,
           "tables.merge",
           { from: coordinate(top, left), to: coordinate(bottom, right), join: "paragraphs" },
-          this.store.context.budget
+          this.store.context.budget,
+          activeModelChildren(this.store, this.ref.part)
         )
       );
     });

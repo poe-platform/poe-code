@@ -66,15 +66,17 @@ function lexicalValue(raw: string, type: PropertyType, variant: string, group: P
 export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialect: DocumentDialect, budget: DocumentBudget): StoredProperty[] {
   const vocab = documentDialects[dialect];
   const content = new Map<XmlElement, readonly CompatibilityContent[]>();
-  const collect = (items: readonly CompatibilityContent[]): void => {
-    for (const item of items) if ("source" in item) {
-      budget.charge("work", item.content.length + 1);
-      budget.charge("retainedBytes", 96 + item.content.length * 8);
-      content.set(item.source, item.content);
-      collect(item.content);
-    }
-  };
-  collect(new MarkupCompatibility(root, undefined, budget).content);
+  const projected = new MarkupCompatibility(root, undefined, budget).content;
+  budget.charge("retainedBytes", projected.length * 8);
+  const pending = [...projected].reverse();
+  while (pending.length) {
+    const item = pending.pop()!;
+    if (!("source" in item)) continue;
+    budget.charge("work", item.content.length + 1);
+    budget.charge("retainedBytes", 96 + item.content.length * 16);
+    content.set(item.source, item.content);
+    for (let index = item.content.length - 1; index >= 0; index--) pending.push(item.content[index]!);
+  }
   const children = (node: XmlElement): readonly XmlElement[] => (content.get(node) ?? []).filter(item => "source" in item).map(item => item.source);
   return children(root).map(node => {
     let name: string | null = null, type: PropertyType | null = null, cached = false;

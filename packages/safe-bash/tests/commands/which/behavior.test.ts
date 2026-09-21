@@ -161,6 +161,7 @@ test("fatal stat/access diagnostics preserve prior bytes, first-hit semantics an
 
 test("all remaining typed codes use fixed descriptions; raw/code-shaped failures never leak", async () => {
   const descriptions: Partial<Record<ErrnoCode, string>> = {
+    EILSEQ: "invalid or incomplete multibyte or wide character",
     EAGAIN: "resource temporarily unavailable", EBADF: "bad file descriptor", EBUSY: "resource busy or locked",
     ECANCELED: "operation canceled", EEXIST: "file already exists", EFBIG: "file too large", EINTR: "interrupted system call",
     EINVAL: "invalid argument", EISDIR: "illegal operation on a directory", EMFILE: "too many open files",

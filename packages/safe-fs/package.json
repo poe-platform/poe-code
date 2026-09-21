@@ -35,7 +35,18 @@
     "./fs/readonly": { "types": "./dist/fs/readonly/index.d.ts", "import": "./dist/fs/readonly/index.js" },
     "./fs/mount": { "types": "./dist/fs/mount/index.d.ts", "import": "./dist/fs/mount/index.js" },
     "./fs/overlay": { "types": "./dist/fs/overlay/index.d.ts", "import": "./dist/fs/overlay/index.js" },
-    "./fs/quota": { "types": "./dist/fs/quota/index.d.ts", "import": "./dist/fs/quota/index.js" }
+    "./fs/quota": {
+      "types": "./dist/fs/quota/index.d.ts",
+      "import": "./dist/fs/quota/index.js"
+    },
+    "./contracts/object": {
+      "types": "./dist/contracts/object.d.ts",
+      "import": "./dist/contracts/object.js"
+    },
+    "./contracts/errors": {
+      "types": "./dist/contracts/errors.d.ts",
+      "import": "./dist/contracts/errors.js"
+    }
   },
   "files": ["dist", "README.md", "PROVENANCE.json"],
   "devDependencies": {

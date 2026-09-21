@@ -1,3 +1,4 @@
+import type { ExactFileReadHandle, ExactFileResizeHandle, ObjectFileSystem } from "./object.js";
 import type { ByteSource } from "./io.js";
 import type { FileDescriptor, OpenFileOptions } from "./descriptor.js";
 
@@ -99,6 +100,8 @@ export interface CapabilityQueryOptions extends OpenReadFileOptions {
 }
 
 export interface FileReadHandle {
+  /** Exact operations on the same retained object; close owns both facets. */
+  readonly exact?: ExactFileReadHandle;
   stat(options?: FsOptions): Promise<FileStat>;
   read(position: number, maxBytes: number, options?: FsOptions): Promise<Uint8Array>;
   seekEnd?: ((options?: FsOptions) => Promise<bigint>) | undefined;
@@ -129,6 +132,8 @@ export interface FileResizeOptions extends FsOptions {
 }
 
 export interface FileResizeHandle {
+  /** Exact operations on the same retained object; close owns both facets. */
+  readonly exact?: ExactFileResizeHandle;
   stat(options?: FsOptions): Promise<FileStat>;
   truncate(length: number, options?: FsOptions): Promise<void>;
   seekEnd?: ((options?: FsOptions) => Promise<bigint>) | undefined;
@@ -241,6 +246,8 @@ export interface ConditionalFilePublicationOptions extends FsOptions {
 }
 
 export interface FileSystem {
+  /** Explicit retained-object capability for qualified byte-path backends. */
+  readonly objects?: ObjectFileSystem;
   /** Consume the complete source privately, then atomically compare/publish.
    * Failures before commit preserve the destination. No stat/write fallback. */
   publishFileConditional?(path: string, source: ByteSource, options: ConditionalFilePublicationOptions): Promise<FileStat>;

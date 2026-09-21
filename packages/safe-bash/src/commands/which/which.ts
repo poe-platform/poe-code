@@ -15,6 +15,7 @@ const descriptions: Readonly<Record<ErrnoCode, string>> = {
   ECANCELED: "operation canceled",
   EEXIST: "file already exists",
   EFBIG: "file too large",
+  EILSEQ: "invalid or incomplete multibyte or wide character",
   EINTR: "interrupted system call",
   EINVAL: "invalid argument",
   EIO: "input/output error",

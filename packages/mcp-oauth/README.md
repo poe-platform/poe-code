@@ -24,11 +24,15 @@ const verifier = createJwksTokenVerifier({
 
 ## Public API
 
+`OAuthError.is(value)` recognizes native token/challenge failures across separately
+bundled package copies while preserving the SDK diagnostic fields. Error names
+alone do not establish either native error type.
+
 - `createDefaultOAuthClientProvider(options)`: default MCP OAuth client provider with dynamic or static client registration.
 - `createOAuthClientProvider(options)`: lower-level provider constructor.
 - `createAuthStoreSessionStore(options)`: persisted OAuth session store backed by `auth-store`.
 - `createLoopbackAuthorizationSession(options)`: local callback server for browser authorization.
-- `OAuthAuthorizationError`: a callback denial with its original `error`, `errorDescription` and message for host observers.
+- `OAuthAuthorizationError`: a callback denial with its original `error`, `errorDescription` and message for host observers. Use `OAuthAuthorizationError.is(value)` to recognize errors across separately bundled package copies.
 - `generateCodeVerifier()` and `generateCodeChallenge(...)`: PKCE helpers.
 - `normalizeStoredOAuthClient(value)`: normalize a saved client identity, full registration and ownership marker.
 - `normalizeOAuthScope(value)`: validate scope syntax and normalize its case-sensitive set.

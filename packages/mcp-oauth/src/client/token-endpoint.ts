@@ -6,6 +6,7 @@ import { fetchMcpResponse } from "../http-fetch.js";
 import { normalizeOAuthScope } from "./scope.js";
 
 const MAX_JS_DATE_MS = 8_640_000_000_000_000;
+const oauthErrorBrand = Symbol.for("poe-platform.mcp-oauth.OAuthError");
 
 interface OAuthErrorShape {
   error: string;
@@ -14,6 +15,10 @@ interface OAuthErrorShape {
 }
 
 export class OAuthError extends Error {
+  /** Recognize errors from separately bundled copies of this package. */
+  static is(value: unknown): value is OAuthError {
+    return value instanceof Error && Object.getOwnPropertyDescriptor(value, oauthErrorBrand)?.value === true;
+  }
   readonly error: string;
   readonly errorDescription: string | undefined;
   readonly errorUri: string | undefined;
@@ -30,6 +35,7 @@ export class OAuthError extends Error {
     const uri = Object.hasOwn(shape, "error_uri") ? shape.error_uri : undefined;
     super(description ?? (outcomeKnown ? shape.error : `OAuth HTTP response did not contain a valid error (HTTP ${status})`));
     this.name = "OAuthError";
+    Object.defineProperty(this, oauthErrorBrand, { value: true });
     this.error = shape.error;
     this.errorDescription = description;
     this.errorUri = uri;

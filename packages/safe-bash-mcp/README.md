@@ -490,4 +490,5 @@ unknown extension codes are withheld because they can reflect app/token
 credentials. Direct SDK OAuthError objects remain intact for host observers.
 Callback denials use native `OAuthAuthorizationError`: CLI summaries retain recognized
 codes and withhold reflected descriptions or unknown codes; SDK fields/messages
-remain intact. Other MCP protocol error codes/data and ordinary failure causes are preserved.
+remain intact. Native error markers preserve these summaries when the client bundles
+its own OAuth package copy; mutable error names alone are insufficient. Other MCP protocol error codes/data and ordinary failure causes are preserved.

@@ -117,12 +117,12 @@ const publicOAuthErrorCodes = new Set([
 export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 0): Record<string, unknown> {
   if (depth > 8 || seen.has(error)) return { message: "Nested error details omitted" };
   seen.add(error);
-  if (error instanceof OAuthAuthorizationError) {
+  if (OAuthAuthorizationError.is(error)) {
     const code = publicOAuthErrorCodes.has(error.error) ? error.error : undefined;
     return { name: "OAuthAuthorizationError", message: code === undefined ? "OAuth authorization failed" : `OAuth ${code}`,
       ...(code === undefined ? {} : { oauthError: code }) };
   }
-  if (error instanceof OAuthError) {
+  if (OAuthError.is(error)) {
     const code = publicOAuthErrorCodes.has(error.error) ? error.error : undefined;
     return { name: "OAuthError", message: code === undefined ? `OAuth request failed (HTTP ${error.status})` : `OAuth ${code} (HTTP ${error.status})`,
       status: error.status, ...(code === undefined ? {} : { oauthError: code }),

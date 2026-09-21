@@ -523,3 +523,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     eight metadata GETs/four unauthorized resource requests and zero token/tool
     exchanges or grants. Compile the public class through a strict consumer,
     inspect the actual safe CLI summary screenshot and purge owned evidence.
+
+47. Run actual HTTP commands from built native OAuth options so tiny-mcp-client
+    constructs bundled provider/errors. Return known or synthetic extension token
+    errors, state/S256-bound callback denials and forbidden WWW-Authenticate
+    challenge errors containing reflected private values. Require safe CLI
+    summaries retaining standard codes/status/outcome flags with no reflected
+    descriptions/URIs/extension echoes. Require two original refreshes, two bound
+    loopback denials and two forbidden challenges, no tool calls and unchanged
+    original refresh/tokenless session records as appropriate. Compile strict
+    public OAuthError.is/OAuthAuthorizationError.is guards without casts/deep
+    imports; preserve ordinary same-named host errors. Inspect actual safe
+    summary screenshot and purge owned synthetic evidence.

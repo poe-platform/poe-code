@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { OAuthAuthorizationError, OAuthError } from "mcp-oauth";
 import { errorDetails } from "./commands.js";
 it("summarizes known OAuth failures without mutating the SDK error", () => {
@@ -27,4 +27,29 @@ it.each(["access_denied", "private-reflected-code"])("preserves SDK callback dia
   expect(error.error).toBe(code);
   expect(error.errorDescription).toBe("private-reflected-description");
   expect(error.message).toBe(`OAuth authorization failed: ${code} — private-reflected-description`);
+});
+
+it.each(["token", "callback"] as const)("sanitizes a %s OAuth error from an independent native module copy", async phase => {
+  vi.resetModules();
+  const foreign = await import("mcp-oauth");
+  expect(foreign.OAuthError).not.toBe(OAuthError);
+  expect(foreign.OAuthAuthorizationError).not.toBe(OAuthAuthorizationError);
+  const error = phase === "token"
+    ? new foreign.OAuthError({ error: "invalid_client", error_description: "private-reflected-description" }, 400)
+    : new foreign.OAuthAuthorizationError("access_denied", "private-reflected-description");
+  const cause = phase === "token"
+    ? new foreign.OAuthError({ error: "invalid_client", error_description: "private-reflected-description" }, 400)
+    : new foreign.OAuthAuthorizationError("access_denied", "private-reflected-description");
+  const details = errorDetails(new AggregateError([error], "Authorization failed", { cause }));
+  expect(JSON.stringify(details)).not.toContain("private-");
+  expect(details).toMatchObject({ cause: { oauthError: phase === "token" ? "invalid_client" : "access_denied" },
+    errors: [{ oauthError: phase === "token" ? "invalid_client" : "access_denied" }] });
+  expect(error.message).toContain("private-reflected-description");
+});
+
+it.each(["OAuthError", "OAuthAuthorizationError"])("does not classify an ordinary failure by its mutable %s name", name => {
+  const error = Object.assign(new Error("original host failure"), { name, error: "access_denied", errorDescription: "host details" });
+  expect(OAuthError.is(error)).toBe(false);
+  expect(OAuthAuthorizationError.is(error)).toBe(false);
+  expect(errorDetails(error)).toEqual({ name, message: "original host failure" });
 });

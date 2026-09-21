@@ -171,7 +171,7 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
       }
       const children = (index.children.get(node) ?? []).flatMap(child => visit(child, state));
       if (name === "p" || name === "tc" || name === "tr" || name === "tbl" || node === story.node) {
-        if (!relevant(state.entry) || !children.length && !included(state.entry)) return [];
+        if (!relevant(state.entry) || !children.length && (!included(state.entry) || name === "tbl")) return [];
         const separator = name === "p" ? "" : name === "tr" ? "\t" : "\n";
         const kind = name === "tr" ? "cell" : name === "tbl" ? "row" : "paragraph";
         const boundary = name === "p" ? marked(named(named(node, "pPr"), "rPr")) : undefined;

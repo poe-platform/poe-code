@@ -19,6 +19,8 @@ cache metadata and normative protocol fields in Rust. `input_required` results i
 registered roots, sampling or elicitation callbacks, validate their responses, then
 retry with fresh IDs and snapshotted arguments. Retry rounds and per-round inputs
 are bounded, and missing capabilities or handlers reject before callbacks run.
+One deadline covers wire requests, input callbacks and continuation rounds. Timers
+above 2147483647 milliseconds are rejected; `timeoutMs: null` is unlimited.
 
 ```ts
 import { parseJsonRpcMessage } from "tiny-mcp-client-rust";
@@ -31,6 +33,8 @@ fallback, callback-derived client capabilities, owned connection snapshots and
 reconnection. It exposes tool, resource, prompt and completion calls over a
 caller-provided transport. Progress callbacks follow active tool calls, and aborts
 or timeouts send cancellation notifications. TypeScript contracts cover these APIs.
+An explicit protocol version must be `2025-03-26` or `2026-07-28`; a modern pin
+propagates discovery failures instead of falling back to legacy initialization.
 
 Modern notification streams validate acknowledgement filters, correlate tagged
 notifications and expose cancellation and completion. Configured list-change

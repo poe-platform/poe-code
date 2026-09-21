@@ -4924,3 +4924,34 @@ Continuous active07:37:09–08:01:02 adds1433s, bringing conservative effort to9
 (26.44h). Minimum fulfilled; overall builder/session/remaining plugins/toolcraft/
 spawn closure/platform/Python/performance acceptance incomplete. Continue after
 08:01:02 UTC.
+
+### MCP client exchange parity and typed SSE, 2026-09-21 08:14 UTC
+
+Resumed from checkpoint at08:11:38 UTC; conservatively exclude the preceding
+checkpoint interval from effort accounting. Original client changes introduce15
+validated reference failures in the own rewrite. Rust request-policy tests first
+fail for the missing module; maintained original references provide deadline/pin
+reds. Own Rust now rejects overflowing/nonfinite/negative timer values and unknown
+protocol pins. Node retains one timer across input callbacks and continuation
+requests, aborts callback signals, cancels the latest wire ID, and catches timeout
+observer failures. Explicit modern discovery errors never downgrade to legacy.
+Atomic7b8346623 is pushed and exact remote-main delivery verified.
+
+Typed SSE emits arbitrary named events only with explicit with_all_events mode
+(third native constructor argument). MCP default/endpoint modes remain intact.
+Overflow clears partial frames while retaining cursor/configuration; repeated
+recovery/every-split named-event native and Rust cases pass after recorded reds.
+Atomice303ecfaa is pushed and exact remote-main delivery verified.
+
+Maintained client checks pass37 Rust cases,69 native groups,328 complete applicable
+reference cases/42 files,TypeScript contracts,fmt/clippy and focused JS ESLint.
+Uncached maintained closure113 workspaces/15 builds/339 edges passes. Existing JS
+wrappers do not pass standalone Prettier checking; no format-pass claim. Evidence
+out/rust-client-typed-sse-*,out/rust-client-request-policy-red.log and
+out/rust-client-deadlines-*. Root35575807333 remains pending; no successful current
+publication verified. No provider implementation delivered yet, no complete closure
+or performance/memory/stability superiority accepted.
+
+Active08:11:38–08:14:43 adds185s, bringing conservative effort to95371s (26.49h).
+Minimum fulfilled; continue the remaining agent/runtime/provider/spawn/toolcraft/
+platform/Python acceptance after08:14:43 UTC.

@@ -2,6 +2,7 @@ import type { OAuthMetadataFetch, StoredOAuthTokens } from "./types.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 import { readBoundedResponseText } from "../http-response.js";
 import { fetchMcpResponse } from "../http-fetch.js";
+import { normalizeOAuthScope } from "./scope.js";
 
 const MAX_JS_DATE_MS = 8_640_000_000_000_000;
 
@@ -175,8 +176,9 @@ async function requestTokens(input: {
     typeof refreshToken === "string" && refreshToken.trim().length > 0
       ? refreshToken.trim()
       : undefined;
-  const normalizedScope =
-    typeof scope === "string" && scope.trim().length > 0 ? scope.trim() : undefined;
+  const normalizedScope = normalizeOAuthScope(scope);
+  if (scope !== undefined && normalizedScope === undefined)
+    throw new Error("Invalid OAuth scope syntax in token response");
   return {
     accessToken: normalizedAccessToken,
     refreshToken: normalizedRefreshToken === undefined ? undefined : normalizedRefreshToken,

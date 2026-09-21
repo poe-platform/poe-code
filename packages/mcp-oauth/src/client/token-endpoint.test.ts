@@ -42,6 +42,13 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe("token endpoint parsing", () => {
+  it.each(["read\n", "\tread", "\n", "", " ", null, 7, ["read"]])("rejects malformed explicit token scope %j", async scope => {
+    await expect(exchangeAuthorizationCode({
+      tokenEndpoint: "https://auth.example.test/token", clientId: "client", code: "code", codeVerifier: "verifier",
+      redirectUri: "http://127.0.0.1/callback", resource: "https://resource.example.test/",
+      fetch: async () => jsonResponse({ access_token: "access", token_type: "Bearer", scope }), now: () => 1000
+    })).rejects.toThrow("OAuth scope");
+  });
   it("normalizes surrounding whitespace from token strings before storing them", async () => {
     await expect(
       exchangeAuthorizationCode({

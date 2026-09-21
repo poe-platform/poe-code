@@ -182,6 +182,7 @@ function isStoredOAuthSession(value: unknown): value is StoredOAuthSession {
     isNonBlankOwnString(value, "authorizationServer") &&
     isStoredOAuthClient(getOwnEntry(value, "client")) &&
     isStoredOAuthDiscovery(getOwnEntry(value, "discovery")) &&
+    (getOwnEntry(value, "requestedScope") === undefined || isNonBlankOwnString(value, "requestedScope")) &&
     (getOwnEntry(value, "refreshState") === undefined ||
       (getOwnEntry(value, "refreshState") === "pending" && getOwnEntry(value, "tokens") === undefined)) &&
     isStoredOAuthTokensOrMissing(getOwnEntry(value, "tokens"))

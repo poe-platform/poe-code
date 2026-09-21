@@ -1,3 +1,4 @@
+import { normalizeOAuthScope } from "./scope.js";
 import { isIP } from "node:net";
 import { fetchMcpResponse } from "../http-fetch.js";
 import { URL } from "node:url";
@@ -47,6 +48,8 @@ export function createDefaultOAuthClientProvider(
 ): OAuthClientProvider {
   loopbackTarget(options.browser);
   assertPersistenceNamespace(options.persistenceNamespace);
+  const clientMetadata = getClientMetadata(options.client);
+  const requestedScope = clientMetadata?.scope;
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
   const clientStore =
     options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
@@ -67,6 +70,8 @@ export function createDefaultOAuthClientProvider(
   if (initialGrant !== undefined && (initialGrant.tokens === undefined || initialGrant.client === null))
     throw new Error("OAuth initial grant requires valid tokens and the original client ID");
   if (initialGrant?.tokens !== undefined) {
+    if (requestedScope !== undefined && initialGrant.tokens.scope !== requestedScope)
+      throw new Error("OAuth initial grant does not match the requested OAuth scope");
     try { new Headers({ Authorization: `Bearer ${initialGrant.tokens.accessToken}` }); }
     catch { throw new Error("OAuth initial grant access token is not a valid HTTP header value"); }
   }
@@ -182,7 +187,8 @@ export function createDefaultOAuthClientProvider(
         initialGrant.tokens !== undefined && initialGrant.client !== null) {
         assertSecureOAuthFlowEndpoints(discovery.authorizationServerMetadata);
         session = { resource: canonicalResource, authorizationServer: discovery.authorizationServer,
-          client: initialGrant.client, tokens: initialGrant.tokens, discovery: toStoredDiscovery(discovery) };
+          client: initialGrant.client, tokens: initialGrant.tokens,
+          ...(requestedScope === undefined ? {} : { requestedScope }), discovery: toStoredDiscovery(discovery) };
         await saveSession(canonicalResource, session);
         initialGrantConsumed = true;
         signal?.throwIfAborted();
@@ -195,6 +201,8 @@ export function createDefaultOAuthClientProvider(
         if (configured === null || configured.clientId !== session.client.clientId || configured.clientSecret !== session.client.clientSecret)
           throw new Error("Stored session belongs to a different OAuth client; use separate persistence or explicitly reset it");
       }
+      if (requestedScope !== undefined && session?.tokens !== undefined && normalizeOAuthScope(session.tokens.scope ?? session.requestedScope) !== requestedScope)
+        throw new Error("Stored session does not match the requested OAuth scope; authorize again or select separate persistence");
 
       if (session?.refreshState === "pending") {
         if (!allowInteractive || options.allowInteractive === false || sessionDiscovery === undefined)
@@ -305,10 +313,13 @@ export function createDefaultOAuthClientProvider(
       ...session,
       tokens: {
         ...refreshedTokens,
-        refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken
+        refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken,
+        scope: refreshedTokens.scope ?? session.tokens.scope
       },
       discovery: toStoredDiscovery(discovery)
     };
+    if (requestedScope !== undefined && normalizeOAuthScope(updatedSession.tokens?.scope ?? session.requestedScope) !== requestedScope)
+      throw new Error("OAuth refresh response does not match the requested OAuth scope; authorize again");
     await saveSession(resource, updatedSession);
     return updatedSession;
   }
@@ -351,6 +362,7 @@ export function createDefaultOAuthClientProvider(
           resource,
           authorizationServer: discovery.authorizationServer,
           client: resolvedClient.client,
+          ...(requestedScope === undefined ? {} : { requestedScope }),
           discovery: toStoredDiscovery(discovery)
         };
         await saveSession(resource, sessionWithoutTokens);
@@ -363,7 +375,7 @@ export function createDefaultOAuthClientProvider(
           clientId: resolvedClient.client.clientId,
           redirectUri: loopback.redirectUri,
           codeChallenge: challenge,
-          clientMetadata: getClientMetadata(options.client)
+          clientMetadata
         });
         const code = await loopback.waitForCode(authorizationUrl);
         const tokens = await exchangeAuthorizationCode({
@@ -381,6 +393,8 @@ export function createDefaultOAuthClientProvider(
           fetch, signal,
           now
         });
+        if (requestedScope !== undefined && tokens.scope !== undefined && normalizeOAuthScope(tokens.scope) !== requestedScope)
+          throw new Error("OAuth authorization response does not match the requested OAuth scope");
 
         const session: StoredOAuthSession = {
           ...sessionWithoutTokens,
@@ -485,7 +499,7 @@ export function createDefaultOAuthClientProvider(
     }
 
     const registrationBody = buildClientRegistrationBody(
-      getClientMetadata(options.client),
+      clientMetadata,
       redirectUri
     );
     const deadline = AbortSignal.timeout(30_000);
@@ -699,10 +713,10 @@ function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
   const tokenType = getOwnString(value, "tokenType");
   const expiresAt = getOwnEntry(value, "expiresAt");
   const refreshToken = getOwnEntry(value, "refreshToken");
-  const scope = getOwnString(value, "scope");
+  const scope = getOwnEntry(value, "scope");
   const normalizedAccessToken = accessToken?.trim();
   const normalizedRefreshToken = typeof refreshToken === "string" ? refreshToken.trim() : undefined;
-  const normalizedScope = scope?.trim();
+  const normalizedScope = normalizeOAuthScope(scope);
 
   if (
     accessToken === undefined ||
@@ -744,7 +758,7 @@ function getClientMetadata(
 
   return {
     clientName: normalizeOptionalOAuthString(client.metadata.clientName),
-    scope: normalizeOptionalOAuthString(client.metadata.scope),
+    scope: normalizeOAuthScope(client.metadata.scope),
     softwareId: normalizeOptionalOAuthString(client.metadata.softwareId),
     softwareVersion: normalizeOptionalOAuthString(client.metadata.softwareVersion)
   };
@@ -770,6 +784,7 @@ function normalizeOptionalOAuthString(value: string | undefined): string | undef
   const trimmed = value.trim();
   return trimmed.length === 0 ? undefined : trimmed;
 }
+
 
 function getOwnEntry(record: object, key: string): unknown {
   return Object.prototype.hasOwnProperty.call(record, key)

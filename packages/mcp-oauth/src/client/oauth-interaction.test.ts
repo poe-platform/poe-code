@@ -35,12 +35,15 @@ function interaction(settings: { allowInteractive?: boolean; redirectUri?: strin
   const fetch = vi.fn(async (url: string | URL, _init?: RequestInit) => Response.json(String(url).endsWith("/register")
     ? { client_id: "registered-client", redirect_uris: ["http://localhost/callback"] }
     : { access_token: "token", token_type: "Bearer", expires_in: 3600 }));
+  const metadata = { scope: settings.scope };
   const provider = createDefaultOAuthClientProvider({
-    client: { mode: "dynamic", metadata: { scope: settings.scope } }, allowInteractive: settings.allowInteractive,
+    client: { mode: "dynamic", metadata }, allowInteractive: settings.allowInteractive,
     browser: { openBrowser, readLine: () => callback.promise, createServer, redirectUri: settings.redirectUri },
     sessionStore: { load: async () => session, save: async (_key, value) => { session = value; }, clear: async () => { session = null; } }
   });
-  return { fetch, createServer, openBrowser, seed: (value: StoredOAuthSession) => { session = value; }, authorization: () => authorization, run: () => provider.handleUnauthorized({
+  return { fetch, createServer, openBrowser, metadata, session: () => session,
+    authorize: async () => { const headers = new Headers(); await provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch }); return headers; },
+    seed: (value: StoredOAuthSession) => { session = value; }, authorization: () => authorization, run: () => provider.handleUnauthorized({
     requestUrl: new URL(resource), response: new Response(null, { status: 401 }), challenge: null, discovery, fetch
   }) };
 }
@@ -58,6 +61,38 @@ it("requests configured scopes even when discovery advertises wider permissions"
   const fixture = interaction({ scope: "read" });
   expect(await fixture.run()).toEqual({ action: "retry" });
   expect(fixture.authorization().searchParams.get("scope")).toBe("read");
+});
+
+it("reuses a scoped authorization when the token endpoint omits scope", async () => {
+  const fixture = interaction({ scope: "read" });
+  expect(await fixture.run()).toEqual({ action: "retry" });
+  expect(fixture.session()).toMatchObject({ requestedScope: "read", tokens: { accessToken: "token" } });
+  expect((await fixture.authorize()).get("Authorization")).toBe("Bearer token");
+  expect(fixture.fetch).toHaveBeenCalledTimes(2);
+});
+
+it("rejects broader code-exchange grants without activating them", async () => {
+  const fixture = interaction({ scope: "read" });
+  fixture.fetch.mockResolvedValueOnce(Response.json({ client_id: "registered-client" }))
+    .mockResolvedValueOnce(Response.json({ access_token: "broader-private", token_type: "Bearer", scope: "read write" }));
+  expect(await fixture.run()).toMatchObject({ action: "fail", error: { message: expect.stringContaining("requested OAuth scope") } });
+  expect(fixture.session()?.tokens).toBeUndefined();
+  expect((await fixture.authorize()).has("Authorization")).toBe(false);
+});
+
+it("captures configured scope before caller metadata can change", async () => {
+  const fixture = interaction({ scope: "read" });
+  fixture.metadata.scope = "read write";
+  expect(await fixture.run()).toEqual({ action: "retry" });
+  expect(fixture.authorization().searchParams.get("scope")).toBe("read");
+  expect(JSON.parse(String(fixture.fetch.mock.calls[0]?.[1]?.body)).scope).toBe("read");
+});
+
+it("does not invent a requested scope from server-advertised permissions", async () => {
+  const fixture = interaction();
+  expect(await fixture.run()).toEqual({ action: "retry" });
+  expect(fixture.authorization().searchParams.has("scope")).toBe(false);
+  expect(fixture.session()?.requestedScope).toBeUndefined();
 });
 
 it("fails headless unauthorized requests promptly without allocating a callback or launching a browser", async () => {

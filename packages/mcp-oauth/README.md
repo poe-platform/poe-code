@@ -96,7 +96,14 @@ on 401 even when the server omits `error="invalid_token"`. Invalid provenance
 fails without quoting token values.
 
 Configure `client.metadata.scope` to request a precise scope set; broader
-discovery metadata does not override it.
+discovery metadata does not override it. Explicit scopes must match the cached
+or imported grant's scope set; ordering, repeated spaces and duplicates are
+normalized. An imported grant must declare its scope when a scope is configured.
+Authorization records the requested set when the endpoint omits scope, and
+refresh retains the previous granted set. Mismatched responses never activate
+credentials; an unusable refresh response retains the pending refresh record.
+Select a separate persistence namespace for another scope profile. No scope is
+invented when the client does not configure one.
 
 Imported `initialGrant.tokens` use `accessToken`, optional `refreshToken`,
 `tokenType: "Bearer"`, `expiresAt` (Unix epoch milliseconds or `null` if unknown),

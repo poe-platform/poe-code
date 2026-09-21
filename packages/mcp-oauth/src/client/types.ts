@@ -83,6 +83,8 @@ export interface StoredOAuthSession {
   tokens?: StoredOAuthTokens;
   /** A refresh was begun; its winning response may not have been persisted. */
   refreshState?: "pending";
+  /** Canonical explicitly requested scope set when the server omits token scope. */
+  requestedScope?: string;
   discovery: {
     resourceMetadataUrl: string;
     resourceMetadata: Record<string, unknown>;

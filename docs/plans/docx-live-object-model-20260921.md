@@ -109,3 +109,31 @@ screenshot route and inspected; no native document rendering was performed.
 Task 28 implement/test remain open. These bounded corrections do not establish
 complete per-member graph/API/source-case mappings, and annotated cell assignment
 still has an explicit unsupported disposition. Tasks 29 onward were not started.
+
+## Document table signature and local delivery
+
+Pinned API research and the current typed batch schema specify the third
+Document.add_table argument as style, not width. Original style and wider-page
+tests failed before the corrections. The Document method now computes width
+from its admitted section, assigns an optional named/owned/default style in the
+existing transaction, and shares that width with the renderer. Invalid styles
+roll back insertion and retain prior owners. Three mistaken Document-width
+callers now configure section geometry explicitly; original expected table
+dimensions and assertions remain. Header/comment explicit-width methods retain
+their separate documented signatures. Three new original tests qualify style
+identity/default/null, seven-inch content width, invalid/foreign-style rollback,
+memfs save/reload and typed-batch parity. A different worker independently
+reviewed these results. The final built public Shell run again passed all eight
+cases against the freshly built candidate.
+
+Local commits so far: `4af4b0d568bee1a2ca8cacd332256ac8c3e9cc7a` for
+the literal public consumer correction, and
+`73aaca247100805873a170350a1fefd0c4774715` for destructive owner behavior.
+The table signature/width correction is the containing atomic commit. Its
+source/test hashes and maintained checks are in the evidence receipt.
+
+Four owned temporary files were removed after reduction: the worker result
+reduction, staged-owner patch, human CLI transcript and screenshot. No corpus
+downloads, unrelated output or parent directories were removed. No README,
+guarded safe-bash file, registration membership or historical seal was edited.
+Remote delivery and release remain unauthorized and unverified.

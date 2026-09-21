@@ -3075,7 +3075,7 @@ it("workflow-047 observes original SDK lifecycle variant", async () => {
 
 it("workflow-048 observes original SDK lifecycle variant", async () => {
  const document = await Document(undefined, textContext);
- const table=document.add_table(2,2, Inches(6)); expect([table.rows.length,table.columns.length]).toEqual([2,2]); const style=document.styles.add_style("Original Grid",WD_STYLE_TYPE.TABLE); table.style=style; expect(table.style!.equals(style)).toBe(true);
+ const table=document.add_table(2,2); expect([table.rows.length,table.columns.length]).toEqual([2,2]); const style=document.styles.add_style("Original Grid",WD_STYLE_TYPE.TABLE); table.style=style; expect(table.style!.equals(style)).toBe(true);
 });
 
 it("workflow-122 observes original SDK lifecycle variant", async () => {
@@ -3130,12 +3130,13 @@ it("workflow-162 observes original SDK lifecycle variant", async () => {
 
 it("workflow-337 observes original SDK lifecycle variant", async () => {
  const document = await Document(undefined, textContext);
- const table = document.add_table(2,2, Inches(6)); const row = table.add_row(); expect(table.rows.length).toBe(3); expect(row.cells).toHaveLength(2); expect([...table.rows].flatMap(row => row.cells).map(cell => cell.width?.inches)).toEqual(Array(6).fill(3));
+ const section = document.sections.at(-1); section.page_width = Inches(8.5); section.left_margin = Inches(1.25); section.right_margin = Inches(1.25);
+ const table = document.add_table(2,2); const row = table.add_row(); expect(table.rows.length).toBe(3); expect(row.cells).toHaveLength(2); expect([...table.rows].flatMap(row => row.cells).map(cell => cell.width?.inches)).toEqual(Array(6).fill(3));
 });
 
 it("workflow-338 observes original SDK lifecycle variant", async () => {
  const document = await Document(undefined, textContext);
- const table = document.add_table(2,2, Inches(6)); const column = table.add_column(Inches(1)); expect(table.columns.length).toBe(3); expect(column.cells).toHaveLength(2); expect(column.width?.inches).toBe(1);
+ const table = document.add_table(2,2); const column = table.add_column(Inches(1)); expect(table.columns.length).toBe(3); expect(column.cells).toHaveLength(2); expect(column.width?.inches).toBe(1);
 });
 
 it("workflow-351 observes original SDK lifecycle variant", async () => {

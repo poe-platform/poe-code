@@ -581,7 +581,9 @@ export class ModelStore {
         ]
       },
       parent.namespace,
-      this.context.budget
+      this.context.budget,
+      undefined,
+      width?.twips
     ).body;
     this.change(ref.part, (xml) => {
       const owner = this.node(ref);

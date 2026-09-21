@@ -5143,7 +5143,10 @@ The [current execution record](docx-live-object-model-20260921.md) and
 historical missing Document/Paragraph/Run assertion only for the current built
 exports and verified owner corrections. Original tests reproduce and qualify
 deterministic destructive text invalidation, retained XML property/annotation
-owners, nullable paragraph behavior and failed-edit rollback. Complete per-member
+owners, nullable paragraph behavior and failed-edit rollback.
+The documented Document table-style argument and admitted page-derived width
+also have original SDK/batch/save-reload and invalid-style rollback evidence.
+Complete per-member
 graph/API/source-case mappings remain unfinished, and annotation-preserving
 whole-cell text replacement remains unsupported with explicit prepublication
 refusal. Task 28 implement/test remain open; later tasks were not started.

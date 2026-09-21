@@ -147,15 +147,17 @@ export class DocumentView {
       return section;
     });
   }
-  add_table(rows: number, cols: number, width?: Length) {
-    if (width === undefined) {
+  add_table(rows: number, cols: number, style?: string | import("./styles-model.js").TableStyle | null) {
+    return this.store.transaction(() => {
       const section = this.sections.at(-1);
       const page = section.page_width,
         left = section.left_margin,
         right = section.right_margin;
-      width = Emu((page ?? Inches(8.5)).emu - (left ?? Inches(1)).emu - (right ?? Inches(1)).emu);
-    }
-    return this.store.addTable(this.ref, rows, cols, width);
+      const width = Emu((page ?? Inches(8.5)).emu - (left ?? Inches(1)).emu - (right ?? Inches(1)).emu);
+      const table = this.store.addTable(this.ref, rows, cols, width);
+      table.style = style ?? null;
+      return table;
+    });
   }
   async save(sink: ArchiveSink): Promise<void> {
     await this.store.save(sink);

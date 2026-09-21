@@ -89,6 +89,17 @@
   ],
   "corpus_campaign": "not run; no downloads/cache fixtures opened or deleted",
   "readme": "not edited; permission remains pending",
-  "cleanup": "pending reduction/owned temporary cleanup",
-  "delivery": { "consumer_commit": "4af4b0d56", "product_commits": [], "remote_main_verified": false, "push": false, "release": false }
+  "candidate_inputs": {
+    "block-model.ts": "afa3fbb0b4a97bc5bcbe4246c98578e66595ad20eaa9e65a149d7a64fdb75128",
+    "document-model.ts": "79e493e3f3dc1bcf5f000b32112d717399418dac148d97ee077c56fc32e1247e",
+    "model-store.ts": "0f6cec15f21423694e1ce790d3baf18c5a475238d10564b3b91ef6dfa90e698b",
+    "paragraph-content.ts": "4956b2fc80842ab4e3835ccfe66e779e8374af22d89c05bcb7f9a4351493f5c6",
+    "xml-element-view.ts": "498722087d96b4b93591aed63366de6b07b10aff493b95028afa6ef745d13e41",
+    "model-destructive-handles.test.ts": "78a537e067bf18c0e951c43ba35eec16d45282740ec936f94560310d1f8852b7",
+    "model-destructive-batch.test.ts": "d902747f9d066b15d4b881269601513fed5fdd6c56c6a9474a9b18ddf077f187",
+    "document-table-signature.test.ts": "3b71eeca910dffdd2f0409ddf58059eda333be352335840593755144fdef100d",
+    "workflow-behavior-variants.test.ts": "3ea4a9fe146ad9ef0e5b8a49188e105b4578c1ae1d868fba60b0a38f667a8039"
+  },
+  "cleanup": { "owned_files_removed": 4, "files": ["out/docx-task28-destructive-handles-worker.txt", "out/docx-task28-cli.txt", "out/docx-task28-handles.patch", "screenshots/cat-out-docx-task28-cli.txt.png"], "meaning": "Red/green outcomes and screenshot hashes reduced above before deletion; no corpus/cache downloads or unrelated outputs removed." },
+  "delivery": { "consumer_commit": "4af4b0d568bee1a2ca8cacd332256ac8c3e9cc7a", "product_commits": ["73aaca247100805873a170350a1fefd0c4774715"], "table_signature_commit": "Containing commit; inspect its explicit owned path inventory and candidate input hashes.", "remote_main_verified": false, "push": false, "release": false }
 }

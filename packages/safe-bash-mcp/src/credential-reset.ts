@@ -21,6 +21,7 @@ export async function resetRemoteMcpAuthentication(
   options = { ...options };
   options.signal?.throwIfAborted();
   const [server] = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options).servers;
+  const { name, url } = server;
   if (server.auth?.type !== "oauth") throw new Error("Only managed OAuth credentials can be reset; update bearer/header environment values at the host");
   const oauth = options.binding?.oauth;
   const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? 30_000;
@@ -33,5 +34,5 @@ export async function resetRemoteMcpAuthentication(
       .reset(server.url, { signal: options.signal, timeoutMs });
   }
   options.signal?.throwIfAborted();
-  return { name: server.name, url: server.url, reset: true };
+  return { name, url, reset: true };
 }

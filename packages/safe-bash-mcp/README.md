@@ -417,7 +417,7 @@ Raw token fields follow OAuth: `access_token`, `refresh_token`, `token_type`,
 `expires_at` uses epoch seconds. Absolute expiry wins; relative lifetime is
 anchored before network waits, using original payload `issuedAt` milliseconds
 when supplied. Old token, timing and header environment values are never read.
-The SDK returns only `{ name, url, imported: true }`. Default complete-operation
+The SDK returns only `{ name, url, imported: true }`. Import and reset summaries retain the original validated identity even if a host hook changes its configuration argument. Default complete-operation
 and lock limits are 30 seconds (`requestTimeoutMs` and `timeoutMs`). Input defaults
 to 1 MiB (`maxImportBytes`), with token/DCR JSON separately bounded to 64 KiB.
 Malformed JSON diagnostics never quote input. Host-owned persistence requires

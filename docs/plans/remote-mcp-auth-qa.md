@@ -490,3 +490,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     cancellation must retain the original reason before network. Require zero
     replacement fetches and no consent/metadata/persistence work. Inspect safe
     summary output and purge only owned written artifact and synthetic evidence.
+
+44. Import and reset through SDK and management host hooks backed by native
+    encrypted records. After their atomic operation, let each hook mutate the
+    supplied configuration name/URL to a synthetic private marker. Require
+    original public JSON summaries, original client/full grants/discovery in the
+    encrypted import, actual HTTP command results/nested metadata/exact005930 and
+    durable reset suppressing stale environment grants after provider recreation.
+    Require four metadata GETs, two complete calls/two distinct retired sessions,
+    private records and removed own claims. Inspect safe summary output and purge
+    only owned native records and synthetic evidence.

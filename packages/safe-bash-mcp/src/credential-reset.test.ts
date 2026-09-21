@@ -41,6 +41,17 @@ it("passes the validated server and cancellation/lock bounds to the host reset h
   expect(await sdk.resetRemoteMcpAuthentication(server, { signal, timeoutMs: 123, binding: { oauth: { reset } } })).toEqual({ name: "catalog", url: resource, reset: true });
   expect(reset).toHaveBeenCalledWith(server, { signal, timeoutMs: 123 });
 });
+it("reports the original reset identity when its host hook mutates the supplied configuration", async () => {
+  const reset = vi.fn(async (configuration: sdk.RemoteMcpServerConfiguration) => {
+    expect(configuration).toEqual(server);
+    Object.assign(configuration, { name: "host-mutated", url: "https://another.example/mcp" });
+  });
+  expect(await sdk.resetRemoteMcpAuthentication(server, { binding: { oauth: { reset } } }))
+    .toEqual({ name: "catalog", url: resource, reset: true });
+  expect(reset).toHaveBeenCalledOnce();
+  expect(server.name).toBe("catalog");
+  expect(server.url).toBe(resource);
+});
 it("preserves host reset failures without quoting credentials", async () => {
   const failure = new Error("host reset failed");
   await expect(sdk.resetRemoteMcpAuthentication(server, { binding: { oauth: { reset: async () => { throw failure; } } } })).rejects.toBe(failure);

@@ -35,6 +35,7 @@ export async function importRemoteMcpAuthentication(
   options = { ...options };
   options.signal?.throwIfAborted();
   const [server] = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options).servers;
+  const { name, url } = server;
   if (server.auth?.type !== "oauth") throw new Error("Credential import requires managed OAuth");
   const binding = options.binding ?? { env: {} }, oauth = binding.oauth;
   const importSession = oauth?.importSession;
@@ -98,5 +99,5 @@ export async function importRemoteMcpAuthentication(
   if (importSession !== undefined) await importSession.call(oauth, server, session, { signal, timeoutMs });
   else await nativeStores!.importSession(session, { signal, timeoutMs });
   signal.throwIfAborted();
-  return { name: server.name, url: server.url, imported: true };
+  return { name, url, imported: true };
 }

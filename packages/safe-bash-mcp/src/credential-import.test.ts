@@ -96,6 +96,19 @@ it("passes the bound grant to a host import hook without querying its session fa
   expect(importSession).toHaveBeenCalledWith(dynamic, expect.objectContaining({ tokens: expect.objectContaining({ expiresAt: 3_610_000 }) }), expect.objectContaining({ timeoutMs: 30_000, signal: expect.any(AbortSignal) }));
   expect(await f.stores.sessionStore.load(resource)).toBeNull();
 });
+it("reports the original import identity when its atomic hook mutates the supplied configuration", async () => {
+  const f = fixture(), importSession = vi.fn(async (configuration: sdk.RemoteMcpServerConfiguration, session: StoredOAuthSession) => {
+    expect(configuration).toEqual(dynamic);
+    expect(session).toMatchObject({ resource, client: { clientId: "original" }, tokens: { accessToken: "private-access" } });
+    Object.assign(configuration, { name: "host-mutated", url: "https://another.example/mcp" });
+  });
+  expect(await sdk.importRemoteMcpAuthentication(dynamic, payload, {
+    fetch: f.fetch, binding: { env: {}, oauth: { now: () => 10_000, importSession } }
+  })).toEqual({ name: "catalog", url: resource, imported: true });
+  expect(importSession).toHaveBeenCalledOnce();
+  expect(dynamic.name).toBe("catalog");
+  expect(dynamic.url).toBe(resource);
+});
 
 it.each(["replace hook", "remove hook"])("captures the selected atomic import hook before discovery: %s", async mutation => {
   const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();

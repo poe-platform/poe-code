@@ -97,3 +97,12 @@ type AcpEvents = Pick<
 const acpEventsOriginal: AcpEvents = design.acp;
 const acpEventsOwn: Pick<typeof design.acp, keyof AcpEvents> = null as unknown as AcpEvents;
 void [acpEventsOriginal, acpEventsOwn];
+
+type RootLineBuffers = Pick<
+  typeof originalDesign,
+  "createDashboardLineBuffer" | "createStreamingDashboardLineBuffer"
+>;
+const rootLineBuffersOriginal: RootLineBuffers = design;
+const rootLineBuffersOwn: Pick<typeof design, keyof RootLineBuffers> =
+  null as unknown as RootLineBuffers;
+void [rootLineBuffersOriginal, rootLineBuffersOwn];

@@ -73,3 +73,5 @@ export {
   getThemeConfig,
   resetTheme
 } from "./logging.js";
+
+export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from "./line-buffer.js";

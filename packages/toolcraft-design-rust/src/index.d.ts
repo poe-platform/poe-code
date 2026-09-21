@@ -84,3 +84,5 @@ export declare function resetOutputFormatCache(): void;
 export declare function configureTheme(patch: { brand?: string; label?: string }): void;
 export declare function getThemeConfig(): { brand: string; label: string };
 export declare function resetTheme(): void;
+
+export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from "./line-buffer.js";

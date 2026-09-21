@@ -141,3 +141,12 @@ test("seeded streams preserve omission state through throwing and nested oversiz
   for (const throwing of [true, false])
     assert.deepEqual(nested(own, throwing), nested(original, throwing));
 });
+
+test("line buffer factories are interchangeable at both root and dashboard exports", async () => {
+  const root = await import("../dist/index.js");
+  assert.equal(root.createDashboardLineBuffer, root.dashboard.createDashboardLineBuffer);
+  assert.equal(
+    root.createStreamingDashboardLineBuffer,
+    root.dashboard.createStreamingDashboardLineBuffer
+  );
+});

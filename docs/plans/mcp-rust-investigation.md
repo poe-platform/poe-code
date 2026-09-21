@@ -6958,3 +6958,25 @@ Earlier premature rebase during checkout hit its active index lock; waited for
 checkout completion, then successful rebase. No current successful root publication
 verified. Continuous16:44:00–16:49:00 adds300s,total125275s(34.80h). Minimum
 fulfilled; full objective incomplete. Continue accounting after16:49:00UTC.
+
+### Root line-buffer SDK exports, 2026-09-21 16:53 UTC
+
+A source-level export inventory found both implemented line-buffer factories
+missing at the original SDK root. Reproduced undefined root factories with a
+failing native API-identity test, then exported the same functions at root and
+dashboard namespace. Maintained26Rust/39native groups/80reference cases6files
+and bidirectional root signatures pass; maintained/shared/scoped lint passes.
+Selected sequential uncached6-build closure concurrency1 passes. Packed one
+addon/17audited files/zero npm runtime groups. Direct/packed blocked-external
+16MiBworkers pass root function identity assertions and all prior design workloads.
+Existing viewed line-buffer screenshot covers the unchanged output. No original
+consumer integration or new performance claim. Evidence out/rust-design-line-
+buffer-root-*. Catalog8831f986e pushed and exact remote main verified.
+
+Protected rebase preserved foreign main commits931331094/c1786ce10 and dirty
+package-lock/harness/plan changes. Clean temporary detached delivery worktree was
+removed after synchronization. Release35625767803 has build/audit/checks/unit-
+cached success with unit/bash still running; newest catalog release35628048750
+pending. No current successful root publication verified. Continuous16:49:00–
+16:53:00 adds240s,total125515s(34.87h). Minimum fulfilled; full objective
+incomplete. Continue accounting after16:53:00UTC.

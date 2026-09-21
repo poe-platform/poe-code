@@ -132,7 +132,9 @@ use the streaming preview filter when OSC/DCS payloads can span chunks.
 Stream partial agent output into stable dashboard rows:
 
 ```ts
-const buffer = dashboard.createStreamingDashboardLineBuffer((text, id) => {
+import { createStreamingDashboardLineBuffer } from 'toolcraft-design-rust';
+
+const buffer = createStreamingDashboardLineBuffer((text, id) => {
   updateRow(id, text);
 });
 buffer.push("Working");

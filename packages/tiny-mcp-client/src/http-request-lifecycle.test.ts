@@ -298,19 +298,16 @@ it("waits for both initialization messages before dispatching requests", async (
 
 it("does not dispatch a prepared request after disposal", async () => {
   const fetch = vi.fn(async () => new Response(null, { status: 202 }));
+  const authorizeRequest = vi.fn(async () => { transport.dispose(); });
   const transport = new HttpTransport({
     url: "https://mcp.invalid/closed",
-    headers: {
-      get "X-Fixture"() {
-        transport.dispose();
-        return "closed";
-      },
-    },
+    oauth: { provider: { authorizeRequest, handleUnauthorized: () => ({ action: "fail" }) } },
     fetch,
   });
   transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
   await transport.closed;
   await settleStreams();
+  expect(authorizeRequest).toHaveBeenCalledOnce();
   expect(fetch).not.toHaveBeenCalled();
 });
 

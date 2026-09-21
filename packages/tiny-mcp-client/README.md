@@ -58,6 +58,8 @@ Legacy SSE mode opens a GET stream and posts messages to the endpoint announced
 by the server. Announced endpoints must remain on the original origin without
 embedded credentials or fragments; endpoint changes close the connection.
 Both transports accept the same headers, OAuth provider and response limits.
+Static HTTP headers are copied and validated when the transport is constructed,
+before OAuth callbacks run. Invalid headers fail without reflecting their values.
 `maxResponseBytes` bounds a complete JSON body or each SSE event (default 16 MiB).
 Receive streams may carry many bounded events and keepalive comments; the limit
 does not cap their lifetime bytes. Use request deadlines and cancellation to

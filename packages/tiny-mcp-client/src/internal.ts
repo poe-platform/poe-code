@@ -2693,7 +2693,7 @@ export class HttpTransport implements McpTransport {
   private legacyEndpointReady: Promise<string> | undefined;
   private resolveLegacyEndpoint: ((endpoint: string) => void) | undefined;
   private rejectLegacyEndpoint: ((reason: Error) => void) | undefined;
-  private readonly headers: HeadersInit;
+  private readonly headers: Headers;
   private readonly fetchImpl: HttpTransportFetch;
   private readonly readStream = new PassThrough();
   private readonly writeStream = new PassThrough();
@@ -2733,7 +2733,8 @@ export class HttpTransport implements McpTransport {
     this.maxResponseBytes = maxResponseBytes;
     this.url = url;
     this.mode = mode;
-    this.headers = headers;
+    try { this.headers = new Headers(headers); }
+    catch { throw new Error("Invalid HTTP transport headers"); }
     this.fetchImpl = fetchImpl;
     this.onWarning = onWarning;
     this.oauthProvider = oauth === undefined

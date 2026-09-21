@@ -563,3 +563,12 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     identical repeated state too; retain valid repeated unknown extensions and
     exact005930. Code extraction returns null for recognized ambiguity. Inspect
     actual safe CLI diagnostic screenshot and purge only owned synthetic evidence.
+
+51. Construct native HTTP transports with record/tuple/Headers configurations.
+    Mutate borrowed tenant values from native imported-lifetime clocks; require
+    original tenant/grant on every actual request, full two-block tool content,
+    exact005930/false/0 structured values and nested metadata. Retire three
+    distinct sessions without credential writes or consent. Reject newline/NUL
+    static credentials before clocks/fetch with safe diagnostics. Retain
+    disposal-during-authorization no-dispatch coverage. Inspect safe summary
+    screenshot and purge only owned synthetic evidence.

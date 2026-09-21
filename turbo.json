@@ -191,6 +191,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "@poe-code/agent-harness-tools-rust#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

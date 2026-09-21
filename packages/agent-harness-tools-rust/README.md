@@ -19,6 +19,8 @@ The package is additive and has no npm runtime dependencies.
 - Replay or follow managed job logs without splitting UTF-8 characters.
 - Wait for decimal exit status with cancellation and symlink checks.
 - Register and select custom execution factories by runtime type.
+- Run commands inline or detached with persisted job lifecycle updates.
+- Reuse an execution environment through command sessions.
 
 ```ts
 import { createRunQueue } from "@poe-code/agent-harness-tools-rust";
@@ -50,7 +52,7 @@ checks normalized containment and merges project/global entries by exact filenam
 Supply your filesystem adapter through `discoverWorkflowDocs({cwd, homeDir,
 subDirectory, fs})`; discovery ignores missing directories and symbolic links.
 
-This surface does not expose process/runtime execution, dashboards or workspace transfer. It is not a full replacement
+This surface does not expose runtime configuration resolution, dashboards or workspace transfer. It is not a full replacement
 for the original package. Loop-agent callbacks use a structural symbol cancellation
 type: original SDK callbacks can be supplied, but the original SDK's unique symbol
 prevents the reverse full-module type assignment. Custom array/intrinsic hooks
@@ -92,3 +94,11 @@ slot IDs so repeated registration and selection avoid native crossings; replacem
 releases the prior host reference. The registry admits at most 65,536 distinct runtime names,
 and existing names remain replaceable at capacity. Node holds factory callbacks;
 no built-in execution factories are registered automatically by this package.
+
+`runPoeCommand({factory, openSpec, detach, state})` opens an environment, uploads
+its workspace, runs the command and records pending/running/terminal job updates.
+`createPoeCommandSession({factory, state})` reuses an environment across commands.
+Rust validates inactivity timeouts, encodes IDs and tracks committed job phases;
+Node retains streams, promises, cancellation, input delivery, workspace operations
+and caller-supplied state. Real process-group timeout behavior has separate macOS integration evidence;
+it is not counted among the in-memory unit cases.

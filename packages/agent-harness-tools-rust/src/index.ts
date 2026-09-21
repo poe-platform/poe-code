@@ -19,3 +19,5 @@ export {formatRunQueueSummary} from "./run-queue-summary.js";
 export {streamLogFile,waitForExit,wrapForLogTee,type LogStreamEnv,type LogStreamFs} from "./log-stream.js";
 
 export * from "./execution-env.js";
+
+export {createPoeCommandSession,runPoeCommand,type PoeCommandSession} from "./run-poe-command.js";

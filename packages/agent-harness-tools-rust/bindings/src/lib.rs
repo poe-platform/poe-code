@@ -305,3 +305,45 @@ impl NativeHarnessFactories {
         self.core.get(&key)
     }
 }
+#[napi]
+#[derive(Default)]
+pub struct NativeHarnessCommand {
+    core: agent_harness_tools_rust::command::Lifecycle,
+}
+#[napi]
+impl NativeHarnessCommand {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn running(&mut self) -> napi::Result<()> {
+        self.core.running().map_err(napi::Error::from_reason)
+    }
+    #[napi]
+    pub fn terminal(&mut self) -> napi::Result<()> {
+        self.core.terminal().map_err(napi::Error::from_reason)
+    }
+    #[napi(getter)]
+    pub fn failure_action(&self) -> String {
+        self.core.failure_action().to_owned()
+    }
+}
+#[napi]
+pub fn harness_activity_timeout(value: Option<f64>) -> bool {
+    agent_harness_tools_rust::command::activity_timeout_valid(value)
+}
+#[napi]
+pub fn harness_ulid(time: BigInt, random: Buffer) -> napi::Result<String> {
+    let (negative, magnitude, _) = time.get_u64();
+    let time = if negative {
+        magnitude.wrapping_neg()
+    } else {
+        magnitude
+    };
+    let entropy: &[u8; 10] = random
+        .as_ref()
+        .try_into()
+        .map_err(|_| napi::Error::from_reason("ULID requires ten entropy bytes"))?;
+    Ok(agent_harness_tools_rust::command::ulid(time, entropy))
+}

@@ -14,6 +14,9 @@ interface NativeQueue {
  readonly items:RunQueueItem[];
 }
 export const native=createRequire(import.meta.url)("./agent-harness-tools-rust.node") as {
+ NativeHarnessCommand:new()=>{running():void;terminal():void;readonly failureAction:string};
+ harnessActivityTimeout(value:number|undefined):boolean;
+ harnessUlid(time:bigint,random:Buffer):string;
  NativeHarnessFactories:new()=>{register(type:string):number;get(type:string):number|null};
  NativeHarnessQueue:new()=>NativeQueue;
  harnessSafeJobId(id:string):boolean;

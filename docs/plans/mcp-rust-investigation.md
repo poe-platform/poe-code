@@ -6019,3 +6019,53 @@ TOML oracle;current main contains the delivered repair. No successful publicatio
 verified. Concurrent changes preserved. Continuous12:33:13–12:40:51 adds458s,
 total110386s(30.66h). Minimum fulfilled;objective incomplete.
 Continue accounting after12:40:51UTC.
+
+
+#### Manual command process-group check (completed on macOS)
+
+1. Supply the owned host execution factory to the additive harness command API.
+   Use in-memory job state; reject any pre-existing randomly generated job paths.
+2. Run an isolated Node parent/child group with no model/network calls. The child
+   ignores SIGTERM. Capture its PID and apply a short inactivity timeout.
+3. Verify ActivityTimeoutError,lost job status and child termination after grace.
+   Clean only the newly created job log paths and any surviving owned processes.
+   Retain results under out;this is separate OS evidence,not a unit-suite pass.
+
+
+### Harness command execution/sessions, 2026-09-21 12:50 UTC
+
+Added runPoeCommand/createPoeCommandSession. Rust validates finite positive activity
+timeouts,encodes ULIDs(timestamp low50bits/80entropy bits) and tracks committed
+pending/running/terminal job phase with remove/lost/no-op failure action. Node
+retains streams/promises,cancellation,input-error identities,capture/draining,
+workspace operations,caller state,detached context and session reuse. Missing
+core/reference reds precede implementation. Original26in-memory reference cases
+added;the single actual process-group/disk-fixture case is excluded from unit
+membership,not counted as skipped/passing. Original state SDK is a dev test fixture;
+public types are owned/self-contained. No production integration.
+
+Maintained21Rust cases,20native groups,224references/17files,bidirectional covered
+public types,fmt/clippy/ESLint pass.224deterministic BigInt/entropy ID comparisons
+include high words/negatives;invalid entropy and invalid lifecycle transition
+admission covered. Command callback/error identity,terminal job metadata,session
+reuse and untouched I/O identities covered. Uncached selected117workspaces/
+30builds/362edges passes. Packed150files/one addon,no npm runtime groups,external
+npm resolution blocked;all prior scenarios plus mocked command/session state pass.
+16MiB-old-generation worker4096sync/4096session commands with caller-owned job
+entries cleared retains5.38MiBheap/65.95MiBRSS;finite evidence,not total/native bounds.
+Five alternating warmed1024mock command pairs:originalwall9.98–11.95ms/
+CPU12.05–22.58ms,ownwall7.34–11.12ms/CPU7.01–25.88ms;four wall pairs improve,
+CPU mixed,consistent-performance acceptance FAIL. Evidence out/rust-harness-command-*.
+
+Separate executed markdown QA above:owned host factory,real isolated parent/child
+group,child ignoringSIGTERM,300msinactivity limit. Final run produces
+ActivityTimeoutError,lost status and terminated child after escalation;owned
+managed paths removed. First two attempts used malformed nested JavaScript;first
+cleanup masked that setup error withESRCH. Corrected generated argument and cleanup
+then passed;earlier owned artifacts recovered by unique input/attempt-time window
+and removed. No LLM/network calls;not a unit-suite or cross-platform pass.
+
+Registrybe7571002 exactly verified on remote main;release35601000332 pending;
+plans35599744513 in_progress. No successful current publication verified.
+Concurrent changes preserved. Continuous12:40:51–12:50:11 adds560s,total110946s
+(30.82h). Minimum fulfilled;objective incomplete. Continue accounting after12:50:11UTC.

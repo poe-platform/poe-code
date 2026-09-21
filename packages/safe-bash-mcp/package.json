@@ -1,0 +1,25 @@
+{
+  "name": "safe-bash-mcp",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "LICENSE"],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-mcp/src",
+    "test": "cd ../.. && vitest run packages/safe-bash-mcp/src",
+    "lint": "eslint src && tsc --noEmit"
+  },
+  "dependencies": { "tiny-mcp-client": "*" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/safe-bash-mcp"
+  }
+}

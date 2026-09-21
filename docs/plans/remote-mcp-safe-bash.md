@@ -1,0 +1,166 @@
+# Remote MCP CLIs for safe-bash
+
+## Objective and acceptance criteria
+
+Build a generic remote-only counterpart to mcporter using tiny-mcp-client. Accept a static server registry with supplied tool schemas; discover absent schemas automatically over Streamable HTTP or legacy SSE. Generate safe-bash command definitions and reproducible artifacts, preserving MCP metadata and results. CLI and SDK must expose matching configuration.
+
+- Supplied schemas (including an explicitly empty tool list) require no discovery connection.
+- Discovery preserves input/output schemas, annotations, instructions and server identity; follows pagination with bounded work, cancellation and cleanup.
+- Reject local transports, unsupported URL protocols, embedded URL credentials and ambiguous server/tool/flag names.
+- Parse strings, numbers, booleans, null, nested objects, typed arrays, unions, defaults and raw JSON without destructive coercion. Validate against schemas before calling a tool.
+- Preserve every result block, structuredContent, isError, resource links, images/audio and protocol errors. Await output drains and return nonzero failure status.
+- Init produces declarative server configuration and a credential environment template covering client ID/secret, scopes, redirect URI, access/refresh tokens and expiry. Never embed actual secrets in generated artifacts.
+- OAuth requires PKCE, state, exact redirect preservation, discovery/resource binding, controlled interaction, refresh serialization and rotating-token recovery, persistence integrity and credential isolation.
+- Reuse and correct tiny-mcp-client where regressions demonstrate a defect. Compare every resolved upstream issue and every applicable upstream test/behavior to both the client and new library.
+- Execute focused TDD, builds/lint, SDK/CLI integration, visual CLI screenshots, and publication monitoring if delivery is requested.
+- Work for the requested 14 hours. Completion requires a requirement-by-requirement evidence audit; passing a subset of tests is not completion.
+
+## Authoritative upstream snapshot
+
+Repository: https://github.com/openclaw/mcporter
+Commit: e5450d49070b48ab988d74aaf060800a493e51bc
+Closed issue inventory fetched 2026-09-20: 121 closed issues (pull requests excluded). Closure alone does not prove resolution: inspect issue discussion and associated fixes before accepting an upstream behavior.
+
+## Implementation sequence
+
+1. Schema discovery SDK and remote registry validation, with HTTP fixture tests, pagination limits, cancellation and cleanup.
+2. Typed argument mapping, safe-bash command adapter and stable generation with collision checks.
+3. OAuth init/credential environment output, persisted sessions and refresh/callback hardening using existing OAuth abstractions.
+4. Full upstream source/test and resolved issue audit, regression tests for every applicable behavior, documentation and manual QA.
+
+## Closed issue cross-check ledger
+
+## Verified implementation progress (2026-09-20)
+
+- Local client commit `da74f629c` adds explicit legacy SSE handshake mode, same-origin endpoint security, endpoint-change rejection, stream closure failures and cleanup. Nine new regressions were first observed failing, then passing.
+- New `safe-bash-mcp` schema SDK resolves provided or discovered tools with registry preflight, pagination/cursor guards, limits, independent metadata copies and awaited session cleanup.
+- Client plus schema verification: 45 test files / 645 tests passed. Selected `safe-bash-mcp` workspace build closure passed (seven builds). ESLint passed for changed code. No remote delivery or release is claimed.
+- Remaining: automatic legacy SSE negotiation, generated safe-bash commands/artifacts, argument mapping and schema validation, init/OAuth environment output and robustness audit, full upstream issue/source/test cross-check, visual QA and requested 14-hour work duration.
+
+## Issue validation status
+
+Every row remains unverified until source, discussion/fix and applicable local regression evidence are examined. Transport-specific browser/stdio features must still be examined for generic lessons (ownership, concurrency, identity, cleanup) rather than dismissed by title.
+
+| Issue | Upstream report | Local cross-check status |
+| --- | --- | --- |
+| [#356](https://github.com/openclaw/mcporter/issues/356) | No way to control the requested OAuth scope set | Pending source/fix and applicability validation |
+| [#354](https://github.com/openclaw/mcporter/issues/354) | OAuth: fresh Fastmail DCR registration rejected as obsolete after loopback redirect normalization | Pending source/fix and applicability validation |
+| [#334](https://github.com/openclaw/mcporter/issues/334) | vault set treats relative expires_in as immediately due and can invalidate fresh grants | Pending source/fix and applicability validation |
+| [#323](https://github.com/openclaw/mcporter/issues/323) | Env placeholder syntax for --header/--env is undiscoverable from CLI or npm package; ${env:VAR} silently passes through verbatim | Pending source/fix and applicability validation |
+| [#321](https://github.com/openclaw/mcporter/issues/321) | OAuth discovery fetches inherit the transport's accept: text/event-stream, misrouting them through nodeHttp1Fetch → 403 from ALBs | Pending source/fix and applicability validation |
+| [#320](https://github.com/openclaw/mcporter/issues/320) | nodeHttp1Fetch sends no User-Agent → 403 from ALBs/WAFs that reject headerless HTTP/1.1 requests | Pending source/fix and applicability validation |
+| [#310](https://github.com/openclaw/mcporter/issues/310) | SSE fallback fires on any primary error, replacing the real cause with a misleading HTTP 405 on streamable-HTTP-only servers | Pending source/fix and applicability validation |
+| [#307](https://github.com/openclaw/mcporter/issues/307) | OAuth: SDK post-401 auth() redeems outside the cross-process refresh lock | Pending source/fix and applicability validation |
+| [#305](https://github.com/openclaw/mcporter/issues/305) | OAuth refresh is not serialized across processes, allowing rotating-token replay and grant revocation | Pending source/fix and applicability validation |
+| [#290](https://github.com/openclaw/mcporter/issues/290) | OAuth DCR re-registers client on every run when redirect URI changes, preventing silent token refresh (WorkOS) | Pending source/fix and applicability validation |
+| [#286](https://github.com/openclaw/mcporter/issues/286) | vault set rejects clientInfo from OAuth dynamic client registration | Pending source/fix and applicability validation |
+| [#283](https://github.com/openclaw/mcporter/issues/283) | `serve`/daemon path launches the system browser on 401 with no way to suppress it (`MCPORTER_OAUTH_NO_BROWSER` is auth-command-only) | Pending source/fix and applicability validation |
+| [#247](https://github.com/openclaw/mcporter/issues/247) | Serialize interactive OAuth authorization per shared provider/session | Pending source/fix and applicability validation |
+| [#244](https://github.com/openclaw/mcporter/issues/244) | OAuth DCR client information is missing after Atlassian authorization, preventing refresh | Pending source/fix and applicability validation |
+| [#236](https://github.com/openclaw/mcporter/issues/236) | v0.12.4 hasn't been released | Pending source/fix and applicability validation |
+| [#231](https://github.com/openclaw/mcporter/issues/231) | Stale client registration replayed to DCR forever; only --reset recovers | Pending source/fix and applicability validation |
+| [#226](https://github.com/openclaw/mcporter/issues/226) | refreshable_bearer: refresh failure path lacks invalid_grant/concurrent-refresh recovery — stale rotated refresh token replayed until provider revokes the grant (Notion MCP) | Pending source/fix and applicability validation |
+| [#221](https://github.com/openclaw/mcporter/issues/221) | Bug: list signature renders any array parameter as string[] regardless of items.type | Pending source/fix and applicability validation |
+| [#218](https://github.com/openclaw/mcporter/issues/218) | Bug: persisted HTTP servers are treated as ad-hoc in `list <name>` and `call server.tool` | Pending source/fix and applicability validation |
+| [#214](https://github.com/openclaw/mcporter/issues/214) | [Bug]:CLI truncates large output at 64KB when stdout is a pipe (forced process.exit() before stdout drains) | Pending source/fix and applicability validation |
+| [#212](https://github.com/openclaw/mcporter/issues/212) | Support key=@path to read an argument value from a file | Pending source/fix and applicability validation |
+| [#207](https://github.com/openclaw/mcporter/issues/207) | [Bug]: corrupt OAuth credential cache file crashes connection instead of degrading to re-auth (DirectoryPersistence) | Pending source/fix and applicability validation |
+| [#203](https://github.com/openclaw/mcporter/issues/203) | mcporter returns exit code 0 for some failed list/call operations | Pending source/fix and applicability validation |
+| [#201](https://github.com/openclaw/mcporter/issues/201) | `callOnce()` should forward the OAuth-suppression option (`disableOAuth` from #198) | Pending source/fix and applicability validation |
+| [#200](https://github.com/openclaw/mcporter/issues/200) | Expose `RuntimeOptions` as a public type | Pending source/fix and applicability validation |
+| [#199](https://github.com/openclaw/mcporter/issues/199) | Expose Runtime.connect's options shape as a public type | Pending source/fix and applicability validation |
+| [#197](https://github.com/openclaw/mcporter/issues/197) | Add `disableOAuth` connect option — `maxOAuthAttempts: 0` defeats the connection cache | Pending source/fix and applicability validation |
+| [#196](https://github.com/openclaw/mcporter/issues/196) | OAuth: hardcoded scope: 'mcp:tools' ignores resource server's advertised scopes, so no refresh token is issued (sessions die at access-token TTL) | Pending source/fix and applicability validation |
+| [#191](https://github.com/openclaw/mcporter/issues/191) | Daemon lifecycle: orphans on parent restart + lost PIDs + socket-only liveness + parallel spawn race (4 compounding bugs) | Pending source/fix and applicability validation |
+| [#189](https://github.com/openclaw/mcporter/issues/189) | Option / Feature to toggle MCP responses to be stored as files | Pending source/fix and applicability validation |
+| [#188](https://github.com/openclaw/mcporter/issues/188) | mcporter@0.7.3: lifecycle.keep-alive accepted by schema but processes never reused/reaped | Pending source/fix and applicability validation |
+| [#184](https://github.com/openclaw/mcporter/issues/184) | 0.10.x: honoring caller's XDG_CONFIG_HOME silently empties server registry when embedder uses XDG for a different downstream tool | Pending source/fix and applicability validation |
+| [#181](https://github.com/openclaw/mcporter/issues/181) | Daemon never passes allowCachedAuth — OAuth servers fail after token expiry | Pending source/fix and applicability validation |
+| [#180](https://github.com/openclaw/mcporter/issues/180) | generate-cli produces non-deterministic bundles: tmp paths and schema key order leak into artifact | Pending source/fix and applicability validation |
+| [#179](https://github.com/openclaw/mcporter/issues/179) | MCPorter not using OAuth credentials | Pending source/fix and applicability validation |
+| [#177](https://github.com/openclaw/mcporter/issues/177) | OAuth callback server not reachable when run via process managers that use process groups (e.g. OpenClaw exec) | Pending source/fix and applicability validation |
+| [#174](https://github.com/openclaw/mcporter/issues/174) | `daemonIdleTimeoutMs` missing? | Pending source/fix and applicability validation |
+| [#173](https://github.com/openclaw/mcporter/issues/173) | Support refreshable bearer token auth for stdio MCP servers | Pending source/fix and applicability validation |
+| [#169](https://github.com/openclaw/mcporter/issues/169) | Add a flag to suppress browser launch in `auth` / `config login` for headless workflows | Pending source/fix and applicability validation |
+| [#168](https://github.com/openclaw/mcporter/issues/168) | Residual structuredContent regression in 0.10.2: memory-* servers fail at position 164 | Pending source/fix and applicability validation |
+| [#167](https://github.com/openclaw/mcporter/issues/167) | Serialize concurrent file writes — credentials.json, mcporter.json, OAuth persistence files race under parallel invocations | Pending source/fix and applicability validation |
+| [#166](https://github.com/openclaw/mcporter/issues/166) | list reports auth required on expired access_token even when refresh_token is valid | Pending source/fix and applicability validation |
+| [#160](https://github.com/openclaw/mcporter/issues/160) | JSON output mode broken for MCP servers using structuredContent and isError shapes; recovery logs pollute stdout | Pending source/fix and applicability validation |
+| [#158](https://github.com/openclaw/mcporter/issues/158) | Node.js 25 fetch() (undici) gets 403 from Sunsama MCP endpoint — HTTP/2 incompatibility with Google Frontend | Pending source/fix and applicability validation |
+| [#157](https://github.com/openclaw/mcporter/issues/157) | Resolve `${VAR}` env-var placeholders in all string-valued `mcporter.json` fields | Pending source/fix and applicability validation |
+| [#156](https://github.com/openclaw/mcporter/issues/156) | Add `mcporter vault set <server>` to seed credentials non-interactively | Pending source/fix and applicability validation |
+| [#155](https://github.com/openclaw/mcporter/issues/155) | Honor XDG Base Directory Spec for config, vault, cache, and daemon paths | Pending source/fix and applicability validation |
+| [#153](https://github.com/openclaw/mcporter/issues/153) | CLI `call` commands return exit code 0 on MCP tool errors | Pending source/fix and applicability validation |
+| [#146](https://github.com/openclaw/mcporter/issues/146) | StdioCommand's `cwd` field doesn't work | Pending source/fix and applicability validation |
+| [#145](https://github.com/openclaw/mcporter/issues/145) | force-exit may truncate large stdout when mcporter is called via child_process | Pending source/fix and applicability validation |
+| [#140](https://github.com/openclaw/mcporter/issues/140) | mcporter call coerces Slack thread_ts values away from schema-declared strings | Pending source/fix and applicability validation |
+| [#139](https://github.com/openclaw/mcporter/issues/139) | Headless auth: browser URL for manual completion is missing in terminal and never shown, blocking server/CI usage | Pending source/fix and applicability validation |
+| [#138](https://github.com/openclaw/mcporter/issues/138) | Founding Harness Doctor audit for MCPorter | Pending source/fix and applicability validation |
+| [#137](https://github.com/openclaw/mcporter/issues/137) | Auth state is not being detected correctly in `mcporter list` | Pending source/fix and applicability validation |
+| [#135](https://github.com/openclaw/mcporter/issues/135) | [Windows] OAuth fails — openExternal truncates authorize URL at & characters | Pending source/fix and applicability validation |
+| [#134](https://github.com/openclaw/mcporter/issues/134) | mcp resource support | Pending source/fix and applicability validation |
+| [#133](https://github.com/openclaw/mcporter/issues/133) | 💡 Developer tool adoption resources that might be useful for MCPorter | Pending source/fix and applicability validation |
+| [#132](https://github.com/openclaw/mcporter/issues/132) | Hubspot MCP OAuth | Pending source/fix and applicability validation |
+| [#131](https://github.com/openclaw/mcporter/issues/131) | Numeric-only symbol string parsed as int in CLI key=value args | Pending source/fix and applicability validation |
+| [#130](https://github.com/openclaw/mcporter/issues/130) | Request: New release from main | Pending source/fix and applicability validation |
+| [#129](https://github.com/openclaw/mcporter/issues/129) | create_workitem fields parameter not saving to Meego - fields always empty | Pending source/fix and applicability validation |
+| [#127](https://github.com/openclaw/mcporter/issues/127) | Hope to support multiple agents, in OpenClaw. | Pending source/fix and applicability validation |
+| [#126](https://github.com/openclaw/mcporter/issues/126) | CLI flag parser mishandles array params and --json flag drops fields | Pending source/fix and applicability validation |
+| [#122](https://github.com/openclaw/mcporter/issues/122) | SSE fallback incorrectly uses the same URL as Streamable HTTP, causing 400 errors on stateful servers | Pending source/fix and applicability validation |
+| [#121](https://github.com/openclaw/mcporter/issues/121) | Static `Authorization` header from imported external configs overrides OAuth access token | Pending source/fix and applicability validation |
+| [#120](https://github.com/openclaw/mcporter/issues/120) | mcporter auth figma error | Pending source/fix and applicability validation |
+| [#119](https://github.com/openclaw/mcporter/issues/119) | CLI: --key value format passes numeric params as strings, causing invalid_type errors | Pending source/fix and applicability validation |
+| [#117](https://github.com/openclaw/mcporter/issues/117) | Support --header flag for ad-hoc HTTP servers (--http-url) | Pending source/fix and applicability validation |
+| [#116](https://github.com/openclaw/mcporter/issues/116) | Support a per tool schema output | Pending source/fix and applicability validation |
+| [#115](https://github.com/openclaw/mcporter/issues/115) | OAuth flow hangs indefinitely when server rejects dynamic client registration (e.g., Figma MCP) | Pending source/fix and applicability validation |
+| [#113](https://github.com/openclaw/mcporter/issues/113) | Generated CLI: object-type parameters not JSON-parsed (inferType + optionParser missing 'object' case) | Pending source/fix and applicability validation |
+| [#109](https://github.com/openclaw/mcporter/issues/109) | Add on-demand activation for heavy MCP servers | Pending source/fix and applicability validation |
+| [#108](https://github.com/openclaw/mcporter/issues/108) | resource content type blob/text silently dropped in all --output modes | Pending source/fix and applicability validation |
+| [#105](https://github.com/openclaw/mcporter/issues/105) | `mcporter` collapses error payloads to `{}` when a JSON result includes `data` plus other fields | Pending source/fix and applicability validation |
+| [#103](https://github.com/openclaw/mcporter/issues/103) | [bug] Generated CLI array parsing is broken if the array items are JSON objects | Pending source/fix and applicability validation |
+| [#102](https://github.com/openclaw/mcporter/issues/102) | [bug] Generated CLI parsers can't actually utilize the `--raw` flag if there are required flags for the call | Pending source/fix and applicability validation |
+| [#101](https://github.com/openclaw/mcporter/issues/101) | [feature request] Generated CLI parsers should be able to leverage the daemon | Pending source/fix and applicability validation |
+| [#100](https://github.com/openclaw/mcporter/issues/100) | Numeric parameter syntax (:=) silently drops value for MCP tools with Zod coercion | Pending source/fix and applicability validation |
+| [#99](https://github.com/openclaw/mcporter/issues/99) | During the OAuth 2.1 authentication process, the parameters redirect_url, statue, and code_challenge will be lost | Pending source/fix and applicability validation |
+| [#90](https://github.com/openclaw/mcporter/issues/90) | config add silently drops --args flags from written config | Pending source/fix and applicability validation |
+| [#86](https://github.com/openclaw/mcporter/issues/86) | `connectWithAuth` crashes with 'already started' after successful OAuth browser flow | Pending source/fix and applicability validation |
+| [#85](https://github.com/openclaw/mcporter/issues/85) | Hardcoded `mcp:tools` OAuth scope breaks servers using standard OIDC scopes | Pending source/fix and applicability validation |
+| [#84](https://github.com/openclaw/mcporter/issues/84) | OAuth auto-promotion skips servers imported from editor configs | Pending source/fix and applicability validation |
+| [#82](https://github.com/openclaw/mcporter/issues/82) | `--persist` drops `auth: "oauth"` discovered during ad-hoc OAuth auto-detection, breaking subsequent commands (including `generate-cli`) | Pending source/fix and applicability validation |
+| [#80](https://github.com/openclaw/mcporter/issues/80) | call's --output json flag does not output valid json | Pending source/fix and applicability validation |
+| [#79](https://github.com/openclaw/mcporter/issues/79) | OAuth browser flow fails - never opens browser (401 before redirect) | Pending source/fix and applicability validation |
+| [#78](https://github.com/openclaw/mcporter/issues/78) | Failed to connect to Google DevTools MCPs | Pending source/fix and applicability validation |
+| [#77](https://github.com/openclaw/mcporter/issues/77) | Bug: mcporter fails to connect to servers requiring specific Accept header | Pending source/fix and applicability validation |
+| [#76](https://github.com/openclaw/mcporter/issues/76) | MCP server `instructions` from initialize response not surfaced to agents | Pending source/fix and applicability validation |
+| [#75](https://github.com/openclaw/mcporter/issues/75) | CLI argument parser doesn't pass nested JSON objects to MCP tools | Pending source/fix and applicability validation |
+| [#74](https://github.com/openclaw/mcporter/issues/74) | CLI argument parser fails to parse nested JSON objects in key:value parameters | Pending source/fix and applicability validation |
+| [#73](https://github.com/openclaw/mcporter/issues/73) | OAuth fails with hardcoded scope=mcp:tools — servers with standard OIDC scopes rejected | Pending source/fix and applicability validation |
+| [#67](https://github.com/openclaw/mcporter/issues/67) | Granola MCP OAuth fails with invalid_redirect_uri in mcporter auth | Pending source/fix and applicability validation |
+| [#66](https://github.com/openclaw/mcporter/issues/66) | Daemon fails to start in background mode on macOS 26 (Tahoe) — works only with --foreground | Pending source/fix and applicability validation |
+| [#65](https://github.com/openclaw/mcporter/issues/65) | `mcporter call` returns only the first element when MCP tool returns a list | Pending source/fix and applicability validation |
+| [#64](https://github.com/openclaw/mcporter/issues/64) | STDIO MCP Servers Not Receiving Environment Variables from Config | Pending source/fix and applicability validation |
+| [#63](https://github.com/openclaw/mcporter/issues/63) | CLI coerces numeric-looking string parameters to numbers, breaking tabId | Pending source/fix and applicability validation |
+| [#58](https://github.com/openclaw/mcporter/issues/58) | claude context mcp not working correclty - background process gets killed | Pending source/fix and applicability validation |
+| [#56](https://github.com/openclaw/mcporter/issues/56) | Generated CLI uses relative path for MCP server, fails when run from different directory | Pending source/fix and applicability validation |
+| [#53](https://github.com/openclaw/mcporter/issues/53) | mcporter默认会扫描cursor的配置文件，但是对clawdbot执行mcp任务毫无帮助 | Pending source/fix and applicability validation |
+| [#52](https://github.com/openclaw/mcporter/issues/52) | Unable to Authenticate with Supabase MCP: OAuth "scope.0: Invalid enum value" (mcp:tools not allowed) | Pending source/fix and applicability validation |
+| [#51](https://github.com/openclaw/mcporter/issues/51) | json() output mode only returns first result when MCP server returns multiple JSON objects in content array | Pending source/fix and applicability validation |
+| [#47](https://github.com/openclaw/mcporter/issues/47) | OAuth retry fails with 405 for Todoist MCP server | Pending source/fix and applicability validation |
+| [#45](https://github.com/openclaw/mcporter/issues/45) | call command fails with 'Unable to load tool metadata' even when all arguments are named | Pending source/fix and applicability validation |
+| [#40](https://github.com/openclaw/mcporter/issues/40) | Add support for Apify MCP Server's new streamable HTTPS transport | Pending source/fix and applicability validation |
+| [#38](https://github.com/openclaw/mcporter/issues/38) | Notion MCP: SSE error 401 on auth attempt | Pending source/fix and applicability validation |
+| [#37](https://github.com/openclaw/mcporter/issues/37) | Cannot auth Sentry HTTP | Pending source/fix and applicability validation |
+| [#36](https://github.com/openclaw/mcporter/issues/36) | Crashes when trying to auth linear mcp server | Pending source/fix and applicability validation |
+| [#33](https://github.com/openclaw/mcporter/issues/33) | Add a skill to use mcporter | Pending source/fix and applicability validation |
+| [#32](https://github.com/openclaw/mcporter/issues/32) | Support for remote Figma MCP | Pending source/fix and applicability validation |
+| [#30](https://github.com/openclaw/mcporter/issues/30) | emit-ts: dashes in names are not handled properly | Pending source/fix and applicability validation |
+| [#26](https://github.com/openclaw/mcporter/issues/26) | Using with atlassian MCP ? | Pending source/fix and applicability validation |
+| [#25](https://github.com/openclaw/mcporter/issues/25) | `config add` sets `imports: []` even when imports field was undefined | Pending source/fix and applicability validation |
+| [#8](https://github.com/openclaw/mcporter/issues/8) | Generated CLI displays tool names with underscores but requires dashes to invoke | Pending source/fix and applicability validation |
+| [#7](https://github.com/openclaw/mcporter/issues/7) | mcporter treats non-server keys from Claude config as MCP servers | Pending source/fix and applicability validation |
+| [#6](https://github.com/openclaw/mcporter/issues/6) | mcporter list treats all top-level objects in .claude.json as MCP servers when user-scoped mcpServers is missing | Pending source/fix and applicability validation |
+| [#5](https://github.com/openclaw/mcporter/issues/5) | `list` fails with error if Claude Desktop file is empty | Pending source/fix and applicability validation |
+| [#4](https://github.com/openclaw/mcporter/issues/4) | Output the schema as a TypeScript representation | Pending source/fix and applicability validation |
+| [#3](https://github.com/openclaw/mcporter/issues/3) | Running `npx mcporter list` returns: "No MCP servers configured" | Pending source/fix and applicability validation |
+| [#2](https://github.com/openclaw/mcporter/issues/2) | mcporter --help should show global help | Pending source/fix and applicability validation |
+| [#1](https://github.com/openclaw/mcporter/issues/1) | generate-cli command fails | Pending source/fix and applicability validation |

@@ -40,3 +40,8 @@ normalizes both dependency aliases, rejects duplicate/unknown/self/cyclic
 dependencies and keeps stable order. Its Rust planner uses iterative frames;
 JavaScript getters are evaluated only when the corresponding plugin is visited.
 These foundations support the pending agent builder and execution rewrite.
+
+`createFileAwarenessTracker(cwd)` records normalized file reads and writes in
+ordered, deduplicated Rust sets. Snapshots return independent JavaScript Sets.
+`recordToolFileAwareness` recognizes `read_file`, `write_file` and `edit`,
+ignoring missing/blank paths and other tools without changing their arguments.

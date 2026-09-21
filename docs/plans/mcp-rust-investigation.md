@@ -3922,3 +3922,39 @@ credential-lock/profile/corrupt-session fixes. It and provider native-queue
 0d6e36a2b are verified on remote main. Root release35562599034 is pending. Minimum
 24-hour actual effort and full rewrite/release acceptance remain open; active work
 continues from04:34:58 recorded continuation boundary.
+
+### Poe agent Rust file awareness, 2026-09-21 05:01 UTC
+
+Native red precedes ordered, deduplicated Rust file-awareness sets and exact file
+operation admission. Hosts supply platform path.resolve and original property/
+callback effects. Snapshots own independent read/modified Sets, preserving UTF16,
+relative/absolute paths, insertion order and inherited path getters. Invalid or
+blank paths do not read the tool getter. Tool getters retain the original staged
+read_file/write_file/edit checks rather than being evaluated eagerly once.
+
+All12 Rust cases,18 native groups and84 applicable original cases pass; the
+reference route adds the complete2-case file-awareness test file. Two static
+awareness APIs compare bidirectionally with original declarations. Focused lint/
+fmt/clippy/formatting and uncached113-workspace/28-build/338-edge closure pass.
+The initial portable test contained an invalid Rust Unicode escape; it was fixed,
+and all maintained checks pass, without counting compiler rejection as behavioral
+conformance. Rust shares immutable path buffers between ordered storage and its
+membership index, and accepts borrowed paths to avoid duplicate buffer copies
+when already present. This is an implementation allocation reduction, not evidence
+of lower total memory than the original.
+
+Direct/packed16MiB workers each add8192 reads and8192 writes, checking128/64 unique
+paths and independent snapshots, to prior provider/storage/history/tool/config
+workloads. Artifact audit covers28 JS/declaration files, one addon and zero npm
+runtime groups. Endpoint heaps/RSS remain workload evidence. The explicit speed
+gate fails: after four warmups, seven alternating rounds of16384 reads and16384
+writes across128 unique paths take original~8.6–8.8ms vs Rust~10.9–11.3ms. Binding
+crossings still outweigh this small policy workload; no speed advantage acceptance
+is claimed. Evidence out/rust-poe-agent-awareness-*.
+
+Configuration ea739d625 was rebased to4b486325a, pushed within concurrent
+b1b341245, and verified on remote main. Root release35562846218 is pending.
+Conservative continuous active04:34:58–05:01:42 adds1604s, bringing recorded actual
+effort to84,585s (23.50h). Minimum24-hour effort remains unfulfilled by1815s;
+full agent/runtime/closure rewrite and successful root publication remain open.
+Work continues beyond05:01:42 UTC boundary.

@@ -20,3 +20,5 @@ export {
   toRuntimePlugins,
   resolvePluginSetupOrder
 } from "./config.js";
+
+export { createFileAwarenessTracker, recordToolFileAwareness } from "./file-awareness.js";

@@ -134,3 +134,5 @@ pub mod session_log;
 pub mod tools;
 
 pub mod config;
+
+pub mod file_awareness;

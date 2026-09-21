@@ -64,3 +64,14 @@ void orderA;
 void orderB;
 void runtimeA;
 void runtimeB;
+
+import { createFileAwarenessTracker, recordToolFileAwareness } from "../dist/index.js";
+import * as referenceAwareness from "../../poe-agent/dist/runtime/file-awareness.js";
+const awarenessA: typeof referenceAwareness.createFileAwarenessTracker = createFileAwarenessTracker;
+const awarenessB: typeof createFileAwarenessTracker = referenceAwareness.createFileAwarenessTracker;
+const recordA: typeof referenceAwareness.recordToolFileAwareness = recordToolFileAwareness;
+const recordB: typeof recordToolFileAwareness = referenceAwareness.recordToolFileAwareness;
+void awarenessA;
+void awarenessB;
+void recordA;
+void recordB;

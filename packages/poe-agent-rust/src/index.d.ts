@@ -28,3 +28,6 @@ export {
   resolvePluginSetupOrder
 } from "./config.js";
 export type { ResolvedAgentConfig } from "./config.js";
+
+export { createFileAwarenessTracker, recordToolFileAwareness } from "./file-awareness.js";
+export type { FileAwarenessTracker } from "./file-awareness.js";

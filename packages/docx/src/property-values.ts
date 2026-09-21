@@ -59,7 +59,7 @@ function lexicalValue(raw: string, type: PropertyType, variant: string, group: P
   const unsigned = raw[0] === "-" || raw[0] === "+" ? raw.slice(1) : raw;
   if (!unsigned || [...unsigned].some(c => !(type === "integer" ? "0123456789" : variant === "decimal" ? "0123456789." : "0123456789.eE+-").includes(c))) return null;
   const value = Number(raw);
-  if (!Number.isFinite(value) || type === "integer" && !Number.isSafeInteger(value) || group === "core" && value <= 0 || group === "extended" && value < 0 || group === "custom" && !propertyNumberFits(value, variant)) return null;
+  if (!Number.isFinite(value) || type === "integer" && !Number.isSafeInteger(value) || group === "core" && value < 0 || group === "extended" && value < 0 || group === "custom" && !propertyNumberFits(value, variant)) return null;
   return value;
 }
 export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialect: DocumentDialect, budget: DocumentBudget): StoredProperty[] {

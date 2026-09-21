@@ -380,7 +380,14 @@ shell.use(await remoteMcpArtifactPlugin(generated.artifact, {
 configuration or `--format module` for an ESM data module that exports the
 artifact as default. `--timeout-ms <milliseconds>` overrides the SDK's
 `schema.requestTimeoutMs` for each discovery request (default 30,000 ms).
-Supplied schemas remain offline. Shell redirection works for all formats. Host-selected SDK
+Supplied schemas remain offline. Generation also accepts `--max-pages` (default
+100), `--max-tools` (10,000 per server), `--max-response-bytes` (16 MiB),
+`--max-configuration-bytes` (16 MiB) and `--max-artifact-bytes` (32 MiB).
+Each takes a positive integer, separated or with `=`. CLI values override the
+corresponding `options.generation` settings; `--max-tools` applies to discovery
+and the resolved configuration, including supplied snapshots. Byte limits apply
+before output, while the host's command output limit still bounds stdout.
+Shell redirection works for all formats. Host-selected SDK
 generation settings are available as management `options.generation`; discovery
 uses the command's environment unless the host supplies an explicit binding.
 

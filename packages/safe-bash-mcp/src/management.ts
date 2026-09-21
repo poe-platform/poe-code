@@ -22,14 +22,24 @@ export interface RemoteMcpManagementOptions extends ConfigurationOptions {
   readonly resources?: RemoteMcpResourceOptions & { readonly binding?: ConfigurationBindingOptions };
 }
 
-function timeoutMilliseconds(value: string | undefined): number {
+function positiveArgument(value: string | undefined, flag: string, maximum = Number.MAX_SAFE_INTEGER): number {
   if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9"))
-    throw new Error("--timeout-ms requires a positive supported millisecond interval");
-  const timeout = Number(value);
-  if (!Number.isSafeInteger(timeout) || timeout < 1 || timeout > 2_147_483_647)
-    throw new Error("--timeout-ms requires a positive supported millisecond interval");
-  return timeout;
+    throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
+  const result = Number(value);
+  if (!Number.isSafeInteger(result) || result < 1 || result > maximum)
+    throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
+  return result;
 }
+
+const generationFlags = {
+  "--timeout-ms": "requestTimeoutMs",
+  "--max-pages": "maxPages",
+  "--max-tools": "maxTools",
+  "--max-response-bytes": "maxResponseBytes",
+  "--max-configuration-bytes": "maxConfigurationBytes",
+  "--max-artifact-bytes": "maxArtifactBytes"
+} as const;
+type GenerationPolicy = Partial<Record<typeof generationFlags[keyof typeof generationFlags], number>>;
 
 function resourceArguments(args: readonly string[], maxInputBytes: number): { name: string; request: RemoteMcpResourceRequest; requestTimeoutMs?: number } {
   const positional: string[] = [];
@@ -42,7 +52,7 @@ function resourceArguments(args: readonly string[], maxInputBytes: number): { na
     if (!literal && arg === "--") { literal = true; continue; }
     if (!literal && (arg === "--timeout-ms" || arg.startsWith("--timeout-ms="))) {
       if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
-      requestTimeoutMs = timeoutMilliseconds(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length));
+      requestTimeoutMs = positiveArgument(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length), "--timeout-ms", 2_147_483_647);
     } else if (!literal && arg === "--templates") {
       if (templates) throw new Error("--templates can only be supplied once");
       templates = true;
@@ -90,7 +100,7 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
       if (file === undefined || file === "") throw new Error("--file requires a virtual path or - for stdin");
     } else if (arg === "--timeout-ms" || arg.startsWith("--timeout-ms=")) {
       if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
-      requestTimeoutMs = timeoutMilliseconds(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length));
+      requestTimeoutMs = positiveArgument(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length), "--timeout-ms", 2_147_483_647);
     } else if (arg === "--") {
       if (name !== undefined || index + 2 !== args.length) throw new Error(`${command} requires exactly one server name`);
       name = args[++index];
@@ -179,7 +189,11 @@ export function createRemoteMcpManagementCommand(
     "  module  Dependency-free ESM data module exporting the artifact as default.",
     "Credentials remain environment references in every generated format.", "",
     "Generation --timeout-ms <milliseconds> bounds each discovery request",
-    "(default 30000). Supplied schemas remain offline.", "",
+    "(default 30000). Supplied schemas remain offline.",
+    "Generation limits: --max-pages (100), --max-tools (10000 per server),",
+    "--max-response-bytes (16777216), --max-configuration-bytes (16777216),",
+    "--max-artifact-bytes (33554432). Each requires a positive integer.",
+    "CLI values override the corresponding host generation settings.", "",
     ...authenticationGuidance, "",
     "  --help  Show this help.", ""
   ].join("\n");
@@ -195,7 +209,7 @@ export function createRemoteMcpManagementCommand(
         operation.signal.throwIfAborted();
         let output: string;
         let generationFormat: string | undefined;
-        let generationTimeoutMs: number | undefined;
+        const generationPolicy: GenerationPolicy = {};
         let authentication: ReturnType<typeof credentialArguments> | undefined;
         let credentialImport: ReturnType<typeof credentialArguments> | undefined;
         let credentialReset: ReturnType<typeof credentialArguments> | undefined;
@@ -228,9 +242,12 @@ export function createRemoteMcpManagementCommand(
             let format: string | undefined;
             for (let index = 1; index < args.length; index++) {
               const arg = args[index];
-              if (command === "generate" && (arg === "--timeout-ms" || arg.startsWith("--timeout-ms="))) {
-                if (generationTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
-                generationTimeoutMs = timeoutMilliseconds(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length));
+              const flag = arg.split("=", 1)[0];
+              if (command === "generate" && Object.hasOwn(generationFlags, flag)) {
+                const key = generationFlags[flag as keyof typeof generationFlags];
+                if (generationPolicy[key] !== undefined) throw new Error(`${flag} can only be supplied once`);
+                generationPolicy[key] = positiveArgument(arg === flag ? args[++index] : arg.slice(flag.length + 1), flag,
+                  key === "requestTimeoutMs" ? 2_147_483_647 : Number.MAX_SAFE_INTEGER);
                 continue;
               }
               if (arg !== "--format" && !arg.startsWith("--format=")) throw new Error(`Unknown ${command} argument '${arg}'`);
@@ -368,8 +385,15 @@ export function createRemoteMcpManagementCommand(
             const schemaSignal = generation?.schema?.signal;
             const generated = await generateRemoteMcpArtifact(initialization.configuration, {
               ...options, ...generation,
+              maxTools: generationPolicy.maxTools ?? generation?.maxTools ?? options.maxTools,
+              maxConfigurationBytes: generationPolicy.maxConfigurationBytes ?? generation?.maxConfigurationBytes ?? options.maxConfigurationBytes,
+              maxArtifactBytes: generationPolicy.maxArtifactBytes ?? generation?.maxArtifactBytes,
               binding: generation?.binding ?? { env: context.env },
-              schema: { ...generation?.schema, requestTimeoutMs: generationTimeoutMs ?? generation?.schema?.requestTimeoutMs,
+              schema: { ...generation?.schema,
+                requestTimeoutMs: generationPolicy.requestTimeoutMs ?? generation?.schema?.requestTimeoutMs,
+                maxPages: generationPolicy.maxPages ?? generation?.schema?.maxPages,
+                maxTools: generationPolicy.maxTools ?? generation?.schema?.maxTools,
+                maxResponseBytes: generationPolicy.maxResponseBytes ?? generation?.schema?.maxResponseBytes,
                 signal: schemaSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, schemaSignal]) }
             });
             output = generationFormat === "module" ? generated.module : generationFormat === "config" ? `${JSON.stringify(generated.artifact.configuration, null, 2)}\n` : generated.json;

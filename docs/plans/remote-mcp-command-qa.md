@@ -134,3 +134,12 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     to an actual HTTP endpoint. A missing retries field and retries:-1 must return
     2 without network access; property dependency arrays must not create fields.
     Inspect both help/result screenshots and purge this QA's owned evidence.
+
+23. Discovery and artifact policy overrides: serve two tools in separate pages
+    through an actual local HTTP MCP endpoint. Generate with --max-pages=2,
+    --max-tools 2 and --max-response-bytes=4096 over host limits of one. Verify
+    both exact schemas and cursor order. Lower each limit independently and
+    verify nonzero failure, empty artifact stdout and owned session retirement.
+    With supplied schemas, exercise --max-configuration-bytes and
+    --max-artifact-bytes without credential reads or requests. Inspect generation
+    help and policy-failure screenshots. Purge only this QA's owned evidence.

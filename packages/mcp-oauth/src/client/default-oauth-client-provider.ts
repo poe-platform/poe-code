@@ -747,13 +747,14 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
   if (session === null) {
     return null;
   }
+  const discovery = structuredClone(session.discovery);
   const refreshState = getOwnEntry(session, "refreshState");
   if (refreshState !== undefined && (refreshState !== "pending" || getOwnEntry(session, "tokens") !== undefined))
     throw new Error("Stored OAuth refresh state is invalid");
 
   const client = normalizeStoredOAuthClient(getOwnEntry(session, "client"));
   if (client === null) {
-    return { ...session, client: { clientId: "" }, tokens: undefined };
+    return { ...session, discovery, client: { clientId: "" }, tokens: undefined };
   }
 
   const tokens = normalizeStoredTokens(getOwnEntry(session, "tokens"));
@@ -761,7 +762,7 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
     try { new Headers({ Authorization: `Bearer ${tokens.accessToken}` }); }
     catch { throw new Error("Stored OAuth access token is not a valid HTTP header value"); }
   }
-  return { ...session, client, tokens };
+  return { ...session, discovery, client, tokens };
 }
 
 

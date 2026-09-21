@@ -457,3 +457,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     traffic, zero atomic writes and no session-factory queries. Host cache work
     may finish later; do not claim cancellation of that underlying dependency.
     Inspect safe summary output and purge owned synthetic evidence.
+
+41. Seed native encrypted expired sessions and expose their loaded JSON through
+    a host cache/store adapter. From the clock or selected fetch, mutate the
+    original loaded token endpoint and nested resource/issuer extensions. Native
+    authorization must retain an independent metadata copy before either
+    callback, refresh only through the original actual HTTP endpoint with the
+    original app/grant and persist complete unchanged discovery/extensions plus
+    the full rotated grant/expiry. Recreate providers directly from those
+    encrypted records and require silent complete command results/metadata/
+    exact005930. Count two original redemptions, four initialized/retired sessions
+    and no wrong endpoints, consent or metadata discovery. Verify private records
+    and empty own claim directories. Inspect safe summary and purge owned QA.

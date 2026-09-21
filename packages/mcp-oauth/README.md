@@ -98,7 +98,8 @@ Native provider calls capture request option handles before host work. Unauthori
 handling also owns complete discovery metadata, presented grant values, rejected
 request headers and the selected challenge error before reading persistence.
 A browser callback cannot redirect a later code exchange by changing caller
-metadata. Explicit authentication owns metadata when lazy discovery returns;
+metadata. Metadata loaded from a host session store is copied before clock or
+fetch callbacks, retaining the original refresh endpoint and persisted extensions. Explicit authentication owns metadata when lazy discovery returns;
 the selected discovery method retains its original receiver and live host state.
 
 Provider request inputs accept an optional `signal`. It reaches callback waits,

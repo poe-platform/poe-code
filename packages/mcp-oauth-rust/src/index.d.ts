@@ -77,7 +77,7 @@ export interface DefaultOAuthClientProviderOptions {
     | { mode: "dynamic"; clientId?: string; clientSecret?: string; metadata?: OAuthClientMetadata }
     | { mode: "static"; clientId: string; clientSecret?: string; metadata?: OAuthClientMetadata };
   browser: {
-    openBrowser(url: string): Promise<void>;
+    openBrowser?: (url: string) => Promise<void>;
     readLine?: () => Promise<string>;
     createServer?: () => import("node:http").Server;
     landingPage?: OAuthLandingPage;

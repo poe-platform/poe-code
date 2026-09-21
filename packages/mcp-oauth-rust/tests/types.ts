@@ -23,7 +23,8 @@ const providerOptions: DefaultOAuthClientProviderOptions = { client:{mode:"stati
 const provider: ReferenceProvider = createDefaultOAuthClientProvider(providerOptions);
 const referenceOptions: ReferenceOptions = providerOptions;
 const supplied: OAuthClientProvider = createOAuthClientProvider({provider});
-void supplied;void referenceOptions;
+const ownReferenceOptions: DefaultOAuthClientProviderOptions = referenceOptions;
+void supplied;void referenceOptions;void ownReferenceOptions;
 import { createJwksTokenVerifier, type JwksTokenVerifierOptions, type JwksVerifiedAccessToken } from "../dist/index.js";
 import type { JwksTokenVerifier as ReferenceVerifier, JwksTokenVerifierOptions as ReferenceJwksOptions } from "../../mcp-oauth/dist/index.js";
 const jwksOptions: JwksTokenVerifierOptions = { jwksUrl: new URL("https://example.test/keys"), fetch, allowedAlgorithms: ["ES256"], clockSkewSeconds: 0.5, requireAccessTokenType: true };

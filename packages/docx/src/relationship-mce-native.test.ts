@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { Shell, MemoryFileSystem } from "virtual-bash";
 import { docxCommands } from "virtual-bash/commands/docx";
 import { Document, applyStyleModelBatch, createDocxInspectionCommandEngine, editDocumentParagraphs, getDocumentXml, inspectDocument, writeArchive } from "./index.js";
@@ -11,6 +11,12 @@ const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 const encode = (text: string) => new TextEncoder().encode(text);
 const quote = (text: string) => "'" + text.split("'").join("'\\''") + "'";
 const ref = (resultHandle: string) => ({resultHandle});
+const shells = new Set<Shell>();
+afterEach(async () => {
+  const pending = [...shells];
+  shells.clear();
+  await Promise.all(pending.map(shell => shell.dispose()));
+});
 const row = '<pr:Relationship Id="audit" Type="urn:original:audit" Target="/records/a.xml"/>';
 const inactive = '<pr:Relationship Id="audit" Type="urn:original:inactive" Target="/absent.xml" mc:MustUnderstand="f"/>';
 const carriers = [
@@ -41,8 +47,14 @@ async function fixture(strict: boolean, kind: "docx" | "dotx", owner: "root" | "
   const memory = Volume.fromJSON({"/input": "", "/output": ""}), sink = {async write(bytes: Uint8Array) {memory.appendFileSync("/output", bytes);}};
   await writeArchive({comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z")}))}, {async write(bytes) {memory.appendFileSync("/input", bytes);}}, {order: "input", compression: "store"}, textContext);
   const input = new Uint8Array(memory.readFileSync("/input") as Buffer), fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
-  const shell = new Shell({fs}).use(docxCommands({engine: createDocxInspectionCommandEngine({limits: textContext.limits})}));
-  return {parts, input, memory, sink, fs, shell, name, xml, main, context: {...textContext, encoding: {order: "input" as const, compression: "store" as const}, stdout: sink}};
+  let shell: Shell | undefined;
+  return {parts, input, memory, sink, fs, get shell() {
+    if (!shell) {
+      shell = new Shell({fs}).use(docxCommands({engine: createDocxInspectionCommandEngine({limits: textContext.limits})}));
+      shells.add(shell);
+    }
+    return shell;
+  }, name, xml, main, context: {...textContext, encoding: {order: "input" as const, compression: "store" as const}, stdout: sink}};
 }
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)

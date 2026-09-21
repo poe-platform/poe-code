@@ -62,3 +62,9 @@ The ongoing complete run reproduced the older command test rejecting priority -4
 ## Exact-file preflight
 
 A failing memfs routing case showed that missing or clearly foreign exact files could still launch build/test children. The root runner now checks regular-file existence and declared workspace selector boundaries before builds, while Vitest retains the final actual-discovery ownership check. Four focused runner files pass 258 cases plus two root stress checks; changed runner ESLint passes. Native hooks/pools are still rejected before spawning, and root ownership remains derived from maintained Vitest configuration.
+
+## Relationship fixture lifetime
+
+The relationship MCE fixture created a Shell for all 2,808 model/SDK/Shell cases and never disposed it. Shell creation is now lazy, so only the 936 actual Shell cases create one; afterEach drains every created Shell even after a failed assertion. All 2,808 cases still pass with actual Shell execution. Local wall time is 51.64s before / 45.76s after (48.24s / 41.19s test time); concurrent host work limits precision. Full DOCX lint and production/test type checks pass with six existing warnings.
+
+The grouped-beforeAll default-style trial preserved all 3,744 cases but did not improve measured wall time; its authored change was discarded. Fixture serialization is being optimized directly instead, preserving test names and independent executions.

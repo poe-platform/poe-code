@@ -16,6 +16,7 @@ import type { XmlElement } from "./package-xml.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { assertOutsideRevisionRanges, containsRevision } from "./revision-markup.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 export const templateRepeatAdmission = Symbol("template-repeat-admission");
 const w15 = "http://schemas.microsoft.com/office/word/2012/wordml";
@@ -68,17 +69,18 @@ export async function editDocumentControlRepeats(input: Uint8Array, options: Doc
   const document = await openDocumentLocations(input, { ...settings, budget }); const archive = document.snapshot(); const editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
   const inventory = await inspectDocumentControls(input, selection, { ...settings, budget }); const regions = inventory.items.filter(item => item.kind === "repeating-section" && (!context[templateRepeatAdmission] || !selection.select || item.location.token === selection.select));
   if (regions.length !== 1) throw new SelectionError(regions.length ? "ambiguous-selection" : "missing-selection", regions.map(item => item.location.token));
+  if (regions[0]!.support !== "supported" || regions[0]!.lock !== "unlocked" || regions[0]!.binding !== null) throw new UnsupportedEditError("The repeating region requires an admitted, unlocked and unbound owner.");
   const location = regions[0]!.location; document.select([location], { ...(all === undefined ? {} : { all }), ...(allowEmpty === undefined ? {} : { allowEmpty }) }, "mutation");
   if (document.references(location.token).length > 1) throw new UnsupportedEditError("Shared repeat owners are ambiguous.");
   const xml = editor.xml(location.value.part.slice(1)); let region = xml.root; const ancestors = [region]; for (const index of location.value.path) { region = region.children[index]!; ancestors.push(region); }
-  const parent = ancestors.at(-2)!, properties = child(region, "sdtPr")!, content = child(region, "sdtContent")!;
-  if (!properties || !content || child(properties, "dataBinding") || attr(child(properties, "lock"), "val") && attr(child(properties, "lock"), "val") !== "unlocked" || containsRevision(region)) throw new UnsupportedEditError("The repeating region is bound, locked or reviewed.");
+  const parent = ancestors.at(-2)!, content = activeXmlChildren(xml, budget)(region).find(node => node.namespace === region.namespace && node.localName === "sdtContent");
+  if (!content || containsRevision(region)) throw new UnsupportedEditError("The repeating region is bound, locked or reviewed.");
   const row = parent.namespace === region.namespace && parent.localName === "tbl";
   if (!row && !(parent.namespace === region.namespace && (["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent", "tc"].includes(parent.localName) || context[templateRepeatAdmission] && parent.localName === "sdtContent"))) throw new UnsupportedEditError("A repeating region requires a direct admitted row or block owner.");
   if (ancestors.slice(0, -1).some(owner => owner.namespace === region.namespace && ((!context[templateRepeatAdmission] && owner.localName === "sdt") || ["ins", "del", "moveFrom", "moveTo", "fldSimple", "hyperlink", "customXml"].includes(owner.localName)))) throw new UnsupportedEditError("Repeating boundaries cannot cross controlled owners.");
   if (context[templateRepeatAdmission]) for (const ancestor of ancestors.slice(0, -1).filter(node => node.namespace === region.namespace && node.localName === "sdt")) {
-    const properties = child(ancestor, "sdtPr");
-    if (!properties || !(child(properties, "repeatingSection", w15) || child(properties, "repeatingSectionItem", w15)) || child(properties, "dataBinding") || attr(child(properties, "lock"), "val") && attr(child(properties, "lock"), "val") !== "unlocked") throw new UnsupportedEditError("Nested templates require admitted unlocked native repeat ancestors.");
+    const snapshot = inspectControlSnapshot(ancestor, location, archive, { ...settings, budget }, xml);
+    if (snapshot.support !== "supported" || !["repeating-section", "repeating-item"].includes(snapshot.kind) || snapshot.binding !== null || snapshot.lock !== "unlocked") throw new UnsupportedEditError("Nested templates require admitted unlocked native repeat ancestors.");
   }
   const story = document.list("story", { scope: "all-stories" }).filter(owner => owner.value.story === location.value.story && pathContains(owner.value.path, location.value.path)).sort((a, b) => b.value.path.length - a.value.path.length)[0]; if (!story) throw new UnsupportedEditError("A repeat requires an admitted story.");
   assertOutsideFields(parseFields(ancestors[story.value.path.length]!, story.value.path, budget, xml.compatibility.content), location.value.path); assertOutsideRevisionRanges(xml.root, region, budget, xml.compatibility.branches);

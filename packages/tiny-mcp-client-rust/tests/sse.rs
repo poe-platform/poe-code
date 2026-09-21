@@ -66,3 +66,26 @@ fn utf16_chunks_and_event_selection_match_event_source_fields() {
     assert_eq!(messages[0].data, units("\ntail"));
     assert_eq!(messages[0].id, None);
 }
+
+#[test]
+fn endpoint_events_are_opt_in_bounded_and_preserved_across_chunks() {
+    let input = units(
+        "event: keepalive\ndata: ignored\n\nevent: endpoint\ndata: /messages?session=abc\n\n",
+    );
+    let mut ordinary = SseParser::new(1024).unwrap();
+    assert!(ordinary.push(&input).unwrap().is_empty());
+    for split in 0..=input.len() {
+        let mut parser = SseParser::new(1024).unwrap().with_endpoint_events();
+        let mut messages = parser.push(&input[..split]).unwrap();
+        messages.extend(parser.push(&input[split..]).unwrap());
+        assert_eq!(messages.len(), 1);
+        assert_eq!(messages[0].data, units("/messages?session=abc"));
+        assert_eq!(messages[0].event, Some(units("endpoint")));
+    }
+    let mut bounded = SseParser::new(16).unwrap().with_endpoint_events();
+    assert!(
+        bounded
+            .push(&units("event: endpoint\ndata: /messages\n\n"))
+            .is_err()
+    );
+}

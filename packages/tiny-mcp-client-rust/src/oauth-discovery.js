@@ -71,8 +71,10 @@ function authorizationMetadata(value, issuer) {
   return value;
 }
 
-async function fetchMetadata(fetchImpl, location, label) {
-  const signal = AbortSignal.timeout(10_000);
+async function fetchMetadata(fetchImpl, location, label, parentSignal) {
+  parentSignal?.throwIfAborted();
+  const deadline = AbortSignal.timeout(10_000);
+  const signal = parentSignal === undefined ? deadline : AbortSignal.any([deadline, parentSignal]);
   const response = await fetchMcpResponse(fetchImpl ?? globalThis.fetch, location, {
     method: "GET", headers: { Accept: "application/json" }, signal
   });
@@ -112,7 +114,8 @@ export class OAuthMetadataDiscovery {
     if (previous !== null) this.#snapshots.delete(previous);
     this.#snapshots.set(slot, snapshot);
   }
-  async discover(resourceUrl, { resourceMetadataUrl } = {}) {
+  async discover(resourceUrl, { resourceMetadataUrl, signal } = {}) {
+    signal?.throwIfAborted();
     const resource = canonicalizeResourceIndicator(resourceUrl);
     const firstLocation = resolveProtectedResourceMetadataUrl(resource, resourceMetadataUrl);
     const memorySlot = this.#index.get(resource);
@@ -120,6 +123,7 @@ export class OAuthMetadataDiscovery {
       return structuredClone(this.#snapshots.get(memorySlot));
     }
     const shared = await this.#cache?.get(resource);
+    signal?.throwIfAborted();
     if (shared !== null && shared !== undefined && resourceMetadataUrl === undefined) {
       try {
         const result = cachedDiscovery(shared, resource);
@@ -134,10 +138,10 @@ export class OAuthMetadataDiscovery {
     let lastError;
     for (const location of resourceLocations) {
       try {
-        resourceMetadata = protectedMetadata(await fetchMetadata(this.#fetch, location, "Protected resource metadata"), resource);
+        resourceMetadata = protectedMetadata(await fetchMetadata(this.#fetch, location, "Protected resource metadata", signal), resource);
         resourceMetadataLocation = location;
         break;
-      } catch (error) { lastError = error; }
+      } catch (error) { signal?.throwIfAborted(); lastError = error; }
     }
     if (resourceMetadata === undefined) throw lastError;
     const errors = [];
@@ -145,14 +149,14 @@ export class OAuthMetadataDiscovery {
       const { issuer, locations } = issuerLocations(advertisedIssuer);
       for (const location of locations) {
         try {
-          const metadata = authorizationMetadata(await fetchMetadata(this.#fetch, location, "Authorization server metadata"), issuer);
+          const metadata = authorizationMetadata(await fetchMetadata(this.#fetch, location, "Authorization server metadata", signal), issuer);
           const result = { resource: resourceMetadata.resource, resourceMetadataUrl: resourceMetadataLocation,
             resourceMetadata, authorizationServer: issuer, authorizationServerMetadataUrl: location,
             authorizationServerMetadata: metadata };
           this.#retain(resource, result);
           await this.#cache?.set(resource, structuredClone(result));
           return result;
-        } catch (error) { errors.push(`${location}: ${error instanceof Error ? error.message : String(error)}`); }
+        } catch (error) { signal?.throwIfAborted(); errors.push(`${location}: ${error instanceof Error ? error.message : String(error)}`); }
       }
     }
     throw new Error(`Unable to load authorization server metadata for ${resource}: ${errors.join("; ")}`);

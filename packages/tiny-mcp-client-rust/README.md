@@ -65,6 +65,10 @@ sessions and modern request headers. It mirrors schema-annotated tool arguments,
 supports OAuth providers and isolates cancellation to each modern request. Closing
 the transport aborts active fetches, cancels readers and bounds legacy session
 termination to one second. Response and SSE event limits default to 16 MiB.
+Set `mode: "sse"` for legacy servers that announce a same-origin POST endpoint
+on their initial GET stream. HTTP failures expose `status` and `method` through
+`HttpTransportError`. OAuth retries retain the headers and token snapshot used by
+each request, and cancellation aborts its authorization and metadata work.
 
 ```ts
 import { HttpTransport, McpClient } from "tiny-mcp-client-rust";

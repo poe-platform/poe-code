@@ -7,9 +7,23 @@ import { OAuthError } from "./oauth/tokens.js";
 import { fetchMcpResponse, readBoundedResponseText } from "./oauth/http.js";
 const { NativeHttpTransport, NativeSseParser, httpResponseKind } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 
+export class HttpTransportError extends Error {
+  constructor(message, status, method) {
+    super(message);
+    this.name = "HttpTransportError";
+    this.status = status;
+    this.method = method;
+  }
+}
+
 export class HttpTransport {
   #state;
   #url;
+  #mode;
+  #endpoint;
+  #endpointReady;
+  #resolveEndpoint;
+  #rejectEndpoint;
   #headers;
   #fetch;
   #warning;
@@ -17,14 +31,16 @@ export class HttpTransport {
   #discovery;
   #controllers = new Map();
   #fetches = new Set();
+  #oauthControllers = new Set();
   #readers = new Set();
   #resolveClosed;
   #read = new PassThrough();
   #write = new PassThrough();
-  constructor({ url, headers = {}, fetch, oauth, oauthDiscoveryCache, onWarning, maxResponseBytes = 16 * 1024 * 1024 }) {
+  constructor({ url, mode = "streamable-http", headers = {}, fetch, oauth, oauthDiscoveryCache, onWarning, maxResponseBytes = 16 * 1024 * 1024 }) {
     try { this.#state = new NativeHttpTransport(maxResponseBytes); }
     catch (error) { throw new Error(error.message); }
     this.#url = url;
+    this.#mode = mode;
     this.#headers = headers;
     this.#fetch = fetch;
     this.#warning = onWarning;
@@ -50,10 +66,15 @@ export class HttpTransport {
   dispose(reason = new Error("HTTP transport disposed")) {
     const disposal = this.#state.dispose();
     if (disposal === null) return;
+    this.#rejectEndpoint?.(reason);
+    this.#resolveEndpoint = undefined;
+    this.#rejectEndpoint = undefined;
     for (const slot of disposal.slots) this.#controllers.get(slot)?.abort();
     this.#controllers.clear();
     for (const controller of this.#fetches) controller.abort();
     this.#fetches.clear();
+    for (const controller of this.#oauthControllers) controller.abort();
+    this.#oauthControllers.clear();
     for (const reader of this.#readers) void reader.cancel().catch(() => undefined);
     this.#readers.clear();
     for (const stream of [this.#read, this.#write]) {
@@ -105,7 +126,9 @@ export class HttpTransport {
     const controller = slot === null ? undefined : new AbortController();
     if (controller !== undefined) this.#controllers.set(slot, controller);
     try {
-      const response = await this.#fetchRetry("POST", post, line, controller);
+      const endpoint = this.#mode === "sse" ? await this.#ensureEndpoint() : this.#url;
+      if (this.#state.disposed) return;
+      const response = await this.#fetchRetry("POST", post, line, controller, endpoint);
       if (this.#state.disposed || controller?.signal.aborted) { void response.body?.cancel().catch(() => undefined); return; }
       if (post.hasSession && response.status === 404) {
         void response.body?.cancel().catch(() => undefined);
@@ -117,16 +140,16 @@ export class HttpTransport {
         const body = (await readBoundedResponseText(response, this.#state.maxResponseBytes, this.#readers, controller?.signal)).trim();
         const errorLine = post.errorLine(response.status, body);
         if (errorLine !== null) { this.#emit(errorLine); return; }
-        throw new Error(this.#failure("POST", response, body));
+        throw this.#failure("POST", response, body);
       }
       if (this.#state.disposed || controller?.signal.aborted) { void response.body?.cancel().catch(() => undefined); return; }
-      if (!post.modern) { this.#state.captureSession(response.headers.get("Mcp-Session-Id")); this.#maybeStartGet(); }
+      if (this.#mode !== "sse" && !post.modern) { this.#state.captureSession(response.headers.get("Mcp-Session-Id")); this.#maybeStartGet(); }
       if (controller !== undefined) await this.#forward(response, controller.signal, post.responseContext());
       else void this.#forward(response).catch(error => { this.dispose(error instanceof Error ? error : new Error(String(error))); });
     } catch (error) { if (!controller?.signal.aborted) throw error; }
     finally { this.#state.finish(post); if (controller !== undefined) this.#controllers.delete(slot); }
   }
-  async #requestHeaders(method, post, session) {
+  async #requestHeaders(method, post, session, signal) {
     const headers = new Headers(this.#headers);
     if (method === "POST") {
       let changes;
@@ -142,8 +165,26 @@ export class HttpTransport {
       headers.set("Mcp-Session-Id", session);
       headers.set("MCP-Protocol-Version", "2025-03-26");
     }
-    await this.#provider?.authorizeRequest?.({ requestUrl: new URL(this.#url), headers, fetch: this.#fetch ?? globalThis.fetch });
-    return headers;
+    signal?.throwIfAborted();
+    const tokens = await this.#provider?.authorizeRequest?.({
+      requestUrl: new URL(this.#url), headers, signal,
+      fetch: (url, init) => fetchMcpResponse(this.#fetch ?? globalThis.fetch, url, {
+        ...init, signal: signal === undefined ? init?.signal : init?.signal == null ? signal : AbortSignal.any([signal, init.signal]),
+      }),
+    });
+    signal?.throwIfAborted();
+    return { headers, tokens: tokens === undefined ? null : { ...tokens } };
+  }
+  #ensureEndpoint() {
+    if (this.#endpointReady !== undefined) return this.#endpointReady;
+    this.#endpointReady = new Promise((resolve, reject) => {
+      this.#resolveEndpoint = resolve;
+      this.#rejectEndpoint = reject;
+    });
+    void this.#consumeGet().catch(error => {
+      this.dispose(error instanceof Error ? error : new Error(String(error)));
+    });
+    return this.#endpointReady;
   }
   #maybeStartGet() {
     if (!this.#state.beginGet()) return;
@@ -154,62 +195,85 @@ export class HttpTransport {
   async #consumeGet() {
     const response = await this.#fetchRetry("GET");
     if (this.#state.disposed) { void response.body?.cancel().catch(() => undefined); return; }
-    if (response.status === 405) { void response.body?.cancel().catch(() => undefined); return; }
+    if (response.status === 405) {
+      void response.body?.cancel().catch(() => undefined);
+      if (this.#mode === "sse") throw this.#failure("GET", response, "");
+      return;
+    }
     if (response.status === 404) {
       void response.body?.cancel().catch(() => undefined);
       this.#state.expireSession();
-      throw new Error("HTTP transport session expired (GET 404 response)");
+      throw new HttpTransportError("HTTP transport session expired (GET 404 response)", 404, "GET");
     }
     if (!response.ok) {
       const body = (await readBoundedResponseText(response, this.#state.maxResponseBytes, this.#readers)).trim();
-      throw new Error(this.#failure("GET", response, body));
+      throw this.#failure("GET", response, body);
     }
     if (httpResponseKind(200, response.headers.get("Content-Type")) !== "sse") {
       void response.body?.cancel().catch(() => undefined);
+      if (this.#mode === "sse") throw new Error("Legacy SSE GET returned an unsupported content type");
       return;
     }
-    await this.#consumeSse(response);
+    await this.#consumeSse(response, undefined, undefined, this.#mode === "sse");
+    if (this.#mode === "sse") {
+      if (!this.#state.disposed) throw new Error("Legacy SSE stream ended");
+      return;
+    }
     if (this.#state.finishGet()) this.#maybeStartGet();
   }
   async #terminate(session, signal) {
-    const headers = await this.#requestHeaders("DELETE", undefined, session);
+    const { headers } = await this.#requestHeaders("DELETE", undefined, session, signal);
     signal.throwIfAborted();
     const response = await fetchMcpResponse(this.#fetch ?? globalThis.fetch, this.#url, { method: "DELETE", headers, signal });
     if (signal.aborted) { void response.body?.cancel().catch(() => undefined); signal.throwIfAborted(); }
     if (response.ok || response.status === 405) { void response.body?.cancel().catch(() => undefined); return; }
     const body = (await readBoundedResponseText(response, this.#state.maxResponseBytes, this.#readers, signal)).trim();
-    throw new Error(this.#failure("DELETE", response, body));
+    throw this.#failure("DELETE", response, body);
   }
   #failure(method, response, body) {
     const status = `${response.status} ${response.statusText}`.trim();
-    return `HTTP transport ${method} failed (${status})${body.length === 0 ? "" : `: ${body}`}`;
+    return new HttpTransportError(`HTTP transport ${method} failed (${status})${body.length === 0 ? "" : `: ${body}`}`, response.status, method);
   }
-  async #fetchRetry(method, post, body, controller) {
-    let response;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      response = await this.#fetchWithAbort(this.#url, { method, headers: await this.#requestHeaders(method, post), body }, controller);
-      if (attempt === 0 && await this.#unauthorized(response)) continue;
-      break;
-    }
-    if (this.#provider !== undefined && (response.status === 401 || response.status === 403)) {
-      const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
-      const error = challenge?.params.error;
-      if (error !== undefined && error.length > 0) {
-        void response.body?.cancel().catch(() => undefined);
-        throw new OAuthError({ error, error_description: challenge.params.error_description, error_uri: challenge.params.error_uri }, response.status);
+  async #fetchRetry(method, post, body, controller = new AbortController(), endpoint = this.#url) {
+    this.#oauthControllers.add(controller);
+    try {
+      let response;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        controller.signal.throwIfAborted();
+        const { headers, tokens } = await this.#requestHeaders(method, post, undefined, controller.signal);
+        const requestHeaders = new Headers(headers);
+        controller.signal.throwIfAborted();
+        response = await this.#fetchWithAbort(endpoint, { method, headers, body }, controller);
+        if (attempt === 0 && await this.#unauthorized(response, controller.signal, requestHeaders, tokens)) continue;
+        break;
       }
-    }
-    return response;
+      if (this.#provider !== undefined && (response.status === 401 || response.status === 403)) {
+        const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
+        const error = challenge?.params.error;
+        if (error !== undefined && error.length > 0) {
+          void response.body?.cancel().catch(() => undefined);
+          throw new OAuthError({ error, error_description: challenge.params.error_description, error_uri: challenge.params.error_uri }, response.status);
+        }
+      }
+      return response;
+    } finally { this.#oauthControllers.delete(controller); }
   }
-  async #unauthorized(response) {
+  async #unauthorized(response, signal, requestHeaders, presentedTokens) {
     if (response.status !== 401 || this.#provider === undefined || this.#discovery === undefined) return false;
     const challenge = parseBearerWwwAuthenticateHeader(response.headers.get("WWW-Authenticate"));
     try {
-      const discovery = await this.#discovery.discover(this.#url, { resourceMetadataUrl: challenge?.params.resource_metadata });
+      const discovery = await this.#discovery.discover(this.#url, { resourceMetadataUrl: challenge?.params.resource_metadata, signal });
       const providerResponse = response.clone();
       let result;
       try {
-        result = await this.#provider.handleUnauthorized({ requestUrl: new URL(this.#url), response: providerResponse, challenge, discovery, fetch: this.#fetch ?? globalThis.fetch });
+        result = await this.#provider.handleUnauthorized({
+          requestUrl: new URL(this.#url), response: providerResponse, challenge, discovery,
+          signal, requestHeaders: new Headers(requestHeaders), presentedTokens,
+          fetch: (url, init) => fetchMcpResponse(this.#fetch ?? globalThis.fetch, url, {
+            ...init, signal: init?.signal == null ? signal : AbortSignal.any([signal, init.signal]),
+          }),
+        });
+        signal.throwIfAborted();
       } finally { void providerResponse.body?.cancel().catch(() => undefined); }
       if (result.action === "retry") { void response.body?.cancel().catch(() => undefined); return true; }
       if (result.error !== undefined) throw result.error;
@@ -229,9 +293,9 @@ export class HttpTransport {
       default: void response.body?.cancel().catch(() => undefined); throw new Error("HTTP transport POST returned an unsupported response content type");
     }
   }
-  async #consumeSse(response, signal, context) {
+  async #consumeSse(response, signal, context, acceptEndpoint = false) {
     if (response.body === null) return;
-    const parser = new NativeSseParser(this.#state.maxResponseBytes);
+    const parser = new NativeSseParser(this.#state.maxResponseBytes, acceptEndpoint);
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const reader = response.body.getReader();
     this.#readers.add(reader);
@@ -258,6 +322,19 @@ export class HttpTransport {
   }
   #emitEvents(messages, context) {
     for (const message of messages) {
+      if (message.event === "endpoint") {
+        const endpoint = new URL(message.data, this.#url);
+        const resource = new URL(this.#url);
+        if (!["http:", "https:"].includes(endpoint.protocol) || endpoint.origin !== resource.origin
+          || endpoint.username || endpoint.password || endpoint.hash) throw new Error("Unsafe legacy SSE endpoint");
+        if (this.#endpoint !== undefined && this.#endpoint !== endpoint.href)
+          throw new Error("Legacy SSE endpoint changed during the active connection");
+        this.#endpoint = endpoint.href;
+        this.#resolveEndpoint?.(endpoint.href);
+        this.#resolveEndpoint = undefined;
+        this.#rejectEndpoint = undefined;
+        continue;
+      }
       this.#emit(context === undefined ? message.data : context.validate(message.data, true));
       if (context?.completed) return;
     }

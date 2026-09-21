@@ -402,8 +402,14 @@ export declare class StdioTransport implements McpTransport {
 import type { OAuthClientProviderOptions } from "./oauth/index.js";
 export type { OAuthClientProvider, OAuthClientProviderOptions, OAuthSessionStore } from "./oauth/index.js";
 export type HttpTransportFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
+export declare class HttpTransportError extends Error {
+  readonly status: number;
+  readonly method: "GET" | "POST" | "DELETE";
+  constructor(message: string, status: number, method: "GET" | "POST" | "DELETE");
+}
 export interface HttpTransportOptions {
   url: string;
+  mode?: "streamable-http" | "sse";
   headers?: RequestInit["headers"];
   fetch?: HttpTransportFetch;
   oauth?: OAuthClientProviderOptions;
@@ -509,7 +515,7 @@ export interface OAuthDiscoveryCache {
   delete?(resourceUrl: string): void | Promise<void>;
 }
 export interface OAuthMetadataDiscoveryOptions { fetch?: OAuthMetadataFetch; cache?: OAuthDiscoveryCache; }
-export interface OAuthMetadataLookupOptions { resourceMetadataUrl?: string | URL; }
+export interface OAuthMetadataLookupOptions { resourceMetadataUrl?: string | URL; signal?: AbortSignal; }
 export declare class OAuthMetadataDiscovery {
   constructor(options?: OAuthMetadataDiscoveryOptions);
   discover(resourceUrl: string | URL, options?: OAuthMetadataLookupOptions): Promise<OAuthDiscoveryResult>;

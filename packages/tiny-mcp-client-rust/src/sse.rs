@@ -3,9 +3,11 @@
 pub struct SseMessage {
     pub data: Vec<u16>,
     pub id: Option<Vec<u16>>,
+    pub event: Option<Vec<u16>>,
 }
 pub struct SseParser {
     max_event_bytes: usize,
+    accept_endpoint: bool,
     buffer: Vec<u16>,
     buffer_bytes: usize,
     skip_lf: bool,
@@ -34,6 +36,7 @@ impl SseParser {
         }
         Ok(Self {
             max_event_bytes,
+            accept_endpoint: false,
             buffer: Vec::new(),
             buffer_bytes: 0,
             skip_lf: false,
@@ -47,6 +50,10 @@ impl SseParser {
             has_event_id: false,
             last_event_id: None,
         })
+    }
+    pub fn with_endpoint_events(mut self) -> Self {
+        self.accept_endpoint = true;
+        self
     }
     pub fn last_event_id(&self) -> Option<Vec<u16>> {
         self.last_event_id.clone()
@@ -123,14 +130,19 @@ impl SseParser {
                 self.last_event_id = Some(self.event_id.clone());
             }
             if self.has_data
-                && self
-                    .event_type
-                    .as_ref()
-                    .is_none_or(|event| text_is(event, "message"))
+                && self.event_type.as_ref().is_none_or(|event| {
+                    text_is(event, "message")
+                        || (self.accept_endpoint && text_is(event, "endpoint"))
+                })
             {
                 messages.push(SseMessage {
                     data: std::mem::take(&mut self.data),
                     id: self.has_event_id.then(|| self.event_id.clone()),
+                    event: self
+                        .event_type
+                        .as_ref()
+                        .filter(|event| text_is(event, "endpoint"))
+                        .cloned(),
                 });
             }
             self.reset_event();

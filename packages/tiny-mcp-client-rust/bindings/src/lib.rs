@@ -724,7 +724,7 @@ pub struct NativeSseParser {
 #[napi]
 impl NativeSseParser {
     #[napi(constructor)]
-    pub fn new(limit: Option<f64>) -> Result<Self> {
+    pub fn new(limit: Option<f64>, accept_endpoint: Option<bool>) -> Result<Self> {
         let limit = limit.unwrap_or(16.0 * 1024.0 * 1024.0);
         if !limit.is_finite()
             || limit.fract() != 0.0
@@ -734,8 +734,13 @@ impl NativeSseParser {
                 "SSE event byte limit must be a positive safe integer",
             ));
         }
+        let parser = SseParser::new(limit as usize).map_err(napi::Error::from_reason)?;
         Ok(Self {
-            state: RefCell::new(SseParser::new(limit as usize).map_err(napi::Error::from_reason)?),
+            state: RefCell::new(if accept_endpoint.unwrap_or(false) {
+                parser.with_endpoint_events()
+            } else {
+                parser
+            }),
         })
     }
     #[napi(getter)]
@@ -756,6 +761,9 @@ impl NativeSseParser {
                     let mut fields = vec![("data", Value::String(message.data))];
                     if let Some(id) = message.id {
                         fields.push(("id", Value::String(id)));
+                    }
+                    if let Some(event) = message.event {
+                        fields.push(("event", Value::String(event)));
                     }
                     object(fields)
                 })

@@ -26,4 +26,4 @@ export { createSdkTestPair, createTestPair } from "./sdk.js";
 export { parseBearerWwwAuthenticateHeader, OAuthMetadataDiscovery, discoverOAuthMetadata,
   resolveAuthorizationServerMetadataUrl, resolveProtectedResourceMetadataUrl } from "./oauth-discovery.js";
 export { fetchMcpResponse } from "./oauth/http.js";
-export { HttpTransport } from "./http-transport.js";
+export { HttpTransport, HttpTransportError } from "./http-transport.js";

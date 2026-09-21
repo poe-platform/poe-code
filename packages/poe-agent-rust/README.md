@@ -251,3 +251,12 @@ transport rejects work after disposal, retires late session creations, awaits
 notification callbacks and reports cleanup failures through its closed result.
 These lifecycle protections are stronger than the current original adapter.
 Wider process/platform and performance acceptance remain incomplete.
+
+
+`gitContextPlugin(cwd)` adds current Git status and the last five commits to the
+system prompt, preserving other prompt fields. Failed commands contribute empty
+sections. It uses the owned Rust subprocess runner in the same addon; Rust joins
+coerced sections with exact UTF16 and an 8,388,608-unit output bound. The public
+package now exposes every runtime export from the original agent, and its public
+function signatures pass bidirectional reference checks. This export checkpoint
+does not complete wider dependency, platform or performance acceptance.

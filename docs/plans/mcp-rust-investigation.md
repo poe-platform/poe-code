@@ -5289,3 +5289,34 @@ Publication remains unverified. Concurrent safe-bash/OAuth commits preserved.
 Continuous09:32:00–09:41:36 adds576s,total100249s (27.85h). Minimum fulfilled; wider
 agent-spawn/toolcraft/platform/performance acceptance and later Python remain
 incomplete. Continue accounting after09:41:36 UTC.
+
+### Agent exports and reusable subprocess binding, 2026-09-21 09:49 UTC
+
+Delivered8bbf3b56b comments explain intentional terminal-only tool generators;
+whole owned-agent host ESLint now passes without changing runtime behavior.
+Delivered2552d9438 extracts agent-spawn command bindings into a reusable module,
+retaining the same exported native command/timing operations and shared number
+semantics. Agent-spawn maintained Rust/native/reference310cases/11files,types and
+fmt/clippy pass; exact remote-main2552d94386440ad64ed8a21c18ca09b74b596352 verified.
+
+Additive gitContextPlugin reuses that binding and host subprocess adapter in the
+same agent addon. Native core joins host-coerced prompt sections preservingUTF16,
+with8388608output units bound. Status/log calls execute together, failed calls
+contribute empty strings, and spread/coercion effects remain in Node. New missing
+core/export reds precede implementation. Maintained61 Rust cases,106native groups,
+441original references/28files,complete bidirectional original public function
+exports,fmt/clippy,whole owned-host ESLint and diff checks pass. Uncached maintained
+closure113workspaces/37builds/341edges passes. Packed audit163JS/declaration files,
+one addon,zero runtime groups/imports with explicit SDK development exception.
+Direct/packed16MiB old-space workers each complete32actual Git prompts/64commands
+and16384format checks without external package imports. Finite artifact evidence;
+no Git subprocess speed or full memory/platform acceptance claim. Evidence
+out/rust-poe-agent-git-context-*,out/rust-agent-spawn-command-reuse-*.
+
+Builder7d0c77475 exact remote-main verified,release35584755704 canceled. Registry
+35583768081 in_progress; reusable-command release35585030348 pending. Publication
+remains unverified; concurrent original OAuth/safe-bash work preserved. Missing
+providers/task-list/poe-code-config/agent-harness-tools Rust counterparts and wider
+spawn/runtime/performance acceptance remain; Python remains architectural follow-up.
+Continuous09:41:36–09:49:55 adds499s,total100748s (27.99h). Minimum fulfilled without
+claiming goal completion. Continue accounting after09:49:55 UTC.

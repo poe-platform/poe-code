@@ -91,3 +91,6 @@ writeFileSync(
     "./acp-types.js"
   )
 );
+
+for (const name of ["run-command.js", "run-command.d.ts"])
+  copyFileSync(new URL("../agent-spawn-rust/src/" + name, root), new URL("spawn-" + name, dist));

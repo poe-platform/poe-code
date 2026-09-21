@@ -117,3 +117,22 @@ pub fn audit_record<T>(timestamp: T, event: Audit<T>) -> crate::transcript::Node
     }
     Node::Object(fields)
 }
+
+/// Join host-coerced Git context sections while retaining all UTF16 units.
+pub fn git_context(parts: &[Vec<u16>]) -> Result<Vec<u16>, &'static str> {
+    let length = parts
+        .iter()
+        .try_fold(parts.len().saturating_sub(1), |sum, part| {
+            sum.checked_add(part.len())
+        })
+        .filter(|length| *length <= 8388608)
+        .ok_or("Git context exceeds the native output limit.")?;
+    let mut output = Vec::with_capacity(length);
+    for (index, part) in parts.iter().enumerate() {
+        if index > 0 {
+            output.push(10);
+        }
+        output.extend_from_slice(part);
+    }
+    Ok(output)
+}

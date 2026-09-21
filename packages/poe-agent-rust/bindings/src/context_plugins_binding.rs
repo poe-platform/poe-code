@@ -148,3 +148,15 @@ pub fn map_agent_audit_record<'env>(
     let value = super::transcript_binding::encode(env, node)?;
     Ok(unsafe { Unknown::from_raw_unchecked(env.raw(), value) })
 }
+
+#[napi]
+pub fn agent_git_context(parts: Vec<Utf16String>) -> Result<Utf16String> {
+    core::git_context(
+        &parts
+            .into_iter()
+            .map(|part| part.to_vec())
+            .collect::<Vec<_>>(),
+    )
+    .map(Into::into)
+    .map_err(napi::Error::from_reason)
+}

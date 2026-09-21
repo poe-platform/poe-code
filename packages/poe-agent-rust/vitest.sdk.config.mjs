@@ -157,7 +157,8 @@ export default defineConfig({
             "poe-agent-plugin-scratchpad",
             "poe-agent-plugin-audit-log",
             "poe-agent-plugin-system-prompt",
-            "poe-agent-plugin-environment"
+            "poe-agent-plugin-environment",
+            "poe-agent-plugin-git-context"
           ]);
           const filtered = ts.factory.updateSourceFile(
             source,
@@ -171,7 +172,13 @@ export default defineConfig({
             )
           );
           const output =
-            ts.createPrinter().printFile(filtered) +
+            ts
+              .createPrinter()
+              .printFile(filtered)
+              .replace(
+                'vi.mock("@poe-code/agent-spawn"',
+                "vi.mock(" + JSON.stringify(path("dist/spawn-run-command.js"))
+              ) +
             `\nimport nativeScratch from ${JSON.stringify(path("dist/plugin-scratchpad.js"))};\nimport nativeMaximum from ${JSON.stringify(path("dist/plugin-max-iterations.js"))};\nif(scratchpad!==nativeScratch||maxIterations!==nativeMaximum)throw new Error("Built-in contracts must execute the Rust package");\nimport nativeAudit from ${JSON.stringify(path("dist/plugin-audit-log.js"))};\nimport nativeEnvironment from ${JSON.stringify(path("dist/plugin-environment.js"))};\nimport nativeSystemPrompt from ${JSON.stringify(path("dist/plugin-system-prompt.js"))};\nif(auditLog!==nativeAudit||environment!==nativeEnvironment||systemPromptPlugin!==nativeSystemPrompt)throw new Error("Context contracts must execute the Rust package");`;
           return { code: output, map: null };
         }
@@ -216,6 +223,7 @@ export default defineConfig({
           };
         if (
           [
+            path("../poe-agent/src/index.test.ts"),
             path("../poe-agent/src/plugins/registry.test.ts"),
             path("../poe-agent/src/plugins/resolve-plugins.test.ts")
           ].includes(id)
@@ -370,6 +378,7 @@ export default defineConfig({
       resolveId(name, importer) {
         if (
           [
+            path("../poe-agent/src/index.test.ts"),
             path("../poe-agent/src/plugins/registry.test.ts"),
             path("../poe-agent/src/plugins/resolve-plugins.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"),
@@ -384,7 +393,15 @@ export default defineConfig({
           ].includes(importer)
         ) {
           const modules = new Map([
+            ["./index.js", "index"],
             ["./registry.js", "plugin-registry"],
+            ["./poe-agent-plugin-openai-responses.js", "plugin-openai-responses"],
+            ["./poe-agent-plugin-openai-chat-completions.js", "plugin-openai-chat-completions"],
+            ["./poe-agent-plugin-git-context.js", "plugin-git-context"],
+            ["./plugins/poe-agent-plugin-git-context.js", "plugin-git-context"],
+            ["./runtime/transcript.js", "transcript"],
+            ["./runtime/resolve-provider.js", "providers"],
+            ["./runtime/tool-names.js", "tool-names"],
             ["./resolve-plugins.js", "resolve-plugins"],
             ["../runtime/provider-metadata.js", "provider-metadata"],
             ["./poe-agent-plugin-web.js", "plugin-web"],
@@ -408,7 +425,10 @@ export default defineConfig({
             ["../runtime/acp-core.js", "acp-core"],
             ["../runtime/plugin-setup.js", "plugin-setup"]
           ]);
-          if (modules.has(name)) return path("dist/" + modules.get(name) + ".js");
+          const normalized = name.startsWith("./plugins/")
+            ? "./" + name.slice("./plugins/".length)
+            : name;
+          if (modules.has(normalized)) return path("dist/" + modules.get(normalized) + ".js");
         }
         if (
           importer === path("../poe-agent/src/runtime/plugin-api-impl.test.ts") ||
@@ -464,6 +484,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/index.test.ts"),
       path("../poe-agent/src/agent.test.ts"),
       path("../poe-agent/src/agent-session.test.ts"),
       path("../poe-agent/src/agent.mcp-spawn.test.ts"),

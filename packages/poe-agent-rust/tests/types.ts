@@ -266,3 +266,8 @@ void [
   memoryFactoryA,
   memoryFactoryB
 ];
+
+const completePublicApiA: typeof original = own;
+const completePublicApiB: Pick<typeof own, keyof typeof original> =
+  null as unknown as typeof original;
+void [completePublicApiA, completePublicApiB];

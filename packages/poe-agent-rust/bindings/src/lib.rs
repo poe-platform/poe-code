@@ -294,3 +294,6 @@ pub mod caller_ack_binding;
 pub mod embedded_acp;
 #[path = "../../../user-error-rust/bindings/src/lib.rs"]
 pub mod embedded_user_error;
+
+#[path = "../../../agent-spawn-rust/bindings/src/command_binding.rs"]
+pub mod embedded_command;

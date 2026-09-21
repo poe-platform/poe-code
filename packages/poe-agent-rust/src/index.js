@@ -82,3 +82,5 @@ export * from "./resolve-plugins.js";
 export * from "./agent.js";
 export * from "./agent-session.js";
 export { createProcessSpawnSession, createInMemorySpawnSession, createInMemoryAcpTransport } from "./agent-host.js";
+
+export { default as gitContextPlugin } from "./plugin-git-context.js";

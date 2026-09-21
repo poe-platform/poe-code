@@ -1,5 +1,5 @@
 import { Volume } from "memfs";
-import { expect, it } from "vitest";
+import { expect, it, onTestFinished } from "vitest";
 import { Shell, MemoryFileSystem } from "virtual-bash";
 import { docxCommands } from "virtual-bash/commands/docx";
 import { Document, Inches, createDocxInspectionCommandEngine, editDocumentFields, editDocumentTables, inspectDocumentFields, replaceDocumentText, writeArchive } from "./index.js";
@@ -71,7 +71,9 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
     const path = operation === "table-add" ? "tables add --paragraph 1 --rows 1 --cols 2" : operation === "table-set" ? "tables set --table 1 --cell A1 --text Revised"
       : operation === "field-list" ? "fields list" : operation === "field-add" ? "fields add --paragraph 1 --kind PAGE --result 9" : "fields set --field 1 --kind NUMPAGES --result '  Revised  ' --update true";
-    const result = await new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) })).exec(`docx ${path} /input --scope ${scope} ${operation === "field-list" ? "--json" : "--output - > /output"}`);
+    const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
+    onTestFinished(() => shell.dispose());
+    const result = await shell.exec(`docx ${path} /input --scope ${scope} ${operation === "field-list" ? "--json" : "--output - > /output"}`);
     expect(result.exitCode, result.stderr).toBe(0);
     if (operation === "field-list") {
       const envelope = JSON.parse(result.stdout);
@@ -118,13 +120,14 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   expect(memory.readFileSync("/input")).toEqual(Buffer.from(input));
 });
 
-for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const) for (const scope of ["body", "headers"] as const) for (const route of ["sdk", "shell"] as const) for (const variant of ["complex", "choice", "fallback", "process", "inert"] as const) it(`${route} reads and ${variant === "complex" ? "edits" : "rejects affected edits and preserves"} encoded ${variant} fields in ${scope}; ${kind} strict=${strict}`, async () => {
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const) for (const scope of ["body", "headers"] as const) for (const route of ["sdk", "shell"] as const) for (const variant of ["complex", "choice", "fallback", "process", "inert"] as const) it(`${route} reads and ${variant === "inert" ? "rejects affected edits and preserves" : "edits"} encoded ${variant} fields in ${scope}; ${kind} strict=${strict}`, async () => {
   const { input, members, main, header, field, table, markers, w } = await fixture(strict, kind, true, variant);
-  const refusal = variant !== "complex";
+  const refusal = variant === "inert";
   const target = scope === "body" ? main : header;
   const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "" });
   const fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
   const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
+  onTestFinished(() => shell.dispose());
   const read = route === "sdk" ? await inspectDocumentFields(input, { scope }, textContext) : JSON.parse((await shell.exec(`docx fields list /input --scope ${scope} --json`)).stdout).data;
   expect(read.items).toHaveLength(1);
   expect(read.items[0]).toMatchObject({ kind: variant === "inert" ? "INCLUDETEXT" : "PAGE", result: variant === "inert" ? "Inactive" : "7", form: variant === "complex" ? "complex" : "simple", location: { value: { part: "/" + decodeURI(target) } } });
@@ -160,6 +163,12 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
     for (const [name, bytes] of members) if (name !== target) expect(parts.get(name), name).toEqual(bytes);
     const xml = new TextDecoder().decode(parts.get(target));
     expect(xml).toContain(table); for (const marker of markers) expect(xml).toContain(marker);
+    if (variant === "choice" || variant === "fallback") {
+      expect(xml).toContain('<w:fldSimple w:instr=" INCLUDETEXT file:///never-acquire "><w:r><w:t>Inactive</w:t></w:r></w:fldSimple>');
+      expect(xml).toContain('<mc:Choice Requires="' + (variant === "choice" ? "w" : "f") + '">');
+      expect(xml).toContain('<mc:Fallback>');
+    }
+    if (variant === "process") expect(xml).toContain('<f:wrapper>');
     const tree = nodes(xmlStructure(parts.get(target)!));
     if (variant === "complex") {
       expect(tree.filter(n => n.name === `{${w}}instrText`).map(n => n.children.join("")).join("").trim()).toBe("NUMPAGES");
@@ -195,6 +204,7 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   } else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
     const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
+    onTestFinished(() => shell.dispose());
     const add = category === "toc" ? "toc add --title Contents --result Cached --levels 1-3" : "captions add --label Plate --text Coast " + (category === "static" ? "--static true" : "--result Cached");
     const result = await shell.exec(`docx ${add} /input --scope ${scope} --paragraph 1 --output - > /added`);
     expect(result.exitCode, result.stderr).toBe(0); expect(result.stdout).toBe("");

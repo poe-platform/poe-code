@@ -94,7 +94,9 @@ function validateServer(server: RemoteMcpServer, maxTools: number): void {
 
 export function snapshotRemoteMcpServer(server: RemoteMcpServer): RemoteMcpServer {
   return {
-    ...server, headers: snapshotHttpTransportHeaders(server.headers),
+    ...server, name: server.name, url: server.url, transport: server.transport,
+    protocolVersion: server.protocolVersion, instructions: server.instructions,
+    headers: snapshotHttpTransportHeaders(server.headers),
     ...(server.oauth === undefined ? {} : { oauth: snapshotOAuthOptions(server.oauth) }),
     ...(server.tools === undefined ? {} : { tools: structuredClone([...server.tools]) })
   };

@@ -905,3 +905,15 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Inspect actual management status/error JSON and successful summary screenshot;
     purge owned synthetic evidence. Selected callback identity is preserved;
     private receiver binding for fetch/warning/input callbacks is host-owned.
+
+79. Combine hidden raw SDK registry name/URL/transport/protocol/instructions/header/
+    OAuth fields across actual HTTP/SSE schema, registry, generated-command and
+    resource routes. Mutate caller fields and original header objects during the
+    first selected fetch. Eight complete operations must retain original identity,
+    pins, explicit guidance and credentials, full text+blob resources/two content
+    blocks/falsey JSON/nested metadata/exact005930. Require eight capture points,
+    thirty MCP POSTs/forty-five requests and original provider calls, five HTTP
+    retirements/five server-observed SSE closes. Six supplied empty-schema routes
+    and generated help remain offline. Inspect actual guidance/help and successful
+    summary screenshot; purge owned evidence. JSON configuration remains subject
+    to its separate JSON-only validation contract.

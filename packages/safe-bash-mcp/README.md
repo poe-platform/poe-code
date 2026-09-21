@@ -29,7 +29,9 @@ input/output schemas and other metadata. Discovered snapshots also include
 server identity, capabilities and instructions.
 Discovery captures server fields, headers, supplied tools and option handles
 before waiting; registry resolution captures every entry before its first
-connection. Declared discovery policies and host fetch, cache, warning, input
+connection. Declared registry identity, transport/version pins, instructions and
+credential handles survive nonenumerable SDK fields, including direct resource
+connections. Declared discovery policies and host fetch, cache, warning, input
 handler and signal handles survive nonenumerable SDK options through commands,
 resources, authentication, artifacts and management operations. Function handles
 retain their identity; hosts bind methods that require a receiver. Later caller edits cannot rename results, change request headers,

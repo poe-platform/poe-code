@@ -13,6 +13,7 @@ const redirects = new Map(
     ["client/auth-store-session-store.js", "session-store.js"],
     ["client/loopback-authorization.js", "loopback.js"],
     ["client/token-endpoint.js", "tokens.js"],
+    ["client/token-grant.js", "token-grant.js"],
     ["client/authorization-state.js", "state.js"],
     ["client/pkce.js", "pkce.js"],
     ["client/scope.js", "scope.js"],

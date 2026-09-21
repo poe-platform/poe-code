@@ -367,3 +367,5 @@ pub fn token_auth_plan(
 pub mod registration_binding;
 
 pub mod transaction_binding;
+
+pub mod grant_binding;

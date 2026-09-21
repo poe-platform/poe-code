@@ -4338,3 +4338,34 @@ September4 runs and is not evidence of successful current release. Continuous ac
 05:52:38–05:54:27 adds109s, bringing conservative actual effort to87,750s (24.38h).
 Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue after
 05:54:27 UTC.
+
+### OAuth raw token imports, 2026-09-21 05:57 UTC
+
+Portable/native and complete original SDK reds precede public parseOAuthTokenGrant,
+its own declarations and direct-module reference redirect. The Rust core admits
+bounded JSON without invoking credential accessors/serialization, trims required
+access/optional refresh values, enforces Bearer, validates all supplied safe-integer
+timing fields and normalizes nonempty supplied scopes. It retains only relevant
+fields after admission, rather than holding a second full extension tree. Node
+Headers enforces compatible credential header admission before timing evaluation.
+
+Staged native effects preserve option getter order, callback error identity, host
+addition semantics and timing-error precedence. Absolute milliseconds/seconds
+retain precedence while every overridden relative/absolute field still validates.
+Clock callbacks run once only for relative lifetime without issuedAt. Unlimited
+imports avoid the clock. All51 Rust cases,86 native groups and all28 original raw
+grant cases pass. Bidirectional declaration usage, lint/fmt/clippy and maintained
+uncached113-workspace/8-build/338-edge closure pass. Complete package unit route
+still fails31 required resource identity/import cases:406/437 pass.
+
+Direct/packed16MiB workers each add8192 token imports to cumulative workloads. Audit
+21 JS/declaration files, one addon and zero npm runtime groups. Endpoint heap~10.2–
+11.1MB and parent-inclusive RSS establish no peak/leak/memory advantage. Five
+alternating warmed4096-import rounds measure original~9.49–13.84ms, Rust~22.25–
+25.50ms: this boundary-heavy small API fails the speed gate. No full package or
+performance acceptance claimed. Evidence out/rust-oauth-token-grant-*.
+
+Host cancellation03eea691e is pushed. Successful current root publication remains
+unverified. Continuous active05:54:27–05:57:48 adds201s, bringing conservative actual
+effort to87,951s (24.43h). Minimum effort fulfilled; full rewrite/acceptance
+incomplete. Continue active work after05:57:48 UTC.

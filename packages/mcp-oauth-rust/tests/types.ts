@@ -152,3 +152,9 @@ void [importedRegistrationOptions, pendingRegistrationSession];
 const explicitGrant: Promise<import("../dist/index.js").StoredOAuthTokens | void> | undefined =
   supplied.authenticate?.({ requestUrl: new URL("https://resource.example/mcp"), fetch });
 void explicitGrant;
+
+import { parseOAuthTokenGrant } from "../dist/index.js";
+import { parseOAuthTokenGrant as referenceTokenGrant } from "../../mcp-oauth/src/client/token-grant.js";
+const grantImportA: typeof referenceTokenGrant = parseOAuthTokenGrant;
+const grantImportB: typeof parseOAuthTokenGrant = referenceTokenGrant;
+void [grantImportA, grantImportB];

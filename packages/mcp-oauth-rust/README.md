@@ -40,6 +40,11 @@ credential store. URI-specific filenames and Keychain accounts match the origina
 package, including resource normalization and machine-bound encrypted documents.
 Imported grants retain their original client and resource, anchor relative lifetimes at import,
 and yield to persisted rotations and revocations.
+`parseOAuthTokenGrant(raw, { issuedAt, expiresAt, now })` admits bounded raw
+Bearer responses, validates every supplied timing field, anchors relative expiry
+once and returns independent normalized credentials. Absolute overrides retain
+precedence while invalid overridden timing still rejects. Clock callback failures
+preserve their original cause.
 Optional persistence namespaces isolate profiles sharing a resource or issuer.
 Session transactions use the backing credential lock across independent provider instances.
 Session admission runs in Rust and client registration loads retain all validated metadata.

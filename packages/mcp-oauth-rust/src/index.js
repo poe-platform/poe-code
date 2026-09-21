@@ -14,3 +14,5 @@ export { createJwksTokenVerifier } from "./jwks.js";
 export { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./registration.js";
 
 export { withOAuthSessionTransaction } from "./transaction.js";
+
+export { parseOAuthTokenGrant } from "./token-grant.js";

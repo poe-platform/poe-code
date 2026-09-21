@@ -253,3 +253,10 @@ export declare function withOAuthSessionTransaction<T>(
   operation: () => Promise<T>,
   options?: { signal?: AbortSignal; timeoutMs?: number }
 ): Promise<T>;
+
+export interface OAuthTokenGrantImportOptions {
+  readonly expiresAt?: number | null;
+  readonly issuedAt?: number;
+  readonly now?: () => number;
+}
+export declare function parseOAuthTokenGrant(value: unknown, options?: OAuthTokenGrantImportOptions): StoredOAuthTokens;

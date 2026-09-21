@@ -52,7 +52,6 @@
         ]
       },
       {
-        "whenDefined": "mcpServers",
         "args": [
           "--allowed-mcp-server-names",
           {
@@ -60,7 +59,8 @@
             "join": ","
           },
           "--skip-trust"
-        ]
+        ],
+        "when": "mcpServers"
       },
       {
         "args": [

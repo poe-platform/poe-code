@@ -423,7 +423,7 @@ output, discovery and artifact contracts are covered by the source map.
 | `tests/verify-npm-publication.test.mjs` | Excluded: binary/publication route |
 | `tests/version-consistency.test.ts` | Complete read |
 
-## Supporting files and remaining gates
+## Supporting files and completion reconciliation
 
 Protocol-era server fixtures, OAuth refresh-process fixtures, CLI list and
 configuration fixtures are reconciled in the source map. General runtime/OAuth
@@ -439,6 +439,6 @@ Generated-tool scalar CLI/SDK policies, cleanup/error precedence checks and
 public consumer types are reconciled by later increments in the main ledger
 and acceptance audit. Declared operation-level policy ownership is now reconciled
 through the later validated fixes and current-build workflow. Any further change
-requires updated scoped evidence. The requested fourteen-hour meaningful-work
-duration and final completion reconciliation remain pending; this inventory does
-not close those gates or claim remote delivery.
+requires updated scoped evidence. The acceptance audit now records completed
+fourteen-hour meaningful-work and final reconciliation gates. This inventory
+retains scoped coverage evidence and does not claim remote delivery.

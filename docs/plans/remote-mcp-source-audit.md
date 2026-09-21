@@ -9,7 +9,8 @@ Freshness recheck on 2026-09-21 confirms remote HEAD is still this pin.
 The current GitHub closed-issue inventory remains121 with the exact same issue
 number set; none was updated after this goal began at2026-09-21T02:00:27Z.
 Requirement and public option reconciliation is recorded separately in
-`remote-mcp-acceptance-audit.md`; its remaining gates are not completed by this map.
+`remote-mcp-acceptance-audit.md`; its final reconciliation and fourteen-hour gates
+are complete locally and supported by the separate ledger evidence.
 
 ## Reviewed source groups
 
@@ -73,8 +74,9 @@ Additional complete reads after the legacy-revision conformance increment:
   current if subsequent changes alter the public surfaces.
 - Continue updating the acceptance map after operation-level findings and
   identify unsupported generic behavior explicitly.
-- Continue meaningful implementation/audit work through the requested fourteen
-  hours. Closed issue inventory coverage alone is not completion.
+- At least fourteen hours of meaningful implementation/audit work and final
+  acceptance reconciliation are complete. Issue inventory coverage alone
+  is not the basis for completion.
 
 ## Delivery state
 

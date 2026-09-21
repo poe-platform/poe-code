@@ -70,6 +70,12 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
       const scope = publicValue(refs.scope);
       const redirectUri = publicValue(refs.redirectUri);
       const accessToken = read(refs.accessToken);
+      if (accessToken !== undefined) {
+        try {
+          if (accessToken.trim() === "") throw new Error("Empty OAuth access token");
+          new Headers({ Authorization: `Bearer ${accessToken.trim()}` });
+        } catch { throw new Error(`Invalid OAuth access token in ${refs.accessToken.env}`); }
+      }
       const refreshToken = read(refs.refreshToken);
       const expiry = readTiming(refs.expiresAt);
       const lifetime = readTiming(refs.expiresIn);

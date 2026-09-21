@@ -93,6 +93,8 @@ Closed issue inventory fetched 2026-09-20: 121 closed issues (pull requests excl
 
 - Declarative relative-import fields now expose optional expiresIn/issuedAt environment references. Init emits empty EXPIRES_IN/ISSUED_AT guidance; version-1 configurations without these references remain valid. Binding normalizes expiry once before asking hosts for stores, preserves absolute precedence, and rejects orphan/malformed/overflowing timing inputs without revealing values. Nine regressions failed before implementation; all 214 library tests, package lint/typecheck and the selected maintained 22-build closure passed. Built-SDK QA confirmed fresh, delayed and absolute imports retain binding expiry with no redemption, and artifacts/templates contain no synthetic credentials. Init env and management help screenshots were visually inspected. Temporary evidence was purged; raw token-response import and management persistence/recovery remain pending.
 
+- OAuth access-token binding preflight now rejects whitespace-only and invalid HTTP header imports before any server host-store hook runs. Four regressions reproduced both store hooks being invoked for a malformed second server; all 218 library tests, package lint/typecheck and selected maintained 22-build closure pass after the fix. Diagnostics expose only the environment reference. No delivery or release is claimed.
+
 ## Issue validation status
 
 Every row remains unverified until source, discussion/fix and applicable local regression evidence are examined. Transport-specific browser/stdio features must still be examined for generic lessons (ownership, concurrency, identity, cleanup) rather than dismissed by title.

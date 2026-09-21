@@ -167,3 +167,14 @@ it("refreshes an imported grant through actual discovery and reuses its persiste
   expect(metadataRequests).toHaveLength(2);
   expect(store.save.mock.calls.at(-1)?.[1].tokens?.refreshToken).toBe("rotated-refresh");
 });
+
+it.each(["private-token\nInjected: yep", "private-token\u0000", "private-token世界", "   "])("preflights malformed OAuth access tokens before any host store hook: %#", token => {
+  const sessionStore = vi.fn(() => memoryStore());
+  const config = initRemoteMcpConfiguration([{ ...server, auth: oauth }, { ...server, name: "second", auth: oauth }]).configuration;
+  let error: unknown;
+  try { bindRemoteMcpConfiguration(config, { env: { APP_ID: "client", MCP_SECOND_ACCESS_TOKEN: token }, oauth: { sessionStore } }); }
+  catch (caught) { error = caught; }
+  expect(error).toBeInstanceOf(Error);
+  expect(String(error)).not.toContain("private-token");
+  expect(sessionStore).not.toHaveBeenCalled();
+});

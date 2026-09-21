@@ -1,3 +1,5 @@
+import { assertFormattingHistoryEditable } from "./revision-markup.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 import { DocumentView } from "./document-model.js";
 import { Settings } from "./settings-model.js";
 import { Comments } from "./review-model.js";
@@ -675,6 +677,7 @@ export class ModelStore {
     let insertedPath: readonly number[] | undefined;
     this.change(ref.part, (xml) => {
       const parent = this.node(ref);
+      assertFormattingHistoryEditable(xml.root, parent, activeXmlChildren(xml, this.context.budget), this.context.budget);
       const markup = `<bm:p xmlns:bm="${parent.namespace}">${styleId ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(styleId)}"/></bm:pPr>` : ""}${text ? paragraphTextRun(parent.namespace, text) : ""}</bm:p>`;
       if (parent.localName === "body") { insertedPath = xml[appendBodyBlocks](parent, markup); return; }
       const section = parent.children.find(
@@ -726,6 +729,7 @@ export class ModelStore {
     ).body;
     this.change(ref.part, (xml) => {
       const owner = this.node(ref);
+      assertFormattingHistoryEditable(xml.root, owner, activeXmlChildren(xml, this.context.budget), this.context.budget);
       if (owner.localName === "body") { insertedPath = xml[appendBodyBlocks](owner, markup); return; }
       xml.insertChildren(
         owner,
@@ -748,6 +752,7 @@ export class ModelStore {
     if (typeof text !== "string") throw new InputTypeError("Expected cell text.");
     this.change(ref.part, (xml) => {
       const cell = this.node(ref);
+      assertFormattingHistoryEditable(xml.root, cell, activeXmlChildren(xml, this.context.budget), this.context.budget);
       const children = activeModelChildren(this, ref.part)(cell);
       if (children.some((child) => child.namespace !== cell.namespace || !["tcPr", "p"].includes(child.localName)))
         throw new UnsupportedEditError("Whole cell text cannot discard rich blocks.");

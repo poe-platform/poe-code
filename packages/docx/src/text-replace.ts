@@ -1,5 +1,5 @@
 import { documentDialects, dialectForNamespace } from "./dialect.js";
-import { assertOutsideRevisionRanges, revisionInfo } from "./revision-markup.js";
+import { assertOutsideRevisionRanges, revisionInfo, containsActiveTableHistory } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
@@ -134,7 +134,7 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
     const rowProperties = ancestors.filter(n => n.namespace === w && n.localName === "tr")
       .flatMap(row => activeChildren(row).filter(props => props.namespace === w && props.localName === "trPr"));
     let unsupported = ancestors.some(n => lockedOwners.has(n) || !!revisionInfo(n) && !["ins", "del"].includes(n.localName)) ||
-      rowProperties.some(containsActiveRevision);
+      ancestors.some(owner => containsActiveTableHistory(owner, activeChildren, budget));
     const flush = () => {
       if (dummy) {
         paragraphPieces.push(...pieces);

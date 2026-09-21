@@ -80,13 +80,31 @@ export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement
   visit(root);
 }
 
+/** Native table history belongs to its property owner and affects contained edits. */
+export function containsActiveTableHistory(node: XmlElement, children: (node: XmlElement) => readonly XmlElement[], budget: DocumentBudget): boolean {
+  if (node.namespace !== documentDialects.transitional.w && node.namespace !== documentDialects.strict.w ||
+    !["tbl", "tr", "tc"].includes(node.localName)) return false;
+  const pending = children(node).filter(property => property.namespace === node.namespace &&
+    (property.localName === node.localName + "Pr" || node.localName === "tbl" && property.localName === "tblGrid"));
+  budget.charge("retainedBytes", pending.length * 8);
+  while (pending.length) {
+    const current = pending.pop()!;
+    budget.charge("work", 1);
+    if (revisionInfo(current) !== undefined) return true;
+    const active = children(current);
+    budget.charge("retainedBytes", active.length * 8);
+    for (let index = active.length - 1; index >= 0; index--) pending.push(active[index]!);
+  }
+  return false;
+}
+
 /** A model property patch cannot reconcile opaque owner or ancestor history. */
 export function assertFormattingHistoryEditable(root: XmlElement, target: XmlElement, children: (node: XmlElement) => readonly XmlElement[], budget: DocumentBudget): void {
   assertOutsideRevisionRanges(root, target, budget, [], children);
   const visit = (node: XmlElement, blocked: boolean): boolean => {
     budget.charge("work", 1);
     const active = children(node);
-    const history = node.namespace === target.namespace && (["p", "r"].includes(node.localName) || node === target) &&
+    const history = containsActiveTableHistory(node, children, budget) || node.namespace === target.namespace && (["p", "r"].includes(node.localName) || node === target) &&
       active.filter(property => property.namespace === target.namespace && ["pPr", "rPr"].includes(property.localName)).some(property =>
         children(property).some(change => {
           const revision = revisionInfo(change);

@@ -1,3 +1,5 @@
+import { assertFormattingHistoryEditable } from "./revision-markup.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 import { requireComparisonOperand } from "./comparison-operand.js";
 import { snapshotSequence } from "./numeric-index.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
@@ -172,6 +174,7 @@ export class Paragraph {
           : this.store.stylesForStory(this.ref.part).get_style_id(style, WD_STYLE_TYPE.CHARACTER);
       this.store.change(this.ref.part, (xml) => {
         const p = this.store.node(this.ref);
+        assertFormattingHistoryEditable(xml.root, p, activeXmlChildren(xml, this.store.context.budget), this.store.context.budget);
         xml.insertChildren(p, paragraphTextRun(p.namespace, text ?? "", styleId ?? undefined));
       });
       const p = this.store.node(this.ref);
@@ -193,6 +196,7 @@ export class Paragraph {
       const p = this.store.node(this.ref);
       let path: readonly number[] | undefined;
       this.store.change(this.ref.part, (editor) => {
+        assertFormattingHistoryEditable(editor.root, this.store.node(this.ref), activeXmlChildren(editor, this.store.context.budget), this.store.context.budget);
         path = editor[insertParagraphBefore](
           this.store.node(this.ref),
           `<bm:p xmlns:bm="${p.namespace}">${styleId ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(styleId)}"/></bm:pPr>` : ""}${text ? paragraphTextRun(p.namespace, text) : ""}</bm:p>`

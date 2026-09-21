@@ -3,7 +3,7 @@ import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation, type DocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace } from "./dialect.js";
-import { fieldAttribute, parseFields, type ParsedField } from "./field-parser.js";
+import { parseFields, type ParsedField } from "./field-parser.js";
 import { editFieldInstruction } from "./field-instruction.js";
 import { addDocumentFields } from "./field-creation.js";
 import { addressKey, LocationIndex, type DocumentScope } from "./location-index.js";
@@ -107,7 +107,7 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
     if (!["MERGEFIELD", "PAGE", "NUMPAGES", "REF", "PAGEREF", "SEQ", "TOC"].includes(field.kind) || field.unsafe || options.result !== undefined && field.unsupported || !field.separated)
       throw new UnsupportedEditError("Selected field result cannot be edited while preserving its structure.");
     if (request.operation === "toc.set" && field.kind !== "TOC" || request.operation === "captions.set" && field.kind !== "SEQ") throw new UnsupportedEditError("Selected field has the wrong kind.");
-    if (options.result !== undefined && [...options.result].some(c => "\t\r\n".includes(c)) && field.text.some(node => node.content.some(part => part.kind !== "text" && part.kind !== "cdata")))
+    if (options.result !== undefined && [...options.result].some(c => "\t\r\n".includes(c)) && field.text.some(node => node.localName === "t" && node.content.some(part => part.kind !== "text" && part.kind !== "cdata")))
       throw new UnsupportedEditError("Structural field text conversion cannot discard embedded XML content.");
   }
   const instructions = new Map<ParsedField, string>();
@@ -179,11 +179,7 @@ export async function editDocumentFields(input: Uint8Array, request: FieldEditRe
       let node: XmlElement = current.root;
       for (const i of resulting.get(item.location.token)!.path) node = node.children[i]!;
       const value = options.update ? "true" : "false";
-      if (fieldAttribute(node, "dirty") !== undefined) current.setAttribute(node, { namespace: node.namespace, localName: "dirty" }, value);
-      else {
-        let prefix = "field"; while (node.namespaces.has(prefix)) prefix += "x";
-        current.replaceElement(node, opening(current, node) + ` xmlns:${prefix}="${node.namespace}" ${prefix}:dirty="${value}">` + current.sourceXml(node, new Map(), true) + `</${node.name}>`);
-      }
+      current.setQualifiedAttribute(node, { namespace: node.namespace, localName: "dirty" }, value);
       current = new DocumentXmlEditor(current.serialize(), {}, undefined, budget);
     }
     editors.set(part, current);

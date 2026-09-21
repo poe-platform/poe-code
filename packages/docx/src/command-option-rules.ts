@@ -176,7 +176,8 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
     let url: URL;
     try { url = new URL(target); } catch { return reject("Link targets require absolute HTTP, HTTPS or mailto URLs."); }
     if (!["http:", "https:", "mailto:"].includes(url.protocol)) reject("Unsupported link scheme.");
-    if (url.protocol === "mailto:" ? !url.pathname || target.slice(7).startsWith("//") : !target.toLowerCase().startsWith(url.protocol + "//") || !target.slice(url.protocol.length + 2).split("/")[0] || !url.hostname || !!url.username || !!url.password)
+    const authority = target.slice(url.protocol.length + 2).split("/")[0]!.split("?")[0]!.split("#")[0]!;
+    if (url.protocol === "mailto:" ? !url.pathname || target.slice(7).startsWith("//") : !target.toLowerCase().startsWith(url.protocol + "//") || !authority || authority.includes("@") || !url.hostname || !!url.username || !!url.password)
       reject("Malformed absolute link target.");
   }
   if (["links.add", "links.set"].includes(operation) && has("bookmark")) {

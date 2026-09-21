@@ -4,6 +4,13 @@ import * as docx from "./index.js";
 import { paragraph, run, table, textContext, textFixture, w, r } from "../tests/fixtures/text.js";
 
 afterEach(() => vi.unstubAllGlobals());
+
+it.each(["https://@coast.invalid/map", "http://:@coast.invalid/map", "HTTPS://@coast.invalid/#bay"])("rejects empty HTTP user information through SDK add and set: %s", async target => {
+  const input = await textFixture('<w:p><w:hyperlink w:anchor="Overview">' + run("Map") + '</w:hyperlink></w:p>');
+  for (const operation of ["links.add", "links.set"] as const) {
+    await expect(edit(input, operation, { ...(operation === "links.add" ? { paragraph: 1, text: "Map" } : { link: 1 }), target })).rejects.toMatchObject({ code: "usage" });
+  }
+});
 const decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
 async function edit(input: Uint8Array, operation: "links.add" | "links.set" | "links.remove", options: Record<string, unknown>) {
   const volume = Volume.fromJSON({ "/output": "" });
@@ -103,6 +110,12 @@ it("rejects missing selections and stale tokens without publication", async () =
 
 it("preserves Unicode label targets and percent-encoded whitespace as inert bytes", async () => {
   const target = "https://coast.invalid/café?inset=%C2%A0%E2%80%A8%C2%85#bay";
+  const result = await edit(await textFixture(paragraph("Coast")), "links.add", { paragraph: 1, text: "Map", target });
+  expect((await docx.inspectDocumentLinks(result.bytes, {}, textContext)).items[0]!.address).toBe(target);
+});
+
+it("accepts at signs outside the HTTP authority without normalizing the target", async () => {
+  const target = "https://coast.invalid/@map?contact=team@coast.invalid#@bay";
   const result = await edit(await textFixture(paragraph("Coast")), "links.add", { paragraph: 1, text: "Map", target });
   expect((await docx.inspectDocumentLinks(result.bytes, {}, textContext)).items[0]!.address).toBe(target);
 });

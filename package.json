@@ -334,7 +334,8 @@
     "safe-bash-contracts": "*",
     "safe-bash-command-wkhtmltopdf": "*",
     "safe-bash-command-exiftool": "*",
-    "safe-bash-command-fmt": "*"
+    "safe-bash-command-fmt": "*",
+    "safe-bash-mcp": "*"
   },
   "repository": {
     "type": "git",

@@ -21,6 +21,22 @@ function fixture(client: DefaultOAuthClientProviderOptions["client"]) {
   return { fetch, session: () => session, run: (selected = discovery) => provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
     challenge: null, discovery: selected, fetch }), authorize: () => provider.authorizeRequest!({ requestUrl: new URL(resource), headers: new Headers(), fetch }) };
 }
+it.each([true, false])("preserves an explicit URL client ID through exchange and refresh (metadata support: %s)", async supported => {
+  const clientId = "https://client.example/oauth/metadata.json?application=agent%2Bone";
+  const f = fixture({ mode: "static", clientId, tokenEndpointAuthMethod: "none" });
+  expect(await f.run({ ...discovery, authorizationServerMetadata: {
+    ...discovery.authorizationServerMetadata, client_id_metadata_document_supported: supported
+  } })).toEqual({ action: "retry" });
+  expect(f.session()!.client.clientId).toBe(clientId);
+  f.session()!.tokens!.expiresAt = 0;
+  await f.authorize();
+  expect(f.fetch).toHaveBeenCalledTimes(2);
+  for (const [url, init] of f.fetch.mock.calls) {
+    expect(String(url)).toBe(`${issuer}/token`);
+    expect(new URLSearchParams(String(init?.body)).get("client_id")).toBe(clientId);
+    expect(new Headers(init?.headers).has("Authorization")).toBe(false);
+  }
+});
 it.each(["client_secret_basic", "client_secret_post"] as const)("uses configured %s during code exchange and persisted silent refresh", async tokenEndpointAuthMethod => {
   const f = fixture({ mode: "static", clientId: "client", clientSecret: "private-secret", tokenEndpointAuthMethod });
   expect(await f.run()).toEqual({ action: "retry" });

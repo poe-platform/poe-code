@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { authenticateRemoteMcpServer, generateRemoteMcpArtifact, initRemoteMcpConfiguration } from "./index.js";
 const resource = "https://resource.example/mcp", issuer = "https://auth.example";
-function fixture(publicInitialization = false, scope?: string) {
+function fixture(publicInitialization = false, scope?: string, clientId = "original") {
   const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26", auth: {
     type: "oauth", clientMode: "static", env: { clientId: "ID" }, ...(scope === undefined ? {} : { scope }), redirectUri: "http://127.0.0.1:39141/callback" } }]).configuration.servers[0];
   let callback = Promise.withResolvers<string>();
@@ -10,7 +10,7 @@ function fixture(publicInitialization = false, scope?: string) {
     const url = new URL(event.authorizationUrl), redirect = new URL(event.redirectUri);
     expect(url.searchParams.get("redirect_uri")).toBe(event.redirectUri);
     expect(url.searchParams.get("code_challenge_method")).toBe("S256");
-    expect(url.searchParams.get("client_id")).toBe("original");
+    expect(url.searchParams.get("client_id")).toBe(clientId);
     redirect.searchParams.set("code", "synthetic-code"); redirect.searchParams.set("state", url.searchParams.get("state")!);
     callback.resolve(redirect.href);
     callback = Promise.withResolvers<string>();
@@ -31,7 +31,7 @@ function fixture(publicInitialization = false, scope?: string) {
     return Response.json({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: "2025-03-26", serverInfo: { name: "synthetic", version: "1" }, capabilities: { tools: {} } } });
   });
   let session: import("mcp-oauth").StoredOAuthSession | null = null;
-  const binding = { env: { ID: "original" }, oauth: { now: () => 1000, sessionStore: () => ({ load: async () => session,
+  const binding = { env: { ID: clientId }, oauth: { now: () => 1000, sessionStore: () => ({ load: async () => session,
     save: async (_key: string, value: import("mcp-oauth").StoredOAuthSession) => { session = value; }, clear: async () => { session = null; } }),
     browser: { openBrowser: opener, readLine: () => callback.promise } } };
   return { configuration, binding, fetch, observed, opener, requests };
@@ -42,6 +42,29 @@ it("explicitly authenticates even with supplied schemas, emits the complete URL 
   expect(f.observed).toHaveBeenCalledOnce();
   expect(f.opener).not.toHaveBeenCalled();
   expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
+});
+
+it("preserves a URL client identity through offline artifact generation and explicit cached authentication", async () => {
+  const clientId = "https://client.example/oauth/metadata.json?application=agent%2Bone";
+  const f = fixture(false, undefined, clientId);
+  const generated = await generateRemoteMcpArtifact({ version: 1, servers: [f.configuration] });
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(generated.json).not.toContain(clientId);
+  const fetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url === `${issuer}/token`) expect(new URLSearchParams(String(init?.body)).get("client_id")).toBe(clientId);
+    const response = await f.fetch(input, init);
+    return url.includes(".well-known/oauth-authorization-server")
+      ? Response.json({ ...await response.json(), client_id_metadata_document_supported: true, registration_endpoint: `${issuer}/register` }) : response;
+  });
+  const server = generated.artifact.configuration.servers[0];
+  await authenticateRemoteMcpServer(server, { binding: f.binding, fetch, onAuthorizationUrl: f.observed });
+  await authenticateRemoteMcpServer(server, { binding: f.binding, fetch });
+  expect(f.observed).toHaveBeenCalledOnce();
+  expect(f.opener).not.toHaveBeenCalled();
+  expect(fetch.mock.calls.filter(([url]) => String(url) === `${issuer}/token`)).toHaveLength(1);
+  expect(fetch.mock.calls.some(([url]) => String(url) === `${issuer}/register` || String(url) === clientId)).toBe(false);
+  expect(f.requests).toEqual(["initialize", "notifications/initialized", "initialize", "notifications/initialized"]);
 });
 
 it("completes native OAuth for a pinned legacy SSE GET challenge before the endpoint handshake", async () => {

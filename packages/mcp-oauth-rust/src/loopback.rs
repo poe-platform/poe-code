@@ -61,8 +61,7 @@ impl CallbackBinding {
             message.extend(error);
             message.extend(" — ".encode_utf16());
             message.extend(description);
-            let mut response: Vec<u16> = "Authorization failed: ".encode_utf16().collect();
-            response.extend(description);
+            let response = message.clone();
             return Err(CallbackError { message, response });
         }
         callback
@@ -118,4 +117,52 @@ pub fn build_success_page(title: Option<&[u16]>, body: Option<&[u16]>) -> Vec<u1
     escaped(body, &mut output);
     output.extend("</p></div></body></html>".encode_utf16());
     output
+}
+
+#[derive(Default)]
+pub struct Lifecycle {
+    used: bool,
+    closed: bool,
+}
+impl Lifecycle {
+    pub fn begin(&mut self) -> bool {
+        if self.used || self.closed {
+            return false;
+        }
+        self.used = true;
+        true
+    }
+    pub fn close(&mut self) -> bool {
+        if self.closed {
+            return false;
+        }
+        self.closed = true;
+        true
+    }
+}
+pub fn valid_timer(value: f64) -> bool {
+    value.is_finite() && value.fract() == 0.0 && (1.0..=2_147_483_647.0).contains(&value)
+}
+pub fn valid_target(value: &mcp_protocol_rust::json::Value, fixed: bool) -> bool {
+    use mcp_protocol_rust::json::Value;
+    let equals = |key: &str, expected: &str| matches!(value.get(key),Some(Value::String(actual))if actual==&expected.encode_utf16().collect::<Vec<_>>());
+    let flag = |key: &str| value.get(key) == Some(&Value::Bool(true));
+    if fixed {
+        equals("protocol", "http:")
+            && ["localhost", "127.0.0.1", "[::1]"]
+                .iter()
+                .any(|host| equals("hostname", host))
+            && !flag("credentials")
+            && !flag("fragment")
+            && !equals("port", "0")
+            && !flag("forbiddenQuery")
+            && !flag("controls")
+            && flag("pathMatches")
+    } else {
+        flag("startsSlash")
+            && equals("origin", "http://127.0.0.1")
+            && flag("pathMatches")
+            && !flag("query")
+            && !flag("fragment")
+    }
 }

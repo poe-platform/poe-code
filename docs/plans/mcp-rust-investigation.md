@@ -3635,3 +3635,34 @@ persistence contracts; production concurrent edits are preserved. These remain
 required follow-up work, not waived failures. This tool increment is focused-check
 verified; remote delivery is recorded separately. Overall rewrite, release and
 minimum24-hour effort remain open. Work continues from04:03:46 UTC boundary.
+
+### OAuth Rust callback lifecycle reconciliation, 2026-09-21 04:19 UTC
+
+CI denial-body failure reproduces locally against the current original. Rust now
+uses the same complete OAuth authorization diagnostic for rejection and HTTP body.
+Rust owns single-use/idempotent lifecycle admission, supported timer admission and
+loopback target policy. Node supplies standard URL/HTTP/timer/signal/callback effects.
+Exact fixed redirects preserve registered ports, query and paths; only original
+loopback host allowlist/HTTP/no-credentials/no-fragment/no-spoofed-parameter rules
+admit listeners. Caller abort and default/configured deadlines tear down owned
+listeners; settlement removes request handlers immediately. Browser/manual hooks
+run asynchronously and preserve arbitrary rejection causes.
+
+Portable/native reds precede changes. All31 portable Rust cases,6 complete native
+loopback groups and20 complete original loopback/lifecycle cases pass. Focused
+lint/fmt/clippy/types/formatting and uncached113-workspace/8-build/338-edge closure
+pass. Direct/packed16MiB workers each run512 listener cycles (384 successful,
+128 arbitrary-cause cancellations), verify single-use waits and all listener
+cleanup, and reject unsafe redirects before listener allocation. Artifact audit
+covers14 JS/declaration files, one addon and zero runtime groups. Heap endpoints
+~9.2MB and parent-inclusive RSS are bounded evidence only. Evidence
+out/rust-oauth-loopback-*. The complete maintained OAuth unit route was also run:
+46/56 native groups pass;10 failures remain in evolving provider/storage/token
+contracts and are not waived. Original source now adds stricter scope syntax,
+client binding, pending refresh outcomes, token snapshots, transactions and
+profile persistence. These are required follow-up work, preserved concurrent
+production edits remain untouched, and README now states incomplete provider
+conformance. Tool registry commit4d3f64f9f is verified on remote main. Release
+publication, overall rewrite and minimum24-hour effort remain unfinished.
+Active04:03:46–04:18:55 UTC adds909s; total82256s (22.85h), minimum remaining
+4144s (1h09m04s). Work continues beyond this recorded boundary.

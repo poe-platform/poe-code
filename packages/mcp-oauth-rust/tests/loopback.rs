@@ -29,7 +29,7 @@ fn callback_binding_checks_state_before_authorization_denials_and_issuer_before_
     );
     assert_eq!(
         failure.response,
-        text("Authorization failed: access_denied")
+        text("OAuth authorization failed: access_denied — access_denied")
     );
     params.error = None;
     params.code = Some(vec![0xd800]);
@@ -69,5 +69,50 @@ fn structured_state_enforces_optional_and_required_issuer_binding() {
         );
         callback.issuer = Some(text("issuer"));
         assert_eq!(binding.resolve(&callback).unwrap(), text("code"));
+    }
+}
+
+#[test]
+fn loopback_lifecycle_admits_one_wait_and_idempotent_teardown() {
+    use mcp_oauth_rust::loopback::{Lifecycle, valid_timer};
+    let mut state = Lifecycle::default();
+    assert!(state.begin());
+    assert!(!state.begin());
+    assert!(state.close());
+    assert!(!state.close());
+    assert!(!state.begin());
+    for timer in [1.0, 120_000.0, 2_147_483_647.0] {
+        assert!(valid_timer(timer));
+    }
+    for timer in [0.0, -1.0, 1.5, f64::NAN, f64::INFINITY, 2_147_483_648.0] {
+        assert!(!valid_timer(timer));
+    }
+}
+
+#[test]
+fn fixed_redirects_accept_only_exact_loopback_host_and_reject_parameter_spoofing() {
+    use mcp_oauth_rust::loopback::valid_target;
+    use mcp_protocol_rust::json::parse;
+    let safe = r#"{"protocol":"http:","hostname":"localhost","port":"39119","pathMatches":true}"#;
+    let value = parse(safe.as_bytes(), Default::default()).unwrap();
+    assert!(valid_target(&value, true));
+    for invalid in [
+        safe.replace("localhost", "127.0.0.2"),
+        safe.replace("39119", "0"),
+        safe.replace("true", "false"),
+        safe.replace("http:", "https:"),
+        safe.replace("pathMatches", "forbiddenQuery"),
+    ] {
+        assert!(!valid_target(
+            &parse(invalid.as_bytes(), Default::default()).unwrap(),
+            true
+        ));
+    }
+    for field in ["credentials", "fragment", "forbiddenQuery", "controls"] {
+        let value = format!("{{\"{field}\":true,{}", &safe[1..]);
+        assert!(!valid_target(
+            &parse(value.as_bytes(), Default::default()).unwrap(),
+            true
+        ));
     }
 }

@@ -11,7 +11,11 @@ export interface StoredOAuthSession {
   authorizationServer: string;
   client: { clientId: string; clientSecret?: string };
   tokens?: StoredOAuthTokens;
-  discovery: { resourceMetadataUrl: string; resourceMetadata: Record<string,unknown>; authorizationServerMetadata: Record<string,unknown> };
+  discovery: {
+    resourceMetadataUrl: string;
+    resourceMetadata: Record<string, unknown>;
+    authorizationServerMetadata: Record<string, unknown>;
+  };
 }
 export interface OAuthSessionStore {
   load(resource: string): Promise<StoredOAuthSession | null>;
@@ -19,11 +23,11 @@ export interface OAuthSessionStore {
   clear(resource: string): Promise<void>;
 }
 export type OAuthMetadataFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
-export interface OAuthProtectedResourceMetadata extends Record<string,unknown> {
+export interface OAuthProtectedResourceMetadata extends Record<string, unknown> {
   resource: string;
   authorization_servers: string[];
 }
-export interface OAuthAuthorizationServerMetadata extends Record<string,unknown> {
+export interface OAuthAuthorizationServerMetadata extends Record<string, unknown> {
   issuer: string;
   authorization_endpoint: string;
   token_endpoint: string;
@@ -40,22 +44,56 @@ export interface OAuthDiscoveryResult {
   authorizationServerMetadataUrl: string;
   authorizationServerMetadata: OAuthAuthorizationServerMetadata;
 }
-export interface OAuthUnauthorizedChallenge { scheme: "Bearer"; params: Record<string,string>; raw: string; }
-export interface OAuthClientMetadata { clientName?: string; scope?: string; softwareId?: string; softwareVersion?: string; }
+export interface OAuthUnauthorizedChallenge {
+  scheme: "Bearer";
+  params: Record<string, string>;
+  raw: string;
+}
+export interface OAuthClientMetadata {
+  clientName?: string;
+  scope?: string;
+  softwareId?: string;
+  softwareVersion?: string;
+}
 export interface OAuthClientProvider {
-  authorizeRequest?(input: { requestUrl: URL; headers: Headers; fetch: OAuthMetadataFetch }): Promise<void> | void;
-  handleUnauthorized(input: { requestUrl: URL; response: Response; challenge: OAuthUnauthorizedChallenge | null; discovery: OAuthDiscoveryResult; fetch: OAuthMetadataFetch }): Promise<{ action: "retry" } | { action: "fail"; error?: Error }> | { action: "retry" } | { action: "fail"; error?: Error };
+  authorizeRequest?(input: {
+    requestUrl: URL;
+    headers: Headers;
+    fetch: OAuthMetadataFetch;
+  }): Promise<void> | void;
+  handleUnauthorized(input: {
+    requestUrl: URL;
+    response: Response;
+    challenge: OAuthUnauthorizedChallenge | null;
+    discovery: OAuthDiscoveryResult;
+    fetch: OAuthMetadataFetch;
+  }):
+    | Promise<{ action: "retry" } | { action: "fail"; error?: Error }>
+    | { action: "retry" }
+    | { action: "fail"; error?: Error };
 }
 export interface DefaultOAuthClientProviderOptions {
-  client: { mode: "dynamic"; clientId?: string; clientSecret?: string; metadata?: OAuthClientMetadata } | { mode: "static"; clientId: string; clientSecret?: string; metadata?: OAuthClientMetadata };
-  browser: { openBrowser(url: string): Promise<void>; readLine?: () => Promise<string>; createServer?: () => import("node:http").Server; landingPage?: OAuthLandingPage };
+  client:
+    | { mode: "dynamic"; clientId?: string; clientSecret?: string; metadata?: OAuthClientMetadata }
+    | { mode: "static"; clientId: string; clientSecret?: string; metadata?: OAuthClientMetadata };
+  browser: {
+    openBrowser(url: string): Promise<void>;
+    readLine?: () => Promise<string>;
+    createServer?: () => import("node:http").Server;
+    landingPage?: OAuthLandingPage;
+  };
   sessionStore?: OAuthSessionStore;
   authStore?: CreateSecretStoreInput;
   now?: () => number;
 }
-export type OAuthClientProviderOptions = { provider: OAuthClientProvider } | DefaultOAuthClientProviderOptions;
-export declare function createOAuthClientProvider(options: OAuthClientProviderOptions): OAuthClientProvider;
-export declare function createDefaultOAuthClientProvider(options: DefaultOAuthClientProviderOptions): OAuthClientProvider;
+export type OAuthClientProviderOptions =
+  { provider: OAuthClientProvider } | DefaultOAuthClientProviderOptions;
+export declare function createOAuthClientProvider(
+  options: OAuthClientProviderOptions
+): OAuthClientProvider;
+export declare function createDefaultOAuthClientProvider(
+  options: DefaultOAuthClientProviderOptions
+): OAuthClientProvider;
 export interface JwksTokenVerifierOptions {
   jwksUrl: string | URL;
   clockSkewSeconds?: number;
@@ -78,10 +116,19 @@ export interface JwksVerifiedAccessToken {
   clientId?: string;
 }
 export interface JwksTokenVerifier {
-  verify(input: { token: string; resource: string; authorizationServers: readonly string[]; requiredScopes: readonly string[] }): Promise<JwksVerifiedAccessToken>;
+  verify(input: {
+    token: string;
+    resource: string;
+    authorizationServers: readonly string[];
+    requiredScopes: readonly string[];
+  }): Promise<JwksVerifiedAccessToken>;
 }
-export declare function createJwksTokenVerifier(options: JwksTokenVerifierOptions): JwksTokenVerifier;
-export declare function createAuthStoreSessionStore(options?: CreateSecretStoreInput): OAuthSessionStore;
+export declare function createJwksTokenVerifier(
+  options: JwksTokenVerifierOptions
+): JwksTokenVerifier;
+export declare function createAuthStoreSessionStore(
+  options?: CreateSecretStoreInput
+): OAuthSessionStore;
 export declare function canonicalizeResourceIndicator(value: string | URL): string;
 export declare function generateCodeVerifier(): string;
 export declare function generateCodeChallenge(verifier: string): string;
@@ -94,16 +141,25 @@ export declare class OAuthError extends Error {
   readonly status: number;
   readonly retryable: boolean;
   readonly terminal: boolean;
-  constructor(shape: { error: string; error_description?: string; error_uri?: string }, status: number);
+  constructor(
+    shape: { error: string; error_description?: string; error_uri?: string },
+    status: number
+  );
 }
 export declare function isRetryableOAuthError(error: unknown): error is OAuthError;
-export interface OAuthLandingPage { title: string; body: string; }
+export interface OAuthLandingPage {
+  title: string;
+  body: string;
+}
 export interface LoopbackAuthorizationOptions {
   openBrowser?: (url: string) => Promise<void>;
   readLine?: () => Promise<string>;
   createServer?: () => import("node:http").Server;
   landingPage?: OAuthLandingPage;
   callbackPath?: string;
+  redirectUri?: string;
+  signal?: AbortSignal;
+  timeoutMs?: number;
 }
 export interface LoopbackAuthorizationSession {
   redirectUri: string;
@@ -112,7 +168,9 @@ export interface LoopbackAuthorizationSession {
 }
 export declare function buildSuccessPage(landingPage?: OAuthLandingPage): string;
 export declare function extractCodeFromInput(input: string): string | null;
-export declare function createLoopbackAuthorizationSession(options?: LoopbackAuthorizationOptions): Promise<LoopbackAuthorizationSession>;
+export declare function createLoopbackAuthorizationSession(
+  options?: LoopbackAuthorizationOptions
+): Promise<LoopbackAuthorizationSession>;
 export declare function fetchMcpResponse(
   fetchImplementation: (input: string | URL, init?: RequestInit) => Promise<Response>,
   input: string | URL,

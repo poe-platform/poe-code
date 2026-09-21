@@ -24,10 +24,11 @@ form bodies and classify protocol errors. The host adapter bounds token response
 to 1 MiB, refuses redirects and uses a 30-second request deadline. Public
 `OAuthError` instances preserve protocol fields and retry/terminal classification.
 
-Loopback sessions listen on an ephemeral `127.0.0.1` port and support browser or
-pasted callback input. Rust enforces state/issuer binding before accepting codes
+Loopback sessions use an ephemeral `127.0.0.1` port or your exact registered
+HTTP redirect on `localhost`, `127.0.0.1` or `[::1]`. They support browser or pasted
+callback input, caller cancellation and a configurable two-minute deadline. Rust enforces state/issuer binding before accepting codes
 or denials and renders escaped success pages. Closing a session disposes its
-listeners and rejects pending waits; close is idempotent.
+listeners and rejects pending waits; close is idempotent and code waits are single-use.
 
 Encrypted session and client-registration persistence uses the embedded Rust
 credential store. URI-specific filenames and Keychain accounts match the original
@@ -44,7 +45,11 @@ bounded retry decisions. Host callbacks provide browser input, fetch and storage
 import { createDefaultOAuthClientProvider } from "mcp-oauth-rust";
 const provider = createDefaultOAuthClientProvider({
   client: { mode: "static", clientId: "my-client" },
-  browser: { openBrowser: async (url) => { /* open your browser */ } }
+  browser: {
+    openBrowser: async (url) => {
+      /* open your browser */
+    }
+  }
 });
 ```
 
@@ -70,8 +75,11 @@ const accessToken = await verifier.verify({
 });
 ```
 
-This package exposes the original public OAuth APIs without changing application
-imports. Integration and broader performance validation remain separate work.
+This package preserves application imports while the additive rewrite is developed.
+New provider token snapshots, profile persistence, session transactions and
+client/scope/refresh-outcome contracts are being reconciled with the evolving
+original; full provider conformance is currently incomplete. Integration and
+broader performance validation remain separate work.
 
 `fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.
 `readBoundedResponseText` enforces declared and actual byte limits, decodes strict

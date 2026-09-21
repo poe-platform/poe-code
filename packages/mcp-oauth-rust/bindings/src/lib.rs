@@ -288,3 +288,33 @@ impl NativeCallbackBinding {
         Ok(convert::NativeJson(Value::Object(fields)))
     }
 }
+
+#[napi]
+#[derive(Default)]
+pub struct NativeLoopbackLifecycle {
+    state: mcp_oauth_rust::loopback::Lifecycle,
+}
+#[napi]
+impl NativeLoopbackLifecycle {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn begin(&mut self) -> bool {
+        self.state.begin()
+    }
+    #[napi]
+    pub fn close(&mut self) -> bool {
+        self.state.close()
+    }
+}
+#[napi]
+pub fn authorization_timer_valid(value: f64) -> bool {
+    mcp_oauth_rust::loopback::valid_timer(value)
+}
+#[napi]
+pub fn loopback_target_allowed(source: Utf16String, fixed: bool) -> bool {
+    mcp_protocol_rust::json::parse_utf16(&source, Default::default())
+        .is_ok_and(|value| mcp_oauth_rust::loopback::valid_target(&value, fixed))
+}

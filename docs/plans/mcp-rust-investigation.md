@@ -1,6 +1,28 @@
 # MCP Rust implementation investigation
 
 Date: 2026-09-19. Repository inspected: `1a9316310` on local `main`.
+Latest status (2026-09-21): the full objective is **incomplete**. The minimum
+24-hour effort has been met. All additions remain private and production consumers
+retain their original implementations. Individual tested checkpoints are delivered
+on main; this is not acceptance of complete SDK parity or superior performance.
+
+Current source-level root export inventory: agent-spawn has nine missing original
+runtime names; toolcraft-design has 79. This inventory checks names only. Agent
+rendering, log reading/replay, autonomous/dashboard execution, full terminal
+Markdown/UI, unrestricted intrinsic/proxy interop, YAML aliases/CST/complex keys,
+platform artifacts and comparative total/native-memory acceptance remain open.
+Toolcraft's broader Rust counterpart is absent. These gaps prevent calling this
+an interchangeable complete rewrite.
+
+Selected benchmarks improve colors and tool summaries, while agent streaming,
+checklists, line buffers and small ACP event calls remain slower than their
+references. Combined spawn 16 MiB acceptance remains failed; 24 MiB workers pass.
+Old-generation limits and shared RSS do not establish lower total/native memory.
+Python can reuse the same Rust cores through a future PyO3/maturin binding exception;
+no Python implementation or performance superiority is claimed in this round.
+
+Historical checkpoints follow.
+
 Status: implementation active. The reusable `mcp-protocol-rust` JSON foundation
 is implemented, including a tested napi-rs JSON binding; MCP package rewrites
 and the complete poe-agent dependency rewrite are in progress.
@@ -565,8 +587,8 @@ UTF-16 pattern/format names in expected/message/keyword fields.
 
 The active goal began on 2026-09-20 at 02:45 UTC (September 19 at 21:45 Chicago).
 The user's minimum effort requirement is 24 hours, with a deadline of Monday,
-September 21 at 12:00 America/Chicago (17:00 UTC). Neither the duration nor the
-full objective has been achieved yet. Continue implementation and independent
+September 21 at 12:00 America/Chicago (17:00 UTC). The minimum duration has been met, while the
+full objective remains incomplete. Continue implementation and independent
 compatibility, memory, stability, and performance review through that requirement;
 report actual elapsed work and remaining gaps rather than treating elapsed time
 alone as completion.
@@ -6980,3 +7002,39 @@ cached success with unit/bash still running; newest catalog release35628048750
 pending. No current successful root publication verified. Continuous16:49:00–
 16:53:00 adds240s,total125515s(34.87h). Minimum fulfilled; full objective
 incomplete. Continue accounting after16:53:00UTC.
+
+### Deadline delivery checkpoint, 2026-09-21 16:59:10 UTC
+
+Final poe-agent-rust dependency review passes61Rust/106native groups/441original
+reference cases28files, bidirectional types and maintained lint. Selected sequential
+uncached48-build closure at concurrency1 passes. Fresh packed consumer has one
+addon and zero npm runtime/peer/optional groups. Blocked-external direct/packed
+16MiB Responses workers each complete1024mocked requests/8192events plus128early
+and128pending cancellations, with abort-listener cleanup assertions. Final JS heap
+8.71–8.88MiB; no total/native-memory or comparative-performance claim. No live
+model calls, consumer integration or publication.
+
+Root export local24fd8504e lost a remote ref race to foreign1a0540bb1. Rebased
+only that commit in a sparse detached delivery checkout, pushedc38d76c21 and
+exact remote main verified. Protected main synchronization preserves foreign
+working changes; temporary checkout removed. Latest release35628502192 pending;
+older35625767803 has build/audit/checks/unit-cached and most bash success, with
+unit/bash1 still running. No current successful root publication verified.
+
+The opening status now states the unmet acceptance gates. Source-name inventory
+finds9missing agent-spawn root names (agentSpawn, dashboard runner, log reader,
+three rendering functions, replay, autonomous runner and dashboard stream), and
+79missing toolcraft-design root names. It does not prove behavioral or namespace
+coverage. Full terminal Markdown/UI, broader toolcraft-rust, YAML aliases/CST/
+complex keys, unrestricted proxy/intrinsic interop, MCP/URI/regex conformance,
+platform artifacts and performance/total-memory acceptance remain open. Do not
+integrate or declare the full objective achieved. Python bindings remain future
+work against the reusable Rust cores; no Python speed claim.
+
+Consumed temporary scripts/logs/packed evidence created in this continuation are
+purged by exact owned prefixes after this record; maintained tests and source
+remain reproducible. Older/foreign evidence and shared build caches are retained.
+Foreign package-lock/harness/plan changes are untouched. Continuous16:53:00–
+16:59:10 adds370s,total125885s(34.97h). The24-hour minimum is fulfilled; the full
+objective is incomplete at the Monday-noon checkpoint. Any further work should
+continue accounting after16:59:10UTC.

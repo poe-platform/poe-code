@@ -49,3 +49,18 @@ owner-local image relationships. Insertion now uses existing `relate_to` as
 well as the existing admitted-image primitive. An additional original opaque
 resource case reproduced byte-only reuse across unequal declared content types;
 that existing primitive now requires matching content type before byte comparison.
+
+## Completion
+
+The collection/value task is complete over the existing live graph. Exact
+language/security/signature drift and the 60 selected inventory rows are
+qualified in the continuation evidence and register. Complete maintained
+package execution passed 239 files / 5,035 cases; the final fresh focused route
+passed seven files / 21 cases, including the two later-added files. Final package
+lint, fresh selected workspace build and all eight built public consumer cases
+passed. Original new cases remain small and memory-only. CLI screenshot was
+inspected, hashed and invocation-owned artifacts removed.
+
+Local correction commits: `ba0f64d04` and `7ef6d4198`. The containing commit owns
+the remaining original collection acceptance and evidence reconciliation. No
+parent pipeline-plan staging, README, push, release or later task execution.

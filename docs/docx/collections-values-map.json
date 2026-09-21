@@ -5,7 +5,7 @@
   "namedValueCount": 262,
   "canonicalValueCount": 261,
   "familyCount": 19,
-  "limitations": "Value/protocol evidence only; live owner collections and whole public API acceptance remain pending. Raw source XML sentinel UNMAPPED is rejected; null inheritance maps via family.to_xml. Direct members is a frozen readonly record; batch members retains map-entry encoding.",
+  "limitations": "Enum/helper and earlier collection increment evidence only; historical missing-owner findings are superseded for the task-28 live graph by live-collections-values-map-20260921.json. Whole source-case adaptation and whole public API acceptance remain separate. Raw source XML sentinel UNMAPPED is rejected; null inheritance maps via family.to_xml. Direct members is a frozen readonly record; batch members retains map-entry encoding.",
   "values": [
     {
       "sourceId": "docx.enum.dml.MSO_COLOR_TYPE.RGB",

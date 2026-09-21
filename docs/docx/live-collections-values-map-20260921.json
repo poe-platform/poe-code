@@ -1,0 +1,817 @@
+{
+  "version": 1,
+  "task": "sdk-collections-values",
+  "sourceCommit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+  "scope": "Original acceptance for the returned live collection protocols after task 28; earlier enum/helper cases are retained, whole source-case adaptation is separate.",
+  "priorValues": "collections-values-map.json",
+  "priorAcceptance": [
+    "../../packages/docx/src/collection-value-protocols.test.ts",
+    "../../packages/docx/src/public-enum-protocols.test.ts",
+    "../../packages/docx/src/formatting-values.test.ts"
+  ],
+  "rowCount": 60,
+  "rows": [
+    {
+      "sourceId": "docx.comments.Comments",
+      "status": "implemented",
+      "target": "interface Comments {}",
+      "batchSchemaIds": [
+        "model.document.Document.comments.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "keeps sparse comment IDs keyed while creation fills the first unused ID",
+      "limits": "Owner-created constructors are qualified through Document and admitted parts, not the source dependency constructors."
+    },
+    {
+      "sourceId": "docx.comments.Comments.add_comment",
+      "status": "implemented",
+      "target": "add_comment(text?: string, author?: string, initials?: string | null): Comment",
+      "batchSchemaIds": [
+        "comments.add"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "keeps sparse comment IDs keyed while creation fills the first unused ID",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.comments.Comments.get",
+      "status": "implemented",
+      "target": "get(comment_id: number): Comment | null",
+      "batchSchemaIds": [
+        "model.comments.Comments.get.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "keeps sparse comment IDs keyed while creation fills the first unused ID",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.section.Sections",
+      "status": "implemented",
+      "target": "interface Sections {}",
+      "batchSchemaIds": [
+        "model.document.Document.sections.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": "Owner-created constructors are qualified through Document and admitted parts, not the source dependency constructors."
+    },
+    {
+      "sourceId": "docx.shape.InlineShapes",
+      "status": "implemented",
+      "target": "interface InlineShapes {}",
+      "batchSchemaIds": [
+        "model.document.Document.inline_shapes.get"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": "Owner-created constructors are qualified through Document and admitted parts, not the source dependency constructors.",
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.table._Rows",
+      "status": "implemented",
+      "target": "interface _Rows {}",
+      "batchSchemaIds": [
+        "model.table.Table.rows.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": "Owner-created constructors are qualified through Document and admitted parts, not the source dependency constructors."
+    },
+    {
+      "sourceId": "docx.table._Rows.table",
+      "status": "implemented",
+      "target": "readonly table: Table",
+      "batchSchemaIds": [
+        "model.table._Rows.table.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.table._Columns",
+      "status": "implemented",
+      "target": "interface _Columns {}",
+      "batchSchemaIds": [
+        "model.table.Table.columns.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": "Owner-created constructors are qualified through Document and admitted parts, not the source dependency constructors."
+    },
+    {
+      "sourceId": "docx.table._Columns.table",
+      "status": "implemented",
+      "target": "readonly table: Table",
+      "batchSchemaIds": [
+        "model.table._Columns.table.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.comments.Comments.__iter__",
+      "status": "implemented",
+      "target": "[Symbol.iterator](): Iterator<Comment>",
+      "batchSchemaIds": [
+        "model.comments.Comments.__iter__.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "keeps sparse comment IDs keyed while creation fills the first unused ID",
+      "limits": null,
+      "historicalProposedTarget": "[Symbol.iterator](): IterableIterator<Comment>",
+      "driftResolution": "Exact existing public TypeScript annotation; runtime generators implement JS iteration and preserve order."
+    },
+    {
+      "sourceId": "docx.comments.Comments.__len__",
+      "status": "implemented",
+      "target": "readonly length: number",
+      "batchSchemaIds": [
+        "model.comments.Comments.__len__.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "keeps sparse comment IDs keyed while creation fills the first unused ID",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.shape.InlineShapes.part",
+      "status": "implemented",
+      "target": "readonly part: XmlPartView",
+      "batchSchemaIds": [
+        "model.shape.InlineShapes.part.get"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.shape.InlineShapes.__getitem__",
+      "status": "implemented",
+      "target": "readonly [index: number]: InlineShape; at(index: number): InlineShape",
+      "batchSchemaIds": [
+        "model.shape.InlineShapes.__getitem__.get"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.shape.InlineShapes.__iter__",
+      "status": "implemented",
+      "target": "[Symbol.iterator](): Iterator<InlineShape>",
+      "batchSchemaIds": [
+        "model.shape.InlineShapes.__iter__.call"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "historicalProposedTarget": "[Symbol.iterator](): IterableIterator<InlineShape>",
+      "driftResolution": "Exact existing public TypeScript annotation; runtime generators implement JS iteration and preserve order.",
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.shape.InlineShapes.__len__",
+      "status": "implemented",
+      "target": "readonly length: number",
+      "batchSchemaIds": [
+        "model.shape.InlineShapes.__len__.get"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.table._Rows.part",
+      "status": "implemented",
+      "target": "readonly part: XmlPartView",
+      "batchSchemaIds": [
+        "model.table._Rows.part.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.table._Rows.__getitem__",
+      "status": "implemented",
+      "target": "readonly [index: number]: _Row; at(value: number): _Row; slice(start?: number, end?: number): _Row[]",
+      "batchSchemaIds": [
+        "model.table._Rows.__getitem__.get",
+        "model.table._Rows.__getitem__.slice"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null,
+      "historicalProposedTarget": "readonly [index: number]: _Row; at(index: number): _Row; slice(start?: number, end?: number): ReadonlyArray<_Row>",
+      "driftResolution": "Exact existing live TypeScript surface replaces the earlier proposed signature; no duplicate spelling layer."
+    },
+    {
+      "sourceId": "docx.table._Rows.__iter__",
+      "status": "implemented",
+      "target": "[Symbol.iterator](): Iterator<_Row>",
+      "batchSchemaIds": [
+        "model.table._Rows.__iter__.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null,
+      "historicalProposedTarget": "[Symbol.iterator](): IterableIterator<_Row>",
+      "driftResolution": "Exact existing public TypeScript annotation; runtime generators implement JS iteration and preserve order."
+    },
+    {
+      "sourceId": "docx.table._Rows.__len__",
+      "status": "implemented",
+      "target": "readonly length: number",
+      "batchSchemaIds": [
+        "model.table._Rows.__len__.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.table._Columns.part",
+      "status": "implemented",
+      "target": "readonly part: XmlPartView",
+      "batchSchemaIds": [
+        "model.table._Columns.part.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.table._Columns.__getitem__",
+      "status": "implemented",
+      "target": "readonly [index: number]: _Column; at(index: number): _Column",
+      "batchSchemaIds": [
+        "model.table._Columns.__getitem__.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.table._Columns.__iter__",
+      "status": "implemented",
+      "target": "[Symbol.iterator](): Iterator<_Column>",
+      "batchSchemaIds": [
+        "model.table._Columns.__iter__.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null,
+      "historicalProposedTarget": "[Symbol.iterator](): IterableIterator<_Column>",
+      "driftResolution": "Exact existing public TypeScript annotation; runtime generators implement JS iteration and preserve order."
+    },
+    {
+      "sourceId": "docx.table._Columns.__len__",
+      "status": "implemented",
+      "target": "readonly length: number",
+      "batchSchemaIds": [
+        "model.table._Columns.__len__.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "retains live row and column protocols across append and rejects ordinal writes",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.section.Sections.__getitem__",
+      "status": "implemented",
+      "target": "readonly [index: number]: Section; at(index: number): Section; slice(start?: number, end?: number): Section[]",
+      "batchSchemaIds": [
+        "model.section.Sections.__getitem__.get",
+        "model.section.Sections.__getitem__.slice"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": null,
+      "historicalProposedTarget": "readonly [index: number]: Section; at(index: number): Section; slice(start?: number, end?: number): ReadonlyArray<Section>",
+      "driftResolution": "Exact existing live TypeScript surface replaces the earlier proposed signature; no duplicate spelling layer."
+    },
+    {
+      "sourceId": "docx.section.Sections.__iter__",
+      "status": "implemented",
+      "target": "[Symbol.iterator](): Iterator<Section>",
+      "batchSchemaIds": [
+        "model.section.Sections.__iter__.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": null,
+      "historicalProposedTarget": "[Symbol.iterator](): IterableIterator<Section>",
+      "driftResolution": "Exact existing public TypeScript annotation; runtime generators implement JS iteration and preserve order."
+    },
+    {
+      "sourceId": "docx.section.Sections.__len__",
+      "status": "implemented",
+      "target": "readonly length: number",
+      "batchSchemaIds": [
+        "model.section.Sections.__len__.get"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.package.ImageParts",
+      "status": "implemented",
+      "target": "interface ImageParts {}",
+      "batchSchemaIds": [
+        "model.package.Package.image_parts.get"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": "Owner-created constructors are qualified through Document and admitted parts, not the source dependency constructors.",
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.package.ImageParts.__contains__",
+      "status": "implemented",
+      "target": "has(item: unknown): boolean",
+      "batchSchemaIds": [
+        "model.package.ImageParts.__contains__.call"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "historicalProposedTarget": "includes(value: ImagePart): boolean",
+      "driftResolution": "Exact existing live TypeScript surface replaces the earlier proposed signature; no duplicate spelling layer.",
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.package.ImageParts.__iter__",
+      "status": "implemented",
+      "target": "[Symbol.iterator](): IterableIterator<ImagePart>",
+      "batchSchemaIds": [
+        "model.package.ImageParts.__iter__.call"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.package.ImageParts.__len__",
+      "status": "implemented",
+      "target": "readonly length: number",
+      "batchSchemaIds": [
+        "model.package.ImageParts.__len__.get"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.package.ImageParts.append",
+      "status": "implemented",
+      "target": "append(item: ImagePart): void",
+      "batchSchemaIds": [
+        "model.package.ImageParts.append.call"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.package.ImageParts.get_or_add_image_part",
+      "status": "implemented",
+      "target": "get_or_add_image_part(image_descriptor: Input): Promise<ImagePart>",
+      "batchSchemaIds": [
+        "model.package.ImageParts.get_or_add_image_part.call"
+      ],
+      "test": "../../packages/docx/src/image-resource-collection.test.ts",
+      "testCase": "qualifies image collections without inventing image-part ordinal lookup",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/live-collection-command.test.ts",
+          "testCase": "executes live occurrence and shared-resource collection lengths through the public CLI"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships",
+      "status": "implemented",
+      "target": "interface Relationships {}",
+      "batchSchemaIds": [
+        "model.opc.part.Part.rels.get"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": "Owner-created constructors are qualified through Document and admitted parts, not the source dependency constructors."
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.add_relationship",
+      "status": "implemented",
+      "target": "add_relationship(reltype: string, target: PartView | string, rId: string, is_external?: boolean): RelationshipView",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.add_relationship.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.get_or_add",
+      "status": "implemented",
+      "target": "get_or_add(reltype: string, target_part: PartView): RelationshipView",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.get_or_add.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.get_or_add_ext_rel",
+      "status": "implemented",
+      "target": "get_or_add_ext_rel(reltype: string, target_ref: string): string",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.get_or_add_ext_rel.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.part_with_reltype",
+      "status": "implemented",
+      "target": "part_with_reltype(reltype: string): PartView",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.part_with_reltype.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.related_parts",
+      "status": "implemented",
+      "target": "readonly related_parts: ReadonlyMap<string, PartView>",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.related_parts.get"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.xml",
+      "status": "implemented",
+      "target": "readonly xml: string",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.xml.get"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.section.Sections.count",
+      "status": "implemented",
+      "target": "count(value: Section): number",
+      "batchSchemaIds": [
+        "model.section.Sections.count.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.section.Sections.index",
+      "status": "implemented",
+      "target": "index(value: Section, start?: number, stop?: number): number",
+      "batchSchemaIds": [
+        "model.section.Sections.index.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.section.Sections.__contains__",
+      "status": "implemented",
+      "target": "includes(value: Section): boolean",
+      "batchSchemaIds": [
+        "model.section.Sections.__contains__.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.section.Sections.__reversed__",
+      "status": "implemented",
+      "target": "reversed(): IterableIterator<Section>",
+      "batchSchemaIds": [
+        "model.section.Sections.__reversed__.call"
+      ],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "implements section slice and inherited sequence searches over live owners",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.__getitem__",
+      "status": "implemented",
+      "target": "at(rId: string): RelationshipView",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.__getitem__.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.__setitem__",
+      "status": "implemented",
+      "target": "set(rId: string, value: RelationshipView): void",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.__setitem__.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.__delitem__",
+      "status": "implemented",
+      "target": "delete(rId: string): void",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.__delitem__.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.__len__",
+      "status": "implemented",
+      "target": "readonly length: number",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.__len__.get"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.__iter__",
+      "status": "implemented",
+      "target": "[Symbol.iterator](): IterableIterator<string>",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.__iter__.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.__contains__",
+      "status": "implemented",
+      "target": "has(rId: string): boolean",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.__contains__.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.keys",
+      "status": "implemented",
+      "target": "keys(): IterableIterator<string>",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.keys.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.values",
+      "status": "implemented",
+      "target": "values(): IterableIterator<RelationshipView>",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.values.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.items",
+      "status": "implemented",
+      "target": "items(): IterableIterator<readonly [string, RelationshipView]>",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.items.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.get",
+      "status": "implemented",
+      "target": "get(rId: string, default_value?: RelationshipView | null): RelationshipView | null",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.get.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null,
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/relationship-default-owner.test.ts",
+          "testCase": "rejects foreign, detached and untyped relationship defaults without mutation"
+        },
+        {
+          "test": "../../packages/docx/src/relationship-default-owner.test.ts",
+          "testCase": "reports a detached relationship default through the SDK-backed CLI without publication"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.clear",
+      "status": "implemented",
+      "target": "clear(): void",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.clear.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.update",
+      "status": "implemented",
+      "target": "update(entries: Iterable<readonly [string, RelationshipView]>): void",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.update.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.pop",
+      "status": "implemented",
+      "target": "pop(id: string, fallback?: RelationshipView | null): RelationshipView | null",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.pop.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null,
+      "historicalProposedTarget": "pop(rId: string): RelationshipView; pop(rId: string, default_value: RelationshipView | null): RelationshipView | null",
+      "driftResolution": "Exact existing live TypeScript surface replaces the earlier proposed signature; no duplicate spelling layer.",
+      "additionalTests": [
+        {
+          "test": "../../packages/docx/src/relationship-default-owner.test.ts",
+          "testCase": "rejects foreign, detached and untyped relationship defaults without mutation"
+        },
+        {
+          "test": "../../packages/docx/src/relationship-default-owner.test.ts",
+          "testCase": "reports a detached relationship default through the SDK-backed CLI without publication"
+        }
+      ]
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.popitem",
+      "status": "implemented",
+      "target": "popitem(): readonly [string, RelationshipView]",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.popitem.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.setdefault",
+      "status": "implemented",
+      "target": "setdefault(rId: string, value: RelationshipView): RelationshipView",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.setdefault.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.opc.rel.Relationships.copy",
+      "status": "implemented",
+      "target": "copy(): ReadonlyMap<string, RelationshipView>",
+      "batchSchemaIds": [
+        "model.opc.rel.Relationships.copy.call"
+      ],
+      "test": "../../packages/docx/src/relationship-collection-protocols.test.ts",
+      "testCase": "preserves sparse relationship keys, ordering, snapshots and atomic mutations",
+      "limits": null
+    },
+    {
+      "sourceId": "docx.comments.Comments.paragraphs",
+      "status": "documentation-error",
+      "target": "never",
+      "batchSchemaIds": [],
+      "test": "../../packages/docx/src/live-collection-protocols.test.ts",
+      "testCase": "keeps sparse comment IDs keyed while creation fills the first unused ID",
+      "limits": null
+    }
+  ],
+  "securityMappings": {
+    "relationshipDefaults": "Only null or a live same-package RelationshipView. Scalar false/zero are rejected as invalid typed defaults, never silently treated as null.",
+    "removedRelationships": "pop/popitem retain the removed handle identity, whose subsequent reads fail with StaleHandleError; batch serializes an opaque typed handle, never leaked target metadata.",
+    "imageAppend": "Package parts are a unique URI-keyed graph. Appending an already admitted owned image is idempotent; foreign images require explicit admission/import.",
+    "factories": "Original deterministic template and injected VFS bytes replace unrestricted host paths; no ambient I/O/time/network."
+  },
+  "languageMappings": {
+    "numeric": "Zero-based readonly numeric access and signed at; unsafe or fractional indexes reject. Established signed numeric bracket compatibility remains.",
+    "slices": "Half-open clamped start/end for _Rows, Sections and RGBColor only. _Columns, InlineShapes, TabStops, Comments and ImageParts do not gain slice.",
+    "keyed": "Comments.get uses nonnegative storage IDs and returns null when missing. Relationships retain string rIds, keyed at/get, keys/values/items and insertion order. Sparse IDs never become ordinals. Styles retain their earlier explicit ID-fallback drift mapping.",
+    "sequenceSearch": "Sections count/index/includes/reversed cover inherited sequence protocols; owner/node equality replaces allocated wrapper identity. RGB tuple values map through toArray and explicit JS array operations.",
+    "values": "All seven unit helpers, six unit accessors, 19 canonical enum families, 262 named values/261 canonical values and eleven family aliases retain earlier passing acceptance. No DOCX centipoint helper or undocumented aliases are invented."
+  },
+  "additionalAcceptance": [
+    "../../packages/docx/src/relationship-default-owner.test.ts",
+    "../../packages/docx/src/live-collection-command.test.ts"
+  ],
+  "laterTasks": "pending",
+  "remoteMainVerified": false,
+  "push": false,
+  "release": false,
+  "publicProtocolsWithoutPinnedUnitCoverage": [
+    "docx.section.Sections.count",
+    "docx.section.Sections.index",
+    "docx.section.Sections.__contains__",
+    "docx.section.Sections.__reversed__",
+    "docx.opc.rel.Relationships.keys",
+    "docx.opc.rel.Relationships.values",
+    "docx.opc.rel.Relationships.items",
+    "docx.opc.rel.Relationships.get",
+    "docx.opc.rel.Relationships.clear",
+    "docx.opc.rel.Relationships.update",
+    "docx.opc.rel.Relationships.pop",
+    "docx.opc.rel.Relationships.popitem",
+    "docx.opc.rel.Relationships.setdefault",
+    "docx.opc.rel.Relationships.copy"
+  ],
+  "unitCoverageBasis": "The pinned DescribeSections units cover length/iteration/integer/slice only; DescribeRelationships covers defined relationship operations, with no inherited dictionary protocol unit cases. The original tests independently qualify these public obligations. No whole source-test adaptation is claimed."
+}

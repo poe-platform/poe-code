@@ -3,7 +3,7 @@
 Scope: `sdk-collections-values`, local main only. The pinned inventories and
 1,337-row public API research register retain their original denominators. This
 record qualifies the verified subset; it does not establish whole-model coverage.
-The [owned plan and agent QA procedure](../plans/docx-collections-values.md)
+The [owned plan and agent QA procedure](../plans/docx-collections-values-continuation-20260921.md)
 records sequencing, ownership and final delivery.
 
 ## Enum surface
@@ -76,9 +76,9 @@ limit shape and unsupported per-model help path) are not product regressions or
 passing checks. The mistaken root screenshot build was cancelled. No native
 reference runtime, asset acquisition, README edits, fixture cleanup, push or release.
 
-## Remaining live-owner prerequisites
+## Historical live-owner prerequisites
 
-The earlier live-object task's own evidence still lists absent Document,
+At this increment's original verification, the live-object evidence listed absent Document,
 paragraph/run, table, section/story, comment and general package owners. In
 particular `_Rows`, `_Columns`, Sections, InlineShapes, Comments, ImageParts and
 Relationships are not live public collections. Their documented numeric/slice,
@@ -86,7 +86,10 @@ sparse ID-keyed, ownership, mutation and inherited member obligations remain
 pending. Utility arrays and relationship graph snapshots cannot count as those
 collections. This task extends the existing live types and must not create a
 second editor or placeholder wrappers to conceal the missing prerequisites.
-Later tasks remain pending.
+Task 28 subsequently supplied these owners. The
+[live collection continuation](collections-values-continuation-20260921.md)
+qualifies their collection protocols over those existing types; the earlier
+missing-owner statement is historical. Later tasks remain pending.
 
 ## Verified live collection and value increment
 

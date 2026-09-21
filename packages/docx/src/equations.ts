@@ -30,7 +30,17 @@ function location(sourceSha256:string,part:string,story:string,path:readonly num
 export async function equationDiagnosticLocation(input:Uint8Array,part:string,path:readonly number[],budget:DocumentBudget):Promise<Location<'part'>>{return location(await digest(input,budget),part,part,path);}
 export interface RawEquationUnit{readonly node:XmlElement;readonly path:readonly number[]}
 /** Physical outer-unit walk deliberately includes unselected and opaque content. */
-export function collectEquationUnits(root:XmlElement,namespace:string,budget:DocumentBudget):RawEquationUnit[]{const result:RawEquationUnit[]=[];const visit=(node:XmlElement,path:readonly number[])=>{budget.charge('work',1);if(node.namespace===namespace&&['oMath','oMathPara'].includes(node.localName)){budget.charge('retainedBytes',64+path.length*8);result.push({node,path});return;}node.children.forEach((child,i)=>visit(child,[...path,i]));};visit(root,[]);return result;}
+export function collectEquationUnits(root:XmlElement,namespace:string,budget:DocumentBudget):RawEquationUnit[]{
+ const result:RawEquationUnit[]=[],pending:RawEquationUnit[]=[{node:root,path:[]}];
+ while(pending.length){
+  const {node,path}=pending.pop()!;budget.charge('work',1);
+  if(node.namespace===namespace&&['oMath','oMathPara'].includes(node.localName)){
+   budget.charge('retainedBytes',64+path.length*8);result.push({node,path});continue;
+  }
+  for(let i=node.children.length-1;i>=0;i--)pending.push({node:node.children[i]!,path:[...path,i]});
+ }
+ return result;
+}
 function exposed(view:MarkupCompatibility,budget:DocumentBudget):Set<XmlElement>{const result=new Set<XmlElement>();const visit=(content:readonly CompatibilityContent[])=>{for(const node of content){budget.charge('work',1);if('source' in node){result.add(node.source);budget.charge('retainedBytes',32);if(node.disposition==='understood')visit(node.content);}}};visit(view.content);return result;}
 function at(root:XmlElement,path:readonly number[]):XmlElement|undefined{let node:XmlElement|undefined=root;for(const i of path)node=node?.children[i];return node;}
 function ancestors(root:XmlElement,path:readonly number[]):XmlElement[]{const result=[root];let node=root;for(const i of path){node=node.children[i]!;result.push(node);}return result;}

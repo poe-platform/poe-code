@@ -61,15 +61,53 @@ function cellLabel(row: number, column: number): string {
   return label + row;
 }
 
+interface PhysicalPath {
+  readonly parent?: PhysicalPath;
+  readonly index: number;
+  readonly length: number;
+  order: number;
+  value?: readonly number[];
+}
+
+function materializedPath(path: PhysicalPath): readonly number[] {
+  if (path.value) return path.value;
+  const value = new Array<number>(path.length);
+  let current = path;
+  for (let index = value.length - 1; index >= 0; index--) {
+    value[index] = current.index;
+    current = current.parent!;
+  }
+  return path.value = Object.freeze(value);
+}
+
 export class LocationIndex {
   readonly entries: LocationEntry[] = [];
   readonly references: StoryReference[] = [];
   readonly imageTargets = new Map<XmlElement, string>();
   readonly shapeCarriers = new Map<XmlElement, ShapeCarrier>();
   readonly shapeBodies = new Map<XmlElement, readonly XmlElement[]>();
-  readonly byAddress = new Map<string, LocationEntry[]>();
+  readonly #roots = new Map<string, XmlElement>();
+  readonly #nodeEntries = new Map<XmlElement | undefined, LocationEntry[]>();
+  readonly byAddress = {
+    get: (key: string): LocationEntry[] | undefined => {
+      let address: unknown;
+      try { address = JSON.parse(key); } catch { return undefined; }
+      if (!Array.isArray(address) || address.length !== 3) return undefined;
+      const [part, story, path] = address as unknown[];
+      if (typeof part !== "string" || typeof story !== "string" || !Array.isArray(path)) return undefined;
+      this.#budget.charge("work", path.length + 1);
+      let node = this.#roots.get(part);
+      for (const index of path as unknown[]) {
+        if (typeof index !== "number" || !Number.isSafeInteger(index) || index < 0) return undefined;
+        node = node?.children[index];
+        if (!node) return undefined;
+      }
+      const entries = this.#nodeEntries.get(node)?.filter(entry => entry.part === part && entry.story === story);
+      return entries?.length ? entries : undefined;
+    }
+  };
   readonly children = new Map<XmlElement, readonly XmlElement[]>();
-  readonly #paths = new Map<XmlElement, readonly number[]>();
+  readonly #paths = new Map<XmlElement, PhysicalPath>();
   readonly #w: string;
   readonly #budget: DocumentBudget;
   readonly #grids = new Map<XmlElement, Map<string, XmlElement>>();
@@ -78,7 +116,8 @@ export class LocationIndex {
     this.#budget = budget;
     const { w, r, a } = documentDialects[dialect];
     this.#w = w;
-    const roots = new Map<string, XmlElement>();
+    const roots = this.#roots;
+    let physicalOrder = 0;
     const branches = new Map<XmlElement, XmlElement | undefined>();
     const bodyRoots = new Set<XmlElement>();
     const bodyWords = new Map<XmlElement, string>();
@@ -90,26 +129,35 @@ export class LocationIndex {
         root = parsedRoots.get(part.partname) ?? parseDocumentXml(part.bytes, {}, budget).root;
         roots.set(part.partname, root);
         budget.charge("retainedBytes", 64);
-        const raw = [{ node: root, path: [] as readonly number[] }];
+        const raw: { node: XmlElement; path: PhysicalPath }[] = [{ node: root, path: { index: 0, length: 0, order: 0 } }];
         while (raw.length) {
           const { node, path } = raw.pop()!;
           budget.charge("work", 1);
+          path.order = physicalOrder++;
           this.#paths.set(node, path);
           for (let i = node.children.length - 1; i >= 0; i--) {
             budget.charge("work", path.length + 1);
             budget.charge("retainedBytes", 64 + (path.length + 1) * 8);
-            raw.push({ node: node.children[i]!, path: [...path, i] });
+            raw.push({ node: node.children[i]!, path: { parent: path, index: i, length: path.length + 1, order: 0 } });
           }
         }
-        const effective = (content: readonly CompatibilityContent[]): XmlElement[] => {
-          const result: XmlElement[] = [];
-          for (const child of content) {
+        const effective = (content: readonly CompatibilityContent[]): void => {
+          const pending = [{ content, index: 0, owner: undefined as XmlElement | undefined, nodes: [] as XmlElement[] }];
+          while (pending.length) {
+            const frame = pending.at(-1)!;
+            if (frame.index >= frame.content.length) {
+              pending.pop();
+              if (frame.owner) {
+                this.children.set(frame.owner, frame.nodes);
+                pending.at(-1)?.nodes.push(frame.owner);
+              }
+              continue;
+            }
+            const child = frame.content[frame.index++]!;
             budget.charge("work", 1);
             if (!("source" in child) || child.disposition !== "understood") continue;
-            this.children.set(child.source, effective(child.content));
-            result.push(child.source);
+            pending.push({ content: child.content, index: 0, owner: child.source, nodes: [] });
           }
-          return result;
         };
         const compatibility = new MarkupCompatibility(root, compatibilityProfileForPart(part.partname), budget);
         for (const branch of compatibility.branches) branches.set(branch.alternateContent, branch.selected);
@@ -169,13 +217,12 @@ export class LocationIndex {
           merged.sort((a, b) => {
             const left = this.#paths.get(a)!, right = this.#paths.get(b)!;
             budget.charge("work", Math.min(left.length, right.length) + 1);
-            for (let i = 0; i < Math.min(left.length, right.length); i++) if (left[i] !== right[i]) return left[i]! - right[i]!;
-            return left.length - right.length;
+            return left.order - right.order;
           });
           this.children.set(owner, merged);
         }
       }
-      this.#add({ kind: "part", part: part.partname, story: part.partname, path: [], positions: {}, ...(root ? { node: root } : {}) });
+      this.#add({ kind: "part", part: part.partname, story: part.partname, path: { index: 0, length: 0, order: 0 }, positions: {}, ...(root ? { node: root } : {}) });
     }
     const main = graph.getPart("/" + mainPart).partname;
     const mainRoot = roots.get(main)!;
@@ -191,11 +238,19 @@ export class LocationIndex {
       const entryStart = this.entries.length;
       const counts = { paragraph: 0, table: 0, image: 0, shape: 0, run: 0, link: 0, bookmark: 0, field: 0, control: 0 };
       let bodySection = 1;
-      const visit = (current: XmlElement, inherited: LocationPositions) => {
+      const catalog = [{ current: node, inherited: positions, exit: false }];
+      while (catalog.length) {
+        const frame = catalog.pop()!, current = frame.current;
+        let inherited = frame.inherited;
+        if (frame.exit) {
+          const properties = this.named(current, "pPr")[0];
+          if (properties && this.named(properties, "sectPr").length) bodySection++;
+          continue;
+        }
         budget.charge("work", 1);
         if (current !== node && (bodyRoots.has(current) || current.namespace === w && current.localName === "txbxContent")) {
           if (bodyWords.has(current) || !bodyRoots.has(current)) pendingBoxes.push({ node: current, part });
-          return;
+          continue;
         }
         if (scope === "body" && current !== node) inherited = { ...inherited, section: bodySection };
         let kind: LocationKind | undefined;
@@ -218,13 +273,10 @@ export class LocationIndex {
         if (this.shapeCarriers.has(current)) { kind = "shape"; pos = { ...inherited, shape: ++counts.shape }; }
         if (kind === "bookmark") this.#add({ kind: "annotation", part, story: id, path: this.#paths.get(current)!, node: current, scope, positions: inherited });
         if (kind) this.#add({ kind, part, story: id, path: this.#paths.get(current)!, node: current, scope, positions: pos });
-        for (const child of this.children.get(current) ?? []) visit(child, pos);
-        if (scope === "body" && current.namespace === w && current.localName === "p") {
-          const properties = this.named(current, "pPr")[0];
-          if (properties && this.named(properties, "sectPr").length) bodySection++;
-        }
-      };
-      visit(node, positions);
+        if (scope === "body" && current.namespace === w && current.localName === "p") catalog.push({ current, inherited: pos, exit: true });
+        const active = this.children.get(current) ?? [];
+        for (let index = active.length - 1; index >= 0; index--) catalog.push({ current: active[index]!, inherited: pos, exit: false });
+      }
       const owners = this.entries.slice(entryStart);
       budget.charge("work", owners.length);
       budget.charge("retainedBytes", owners.length * 64);
@@ -248,11 +300,9 @@ export class LocationIndex {
       const ordered = this.entries.splice(entryStart);
       budget.charge("retainedBytes", ordered.length * 8);
       ordered.sort((a, b) => {
-        budget.charge("work", a.path.length + b.path.length + 1);
-        for (let i = 0; i < Math.min(a.path.length, b.path.length); i++) {
-          if (a.path[i] !== b.path[i]) return a.path[i]! - b.path[i]!;
-        }
-        return a.path.length - b.path.length;
+        const left = this.#paths.get(a.node!)!, right = this.#paths.get(b.node!)!;
+        budget.charge("work", left.length + right.length + 1);
+        return left.order - right.order;
       });
       for (const entry of ordered) this.entries.push(entry);
     };
@@ -314,7 +364,7 @@ export class LocationIndex {
     }
     const visitBox = (box: { node: XmlElement; part: string }) => {
       const start = pendingBoxes.length;
-      story(box.part, box.node, "text-boxes", "text-box:" + this.#paths.get(box.node)!.join("."));
+      story(box.part, box.node, "text-boxes", "text-box:" + materializedPath(this.#paths.get(box.node)!).join("."));
       for (const nested of pendingBoxes.splice(start)) visitBox(nested);
     };
     for (const box of pendingBoxes) visitBox(box);
@@ -330,13 +380,14 @@ export class LocationIndex {
     }
   }
 
-  #add(entry: LocationEntry): void {
+  #add(entry: Omit<LocationEntry, "path"> & { path: PhysicalPath }): void {
     this.#budget.charge("retainedBytes", 256 + entry.path.length * 8 + entry.part.length * 2 + entry.story.length * 2);
-    this.entries.push(entry);
-    const key = addressKey(entry);
-    const existing = this.byAddress.get(key) ?? [];
-    existing.push(entry);
-    this.byAddress.set(key, existing);
+    const path = entry.path;
+    const location: LocationEntry = { ...entry, get path() { return materializedPath(path); } };
+    this.entries.push(location);
+    let existing = this.#nodeEntries.get(entry.node);
+    if (!existing) this.#nodeEntries.set(entry.node, existing = []);
+    existing.push(location);
   }
 
   attr(node: XmlElement, name: string, namespace = this.#w): string | undefined {
@@ -426,7 +477,7 @@ export class LocationIndex {
     }
     const target = grid.get(cellLabel(row, column));
     if (!target) throw new SelectionError("missing-selection");
-    const key = addressKey({ ...table, path: this.#paths.get(target)! });
+    const key = addressKey({ ...table, path: materializedPath(this.#paths.get(target)!) });
     const entry = this.byAddress.get(key)?.find(e => e.kind === "cell");
     if (!entry) throw new SelectionError("missing-selection");
     const anchor = [...grid].find(([, value]) => value === target)![0];

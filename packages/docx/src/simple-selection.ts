@@ -3,7 +3,7 @@ import { InvalidValueError } from "./archive.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { closedRecord, SelectionError, type Location, type LocationKind } from "./location-token.js";
 import { docxOperationSchemas } from "./operation-schema.js";
-import type { DocumentLocations, LocationQuery } from "./locations.js";
+import { docxLocationBudgets, type DocumentLocations, type LocationQuery } from "./locations.js";
 import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
@@ -14,7 +14,7 @@ const resourceKinds: Readonly<Record<string, LocationKind>> = {
 /** Resolve admitted input only; feature editors consume these revision-bound targets. */
 export function resolveDocxSelection(document: DocumentLocations, value: DocxInvocation): readonly Location[] {
   closedRecord(value, ["operation", "inputs", "options", "sources"]);
-  const invocation = validateDocxInvocation({ operation: value.operation, inputs: value.inputs, options: value.options });
+  const invocation = validateDocxInvocation({ operation: value.operation, inputs: value.inputs, options: value.options }, docxLocationBudgets.get(document));
   const { operation, options } = invocation;
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add") && !operation.startsWith("tables.rows.") && !operation.startsWith("tables.columns.");

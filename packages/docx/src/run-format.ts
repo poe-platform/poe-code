@@ -11,6 +11,7 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { UnsupportedEditError, replaceSplitTextRunXml, splitNativeTextRunXml, type DocumentXmlEditor } from "./xml-write.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
+import { DocumentPackage } from "./package.js";
 import { replaceRunContent } from "./paragraph-content.js";
 import { equivalentRunKey, formattedRunProperties, runElementOpen } from "./run-properties.js";
 import type { DocxOperationArguments } from "./operation-types.js";
@@ -136,7 +137,7 @@ export async function formatDocumentRuns(input: Uint8Array, options: RunFormatOp
     if ((!target.whole || preserveMarkers) && props && children(props).some(child => child.namespace === node.namespace && child.localName === "rPrChange"))
       throw new UnsupportedEditError("Partial formatting cannot duplicate an owned property-history identity.");
     let markup: string;
-    if (opts.text !== undefined) markup = replaceRunContent(xml, node, properties, opts.text, budget);
+    if (opts.text !== undefined) markup = replaceRunContent(xml, node, properties, opts.text, budget, { graph: () => new DocumentPackage(archive, settings.limits, budget), owner: target.run.value.part, context: { ...settings, budget } });
     else if (target.whole && !preserveMarkers) {
       markup = props ? xml.sourceXml(node, new Map([[props, properties]])) : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
     } else if (preserveMarkers || node.children.some(child => child.namespace !== node.namespace) || props && props.children.some(child => child.namespace !== node.namespace)) {

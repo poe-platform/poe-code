@@ -39,21 +39,33 @@ export function assertOutsideFields(fields: readonly ParsedField[], caret: reado
 export function parseFields(root: XmlElement, path: readonly number[], budget: DocumentBudget, content: readonly CompatibilityContent[]): ParsedField[] {
   const fields: ParsedField[] = [], stack: ParsedField[] = [];
   const active = new Set<XmlElement>(), reachable = new Set<XmlElement>();
-  const collect = (content: readonly CompatibilityContent[]) => {
-    for (const item of content) if ("source" in item) {
-      budget.charge("work", 1);
-      active.add(item.source);
-      collect(item.content);
-    }
-  };
-  collect(content);
-  const mark = (node: XmlElement): boolean => {
+  budget.charge("retainedBytes", 24);
+  const projection = [{ content, position: 0 }];
+  while (projection.length) {
+    const frame = projection.at(-1)!;
+    if (frame.position === frame.content.length) { projection.pop(); continue; }
+    const item = frame.content[frame.position++]!;
+    if (!("source" in item)) continue;
     budget.charge("work", 1);
-    const children = node.children.map(mark);
-    if (active.has(node) || children.some(Boolean)) { reachable.add(node); return true; }
-    return false;
-  };
-  mark(root);
+    budget.charge("retainedBytes", 56);
+    active.add(item.source);
+    projection.push({ content: item.content, position: 0 });
+  }
+  budget.charge("retainedBytes", 32);
+  const ancestry = [{ node: root, position: -1, reachable: false }];
+  while (ancestry.length) {
+    const frame = ancestry.at(-1)!;
+    if (frame.position === -1) { budget.charge("work", 1); frame.position = 0; }
+    if (frame.position < frame.node.children.length) {
+      budget.charge("retainedBytes", 32);
+      ancestry.push({ node: frame.node.children[frame.position++]!, position: -1, reachable: false });
+    } else {
+      const found = active.has(frame.node) || frame.reachable;
+      if (found) reachable.add(frame.node);
+      ancestry.pop();
+      if (found && ancestry.length) ancestry.at(-1)!.reachable = true;
+    }
+  }
   const fail = () => { throw new UnsupportedEditError("Malformed field boundaries or instruction text."); };
   const begin = (node: XmlElement, path: readonly number[], simple: boolean, unsafe: boolean) => {
     const field: ParsedField = { node, path, form: simple ? "simple" : "complex", instruction: simple ? fieldAttribute(node, "instr") ?? "" : "", result: "", kind: "", update: ["1", "true", "on"].includes(fieldAttribute(node, "dirty") ?? ""), locked: ["1", "true", "on"].includes(fieldAttribute(node, "fldLock") ?? ""), nested: [], text: [], instructions: [], unsafe, separated: simple, unsupported: unsafe };
@@ -84,55 +96,71 @@ export function parseFields(root: XmlElement, path: readonly number[], budget: D
     if (quoted) field.unsupported = true;
     if (["MERGEFIELD", "REF", "PAGEREF", "SEQ"].includes(field.kind) && !field.nested.length && (!trimmed.slice(end).trim() || trimmed.slice(end).trimStart().startsWith("\\"))) field.unsupported = true;
   };
-  const visit = (node: XmlElement, path: readonly number[], unsafe: boolean): void => {
-    budget.charge("work", 1);
-    if (!reachable.has(node)) return;
-    if (!active.has(node)) {
-      node.children.forEach((child, i) => visit(child, [...path, i], true));
-      return;
-    }
-    if (node !== root && dialectForNamespace(node.namespace) && ["txbxContent", "footnote", "endnote", "comment", "hdr", "ftr", "body"].includes(node.localName)) return;
-    const dialect = dialectForNamespace(node.namespace);
-    const word = dialect !== undefined && node.namespace === documentDialects[dialect].w;
-    const name = word ? node.localName : "opaque";
-    if (name === "rPr" || name === "pPr") return;
-    const prohibited = !word || ["sdt", "ins", "del", "moveFrom", "moveTo", "hyperlink", "customXml"].includes(name);
-    unsafe ||= prohibited;
-    if (stack.length && !["fldSimple", "fldChar", "instrText", "t", "r", "tab", "br", "cr"].includes(name)) for (const field of stack) field.unsupported = true;
-    if (prohibited || name === "br" && ![undefined, "textWrapping"].includes(fieldAttribute(node, "type"))) for (const field of stack) field.unsupported = true;
-    let simple: ParsedField | undefined;
-    if (name === "fldSimple") simple = begin(node, path, true, unsafe);
-    else if (name === "fldChar") {
-      const type = fieldAttribute(node, "fldCharType");
-      if (type === "begin") begin(node, path, false, unsafe);
+  budget.charge("retainedBytes", 48 + path.length * 8);
+  const currentPath = [...path];
+  const traversal: { node: XmlElement; position: number; unsafe: boolean; simple?: ParsedField }[] = [{ node: root, position: -1, unsafe: false }];
+  while (traversal.length) {
+    const frame = traversal.at(-1)!, node = frame.node;
+    if (frame.position === -1) {
+      budget.charge("work", 1);
+      frame.position = 0;
+      const dialect = dialectForNamespace(node.namespace);
+      const word = dialect !== undefined && node.namespace === documentDialects[dialect].w;
+      if (!reachable.has(node) || active.has(node) &&
+        (node !== root && dialect !== undefined && ["txbxContent", "footnote", "endnote", "comment", "hdr", "ftr", "body"].includes(node.localName) ||
+          word && ["rPr", "pPr"].includes(node.localName))) {
+        traversal.pop();
+        if (traversal.length) currentPath.pop();
+        continue;
+      }
+      if (!active.has(node)) frame.unsafe = true;
       else {
-        const field = stack.at(-1);
-        if (!field || field.form !== "complex") fail();
-        if (type === "separate") { if (field!.separated) fail(); field!.separated = true; field!.separator = node; }
-        else if (type === "end") { field!.endPath = path; finish(stack.pop()!); }
-        else fail();
-      }
-    } else if (name === "instrText") {
-      const field = stack.at(-1);
-      if (!field || field.form !== "complex" || field.separated || node.children.length) fail();
-      field!.instruction += node.text;
-      field!.instructions.push(node);
-      budget.charge("retainedBytes", node.text.length * 2);
-    } else if (["t", "tab", "br", "cr"].includes(name)) {
-      const value = name === "t" ? node.text : name === "tab" ? "\t" : "\n";
-      for (let i = stack.length - 1; i >= 0; i--) {
-        const field = stack[i]!;
-        if (!field.separated) break;
-        field.result += value;
-        budget.charge("retainedBytes", value.length * 2);
-        field.text.push(node);
-        if (unsafe || node.children.length) field.unsupported = true;
+        const name = word ? node.localName : "opaque";
+        const prohibited = !word || ["sdt", "ins", "del", "moveFrom", "moveTo", "hyperlink", "customXml"].includes(name);
+        frame.unsafe ||= prohibited;
+        if (stack.length && !["fldSimple", "fldChar", "instrText", "t", "r", "tab", "br", "cr"].includes(name)) for (const field of stack) field.unsupported = true;
+        if (prohibited || name === "br" && ![undefined, "textWrapping"].includes(fieldAttribute(node, "type"))) for (const field of stack) field.unsupported = true;
+        if (name === "fldSimple") frame.simple = begin(node, [...currentPath], true, frame.unsafe);
+        else if (name === "fldChar") {
+          const type = fieldAttribute(node, "fldCharType");
+          if (type === "begin") begin(node, [...currentPath], false, frame.unsafe);
+          else {
+            const field = stack.at(-1);
+            if (!field || field.form !== "complex") fail();
+            if (type === "separate") { if (field!.separated) fail(); field!.separated = true; field!.separator = node; }
+            else if (type === "end") { budget.charge("retainedBytes", currentPath.length * 8); field!.endPath = [...currentPath]; finish(stack.pop()!); }
+            else fail();
+          }
+        } else if (name === "instrText") {
+          const field = stack.at(-1);
+          if (!field || field.form !== "complex" || field.separated || node.children.length) fail();
+          field!.instruction += node.text;
+          field!.instructions.push(node);
+          budget.charge("retainedBytes", node.text.length * 2);
+        } else if (["t", "tab", "br", "cr"].includes(name)) {
+          const value = name === "t" ? node.text : name === "tab" ? "\t" : "\n";
+          for (let i = stack.length - 1; i >= 0; i--) {
+            const field = stack[i]!;
+            if (!field.separated) break;
+            field.result += value;
+            budget.charge("retainedBytes", value.length * 2);
+            field.text.push(node);
+            if (frame.unsafe || node.children.length) field.unsupported = true;
+          }
+        }
       }
     }
-    for (let i = 0; i < node.children.length; i++) visit(node.children[i]!, [...path, i], unsafe);
-    if (simple) { if (stack.pop() !== simple) fail(); finish(simple); }
-  };
-  visit(root, path, false);
+    if (frame.position < node.children.length) {
+      budget.charge("retainedBytes", 56);
+      const index = frame.position++;
+      currentPath.push(index);
+      traversal.push({ node: node.children[index]!, position: -1, unsafe: frame.unsafe });
+    } else {
+      if (frame.simple) { if (stack.pop() !== frame.simple) fail(); finish(frame.simple); }
+      traversal.pop();
+      if (traversal.length) currentPath.pop();
+    }
+  }
   if (stack.length) fail();
   return fields;
 }

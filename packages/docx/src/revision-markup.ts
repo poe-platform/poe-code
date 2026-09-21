@@ -20,6 +20,7 @@ export interface RevisionInfo {
 /** Support describes read interpretation, never permission to accept or reject a change. */
 export function revisionInfo(node: XmlElement): RevisionInfo | undefined {
   const name = node.localName;
+  if (name === "clrChange" && (node.namespace === documentDialects.transitional.a || node.namespace === documentDialects.strict.a)) return undefined;
   const attr = (name: string) => node.attributes.find(a => a.localName === name && (a.namespace === node.namespace || a.namespace === documentDialects.transitional.w || a.namespace === documentDialects.strict.w))?.value ?? null;
   const word = node.namespace === documentDialects.transitional.w || node.namespace === documentDialects.strict.w;
   const type: RevisionInfo["type"] = !word ? "unsupported" : name === "ins" ? "insert" : name === "del" ? "delete"
@@ -50,20 +51,28 @@ export function revisionInfo(node: XmlElement): RevisionInfo | undefined {
   return { id: attr("id"), author: attr("author"), timestamp: attr("date"), markup: name, namespace: node.namespace, name: attr("name"), type, support: supported ? "supported" : "opaque" };
 }
 
-export function containsRevision(node: XmlElement): boolean {
-  return revisionInfo(node) !== undefined || node.children.some(containsRevision);
+export function containsRevision(node: XmlElement, budget?: DocumentBudget): boolean {
+  budget?.charge("retainedBytes", 8);
+  const pending = [node];
+  while (pending.length) {
+    const current = pending.pop()!;
+    budget?.charge("work", 1);
+    if (revisionInfo(current) !== undefined) return true;
+    budget?.charge("retainedBytes", current.children.length * 8);
+    for (let index = current.children.length - 1; index >= 0; index--) pending.push(current.children[index]!);
+  }
+  return false;
 }
 
 /** A range can start before the selected paragraph, so subtree checks alone are insufficient. */
 export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement, budget: DocumentBudget, branches: readonly CompatibilityBranch[], children = activeXmlChildren(root, budget)): void {
   const selected = new Map(branches.map(branch => [branch.alternateContent, branch.selected]));
   const active = new Set<string>();
-  let found = false;
-  const visit = (node: XmlElement): void => {
-    if (found) return;
+  const pending = [root];
+  while (pending.length) {
+    const node = pending.pop()!;
     budget.charge("work", 1);
     if (node === target) {
-      found = true;
       if (active.size) throw new UnsupportedEditError("Text removal cannot cross a review range.");
       return;
     }
@@ -74,10 +83,12 @@ export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement
     }
     if (selected.has(node)) {
       const branch = selected.get(node);
-      if (branch) visit(branch);
-    } else for (const child of children(node)) visit(child);
-  };
-  visit(root);
+      if (branch) pending.push(branch);
+    } else {
+      const activeChildren = children(node);
+      for (let index = activeChildren.length - 1; index >= 0; index--) pending.push(activeChildren[index]!);
+    }
+  }
 }
 
 /** Native table history belongs to its property owner and affects contained edits. */
@@ -101,7 +112,9 @@ export function containsActiveTableHistory(node: XmlElement, children: (node: Xm
 /** A model property patch cannot reconcile opaque owner or ancestor history. */
 export function assertFormattingHistoryEditable(root: XmlElement, target: XmlElement, children: (node: XmlElement) => readonly XmlElement[], budget: DocumentBudget): void {
   assertOutsideRevisionRanges(root, target, budget, [], children);
-  const visit = (node: XmlElement, blocked: boolean): boolean => {
+  const pending = [{ node: root, blocked: false }];
+  while (pending.length) {
+    const { node, blocked } = pending.pop()!;
     budget.charge("work", 1);
     const active = children(node);
     const history = containsActiveTableHistory(node, children, budget) || node.namespace === target.namespace && (["p", "r"].includes(node.localName) || node === target) &&
@@ -112,9 +125,63 @@ export function assertFormattingHistoryEditable(root: XmlElement, target: XmlEle
         }));
     if (node === target) {
       if (blocked || history) throw new UnsupportedEditError("Formatting cannot reconcile complex property history.");
-      return true;
+      return;
     }
-    return active.some(child => visit(child, blocked || history));
-  };
-  if (!visit(root, false)) throw new UnsupportedEditError("Formatting requires an active owned element.");
+    for (let index = active.length - 1; index >= 0; index--) pending.push({ node: active[index]!, blocked: blocked || history });
+  }
+  throw new UnsupportedEditError("Formatting requires an active owned element.");
+}
+
+export interface ParagraphTextHistory {
+  readonly root: XmlElement;
+  readonly paragraphs: ReadonlySet<XmlElement>;
+}
+
+/** Validate native cell paragraph owners together without repeated story scans. */
+export function paragraphTextHistory(root: XmlElement, paragraphs: readonly XmlElement[], children: (node: XmlElement) => readonly XmlElement[], budget: DocumentBudget): ParagraphTextHistory {
+  budget.charge("retainedBytes", paragraphs.length * 112);
+  const targets = new Set(paragraphs), activeRanges = new Set<string>();
+  if (!targets.size) return { root, paragraphs: targets };
+  const namespace = paragraphs[0]!.namespace;
+  const pending = [{ node: root, blocked: false }];
+  const startWork = budget.usage.work;
+  let ordinal = 0, formatWork = 0, proofWork = 0, remaining = targets.size;
+  while (pending.length) {
+    const { node, blocked } = pending.pop()!;
+    budget.charge("work", 1);
+    ordinal++;
+    const target = targets.has(node), outsideWork = ordinal * 2 - 1;
+    if (target) {
+      // The projection charges one work unit per child lookup. Reserve the
+      // original first prefix scan before its semantic range check.
+      budget.charge("work", Math.max(0, proofWork + outsideWork - (budget.usage.work - startWork)));
+      if (activeRanges.size) throw new UnsupportedEditError("Text removal cannot cross a review range.");
+    }
+    const active = children(node);
+    formatWork += 2;
+    const history = node.namespace === namespace && ["p", "r"].includes(node.localName) &&
+      active.filter(property => property.namespace === namespace && ["pPr", "rPr"].includes(property.localName)).some(property => {
+        formatWork++;
+        return children(property).some(change => {
+          const revision = revisionInfo(change);
+          return revision?.type === "format" && revision.support === "opaque";
+        });
+      });
+    if (target) {
+      if (node.namespace !== namespace || node.localName !== "p") throw new UnsupportedEditError("Cell text requires native paragraph owners.");
+      // Retain the second range scan and full ancestor-history scan charges,
+      // even though their immutable exposure state is shared by this walk.
+      proofWork += outsideWork * 2 + formatWork;
+      budget.charge("work", proofWork - (budget.usage.work - startWork));
+      if (blocked || history) throw new UnsupportedEditError("Formatting cannot reconcile complex property history.");
+      if (--remaining === 0) return { root, paragraphs: targets };
+    }
+    const info = revisionInfo(node);
+    if (info && (info.markup.endsWith("RangeStart") || info.markup.endsWith("RangeEnd"))) {
+      const key = info.namespace + ":" + info.markup.slice(0, info.markup.lastIndexOf("Range")) + ":" + info.id;
+      if (info.markup.endsWith("RangeStart")) activeRanges.add(key); else activeRanges.delete(key);
+    }
+    for (let index = active.length - 1; index >= 0; index--) pending.push({ node: active[index]!, blocked: blocked || history });
+  }
+  throw new UnsupportedEditError("Formatting requires an active owned element.");
 }

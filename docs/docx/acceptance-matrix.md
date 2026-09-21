@@ -1092,6 +1092,28 @@ unchanged model save preserves it. No complete family is accepted by this scope;
 current whole/source gates and the complete outstanding family obligations remain
 required.
 
+The 2026-09-19 public BDD dependency qualification independently reviews exact
+source witnesses, complete native/carrier grids and unchanged recorded
+source/test/dist/helper/contract fingerprints. Named scoped receipts are:
+
+| Dependency | Exact executed evidence | Passing records |
+| --- | --- | --- |
+| Twenty comment identities | [Comment receipt](text-style-family-acceptance-20260918/bdd-comments-public-requirement-evidence.json) | 5,760 |
+| Eleven image characterization identities | [Image metadata receipt](text-style-family-acceptance-20260918/bdd-image-characterization-public-requirement-evidence.json) | 1,584 |
+| Thirty-six section identities | [Section receipt](text-style-family-acceptance-20260918/bdd-sections-public-requirement-evidence.json) | 10,368 |
+| Eight picture insertion identities | [Picture insertion receipt](text-style-family-acceptance-20260918/bdd-picture-insertion-public-requirement-evidence.json) | 2,304 |
+| Eight inline-shape identities | [Shape receipt](text-style-family-acceptance-20260918/bdd-inline-shapes-public-requirement-evidence.json) | 2,304 |
+| Sixteen text/style owner protocols | [Owner protocol receipt](text-style-family-acceptance-20260918/owner-protocol-requirement-evidence.json) | 2,304 |
+
+All have zero failed/skipped records. Section capture was explicitly post-launch;
+other listed BDD scopes and final owner replay have pre-launch fingerprints.
+Image density preserves exact fractional DPI per the format contract; Word
+variants are caller context, not fictitious image namespaces. Metadata fixtures
+do not qualify rendering. Original observers/preimages remain retained. These
+receipts qualify only their named assertions. Full F08–F15/F18, final whole
+workspace/public requalification and remaining requirement reconciliation stay
+open. Nothing has been pushed or published.
+
 The [stored style semantic-error receipt](text-style-family-audit-20260919/stored-style-requirement-evidence.json) records 192 original native/SDK typed-error failures and 96 already-correct CLI refusals after explicit observer qualification. All 384 current memfs cases, 1,560 focused neighbor/source cases and 2,304 independent built public records pass without failures or skips. Malformed active boolean/integer metadata now throws InvalidDocumentError with invalid-document; the actual CLI retains exit 1. Both macro-free kinds/dialects, three namespace spellings and four carriers execute applicable native/SDK/typed-model/actual CLI paths. The 864 valid dirty edits retain inert malformed alternatives, comments/PI, Unicode body and untouched member/relationship bytes. Maintained selected build/lint and inspected CLI screenshot pass. Every original attempt remains historical; complete F08–F15/F18 acceptance remains open.
 
 The [stored measure correction](text-style-family-audit-20260919/stored-measures-requirement-evidence.json) retains original failures for universal font/tab measures, relative style spacing, lexical and unsigned boundaries, native XML context and serialized-position rounding. All 2,688 current owned cases have exact passing source evidence; the 4,100-case selected dependency gate and 28 targeted valid controls pass without counting unrun rows. The settled built model/SDK/actual opted-in CLI replays pass all 6,120 exact current measure, style, contextual-tab and unsigned-refusal records, with three namespace spellings, four carriers, both dialects/kinds and exact member/relationship/dirty metadata retention. Selected maintained build/lint and visually inspected spacing screenshot pass. Exact affected source/BDD replays, malformed non-measure read dependencies, stable workspace acceptance and every complete family remain open. No default agent command or browser closure is changed.

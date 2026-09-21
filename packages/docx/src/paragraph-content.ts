@@ -1,11 +1,13 @@
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { compatibilityContainers } from "./compatibility.js";
-import { revisionInfo, assertFormattingHistoryEditable, assertOutsideRevisionRanges } from "./revision-markup.js";
+import { revisionInfo, assertFormattingHistoryEditable, assertOutsideRevisionRanges, type ParagraphTextHistory } from "./revision-markup.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { xmlValue } from "./create-content.js";
 import type { DocumentBudget } from "./budget.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { runElementOpen } from "./run-properties.js";
+import { assertTextCommentReference } from "./text-comment-reference.js";
+import { assertTextRasterDrawing, type TextContentAssignment } from "./text-raster-content.js";
 import { splitNativeTextRunXml, UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
 export function paragraphTextRun(w: string, text: string, style?: string, kind?: "line" | "page" | "column"): string {
@@ -23,19 +25,24 @@ export function paragraphTextRun(w: string, text: string, style?: string, kind?:
 const markers = new Set(["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"]);
 
 /** Text assignment intentionally removes runs; annotations and paragraph ownership survive. */
-export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, properties: string, text: string, budget: DocumentBudget): string {
+export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, properties: string, text: string, budget: DocumentBudget, raster?: TextContentAssignment, history?: ParagraphTextHistory): string {
   const children = activeXmlChildren(xml, budget);
-  assertOutsideRevisionRanges(xml.root, p, budget, xml.compatibility.branches, children);
+  const verified = history?.root === xml.root && history.paragraphs.has(p);
+  if (!verified) assertOutsideRevisionRanges(xml.root, p, budget, xml.compatibility.branches, children);
   const patches = new Map<XmlElement, string>();
   const containers = children(p).filter(child => child.namespace === p.namespace && child.localName === "pPr");
   if (containers.length > 1) throw new UnsupportedEditError("Paragraph text requires one owning property container.");
   const props = containers[0];
-  assertFormattingHistoryEditable(xml.root, p, children, budget);
-  const containsActiveRevision = (node: XmlElement): boolean => {
+  if (!verified) assertFormattingHistoryEditable(xml.root, p, children, budget);
+  const revisionNodes = [p];
+  while (revisionNodes.length) {
+    const node = revisionNodes.pop()!;
     budget.charge("work", 1);
-    return node !== props && (revisionInfo(node) !== undefined || children(node).some(containsActiveRevision));
-  };
-  if (containsActiveRevision(p)) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
+    if (node === props) continue;
+    if (revisionInfo(node) !== undefined) throw new UnsupportedEditError("Whole paragraph text cannot discard review history.");
+    const active = children(node);
+    for (let index = active.length - 1; index >= 0; index--) revisionNodes.push(active[index]!);
+  }
   const wordDrawingNamespace = documentDialects[dialectForNamespace(p.namespace)!].wp;
   const commentOwnsParagraph = (node: XmlElement, owner = false): boolean | undefined => {
     const pending = [{ node, owner }];
@@ -52,13 +59,17 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
   };
   const ownCommentParagraph = xml.root.namespace === p.namespace && xml.root.localName === "comments" && commentOwnsParagraph(xml.root) === true;
   const isReferenceMarker = (node: XmlElement): boolean =>
-    node.namespace === p.namespace && (["footnoteRef", "endnoteRef"].includes(node.localName) ||
+    node.namespace === p.namespace && (["footnoteRef", "endnoteRef"].includes(node.localName) || node.localName === "commentReference" && raster !== undefined ||
       node.localName === "annotationRef" && ownCommentParagraph && !node.children.length && !node.text.trim());
-  const containsReferenceMarker = (node: XmlElement): boolean => {
+  let hasReferenceMarker = false;
+  const referenceNodes = [...children(p)].reverse();
+  while (referenceNodes.length) {
+    const node = referenceNodes.pop()!;
     budget.charge("work", 1);
-    return isReferenceMarker(node) || children(node).some(containsReferenceMarker);
-  };
-  const hasReferenceMarker = children(p).some(containsReferenceMarker);
+    if (isReferenceMarker(node) && node.localName !== "commentReference") { hasReferenceMarker = true; break; }
+    const active = children(node);
+    for (let index = active.length - 1; index >= 0; index--) referenceNodes.push(active[index]!);
+  }
   const assigned = hasReferenceMarker ? "" : text;
   let inserted = false;
   for (const child of children(p)) {
@@ -66,6 +77,15 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
     if (child === props) { patches.set(child, properties); continue; }
     if (markers.has(child.localName)) continue;
     const check = (node: XmlElement): void => {
+      if (node.namespace === p.namespace && node.localName === "commentReference" && raster) {
+        assertTextCommentReference(node, xml, raster);
+        if (child.localName !== "r") throw new UnsupportedEditError("Whole paragraph text cannot discard linked reference markers.");
+        return;
+      }
+      if (node.namespace === p.namespace && node.localName === "drawing" && raster) {
+        assertTextRasterDrawing(node, xml, raster);
+        return;
+      }
       if (isReferenceMarker(node) && child.localName !== "r")
         throw new UnsupportedEditError("Whole paragraph text cannot discard linked reference markers.");
       if (node.localName !== "rPr" && node.content.some(c => c.kind !== "element" && c.kind !== "text"))
@@ -94,7 +114,7 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
     if (child.localName === "r" && child.children.some(node => node.namespace !== p.namespace)) {
       // The retained run owns inactive compatibility payload. Remove its active
       // formatting/content without discarding that physical owner or carrier.
-      patches.set(child, replaceRunContent(xml, child, "", inserted ? "" : assigned, budget));
+      patches.set(child, replaceRunContent(xml, child, "", inserted ? "" : assigned, budget, raster));
       inserted = true;
       continue;
     }
@@ -167,14 +187,16 @@ export function splitParagraphContent(xml: DocumentXmlEditor, p: XmlElement, car
 }
 
 /** Whole run assignment removes native content and retains its owning properties. */
-export function replaceRunContent(xml: DocumentXmlEditor, run: XmlElement, properties: string, text: string, budget: DocumentBudget): string {
+export function replaceRunContent(xml: DocumentXmlEditor, run: XmlElement, properties: string, text: string, budget: DocumentBudget, raster?: TextContentAssignment): string {
   const children = activeXmlChildren(xml, budget);
   assertFormattingHistoryEditable(xml.root, run, children, budget);
   const active = children(run);
+  const drawings = active.filter(child => child.namespace === run.namespace && child.localName === "drawing" && raster);
+  for (const drawing of drawings) assertTextRasterDrawing(drawing, xml, raster!);
   const containers = active.filter(child => child.namespace === run.namespace && child.localName === "rPr");
-  if (containers.length > 1 || active.some(child => child.namespace !== run.namespace ||
+  if (containers.length > 1 || active.some(child => !drawings.includes(child) && (child.namespace !== run.namespace ||
     !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen", "lastRenderedPageBreak"].includes(child.localName) ||
-    child.localName !== "rPr" && child.content.some(content => content.kind !== "text" || child.localName !== "t" && content.text.trim())))
+    child.localName !== "rPr" && child.content.some(content => content.kind !== "text" || child.localName !== "t" && content.text.trim()))))
     throw new UnsupportedEditError("Whole run text cannot discard owned resources or unsupported content.");
   const props = containers[0];
   // Retain empty native slots when deleting them would move an opaque sibling

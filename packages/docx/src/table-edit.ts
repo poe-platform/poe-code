@@ -1,3 +1,4 @@
+import { activeXmlChildren } from "./xml-active-children.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxInvocation } from "./command.js";
@@ -10,7 +11,7 @@ import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { replaceParagraphContent } from "./paragraph-content.js";
+import { replaceCellContent } from "./cell-content.js";
 import { editDocumentParagraphs } from "./paragraph-edit.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
@@ -34,8 +35,8 @@ const orders: Readonly<Record<string, readonly string[]>> = {
   tblCellMar: ["top", "left", "start", "bottom", "right", "end"], tcMar: ["top", "left", "start", "bottom", "right", "end"]
 };
 function children(node: XmlElement, name: string): XmlElement[] { return node.children.filter(c => c.namespace === node.namespace && c.localName === name); }
-function one(node: XmlElement, name: string): XmlElement | undefined {
-  const found = children(node, name);
+function one(node: XmlElement, name: string, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): XmlElement | undefined {
+  const found = projected(node).filter(child => child.namespace === node.namespace && child.localName === name);
   if (found.length > 1) throw new UnsupportedEditError("Duplicate table properties cannot be edited.");
   return found[0];
 }
@@ -48,39 +49,55 @@ function element(w: string, name: string, attrs: Readonly<Record<string, string>
   return `<${prefix}:${name}${[...namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("")}${keep.map(a => ` ${a.name}="${xmlValue(a.value)}"`).join("")}${Object.entries(attrs).map(([k, v]) => ` ${prefix}:${k}="${xmlValue(v)}"`).join("")}>${inner}</${prefix}:${name}>`;
 }
 /** Merge only requested property attributes, retaining extension children and lexical siblings. */
-function properties(xml: DocumentXmlEditor, owner: XmlElement, name: string, values: ReadonlyMap<string, Readonly<Record<string, string>> | null>, nested?: { name: string; values: ReadonlyMap<string, Readonly<Record<string, string>>> }): string {
-  const props = one(owner, name), changes = new Map<XmlElement, string>(), additions = new Map<string, string>();
+function properties(xml: DocumentXmlEditor, owner: XmlElement, name: string, values: ReadonlyMap<string, Readonly<Record<string, string>> | null>, nested?: { name: string; values: ReadonlyMap<string, Readonly<Record<string, string>>> }, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
+  const field = (node: XmlElement, key: string): XmlElement | undefined => {
+    const found = projected(node).filter(child => child.namespace === node.namespace && child.localName === key);
+    if (found.length > 1) throw new UnsupportedEditError("Duplicate table properties cannot be edited.");
+    return found[0];
+  };
+  const props = field(owner, name), changes = new Map<XmlElement, string>(), additions = new Map<string, string>();
   const set = (key: string, markup: string, old: XmlElement | undefined) => { if (old) changes.set(old, markup); else additions.set(key, markup); };
   for (const [key, value] of values) {
-    const old = props ? one(props, key) : undefined;
+    const old = props ? field(props, key) : undefined;
     if (value === null) { if (old) changes.set(old, ""); continue; }
     if (old && Object.entries(value).every(([k, v]) => attr(old, k) === v)) continue;
     set(key, element(owner.namespace, key, value, old, old ? xml.sourceXml(old, new Map(), true) : ""), old);
   }
   if (nested) {
     const containerOwner = props ?? { ...owner, children: [] };
-    const markup = properties(xml, containerOwner, nested.name, nested.values);
-    const old = props ? one(props, nested.name) : undefined;
+    const markup = properties(xml, containerOwner, nested.name, nested.values, undefined, projected);
+    const old = props ? field(props, nested.name) : undefined;
     if (markup !== (old ? xml.sourceXml(old) : "")) set(nested.name, markup, old);
   }
   if (!changes.size && !additions.size) return props ? xml.sourceXml(props) : "";
   const order = orders[name] ?? [], prefixes = new Map<XmlElement, string>(); let tail = "";
   for (const [key, markup] of additions) {
-    const next = props?.children.find(c => c.namespace === owner.namespace && order.indexOf(c.localName) > order.indexOf(key));
+    const next = (props ? projected(props) : []).find(c => c.namespace === owner.namespace && order.indexOf(c.localName) > order.indexOf(key));
     if (next) prefixes.set(next, (prefixes.get(next) ?? "") + markup); else tail += markup;
   }
   for (const [node, prefix] of prefixes) changes.set(node, prefix + (changes.get(node) ?? xml.sourceXml(node)));
   const inner = (props ? xml.sourceXml(props, changes, true) : "") + tail;
   return props ? runElementOpen(props) + inner + `</${props.name}>` : element(owner.namespace, name, {}, undefined, inner);
 }
-function withProperties(xml: DocumentXmlEditor, node: XmlElement, name: string, markup: string, patches = new Map<XmlElement, string>()): string {
-  const old = one(node, name);
+function withProperties(xml: DocumentXmlEditor, node: XmlElement, name: string, markup: string, patches = new Map<XmlElement, string>(), projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
+  const found = projected(node).filter(child => child.namespace === node.namespace && child.localName === name);
+  if (found.length > 1) throw new UnsupportedEditError("Duplicate table properties cannot be edited.");
+  const old = found[0];
   if (old) { patches.set(old, markup); return xml.sourceXml(node, patches); }
   if (!markup) return xml.sourceXml(node, patches);
   return runElementOpen(node) + (old ? "" : markup) + xml.sourceXml(node, patches, true) + `</${node.name}>`;
 }
-function descendants(node: XmlElement): XmlElement[] { return [node, ...node.children.flatMap(descendants)]; }
-function header(row: XmlElement): boolean { const props = one(row, "trPr"), flag = props && one(props, "tblHeader"); return Boolean(flag && !["0", "false", "off"].includes(attr(flag, "val") ?? "1")); }
+function descendants(node: XmlElement, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): XmlElement[] {
+  const result: XmlElement[] = [], pending = [node];
+  while (pending.length) {
+    const current = pending.pop()!;
+    result.push(current);
+    const active = children(current);
+    for (let index = active.length - 1; index >= 0; index--) pending.push(active[index]!);
+  }
+  return result;
+}
+function header(row: XmlElement, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children): boolean { const props = one(row, "trPr", projected), flag = props && one(props, "tblHeader", projected); return Boolean(flag && !["0", "false", "off"].includes(attr(flag, "val") ?? "1")); }
 function validateHeaders(flags: readonly boolean[]): void {
   let ended = false;
   for (const value of flags) { if (value && ended) throw new InvalidValueError("Repeated headers must be consecutive leading rows."); if (!value) ended = true; }
@@ -119,14 +136,15 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
     if (!["table", "cell"].includes(before.kind) || before.value.range) throw new InvalidValueError("Table editing requires a whole table or cell anchor.");
     const table = [...ancestors].reverse().find(n => n.namespace === w && n.localName === "tbl");
     if (!table) throw new InvalidValueError("Expected a table anchor.");
-    if (ancestors.some(n => n.namespace === w && ["ins", "del", "moveFrom", "moveTo"].includes(n.localName)) || descendants(table).some(n => n.namespace === w && ["tblPrChange", "trPrChange", "tcPrChange", "cellIns", "cellDel", "cellMerge"].includes(n.localName))) throw new UnsupportedEditError("Tracked table changes require explicit revision operations.");
+    const projected = activeXmlChildren(xml, budget);
+    if (ancestors.some(n => n.namespace === w && ["ins", "del", "moveFrom", "moveTo"].includes(n.localName)) || descendants(table, projected).some(n => n.namespace === w && ["tblPrChange", "trPrChange", "tcPrChange", "cellIns", "cellDel", "cellMerge"].includes(n.localName))) throw new UnsupportedEditError("Tracked table changes require explicit revision operations.");
     budget.charge("work", descendants(table).length);
     const tablePath = before.value.path.slice(0, ancestors.indexOf(table));
     const key = before.value.part + ":" + tablePath.join(",");
     if (edited.has(key)) throw new InvalidValueError("Overlapping table edits require separate transactions."); edited.add(key);
     const rows = children(table, "tr"), selectedRow = before.kind === "cell" ? [...ancestors].reverse().find(n => n.namespace === w && n.localName === "tr") : undefined;
     const patches = new Map<XmlElement, string>(); let replacement: string;
-    const logical = mergedTableGrid(table, budget);
+    const logical = mergedTableGrid(table, budget, projected);
     if (request.operation === "tables.set" && opts.cell !== undefined && opts.cell !== before.positions.cell && opts.covered !== "owner") throw new SelectionError("ambiguous-selection", [before.token]);
     if (request.operation === "tables.set") {
       if (opts.text !== undefined && before.kind !== "cell") throw new InvalidValueError("Scalar table text requires a logical cell selection.");
@@ -141,50 +159,25 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       const nested = margin === undefined ? undefined : { name: before.kind === "cell" ? "tcMar" : "tblCellMar", values: new Map((dialect === "strict" ? ["top", "start", "bottom", "end"] : ["top", "left", "bottom", "right"]).map(edge => [edge, { w: margin, type: "dxa" }])) };
       const target = before.kind === "cell" ? node : table, propertyName = before.kind === "cell" ? "tcPr" : "tblPr";
       const targetPatches = new Map<XmlElement, string>();
-      if (opts.text !== undefined) {
-        const storyNames = ["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"];
-        const story = [...ancestors].reverse().find(n => n.namespace === w && storyNames.includes(n.localName)) ?? xml.root;
-        let fieldDepth = 0, reached = false;
-        const precedingFields = (current: XmlElement): void => {
-          if (reached) return;
-          budget.charge("work", 1);
-          if (current === target) { reached = true; return; }
-          if (current !== story && current.namespace === w && storyNames.includes(current.localName)) return;
-          if (current.namespace === w && current.localName === "fldChar") {
-            const kind = attr(current, "fldCharType");
-            if (kind === "begin") fieldDepth++;
-            if (kind === "end") fieldDepth--;
-          }
-          for (const child of current.children) precedingFields(child);
-        };
-        precedingFields(story);
-        if (fieldDepth > 0 || ancestors.some(n => n.namespace === w && n.localName === "fldSimple")) throw new UnsupportedEditError("Cell text replacement cannot edit content inside a field range.");
-        if (target.children.some(n => n.namespace !== w || !["tcPr", "p"].includes(n.localName))) throw new UnsupportedEditError("Cell text replacement cannot discard nested tables or opaque content.");
-        const paragraphs = children(target, "p");
-        if (!paragraphs.length) throw new UnsupportedEditError("Cell text replacement requires a paragraph.");
-        for (const [i, p] of paragraphs.entries()) {
-          const props = one(p, "pPr");
-          const updated = replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", i === 0 ? opts.text : "", budget);
-          if (i > 0 && (p.content.some(c => c.kind !== "element" && c.kind !== "text") || descendants(p).some(c => c.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd", "proofErr"].includes(c.localName)))) throw new UnsupportedEditError("Cell replacement cannot remove annotated paragraphs.");
-          targetPatches.set(p, i === 0 ? updated : "");
-        }
-      }
-      const formatted = withProperties(xml, target, propertyName, properties(xml, target, propertyName, values, nested), targetPatches);
+      const propertyMarkup = properties(xml, target, propertyName, values, nested, projected);
+      const formatted = opts.text === undefined ? withProperties(xml, target, propertyName, propertyMarkup, targetPatches, projected) :
+        replaceCellContent(xml, target, opts.text, budget, { graph: () => graph, owner: before.value.part, context: { ...settings, budget } }, propertyMarkup);
       if (target === table) patches.set(table, formatted);
       else patches.set(selectedRow!, xml.sourceXml(selectedRow!, new Map([[target, formatted]])));
       if (opts.repeatHeader !== undefined || opts.allowRowSplit !== undefined) {
-        const affected = selectedRow ? [selectedRow] : rows;
-        validateHeaders(rows.map(row => affected.includes(row) && opts.repeatHeader !== undefined ? opts.repeatHeader : header(row)));
+        const activeRows = projected(table).filter(child => child.namespace === w && child.localName === "tr");
+        const affected = selectedRow ? [selectedRow] : activeRows;
+        validateHeaders(activeRows.map(row => affected.includes(row) && opts.repeatHeader !== undefined ? opts.repeatHeader : header(row, projected)));
         for (const row of affected) {
           const rowValues = new Map<string, Record<string, string>>();
           if (opts.repeatHeader !== undefined) rowValues.set("tblHeader", { val: String(Number(opts.repeatHeader)) });
           if (opts.allowRowSplit !== undefined) rowValues.set("cantSplit", { val: String(Number(!opts.allowRowSplit)) });
-          patches.set(row, withProperties(xml, row, "trPr", properties(xml, row, "trPr", rowValues), target === node && before.kind === "cell" ? new Map([[node, formatted]]) : new Map()));
+          patches.set(row, withProperties(xml, row, "trPr", properties(xml, row, "trPr", rowValues, undefined, projected), target === node && before.kind === "cell" ? new Map([[node, formatted]]) : new Map(), projected));
         }
       }
       if (target === table) {
         const rowPatches = new Map([...patches].filter(([n]) => n !== table));
-        replacement = withProperties(xml, table, "tblPr", properties(xml, table, "tblPr", values, nested), rowPatches);
+        replacement = withProperties(xml, table, "tblPr", properties(xml, table, "tblPr", values, nested, projected), rowPatches, projected);
       } else replacement = xml.sourceXml(table, patches);
     } else if (request.operation === "tables.merge" || request.operation === "tables.split" || request.operation === "tables.rows.remove" && logical.owners.some(o => o.rowSpan > 1 || o.columnSpan > 1)) {
       if (request.operation !== "tables.rows.remove" && descendants(table).some(c => c.namespace === w && ["fldChar", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd"].includes(c.localName))) throw new UnsupportedEditError("Merge and split cannot move range markers or complex fields.");
@@ -219,7 +212,7 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       if (rowOperation) {
         if (opts.width !== undefined && twips(opts.width) !== widths.reduce((a, b) => a + b, 0)) throw new InvalidValueError("New row width must equal the table grid width.");
         if (adding) {
-          const flags = rows.map(header), repeated = position <= flags.filter(Boolean).length;
+          const flags = rows.map(row => header(row)), repeated = position <= flags.filter(Boolean).length;
           flags.splice(position - 1, 0, repeated); validateHeaders(flags);
           replacement = insert(table, rows, element(w, "tr", {}, undefined, (repeated ? element(w, "trPr", {}, undefined, element(w, "tblHeader", { val: "1" })) : "") + widths.map(emptyCell).join("")));
         } else { patches.set(rows[position - 1]!, ""); replacement = xml.sourceXml(table, patches); }
@@ -248,15 +241,29 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       }
     }
     if (replacement === xml.sourceXml(table)) continue;
-    const resultingTable = parseDocumentXml(new TextEncoder().encode(runElementOpen(table) + replacement + `</${table.name}>`), {}, budget).root.children[0]!;
-    mergedTableGrid(resultingTable, budget);
+    const candidateRoot = parseDocumentXml(new TextEncoder().encode(xml.sourceXml(xml.root, new Map([[table, replacement]]))), {}, budget).root;
+    let resultingTable = candidateRoot;
+    for (const index of tablePath) resultingTable = resultingTable.children[index]!;
+    const resultingGrid = mergedTableGrid(resultingTable, budget, activeXmlChildren(candidateRoot, budget));
     xml.replaceElement(table, replacement);
     let resultPath = tablePath;
     if (request.operation === "tables.set" && before.kind === "cell") {
-      const replaced = parseDocumentXml(new TextEncoder().encode(runElementOpen(table) + replacement + `</${table.name}>`), {}, budget).root.children[0]!;
-      const row = children(replaced, "tr")[rows.indexOf(selectedRow!)]!;
-      const cell = children(row, "tc")[children(selectedRow!, "tc").indexOf(node)]!;
-      resultPath = [...tablePath, replaced.children.indexOf(row), row.children.indexOf(cell)];
+      const owner = logical.owners.find(owner => owner.node === node);
+      const cell = owner && resultingGrid.slots[owner.row]?.[owner.column]?.node;
+      if (!cell) throw new UnsupportedEditError("Table edit could not retain its logical cell owner.");
+      const pending = [{ node: resultingTable, path: tablePath }];
+      let found = false;
+      while (pending.length) {
+        const current = pending.pop()!;
+        budget.charge("work", 1);
+        if (current.node === cell) { resultPath = current.path; found = true; break; }
+        for (let index = current.node.children.length - 1; index >= 0; index--) {
+          budget.charge("work", current.path.length + 1);
+          budget.charge("retainedBytes", 64 + (current.path.length + 1) * 8);
+          pending.push({ node: current.node.children[index]!, path: [...current.path, index] });
+        }
+      }
+      if (!found) throw new UnsupportedEditError("Table edit could not resolve its resulting cell path.");
     }
     updates.push({ before, path: resultPath, kind: request.operation === "tables.set" ? opts.text === undefined ? "format" : "replace" : ["tables.merge", "tables.split"].includes(request.operation) ? "replace" : request.operation.endsWith(".add") ? "insert" : "delete", resultKind: request.operation === "tables.set" && before.kind === "cell" ? "cell" : "table" });
   }
@@ -266,7 +273,7 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
     const entry = index.byAddress.get(addressKey({ ...before.value, path }))?.find(e => e.kind === resultKind);
     if (!entry) throw new UnsupportedEditError("Table edit could not resolve its resulting location.");
     const value = { ...before.value, generation: 1, path, range: null };
-    return { kind, before, after: { kind: resultKind, value, token: encodeLocation(value), positions: entry.positions } as Location };
+    return { kind, before, after: { kind: resultKind, value, token: encodeLocation(value), positions: resultKind === "cell" && before.positions.cell !== undefined ? { ...entry.positions, cell: before.positions.cell } : entry.positions } as Location };
   });
   const publication = { ...(request.input ? { input: request.input } : {}), ...(opts.output === undefined ? {} : { output: opts.output }), ...(opts.inPlace === undefined ? {} : { inPlace: opts.inPlace }), ...(opts.force === undefined ? {} : { force: opts.force }), ...(opts.dryRun === undefined ? {} : { dryRun: opts.dryRun }), ...(opts.json === undefined ? {} : { json: opts.json }) };
   const prospective = { changed: changes.length > 0, changes, dryRun: opts.dryRun ?? false, output: opts.dryRun ? null : { path: opts.inPlace ? request.input?.path ?? null : opts.output === "-" ? null : opts.output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } };

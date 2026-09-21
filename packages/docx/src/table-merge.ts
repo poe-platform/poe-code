@@ -23,23 +23,29 @@ interface PhysicalCell { node: XmlElement; row: number; column: number; span: nu
 interface LogicalCell { node: XmlElement; row: number; column: number; rowSpan: number; columnSpan: number; physical: PhysicalCell[] }
 
 /** Parse physical continuations separately from their owning rectangular cells. */
-export function mergedTableGrid(table: XmlElement, budget: DocumentBudget) {
-  const grid = one(table, "tblGrid"), rows = children(table, "tr");
-  const columns = grid ? children(grid, "gridCol") : [];
+export function mergedTableGrid(table: XmlElement, budget: DocumentBudget, projected: (node: XmlElement) => readonly XmlElement[] = node => node.children) {
+  const nativeChildren = (node: XmlElement, name: string) => projected(node).filter(child => child.namespace === node.namespace && child.localName === name);
+  const oneNative = (node: XmlElement, name: string) => {
+    const found = nativeChildren(node, name);
+    if (found.length > 1) throw new InvalidPackageError("Duplicate table grid property.");
+    return found[0];
+  };
+  const grid = oneNative(table, "tblGrid"), rows = nativeChildren(table, "tr");
+  const columns = grid ? nativeChildren(grid, "gridCol") : [];
   if (!columns.length || !rows.length) throw new InvalidPackageError("Expected a nonempty table grid.");
   budget.table(rows.length, columns.length);
   const owners: LogicalCell[] = [], physical: PhysicalCell[][] = [], slots: (LogicalCell | undefined)[][] = [];
   let above = new Map<number, LogicalCell>();
   for (const [r, row] of rows.entries()) {
-    const props = one(row, "trPr");
-    let cursor = count(props && one(props, "gridBefore"), 0);
-    const after = count(props && one(props, "gridAfter"), 0), next = new Map<number, LogicalCell>();
+    const props = oneNative(row, "trPr");
+    let cursor = count(props && oneNative(props, "gridBefore"), 0);
+    const after = count(props && oneNative(props, "gridAfter"), 0), next = new Map<number, LogicalCell>();
     physical.push([]); slots.push([]);
-    for (const node of children(row, "tc")) {
-      const props = one(node, "tcPr"), span = count(props && one(props, "gridSpan"), 1);
+    for (const node of nativeChildren(row, "tc")) {
+      const props = oneNative(node, "tcPr"), span = count(props && oneNative(props, "gridSpan"), 1);
       if (!span || cursor + span > columns.length) throw new InvalidPackageError("Cell exceeds the table grid.");
-      if (props && one(props, "hMerge")) throw new UnsupportedEditError("Legacy horizontal merge markers are ambiguous.");
-      const merge = props && one(props, "vMerge"), value = merge ? attribute(merge, "val") ?? "continue" : undefined;
+      if (props && oneNative(props, "hMerge")) throw new UnsupportedEditError("Legacy horizontal merge markers are ambiguous.");
+      const merge = props && oneNative(props, "vMerge"), value = merge ? attribute(merge, "val") ?? "continue" : undefined;
       if (value !== undefined && !["continue", "restart"].includes(value)) throw new InvalidPackageError("Invalid vertical merge marker.");
       let owner: LogicalCell;
       if (value === "continue") {

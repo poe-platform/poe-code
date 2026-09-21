@@ -11,15 +11,17 @@ export function activeModelChildren(store: ModelStore, part: string): (node: Xml
   const existing = versions?.get(root);
   if (existing) return existing;
   const children = new Map<XmlElement, readonly XmlElement[]>();
-  const collect = (items: readonly CompatibilityContent[]) => {
-    for (const item of items) {
-      if (!("source" in item)) continue;
-      store.context.budget.charge("retainedBytes", 96 + item.content.length * 8);
-      children.set(item.source, item.content.filter((child) => "source" in child).map((child) => child.source));
-      collect(item.content);
-    }
-  };
-  collect(new MarkupCompatibility(root, documentCompatibilityProfile, store.context.budget).content);
+  const content: readonly CompatibilityContent[] = new MarkupCompatibility(root, documentCompatibilityProfile, store.context.budget).content;
+  const pending = [{ content, index: 0 }];
+  while (pending.length) {
+    const frame = pending.at(-1)!;
+    if (frame.index >= frame.content.length) { pending.pop(); continue; }
+    const item = frame.content[frame.index++]!;
+    if (!("source" in item)) continue;
+    store.context.budget.charge("retainedBytes", 96 + item.content.length * 8);
+    children.set(item.source, item.content.filter((child) => "source" in child).map((child) => child.source));
+    pending.push({ content: item.content, index: 0 });
+  }
   const lookup = (node: XmlElement): readonly XmlElement[] => {
     store.context.budget.charge("work", 1);
     return children.get(node) ?? [];

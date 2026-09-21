@@ -106,7 +106,7 @@ export async function removeDocumentContent(input: Uint8Array, request: ContentR
           const chars = [...text];
           budget.charge("retainedBytes", chars.length * 8);
           const start = Math.max(0, range.start - offset), end = Math.min(chars.length, range.end - offset);
-          if (start < end) patches.set(current, current.localName === "t" ? textMarkup(current, chars.slice(0, start).concat(chars.slice(end)).join("")) : "");
+          if (start < end) patches.set(current, current.localName === "t" ? textMarkup(current, chars.slice(0, start).concat(chars.slice(end)).join(""), true) : "");
           offset += chars.length;
         } else for (const child of current.children) visit(child);
       };

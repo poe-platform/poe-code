@@ -70,6 +70,7 @@ export const replaceSplitTextRunXml = Symbol("replace-split-text-run-xml");
 
 /** Internal native text fragments; retained inactive content belongs to the first fragment. */
 export const splitNativeTextRunXml = Symbol("split-native-text-run-xml");
+export const nativeElementSourceTokens = Symbol("native-element-source-tokens");
 
 /** Internal preserving caret assembly after native scalar splitting. */
 export const replaceSplitParagraphXml = Symbol("replace-split-paragraph-xml");
@@ -86,8 +87,20 @@ const cloneableParagraphProperties = new Set("pPr pStyle keepNext keepLines page
 function cloneableRunProperty(element: XmlElement, w: string, containers: ReadonlySet<XmlElement>, budget: DocumentBudget, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): boolean {
   budget.charge("work", 1 + element.attributes.length);
   const storedProperty = (node: XmlElement): boolean => {
-    budget.charge("work", 1);
-    return (node.namespace !== w || node.localName === "rPr" || cloneableRunProperties.has(node.localName)) && node.children.every(storedProperty);
+    budget.charge("retainedBytes", 40);
+    const pending = [{ node, index: -1 }];
+    while (pending.length) {
+      const frame = pending.at(-1)!;
+      if (frame.index === -1) {
+        budget.charge("work", 1);
+        if (frame.node.namespace === w && frame.node.localName !== "rPr" && !cloneableRunProperties.has(frame.node.localName)) return false;
+        frame.index = 0;
+      }
+      const child = frame.node.children[frame.index++];
+      if (!child) { pending.pop(); continue; }
+      budget.charge("retainedBytes", 40); pending.push({ node: child, index: -1 });
+    }
+    return true;
   };
   return (element.namespace === w && (element.localName === "rPr" || cloneableRunProperties.has(element.localName) && !children(element).length) ||
     element.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || containers.has(element)) &&
@@ -318,6 +331,17 @@ export class DocumentXmlEditor {
   }
 
   /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
+  [nativeElementSourceTokens](node: XmlElement): readonly [string, string] {
+    this.#assertOwnedElement(node);
+    const span = this.#spans.get(node)!;
+    const openingEnd = span.empty ? span.end : span.contentStart!;
+    const closingStart = span.empty ? span.end : span.contentEnd!;
+    this.#budget.charge("work", openingEnd - span.start + span.end - closingStart);
+    this.#budget.charge("retainedBytes", (openingEnd - span.start + span.end - closingStart) * 2 + 16);
+    return [this.#source.slice(span.start, openingEnd), this.#source.slice(closingStart, span.end)];
+  }
+
+  /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
   sourceXml(node: XmlElement, replacements: ReadonlyMap<XmlElement, string> = new Map(), contentOnly = false): string {
     this.#assertOwnedElement(node);
     const span = this.#spans.get(node)!;
@@ -357,7 +381,7 @@ export class DocumentXmlEditor {
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => this.#canEdit(token)), true);
   }
 
-  [splitNativeTextRunXml](node: XmlElement, fragments: readonly { readonly properties: string; readonly content: ReadonlyMap<XmlElement, string> }[], stage = true): readonly string[] {
+  [splitNativeTextRunXml](node: XmlElement, fragments: readonly { readonly properties: string; readonly content: ReadonlyMap<XmlElement, string> }[], stage = true, wrap?: (markup: string, index: number) => string): readonly string[] {
     this.#assertOwnedElement(node);
     const children = activeXmlChildren(this, this.#budget), active = children(node);
     const props = active.filter(child => child.namespace === node.namespace && child.localName === "rPr");
@@ -388,46 +412,96 @@ export class DocumentXmlEditor {
       fragments.some(fragment => [...fragment.content.keys()].some(leaf => !leaves.includes(leaf)))) unsupported();
     const selected = new Set<XmlElement>([...leaves, ...props]);
     const paths = new Set<XmlElement>();
-    const collect = (element: XmlElement): boolean => {
-      this.#budget.charge("work", 1);
-      if (selected.has(element)) { paths.add(element); return true; }
-      const found = element.children.map(collect).some(Boolean);
-      if (found) {
+    this.#budget.charge("retainedBytes", 40);
+    const traversal = [{ element: node, index: -1, found: false }];
+    while (traversal.length) {
+      const frame = traversal.at(-1)!, element = frame.element;
+      if (frame.index === -1) {
+        this.#budget.charge("work", 1);
+        frame.index = 0;
+        if (selected.has(element)) {
+          paths.add(element); traversal.pop();
+          if (traversal.length) traversal.at(-1)!.found = true;
+          continue;
+        }
+      }
+      const child = element.children[frame.index++];
+      if (child) {
+        this.#budget.charge("retainedBytes", 40);
+        traversal.push({ element: child, index: -1, found: false });
+        continue;
+      }
+      if (frame.found) {
         if (element !== node && !containers.has(element)) unsupported();
         if (element.content.some(content => (content.kind === "text" || content.kind === "cdata") && content.text.trim()) ||
           element !== node && element.attributes.some(attribute => !["http://www.w3.org/2000/xmlns/", "http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) &&
             !(attribute.namespace === "" && element.localName === "Choice" && attribute.localName === "Requires"))) unsupported();
         paths.add(element);
       }
-      return found;
-    };
-    collect(node);
+      traversal.pop();
+      if (frame.found && traversal.length) traversal.at(-1)!.found = true;
+    }
     const open = (element: XmlElement, attributes = element.attributes) => `<${element.name}${[...element.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, uri]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(uri, true)}"`).join("")}${attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/").map(attribute => ` ${attribute.name}="${escapeValue(attribute.value, true)}"`).join("")}>`;
     const markup = fragments.map((fragment, index) => {
       const patches = new Map<XmlElement, string>(leaves.map(leaf => [leaf, fragment.content.get(leaf) ?? ""]));
       if (props[0]) patches.set(props[0], index ? copiedNativeProperties(fragment.properties, props[0], this.root, this.#profile, this.#budget) : fragment.properties);
       if (index) {
-        const prune = (element: XmlElement) => {
-          for (const child of element.children) {
-            if (selected.has(child)) continue;
-            if (paths.has(child)) prune(child);
-            else patches.set(child, branchElements.has(child) ? open(child, child.attributes.filter(attribute => ["http://www.w3.org/2000/xmlns/", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) || attribute.namespace === "" && child.localName === "Choice" && attribute.localName === "Requires")) + `</${child.name}>` : "");
-          }
-        };
-        prune(node);
+        this.#budget.charge("retainedBytes", 40);
+        const pending = [{ element: node, index: 0 }];
+        while (pending.length) {
+          const frame = pending.at(-1)!, child = frame.element.children[frame.index++];
+          this.#budget.charge("work", 1);
+          if (!child) { pending.pop(); continue; }
+          if (selected.has(child)) continue;
+          if (paths.has(child)) {
+            this.#budget.charge("retainedBytes", 40);
+            pending.push({ element: child, index: 0 });
+          } else if (branchElements.has(child)) {
+            const attributes = child.attributes.filter(attribute => ["http://www.w3.org/2000/xmlns/", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace) || attribute.namespace === "" && child.localName === "Choice" && attribute.localName === "Requires");
+            patches.set(child, attributes.length === child.attributes.length ? this[nativeElementSourceTokens](child).join("") : open(child, attributes) + `</${child.name}>`);
+          } else patches.set(child, "");
+        }
       }
-      const render = (element: XmlElement): string => {
-        this.#budget.charge("work", 1 + element.content.length);
-        const replacement = patches.get(element); if (replacement !== undefined) return replacement;
-        if (!paths.has(element)) return this.sourceXml(element);
-        return open(element) + element.content.map(content => content.kind === "element" ? render(content) : content.kind === "text" || content.kind === "cdata" ? escapeValue(content.text, false) : "").join("") + `</${element.name}>`;
-      };
-      const content = index ? node.content.map(content => content.kind === "element" ? render(content) : content.kind === "text" || content.kind === "cdata" ? escapeValue(content.text, false) : "").join("") : this.sourceXml(node, patches, true);
+      let content: string;
+      if (!index) content = this.sourceXml(node, patches, true);
+      else {
+        const chunks: string[] = [];
+        this.#budget.charge("retainedBytes", 48);
+        const pending = [{ element: node, index: 0, closing: "" }];
+        while (pending.length) {
+          const frame = pending.at(-1)!, item = frame.element.content[frame.index++];
+          this.#budget.charge("work", 1);
+          if (!item) {
+            pending.pop();
+            if (pending.length) chunks.push(frame.closing);
+            continue;
+          }
+          if (item.kind !== "element") {
+            if (item.kind === "text" || item.kind === "cdata") chunks.push(escapeValue(item.text, false));
+            continue;
+          }
+          this.#budget.charge("work", 1 + item.content.length);
+          const replacement = patches.get(item);
+          if (replacement !== undefined) chunks.push(replacement);
+          else if (!paths.has(item)) chunks.push(this.sourceXml(item));
+          else {
+            this.#budget.charge("retainedBytes", 48);
+            const [opening, closing] = this[nativeElementSourceTokens](item);
+            chunks.push(opening); pending.push({ element: item, index: 0, closing });
+          }
+        }
+        content = chunks.join("");
+      }
       return open(node) + (props.length ? "" : fragment.properties) + content + `</${node.name}>`;
     });
+    const wrapped = wrap ? markup.map((fragment, index) => {
+      const result = wrap(fragment, index);
+      if (typeof result !== "string") throw new InputTypeError("Expected XML markup.");
+      return result;
+    }) : markup;
     this.assertShapeEditAllowed(node);
-    if (stage) this.#stageReplacement(node, markup.join(""), false, true);
-    return markup;
+    if (stage) this.#stageReplacement(node, wrapped.join(""), false, true);
+    return wrapped;
   }
 
   [replaceSplitParagraphXml](node: XmlElement, markup: string): void {
@@ -502,13 +576,15 @@ export class DocumentXmlEditor {
   }
 
   #canReplaceSubtree(node: XmlElement, canEdit: (token: Token) => boolean): boolean {
-    const check = (element: XmlElement): boolean => {
+    const pending = [node];
+    while (pending.length) {
+      const element = pending.pop()!;
       this.#budget.charge("work", 1);
       if (this.#guardCompatibility && (!canEdit(element) ||
         element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !canEdit(attribute)))) return false;
-      return element.children.every(check);
-    };
-    return check(node);
+      for (let index = element.children.length - 1; index >= 0; index--) pending.push(element.children[index]!);
+    }
+    return true;
   }
 
   /** Resolve the selected declaration, retaining its physical compatibility carrier. */

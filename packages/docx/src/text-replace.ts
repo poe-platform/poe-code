@@ -31,7 +31,7 @@ interface Leaf { node: XmlElement; run: XmlElement; editor: DocumentXmlEditor; t
 interface Match { empty?: { node: XmlElement; editor: DocumentXmlEditor }; insert?: string; paragraph: Location; leaves: { leaf: Leaf; start: number; end: number }[]; unsupported: boolean; }
 interface Edit { start: number; end: number; insert: string; }
 
-export function textMarkup(node: XmlElement, text: string): string {
+export function textMarkup(node: XmlElement, text: string | readonly { text: string; preserve: boolean }[], preserveTextControls = false): string {
   const prefix = node.name.includes(":") ? node.name.slice(0, node.name.indexOf(":")) + ":" : "";
   const name = node.localName === "delText" ? "delText" : "t";
   const attributes = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/XML/1998/namespace" || attribute.localName !== "space")
@@ -42,8 +42,9 @@ export function textMarkup(node: XmlElement, text: string): string {
     if (pending) result += open(name).slice(0, -1) + ` xml:space="preserve">${xmlValue(pending)}</${prefix}${name}>`;
     pending = "";
   };
-  for (const char of text) {
-    if (char === "\t" || char === "\n" || char === "\r") {
+  const pieces = typeof text === "string" ? [{ text, preserve: preserveTextControls }] : text;
+  for (const piece of pieces) for (const char of piece.text) {
+    if (!piece.preserve && (char === "\t" || char === "\n" || char === "\r")) {
       flush();
       result += open(char === "\t" ? "tab" : "br").slice(0, -1) + "/>";
     } else pending += char;
@@ -322,19 +323,26 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
       let paragraph = xml.root;
       for (const i of match.paragraph.value.path) paragraph = paragraph.children[i]!;
       let position = 0, start = -1, end = -1;
-      const visit = (node: XmlElement) => {
+      budget.charge("retainedBytes", 8);
+      const pending = [paragraph];
+      const children = activeXmlChildren(xml, budget);
+      while (pending.length) {
+        const node = pending.pop()!;
         budget.charge("work", 1);
         const info = revisionInfo(node);
         if (node.namespace !== paragraph.namespace || info?.support === "opaque" || info?.type === "delete" || info?.markup.startsWith("moveFrom") ||
-          ["rPr", "pPr", "instrText", "delInstrText", "drawing", "pict", "object"].includes(node.localName)) return;
-        const text = node.localName === "t" ? node.text : ["tab", "br", "cr"].includes(node.localName) ? "\n" : undefined;
+          ["rPr", "pPr", "instrText", "delInstrText", "drawing", "pict", "object"].includes(node.localName)) continue;
+        const text = node.localName === "t" ? node.text : ["tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(node.localName) ? "\n" : undefined;
         if (text !== undefined) {
           if (node === first.leaf.node) start = position + [...text.slice(0, first.start)].length;
           if (node === last.leaf.node) end = position + [...text.slice(0, last.end)].length;
           position += [...text].length;
-        } else for (const child of node.children) visit(child);
-      };
-      visit(paragraph);
+        } else {
+          const active = children(node);
+          budget.charge("retainedBytes", active.length * 8);
+          for (let index = active.length - 1; index >= 0; index--) pending.push(active[index]!);
+        }
+      }
       tracked.push({ paragraph: match.paragraph, start, end, text: opts.with, ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) });
     }
     stageTrackedText(editor, tracked, { author: opts.author!, timestamp: opts.timestamp! }, budget, settings.limits);
@@ -343,17 +351,19 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
   const runs = new Map<XmlElement, { editor: DocumentXmlEditor; patches: Map<XmlElement, string>; whole?: { properties: string; props?: XmlElement } }>();
   for (const { leaf, edits: changes } of opts.trackChanges ? [] : edits.values()) {
     const original = leaf.node.localName === "t" || leaf.node.localName === "delText" ? leaf.node.text : leaf.text;
-    let offset = 0, text = "", markup = "";
+    let offset = 0, markup = "";
+    const pieces: { text: string; preserve: boolean }[] = [];
     for (const change of changes) {
-      text += original.slice(offset, change.start) + change.insert;
+      // Keep source text controls distinct from newly requested WML breaks/tabs.
+      pieces.push({ text: original.slice(offset, change.start), preserve: true }, { text: change.insert, preserve: false });
       if (explicit) {
-        markup += textMarkup(leaf.node, original.slice(offset, change.start));
+        markup += textMarkup(leaf.node, original.slice(offset, change.start), true);
         if (change.insert) markup += `</${leaf.run.name}>` + formattedRun(leaf, change.insert, opts, budget) + runOpen(leaf.run) + runProperties(leaf);
       }
       offset = change.end;
     }
-    text += original.slice(offset);
-    if (!explicit) leaf.editor.replaceElement(leaf.node, textMarkup(leaf.node, text));
+    pieces.push({ text: original.slice(offset), preserve: true });
+    if (!explicit) leaf.editor.replaceElement(leaf.node, textMarkup(leaf.node, pieces));
     else {
       const children = activeXmlChildren(leaf.editor, budget);
       const content = children(leaf.run).filter(child => child.namespace !== leaf.run.namespace || child.localName !== "rPr");
@@ -373,12 +383,12 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
           run.whole = { properties, ...(props ? { props } : {}) };
           if (props) run.patches.set(props, properties);
         }
-        run.patches.set(leaf.node, textMarkup(leaf.node, text));
+        run.patches.set(leaf.node, textMarkup(leaf.node, pieces));
         runs.set(leaf.run, run);
         continue;
       }
       if (leaf.run.children.some(child => child.namespace !== leaf.run.namespace || child.localName === "rPr" && child.children.some(property => property.namespace !== leaf.run.namespace))) { nativeSplits.set(leaf.run, leaf.editor); continue; }
-      markup += textMarkup(leaf.node, original.slice(offset));
+      markup += textMarkup(leaf.node, original.slice(offset), true);
       const run = runs.get(leaf.run) ?? { editor: leaf.editor, patches: new Map() };
       run.patches.set(leaf.node, markup); runs.set(leaf.run, run);
     }
@@ -401,11 +411,11 @@ async function mutateDocumentText(input: Uint8Array, identity: PublicationInput 
       const original = ["t", "delText"].includes(leaf.localName) ? leaf.text : item.leaf.text;
       let offset = 0;
       for (const change of item.edits) {
-        append(leaf, textMarkup(leaf, original.slice(offset, change.start)), false);
+        append(leaf, textMarkup(leaf, original.slice(offset, change.start), true), false);
         append(leaf, textMarkup(leaf, change.insert), true);
         offset = change.end;
       }
-      append(leaf, textMarkup(leaf, original.slice(offset)), false);
+      append(leaf, textMarkup(leaf, original.slice(offset), true), false);
     }
     if (!fragments.length) fragments.push({ formatted: false, properties: originalProperties, content: new Map() });
     xml[splitNativeTextRunXml](run, fragments);

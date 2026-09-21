@@ -22,10 +22,10 @@ import {
   publicationGenerationGuard
 } from "./publication.js";
 import { modelOutput, type DocumentOutput, type DocumentSaveOptions, type ModelPublicationSource } from "./model-output.js";
-import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
+import { paragraphTextRun } from "./paragraph-content.js";
+import { replaceCellContent } from "./cell-content.js";
 import { renderContent, xmlValue } from "./create-content.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
-import { runElementOpen } from "./run-properties.js";
 import { DocumentPackage } from "./package.js";
 import { asciiKey, normalizePartName, relativePartTarget } from "./part-uri.js";
 import {
@@ -753,36 +753,10 @@ export class ModelStore {
     this.change(ref.part, (xml) => {
       const cell = this.node(ref);
       assertFormattingHistoryEditable(xml.root, cell, activeXmlChildren(xml, this.context.budget), this.context.budget);
-      const children = activeModelChildren(this, ref.part)(cell);
-      if (children.some((child) => child.namespace !== cell.namespace || !["tcPr", "p"].includes(child.localName)))
-        throw new UnsupportedEditError("Whole cell text cannot discard rich blocks.");
-      if (children.filter((child) => child.localName === "tcPr").length > 1)
-        throw new UnsupportedEditError("Whole cell text requires one owning property container.");
-      const paragraphs = children.filter((child) => child.localName === "p");
-      const patches = new Map<XmlElement, string>();
-      let paragraph = "";
-      for (const [index, p] of paragraphs.entries()) {
-        const retained = replaceParagraphContent(xml, p, "", index ? "" : text, this.context.budget);
-        if (!index) paragraph = retained;
-        else {
-          // Collapse native paragraphs without losing their annotation ranges.
-          // Each moved child carries its original namespace scope.
-          const fragment = new DocumentXmlEditor(new TextEncoder().encode(retained), {}, undefined, this.context.budget);
-          const scope = new Map(fragment.root.children.map(child => [child,
-            runElementOpen(child) + fragment.sourceXml(child, new Map(), true) + `</${child.name}>`]));
-          const end = paragraph.lastIndexOf("</");
-          paragraph = paragraph.slice(0, end) + fragment.sourceXml(fragment.root, scope, true) + paragraph.slice(end);
-          patches.set(p, "");
-        }
-      }
-      if (paragraphs[0]) patches.set(paragraphs[0], paragraph);
-      xml.replaceElement(
-        cell,
-        runElementOpen(cell) +
-          xml.sourceXml(cell, patches, true) +
-          (paragraphs.length ? "" : `<bm:p xmlns:bm="${cell.namespace}">${paragraphTextRun(cell.namespace, text)}</bm:p>`) +
-          `</${cell.name}>`
-      );
+      xml.replaceElement(cell, replaceCellContent(xml, cell, text, this.context.budget, {
+        graph: () => new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget),
+        owner: ref.part, context: this.context
+      }));
     });
     this.invalidateDescendants(ref);
   }

@@ -160,9 +160,20 @@ function activeGrid(store: ModelStore, ref: ModelRef): TableGrid {
     return value;
   }
   const copy = (n: XmlElement): XmlElement => {
-    const nodes = children(n);
-    budget.charge("retainedBytes", 128 + nodes.length * 8);
-    return { ...n, children: nodes.map(copy) };
+    const enter = (node: XmlElement) => {
+      const nodes = children(node);
+      budget.charge("retainedBytes", 128 + nodes.length * 8);
+      return { nodes, copy: { ...node, children: [] as XmlElement[] }, index: 0 };
+    };
+    const first = enter(n), pending = [first];
+    while (pending.length) {
+      const frame = pending.at(-1)!;
+      if (frame.index >= frame.nodes.length) { pending.pop(); continue; }
+      const next = enter(frame.nodes[frame.index++]!);
+      frame.copy.children.push(next.copy);
+      pending.push(next);
+    }
+    return first.copy;
   };
   const copied = copy(table),
     view = {
@@ -175,12 +186,16 @@ function activeGrid(store: ModelStore, ref: ModelRef): TableGrid {
   const grid = mergedTableGrid(view, store.context.budget);
   const originals = new Map<XmlElement, XmlElement>();
   const match = (a: XmlElement, b: XmlElement) => {
-    originals.set(b, a);
-    const kids = children(a);
-    kids.forEach((n, i) => {
-      const c = b.children[i];
-      if (c) match(n, c);
-    });
+    const pending = [{ source: a, copy: b }];
+    while (pending.length) {
+      const { source, copy } = pending.pop()!;
+      originals.set(copy, source);
+      const kids = children(source);
+      for (let index = kids.length - 1; index >= 0; index--) {
+        const copied = copy.children[index];
+        if (copied) pending.push({ source: kids[index]!, copy: copied });
+      }
+    }
   };
   // Match rows independently because native repeat wrappers are flattened above.
   const gridSource = children(table).find(

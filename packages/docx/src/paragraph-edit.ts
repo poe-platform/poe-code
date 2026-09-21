@@ -120,7 +120,7 @@ export async function editDocumentParagraphs(input: Uint8Array, request: Paragra
       }
       const properties = paragraphProperties(xml, node, opts, styleId, children);
       const original = xml.sourceXml(node);
-      const replacement = opts.text !== undefined ? replaceParagraphContent(xml, node, properties, opts.text ?? "", budget)
+      const replacement = opts.text !== undefined ? replaceParagraphContent(xml, node, properties, opts.text ?? "", budget, { graph: () => graph, owner: before.value.part, context: { ...settings, budget } })
         : props ? xml.sourceXml(node, new Map([[props, properties]]))
         : runElementOpen(node) + properties + xml.sourceXml(node, new Map(), true) + `</${node.name}>`;
       if (properties === originalProps && opts.text === undefined || replacement === original) continue;

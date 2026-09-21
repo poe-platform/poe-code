@@ -23,25 +23,41 @@ export function displayXml(root: XmlElement, budget: DocumentBudget, pretty: boo
     if (chunk) append(chunk);
   };
   const visit = (node: XmlContent, depth: number, preserve: boolean): void => {
-    budget.charge("work", 1);
-    if (node.kind === "element") {
-      const space = node.attributes.find(a => a.namespace === "http://www.w3.org/XML/1998/namespace" && a.localName === "space")?.value;
-      preserve = space === "preserve" || (space !== "default" && preserve);
-      append("<" + node.name);
-      for (const attr of node.attributes) { append(" " + attr.name + '="'); escaped(attr.value, true); append('"'); }
-      if (!node.content.length) { append("/>"); return; }
-      append(">");
-      const indent = pretty && !preserve && !node.content.some(child => child.kind === "text" || child.kind === "cdata");
-      for (const child of node.content) {
-        if (indent) append("\n" + "  ".repeat(depth + 1));
-        visit(child, depth + 1, preserve);
+    budget.charge("retainedBytes", 64);
+    const pending = [{ node, depth, preserve, index: -1, indent: false }];
+    while (pending.length) {
+      const frame = pending.at(-1)!;
+      const current = frame.node;
+      if (frame.index === -1) {
+        budget.charge("work", 1);
+        if (current.kind !== "element") {
+          if (current.kind === "comment") append("<!--" + current.text + "-->");
+          else if (current.kind === "processing-instruction") append("<?" + current.target + (current.text ? " " + current.text : "") + "?>");
+          else if (current.kind === "cdata") append("<![CDATA[" + current.text + "]]>");
+          else escaped(current.text);
+          pending.pop(); continue;
+        }
+        const space = current.attributes.find(a => a.namespace === "http://www.w3.org/XML/1998/namespace" && a.localName === "space")?.value;
+        frame.preserve = space === "preserve" || (space !== "default" && frame.preserve);
+        append("<" + current.name);
+        for (const attr of current.attributes) { append(" " + attr.name + '="'); escaped(attr.value, true); append('"'); }
+        if (!current.content.length) { append("/>"); pending.pop(); continue; }
+        append(">");
+        frame.indent = pretty && !frame.preserve && !current.content.some(child => child.kind === "text" || child.kind === "cdata");
+        frame.index = 0;
       }
-      if (indent) append("\n" + "  ".repeat(depth));
-      append("</" + node.name + ">");
-    } else if (node.kind === "comment") append("<!--" + node.text + "-->");
-    else if (node.kind === "processing-instruction") append("<?" + node.target + (node.text ? " " + node.text : "") + "?>");
-    else if (node.kind === "cdata") append("<![CDATA[" + node.text + "]]>");
-    else escaped(node.text);
+      if (current.kind !== "element") continue;
+      const child = current.content[frame.index++];
+      if (child) {
+        if (frame.indent) append("\n" + "  ".repeat(frame.depth + 1));
+        budget.charge("retainedBytes", 64);
+        pending.push({ node: child, depth: frame.depth + 1, preserve: frame.preserve, index: -1, indent: false });
+      } else {
+        if (frame.indent) append("\n" + "  ".repeat(frame.depth));
+        append("</" + current.name + ">");
+        pending.pop();
+      }
+    }
   };
   if (root.declaration !== undefined) append('<?xml version="1.0" encoding="UTF-8"?>');
   for (const node of root.prolog ?? []) visit(node, 0, false);

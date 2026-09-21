@@ -252,6 +252,7 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
       continue;
     }
     const controlLocks = activeControlLocks(root, current?.compatibility ?? new MarkupCompatibility(root, undefined, budget), budget);
+    if (!controlLocks.size) continue;
     const originalLocks = original ? activeControlLocks(original.root, original.compatibility, budget) : undefined;
     const stack = [{ node: root, path: [] as number[], ancestors: [root] }];
     while (stack.length) {

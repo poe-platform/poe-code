@@ -29,6 +29,9 @@ export interface LocationMutationResult {
 }
 export type LocationStage = (editor: DocumentArchiveEditor, selected: readonly Location[]) => readonly LocationUpdate[];
 
+/** Internal admission authority for selection preflight; never inferred from options. */
+export const docxLocationBudgets = new WeakMap<DocumentLocations, DocumentBudget>();
+
 function options(value: MatchOptions, mode: "read" | "mutation" | "text"): void {
   closedRecord(value, ["first", "all", "occurrence", "allowEmpty"]);
   for (const key of ["first", "all", "allowEmpty"] as const)
@@ -72,6 +75,7 @@ class DocumentLocations {
     this.#context = settings;
     this.#generation = settings[documentSession]?.generation ?? 0;
     this.#budget = settings.budget;
+    docxLocationBudgets.set(this, this.#budget);
     this.#sourceSha256 = sourceSha256;
     this.#admission = { mainPart: archive.mainPart, dialect: archive.dialect };
     this.#inventory = mode === "inventory";
@@ -131,7 +135,7 @@ class DocumentLocations {
     return carrier;
   }
 
-  list<K extends LocationKind>(kind: K, query: LocationQuery = {}): readonly Location<K>[] {
+  *#query(kind: LocationKind, query: LocationQuery): Generator<LocationEntry> {
     closedRecord(query, ["scope", "owner", "section", "variant"]);
     if (query.section !== undefined) safeOrdinal(query.section);
     if (query.variant !== undefined && !["default", "first", "even"].includes(query.variant))
@@ -163,7 +167,7 @@ class DocumentLocations {
       (query.section === undefined || ref.section === query.section) &&
       (query.variant === undefined || ref.variant === query.variant)).map(ref => ref.story));
     this.#budget.charge("work", this.#index.references.length);
-    const result: Location<K>[] = [];
+    let count = 0;
     const shapeOrdinals = new Map<string, number>();
     for (const entry of this.#index.entries) {
       this.#budget.charge("work", 1);
@@ -174,14 +178,22 @@ class DocumentLocations {
         const storyScoped = entry.scope === "headers" || entry.scope === "footers";
         if (storyScoped ? !referencedStories.has(entry.story) : query.section !== undefined && entry.positions.section !== query.section) continue;
       }
-      this.#budget.check("matches", result.length + 1);
       const shapeOrdinal = kind === "shape" ? (shapeOrdinals.get(entry.story) ?? 0) + 1 : undefined;
       if (shapeOrdinal !== undefined) {
         if (!shapeOrdinals.has(entry.story)) this.#budget.charge("retainedBytes", 32);
         shapeOrdinals.set(entry.story, shapeOrdinal);
       }
-      const position = shapeOrdinal !== undefined ? { shape: shapeOrdinal } : ["paragraph", "run", "table", "image", "link", "bookmark", "field", "control"].includes(kind) ? { [kind]: result.length + 1 } : {};
-      result.push(this.#location({ ...entry, positions: { ...entry.positions, ...position, ...(query.section !== undefined ? { section: query.section } : {}) } }) as Location<K>);
+      const position = shapeOrdinal !== undefined ? { shape: shapeOrdinal } : ["paragraph", "run", "table", "image", "link", "bookmark", "field", "control"].includes(kind) ? { [kind]: count + 1 } : {};
+      count++;
+      yield { ...entry, positions: { ...entry.positions, ...position, ...(query.section !== undefined ? { section: query.section } : {}) } };
+    }
+  }
+
+  list<K extends LocationKind>(kind: K, query: LocationQuery = {}): readonly Location<K>[] {
+    const result: Location<K>[] = [];
+    for (const entry of this.#query(kind, query)) {
+      this.#budget.check("matches", result.length + 1);
+      result.push(this.#location(entry) as Location<K>);
     }
     return Object.freeze(result);
   }
@@ -189,9 +201,15 @@ class DocumentLocations {
   at<K extends LocationKind>(kind: K, position: number, query: LocationQuery = {}): Location<K> {
     safeOrdinal(position);
     if (kind === "run" && query.owner === undefined) throw new InvalidValueError("Run positions require a paragraph owner.");
-    const listed = this.list(kind, query);
+    const candidates: Location<K>[] = [];
+    let ordinal = 0;
+    for (const entry of this.#query(kind, query)) {
+      if (kind === "shape" ? entry.positions.shape !== position : ++ordinal !== position) continue;
+      this.#budget.check("matches", candidates.length + 1);
+      candidates.push(this.#location(entry) as Location<K>);
+      if (kind !== "shape") return candidates[0]!;
+    }
     if (kind === "shape") {
-      const candidates = listed.filter(location => location.positions.shape === position);
       if (candidates.length > 1) {
         this.#budget.charge("diagnosticBytes", candidates.reduce((sum, location) => sum + location.token.length, 0));
         throw new SelectionError("ambiguous-selection", candidates.map(location => location.token));
@@ -199,9 +217,7 @@ class DocumentLocations {
       if (!candidates[0]) throw new SelectionError("missing-selection");
       return candidates[0];
     }
-    const result = listed[position - 1];
-    if (!result) throw new SelectionError("missing-selection");
-    return result;
+    throw new SelectionError("missing-selection");
   }
 
   cell(tableToken: string, coordinate: string): Location<"cell"> {

@@ -71,26 +71,32 @@ it(`${route} ${variant === "opaque-block" ? "retains inert opaque block during" 
     { operation: "model.table.Table.cell.call", receiver: ref("tables", 0), arguments: { rowIdx: 0, colIdx: 0 }, resultHandle: "cell" },
     { operation: "model.table._Cell.text.set", receiver: ref("cell"), arguments: { value: "Replacement 日本 עברית 🌊" } }
   ];
-  const inert = variant === "opaque-block", expectedCode = variant === "duplicate-properties" ? "invalid-package" : "unsupported-edit";
+  const inert = variant === "opaque-block", rich = variant === "rich", accepted = inert || rich, expectedCode = variant === "duplicate-properties" ? "invalid-package" : "unsupported-edit";
   const assertSaved = (output: Uint8Array) => {
     const saved = readPackage(output);
-    for (const [name, bytes] of parts) if (!inert || name !== "word/document.xml") expect(saved.get(name), name).toEqual(bytes);
-    if (inert) {
+    for (const [name, bytes] of parts) if (!accepted || name !== "word/document.xml") expect(saved.get(name), name).toEqual(bytes);
+    if (accepted) {
       const xml = new TextDecoder().decode(saved.get("word/document.xml"));
-      expect(xml).toContain('<f:owned mc:PreserveElements="f:owned">Opaque</f:owned>');
+      if (inert) expect(xml).toContain('<f:owned mc:PreserveElements="f:owned">Opaque</f:owned>');
+      if (rich) { const root = parseDocumentXml(saved.get("word/document.xml")!, {}).root;
+        const nodes = (node: typeof root): typeof root[] => [node, ...node.children.flatMap(nodes)];
+        expect(nodes(root).filter(node => node.namespace === root.namespace && node.localName === "tbl")).toHaveLength(1);
+        expect(nodes(root).filter(node => node.namespace === root.namespace && node.localName === "p")).toHaveLength(1);
+        expect(nodes(root).filter(node => node.namespace === root.namespace && node.localName === "r")).toHaveLength(1);
+      }
       expect(xml).toContain("Replacement 日本 עברית 🌊");
     }
   };
   if (route === "model") {
     const document = await api.Document(input, textContext), before = document.part.blob;
     const assign = () => { document.tables[0]!.cell(0, 0).text = "Replacement 日本 עברית 🌊"; };
-    if (inert) assign();
+    if (accepted) assign();
     else { expect(assign).toThrowError(expect.objectContaining({ code: expectedCode })); expect(document.part.blob).toEqual(before); }
     const saving = document.save({ async write(bytes) { volume.appendFileSync("/out", bytes); } });
     await saving; assertSaved(new Uint8Array(volume.readFileSync("/out") as Buffer));
   } else if (route === "sdk") {
     const result = api.applyStyleModelBatch(input, { version: 1, operations }, textContext);
-    if (inert) { await (await result).save({ async write(bytes) { volume.appendFileSync("/out", bytes); } }); assertSaved(new Uint8Array(volume.readFileSync("/out") as Buffer)); }
+    if (accepted) { await (await result).save({ async write(bytes) { volume.appendFileSync("/out", bytes); } }); assertSaved(new Uint8Array(volume.readFileSync("/out") as Buffer)); }
     else { await expect(result).rejects.toMatchObject({ code: expectedCode }); expect(volume.readFileSync("/out").length).toBe(0); }
   } else {
     const fs = new MemoryFileSystem(), destination = new TextEncoder().encode("Retained destination");
@@ -98,9 +104,9 @@ it(`${route} ${variant === "opaque-block" ? "retains inert opaque block during" 
     const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
     try {
       const result = await shell.exec("docx batch /input --ops-file /ops --output /out --force --json");
-      expect(result.exitCode, result.stdout + result.stderr).toBe(inert ? 0 : 1);
+      expect(result.exitCode, result.stdout + result.stderr).toBe(accepted ? 0 : 1);
       const envelope = JSON.parse(result.stdout);
-      if (inert) { expect(envelope.affected).toBe(1); assertSaved(await fs.readFile("/out")); }
+      if (accepted) { expect(envelope.affected).toBe(1); assertSaved(await fs.readFile("/out")); }
       else { expect(envelope.errors[0].code).toBe(expectedCode); expect(envelope.affected).toBe(0); expect(envelope.data).toBe(null); expect(await fs.readFile("/out")).toEqual(destination); }
       expect(await fs.readFile("/input")).toEqual(input);
     } finally { await shell.dispose(); }

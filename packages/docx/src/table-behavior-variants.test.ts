@@ -1112,8 +1112,12 @@ it.each(["Harbor", "Ti\tde\rReef\n"])("whole cell text assignment %j", async tex
 it("rejects whole cell replacement that would erase a nested table", async () => {
   const {table,store} = await open(rectangle([`<w:tc>${paragraph("Keep")}${rectangle([cell("Nested")],1)}${paragraph()}</w:tc>`],1));
   const before=store.xml(store.mainPart).serialize();
-  expect(() => {table.cell(0,0).text="Replacement";}).toThrow();
-  expect(store.xml(store.mainPart).serialize()).toEqual(before);
+  table.cell(0,0).text="Replacement";
+  expect(table.cell(0,0).text).toBe("Replacement");
+  expect(table.cell(0,0).paragraphs).toHaveLength(1);
+  expect(table.cell(0,0).paragraphs[0]!.runs).toHaveLength(1);
+  expect(table.cell(0,0).tables).toHaveLength(0);
+  expect(store.xml(store.mainPart).serialize()).not.toEqual(before);
 });
 it.each([[0,false],[1,false],[2,false],[1,true],[2,true]])("direct nested table count %i:%s", async (count,hasParagraph) => {
   const {table}=await open(rectangle([`<w:tc>${rectangle([cell("Nested")],1).repeat(count!)}${hasParagraph ? paragraph("Tide") : ""}</w:tc>`],1));

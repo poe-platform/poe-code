@@ -1,5 +1,6 @@
 import { assertFormattingHistoryEditable } from "./revision-markup.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { DocumentPackage } from "./package.js";
 import { requireComparisonOperand } from "./comparison-operand.js";
 import { snapshotSequence } from "./numeric-index.js";
 import type { ModelRef, ModelStore } from "./model-store.js";
@@ -81,7 +82,7 @@ export class Paragraph {
       );
       xml.replaceElement(
         p,
-        replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value ?? "", this.store.context.budget)
+        replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", value ?? "", this.store.context.budget, { graph: () => new DocumentPackage(this.store.snapshot(), this.store.context.limits, this.store.context.budget), owner: this.ref.part, context: this.store.context })
       );
     });
   }
@@ -250,7 +251,7 @@ export class Run {
       const props = activeModelChildren(this.store, this.ref.part)(r).find(
         (child) => child.localName === "rPr" && child.namespace === r.namespace
       );
-      xml.replaceElement(r, replaceRunContent(xml, r, props ? xml.sourceXml(props) : "", value, this.store.context.budget));
+      xml.replaceElement(r, replaceRunContent(xml, r, props ? xml.sourceXml(props) : "", value, this.store.context.budget, { graph: () => new DocumentPackage(this.store.snapshot(), this.store.context.limits, this.store.context.budget), owner: this.ref.part, context: this.store.context }));
     });
   }
   get style(): CharacterStyle | null {

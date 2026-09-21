@@ -10,14 +10,17 @@ export function activeXmlChildren(xml: DocumentXmlEditor | XmlElement, budget: D
   let children = projections.get(xml);
   if (!children) {
     const projected = new Map<XmlElement, readonly XmlElement[]>();
-    const collect = (content: readonly CompatibilityContent[]) => {
-      for (const item of content) if ("source" in item) {
-        budget.charge("retainedBytes", 96 + item.content.length * 8);
-        projected.set(item.source, item.content.filter(node => "source" in node).map(node => node.source));
-        collect(item.content);
-      }
-    };
-    collect("kind" in xml ? new MarkupCompatibility(xml, undefined, budget).content : xml.compatibility.content);
+    const content: readonly CompatibilityContent[] = "kind" in xml ? new MarkupCompatibility(xml, undefined, budget).content : xml.compatibility.content;
+    const pending = [{ content, index: 0 }];
+    while (pending.length) {
+      const frame = pending.at(-1)!;
+      if (frame.index >= frame.content.length) { pending.pop(); continue; }
+      const item = frame.content[frame.index++]!;
+      if (!("source" in item)) continue;
+      budget.charge("retainedBytes", 96 + item.content.length * 8);
+      projected.set(item.source, item.content.filter(node => "source" in node).map(node => node.source));
+      pending.push({ content: item.content, index: 0 });
+    }
     children = projected;
     projections.set(xml, children);
   }

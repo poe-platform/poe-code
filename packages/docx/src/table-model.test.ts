@@ -347,11 +347,13 @@ it("exposes inherited table views, formatting, collection slicing and nested cre
   expect(nested.cell(0, 0).text).toBe("");
   expect(cell.tables).toEqual([nested]);
   expect(cell.paragraphs.map((p) => p.text)).toEqual(["Keep", "Next", ""]);
-  const paragraphCount = cell.paragraphs.length;
-  expect(() => {
-    cell.text = "Unsafe replacement";
-  }).toThrow();
-  expect(cell.paragraphs).toHaveLength(paragraphCount);
+  cell.text = "Unsafe replacement";
+  expect(cell.text).toBe("Unsafe replacement");
+  expect(cell.paragraphs).toHaveLength(1);
+  expect(cell.paragraphs[0]!.runs).toHaveLength(1);
+  expect(cell.tables).toHaveLength(0);
+  expect(cell.vertical_alignment).toBeNull();
+  expect(() => nested.cell(0, 0)).toThrow();
   expect(() => table.rows.at(2)).toThrow(RangeError);
   expect(() => table.columns.at(1.5)).toThrow(TypeError);
 });

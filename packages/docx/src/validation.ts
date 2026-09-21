@@ -196,19 +196,19 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     const partRoot = roots.get(part.partname);
     if (!partRoot || !semanticParts.has(part.partname) || !part.content_type.toLowerCase().startsWith(wordType)) continue;
     const view = new MarkupCompatibility(partRoot, documentCompatibilityProfile, budget);
-    const visit = (content: typeof view.content, location: string, story: string, fieldStory: string) => {
-      for (let i = 0; i < content.length; i++) {
-        const element = content[i]!;
-        if (!("source" in element) || element.disposition !== "understood") continue;
-        const path = `${location}/${element.source.localName}[${i + 1}]`;
-        const local = element.source.localName;
-        const scope = element.source.namespace === w && ["footnote", "endnote", "comment", "txbxContent"].includes(local) ? path : story;
-        const fieldScope = scope !== story || element.source.namespace === w && local === "fldSimple" ? path : fieldStory;
-        nodes.push({ element, part: part.partname, location: path, story: part.partname + scope, fieldStory: part.partname + fieldScope });
-        visit(element.content, path, scope, fieldScope);
-      }
-    };
-    visit(view.content, "", "/", "/");
+    const pending = [{ content: view.content, index: 0, location: "", story: "/", fieldStory: "/" }];
+    while (pending.length) {
+      const frame = pending.at(-1)!;
+      if (frame.index >= frame.content.length) { pending.pop(); continue; }
+      const index = frame.index++, element = frame.content[index]!;
+      if (!("source" in element) || element.disposition !== "understood") continue;
+      const path = `${frame.location}/${element.source.localName}[${index + 1}]`;
+      const local = element.source.localName;
+      const scope = element.source.namespace === w && ["footnote", "endnote", "comment", "txbxContent"].includes(local) ? path : frame.story;
+      const fieldScope = scope !== frame.story || element.source.namespace === w && local === "fldSimple" ? path : frame.fieldStory;
+      nodes.push({ element, part: part.partname, location: path, story: part.partname + scope, fieldStory: part.partname + fieldScope });
+      pending.push({ content: element.content, index: 0, location: path, story: scope, fieldStory: fieldScope });
+    }
   }
   const definitions = new Map<string, Map<string, Node>>();
   const styleDefinitions = new Map<string, Node[]>();

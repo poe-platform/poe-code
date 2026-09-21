@@ -65,7 +65,16 @@ it.each([
   expect(published).toBe(false);
 });
 it.each(['<w:fldSimple w:instr="DATE"><w:r><w:t>today</w:t></w:r></w:fldSimple>', table(row("inner", "value"))])("rejects destructive replacement of fields or nested tables", async content => {
-  await expect(edit(table().replace(paragraph("A"), paragraph("") + content + '<w:p/>'), "tables.set", { cell: "A1", text: "new" })).rejects.toThrow();
+  const source = table().replace(paragraph("A"), paragraph("") + content + '<w:p/>');
+  if (content.startsWith("<w:fldSimple")) await expect(edit(source, "tables.set", { cell: "A1", text: "new" })).rejects.toThrow();
+  else {
+    const result = await edit(source, "tables.set", { cell: "A1", text: "new" });
+    const selected = result.table.children.find(node => node.localName === "tr")!.children.find(node => node.localName === "tc")!;
+    expect(selected.children.filter(node => node.localName === "tbl")).toHaveLength(0);
+    expect(selected.children.filter(node => node.localName === "p")).toHaveLength(1);
+    expect(selected.children.find(node => node.localName === "p")!.children.filter(node => node.localName === "r")).toHaveLength(1);
+    expect(result.xml).toContain(cell("B")); expect(result.xml).toContain(row("C", "D"));
+  }
 });
 it("preserves fields and nested tables during formatting", async () => {
   const content = '<w:fldSimple w:instr="DATE"><w:r><w:t>today</w:t></w:r></w:fldSimple>';

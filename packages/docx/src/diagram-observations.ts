@@ -1,6 +1,6 @@
 import {DocumentBudget} from './budget.js';
 import {documentDialects,type DocumentDialect} from './dialect.js';
-import {MarkupCompatibility,compatibilityProfileForPart,type CompatibilityContent} from './compatibility.js';
+import {MarkupCompatibility,compatibilityProfileForPart} from './compatibility.js';
 import type {XmlElement} from './package-xml.js';
 import type {DiagramIssue,DiagramRole} from './diagrams.js';
 export interface DiagramBindingRequest {readonly role:DiagramRole;readonly attribute:string;readonly relationshipId:string|null}
@@ -11,13 +11,17 @@ const roots=['dataModel','layoutDef','styleDef','colorsDef'];
 /** Observes original physical graphics ancestry without expanding compatibility understanding. */
 export function collectDiagramObservations(root:XmlElement,dialect:DocumentDialect,part:string,budget:DocumentBudget,compatibility?:MarkupCompatibility):readonly RawDiagramObservation[] {
  const ns=documentDialects[dialect],active=new Set<XmlElement>(),result:RawDiagramObservation[]=[];
- const expose=(content:readonly CompatibilityContent[])=>{for(const item of content){budget.charge('work',1);if('source' in item){active.add(item.source);budget.charge('retainedBytes',16);if(item.disposition==='understood')expose(item.content);}}};expose((compatibility??new MarkupCompatibility(root,compatibilityProfileForPart(part),budget)).content);
+ const content=[...(compatibility??new MarkupCompatibility(root,compatibilityProfileForPart(part),budget)).content].reverse();
+ while(content.length){const item=content.pop()!;budget.charge('work',1);if('source' in item){active.add(item.source);budget.charge('retainedBytes',16);if(item.disposition==='understood')for(let i=item.content.length-1;i>=0;i--)content.push(item.content[i]!);}}
+
  const attr=(node:XmlElement,name:string,namespace='')=>node.attributes.find(a=>a.namespace===namespace&&a.localName===name)?.value??null;
  const is=(node:XmlElement|undefined,namespace:string,name:string)=>node?.namespace===namespace&&node.localName===name;
  const envelope=(chain:readonly XmlElement[])=>chain.length===4&&is(chain[0],ns.w,'drawing')&&chain[1]?.namespace===ns.wp&&['inline','anchor'].includes(chain[1].localName)&&is(chain[2],ns.a,'graphic')&&is(chain[3],ns.a,'graphicData');
  const add=(node:XmlElement,path:readonly number[],kind:RawDiagramObservation['kind'],uri:string|null,requests:readonly DiagramBindingRequest[]=[])=>{budget.charge('matches',1);budget.charge('retainedBytes',256+path.length*8+(part.length+node.namespace.length+node.localName.length+(uri?.length??0))*2+requests.reduce((n,r)=>n+96+r.attribute.length*2+(r.relationshipId?.length??0)*2,0));const issues:DiagramIssue[]=kind==='relIds'||requests.length?[]:[{code:'opaque-graphics',part,path,message:'Stored graphics content is outside the supported native profile.'}];if(issues.length)budget.charge('diagnosticBytes',issues[0]!.message.length+part.length+64);result.push({kind,part,path,namespace:node.namespace,localName:node.localName,uri,active:active.has(node),requests,issues});};
  const transparentChildren=(node:XmlElement):XmlElement[]=>{const result:XmlElement[]=[];for(const child of node.children){budget.charge('work',1);if(child.namespace===mc&&['AlternateContent','Choice','Fallback'].includes(child.localName))result.push(...transparentChildren(child));else result.push(child);}return result;};
- const visit=(node:XmlElement,path:readonly number[],ancestors:readonly XmlElement[])=>{
+ const pending:{node:XmlElement;path:readonly number[];ancestors:readonly XmlElement[]}[]=[{node:root,path:[],ancestors:[]}];
+ while(pending.length){
+  const {node,path,ancestors}=pending.pop()!;
   budget.charge('work',ancestors.length+1);budget.charge('retainedBytes',32+path.length*8);
   const chain=ancestors.filter(n=>!(n.namespace===mc&&['AlternateContent','Choice','Fallback'].includes(n.localName)));
   let drawingIndex=-1;chain.forEach((n,i)=>{if(is(n,ns.w,'drawing'))drawingIndex=i;});
@@ -41,6 +45,6 @@ export function collectDiagramObservations(root:XmlElement,dialect:DocumentDiale
     add(child,[...path,i],'extension',uri,requests);
    });}
   }
-  node.children.forEach((child,i)=>visit(child,[...path,i],[...ancestors,node]));
- };visit(root,[],[]);return result.sort((a,b)=>{for(let i=0;i<Math.min(a.path.length,b.path.length);i++){const n=a.path[i]!-b.path[i]!;if(n)return n;}return a.path.length-b.path.length;});
+  for(let i=node.children.length-1;i>=0;i--)pending.push({node:node.children[i]!,path:[...path,i],ancestors:[...ancestors,node]});
+ }return result.sort((a,b)=>{for(let i=0;i<Math.min(a.path.length,b.path.length);i++){const n=a.path[i]!-b.path[i]!;if(n)return n;}return a.path.length-b.path.length;});
 }

@@ -12,54 +12,65 @@ export function opaqueXmlContent(root: XmlElement, budget: DocumentBudget, profi
   const nativeProperties = (node: XmlElement) =>
     (node.namespace === documentDialects.strict.w || node.namespace === documentDialects.transitional.w)
     && ["pPr", "rPr", "sectPr", "tabs"].includes(node.localName);
-  const visit = (node: XmlElement, path: (number | string)[], inherited: ReadonlyMap<string, readonly string[]>, propertyContext = false) => {
-    budget.charge("work", 1 + node.attributes.length + inherited.size);
-    budget.charge("retainedBytes", (inherited.size + 1) * 48);
-    const context = new Map(inherited);
-    for (const attribute of node.attributes) {
-      if (attribute.namespace !== "http://www.w3.org/XML/1998/namespace" || !["lang", "space", "base"].includes(attribute.localName)) continue;
-      budget.charge("retainedBytes", attribute.localName === "base" ? ((context.get("base")?.length ?? 0) + 1) * 8 : 8);
-      context.set(attribute.localName, attribute.localName === "base" ? [...context.get("base") ?? [], attribute.value] : [attribute.value]);
+  interface Frame {
+    node: XmlElement;
+    inherited: ReadonlyMap<string, readonly string[]>;
+    propertyContext: boolean;
+    context?: ReadonlyMap<string, readonly string[]>;
+    namedProperties?: boolean;
+    ordinals: Map<string, number>;
+    contentIndex: number;
+    index: number;
+  }
+  const path: (number | string)[] = [];
+  budget.charge("retainedBytes", 128);
+  const pending: Frame[] = [{ node: root, inherited: new Map(), propertyContext: false, ordinals: new Map(), contentIndex: 0, index: -1 }];
+  while (pending.length) {
+    const frame = pending.at(-1)!;
+    const node = frame.node;
+    if (frame.index === -1) {
+      const inherited = frame.inherited;
+      budget.charge("work", 1 + node.attributes.length + inherited.size);
+      budget.charge("retainedBytes", (inherited.size + 1) * 48);
+      const context = new Map(inherited);
+      for (const attribute of node.attributes) {
+        if (attribute.namespace !== "http://www.w3.org/XML/1998/namespace" || !["lang", "space", "base"].includes(attribute.localName)) continue;
+        budget.charge("retainedBytes", attribute.localName === "base" ? ((context.get("base")?.length ?? 0) + 1) * 8 : 8);
+        context.set(attribute.localName, attribute.localName === "base" ? [...context.get("base") ?? [], attribute.value] : [attribute.value]);
+      }
+      frame.context = context;
+      // Property fields occupy named slots; transparent MCE carriers keep that context.
+      const namedStyleFields = (node.namespace === documentDialects.strict.w || node.namespace === documentDialects.transitional.w) && node.localName === "style";
+      frame.namedProperties = nativeProperties(node) || namedStyleFields || containers.has(node) && frame.propertyContext;
+      const retainPath = () => { budget.charge("retainedBytes", path.length * 8); return path.slice(); };
+      if (containers.has(node)) {
+        records.push([retainPath(), node.namespace, node.localName, [...node.namespaces], [...context], node.attributes, node.content.filter(item => item.kind !== "element")]);
+      } else if (!view.canEdit(node)) {
+        // Encoding declarations describe the byte stream; retain prolog and epilog content.
+        const {declaration: ignoredDeclaration, ...content} = node;
+        budget.charge("retainedBytes", 192);
+        records.push([retainPath(), [...node.namespaces], [...context], displayXml(content, budget, false)]);
+        pending.pop(); path.pop(); continue;
+      } else {
+        const attributes = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !view.canEdit(attribute));
+        if (attributes.length) records.push([retainPath(), [...node.namespaces], [...context], attributes]);
+      }
+      frame.index = 0;
     }
-    // Native properties are named fields. Inserting/removing another field
-    // does not move retained extension data to a different semantic owner.
-    // Transparent active MCE carriers keep their enclosing property context.
-    // Property containers also occupy named slots outside the content sequence.
-    const namedStyleFields = (node.namespace === documentDialects.strict.w || node.namespace === documentDialects.transitional.w) && node.localName === "style";
-    const namedProperties = nativeProperties(node) || namedStyleFields || containers.has(node) && propertyContext;
-    const visitChildren = () => {
-      const ordinals = new Map<string, number>();
-      let contentIndex = 0;
-      node.children.forEach(child => {
-        let slot: number | string;
-        if (namedProperties || nativeProperties(child)) {
-          const name = JSON.stringify([child.namespace, child.localName]);
-          const ordinal = ordinals.get(name) ?? 0;
-          ordinals.set(name, ordinal + 1);
-          budget.charge("work", name.length);
-          budget.charge("retainedBytes", name.length * 4 + 48);
-          slot = name + ":" + ordinal;
-        } else slot = contentIndex++;
-        visit(child, [...path, slot], context, namedProperties);
-      });
-    };
-    if (containers.has(node)) {
-      records.push([path, node.namespace, node.localName, [...node.namespaces], [...context], node.attributes, node.content.filter(item => item.kind !== "element")]);
-      visitChildren();
-      return;
-    }
-    if (!view.canEdit(node)) {
-      // Validated XML 1.0 encoding declarations describe the byte stream, not
-      // the opaque subtree. Keep prolog/epilog content in the comparison.
-      const {declaration: ignoredDeclaration, ...content} = node;
-      budget.charge("retainedBytes", 192);
-      records.push([path, [...node.namespaces], [...context], displayXml(content, budget, false)]);
-      return;
-    }
-    const attributes = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !view.canEdit(attribute));
-    if (attributes.length) records.push([path, [...node.namespaces], [...context], attributes]);
-    visitChildren();
-  };
-  visit(root, [], new Map());
+    const child = node.children[frame.index++];
+    if (!child) { pending.pop(); path.pop(); continue; }
+    let slot: number | string;
+    if (frame.namedProperties || nativeProperties(child)) {
+      const name = JSON.stringify([child.namespace, child.localName]);
+      const ordinal = frame.ordinals.get(name) ?? 0;
+      frame.ordinals.set(name, ordinal + 1);
+      budget.charge("work", name.length);
+      budget.charge("retainedBytes", name.length * 4 + 48);
+      slot = name + ":" + ordinal;
+    } else slot = frame.contentIndex++;
+    budget.charge("retainedBytes", 136);
+    path.push(slot);
+    pending.push({ node: child, inherited: frame.context!, propertyContext: frame.namedProperties!, ordinals: new Map(), contentIndex: 0, index: -1 });
+  }
   return JSON.stringify(records);
 }

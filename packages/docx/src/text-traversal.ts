@@ -116,68 +116,98 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
     if (omitted) continue;
     const initial: State = { entry: story, revision, revisions, formatting: defaults, originalFormatting: defaults };
     const visit = (node: XmlElement, inherited: State): Piece[] => {
-      budget.charge("work", 1);
-      const entry = byNode.get(node);
-      let state = entry?.story === story.story ? { ...inherited, entry } : inherited;
-      if (node.namespace !== w && node !== story.node) return [];
-      const name = node.localName;
-      const info = revisionInfo(node);
-      if (info?.support === "opaque") return [];
-      if (info) state = { ...state, revisions: [...state.revisions, info] };
-      if (name === "txbxContent" && node !== story.node) return [];
-      if (["pPr", "rPr", "tblPr", "tcPr", "trPr", "sectPr", "tblGrid", "drawing", "pict", "object", "instrText", "delInstrText", "lastRenderedPageBreak"].includes(name)) return [];
-      if (["ins", "moveTo", "del", "moveFrom"].includes(name)) {
-        const revision = name === "ins" || name === "moveTo" ? "insert" : "delete";
-        if (!visible(revision)) return [];
-        state = { ...state, revision };
-      }
-      if (name === "tr") {
-        const revision = marked(named(node, "trPr"));
-        if (revision && !visible(revision)) return [];
-        if (revision) {
-          const marker = named(named(node, "trPr"), revision === "insert" ? "ins" : "del");
-          const info = marker && revisionInfo(marker);
-          state = { ...state, revision, revisions: info ? [...state.revisions, info] : state.revisions };
+      interface Frame { node: XmlElement; inherited: State; state?: State; children?: readonly XmlElement[]; index: number; pieces: Piece[]; }
+      budget.charge("retainedBytes", 128);
+      const pending: Frame[] = [{ node, inherited, index: -1, pieces: [] }];
+      let result: Piece[] = [];
+      const finish = (pieces: Piece[]) => {
+        pending.pop();
+        const parent = pending.at(-1);
+        if (parent) {
+          budget.charge("work", pieces.length);
+          budget.charge("retainedBytes", pieces.length * 8);
+          for (const piece of pieces) parent.pieces.push(piece);
+        } else result = pieces;
+      };
+      while (pending.length) {
+        const frame = pending.at(-1)!;
+        const node = frame.node;
+        if (frame.index === -1) {
+          const inherited = frame.inherited;
+          budget.charge("work", 1);
+          const entry = byNode.get(node);
+          let state = entry?.story === story.story ? { ...inherited, entry } : inherited;
+          if (node.namespace !== w && node !== story.node) { finish([]); continue; }
+          const name = node.localName;
+          const info = revisionInfo(node);
+          if (info?.support === "opaque") { finish([]); continue; }
+          if (info) state = { ...state, revisions: [...state.revisions, info] };
+          if (name === "txbxContent" && node !== story.node) { finish([]); continue; }
+          if (["pPr", "rPr", "tblPr", "tcPr", "trPr", "sectPr", "tblGrid", "drawing", "pict", "object", "instrText", "delInstrText", "lastRenderedPageBreak"].includes(name)) { finish([]); continue; }
+          if (["ins", "moveTo", "del", "moveFrom"].includes(name)) {
+            const revision = name === "ins" || name === "moveTo" ? "insert" : "delete";
+            if (!visible(revision)) { finish([]); continue; }
+            state = { ...state, revision };
+          }
+          if (name === "tr") {
+            const revision = marked(named(node, "trPr"));
+            if (revision && !visible(revision)) { finish([]); continue; }
+            if (revision) {
+              const marker = named(named(node, "trPr"), revision === "insert" ? "ins" : "del");
+              const info = marker && revisionInfo(marker);
+              state = { ...state, revision, revisions: info ? [...state.revisions, info] : state.revisions };
+            }
+          }
+          if (name === "p") {
+            const props = properties(node, "pPr", state);
+            state = { ...state, revisions: props.revisions,
+              formatting: { ...defaults, paragraph: { style: value(props.node, "pStyle"), bidi: toggle(props.node, "bidi") } },
+              originalFormatting: { ...defaults, paragraph: { style: value(props.original, "pStyle"), bidi: toggle(props.original, "bidi") } } };
+          }
+          if (name === "r") {
+            const props = properties(node, "rPr", state);
+            const formatting = (node: XmlElement | undefined, base: TextFormatting): TextFormatting => ({ ...base,
+              bold: toggle(node, "b"), italic: toggle(node, "i"), hidden: toggle(node, "vanish"), rtl: toggle(node, "rtl"),
+              style: value(node, "rStyle"), language: attributes(named(node, "lang")), fonts: attributes(named(node, "rFonts")) });
+            state = { ...state, revisions: props.revisions, formatting: formatting(props.node, state.formatting),
+              originalFormatting: formatting(props.original, state.originalFormatting) };
+          }
+          if (name === "fldChar") {
+            const type = index.attr(node, "fldCharType");
+            if (type === "begin") fields.push(false);
+            else if (type === "separate" && fields.length) fields[fields.length - 1] = true;
+            else if (type === "end") fields.pop();
+            { finish([]); continue; }
+          }
+          const text = name === "t" || name === "delText" ? node.text : name === "tab" || name === "ptab" ? "\t" : name === "cr" ? "\n"
+            : name === "br" ? index.attr(node, "type") === "page" ? "\f" : index.attr(node, "type") === "column" ? "\v" : "\n"
+            : name === "noBreakHyphen" ? "\u2011" : name === "softHyphen" ? "\u00ad" : undefined;
+          if (text !== undefined) {
+            if (!included(state.entry) || fields.includes(false) || name === "delText" && view === "final") { finish([]); continue; }
+            const kind = name === "tab" || name === "ptab" ? "tab" : name === "br" || name === "cr" ? text === "\f" ? "page-break" : text === "\v" ? "column-break" : "line-break" : "text";
+            finish(text ? [{ state, segments: [make(text, name === "delText" ? { ...state, revision: "delete" } : state, kind)] }] : []); continue;
+          }
+          frame.state = state;
+          frame.children = index.children.get(node) ?? [];
+          frame.index = 0;
         }
+        const child = frame.children![frame.index++];
+        if (child) {
+          budget.charge("retainedBytes", 128);
+          pending.push({ node: child, inherited: frame.state!, index: -1, pieces: [] });
+          continue;
+        }
+        const children = frame.pieces, state = frame.state!, name = node.localName;
+        if (name === "p" || name === "tc" || name === "tr" || name === "tbl" || node === story.node) {
+          if (!relevant(state.entry) || !children.length && (!included(state.entry) || name === "tbl")) { finish([]); continue; }
+          const separator = name === "p" ? "" : name === "tr" ? "\t" : "\n";
+          const kind = name === "tr" ? "cell" : name === "tbl" ? "row" : "paragraph";
+          const boundary = name === "p" ? marked(named(named(node, "pPr"), "rPr")) : undefined;
+          finish([{ state, segments: join(children, separator, kind, state), ...(boundary ? { boundary, boundaryInfo: revisionInfo(named(named(named(node, "pPr"), "rPr"), boundary === "delete" ? "del" : "ins")!)! } : {}) }]); continue;
+        }
+        finish(children);
       }
-      if (name === "p") {
-        const props = properties(node, "pPr", state);
-        state = { ...state, revisions: props.revisions,
-          formatting: { ...defaults, paragraph: { style: value(props.node, "pStyle"), bidi: toggle(props.node, "bidi") } },
-          originalFormatting: { ...defaults, paragraph: { style: value(props.original, "pStyle"), bidi: toggle(props.original, "bidi") } } };
-      }
-      if (name === "r") {
-        const props = properties(node, "rPr", state);
-        const formatting = (node: XmlElement | undefined, base: TextFormatting): TextFormatting => ({ ...base,
-          bold: toggle(node, "b"), italic: toggle(node, "i"), hidden: toggle(node, "vanish"), rtl: toggle(node, "rtl"),
-          style: value(node, "rStyle"), language: attributes(named(node, "lang")), fonts: attributes(named(node, "rFonts")) });
-        state = { ...state, revisions: props.revisions, formatting: formatting(props.node, state.formatting),
-          originalFormatting: formatting(props.original, state.originalFormatting) };
-      }
-      if (name === "fldChar") {
-        const type = index.attr(node, "fldCharType");
-        if (type === "begin") fields.push(false);
-        else if (type === "separate" && fields.length) fields[fields.length - 1] = true;
-        else if (type === "end") fields.pop();
-        return [];
-      }
-      const text = name === "t" || name === "delText" ? node.text : name === "tab" || name === "ptab" ? "\t" : name === "cr" ? "\n"
-        : name === "br" ? index.attr(node, "type") === "page" ? "\f" : index.attr(node, "type") === "column" ? "\v" : "\n"
-        : name === "noBreakHyphen" ? "\u2011" : name === "softHyphen" ? "\u00ad" : undefined;
-      if (text !== undefined) {
-        if (!included(state.entry) || fields.includes(false) || name === "delText" && view === "final") return [];
-        const kind = name === "tab" || name === "ptab" ? "tab" : name === "br" || name === "cr" ? text === "\f" ? "page-break" : text === "\v" ? "column-break" : "line-break" : "text";
-        return text ? [{ state, segments: [make(text, name === "delText" ? { ...state, revision: "delete" } : state, kind)] }] : [];
-      }
-      const children = (index.children.get(node) ?? []).flatMap(child => visit(child, state));
-      if (name === "p" || name === "tc" || name === "tr" || name === "tbl" || node === story.node) {
-        if (!relevant(state.entry) || !children.length && (!included(state.entry) || name === "tbl")) return [];
-        const separator = name === "p" ? "" : name === "tr" ? "\t" : "\n";
-        const kind = name === "tr" ? "cell" : name === "tbl" ? "row" : "paragraph";
-        const boundary = name === "p" ? marked(named(named(node, "pPr"), "rPr")) : undefined;
-        return [{ state, segments: join(children, separator, kind, state), ...(boundary ? { boundary, boundaryInfo: revisionInfo(named(named(named(node, "pPr"), "rPr"), boundary === "delete" ? "del" : "ins")!)! } : {}) }];
-      }
-      return children;
+      return result;
     };
     const pieces = visit(story.node!, initial);
     if (!pieces.length) continue;

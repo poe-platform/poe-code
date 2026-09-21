@@ -1,4 +1,5 @@
-import type { OAuthMetadataFetch, StoredOAuthTokens } from "./types.js";
+import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
+import type { OAuthMetadataFetch, StoredOAuthTokens, OAuthTokenEndpointAuthMethod } from "./types.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 import { readBoundedResponseText } from "../http-response.js";
 import { fetchMcpResponse } from "../http-fetch.js";
@@ -52,6 +53,7 @@ export async function exchangeAuthorizationCode(input: {
   tokenEndpoint: string;
   clientId: string;
   clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
   code: string;
   codeVerifier: string;
   redirectUri: string;
@@ -66,6 +68,7 @@ export async function exchangeAuthorizationCode(input: {
     tokenEndpoint: input.tokenEndpoint,
     clientId: input.clientId,
     clientSecret: input.clientSecret,
+    tokenEndpointAuthMethod: input.tokenEndpointAuthMethod,
     params: {
       grant_type: "authorization_code",
       code: input.code,
@@ -83,6 +86,7 @@ export async function refreshAccessToken(input: {
   tokenEndpoint: string;
   clientId: string;
   clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
   refreshToken: string;
   resource: string;
   fetch: OAuthMetadataFetch;
@@ -95,6 +99,7 @@ export async function refreshAccessToken(input: {
     tokenEndpoint: input.tokenEndpoint,
     clientId: input.clientId,
     clientSecret: input.clientSecret,
+    tokenEndpointAuthMethod: input.tokenEndpointAuthMethod,
     params: {
       grant_type: "refresh_token",
       refresh_token: input.refreshToken,
@@ -110,18 +115,25 @@ async function requestTokens(input: {
   tokenEndpoint: string;
   clientId: string;
   clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
   params: Record<string, string>;
   fetch: OAuthMetadataFetch;
   signal?: AbortSignal;
   now: () => number;
 }): Promise<StoredOAuthTokens> {
-  const body = new URLSearchParams({
-    client_id: input.clientId,
-    ...input.params
-  });
-
-  if (input.clientSecret !== undefined) {
-    body.set("client_secret", input.clientSecret);
+  const method = normalizeOAuthTokenEndpointAuthMethod(input.tokenEndpointAuthMethod) ??
+    (input.clientSecret === undefined ? "none" : "client_secret_post");
+  if (method !== "none" && (input.clientSecret === undefined || input.clientSecret.trim() === ""))
+    throw new Error("OAuth token endpoint authentication requires a client secret");
+  const body = new URLSearchParams(input.params);
+  const headers = new Headers({ "Content-Type": "application/x-www-form-urlencoded" });
+  if (method === "client_secret_basic") {
+    const encoded = new URLSearchParams({ credential: input.clientId }).toString().slice("credential=".length);
+    const encodedSecret = new URLSearchParams({ credential: input.clientSecret! }).toString().slice("credential=".length);
+    headers.set("Authorization", `Basic ${Buffer.from(`${encoded}:${encodedSecret}`).toString("base64")}`);
+  } else {
+    body.set("client_id", input.clientId);
+    if (method === "client_secret_post") body.set("client_secret", input.clientSecret!);
   }
 
   input.signal?.throwIfAborted();
@@ -129,9 +141,7 @@ async function requestTokens(input: {
   const signal = input.signal === undefined ? deadline : AbortSignal.any([input.signal, deadline]);
   const response = await fetchMcpResponse(input.fetch, input.tokenEndpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers,
     body: body.toString(),
     signal
   });

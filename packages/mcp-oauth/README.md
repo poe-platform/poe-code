@@ -119,6 +119,16 @@ Explicit ID/secret values must agree with the imported response. Sessions and
 native registration stores retain arrays, issuance/expiry timestamps and JSON
 provider metadata. Registration input is copied, bounded to 64 KiB and 64
 levels, and rejects invalid standard field types and non-JSON extensions.
+Set `client.tokenEndpointAuthMethod` to `none`, `client_secret_post` or
+`client_secret_basic`; a full registration can supply the same field as
+`token_endpoint_auth_method`. Public clients never transmit a stored secret.
+Basic credentials are individually form-encoded before Base64 encoding and
+are omitted from the form body. Cached grants retain their registered method;
+an explicitly different configured method requires separate persistence or a
+reset. Native DCR chooses a supported method, preferring public PKCE when
+advertised. Unsupported methods and missing confidential secrets fail before
+token requests. Existing clients without a method keep the previous default:
+body authentication when a secret is present, public authentication otherwise.
 Static clients and dynamic initial-grant imports require cached grants to match
 the original normalized client ID and secret. A different client configuration
 fails before attaching or refreshing credentials and retains the stored record;

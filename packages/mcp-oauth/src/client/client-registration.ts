@@ -1,5 +1,6 @@
 import type { OAuthClientRegistration, StoredOAuthClient } from "./types.js";
 import { normalizeOAuthScope } from "./scope.js";
+import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 
 /** Validate and copy a bounded JSON DCR response without quoting credential input. */
 export function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration {
@@ -60,12 +61,18 @@ export function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | 
   if (typeof clientId !== "string" || clientId.trim() === "" ||
     (clientSecret !== undefined && (typeof clientSecret !== "string" || clientSecret.trim() === ""))) return null;
   const client: StoredOAuthClient = { clientId: clientId.trim(), ...(clientSecret === undefined ? {} : { clientSecret: (clientSecret as string).trim() }) };
+  const method = normalizeOAuthTokenEndpointAuthMethod(Object.hasOwn(record, "tokenEndpointAuthMethod") ? record.tokenEndpointAuthMethod : undefined);
   if (Object.hasOwn(record, "registration") && record.registration !== undefined) {
     const registration = parseOAuthClientRegistration(record.registration);
     const registeredSecret = Object.hasOwn(registration, "client_secret") ? registration.client_secret?.trim() : undefined;
     if (registration.client_id.trim() !== client.clientId || registeredSecret !== client.clientSecret)
       throw new Error("OAuth client registration does not match the client identity");
     client.registration = registration;
+    const registrationMethod = normalizeOAuthTokenEndpointAuthMethod(Object.hasOwn(registration, "token_endpoint_auth_method") ? registration.token_endpoint_auth_method : undefined);
+    if (method !== undefined && registrationMethod !== undefined && method !== registrationMethod)
+      throw new Error("OAuth token endpoint authentication conflicts with the client registration");
+    if (registrationMethod !== undefined) client.tokenEndpointAuthMethod = registrationMethod;
   }
+  if (method !== undefined) client.tokenEndpointAuthMethod = method;
   return client;
 }

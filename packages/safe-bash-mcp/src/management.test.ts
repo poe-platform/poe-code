@@ -5,6 +5,7 @@ import { createRemoteMcpManagementCommand, initRemoteMcpConfiguration } from "./
 
 const servers = [{ name: "catalog", url: "https://catalog.example/mcp", auth: {
   type: "oauth" as const, clientMode: "static" as const, env: { clientId: "GOOGLE_APP_ID", clientSecret: "GOOGLE_APP_SECRET" },
+  tokenEndpointAuthMethod: "client_secret_basic" as const,
   scope: "read offline_access", redirectUri: "http://localhost:39119/callback"
 } }];
 

@@ -1,4 +1,5 @@
 import type { RemoteMcpServer } from "./schema.js";
+import type { OAuthTokenEndpointAuthMethod } from "mcp-oauth";
 import { preflightRemoteMcpServers } from "./schema.js";
 import { compileJsonSchema, formatIssues, isJsonValue } from "toolcraft-schema";
 import { parseArgumentJson } from "./json-input.js";
@@ -17,7 +18,8 @@ export interface OAuthCredentialReferences {
 }
 export type RemoteMcpAuthenticationConfiguration =
   | { readonly type: "bearer"; readonly token: EnvironmentReference }
-  | { readonly type: "oauth"; readonly clientMode: "static" | "dynamic"; readonly persistenceNamespace?: string; readonly credentials: OAuthCredentialReferences };
+  | { readonly type: "oauth"; readonly clientMode: "static" | "dynamic"; readonly persistenceNamespace?: string;
+      readonly tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod; readonly credentials: OAuthCredentialReferences };
 export interface RemoteMcpServerConfiguration extends Omit<RemoteMcpServer, "headers" | "oauth"> {
   readonly headers?: Readonly<Record<string, EnvironmentReference>>;
   readonly auth?: RemoteMcpAuthenticationConfiguration;
@@ -31,6 +33,7 @@ export interface InitRemoteMcpServer extends Omit<RemoteMcpServerConfiguration, 
     | { readonly type: "bearer"; readonly env?: string }
     | { readonly type: "oauth"; readonly clientMode: "static" | "dynamic";
         readonly persistenceNamespace?: string;
+        readonly tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
         readonly env?: Partial<Record<keyof OAuthCredentialReferences, string>>;
         readonly scope?: string; readonly redirectUri?: string };
 }
@@ -56,7 +59,8 @@ const referenceSchema = { type: "object", properties: { env: { type: "string" } 
 const publicReferenceSchema = { ...referenceSchema, properties: { ...referenceSchema.properties, fallback: { type: "string" } } };
 const oauthCredentialSchemas = Object.fromEntries(Object.keys(credentialFields).map(key => [key,
   key === "scope" || key === "redirectUri" ? publicReferenceSchema : referenceSchema]));
-const oauthShape = { type: "object", properties: { type: { const: "oauth" }, clientMode: { enum: ["static", "dynamic"] }, persistenceNamespace: { type: "string", minLength: 1, maxLength: 1024 } }, required: ["type", "clientMode"], additionalProperties: false };
+const oauthShape = { type: "object", properties: { type: { const: "oauth" }, clientMode: { enum: ["static", "dynamic"] }, persistenceNamespace: { type: "string", minLength: 1, maxLength: 1024 },
+  tokenEndpointAuthMethod: { enum: ["none", "client_secret_post", "client_secret_basic"] } }, required: ["type", "clientMode"], additionalProperties: false };
 const commonServerProperties = {
   name: { type: "string" }, url: { type: "string" }, transport: { enum: ["http", "sse"] }, protocolVersion: { enum: ["2025-03-26", "2026-07-28"] },
   tools: { type: "array", items: { type: "object" } }, headers: { type: "object", additionalProperties: referenceSchema }
@@ -186,6 +190,7 @@ export function initRemoteMcpConfiguration(servers: readonly InitRemoteMcpServer
       return [field, reference];
     })) as unknown as OAuthCredentialReferences;
     return { ...server, auth: { type: "oauth", clientMode: auth.clientMode,
+      ...(auth.tokenEndpointAuthMethod === undefined ? {} : { tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod }),
       ...(auth.persistenceNamespace === undefined ? {} : { persistenceNamespace: auth.persistenceNamespace }), credentials } };
   });
   const configuration = parseRemoteMcpConfiguration({ version: 1, servers: configured }, options);

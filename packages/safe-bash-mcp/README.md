@@ -163,6 +163,12 @@ Configured scope and exact redirect values come from environment references or
 their public fallbacks. Supply `oauth.sessionStore(server)` for host-owned
 persistence, or `oauth.authStore` for the native secret-store backend.
 `oauth.sessionLockTimeoutMs` bounds transaction lock acquisition (default 30 s).
+Set `auth.tokenEndpointAuthMethod` to `none`, `client_secret_post` or
+`client_secret_basic` to select token authentication. This public setting is
+preserved by init and generated artifacts; credentials remain environment
+references. Basic authentication form-encodes app credentials and sends them
+only in its authentication header. Public authentication omits the app secret.
+
 Set `auth.persistenceNamespace` on an OAuth server in initialization or
 configuration to select a named native credential profile. Different namespaces
 keep separate grants and registrations even at the same URL; omitting one keeps

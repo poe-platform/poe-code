@@ -1,5 +1,6 @@
 import { normalizeStoredOAuthClient, parseOAuthClientRegistration } from "./client-registration.js";
 import { normalizeOAuthScope } from "./scope.js";
+import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 import { isIP } from "node:net";
 import { fetchMcpResponse } from "../http-fetch.js";
 import { URL } from "node:url";
@@ -52,6 +53,8 @@ export function createDefaultOAuthClientProvider(
   const clientMetadata = getClientMetadata(options.client);
   const requestedScope = clientMetadata?.scope;
   const configuredClient = normalizeConfiguredClient(options.client);
+  const requestedTokenMethod = normalizeOAuthTokenEndpointAuthMethod(options.client.tokenEndpointAuthMethod);
+  const configuredTokenMethod = requestedTokenMethod ?? configuredClient?.tokenEndpointAuthMethod;
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
   const clientStore =
     options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace);
@@ -205,6 +208,9 @@ export function createDefaultOAuthClientProvider(
       }
       if (requestedScope !== undefined && session?.tokens !== undefined && normalizeOAuthScope(session.tokens.scope ?? session.requestedScope) !== requestedScope)
         throw new Error("Stored session does not match the requested OAuth scope; authorize again or select separate persistence");
+      if (configuredTokenMethod !== undefined && session !== null && (session.tokens !== undefined || session.refreshState === "pending") &&
+        (session.client.tokenEndpointAuthMethod ?? (session.client.clientSecret === undefined ? "none" : "client_secret_post")) !== configuredTokenMethod)
+        throw new Error("Stored session does not match the requested OAuth token endpoint authentication; select separate persistence or reset it");
 
       if (session?.refreshState === "pending") {
         if (!allowInteractive || options.allowInteractive === false || sessionDiscovery === undefined)
@@ -254,6 +260,7 @@ export function createDefaultOAuthClientProvider(
     if (session.tokens?.refreshToken === undefined) {
       return session;
     }
+    assertTokenEndpointAuthentication(session.client, discovery.authorizationServerMetadata);
 
     const pendingSession: StoredOAuthSession = { ...clearSessionTokens(session), refreshState: "pending" };
     await saveSession(resource, pendingSession);
@@ -272,6 +279,7 @@ export function createDefaultOAuthClientProvider(
           ),
           clientId: session.client.clientId,
           clientSecret: session.client.clientSecret,
+          tokenEndpointAuthMethod: session.client.tokenEndpointAuthMethod,
           refreshToken: session.tokens.refreshToken,
           resource,
           fetch, signal,
@@ -360,6 +368,7 @@ export function createDefaultOAuthClientProvider(
           fetch,
           signal
         );
+        assertTokenEndpointAuthentication(resolvedClient.client, discovery.authorizationServerMetadata);
         const sessionWithoutTokens: StoredOAuthSession = {
           resource,
           authorizationServer: discovery.authorizationServer,
@@ -388,6 +397,7 @@ export function createDefaultOAuthClientProvider(
           ),
           clientId: resolvedClient.client.clientId,
           clientSecret: resolvedClient.client.clientSecret,
+          tokenEndpointAuthMethod: resolvedClient.client.tokenEndpointAuthMethod,
           code,
           codeVerifier: verifier,
           redirectUri: loopback.redirectUri,
@@ -499,9 +509,15 @@ export function createDefaultOAuthClientProvider(
       }
     }
 
+    const supported = getSupportedTokenAuthMethods(discovery.authorizationServerMetadata);
+    const registrationMethod = requestedTokenMethod ?? (supported === undefined ? "none" :
+      ["none", "client_secret_basic", "client_secret_post"].find(method => supported.includes(method)));
+    if (registrationMethod === undefined || (supported !== undefined && !supported.includes(registrationMethod)))
+      throw new Error("Authorization server does not support the requested OAuth token endpoint authentication");
     const registrationBody = buildClientRegistrationBody(
       clientMetadata,
-      redirectUri
+      redirectUri,
+      registrationMethod
     );
     const deadline = AbortSignal.timeout(30_000);
     const signal = parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
@@ -516,9 +532,12 @@ export function createDefaultOAuthClientProvider(
     const payload = await readOAuthJsonObjectResponse(response, signal);
     const registration = parseOAuthClientRegistration(payload);
     const registeredSecret = getOwnString(registration, "client_secret");
+    const responseMethod = normalizeOAuthTokenEndpointAuthMethod(getOwnEntry(registration, "token_endpoint_auth_method")) ??
+      requestedTokenMethod ?? (supported === undefined ? undefined : normalizeOAuthTokenEndpointAuthMethod(registrationMethod));
     const registeredClient = {
       clientId: registration.client_id.trim(),
       ...(registeredSecret === undefined ? {} : { clientSecret: registeredSecret.trim() }),
+      ...(responseMethod === undefined ? {} : { tokenEndpointAuthMethod: responseMethod }),
       registration
     };
     await saveRegisteredClient(discovery.authorizationServer, registeredClient);
@@ -535,7 +554,7 @@ export function createDefaultOAuthClientProvider(
   }
 
   async function saveSession(resource: string, session: StoredOAuthSession): Promise<void> {
-    await sessionStore.save(resource, session);
+    await sessionStore.save(resource, structuredClone(session));
   }
 
   async function clearSession(resource: string): Promise<void> {
@@ -742,7 +761,7 @@ function normalizeConfiguredClient(
   const clientId = normalizeOptionalOAuthString(client.clientId) ?? registration?.client_id.trim();
   if (clientId === undefined) return null;
   const clientSecret = normalizeOptionalOAuthString(client.clientSecret) ?? (registration === undefined ? undefined : getOwnString(registration, "client_secret")?.trim());
-  return normalizeStoredOAuthClient({ clientId, clientSecret, registration });
+  return normalizeStoredOAuthClient({ clientId, clientSecret, registration, tokenEndpointAuthMethod: client.tokenEndpointAuthMethod });
 }
 
 function normalizeOptionalOAuthString(value: string | undefined): string | undefined {
@@ -899,15 +918,33 @@ function assertRequestMatchesResource(requestUrl: string, resource: string): voi
   }
 }
 
+function getSupportedTokenAuthMethods(metadata: OAuthAuthorizationServerMetadata): string[] | undefined {
+  const value = getOwnEntry(metadata, "token_endpoint_auth_methods_supported");
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 128 || value.some(method => typeof method !== "string"))
+    throw new Error("Invalid OAuth token endpoint authentication metadata");
+  return value as string[];
+}
+
+function assertTokenEndpointAuthentication(client: StoredOAuthSession["client"], metadata: OAuthAuthorizationServerMetadata): void {
+  const method = client.tokenEndpointAuthMethod ?? (client.clientSecret === undefined ? "none" : "client_secret_post");
+  if (method !== "none" && client.clientSecret === undefined)
+    throw new Error("OAuth token endpoint authentication requires a client secret");
+  const supported = getSupportedTokenAuthMethods(metadata);
+  if (supported !== undefined && !supported.includes(method))
+    throw new Error("Authorization server does not support the requested OAuth token endpoint authentication");
+}
+
 function buildClientRegistrationBody(
   metadata: OAuthClientMetadata | undefined,
-  redirectUri: string
+  redirectUri: string,
+  tokenEndpointAuthMethod: string
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {
     redirect_uris: [redirectUri],
     grant_types: ["authorization_code", "refresh_token"],
     response_types: ["code"],
-    token_endpoint_auth_method: "none"
+    token_endpoint_auth_method: tokenEndpointAuthMethod
   };
   const clientName = metadata === undefined ? undefined : getOwnString(metadata, "clientName");
   const scope = metadata === undefined ? undefined : getOwnString(metadata, "scope");

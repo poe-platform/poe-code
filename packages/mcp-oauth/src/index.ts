@@ -36,6 +36,7 @@ export type {
   OAuthProtectedResourceMetadata,
   OAuthSessionStore,
   OAuthUnauthorizedChallenge,
+  OAuthTokenEndpointAuthMethod,
   StoredOAuthSession,
   StoredOAuthClient,
   StoredOAuthTokens,

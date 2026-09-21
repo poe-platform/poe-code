@@ -90,7 +90,10 @@ export interface StoredOAuthClient {
   clientId: string;
   clientSecret?: string;
   registration?: OAuthClientRegistration;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
 }
+
+export type OAuthTokenEndpointAuthMethod = "none" | "client_secret_post" | "client_secret_basic";
 
 export interface StoredOAuthSession {
   resource: string;
@@ -125,6 +128,7 @@ export interface DefaultOAuthClientProviderOptions {
         metadata?: OAuthClientMetadata;
         /** Import a complete registration owned by the caller. */
         registration?: OAuthClientRegistration;
+        tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
       }
     | {
         mode: "static";
@@ -132,6 +136,7 @@ export interface DefaultOAuthClientProviderOptions {
         clientSecret?: string;
         metadata?: OAuthClientMetadata;
         registration?: OAuthClientRegistration;
+        tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
       };
   /** Disable interactive authorization while allowing cached tokens and silent refresh. */
   allowInteractive?: boolean;

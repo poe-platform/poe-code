@@ -39,9 +39,14 @@ export function shellWord(word: string): string {
     ? word : `'${word.split("'").join("'\\''")}'`;
 }
 
-function toolHelp(name: string, parser: ToolArgumentParser, description?: string): string {
+function instructionLines(instructions?: string): string[] {
+  return instructions === undefined || instructions === "" ? []
+    : ["Instructions:", ...instructions.split("\r\n").join("\n").split("\r").join("\n").split("\n").map(textLine), ""];
+}
+
+function toolHelp(name: string, parser: ToolArgumentParser, description?: string, instructions?: string): string {
   const prefix = `${shellWord(name)} ${parser.toolName.startsWith("-") ? "-- " : ""}${shellWord(parser.toolName)}`;
-  const lines = [`Usage: ${textLine(prefix)} [arguments]`, "", ...(description ? [textLine(description), ""] : []), "Arguments:"];
+  const lines = [`Usage: ${textLine(prefix)} [arguments]`, "", ...(description ? [textLine(description), ""] : []), ...instructionLines(instructions), "Arguments:"];
   for (const parameter of parser.parameters)
     lines.push(`  ${parameter.flag} <value>${parameter.required ? " (required)" : ""}${parameter.description ? `  ${textLine(parameter.description)}` : ""}`);
   lines.push("", "  --raw <json>  Provide a complete JSON object; use - to read stdin.",
@@ -158,7 +163,7 @@ export async function createRemoteMcpCommands(
       tool, parser: compileToolArguments(tool, settings.schemaValidation),
       output: tool.outputSchema === undefined ? undefined : compileJsonSchema(structuredClone(tool.outputSchema), settings.schemaValidation)
     }]));
-    const summary = [`Usage: ${textLine(shellWord(server.name))} <tool> [arguments]`, "", "Tools:",
+    const summary = [`Usage: ${textLine(shellWord(server.name))} <tool> [arguments]`, "", ...instructionLines(schema.instructions), "Tools:",
       ...[...tools.values()].map(({ tool }) => `  ${textLine(shellWord(tool.name))}${tool.description ? `  ${textLine(tool.description)}` : ""}`),
       ...(tools.size === 0 ? ["  No tools advertised."] : []), "", `Run ${textLine(shellWord(server.name))} <tool> --help for arguments.`].join("\n") + "\n";
     return {
@@ -186,7 +191,7 @@ export async function createRemoteMcpCommands(
               entry = selected;
               const inputs = args.slice(literal ? 2 : 1);
               if (wantsToolHelp(inputs)) {
-                help = toolHelp(server.name, entry.parser, entry.tool.description);
+                help = toolHelp(server.name, entry.parser, entry.tool.description, schema.instructions);
               } else argumentsValue = entry.parser.parse(await stdinArguments(context, inputs, operation.signal, maxInputBytes), {
                 yes: settings.yes, maxInputBytes
               });

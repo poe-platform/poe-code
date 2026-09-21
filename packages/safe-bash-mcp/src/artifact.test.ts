@@ -20,6 +20,34 @@ function remote() {
   return { fetch, requests };
 }
 
+it("surfaces archived discovered instructions in help after host recreation without discovery", async () => {
+  const f = remote();
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([server]).configuration, { schema: { fetch: f.fetch } });
+  delete generated.artifact.configuration.servers[0].instructions;
+  const { digest: ignoredDigest, ...payload } = generated.artifact;
+  generated.artifact.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+  f.fetch.mockClear();
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  try {
+    await shell.use(await remoteMcpArtifactPlugin(generated.artifact, { binding: { env: {} }, commands: { fetch: f.fetch } }));
+    for (const source of ["catalog --help", "catalog search_items --help"]) {
+      const result = await shell.exec(source);
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("Instructions:\nPrefer reads\n");
+    }
+    expect(f.fetch).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+
+it("preserves supplied instructions through init and generated artifacts", async () => {
+  const { configuration } = initRemoteMcpConfiguration([{ ...server, tools: [tool], instructions: "Read first\nWrite second" }]);
+  const f = remote();
+  const generated = await generateRemoteMcpArtifact(configuration, { schema: { fetch: f.fetch } });
+  expect(generated.artifact.configuration.servers[0].instructions).toBe("Read first\nWrite second");
+  expect(generated.artifact.schemas[0].instructions).toBe("Read first\nWrite second");
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+
 it("generates credential-reference artifacts from supplied schemas without reading credentials or connecting", async () => {
   const { configuration } = initRemoteMcpConfiguration([{ ...server, tools: [tool], auth: { type: "bearer", env: "CATALOG_TOKEN" } }]);
   const fetch = vi.fn<HttpTransportFetch>(), env = { get CATALOG_TOKEN(): string { throw new Error("must not read secret"); } };
@@ -46,8 +74,17 @@ it("discovers absent schemas, preserves server metadata and excludes resolved cr
   const generated = await generateRemoteMcpArtifact(configuration, { binding: { env: { TOKEN: "private-token-value" } }, schema: { fetch: f.fetch } });
   expect(generated.artifact.schemas[0]).toMatchObject({ source: "discovered", serverInfo: { name: "catalog-server", version: "1" }, capabilities: { tools: {} }, instructions: "Prefer reads", tools: [tool] });
   expect(generated.artifact.configuration.servers[0].tools).toEqual([tool]);
+  expect(generated.artifact.configuration.servers[0].instructions).toBe("Prefer reads");
   expect(generated.json).not.toContain("private-token-value"); expect(generated.module).not.toContain("private-token-value");
   expect(f.requests.map(r => r.method)).toEqual(["initialize", "notifications/initialized", "tools/list"]);
+});
+
+it("rejects contradictory configured and archived instructions even with a recomputed digest", async () => {
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [tool], instructions: "Read first" }]).configuration);
+  generated.artifact.configuration.servers[0].instructions = "Write first";
+  const { digest: ignoredDigest, ...payload } = generated.artifact;
+  generated.artifact.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+  expect(() => parseRemoteMcpArtifact(generated.artifact)).toThrow("schema/configuration mismatch");
 });
 
 it("refuses to serialize credentials echoed into discovery metadata", async () => {

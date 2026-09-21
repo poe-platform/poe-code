@@ -12,6 +12,7 @@ export interface RemoteMcpServer {
   readonly url: string;
   readonly transport?: "http" | "sse";
   readonly tools?: readonly Tool[];
+  readonly instructions?: string;
   readonly headers?: HttpTransportOptions["headers"];
   readonly oauth?: HttpTransportOptions["oauth"];
   readonly protocolVersion?: "2025-03-26" | "2026-07-28";
@@ -68,6 +69,8 @@ function validateServer(server: RemoteMcpServer, maxTools: number): void {
   if (url.hash) throw new Error("MCP URLs cannot contain fragments");
   if (server.transport !== undefined && server.transport !== "http" && server.transport !== "sse")
     throw new Error("Unsupported remote MCP transport; use http or sse");
+  if (server.instructions !== undefined && typeof server.instructions !== "string")
+    throw new Error("MCP instructions must be a string");
   if (server.tools !== undefined) appendTools([], server.tools, new Set(), maxTools);
 }
 
@@ -79,8 +82,10 @@ export async function fetchRemoteMcpSchema(
   options.signal?.throwIfAborted();
   const limits = remoteLimits(options);
   validateServer(server, limits.maxTools);
+  const instructions = server.instructions;
   if (server.tools !== undefined) {
-    return { name: server.name, url: server.url, source: "provided", tools: structuredClone([...server.tools]) };
+    return { name: server.name, url: server.url, source: "provided", tools: structuredClone([...server.tools]),
+      ...(instructions === undefined ? {} : { instructions }) };
   }
   return withRemoteMcpClient(server, options, async client => {
     const tools: Tool[] = [];
@@ -99,7 +104,7 @@ export async function fetchRemoteMcpSchema(
           tools,
           ...(client.serverInfo === null ? {} : { serverInfo: client.serverInfo }),
           ...(client.serverCapabilities === null ? {} : { capabilities: client.serverCapabilities }),
-          ...(client.instructions === undefined ? {} : { instructions: client.instructions })
+          ...(instructions === undefined && client.instructions === undefined ? {} : { instructions: instructions ?? client.instructions })
         };
       }
       if (typeof result.nextCursor !== "string") throw new Error("Invalid MCP pagination cursor");

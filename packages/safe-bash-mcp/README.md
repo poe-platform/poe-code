@@ -20,6 +20,8 @@ An explicitly empty `tools: []` is authoritative and never connects. Returned
 schemas are independent copies and retain tool descriptions, annotations,
 input/output schemas and other metadata. Discovered snapshots also include
 server identity, capabilities and instructions.
+Supply `instructions` on a registry entry to keep known server guidance without
+discovery. Explicit instructions take precedence over discovered guidance.
 
 | SDK function | Purpose |
 | --- | --- |
@@ -96,8 +98,10 @@ try {
 
 Each server name becomes a command; exact tool names become subcommands.
 `catalog --help` lists tools, and `catalog search_items --help` shows arguments.
-Help uses supplied or discovered schemas without connecting again. For tool
-names beginning with a dash, use `catalog -- '--tool' [arguments]`.
+Help uses supplied or discovered schemas without connecting again. Tool and
+server help retain multiline server instructions with terminal
+control characters escaped. Artifact loading preserves archived instructions.
+For tool names beginning with a dash, use `catalog -- '--tool' [arguments]`.
 Use inline flags such as `--query=--help` for literal values beginning with
 `--`. `--raw -` and `--raw=-` read a bounded UTF-8 JSON object from virtual
 stdin, supporting shell input redirection and pipelines.

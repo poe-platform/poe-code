@@ -63,6 +63,27 @@ async function command(fixture = remote(), tools: readonly Tool[] = [tool]): Pro
 }
 
 describe("generated remote MCP safe-bash commands", () => {
+  it("surfaces discovered server instructions in server and tool help without reconnecting", async () => {
+    const fixture = remote();
+    const [definition] = await createRemoteMcpCommands([{ ...server, tools: undefined }], { fetch: fixture.fetch });
+    fixture.fetch.mockClear();
+    for (const args of [["--help"], ["search_items", "--help"]]) {
+      const input = invocation(args);
+      expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+      expect(input.output()).toContain("Instructions:\nPrefer read operations\n");
+    }
+    expect(fixture.fetch).not.toHaveBeenCalled();
+  });
+
+  it("retains supplied multiline instructions while escaping terminal controls", async () => {
+    const fixture = remote();
+    const [definition] = await createRemoteMcpCommands([{ ...server, instructions: "Read first\nThen write\u001b[31m\r\nLast step" }], { fetch: fixture.fetch });
+    const input = invocation(["--help"]);
+    expect(await definition.execute(input.context)).toEqual({ exitCode: 0 });
+    expect(input.output()).toContain("Instructions:\nRead first\nThen write\\u001b[31m\nLast step\n");
+    expect(fixture.fetch).not.toHaveBeenCalled();
+  });
+
   it("generates commands from supplied schemas without fetching", async () => {
     const fixture = remote();
     const commands = await createRemoteMcpCommands([server], { fetch: fixture.fetch });

@@ -28,3 +28,14 @@ workspace. Keep temporary host fixtures and outputs in
    output validation. Loading must not perform another tools/list request.
    Compare repeated JSON/module bytes, inspect the archived registry screenshot,
    and verify no synthetic runtime credential appears in the archive.
+7. Have the local endpoint initialize with multiline server instructions, then
+   discover commands and generate an artifact. Direct server/tool help must show
+   every line without another request; terminal control characters must be
+   escaped. Resolved configuration and archived schemas retain exact guidance.
+   Shut down the endpoint and load the written module in a recreated Shell with
+   a fetch hook that throws if called. Server/tool help must still retain all
+   instructions offline. Inspect both screenshots. Repeat with caller-supplied
+   instructions and authoritative schemas, including empty explicit instructions;
+   supplied guidance takes precedence. Older version-one artifacts with archived
+   instructions only must remain compatible; contradictory configured/archived
+   guidance must fail parsing before credentials are bound.

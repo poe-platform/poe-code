@@ -67,7 +67,7 @@ const oauthShape = { type: "object", properties: { type: { const: "oauth" }, cli
   tokenEndpointAuthMethod: { enum: ["none", "client_secret_post", "client_secret_basic"] } }, required: ["type", "clientMode"], additionalProperties: false };
 const commonServerProperties = {
   name: { type: "string" }, url: { type: "string" }, transport: { enum: ["http", "sse"] }, protocolVersion: { enum: ["2025-03-26", "2026-07-28"] },
-  tools: { type: "array", items: { type: "object" } }, headers: { type: "object", additionalProperties: referenceSchema }
+  tools: { type: "array", items: { type: "object" } }, instructions: { type: "string" }, headers: { type: "object", additionalProperties: referenceSchema }
 };
 function authenticationSchema(bearer: unknown, oauth: unknown) {
   return { if: { properties: { type: { const: "bearer" } }, required: ["type"] }, then: bearer, else: oauth };

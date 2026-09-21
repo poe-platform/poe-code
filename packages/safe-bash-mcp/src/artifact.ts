@@ -122,8 +122,9 @@ export async function generateRemoteMcpArtifact(value: unknown, options: Artifac
   if (credentials.size > 0) { assertNoCredential(schemas); assertNoCredential(schemaRegistry); }
   for (const schema of schemas) validateToolSchemas(schema.tools, { registry: schemaRegistry });
   options.schema?.signal?.throwIfAborted();
-  const tools = new Map(schemas.map(schema => [schema.name, schema.tools]));
-  const payload = { version: 1 as const, configuration: { version: 1 as const, servers: configuration.servers.map(server => ({ ...server, tools: tools.get(server.name)! })).sort(compareName) }, schemas,
+  const resolved = new Map(schemas.map(schema => [schema.name, schema]));
+  const payload = { version: 1 as const, configuration: { version: 1 as const, servers: configuration.servers.map(server => ({ ...server, tools: resolved.get(server.name)!.tools,
+    ...(resolved.get(server.name)!.instructions === undefined ? {} : { instructions: resolved.get(server.name)!.instructions }) })).sort(compareName) }, schemas,
     ...(schemaRegistry === undefined ? {} : { schemaRegistry }) };
   // Revalidate discovered tool data before writing it into declarative configuration.
   parseRemoteMcpConfiguration(payload.configuration, options);
@@ -156,7 +157,8 @@ export function parseRemoteMcpArtifact(value: unknown, options: ArtifactOptions 
   const schemas = new Map(artifact.schemas.map(schema => [schema.name, schema]));
   for (const server of configuration.servers) {
     const schema = schemas.get(server.name);
-    if (server.tools === undefined || schema === undefined || schema.url !== server.url || canonicalJson(schema.tools) !== canonicalJson(server.tools))
+    if (server.tools === undefined || schema === undefined || schema.url !== server.url || canonicalJson(schema.tools) !== canonicalJson(server.tools) ||
+      (server.instructions !== undefined && server.instructions !== schema.instructions))
       throw new Error("MCP artifact schema/configuration mismatch");
   }
   return JSON.parse(canonicalJson(artifact)) as RemoteMcpArtifact;
@@ -176,6 +178,8 @@ export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactP
   }
   const schemaValidation = { ...options.commands?.schemaValidation, registry };
   for (const schema of artifact.schemas) validateToolSchemas(schema.tools, schemaValidation);
-  const servers = bindRemoteMcpConfiguration(artifact.configuration, options.binding);
+  const instructions = new Map(artifact.schemas.map(schema => [schema.name, schema.instructions]));
+  const servers = bindRemoteMcpConfiguration(artifact.configuration, options.binding).map(server => ({ ...server,
+    ...(instructions.get(server.name) === undefined ? {} : { instructions: instructions.get(server.name) }) }));
   return remoteMcpCommands(servers, { ...options.commands, schemaValidation });
 }

@@ -36,6 +36,18 @@ function remote(pages: unknown[]) {
 }
 
 describe("remote MCP schemas", () => {
+  it("returns supplied instructions with authoritative schemas without connecting", async () => {
+    const fetch = vi.fn<HttpTransportFetch>();
+    expect(await fetchRemoteMcpSchema({ ...server, tools: [], instructions: "Read first\nThen act" }, { fetch })).toMatchObject({ instructions: "Read first\nThen act" });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("validates supplied instructions across the registry before discovering anything", async () => {
+    const fetch = vi.fn<HttpTransportFetch>();
+    await expect(resolveRemoteMcpSchemas([server, { ...server, name: "bad", instructions: 42 } as never], { fetch })).rejects.toThrow("instructions");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("uses supplied schemas without touching the network and preserves metadata", async () => {
     const fetch = vi.fn<HttpTransportFetch>();
     const result = await fetchRemoteMcpSchema({ ...server, tools: [tool] }, { fetch });
@@ -62,6 +74,11 @@ describe("remote MCP schemas", () => {
     expect(fixture.cursors).toEqual([undefined, "next"]);
     expect(fixture.methods).toEqual(["server/discover", "initialize", "notifications/initialized", "tools/list", "tools/list"]);
     expect(fixture.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
+  });
+
+  it.each(["Host guidance", ""])("keeps explicit instructions authoritative during discovery: %j", async instructions => {
+    const fixture = remote([{ tools: [tool] }]);
+    expect((await fetchRemoteMcpSchema({ ...server, instructions }, { fetch: fixture.fetch })).instructions).toBe(instructions);
   });
 
   it("discovers schemas through a legacy SSE endpoint handshake", async () => {

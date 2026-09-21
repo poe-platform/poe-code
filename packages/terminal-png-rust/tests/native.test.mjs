@@ -42,3 +42,6 @@ test('raster optimization preserves clipped, translucent and offscreen shapes',a
  ["<svg width='8' height='8'><rect x='20' y='20' width='3' height='3'/><rect x='-4' y='0' width='1' height='2'/></svg>",'ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7']
  ];for(const[svg,hash]of cases)assert.equal(createHash('sha256').update(native.terminalRasterRgba(svg)).digest('hex'),hash);
 });
+test('PNG reconstruction preserves multiple RGBA rows and alpha',async()=>{
+ const{createRequire}=await import('node:module'),{inflateSync}=await import('node:zlib'),native=createRequire(import.meta.url)('../dist/terminal-png-rust.node');const width=37,height=11,rgba=Buffer.from(Array.from({length:width*height*4},(_,i)=>(i*37+(i>>>5))%256)),png=native.terminalEncodePng(width,height,rgba);let at=8,data=[];while(at<png.length){let length=png.readUInt32BE(at);if(png.toString('ascii',at+4,at+8)==='IDAT')data.push(png.subarray(at+8,at+8+length));at+=12+length;}const filtered=inflateSync(Buffer.concat(data)),decoded=Buffer.alloc(rgba.length);for(let y=0;y<height;y++){const filter=filtered[y*(width*4+1)];assert.ok([0,2].includes(filter));for(let x=0;x<width*4;x++){const i=y*width*4+x;decoded[i]=(filtered[y*(width*4+1)+1+x]+(filter===2&&y>0?decoded[i-width*4]:0))%256;}}assert.deepEqual(decoded,rgba);
+});

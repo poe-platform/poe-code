@@ -85,8 +85,17 @@ pub fn deflate(input: &[u8]) -> Vec<u8> {
             while candidate != usize::MAX
                 && candidate < i
                 && i - candidate <= 32768
-                && attempts < 128
+                && attempts < 16
             {
+                attempts += 1;
+                if input[candidate + length] != input[i + length] {
+                    let next = previous[candidate & 32767];
+                    if next >= candidate {
+                        break;
+                    }
+                    candidate = next;
+                    continue;
+                }
                 let mut matched = 0;
                 while matched < limit && input[candidate + matched] == input[i + matched] {
                     matched += 1;
@@ -103,7 +112,6 @@ pub fn deflate(input: &[u8]) -> Vec<u8> {
                     break;
                 }
                 candidate = next;
-                attempts += 1;
             }
         }
         let consumed = if length >= 3 {
@@ -118,7 +126,7 @@ pub fn deflate(input: &[u8]) -> Vec<u8> {
             bits.symbol(usize::from(input[i]));
             1
         };
-        for offset in 0..consumed {
+        for offset in (0..consumed).step_by(consumed.saturating_sub(1).max(1)) {
             let at = i + offset;
             if at + 2 < input.len() {
                 let h = hash(input, at);
@@ -160,9 +168,15 @@ pub fn encode(width: u32, height: u32, rgba: &[u8]) -> Result<Vec<u8>, &'static 
     }
     let row = width as usize * 4;
     let mut data = Vec::with_capacity(rgba.len() + height as usize);
-    for bytes in rgba.chunks(row) {
-        data.push(0);
-        data.extend(bytes);
+    for (y, bytes) in rgba.chunks(row).enumerate() {
+        if y == 0 {
+            data.push(0);
+            data.extend(bytes);
+        } else {
+            data.push(2);
+            let previous = &rgba[(y - 1) * row..y * row];
+            data.extend(bytes.iter().zip(previous).map(|(a, b)| a.wrapping_sub(*b)));
+        }
     }
     let mut header = Vec::with_capacity(13);
     header.extend(width.to_be_bytes());

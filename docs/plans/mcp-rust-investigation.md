@@ -2845,6 +2845,26 @@ acceptance remain incomplete. The README explicitly records these limits. This
 is an additive terminal implementation delivery, not full package/goal acceptance.
 The terminal MCP and poe-agent closure still require further implementations.
 
+### PNG compression refinement (2026-09-21 UTC)
+
+A smaller terminal MCP capture revealed a further speed red:10.4ms Rust versus
+5.2ms SDK. PNG row-difference filtering and sparse back-reference insertion
+reduced it to7.4ms, still failing. A16-candidate chain budget and a best-match
+byte rejection then pass the selected workload gate. Final serial calls:
+Rust2.24–2.32ms, SDK5.11–5.36ms. Across1,024 further calls, sampled heap
+3.92→3.97MB/6.61→6.70MB, buffers10.48/24.81KB, RSS53.79→88.67/195.77→219.56MB.
+This is bounded workload evidence with different image pixels, not broad acceptance.
+
+Codec refinement preserves decoded RGBA across multiple rows/alpha, actual Node
+zlib/CRC round trips, existing raw raster hashes and71 applicable SDK cases.
+Seven native groups,18 Rust tests, types and fmt/clippy pass; maintained uncached
+nine-workspace closure includes the terminal MCP package. Fresh direct/packed
+16MiB workers again complete512 captures per artifact. Fast compression trades
+size for speed: mixed-option terminal worker bytes increase5,460,224→6,714,752
+across512 images; corresponding MCP bytes4,977,024→6,361,984. Each image is valid
+and reconstructs all rows. Fixed-Huffman compression tuning remains possible.
+Evidence under out/rust-terminal-png-fast-* and rust-terminal-png-mcp-performance-*.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

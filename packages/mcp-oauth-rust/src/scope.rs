@@ -36,14 +36,14 @@ pub fn assert_profile(
     requested: Option<&Value>,
     refresh: bool,
 ) -> Result<(), &'static str> {
-    if let Some(requested) = normalize(requested)? {
-        if normalize(granted)?.as_deref() != Some(requested.as_slice()) {
-            return Err(if refresh {
-                "OAuth refresh response does not match the requested OAuth scope; authorize again"
-            } else {
-                "Stored session does not match the requested OAuth scope; authorize again or select separate persistence"
-            });
-        }
+    if let Some(requested) = normalize(requested)?
+        && normalize(granted)?.as_deref() != Some(requested.as_slice())
+    {
+        return Err(if refresh {
+            "OAuth refresh response does not match the requested OAuth scope; authorize again"
+        } else {
+            "Stored session does not match the requested OAuth scope; authorize again or select separate persistence"
+        });
     }
     Ok(())
 }
@@ -53,10 +53,9 @@ pub fn assert_authorization(
 ) -> Result<(), &'static str> {
     if granted.is_some()
         && let Some(requested) = normalize(requested)?
+        && normalize(granted)?.as_deref() != Some(requested.as_slice())
     {
-        if normalize(granted)?.as_deref() != Some(requested.as_slice()) {
-            return Err("OAuth authorization response does not match the requested OAuth scope");
-        }
+        return Err("OAuth authorization response does not match the requested OAuth scope");
     }
     Ok(())
 }

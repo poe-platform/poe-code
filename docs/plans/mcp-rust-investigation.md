@@ -4197,3 +4197,14 @@ remain. Continuous active05:28:09–05:33:23 adds314s, bringing conservative act
 effort to86,486s (24.02h). The minimum24-hour effort requirement is fulfilled, but
 the full rewrite/performance/memory/platform/release acceptance is NOT achieved.
 Active implementation continues after05:33:23 UTC.
+
+### Scope lint evidence correction, 2026-09-21 05:35 UTC
+
+The earlier scope checkpoint incorrectly described focused lint as passing: its
+initial log contains clippy collapsible-if failures, which were not inspected
+before that commit. The tests/build/types evidence still passes. Collapsed the two
+scope conditions without changing short-circuit order, fixed the same condition
+in pending registration trust code, and reran the complete maintained Rust lint
+route successfully (out/rust-oauth-provider-registration-lint.log). No lint failure
+is waived. The corrective scope change is committed separately from registration
+trust implementation. Minimum24h is fulfilled; full rewrite remains incomplete.

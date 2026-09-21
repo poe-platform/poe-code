@@ -9,7 +9,7 @@ const encoding = {order:"input",compression:"store"} as const;
 it.each(["ordinary","unusual","malformed-root"])("inventories multiple signature structures without validity claims: %s",async scenario=>{
  const input=await signatureFixture(scenario), original=new Uint8Array(input);
  const data=await inspectDocumentSignatures(input,{},textContext);
- expect(data.items.map(item=>item.name)).toEqual(["/seals/origin.sigs","/seals/first.xml","/seals/second.xml","/seals/cert.cer"]);
+ expect(data.items.map(item=>item.name)).toEqual(["/seals/cert.cer","/seals/first.xml","/seals/origin.sigs","/seals/second.xml"]);
  expect(data.relationships).toHaveLength(4); expect(data.verified).toBeNull(); expect(input).toEqual(original);
 });
 it("rejects ordinary edits until a separate full signature removal completes",async()=>{

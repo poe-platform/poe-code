@@ -1,3 +1,4 @@
+import { compareInventoryNames } from "./pack-inventory.js";
 import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
@@ -86,7 +87,7 @@ export async function inspectDocumentSettings(input: Uint8Array, options: DocxOp
     budget.charge("retainedBytes", location.token.length * 4 + 256);
     records.push({ kind: "settings", name: part.partname, location, properties: [], references: [], support: native ? "read" : "preserve", details: { kind: "settings", entries, updateFields: booleanValue(singleton("updateFields")), fontEmbedding: { embedTrueTypeFonts: booleanValue(singleton("embedTrueTypeFonts")), embedSystemFonts: booleanValue(singleton("embedSystemFonts")), saveSubsetFonts: booleanValue(singleton("saveSubsetFonts")) }, protection } });
   }
-  const data = { items: records };
+  const data = { items: records.sort((left, right) => compareInventoryNames(left.name, right.name)) };
   measurePackageResourceSerialization(data, budget);
   return data;
 }

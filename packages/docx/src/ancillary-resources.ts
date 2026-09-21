@@ -1,3 +1,4 @@
+import { compareInventoryNames as compare } from "./pack-inventory.js";
 import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
@@ -19,7 +20,7 @@ export function packageResourceWarnings(data: PackageResourceListData): readonly
   return data.items.some(item => item.details.kind === "custom-xml" ? item.details.storeItemId === null : item.details.buildingBlocks.length === 0 || item.details.buildingBlocks.some(block => block.name === null || block.guid === null || block.category === null || block.gallery === null))
     ? [{ code: "unrecognized-resource-metadata", message: "Resource metadata is missing, ambiguous or unrecognized; resources remain preserved." }] : [];
 }
-const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
+
 function attribute(node: XmlElement | undefined, name: string): string | null { return node?.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === name)?.value ?? null; }
 function child(node: XmlElement | undefined, name: string): XmlElement | undefined { const matches = node?.children.filter(child => child.namespace === node.namespace && child.localName === name) ?? []; return matches.length === 1 ? matches[0] : undefined; }
 async function hash(bytes: Uint8Array, budget: DocumentBudget): Promise<string> { budget.charge("work", bytes.length); budget.charge("retainedBytes", bytes.length + 96); const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes))); return [...digest].map(byte => byte.toString(16).padStart(2, "0")).join(""); }

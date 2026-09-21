@@ -219,3 +219,40 @@ for (const route of ["sdk", "cli", "batch"] as const)
       } finally { await shell.dispose(); }
     }
   });
+
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const route of ["sdk", "cli", "batch"] as const) for (const ordering of ["parts", "references"] as const)
+  it(`${route} font ${ordering} use Unicode scalar order across BMP and supplementary names; ${kind}; strict=${strict}`, async () => {
+    const original = await fixture(strict, kind, ""), archive = await api.readArchive(original, textContext), files = readPackage(original);
+    const relationship = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : r;
+    const types = new api.DocumentXmlEditor(files.get("[Content_Types].xml")!), edges = new api.DocumentXmlEditor(files.get("word/_rels/fontTable.xml.rels")!);
+    const declarations: string[] = [], relationships: string[] = [];
+    for (const name of ["豈", "🌊"]) {
+      files.set("assets/" + name + ".bin", new Uint8Array([31, 42]));
+      declarations.push(`<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/assets/${name}.bin" ContentType="application/vnd.openxmlformats-officedocument.obfuscatedFont"/>`);
+      relationships.push(`<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${name}" Type="${relationship}/font" Target="../assets/${encodeURIComponent(name)}.bin"/>`);
+    }
+    types.insertChildren(types.root, declarations.join("")); edges.insertChildren(edges.root, relationships.join(""));
+    files.set("[Content_Types].xml", types.serialize()); files.set("word/_rels/fontTable.xml.rels", edges.serialize());
+    const memory = Volume.fromJSON({ "/input": "" });
+    await api.writeArchive({ ...archive, members: [...files].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("2026-03-04T05:06:08Z") })) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, textContext);
+    const input = new Uint8Array(memory.readFileSync("/input") as Buffer);
+    let items: api.FontInventoryData["items"];
+    if (route === "sdk") items = (await api.inspectDocumentFonts(input, {}, textContext)).items;
+    else {
+      const fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
+      const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
+      try {
+        await fs.writeFile("/ops", encode(JSON.stringify({ version: 1, operations: [{ operation: "fonts.list", arguments: {} }] })));
+        const result = await shell.exec(route === "cli" ? "docx fonts list /input --json" : "docx batch /input --ops-file /ops --json");
+        expect(result.exitCode, result.stdout + result.stderr).toBe(0); const envelope = JSON.parse(result.stdout);
+        items = route === "cli" ? envelope.data.items : envelope.data.results[0].data.items;
+        expect(await fs.readFile("/input")).toEqual(input);
+      } finally { await shell.dispose(); }
+    }
+    const table = items.find(item => item.name === "/word/fontTable.xml")!;
+    if (ordering === "parts") {
+      expect(items.map(item => item.name)).toEqual(["/assets/coast.bin", "/assets/orphan.bin", "/assets/豈.bin", "/assets/🌊.bin", "/word/fontTable.xml"]);
+      expect(table.details.parts.map(part => part.name)).toEqual(["/assets/coast.bin", "/assets/豈.bin", "/assets/🌊.bin", "/word/fontTable.xml"]);
+    } else expect(table.references.filter(edge => edge.owner === "/word/fontTable.xml").map(edge => edge.id)).toEqual(["font", "豈", "🌊"]);
+  });

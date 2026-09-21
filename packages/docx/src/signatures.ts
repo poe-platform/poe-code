@@ -1,3 +1,4 @@
+import { compareInventoryNames } from "./pack-inventory.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
@@ -76,7 +77,7 @@ export async function inspectDocumentSignatures(input: Uint8Array, options: Docx
   const role = (["origin","signature","certificate"] as const)[index] ?? "relationship-target";
   items.push({name:part.partname,kind:"signatures",location,support:"read",properties:[],references:[],details:{kind:"signatures",role,verified:null}});
  }
- const data: SignatureListData = {items,relationships:graph.relationships,verified:null};
+ const data: SignatureListData = {items:items.sort((left, right) => compareInventoryNames(left.name, right.name)),relationships:graph.relationships,verified:null};
  measurePackageResourceSerialization(data,budget);
  return data;
 }

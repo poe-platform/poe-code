@@ -8,6 +8,7 @@ import { encodeGeneratedLocation, SelectionError, type Location, type LocationKi
 import type { InspectionPart, InspectionReference } from "./inspection.js";
 import { parseMediaType } from "./media-type.js";
 import { parseDocumentXml } from "./package-xml.js";
+import { compareInventoryNames } from "./pack-inventory.js";
 import { revisionInfo } from "./revision-markup.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
@@ -110,10 +111,10 @@ export async function inspectDocumentFonts(input: Uint8Array, options: DocxOpera
   const sourceSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", owned))].map(value => value.toString(16).padStart(2, "0")).join("");
   const metadata = new Map<string, InspectionPart>();
   const items: FontInventoryRecord[] = [];
-  for (const name of [...candidates].filter(name => admitted.has(name)).sort()) {
+  for (const name of [...candidates].filter(name => admitted.has(name)).sort(compareInventoryNames)) {
     budget.charge("matches", 1); budget.charge("retainedBytes", 256);
     const inventory: InspectionPart[] = [];
-    for (const target of [...closure([name])].sort()) {
+    for (const target of [...closure([name])].sort(compareInventoryNames)) {
       let record = metadata.get(target);
       if (!record) {
         const part = parts.get(target)!;
@@ -129,7 +130,7 @@ export async function inspectDocumentFonts(input: Uint8Array, options: DocxOpera
     for (const reference of incomingReferences.get(name) ?? []) references.set(reference.owner + "#" + reference.id, reference);
     for (const part of inventory) for (const reference of outgoingReferences.get(part.name) ?? []) references.set(reference.owner + "#" + reference.id, reference);
     budget.charge("work", references.size); budget.charge("retainedBytes", references.size * 64);
-    const sortedReferences = [...references.values()].sort((left, right) => left.owner < right.owner ? -1 : left.owner > right.owner ? 1 : left.id < right.id ? -1 : left.id > right.id ? 1 : 0);
+    const sortedReferences = [...references.values()].sort((left, right) => compareInventoryNames(left.owner, right.owner) || compareInventoryNames(left.id, right.id));
     const value = { version: 1 as const, sourceSha256, generation: settings[documentSession]?.generation ?? 0, part: name, story: name, path: [], range: null };
     const token = encodeGeneratedLocation(value); budget.charge("retainedBytes", token.length * 4); budget.charge("work", token.length);
     const location: Location<"part"> = { kind: "part", token, value, positions: {} };

@@ -106,3 +106,23 @@ fn refresh_error_lookup_does_not_consume_retry_and_invalid_grants_skip_lookup() 
         "reregister"
     );
 }
+
+#[test]
+fn cached_tokens_require_the_configured_static_client_identity() {
+    use mcp_oauth_rust::provider::binding_action;
+    let resource: Vec<u16> = "r".encode_utf16().collect();
+    let session = value(
+        r#"{"resource":"r","authorizationServer":"a","discovery":{"authorizationServerMetadata":{"issuer":"a"}},"client":{"clientId":"c","clientSecret":"s"},"tokens":{}}"#,
+    );
+    let matching = value(r#"{"mode":"static","clientId":" c ","clientSecret":" s "}"#);
+    assert_eq!(
+        binding_action(&resource, Some(&session), None, Some(&matching)),
+        Ok("keep")
+    );
+    let mismatch = value(r#"{"mode":"static","clientId":"different"}"#);
+    assert!(
+        binding_action(&resource, Some(&session), None, Some(&mismatch))
+            .unwrap_err()
+            .contains("different OAuth client")
+    );
+}

@@ -202,12 +202,15 @@ export function createDefaultOAuthClientProvider(options) {
     resource = canonicalizeResourceIndicator(resource);
     let session = await loadSession(resource);
     const input = {
+      configured: clientOptions(options.client),
       session:
         session === null
           ? null
           : {
               resource: canonicalizeResourceIndicator(session.resource),
               authorizationServer: scalar(session.authorizationServer),
+              client: session.client,
+              tokens: session.tokens,
               discovery: {
                 authorizationServerMetadata: project(
                   session.discovery.authorizationServerMetadata,

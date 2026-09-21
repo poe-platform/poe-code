@@ -368,7 +368,7 @@ test("concurrent refreshes share one fetch and preserve clock/store behavior", a
     let fetches = 0,
       clocks = 0;
     const provider = factory.createDefaultOAuthClientProvider({
-      client: { mode: "static", clientId: "client" },
+      client: { mode: "static", clientId: "client", clientSecret: "secret" },
       browser: { openBrowser: async () => {} },
       sessionStore: store,
       now: () => {

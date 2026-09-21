@@ -116,8 +116,13 @@ pub fn provider_binding_action(resource: Utf16String, input: Utf16String) -> Res
             .filter(|value| matches!(value, Value::Object(_)))
     };
     Ok(result(
-        provider::binding_action(&resource, object("session"), object("discovery"))
-            .map(|value| Value::String(value.encode_utf16().collect())),
+        provider::binding_action(
+            &resource,
+            object("session"),
+            object("discovery"),
+            object("configured"),
+        )
+        .map(|value| Value::String(value.encode_utf16().collect())),
     ))
 }
 #[napi]

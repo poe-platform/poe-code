@@ -1,6 +1,7 @@
 //! Portable terminal automation policies and display state.
 pub mod buffer;
 pub mod pty;
+mod pty_spawn;
 pub mod screen;
 pub mod session;
 pub fn strip_ansi(input: &[u16]) -> Vec<u16> {

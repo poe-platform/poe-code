@@ -39,7 +39,9 @@ Rust retains UTF-16 cells, styles, cursor and tab state, terminal parser chunks,
 split surrogates, graphemes, wide-cell erase, saved cursors, scrolling regions,
 origin/insert/wrap modes and DEC character sets. Unicode 17 property data supports
 joined emoji, regional flags and Indic conjunct widths. An own POSIX PTY transport supports macOS/Linux controlling terminals, bounded
-input queues, resize/signals and asynchronous finalizer reaping. Node supplies public cell
+input queues, resize/signals and asynchronous finalizer reaping. On macOS, absolute
+commands in the current directory use direct `posix_spawn` without a helper
+executable; other cases retain the portable pre-exec path. Node supplies public cell
 views and frozen snapshot metadata through one bundled napi-rs addon.
 
 Dimensions are bounded to 1–1000 rows/columns. CSI parameters, grapheme text and

@@ -1,6 +1,7 @@
 //! Own POSIX PTY transport. Descriptor ownership uses std; C calls are confined here.
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 mod posix {
+    use crate::pty_spawn::Process;
     use std::{
         collections::VecDeque,
         ffi::{c_char, c_int, c_ulong, c_void},
@@ -8,7 +9,7 @@ mod posix {
         io::{self, Read, Write},
         os::fd::{AsRawFd, FromRawFd},
         os::unix::process::CommandExt,
-        process::{Child, Command, Stdio},
+        process::{Command, Stdio},
     };
     #[repr(C)]
     struct Winsize {
@@ -54,7 +55,7 @@ mod posix {
     }
     pub struct Pty {
         master: File,
-        child: Option<Child>,
+        child: Option<Process>,
         pending: VecDeque<u8>,
         exited: Option<i32>,
     }
@@ -101,6 +102,15 @@ mod posix {
             if flags < 0 || unsafe { fcntl(master.as_raw_fd(), 4, flags | NONBLOCK) } < 0 {
                 return Err(io::Error::last_os_error());
             }
+            #[cfg(target_os = "macos")]
+            if let Some(child) = crate::pty_spawn::macos::spawn(&options, slave.as_raw_fd())? {
+                return Ok(Self {
+                    master,
+                    child: Some(child),
+                    pending: VecDeque::new(),
+                    exited: None,
+                });
+            }
             let mut command = Command::new(&options.command);
             command
                 .args(&options.args)
@@ -121,7 +131,7 @@ mod posix {
                     Ok(())
                 });
             }
-            let child = command.spawn()?;
+            let child = Process::System(command.spawn()?);
             Ok(Self {
                 master,
                 child: Some(child),
@@ -192,12 +202,7 @@ mod posix {
         }
         pub fn exit_code(&mut self) -> io::Result<Option<i32>> {
             if self.exited.is_none() {
-                self.exited = self
-                    .child
-                    .as_mut()
-                    .unwrap()
-                    .try_wait()?
-                    .map(|status| status.code().unwrap_or(0));
+                self.exited = self.child.as_mut().unwrap().try_wait()?;
             }
             Ok(self.exited)
         }
@@ -212,7 +217,9 @@ mod posix {
                 unsafe {
                     kill(-(child.id() as c_int), 9);
                 }
-                let _ = child.kill();
+                unsafe {
+                    kill(child.id() as c_int, 9);
+                }
                 // Reaping cannot block the Node finalizer or an application's caller.
                 let _ = std::thread::Builder::new()
                     .name("terminal-pty-reaper".into())

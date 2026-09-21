@@ -3034,6 +3034,31 @@ tests and ten native groups in the current tree. Concurrent separate macOS spawn
 optimization is still being validated and is not part of this atomic fix.
 Evidence out/rust-terminal-pilot-exit-tail-red.log and -unit.log.
 
+### Direct macOS PTY spawn refinement (2026-09-21 UTC)
+
+The selected creation performance gate fails before the change (5.98ms own versus
+1.57ms reference). Own Darwin `posix_spawn` now starts absolute commands in the
+unchanged current directory with SETSID, closed unrelated descriptors, reset
+signal dispositions/mask, and a slave-open action that establishes the controlling
+TTY. No helper executable or process-global cwd mutation. Other cwd/PATH cases
+retain std's pre-exec path; Linux remains unchanged. Opaque actions/attributes are
+RAII-owned. An own process enum retains direct PID exit state so repeated checks
+cannot reap twice or terminate a recycled group after exit.
+
+Full focused unit/lint and explicit uncached25-workspace closure pass. Eleven
+Rust tests, ten native groups and244 Vitest cases pass. Actual control check now
+opens /dev/tty as well as testing isatty; another real check covers child PATH,
+alternate cwd and environment/exit9. Finalizer evidence again terminates/reaps32
+owned live sleep processes. Fresh direct/packed artifact checks retain the
+single-addon/zero-runtime-groups/import-audit constraints and exercise128 sessions
+and4,096 buffers per worker. Own archives/extractions are removed after checks.
+
+Selected128 further retained-session sample: mean creation1.99ms versus1.25ms
+reference (improved, but creation gate still fails); complete interaction30.89ms
+versus35.27ms. RSS49.71→57.95MB versus60.16→65.45MB. These are macOS workload
+measurements, not peak/stability/general performance acceptance. Direct spawn is
+not a complete cross-platform optimization. Evidence out/rust-terminal-pilot-spawn-*.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

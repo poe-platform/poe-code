@@ -147,6 +147,7 @@ test("model collection preserves accessor order, arbitrary stream causes and emi
           response: {
 // eslint-disable-next-line require-yield -- This generator verifies failure before the first yielded value.
             events: (async function* () {
+              yield* [];
               throw reason;
             })()
           }

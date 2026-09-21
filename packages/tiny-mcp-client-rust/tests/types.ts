@@ -35,6 +35,12 @@ import {
   type McpRequestContext
 } from "../dist/index.js";
 import { HttpTransport, type HttpTransportOptions } from "../dist/index.js";
+import { MCP_PROTOCOL_VERSIONS } from "../dist/index.js";
+import { MCP_PROTOCOL_VERSIONS as referenceVersions, type McpProtocolVersion as ReferenceVersion } from "tiny-mcp-client";
+const versionsA: typeof referenceVersions = MCP_PROTOCOL_VERSIONS;
+const versionsB: typeof MCP_PROTOCOL_VERSIONS = referenceVersions;
+const supportedLegacy: ReferenceVersion = "2025-11-25";
+void [versionsA, versionsB, supportedLegacy];
 const completeInitialization: ReferenceHttpTransport["completeInitialization"] = new HttpTransport({ url: "https://resource.example/mcp" }).completeInitialization;
 const ownCompleteInitialization: HttpTransport["completeInitialization"] = new ReferenceHttpTransport({ url: "https://resource.example/mcp" }).completeInitialization;
 void completeInitialization;

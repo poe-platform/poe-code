@@ -5033,3 +5033,34 @@ e296d0d90 adds legacy MCP revisions in originals; validate and port next. Contin
 active08:20:59–08:33:29 adds750s,bringing conservative effort to96497s (26.80h).
 Minimum fulfilled; remaining Responses/other plugins/builder/session/spawn/toolcraft/
 Python/platform/performance acceptance incomplete. Continue after08:33:29 UTC.
+
+### MCP client legacy revisions, 2026-09-21 08:41 UTC
+
+Current original e296d0d90 introduces9 validated own reference failures. Own Rust
+now admits supported legacy2025-03-26/2025-06-18/2025-11-25 revisions and rejects
+a different selected revision under an explicit pin. Exports frozen
+MCP_PROTOCOL_VERSIONS and McpProtocolVersion declarations. Legacy pins skip modern
+discovery; automatic negotiation retains fallback. Rust transport records requested
+and negotiated revisions,correlates raw initialization IDs (including batch arrays),
+and supplies subsequent POST/GET/DELETE version headers. Host delays GET until the
+initialization reply and awaits/closes an open initialization POST SSE stream before
+continuation. Raw initialization batches remain accepted,validated against the
+original transport after a dedicated red. Once initialization completes, ordinary
+emission skips native initialization parsing/crossings.
+
+Maintained client checks pass39 Rust cases,70 native groups,338 complete applicable
+original reference cases/43 files,types,fmt/clippy,focused ESLint and diff checks.
+Uncached maintained agent closure113 workspaces/36 builds/339 edges rebuilds the
+embedded client and passes; maintained agent route49 Rust cases,83 native groups,
+280 references/19 files and types passes. Direct/packed16MiB old-space client workers
+each negotiate384 sessions across three legacy revisions/automatic and explicit pins,
+check all HTTP-channel headers and cancel192 open initialization POSTs. Cumulative
+initialization workers each retain64 successful/64 rejected/64 canceled-ignoring-fetch
+cases. Archive has one addon/zero runtime dependency groups. Evidence
+out/rust-client-legacy-*. No uniform performance/memory/stability superiority claimed.
+
+Chat496ae8a8b push/exact remote-main verified. Its release35578583076 remains pending;
+no current publication success verified. Continuous active08:33:29–08:41:03 adds454s,
+bringing conservative effort to96951s (26.93h). Minimum fulfilled; remaining
+Responses/shell/web/registry/builder/session/spawn/toolcraft/Python/platform/performance
+acceptance incomplete. Continue after08:41:03 UTC.

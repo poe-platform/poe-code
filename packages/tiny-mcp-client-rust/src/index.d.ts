@@ -152,7 +152,7 @@ export interface McpClientOptions {
     clientInfo: Implementation;
     requestTimeoutMs?: number;
     maxConcurrentRequests?: number;
-    protocolVersion?: "2025-03-26" | "2026-07-28";
+    protocolVersion?: McpProtocolVersion;
     capabilities?: ClientCapabilities;
     onToolsChanged?: () => void | Promise<void>;
     onResourcesChanged?: () => void | Promise<void>;
@@ -375,7 +375,7 @@ export interface McpTransport {
     closed: Promise<McpTransportClosedEvent>;
     dispose(reason?: Error): void;
     filterTools?(tools: Tool[], reset?: boolean): Tool[];
-    completeInitialization?(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void>;
+    completeInitialization?(options: { signal?: AbortSignal; timeoutMs: number; protocolVersion?: string }): Promise<void>;
 }
 
 export interface InMemoryServerTransport { readable: Readable; writable: Writable; }
@@ -425,7 +425,7 @@ export declare class HttpTransport implements McpTransport {
   readonly closed: Promise<McpTransportClosedEvent>;
   constructor(options: HttpTransportOptions);
   filterTools(tools: Tool[], reset?: boolean): Tool[];
-  completeInitialization(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void>;
+  completeInitialization(options: { signal?: AbortSignal; timeoutMs: number; protocolVersion?: string }): Promise<void>;
   dispose(reason?: Error): void;
 }
 export declare class McpClient {
@@ -526,3 +526,6 @@ export declare class OAuthMetadataDiscovery {
 export declare function discoverOAuthMetadata(resourceUrl: string | URL, options?: OAuthMetadataDiscoveryOptions & OAuthMetadataLookupOptions): Promise<OAuthDiscoveryResult>;
 export declare function resolveAuthorizationServerMetadataUrl(issuer: string | URL): string;
 export declare function resolveProtectedResourceMetadataUrl(resourceUrl: string | URL, resourceMetadataUrl?: string | URL): string;
+
+export declare const MCP_PROTOCOL_VERSIONS: readonly ["2025-03-26", "2025-06-18", "2025-11-25", "2026-07-28"];
+export type McpProtocolVersion = typeof MCP_PROTOCOL_VERSIONS[number];

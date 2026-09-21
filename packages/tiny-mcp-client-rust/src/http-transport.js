@@ -34,6 +34,7 @@ export class HttpTransport {
   #fetches = new Set();
   #oauthControllers = new Set();
   #readers = new Set();
+  #initializing = false;
   #resolveClosed;
   #read = new PassThrough();
   #write = new PassThrough();
@@ -66,6 +67,8 @@ export class HttpTransport {
   }
   async completeInitialization(options) {
     if (options.timeoutMs !== null) validateRequestTimeout(options.timeoutMs, "timeoutMs");
+    if (options.protocolVersion !== undefined) this.#state.setLegacyVersion(options.protocolVersion);
+    this.#maybeStartGet();
     const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
     const signals = [options.signal, deadline].filter(signal => signal !== undefined);
     const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);
@@ -145,6 +148,7 @@ export class HttpTransport {
     }
   }
   async #sendPost(line, post, completionController) {
+    if (post.initializing) this.#initializing = true;
     const slot = post.slot;
     const controller = completionController ?? (slot === null ? undefined : new AbortController());
     if (controller !== undefined) this.#controllers.set(slot, controller);
@@ -166,8 +170,9 @@ export class HttpTransport {
         throw this.#failure("POST", response, body);
       }
       if (this.#state.disposed || controller?.signal.aborted) { void response.body?.cancel().catch(() => undefined); return; }
-      if (this.#mode !== "sse" && !post.modern) { this.#state.captureSession(response.headers.get("Mcp-Session-Id")); this.#maybeStartGet(); }
+      if (this.#mode !== "sse" && !post.modern) { this.#state.captureSession(response.headers.get("Mcp-Session-Id")); if (!post.ordered) this.#maybeStartGet(); }
       if (controller !== undefined) await this.#forward(response, controller.signal, post.responseContext());
+      else if (post.ordered) { await this.#forward(response, undefined, undefined, post.initializing); this.#maybeStartGet(); }
       else void this.#forward(response).catch(error => { this.dispose(error instanceof Error ? error : new Error(String(error))); });
     } catch (error) { if (!controller?.signal.aborted) throw error; }
     finally { this.#state.finish(post); if (controller !== undefined) this.#controllers.delete(slot); }
@@ -186,7 +191,7 @@ export class HttpTransport {
       for (const [name, value] of this.#state.getHeaders()) headers.set(name, value);
     } else {
       headers.set("Mcp-Session-Id", session);
-      headers.set("MCP-Protocol-Version", "2025-03-26");
+      headers.set("MCP-Protocol-Version", this.#state.legacyVersion);
     }
     signal?.throwIfAborted();
     const tokens = await this.#provider?.authorizeRequest?.({
@@ -303,10 +308,10 @@ export class HttpTransport {
       return false;
     } catch (error) { void response.body?.cancel().catch(() => undefined); throw error; }
   }
-  async #forward(response, signal, context) {
+  async #forward(response, signal, context, stopAfterInitialization = false) {
     switch (httpResponseKind(response.status, response.headers.get("Content-Type"))) {
       case "ignore": void response.body?.cancel().catch(() => undefined); return;
-      case "sse": await this.#consumeSse(response, signal, context); return;
+      case "sse": await this.#consumeSse(response, signal, context, false, stopAfterInitialization); return;
       case "json": {
         const payload = await readBoundedResponseText(response, this.#state.maxResponseBytes, this.#readers, signal);
         if (payload.length === 0) { if (context !== undefined) throw new Error("MCP HTTP response body is empty"); return; }
@@ -316,7 +321,7 @@ export class HttpTransport {
       default: void response.body?.cancel().catch(() => undefined); throw new Error("HTTP transport POST returned an unsupported response content type");
     }
   }
-  async #consumeSse(response, signal, context, acceptEndpoint = false) {
+  async #consumeSse(response, signal, context, acceptEndpoint = false, stopAfterInitialization = false) {
     if (response.body === null) return;
     const parser = new NativeSseParser(this.#state.maxResponseBytes, acceptEndpoint);
     const decoder = new TextDecoder("utf-8", { fatal: true });
@@ -332,7 +337,7 @@ export class HttpTransport {
         if (done) break;
         if (value === undefined) continue;
         this.#emitEvents(parser.push(decoder.decode(value, { stream: true })), context);
-        if (context?.completed) { void reader.cancel().catch(() => undefined); return; }
+        if (context?.completed || (stopAfterInitialization && !this.#initializing)) { void reader.cancel().catch(() => undefined); return; }
         this.#state.setEventId(parser.lastEventId);
       }
       const trailing = decoder.decode();
@@ -363,6 +368,7 @@ export class HttpTransport {
     }
   }
   #emit(line) {
+    if (this.#initializing && this.#state.captureInitialization(line)) { this.#initializing = false; this.#maybeStartGet(); }
     if (!this.#state.disposed && !this.#read.destroyed && !this.#read.writableEnded) this.#read.write(`${line}\n`);
   }
 }

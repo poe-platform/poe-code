@@ -33,8 +33,11 @@ fallback, callback-derived client capabilities, owned connection snapshots and
 reconnection. It exposes tool, resource, prompt and completion calls over a
 caller-provided transport. Progress callbacks follow active tool calls, and aborts
 or timeouts send cancellation notifications. TypeScript contracts cover these APIs.
-An explicit protocol version must be `2025-03-26` or `2026-07-28`; a modern pin
+An explicit protocol version must be `2025-03-26`, `2025-06-18`, `2025-11-25`
+or `2026-07-28`; a modern pin
 propagates discovery failures instead of falling back to legacy initialization.
+Legacy pins skip discovery and reject a different server-selected revision. HTTP
+POST, GET and DELETE retain the negotiated revision, including legacy SSE endpoints.
 
 Modern notification streams validate acknowledgement filters, correlate tagged
 notifications and expose cancellation and completion. Configured list-change

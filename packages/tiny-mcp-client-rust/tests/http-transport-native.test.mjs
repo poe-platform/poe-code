@@ -3,11 +3,37 @@ import { createRequire } from "node:module";
 import { Readable } from "node:stream";
 import { EventEmitter } from "node:events";
 import { test } from "node:test";
-import { HttpTransport, JsonRpcMessageLayer, McpClient } from "../dist/index.js";
+import { HttpTransport, McpClient } from "../dist/index.js";
 const {NativeHttpTransport} = createRequire(import.meta.url)("../dist/tiny-mcp-client-rust.node");
 process.env.TSX_DISABLE_CACHE = "1";
 const {tsImport} = await import("tsx/esm/api");
 const {HttpTransport: ReferenceTransport} = await tsImport("../../tiny-mcp-client/src/internal.ts", import.meta.url);
+
+test("raw legacy initialization batches retain the revision and close their POST stream", async () => {
+  for (const contentType of ["application/json", "text/event-stream"]) {
+    for (const Transport of [ReferenceTransport, HttpTransport]) {
+      let announce, canceled = 0;
+      const get = new Promise(resolve => { announce = resolve; });
+      const payload = [{ jsonrpc: "2.0", id: "init", result: { protocolVersion: "2025-11-25", capabilities: {}, serverInfo: { name: "batch", version: "1" } } }];
+      const transport = new Transport({ url: "https://legacy.test/mcp", fetch: async (_url, init) => {
+        if (init.method === "GET") { announce(new Headers(init.headers).get("MCP-Protocol-Version")); return new Response(null, { status: 405 }); }
+        if (init.method === "DELETE") return new Response(null, { status: 204 });
+        return contentType === "application/json" ? Response.json(payload, { headers: { "Mcp-Session-Id": "batch" } })
+          : new Response(new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode("data: " + JSON.stringify(payload) + "\n\n")); }, cancel() { canceled++; } }),
+            { headers: { "Content-Type": contentType, "Mcp-Session-Id": "batch" } });
+      } });
+      transport.readable.resume();
+      try {
+        transport.writable.write(JSON.stringify({ jsonrpc: "2.0", id: "init", method: "initialize", params: { protocolVersion: "2025-03-26" } }) + "\n");
+        assert.equal(await Promise.race([get, transport.closed.then(({ reason }) => { throw reason; })]), "2025-11-25");
+        if (contentType === "text/event-stream") {
+          await new Promise(resolve => setImmediate(resolve));
+          assert.equal(canceled, 1);
+        }
+      } finally { transport.dispose(); await transport.closed; }
+    }
+  }
+});
 
 test("HTTP tool header schemas ignore unrelated cyclic, bigint and serialization fields", async () => {
   const cases = [() => ({type:"object",extra:1n}), () => {const value={type:"object"};value.extra=value;return value;}, () => ({type:"object",toJSON(){throw new Error("serialization must not run");}}), () => new Date(0), () => Object.assign(Object.create({type:"object"}),{properties:{value:{type:"string","x-mcp-header":"Value"}}})];

@@ -109,6 +109,7 @@ impl ClientState {
         &mut self,
         generation: u64,
         result: Value,
+        pin: Option<&[u16]>,
     ) -> Result<Value, ClientError> {
         self.ensure_generation(generation)?;
         if !matches!(&result, Value::Object(_))
@@ -123,7 +124,10 @@ impl ClientState {
         {
             return Err(error(Some(-32600), "Invalid initialize result"));
         }
-        if !text_is(result.get("protocolVersion"), "2025-03-26") {
+        if !["2025-03-26", "2025-06-18", "2025-11-25"]
+            .iter()
+            .any(|version| text_is(result.get("protocolVersion"), version))
+        {
             let Some(Value::String(version)) = result.get("protocolVersion") else {
                 unreachable!()
             };
@@ -131,6 +135,22 @@ impl ClientState {
                 code: Some(-32600),
                 message: units("Unsupported protocol version: ")
                     .into_iter()
+                    .chain(version.iter().copied())
+                    .collect(),
+            });
+        }
+        if let Some(pin) = pin
+            && !matches!(result.get("protocolVersion"), Some(Value::String(version)) if version == pin)
+        {
+            let Some(Value::String(version)) = result.get("protocolVersion") else {
+                unreachable!()
+            };
+            return Err(ClientError {
+                code: Some(-32600),
+                message: units("Pinned protocol version ")
+                    .into_iter()
+                    .chain(pin.iter().copied())
+                    .chain(units(" rejected: server selected "))
                     .chain(version.iter().copied())
                     .collect(),
             });

@@ -3,6 +3,34 @@ use tiny_mcp_client_rust::http_transport::{HttpState, ResponseKind, response_kin
 fn units(value: &str) -> Vec<u16> {
     value.encode_utf16().collect()
 }
+
+#[test]
+fn initialization_revision_is_captured_before_channels_open() {
+    let mut state = HttpState::default();
+    state.prepare(&units(r#"{"jsonrpc":"2.0","id":"init","method":"initialize","params":{"protocolVersion":"2025-06-18"}}"#)).unwrap();
+    assert!(!state.capture_initialization(&units(
+        r#"{"jsonrpc":"2.0","id":"other","result":{"protocolVersion":"2025-11-25"}}"#
+    )));
+    state.capture_session(Some(&units("session"))).unwrap();
+    assert!(state.capture_initialization(&units(
+        r#"[{"jsonrpc":"2.0","id":"init","result":{"protocolVersion":"2025-11-25"}}]"#
+    )));
+    assert_eq!(state.legacy_version(), units("2025-11-25"));
+    let post = state
+        .prepare(&units(r#"{"jsonrpc":"2.0","id":2,"method":"ping"}"#))
+        .unwrap();
+    assert!(
+        state
+            .post_headers(&post)
+            .unwrap()
+            .contains(&("MCP-Protocol-Version".into(), Some(units("2025-11-25"))))
+    );
+    assert!(
+        state
+            .get_headers()
+            .contains(&("MCP-Protocol-Version".into(), units("2025-11-25")))
+    );
+}
 fn modern(id: &str) -> Vec<u16> {
     units(&format!(
         r#"{{"jsonrpc":"2.0","id":{id},"method":"ping","params":{{"_meta":{{"io.modelcontextprotocol/protocolVersion":"2026-07-28"}}}}}}"#

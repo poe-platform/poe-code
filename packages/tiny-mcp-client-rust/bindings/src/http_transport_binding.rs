@@ -35,6 +35,15 @@ impl NativeHttpPost {
         self.post.ordered
     }
     #[napi(getter)]
+    pub fn initializing(&self) -> bool {
+        self.post.ordered
+            && self
+                .post
+                .message
+                .as_ref()
+                .is_some_and(|message| message.get("id").is_some())
+    }
+    #[napi(getter)]
     pub fn slot(&self) -> Option<f64> {
         self.post.slot.map(|slot| slot as f64)
     }
@@ -158,6 +167,18 @@ impl NativeHttpTransport {
             .borrow_mut()
             .capture_session(session.as_ref().map(|value| value.as_ref()))
             .map_err(napi::Error::from_reason)
+    }
+    #[napi(getter)]
+    pub fn legacy_version(&self) -> Utf16String {
+        self.state.borrow().legacy_version().into()
+    }
+    #[napi]
+    pub fn set_legacy_version(&self, version: Utf16String) {
+        self.state.borrow_mut().set_legacy_version(version.to_vec());
+    }
+    #[napi]
+    pub fn capture_initialization(&self, line: Utf16String) -> bool {
+        self.state.borrow_mut().capture_initialization(&line)
     }
     #[napi]
     pub fn expire_session(&self) {

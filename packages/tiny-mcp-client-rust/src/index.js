@@ -27,3 +27,5 @@ export { parseBearerWwwAuthenticateHeader, OAuthMetadataDiscovery, discoverOAuth
   resolveAuthorizationServerMetadataUrl, resolveProtectedResourceMetadataUrl } from "./oauth-discovery.js";
 export { fetchMcpResponse } from "./oauth/http.js";
 export { HttpTransport, HttpTransportError } from "./http-transport.js";
+
+export const MCP_PROTOCOL_VERSIONS = Object.freeze(["2025-03-26", "2025-06-18", "2025-11-25", "2026-07-28"]);

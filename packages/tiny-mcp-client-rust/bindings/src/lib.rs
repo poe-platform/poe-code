@@ -17,7 +17,7 @@ pub fn validate_protocol_pin(value: String) -> Result<()> {
         Ok(())
     } else {
         Err(napi::Error::from_reason(
-            "Unsupported protocolVersion; use 2025-03-26 or 2026-07-28",
+            "Unsupported protocolVersion; use 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28",
         ))
     }
 }
@@ -534,13 +534,14 @@ impl NativeClient {
         generation: f64,
         result: Unknown<'_>,
         discovery: bool,
+        pin: Option<Utf16String>,
     ) -> Result<convert::NativeJson> {
         let result = input::read(&env, result, input::Mode::Json)?.unwrap_or(Value::Null);
         let mut state = self.state.borrow_mut();
         let accepted = if discovery {
             state.accept_discovery(generation as u64, result)
         } else {
-            state.accept_initialize(generation as u64, result)
+            state.accept_initialize(generation as u64, result, pin.as_deref())
         };
         Ok(match accepted {
             Ok(result) => convert::NativeJson(object(vec![("result", result)])),

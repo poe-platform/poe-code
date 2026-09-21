@@ -5,5 +5,8 @@ pub fn valid_timeout(value: f64) -> bool {
 }
 
 pub fn valid_protocol_pin(value: &str) -> bool {
-    matches!(value, "2025-03-26" | "2026-07-28")
+    matches!(
+        value,
+        "2025-03-26" | "2025-06-18" | "2025-11-25" | "2026-07-28"
+    )
 }

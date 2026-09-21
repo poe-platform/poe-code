@@ -151,6 +151,8 @@ pub struct HttpState {
     next: u64,
     active: HashMap<Id, u64>,
     tool_headers: HashMap<Vec<u16>, Vec<ParameterHeader>>,
+    legacy_version: Option<Vec<u16>>,
+    initialization_id: Option<Id>,
 }
 impl HttpState {
     pub fn disposed(&self) -> bool {
@@ -193,6 +195,24 @@ impl HttpState {
         }
         if ordered && !notification {
             self.modern = false;
+            self.initialization_id = message
+                .as_ref()
+                .and_then(|message| message.get("id"))
+                .and_then(Id::from_value);
+            self.legacy_version = Some(
+                message
+                    .as_ref()
+                    .and_then(|message| message.get("params"))
+                    .and_then(|params| params.get("protocolVersion"))
+                    .and_then(|value| {
+                        if let Value::String(value) = value {
+                            Some(value.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or_else(|| text("2025-03-26")),
+            );
         }
         let cancelled = self.modern
             && notification
@@ -329,7 +349,15 @@ impl HttpState {
             }
         } else if let Some(session) = &self.session {
             changes.push(("Mcp-Session-Id".into(), Some(session.clone())));
-            changes.push(("MCP-Protocol-Version".into(), Some(text("2025-03-26"))));
+        }
+        if !post.modern
+            && !post
+                .message
+                .as_ref()
+                .is_some_and(|message| is_text(message.get("method"), "initialize"))
+            && (self.legacy_version.is_some() || self.session.is_some())
+        {
+            changes.push(("MCP-Protocol-Version".into(), Some(self.legacy_version())));
         }
         Ok(changes)
     }
@@ -337,7 +365,9 @@ impl HttpState {
         let mut headers = vec![("Accept".into(), text("text/event-stream"))];
         if let Some(session) = &self.session {
             headers.push(("Mcp-Session-Id".into(), session.clone()));
-            headers.push(("MCP-Protocol-Version".into(), text("2025-03-26")));
+        }
+        if self.legacy_version.is_some() || self.session.is_some() {
+            headers.push(("MCP-Protocol-Version".into(), self.legacy_version()));
         }
         if let Some(cursor) = &self.event_id {
             headers.push(("Last-Event-ID".into(), cursor.clone()));
@@ -356,6 +386,46 @@ impl HttpState {
             self.session = Some(session.to_vec());
         }
         Ok(())
+    }
+    pub fn legacy_version(&self) -> Vec<u16> {
+        self.legacy_version
+            .clone()
+            .unwrap_or_else(|| text("2025-03-26"))
+    }
+    pub fn set_legacy_version(&mut self, version: Vec<u16>) {
+        self.legacy_version = Some(version);
+    }
+    pub fn capture_initialization(&mut self, line: &[u16]) -> bool {
+        let Some(id) = self.initialization_id.as_ref() else {
+            return false;
+        };
+        let Ok(payload) = json::parse_utf16(line, json::Limits::default()) else {
+            return false;
+        };
+        let responses = if let Value::Array(responses) = &payload {
+            responses.as_slice()
+        } else {
+            std::slice::from_ref(&payload)
+        };
+        for response in responses {
+            if response.get("id").and_then(Id::from_value).as_ref() != Some(id)
+                || !matches!(response.get("result"), Some(Value::Object(_)))
+            {
+                continue;
+            }
+            if let Some(Value::String(version)) = response
+                .get("result")
+                .and_then(|result| result.get("protocolVersion"))
+                && ["2025-03-26", "2025-06-18", "2025-11-25"]
+                    .iter()
+                    .any(|candidate| version.iter().copied().eq(candidate.encode_utf16()))
+            {
+                self.legacy_version = Some(version.clone());
+            }
+            self.initialization_id = None;
+            return true;
+        }
+        false
     }
     pub fn expire_session(&mut self) {
         self.session = None;

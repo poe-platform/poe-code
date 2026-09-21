@@ -5,12 +5,39 @@ fn value(source: &str) -> Value {
 }
 
 #[test]
+fn legacy_pins_accept_only_the_selected_revision() {
+    for version in ["2025-03-26", "2025-06-18", "2025-11-25"] {
+        let mut client = ClientState::default();
+        let generation = client.begin_connect().unwrap();
+        let result = value(&format!(
+            r#"{{"protocolVersion":"{version}","capabilities":{{}},"serverInfo":{{"name":"server","version":"1"}}}}"#
+        ));
+        let pin = version.encode_utf16().collect::<Vec<_>>();
+        assert!(
+            client
+                .accept_initialize(generation, result.clone(), Some(&pin))
+                .is_ok()
+        );
+        let wrong_pin = "2099-01-01".encode_utf16().collect::<Vec<_>>();
+        let error = client
+            .accept_initialize(generation, result, Some(&wrong_pin))
+            .unwrap_err();
+        assert_eq!(error.code, Some(-32600));
+        assert!(
+            String::from_utf16(&error.message)
+                .unwrap()
+                .contains("Pinned protocol version")
+        );
+    }
+}
+
+#[test]
 fn connection_generations_isolate_reconnections_and_return_owned_snapshots() {
     let mut client = ClientState::default();
     assert_eq!(client.state(), ConnectionState::Disconnected);
     let generation = client.begin_connect().unwrap();
     assert!(client.begin_connect().is_err());
-    client.accept_initialize(generation, value(r#"{"protocolVersion":"2025-03-26","capabilities":{"tools":{}},"serverInfo":{"name":"server","version":"1"}}"#)).unwrap();
+    client.accept_initialize(generation, value(r#"{"protocolVersion":"2025-03-26","capabilities":{"tools":{}},"serverInfo":{"name":"server","version":"1"}}"#), None).unwrap();
     assert_eq!(client.state(), ConnectionState::Initializing);
     client.complete_initialize(generation).unwrap();
     assert_eq!(client.state(), ConnectionState::Ready);

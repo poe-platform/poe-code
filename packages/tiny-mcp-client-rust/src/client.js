@@ -35,7 +35,7 @@ export class McpClient {
   async connect(transport, options = {}) {
     if (this.#options.protocolVersion !== undefined) {
       if (typeof this.#options.protocolVersion !== "string")
-        throw new Error("Unsupported protocolVersion; use 2025-03-26 or 2026-07-28");
+        throw new Error("Unsupported protocolVersion; use 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28");
       validateProtocolPin(this.#options.protocolVersion);
     }
     options.signal?.throwIfAborted();
@@ -126,7 +126,7 @@ export class McpClient {
       ).capabilities;
       let discovery;
       try {
-        if (this.#options.protocolVersion !== "2025-03-26")
+        if (this.#options.protocolVersion === undefined || this.#options.protocolVersion === "2026-07-28")
           discovery = await layer.sendRequest(
             "server/discover",
             {
@@ -169,13 +169,14 @@ export class McpClient {
           await layer.sendRequest(
             "initialize",
             {
-              protocolVersion: "2025-03-26",
+              protocolVersion: this.#options.protocolVersion ?? "2025-03-26",
               capabilities,
               clientInfo: this.#options.clientInfo
             },
             { signal: options.signal }
           ),
-          false
+          false,
+          this.#options.protocolVersion
         )
       ).result;
       if (onRootsList !== undefined)
@@ -185,7 +186,7 @@ export class McpClient {
       if (onElicitationRequest !== undefined)
         layer.onRequest("elicitation/create", onElicitationRequest);
       if (transport.completeInitialization === undefined) layer.sendNotification("notifications/initialized");
-      else await transport.completeInitialization({ signal: options.signal, timeoutMs: this.#options.requestTimeoutMs ?? 30000 });
+      else await transport.completeInitialization({ signal: options.signal, timeoutMs: this.#options.requestTimeoutMs ?? 30000, protocolVersion: initialized.protocolVersion });
       unwrap(this.#core.completeInitialize(generation));
       return initialized;
     } catch (error) {

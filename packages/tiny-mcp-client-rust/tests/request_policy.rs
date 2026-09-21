@@ -13,6 +13,8 @@ fn timers_fit_the_host_without_overflow_or_nonfinite_values() {
 #[test]
 fn pins_select_only_supported_versions() {
     assert!(valid_protocol_pin("2025-03-26"));
+    assert!(valid_protocol_pin("2025-06-18"));
+    assert!(valid_protocol_pin("2025-11-25"));
     assert!(valid_protocol_pin("2026-07-28"));
     for pin in ["auto", "", "2099-01-01"] {
         assert!(!valid_protocol_pin(pin));

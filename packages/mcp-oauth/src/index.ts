@@ -1,3 +1,4 @@
+export { normalizeOAuthScope } from "./client/scope.js";
 export { parseOAuthTokenGrant } from "./client/token-grant.js";
 export type { OAuthTokenGrantImportOptions } from "./client/token-grant.js";
 export {
@@ -5,7 +6,7 @@ export {
 } from "./client/auth-store-session-store.js";
 export { createResourceBoundOAuthStores } from "./client/resource-bound-store.js";
 export type { ResourceBoundOAuthStores } from "./client/resource-bound-store.js";
-export { parseOAuthClientRegistration } from "./client/client-registration.js";
+export { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./client/client-registration.js";
 export {
   createDefaultOAuthClientProvider,
   createOAuthClientProvider,

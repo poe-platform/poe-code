@@ -17,3 +17,5 @@ export { authenticateRemoteMcpServer } from "./authentication.js";
 export type { RemoteMcpAuthorizationRequest, RemoteMcpAuthenticationOptions, RemoteMcpAuthenticationResult } from "./authentication.js";
 export { resetRemoteMcpAuthentication } from "./credential-reset.js";
 export type { RemoteMcpCredentialResetOptions, RemoteMcpCredentialResetResult } from "./credential-reset.js";
+export { importRemoteMcpAuthentication } from "./credential-import.js";
+export type { RemoteMcpCredentialImportOptions, RemoteMcpCredentialImportResult } from "./credential-import.js";

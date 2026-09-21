@@ -1,3 +1,4 @@
+import { credentialEnvironmentReader } from "./credential-environment.js";
 import { createDefaultOAuthClientProvider, type DefaultOAuthClientProviderOptions, type OAuthClientProvider,
   type OAuthSessionStore } from "mcp-oauth";
 import { parseRemoteMcpConfiguration, type ConfigurationOptions, type EnvironmentReference,
@@ -14,6 +15,8 @@ export interface ConfigurationBindingOptions extends ConfigurationOptions {
     readonly sessionStore?: (server: RemoteMcpServerConfiguration) => OAuthSessionStore;
     /** Host-owned reset must retire credentials and suppress stale initial imports durably. */
     readonly reset?: (server: RemoteMcpServerConfiguration, options: { signal?: AbortSignal; timeoutMs: number }) => Promise<void>;
+    /** Atomically install a grant/client and suppress stale automatic imports durably. */
+    readonly importSession?: (server: RemoteMcpServerConfiguration, session: import("mcp-oauth").StoredOAuthSession, options: { signal?: AbortSignal; timeoutMs: number }) => Promise<void>;
     readonly authStore?: DefaultOAuthClientProviderOptions["authStore"];
     readonly now?: () => number;
   };
@@ -25,25 +28,7 @@ export interface BoundRemoteMcpServer extends Omit<RemoteMcpServer, "oauth"> {
 /** Resolve explicit environment references into runtime-only credentials without network or artifact writes. */
 export function bindRemoteMcpConfiguration(value: unknown, options: ConfigurationBindingOptions): BoundRemoteMcpServer[] {
   const configuration = parseRemoteMcpConfiguration(value, options);
-  const limit = options.maxCredentialBytes ?? 1024 * 1024;
-  if (!Number.isSafeInteger(limit) || limit < 1) throw new Error("maxCredentialBytes must be a positive safe integer");
-  if (typeof options.env !== "object" || options.env === null) throw new Error("MCP credential environment must be an object");
-  let credentialBytes = 0;
-  const values = new Map<string, string | undefined>();
-  const read = (reference: EnvironmentReference, required = false): string | undefined => {
-    if (!values.has(reference.env)) {
-      const descriptor = Object.getOwnPropertyDescriptor(options.env, reference.env);
-      if (descriptor !== undefined && (!("value" in descriptor) || (descriptor.value !== undefined && typeof descriptor.value !== "string")))
-        throw new Error(`Invalid MCP credential environment value for ${reference.env}`);
-      const value = descriptor?.value as string | undefined;
-      credentialBytes += value === undefined ? 0 : Buffer.byteLength(value, "utf8");
-      if (credentialBytes > limit) throw new Error("MCP credential environment byte limit exceeded");
-      values.set(reference.env, value === "" ? undefined : value);
-    }
-    const value = values.get(reference.env);
-    if (required && (value === undefined || value.trim() === "")) throw new Error(`Missing required MCP environment variable ${reference.env}`);
-    return value;
-  };
+  const read = credentialEnvironmentReader(options);
   const publicValue = (reference: PublicEnvironmentReference): string | undefined => read(reference) ?? reference.fallback;
   const readTiming = (reference: EnvironmentReference | undefined): number | undefined => {
     if (reference === undefined) return undefined;

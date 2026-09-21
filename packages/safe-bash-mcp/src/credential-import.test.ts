@@ -1,0 +1,160 @@
+import { expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import * as sdk from "./index.js";
+import { createResourceBoundOAuthStores, type StoredOAuthSession } from "mcp-oauth";
+vi.mock("node:crypto", async importOriginal => {
+  const actual = await importOriginal<typeof import("node:crypto")>();
+  return { ...actual, scrypt(password: string, salt: string, size: number, done: (error: Error | null, key: Buffer) => void) {
+    queueMicrotask(() => done(null, actual.createHash("shake256", { outputLength: size }).update(password).update(salt).digest()));
+  } };
+});
+const resource = "https://resource.example/mcp", issuer = "https://auth.example";
+const payload = { tokens: { access_token: "private-access", refresh_token: "private-refresh", token_type: "Bearer", expires_in: 3600, scope: "read" },
+  clientInfo: { client_id: "original", client_secret: "private-secret", token_endpoint_auth_method: "client_secret_post", redirect_uris: ["http://localhost:49152/callback"], provider_metadata: { tenant: "one" } } };
+const dynamic = sdk.initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], auth: { type: "oauth", clientMode: "dynamic", scope: "read" } }]).configuration.servers[0];
+function fixture() {
+  const fs = createFsFromVolume(new Volume()).promises;
+  const authStore = { backend: "file" as const, fileStore: { fs, filePath: "/home/test/import.enc", salt: "fixture", getMachineIdentity: () => ({ hostname: "host", username: "user" }) } };
+  const fetch = vi.fn(async (url: string | URL) => Response.json(String(url).includes("oauth-protected-resource")
+    ? { resource, authorization_servers: [issuer] }
+    : { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"], token_endpoint_auth_methods_supported: ["client_secret_post", "none"] }));
+  const binding = { env: {}, oauth: { authStore, now: () => 10_000 } };
+  return { fs, authStore, fetch, binding, stores: createResourceBoundOAuthStores(authStore, undefined, "catalog") };
+}
+it("imports raw tokens and complete original DCR metadata without initializing or listing tools", async () => {
+  const f = fixture();
+  expect(await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch })).toEqual({ name: "catalog", url: resource, imported: true });
+  expect(f.fetch).toHaveBeenCalledTimes(2);
+  const session = await f.stores.sessionStore.load(resource);
+  expect(session).toMatchObject({ resource, authorizationServer: issuer, client: { clientId: "original", registrationOwnership: "caller", registration: payload.clientInfo },
+    requestedScope: "read", tokens: { accessToken: "private-access", refreshToken: "private-refresh", expiresAt: 3_610_000 } });
+  expect(await f.stores.clientStore.load(issuer)).toEqual(session?.client);
+});
+it("anchors expiry before asynchronous discovery and preserves delayed issuance", async () => {
+  const f = fixture(); let now = 10_000;
+  const base = f.fetch.getMockImplementation()!;
+  f.fetch.mockImplementation(async url => { now = 2_000_000; return base(url); });
+  await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, oauth: { ...f.binding.oauth, now: () => now } }, fetch: f.fetch });
+  expect((await f.stores.sessionStore.load(resource))?.tokens?.expiresAt).toBe(3_610_000);
+  await sdk.importRemoteMcpAuthentication(dynamic, { ...payload, issuedAt: 1000 }, { binding: f.binding, fetch: f.fetch });
+  expect((await f.stores.sessionStore.load(resource))?.tokens?.expiresAt).toBe(3_601_000);
+});
+it("does not read stale token, timing or header environment credentials during explicit import", async () => {
+  const f = fixture(), read = vi.fn(() => { throw new Error("private-marker"); });
+  const env = {};
+  if (dynamic.auth?.type !== "oauth") throw new Error("fixture");
+  for (const ref of [dynamic.auth.credentials.accessToken, dynamic.auth.credentials.refreshToken, dynamic.auth.credentials.expiresAt, { env: "HEADER" }])
+    Object.defineProperty(env, ref.env, { enumerable: true, get: read });
+  await sdk.importRemoteMcpAuthentication({ ...dynamic, headers: { "X-API-Key": { env: "HEADER" } } }, payload, { binding: { ...f.binding, env }, fetch: f.fetch });
+  expect(read).not.toHaveBeenCalled();
+});
+it.each([
+  { tokens: { ...payload.tokens, expires_in: -1 } },
+  { tokens: { ...payload.tokens, access_token: "private\nvalue" } },
+  { clientInfo: { ...payload.clientInfo, client_id: "" } },
+  { clientInfo: { ...payload.clientInfo, token_endpoint_auth_method: "unsupported" } },
+  { tokens: { ...payload.tokens, scope: "write" } },
+  { issuedAt: "private-value" }, { extra: "private-value" }
+])("rejects malformed/profile-incompatible imports before discovery or persistence: %#", async change => {
+  const f = fixture();
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, { ...payload, ...change }, { binding: f.binding, fetch: f.fetch })).rejects.toThrow();
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(await f.stores.sessionStore.load(resource)).toBeNull();
+});
+it("requires the original configured ID when no clientInfo is supplied", async () => {
+  const f = fixture();
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, { tokens: payload.tokens }, { binding: f.binding, fetch: f.fetch })).rejects.toThrow("original client ID");
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+it("infers full caller-owned registration from the explicitly configured original app", async () => {
+  const f = fixture();
+  if (dynamic.auth?.type !== "oauth") throw new Error("fixture");
+  const env = { [dynamic.auth.credentials.clientId.env]: "original", [dynamic.auth.credentials.clientSecret.env]: "private-secret" };
+  await sdk.importRemoteMcpAuthentication(dynamic, { tokens: payload.tokens }, { binding: { ...f.binding, env }, fetch: f.fetch });
+  expect((await f.stores.sessionStore.load(resource))?.client).toMatchObject({ clientId: "original", clientSecret: "private-secret", registrationOwnership: "caller" });
+});
+it("rejects a configured original app conflicting with clientInfo before any request", async () => {
+  const f = fixture();
+  if (dynamic.auth?.type !== "oauth") throw new Error("fixture");
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, env: { [dynamic.auth.credentials.clientId.env]: "another" } }, fetch: f.fetch })).rejects.toThrow("client identity");
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+it.each(["payload", "registration"])("requires imported %s issuer to match validated discovery", async location => {
+  const f = fixture();
+  const value = location === "payload" ? { ...payload, issuer: "https://another.example" } : { ...payload, clientInfo: { ...payload.clientInfo, issuer: "https://another.example" } };
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, value, { binding: f.binding, fetch: f.fetch })).rejects.toThrow("issuer");
+  expect(await f.stores.sessionStore.load(resource)).toBeNull();
+});
+it("requires an explicit atomic import hook for host-owned persistence", async () => {
+  const f = fixture(), factory = vi.fn(() => ({ load: async () => null, save: async () => {}, clear: async () => {} }));
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, oauth: { sessionStore: factory } }, fetch: f.fetch })).rejects.toThrow("import hook");
+  expect(factory).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
+});
+it("passes the bound grant to a host import hook without querying its session factory", async () => {
+  const f = fixture(), importSession = vi.fn(async (_server: unknown, _session: StoredOAuthSession, _options: unknown) => {});
+  await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, oauth: { now: () => 10_000, importSession } }, fetch: f.fetch });
+  expect(importSession).toHaveBeenCalledWith(dynamic, expect.objectContaining({ tokens: expect.objectContaining({ expiresAt: 3_610_000 }) }), expect.objectContaining({ timeoutMs: 30_000, signal: expect.any(AbortSignal) }));
+  expect(await f.stores.sessionStore.load(resource)).toBeNull();
+});
+it("rejects unmanaged bearer credentials", async () => {
+  const f = fixture();
+  const server = sdk.initRemoteMcpConfiguration([{ name: "catalog", url: resource, auth: { type: "bearer" } }]).configuration.servers[0];
+  await expect(sdk.importRemoteMcpAuthentication(server, payload, { binding: f.binding, fetch: f.fetch })).rejects.toThrow("managed OAuth");
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+it("retains a caller cancellation reason before parsing credentials", async () => {
+  const f = fixture(), controller = new AbortController(), reason = new Error("cancel import"); controller.abort(reason);
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch, signal: controller.signal })).rejects.toBe(reason);
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+it("withholds stale environment grants after explicitly imported credentials are cleared", async () => {
+  const f = fixture(); await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch });
+  await f.stores.sessionStore.withLock!(resource, () => f.stores.sessionStore.clear(resource), {});
+  if (dynamic.auth?.type !== "oauth") throw new Error("fixture");
+  const env = { [dynamic.auth.credentials.clientId.env]: "original", [dynamic.auth.credentials.accessToken.env]: "stale-access" };
+  const [bound] = sdk.bindRemoteMcpConfiguration({ version: 1, servers: [dynamic] }, { ...f.binding, env });
+  const headers = new Headers(), fetch = vi.fn(async () => Response.json({}));
+  await bound.oauth!.provider.authorizeRequest!({ requestUrl: new URL(resource), headers, fetch });
+  expect(headers.has("Authorization")).toBe(false); expect(fetch).not.toHaveBeenCalled();
+});
+it("refuses accessor-bearing credential JSON without invoking it", async () => {
+  const f = fixture(), touched = vi.fn();
+  const input = { ...payload, get clientInfo() { touched(); throw new Error("private-marker"); } };
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, input, { binding: f.binding, fetch: f.fetch })).rejects.toThrow("Invalid OAuth credential import payload");
+  expect(touched).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
+});
+it("rejects invalid bounded JSON text without quoting any input", async () => {
+  const f = fixture();
+  for (const value of ['{"private-marker":', JSON.stringify(payload).replace('"tokens":', '"issuedAt":9007199254740993,"tokens":')]) {
+    await expect(sdk.importRemoteMcpAuthentication(dynamic, value, { binding: f.binding, fetch: f.fetch })).rejects.toThrow();
+  }
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+it("rejects an import exceeding its configured byte budget before discovery", async () => {
+  const f = fixture();
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch, maxImportBytes: 100 })).rejects.toThrow("Invalid OAuth credential import payload");
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+it("cancels discovery without persisting a partially imported client", async () => {
+  const f = fixture(), controller = new AbortController(), reason = new Error("cancel discovery"), entered = Promise.withResolvers<void>();
+  f.fetch.mockImplementation(async () => { entered.resolve(); return new Promise(() => {}); });
+  const pending = sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch, signal: controller.signal });
+  await entered.promise; controller.abort(reason);
+  await expect(pending).rejects.toBe(reason);
+  expect(await f.stores.sessionStore.load(resource)).toBeNull(); expect(await f.stores.clientStore.load(issuer)).toBeNull();
+});
+it.each([0, -1, 1.5, NaN, 2_147_483_648])("rejects invalid import deadlines before discovery: %s", async requestTimeoutMs => {
+  const f = fixture();
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: f.binding, fetch: f.fetch, requestTimeoutMs })).rejects.toThrow("requestTimeoutMs");
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+it("preserves the failure identity from a host import hook", async () => {
+  const f = fixture(), failure = new Error("host transaction failed");
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, oauth: { importSession: async () => { throw failure; } } }, fetch: f.fetch })).rejects.toBe(failure);
+});
+it("imports a public client with optional null descriptive and secret metadata", async () => {
+  const f = fixture();
+  await sdk.importRemoteMcpAuthentication(dynamic, { ...payload, clientInfo: { client_id: "original", client_secret: null, client_name: null, redirect_uris: null, token_endpoint_auth_method: "none" } }, { binding: f.binding, fetch: f.fetch });
+  expect((await f.stores.sessionStore.load(resource))?.client).toMatchObject({ clientId: "original", registration: { client_secret: null, client_name: null }, tokenEndpointAuthMethod: "none" });
+  expect((await f.stores.sessionStore.load(resource))?.client.clientSecret).toBeUndefined();
+});

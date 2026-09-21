@@ -33,6 +33,7 @@ server identity, capabilities and instructions.
 | `bindRemoteMcpConfiguration(value, options)` | Resolve environment references into runtime server credentials |
 | `createRemoteMcpManagementCommand(servers, options)` | Create safe-bash configuration, auth, reset and artifact commands |
 | `authenticateRemoteMcpServer(server, options)` | Establish access explicitly without listing or calling tools |
+| `importRemoteMcpAuthentication(server, payload, options)` | Atomically persist raw OAuth tokens with their original app |
 | `resetRemoteMcpAuthentication(server, options)` | Retire a named OAuth grant and recover corrupt credential records |
 | `generateRemoteMcpArtifact(configuration, options)` | Discover absent schemas and emit reproducible JSON/ESM data |
 | `parseRemoteMcpArtifact(value, options)` | Validate artifact size, digest and configuration/schema agreement |
@@ -245,6 +246,37 @@ imports from reviving the reset grant. Other names/profiles remain independent.
 Host-owned persistence requires `binding.oauth.reset(server, { signal,
 timeoutMs })`; the host must retire its credentials and durably suppress stale
 imports. Static bearer/header values remain controlled by the host environment.
+
+Seed credentials obtained by a headless OAuth owner without computing store keys:
+
+```ts
+await importRemoteMcpAuthentication(server, {
+  tokens: tokenResponse,
+  clientInfo: fullDcrResponse,
+  issuedAt: originalIssuedAtMs // Optional for a delayed relative-lifetime import
+}, { binding: { env: {}, oauth: { authStore } } });
+```
+
+The import discovers and validates OAuth metadata, then atomically saves the
+original client and grant for the configured name/profile. It does not initialize,
+list or call tools. Full DCR metadata stays encrypted and caller-owned; dynamic
+clients infer their original ID/secret. When `clientInfo` is absent, provide the
+original app through the configured client environment references. Static mode
+requires its configured ID; explicitly configured IDs/secrets must match the
+import. Configured scope must match the grant. An optional payload `issuer` and
+registration issuer must match discovery exactly.
+
+Raw token fields follow OAuth: `access_token`, `refresh_token`, `token_type`,
+`scope`, and `expires_in` in seconds. Absolute `expiresAt` uses epoch milliseconds;
+`expires_at` uses epoch seconds. Absolute expiry wins; relative lifetime is
+anchored before network waits, using original payload `issuedAt` milliseconds
+when supplied. Old token, timing and header environment values are never read.
+The SDK returns only `{ name, url, imported: true }`. Default complete-operation
+and lock limits are 30 seconds (`requestTimeoutMs` and `timeoutMs`). Input defaults
+to 1 MiB (`maxImportBytes`), with token/DCR JSON separately bounded to 64 KiB.
+Malformed JSON diagnostics never quote input. Host-owned persistence requires
+`binding.oauth.importSession(server, session, { signal, timeoutMs })`; that hook
+owns atomic client/grant installation and durable stale-import suppression.
 
 Generate a reusable artifact from declarative configuration:
 

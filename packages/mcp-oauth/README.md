@@ -29,6 +29,8 @@ const verifier = createJwksTokenVerifier({
 - `createAuthStoreSessionStore(options)`: persisted OAuth session store backed by `auth-store`.
 - `createLoopbackAuthorizationSession(options)`: local callback server for browser authorization.
 - `generateCodeVerifier()` and `generateCodeChallenge(...)`: PKCE helpers.
+- `normalizeStoredOAuthClient(value)`: normalize a saved client identity, full registration and ownership marker.
+- `normalizeOAuthScope(value)`: validate scope syntax and normalize its case-sensitive set.
 - `canonicalizeResourceIndicator(value)`: resource indicator canonicalization.
 - `createJwksTokenVerifier(options)`: JWKS-backed access-token verifier for MCP servers.
 - `OAuthError`: token endpoint error type.

@@ -33,7 +33,7 @@
     "terminal-png-rust": "*",
     "terminal-png-mcp": "*",
     "tiny-stdio-mcp-server": "*",
-    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "typescript": "5.9.3",
     "vitest": "4.1.11"
   },

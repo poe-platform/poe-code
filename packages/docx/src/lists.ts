@@ -19,6 +19,8 @@ import { runElementOpen } from "./run-properties.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError, replaceListPropertyXml, insertParagraphAfter } from "./xml-write.js";
 import { findRelationshipPart } from "./relationship-part.js";
+import { activeXmlChildren } from "./xml-active-children.js";
+import { assertFormattingHistoryEditable } from "./revision-markup.js";
 
 export type ListEditOperation = "lists.add" | "lists.set";
 export type ListEditRequest = { [K in ListEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[ListEditOperation];
@@ -83,12 +85,14 @@ export async function editDocumentLists(input: Uint8Array, request: ListEditRequ
         id = graph.restart(resolved, level, start);
       }
       if (id === existing.id && level === existing.level) continue;
+      assertFormattingHistoryEditable(xml.root, node, activeXmlChildren(xml, budget), budget);
       const props = graph.child(node, "pPr");
       const markup = listProperties(xml, props, id, level, w, graph);
       if (props) xml[replaceListPropertyXml](props, markup);
       else xml.insertChildren(node, markup, node.children[0]);
       updates.push({ before, path: before.value.path, kind: "format" });
     } else {
+      assertFormattingHistoryEditable(xml.root, node, activeXmlChildren(xml, budget), budget);
       id = 0;
       if (existing && options.start === undefined) {
         const resolved = graph.resolve(existing.id);

@@ -14,6 +14,7 @@ export {
   JsonRpcMessageLayer,
   McpClient,
   McpError,
+  MCP_PROTOCOL_VERSIONS,
   OAuthMetadataDiscovery,
   StdioTransport,
 } from "./internal.js";
@@ -58,6 +59,7 @@ export type {
   LogMessage,
   McpClientConnection,
   McpClientOptions,
+  McpProtocolVersion,
   McpRequestContext,
   McpTransport,
   McpSubscription,

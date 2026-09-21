@@ -1,4 +1,5 @@
 import type { RemoteMcpServer } from "./schema.js";
+import { MCP_PROTOCOL_VERSIONS } from "tiny-mcp-client";
 import type { OAuthTokenEndpointAuthMethod } from "mcp-oauth";
 import { preflightRemoteMcpServers } from "./schema.js";
 import { compileJsonSchema, formatIssues, isJsonValue } from "toolcraft-schema";
@@ -69,7 +70,7 @@ const oauthShape = { type: "object", properties: { type: { const: "oauth" }, cli
   clientName: { type: "string", minLength: 1 },
   tokenEndpointAuthMethod: { enum: ["none", "client_secret_post", "client_secret_basic"] } }, required: ["type", "clientMode"], additionalProperties: false };
 const commonServerProperties = {
-  name: { type: "string" }, url: { type: "string" }, transport: { enum: ["http", "sse"] }, protocolVersion: { enum: ["2025-03-26", "2026-07-28"] },
+  name: { type: "string" }, url: { type: "string" }, transport: { enum: ["http", "sse"] }, protocolVersion: { enum: MCP_PROTOCOL_VERSIONS },
   tools: { type: "array", items: { type: "object" } }, instructions: { type: "string" }, headers: { type: "object", additionalProperties: referenceSchema }
 };
 function authenticationSchema(bearer: unknown, oauth: unknown) {

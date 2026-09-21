@@ -68,6 +68,18 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     call or SSE attempt. Unknown caller pins fail before any network request.
     A host that omits the pin must retain automatic legacy negotiation and calls.
 
+    With the official SDK server's JSON and SSE response modes on real HTTP, pin each legacy revision
+    2025-03-26, 2025-06-18 and 2025-11-25. Discover once per endpoint, call through
+    direct and recreated ESM commands, and read a resource. Require exact string
+    IDs, only one tools/list, no modern discovery for legacy pins, selected-version
+    headers on later POST/GET/DELETE, retired sessions and closed receive streams.
+    Native standalone SSE posts must retain the same pinned revision. Automatic
+    negotiation may accept any supported legacy revision selected by a server;
+    an explicit pin rejects a different supported revision before initialized.
+    Leave an initialization POST stream open after its final response; later
+    tools/list must still send promptly, and that response reader must be canceled
+    independently of any long-lived GET receive stream.
+
 11. Generate a dependency-free ESM artifact with two tools sharing a dashed
     name prefix and one exact dotted name. Include a required field named schema,
     annotations and an output schema. Write the module, change the native host's

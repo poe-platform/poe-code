@@ -23,8 +23,14 @@ await client.close();
 ```
 
 Omit `protocolVersion` for automatic modern discovery and legacy negotiation.
-Set it to `"2025-03-26"` or `"2026-07-28"` to pin a protocol. A modern pin
+Set it to `"2025-03-26"`, `"2025-06-18"`, `"2025-11-25"` or `"2026-07-28"`
+to pin a protocol. `McpProtocolVersion` and the immutable
+`MCP_PROTOCOL_VERSIONS` list expose these supported revisions. A modern pin
 rejects failed or timed-out discovery without sending legacy initialization.
+Legacy pins skip modern discovery and require the selected revision to match.
+Automatic legacy negotiation still offers `2025-03-26` and accepts any supported
+legacy revision selected by the server. Subsequent HTTP POST, GET and DELETE
+requests use that selected revision, including endpoints without session IDs.
 Unsupported pins fail before connection setup.
 
 `Tool` includes MCP `outputSchema` when a server advertises typed tool output.

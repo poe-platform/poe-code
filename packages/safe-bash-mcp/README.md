@@ -5,8 +5,11 @@ Supply known schemas to skip network discovery, or leave `tools` absent to fetch
 every page automatically. Streamable HTTP and legacy HTTP/SSE endpoints are
 handled by `tiny-mcp-client`. Discovery tries legacy SSE automatically only when
 HTTP connection setup returns 404 or 405. Set `transport: "http"` or `"sse"`
-to pin a transport. Set `protocolVersion: "2025-03-26"` or `"2026-07-28"`
-to pin a protocol. A modern pin rejects unsupported discovery or its deadline
+to pin a transport. Set `protocolVersion` to `"2025-03-26"`, `"2025-06-18"`,
+`"2025-11-25"` or `"2026-07-28"` to pin a protocol. Legacy pins skip modern
+discovery and require the server's selected revision to match. Automatic legacy
+negotiation accepts these supported legacy revisions and uses the selected
+revision in later HTTP requests. A modern pin rejects unsupported discovery or its deadline
 without downgrading to legacy initialization or automatic SSE. Unsupported pins
 fail preflight, including when schemas are supplied. Local process servers are
 not supported.

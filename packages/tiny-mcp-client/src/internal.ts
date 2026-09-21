@@ -139,11 +139,14 @@ export interface ElicitationResult {
   content?: Record<string, string | number | boolean | string[]>;
 }
 
+export const MCP_PROTOCOL_VERSIONS = Object.freeze(["2025-03-26", "2025-06-18", "2025-11-25", "2026-07-28"] as const);
+export type McpProtocolVersion = typeof MCP_PROTOCOL_VERSIONS[number];
+
 export interface McpClientOptions {
   clientInfo: Implementation;
   requestTimeoutMs?: number;
   maxConcurrentRequests?: number;
-  protocolVersion?: "2025-03-26" | "2026-07-28";
+  protocolVersion?: McpProtocolVersion;
   capabilities?: ClientCapabilities;
   onToolsChanged?: () => void | Promise<void>;
   onResourcesChanged?: () => void | Promise<void>;
@@ -215,8 +218,8 @@ export class McpClient {
 
   async connect(transport: McpTransport, options: { signal?: AbortSignal } = {}): Promise<ConnectResult> {
     options.signal?.throwIfAborted();
-    if (this.options.protocolVersion !== undefined && this.options.protocolVersion !== MCP_PROTOCOL_VERSION && this.options.protocolVersion !== "2026-07-28")
-      throw new Error("Unsupported protocolVersion; use 2025-03-26 or 2026-07-28");
+    if (this.options.protocolVersion !== undefined && !MCP_PROTOCOL_VERSIONS.includes(this.options.protocolVersion))
+      throw new Error(`Unsupported protocolVersion; use ${MCP_PROTOCOL_VERSIONS.join(", ")}`);
     if (this.currentState !== "disconnected" && this.currentState !== "closed") {
       throw new Error("MCP client is already connected");
     }
@@ -420,7 +423,7 @@ export class McpClient {
       }
       let discovery: unknown;
       try {
-        if (this.options.protocolVersion !== "2025-03-26") discovery = await messageLayer.sendRequest("server/discover", {
+        if (this.options.protocolVersion === undefined || this.options.protocolVersion === "2026-07-28") discovery = await messageLayer.sendRequest("server/discover", {
           _meta: {
             "io.modelcontextprotocol/protocolVersion": "2026-07-28",
             "io.modelcontextprotocol/clientCapabilities": capabilities
@@ -477,7 +480,7 @@ export class McpClient {
         };
       }
       const initializeResultValue = await messageLayer.sendRequest("initialize", {
-        protocolVersion: MCP_PROTOCOL_VERSION,
+        protocolVersion: this.options.protocolVersion ?? MCP_PROTOCOL_VERSION,
         clientInfo: this.options.clientInfo,
         capabilities,
       }, { signal: options.signal });
@@ -488,12 +491,14 @@ export class McpClient {
 
       const initializeResult = initializeResultValue;
 
-      if (initializeResult.protocolVersion !== MCP_PROTOCOL_VERSION) {
+      if (initializeResult.protocolVersion === "2026-07-28" || !MCP_PROTOCOL_VERSIONS.includes(initializeResult.protocolVersion as McpProtocolVersion)) {
         throw new McpError(
           ERROR_INVALID_REQUEST,
           `Unsupported protocol version: ${initializeResult.protocolVersion}`
         );
       }
+      if (this.options.protocolVersion !== undefined && initializeResult.protocolVersion !== this.options.protocolVersion)
+        throw new McpError(ERROR_INVALID_REQUEST, `Pinned protocol version ${this.options.protocolVersion} rejected: server selected ${initializeResult.protocolVersion}`);
 
       this.currentServerCapabilities = structuredClone(initializeResult.capabilities);
       this.currentServerInfo = structuredClone(initializeResult.serverInfo);
@@ -509,7 +514,7 @@ export class McpClient {
         );
       }
       if (transport.completeInitialization === undefined) messageLayer.sendNotification("notifications/initialized");
-      else await transport.completeInitialization({ signal: options.signal, timeoutMs: this.options.requestTimeoutMs ?? 30_000 });
+      else await transport.completeInitialization({ signal: options.signal, timeoutMs: this.options.requestTimeoutMs ?? 30_000, protocolVersion: initializeResult.protocolVersion });
       this.currentState = "ready";
 
       return initializeResult;
@@ -1109,7 +1114,7 @@ export interface McpTransport {
   dispose(reason?: Error): void;
   filterTools?(tools: Tool[], reset?: boolean): Tool[];
   /** Complete a legacy initialization handshake before the client reports ready. */
-  completeInitialization?(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void>;
+  completeInitialization?(options: { signal?: AbortSignal; timeoutMs: number; protocolVersion?: string }): Promise<void>;
 }
 
 export interface InMemoryServerTransport {
@@ -2689,6 +2694,8 @@ export class HttpTransport implements McpTransport {
     | ((closedEvent: McpTransportClosedEvent) => void)
     | undefined;
   private sessionId: string | undefined;
+  private legacyProtocolVersion: string | undefined;
+  private initializationRequestId: RequestId | undefined;
   private lastEventId: string | undefined;
   private getSseStreamStarted = false;
   private disposed = false;
@@ -2749,12 +2756,14 @@ export class HttpTransport implements McpTransport {
     });
   }
 
-  async completeInitialization(options: { signal?: AbortSignal; timeoutMs: number }): Promise<void> {
+  async completeInitialization(options: { signal?: AbortSignal; timeoutMs: number; protocolVersion?: string }): Promise<void> {
     validateRequestTimer(options.timeoutMs, "timeoutMs");
     const deadline = options.timeoutMs > 0 ? AbortSignal.timeout(Math.ceil(options.timeoutMs)) : undefined;
     const signals = [options.signal, deadline].filter((signal): signal is AbortSignal => signal !== undefined);
     const signal = signals.length === 0 ? new AbortController().signal : AbortSignal.any(signals);
     signal.throwIfAborted();
+    if (options.protocolVersion !== undefined) this.legacyProtocolVersion = options.protocolVersion;
+    this.maybeOpenGetSseStream();
     try {
       await this.sendPost(serializeJsonRpcMessage({ jsonrpc: "2.0", method: "notifications/initialized" }), signal);
       signal.throwIfAborted();
@@ -2909,8 +2918,13 @@ export class HttpTransport implements McpTransport {
       isObjectRecord(metadata) &&
       typeof metadata["io.modelcontextprotocol/protocolVersion"] === "string";
     if (modern) this.modernMode = true;
-    if (parsed.type === "request" && parsed.message.method === "initialize")
+    if (parsed.type === "request" && parsed.message.method === "initialize") {
       this.modernMode = false;
+      this.initializationRequestId = parsed.message.id;
+      this.legacyProtocolVersion = MCP_PROTOCOL_VERSION;
+      if (isObjectRecord(parsed.message.params) && typeof parsed.message.params.protocolVersion === "string")
+        this.legacyProtocolVersion = parsed.message.params.protocolVersion;
+    }
     if (
       this.modernMode &&
       parsed.type === "notification" &&
@@ -2966,10 +2980,12 @@ export class HttpTransport implements McpTransport {
       }
       if (!modern && this.mode !== "sse") {
         this.captureSessionId(response);
-        this.maybeOpenGetSseStream();
+        if (message?.method !== "initialize") this.maybeOpenGetSseStream();
       }
-      if (controller !== undefined) await this.forwardResponseMessages(response, controller.signal, parsed.type === "request" ? new HttpResponseMessages(parsed.message) : undefined);
-      else
+      if (controller !== undefined || message?.method === "initialize") {
+        await this.forwardResponseMessages(response, controller?.signal, controller === undefined || parsed.type !== "request" ? undefined : new HttpResponseMessages(parsed.message), message?.method === "initialize");
+        if (message?.method === "initialize") this.maybeOpenGetSseStream();
+      } else
         void this.forwardResponseMessages(response).catch((error) => {
           this.dispose(error instanceof Error ? error : new Error(String(error)));
         });
@@ -3024,8 +3040,9 @@ export class HttpTransport implements McpTransport {
       }
     } else if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
-      headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
+    if (!modern && message?.method !== "initialize" && this.legacyProtocolVersion !== undefined)
+      headers.set("MCP-Protocol-Version", this.legacyProtocolVersion);
     return this.authorizeRequestHeaders(headers, signal);
   }
 
@@ -3034,8 +3051,8 @@ export class HttpTransport implements McpTransport {
     headers.set("Accept", "text/event-stream");
     if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
-      headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
+    if (this.legacyProtocolVersion !== undefined) headers.set("MCP-Protocol-Version", this.legacyProtocolVersion);
     if (this.lastEventId !== undefined) {
       headers.set("Last-Event-ID", this.lastEventId);
     }
@@ -3045,7 +3062,7 @@ export class HttpTransport implements McpTransport {
   private async createDeleteHeaders(sessionId: string, signal?: AbortSignal): Promise<Headers> {
     const headers = new Headers(this.headers);
     headers.set("Mcp-Session-Id", sessionId);
-    headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
+    headers.set("MCP-Protocol-Version", this.legacyProtocolVersion ?? MCP_PROTOCOL_VERSION);
     return this.authorizeRequestHeaders(headers, signal);
   }
 
@@ -3167,7 +3184,7 @@ export class HttpTransport implements McpTransport {
     }
 
     if (contentType.split(";")[0]?.trim().toLowerCase() === "text/event-stream") {
-      await this.forwardSseResponseMessages(response, undefined, undefined, this.mode === "sse");
+      await this.forwardSseResponseMessages(response, undefined, undefined, { acceptEndpoint: this.mode === "sse" });
       if (this.mode === "sse") {
         if (!this.disposed) throw new Error("Legacy SSE stream ended");
         return;
@@ -3289,7 +3306,7 @@ export class HttpTransport implements McpTransport {
     }
   }
 
-  private async forwardResponseMessages(response: Response, signal?: AbortSignal, context?: HttpResponseMessages): Promise<void> {
+  private async forwardResponseMessages(response: Response, signal?: AbortSignal, context?: HttpResponseMessages, initialization = false): Promise<void> {
     if (response.status === 202) {
       void response.body?.cancel().catch(() => undefined);
       return;
@@ -3303,7 +3320,7 @@ export class HttpTransport implements McpTransport {
 
     const normalizedContentType = contentType.split(";")[0]?.trim().toLowerCase();
     if (normalizedContentType === "text/event-stream") {
-      await this.forwardSseResponseMessages(response, signal, context);
+      await this.forwardSseResponseMessages(response, signal, context, { stopAfterInitialization: initialization });
       return;
     }
 
@@ -3320,13 +3337,13 @@ export class HttpTransport implements McpTransport {
     response: Response,
     signal?: AbortSignal,
     context?: HttpResponseMessages,
-    acceptEndpoint = false
+    options: { acceptEndpoint?: boolean; stopAfterInitialization?: boolean } = {}
   ): Promise<void> {
     if (response.body === null) {
       return;
     }
 
-    const parser = new SseParser(this.maxResponseBytes, acceptEndpoint);
+    const parser = new SseParser(this.maxResponseBytes, options.acceptEndpoint);
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const reader = response.body.getReader();
     this.openResponseReaders.add(reader);
@@ -3350,7 +3367,9 @@ export class HttpTransport implements McpTransport {
 
         const messages = parser.push(decoder.decode(value, { stream: true }));
         this.writeSseMessages(messages, context);
-        if (context?.completed) { void reader.cancel().catch(() => undefined); return; }
+        if (context?.completed || (options.stopAfterInitialization && this.initializationRequestId === undefined)) {
+          void reader.cancel().catch(() => undefined); return;
+        }
         this.lastEventId = parser.lastEventId;
       }
 
@@ -3418,6 +3437,21 @@ export class HttpTransport implements McpTransport {
   private writeReadableLine(line: string): void {
     if (this.disposed || this.readStream.destroyed || this.readStream.writableEnded) {
       return;
+    }
+
+    if (this.initializationRequestId !== undefined) {
+      try {
+        const payload: unknown = JSON.parse(line);
+        for (const response of Array.isArray(payload) ? payload : [payload]) {
+          if (!isObjectRecord(response) || response.id !== this.initializationRequestId || !isObjectRecord(response.result)) continue;
+          const version = response.result.protocolVersion;
+          if (typeof version === "string" && version !== "2026-07-28" && MCP_PROTOCOL_VERSIONS.includes(version as McpProtocolVersion))
+            this.legacyProtocolVersion = version;
+          this.initializationRequestId = undefined;
+          this.maybeOpenGetSseStream();
+          break;
+        }
+      } catch { /* The message layer owns malformed JSON diagnostics. */ }
     }
 
     this.readStream.write(`${line}\n`);

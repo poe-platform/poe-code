@@ -1,4 +1,6 @@
 import {
+  MCP_PROTOCOL_VERSIONS,
+  type McpProtocolVersion,
   type HttpTransportOptions,
   type ElicitationParams,
   type ElicitationResult,
@@ -18,7 +20,7 @@ export interface RemoteMcpServer {
   readonly instructions?: string;
   readonly headers?: HttpTransportOptions["headers"];
   readonly oauth?: HttpTransportOptions["oauth"];
-  readonly protocolVersion?: "2025-03-26" | "2026-07-28";
+  readonly protocolVersion?: McpProtocolVersion;
 }
 
 export interface RemoteMcpSchema {
@@ -79,8 +81,8 @@ function validateServer(server: RemoteMcpServer, maxTools: number): void {
   if (url.hash) throw new Error("MCP URLs cannot contain fragments");
   if (server.transport !== undefined && server.transport !== "http" && server.transport !== "sse")
     throw new Error("Unsupported remote MCP transport; use http or sse");
-  if (server.protocolVersion !== undefined && server.protocolVersion !== "2025-03-26" && server.protocolVersion !== "2026-07-28")
-    throw new Error("Unsupported protocolVersion; use 2025-03-26 or 2026-07-28");
+  if (server.protocolVersion !== undefined && !MCP_PROTOCOL_VERSIONS.includes(server.protocolVersion))
+    throw new Error(`Unsupported protocolVersion; use ${MCP_PROTOCOL_VERSIONS.join(", ")}`);
   if (server.instructions !== undefined && typeof server.instructions !== "string")
     throw new Error("MCP instructions must be a string");
   if (server.tools !== undefined) appendTools([], server.tools, new Set(), maxTools);

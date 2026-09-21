@@ -5892,3 +5892,33 @@ TOML792b88388 exactly verified on remote main;release35598431393 pending;
 compiler35597375742 ongoing,no successful publication verified. Concurrent files
 preserved. Continuous12:14:15–12:18:42 adds267s,total109057s (30.29h).
 Minimum fulfilled;objective incomplete. Continue accounting after12:18:42 UTC.
+
+
+### Harness run-log admission, 2026-09-21 12:22 UTC
+
+Added run-directory resolution/creation,plan slugs and UTC role filenames. Rust
+owns ASCII label collapse,basename stem policy and date-component filename
+formatting. Node retains SHA256,platform paths,Date getter order,filesystem error
+identity and canonical ancestor checks before final creation/after creation.
+Injected filesystem without realpath retains original lexical-only admission.
+Core/reference missing-module reds precede implementation. Original15run-log cases
+run through a memfs-only test adapter,including default filesystem/symlink cases;
+no unit disk fixtures created. New30extended-year/invalid-date/Unicode filename
+comparisons,sevenpath-digest comparisons,invalid binding-date admission and
+canonical/error-identity cases pass. No production integration.
+
+Maintained9Rust cases,9native groups,150references/10files,bidirectional covered
+public types,fmt/clippy/ESLint pass. Uncached selected117workspaces/18builds/360edges
+passes. Packed41files/one addon,no npm runtime groups,external npm resolution
+blocked;discovery/queue/log scenarios pass.16MiB-old-generation worker8192log-dir
+checks/8192filenames/128traversal rejections retains4.61MiBheap/57.69MiBRSS;
+finite evidence,not total/native bounds. Five alternating warmed512log-dir/
+filename pairs:originalwall3.52–4.18ms/CPU4.21–8.74ms,ownwall4.11–4.43ms/
+CPU5.55–11.62ms;wall slower each pair,CPU mixed,scoped performance FAIL.
+Evidence out/rust-harness-logs-*.
+
+Discovery4b063bd6d exactly verified on remote main;release35598858201 pending.
+TOML release35598431393 cancelled by concurrency;compiler35597375742 ongoing
+unit,otherjobs successful. No successful publication verified. Concurrent changes
+preserved. Continuous12:18:42–12:22:24 adds222s,total109279s (30.36h).
+Minimum fulfilled;objective incomplete. Continue accounting after12:22:24 UTC.

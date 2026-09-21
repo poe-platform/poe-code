@@ -9,3 +9,5 @@ export {skillPlanConfigSection} from "./skill-config.js";
 export {mapSourcePathIntoWorktree} from "./worktree-path.js";
 
 export {discoverWorkflowDocs,resolveWorkflowPath,type DiscoverDocsOptions} from "./paths.js";
+
+export {ensureSafeRunLogDir,makeRunLogFileName,resolveRunLogDir,slugifyPlanPath,type RunLogFileSystem,type ResolveRunLogDirOptions} from "./run-logs.js";

@@ -211,3 +211,20 @@ pub fn harness_merge_docs(
         .map(Utf16String::from)
         .collect()
 }
+#[napi]
+pub fn harness_plan_slug(base: Utf16String, digest: Utf16String) -> Utf16String {
+    agent_harness_tools_rust::logs::plan_slug(&base, &digest).into()
+}
+#[napi]
+pub fn harness_log_filename(
+    role: Utf16String,
+    date: Vec<Utf16String>,
+) -> napi::Result<Utf16String> {
+    let date: [Vec<u16>; 7] = date
+        .into_iter()
+        .map(|value| value.to_vec())
+        .collect::<Vec<_>>()
+        .try_into()
+        .map_err(|_| napi::Error::from_reason("Run log filename requires seven UTC components"))?;
+    Ok(agent_harness_tools_rust::logs::file_name(&role, &date).into())
+}

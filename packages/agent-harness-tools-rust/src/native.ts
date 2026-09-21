@@ -15,6 +15,8 @@ interface NativeQueue {
 }
 export const native=createRequire(import.meta.url)("./agent-harness-tools-rust.node") as {
  NativeHarnessQueue:new()=>NativeQueue;
+ harnessPlanSlug(base:string,digest:string):string;
+ harnessLogFilename(role:string,date:string[]):string;
  harnessPathContained(relative:string,absolute:boolean,separator:number):boolean;
  harnessDefaultGlob(subdirectory:string):string;
  harnessMatchesGlob(name:string,lowerName:string,glob:string,lowerGlob:string):boolean;

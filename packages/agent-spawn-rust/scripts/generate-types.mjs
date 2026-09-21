@@ -27,6 +27,7 @@ const types = declarations("types.d.ts", [
   "SPAWN_MODES",
   "DEFAULT_SPAWN_MODE",
   "SpawnMode",
+  "SpawnUsage",
   "SpawnModeConfig",
   "SpawnModesConfig",
   "resolveModeConfig",
@@ -79,7 +80,7 @@ writeFileSync(
   new URL("src/index.d.ts", root),
   imports +
     index +
-    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\nexport {runCommand} from './run-command.js';\nexport type {CommandRunner,CommandRunnerOptions,CommandRunnerResult} from './run-command.js';\nexport {adaptClaude,adaptCodex,adaptNative,getAdapter} from './adapters.js';\n"
+    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\nexport {runCommand} from './run-command.js';\nexport type {CommandRunner,CommandRunnerOptions,CommandRunnerResult} from './run-command.js';\nexport {adaptClaude,adaptCodex,adaptNative,getAdapter} from './adapters.js';\nexport {readLines,applyMiddlewares} from './stream.js';\n"
 );
 
 writeFileSync(
@@ -168,3 +169,18 @@ const adapterTypes =
     .join("\n") +
   "\ndeclare function adaptNative(lines:AsyncIterable<string>):AsyncGenerator<{event:string}&Record<string,unknown>>;\nexport {adaptNative};\n";
 writeFileSync(new URL("src/adapters.d.ts", root), adapterTypes);
+
+writeFileSync(
+  new URL("src/stream.d.ts", root),
+  "import type {Readable} from 'node:stream';\nimport type {SpawnUsage,SpawnMode} from './types.js';\nimport type {AcpEvent} from './acp-types.js';\n" +
+    declarations("acp/middleware.d.ts", [
+      "SessionToolCall",
+      "SessionResult",
+      "SpawnContext",
+      "AcpMiddleware",
+      "applyMiddlewares"
+    ]) +
+    "\n" +
+    declarations("acp/line-reader.d.ts", ["readLines"]) +
+    "\n"
+);

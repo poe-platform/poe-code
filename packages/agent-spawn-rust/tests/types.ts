@@ -45,3 +45,8 @@ type Adapters = Pick<typeof original, "adaptClaude" | "adaptCodex" | "adaptNativ
 const i: Adapters = own;
 const j: Pick<typeof own, keyof Adapters> = null as unknown as Adapters;
 void [i, j];
+
+type Stream = Pick<typeof original, "readLines" | "applyMiddlewares">;
+const k: Stream = own;
+const l: Pick<typeof own, keyof Stream> = null as unknown as Stream;
+void [k, l];

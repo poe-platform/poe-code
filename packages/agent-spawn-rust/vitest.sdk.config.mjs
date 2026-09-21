@@ -23,7 +23,8 @@ export default defineConfig({
             path("../agent-spawn/src/run-command.test.ts"),
             path("../agent-spawn/src/run-command.integration.test.ts"),
             path("../agent-spawn/src/adapters/adapters.test.ts"),
-            path("../agent-spawn/src/adapters/action-presentation.test.ts")
+            path("../agent-spawn/src/adapters/action-presentation.test.ts"),
+            path("../agent-spawn/src/acp/acp.test.ts")
           ].includes(importer) &&
           name === "./run-command.js"
         )
@@ -31,7 +32,8 @@ export default defineConfig({
         if (
           [
             path("../agent-spawn/src/adapters/adapters.test.ts"),
-            path("../agent-spawn/src/adapters/action-presentation.test.ts")
+            path("../agent-spawn/src/adapters/action-presentation.test.ts"),
+            path("../agent-spawn/src/acp/acp.test.ts")
           ].includes(importer)
         ) {
           if (
@@ -48,6 +50,11 @@ export default defineConfig({
             return path("dist/adapters.js");
           if (name === "./utils.js") return path("dist/adapter-utils.js");
         }
+        if (
+          importer === path("../agent-spawn/src/acp/acp.test.ts") &&
+          ["./line-reader.js", "./middleware.js"].includes(name)
+        )
+          return path("dist/stream.js");
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -64,7 +71,8 @@ export default defineConfig({
         }
       },
       transform(code, id) {
-        if (id !== args) return;
+        const acp = path("../agent-spawn/src/acp/acp.test.ts");
+        if (id !== args && id !== acp) return;
         const ast = ts.createSourceFile(id, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
         const transformed = ts.transform(ast, [
           (context) => (node) => {
@@ -78,7 +86,11 @@ export default defineConfig({
                 const title = current.expression.arguments[0];
                 if (
                   ts.isStringLiteral(title) &&
-                  !["buildSpawnArgs", "stripModelNamespace"].includes(title.text)
+                  !(
+                    id === args
+                      ? ["buildSpawnArgs", "stripModelNamespace"]
+                      : ["acp/readLines", "acp/applyMiddlewares"]
+                  ).includes(title.text)
                 )
                   return undefined;
               }
@@ -103,7 +115,8 @@ export default defineConfig({
       path("../agent-spawn/src/run-command.test.ts"),
       path("../agent-spawn/src/run-command.integration.test.ts"),
       path("../agent-spawn/src/adapters/adapters.test.ts"),
-      path("../agent-spawn/src/adapters/action-presentation.test.ts")
+      path("../agent-spawn/src/adapters/action-presentation.test.ts"),
+      path("../agent-spawn/src/acp/acp.test.ts")
     ],
     environment: "node",
     fileParallelism: false,

@@ -461,3 +461,50 @@ pub fn spawn_is_nonempty(value: Unknown<'_>) -> Result<bool> {
     Ok(value.get_type()? == napi::ValueType::String
         && !unsafe { value.cast::<Utf16String>()? }.is_empty())
 }
+#[napi]
+#[derive(Default)]
+pub struct NativeSpawnLines {
+    state: agent_spawn_rust::stream::LineBuffer,
+}
+#[napi]
+impl NativeSpawnLines {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn push(&mut self, chunk: Utf16String) -> Vec<Utf16String> {
+        self.state
+            .push(&chunk)
+            .into_iter()
+            .map(Into::into)
+            .collect()
+    }
+    #[napi]
+    pub fn end(&mut self) -> Option<Utf16String> {
+        self.state.end().map(Into::into)
+    }
+}
+#[napi]
+#[derive(Default)]
+pub struct NativeSpawnDispatch {
+    state: agent_spawn_rust::stream::Dispatch,
+}
+#[napi]
+impl NativeSpawnDispatch {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn enter(&mut self, position: u32, count: u32) -> Result<bool> {
+        self.state
+            .enter(position as usize, count as usize)
+            .map_err(Error::from_reason)
+    }
+}
+#[napi]
+pub fn spawn_middleware_callback(position: u32, callable: bool) -> Result<()> {
+    agent_spawn_rust::stream::validate_callback(position as usize, callable)
+        .map_err(Error::from_reason)
+}

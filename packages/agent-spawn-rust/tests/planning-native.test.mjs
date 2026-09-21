@@ -217,3 +217,57 @@ test("thread extraction stops before unrelated getters and adapter output preser
     assert.deepEqual(await collect(ownAdapters[name]), await collect(referenceAdapter), name);
   }
 });
+test("middleware repeat guards precede callback getters", async () => {
+  for (const implementation of [reference, own]) {
+    let reads = 0;
+    const chain = [
+      async (_context, next) => {
+        await next();
+        await next();
+      },
+      undefined
+    ];
+    Object.defineProperty(chain, 1, {
+      get() {
+        reads++;
+        return async () => {};
+      }
+    });
+    await assert.rejects(implementation.applyMiddlewares(chain, {}), {
+      message: "next() called multiple times"
+    });
+    assert.equal(reads, 1);
+  }
+});
+test("line framing agrees for every UTF-8 split and preserves CR/empty lines", async () => {
+  const { Readable } = await import("node:stream");
+  const input = Buffer.from("first 🌍\r\n\nnext 🧪\nlast");
+  const collect = async (stream) => {
+    const values = [];
+    for await (const value of stream) values.push(value);
+    return values;
+  };
+  for (let split = 0; split <= input.length; split++) {
+    const chunks = [input.subarray(0, split), input.subarray(split)];
+    assert.deepEqual(
+      await collect(own.readLines(Readable.from(chunks))),
+      await collect(reference.readLines(Readable.from(chunks)))
+    );
+  }
+  assert.deepEqual(await collect(own.readLines(Readable.from(["x\ud800\n", "last\udc00"]))), [
+    "x\ud800",
+    "last\udc00"
+  ]);
+  for (const reason of [undefined, null, false, 0, "", 0n])
+    await assert.rejects(
+      own.applyMiddlewares(
+        [
+          async () => {
+            throw reason;
+          }
+        ],
+        {}
+      ),
+      (error) => Object.is(error, reason)
+    );
+});

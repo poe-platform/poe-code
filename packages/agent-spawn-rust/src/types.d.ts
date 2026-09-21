@@ -52,6 +52,12 @@ export interface McpFileSpec {
   relativePath: string;
   content: (servers: McpSpawnConfig) => Record<string, unknown>;
 }
+export interface SpawnUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens?: number;
+  costUsd?: number;
+}
 export interface StdinMode {
   omitPrompt: boolean;
   extraArgs: string[];

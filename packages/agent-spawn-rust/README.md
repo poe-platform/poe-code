@@ -10,6 +10,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Run tuples or spawn thunks with bounded concurrency and group cancellation.
 - Capture subprocess output with timeout/abort handling and Unix process-group cleanup.
 - Normalize Claude, Codex, Cursor, native, OpenCode and Pi JSONL streams into shared events.
+- Frame UTF-8 streams into lines and compose middleware with repeated-next guards.
 
 ```typescript
 import { buildSpawnArgs, listSpawnableAgents } from '@poe-code/agent-spawn-rust';
@@ -66,3 +67,5 @@ for await (const event of getAdapter('codex')(jsonLines)) render(event);
 ```
 
 Each adapter invocation owns separate session/tool state. Tool starts and completions, usage, reasoning and plan updates are normalized independently. Malformed lines emit error events and processing continues. Parsing currently limits a line to 16 MiB, depth 128 and 262,144 JSON values; exceeding a limit produces a malformed-line event. This differs from JavaScript's unrestricted `JSON.parse` contract and remains an interoperability limit.
+
+`readLines(readable)` buffers incomplete lines and split UTF-8 characters, preserving empty lines and carriage returns. `applyMiddlewares(layers, context)` shares one context through the chain, allows a layer to stop without calling `next()`, and rejects repeated `next()` calls. Incomplete lines remain buffered without a size cap.

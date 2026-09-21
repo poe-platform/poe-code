@@ -3432,3 +3432,34 @@ release35557730932 is pending; older parallel release was cancelled and retry
 release35557365606 remains in progress. No publication verified. Full spawn,
 rendering/resources/runtime/telemetry, poe-agent closure and minimum effort remain
 unfinished; production imports remain unchanged.
+
+### Native line framing and middleware, 2026-09-21 03:41 UTC
+
+Rust now owns incremental UTF-16 line framing/EOF and middleware repeated-next
+admission/invalid-entry validation. Node supplies StringDecoder, asynchronous
+Readable effects, callback property access and shared context identity. Scanning
+starts at the new chunk boundary to avoid rescanning incomplete lines. EOF clears
+native buffers; post-EOF writes retain nothing. A portable red reproduced large
+completed-line capacity retained behind a tiny partial tail; disproportionate
+capacity is now discarded. A native red reproduced callback-getter evaluation
+before a repeated-next rejection; guard ordering now precedes callback access.
+
+All15 portable Rust cases,10 native groups and294 applicable original cases pass.
+The whole original readLines/applyMiddlewares describes (12 cases) run through own
+modules. Remaining ACP rendering/spawn describes are explicitly excluded and not
+counted. Native checks cover every UTF-8 split of a multi-line sample, CR/empty
+lines, lone surrogates and arbitrary falsy middleware failure reasons. Supported
+public types are bidirectional. Maintained unit/types/lint/fmt/clippy/formatting
+and explicit uncached focused build closure pass. Packed/direct16MiB workers add
+384 framed lines and512 middleware invocations; recursive import audit covers36
+files, one addon and zero runtime dependency groups. Heap endpoints~8.9MB and
+parent-inclusive RSS are bounded checks only. Incomplete lines have no size cap.
+Evidence out/rust-agent-spawn-stream-*. Full agent/runtime closure remains open.
+
+Adapter commit6b561be65 is verified on remote main. Its release35558160806 is
+pending. Retry release35557365606 has successful build/audit/checks/cached-unit
+jobs but a failed fresh-unit job, now being investigated while bash jobs run.
+No successful publication is verified. Active03:21:02–03:41:16 UTC (1214s) is now
+recorded, excluding the inherited checkpoint gap. Conservative total80122s
+(22.26h), minimum remaining6278s (1h44m38s). Work continues beyond this boundary;
+minimum24-hour actual effort and the full goal remain unfinished.

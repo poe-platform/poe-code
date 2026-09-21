@@ -86,3 +86,4 @@ export type {
 export { runCommand } from "./run-command.js";
 export type { CommandRunner, CommandRunnerOptions, CommandRunnerResult } from "./run-command.js";
 export { adaptClaude, adaptCodex, adaptNative, getAdapter } from "./adapters.js";
+export { readLines, applyMiddlewares } from "./stream.js";

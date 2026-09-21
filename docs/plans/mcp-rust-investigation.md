@@ -4534,3 +4534,28 @@ red is running; relative sibling imports are the next atomic fix. Current root
 active06:11:35–06:19:34 adds479s, bringing conservative actual effort to89,257s
 (24.79h). Minimum effort fulfilled; full rewrite/acceptance incomplete. Continue
 active work after06:19:34 UTC.
+
+### Embedded OAuth portability, 2026-09-21 06:26 UTC
+
+Maintained combined HTTP build red reproduces the release defect. Relative sibling
+imports repair grant/resource bindings when nested beneath the embedded client.
+Explicit provider import and maintained HTTP suite reds also reproduce a missing
+credential-transaction-lock module. HTTP preparation now embeds the own lock next
+to auth-store runtime; recursive fixture embedding includes it. Uncached family
+closure passes113 workspaces/16 builds/338 edges. Explicit HTTP/fixture provider
+imports pass. Maintained HTTP checks pass26 Rust cases,48 native groups,443 reference
+cases/21 files and bidirectional types. Focused OAuth/HTTP lint passes. Fixture checks
+pass5 Rust cases,3 native groups,23 reference cases/4 files and types. Direct/packed
+16MiB fixture workers each pass32 listener/PKCE flows,2048 echo calls,32 revocations
+and CLI help. No runtime dependencies added. Evidence out/rust-oauth-embedded-*.
+
+HTTP lifecycle reds expose development SDK divergence: originals resolve1.30 while
+the own package pins1.29. Development-only Vite deduplication and TypeScript paths
+resolve both contract sides against root SDK, restoring actual cleanup mocks and
+shared nominal SDK types. Client checks independently expose four newly added
+initialization-completion failures; separate correction underway.
+
+Remote main80912d7d3 includes transcript work; root35568021206 remains in progress.
+Root35567435784 failed; no successful current publication verified. Continuous
+active06:19:34–06:26:57 adds443s, bringing conservative effort to89,700s (24.92h).
+Minimum fulfilled; full rewrite/acceptance incomplete. Continue after06:26:57 UTC.

@@ -1,4 +1,4 @@
-use crate::{convert::NativeJson, registration_binding::read_credential_json};
+use super::{convert::NativeJson, registration_binding::read_credential_json};
 use mcp_oauth_rust::grant::{TokenGrant, valid_timestamp};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;

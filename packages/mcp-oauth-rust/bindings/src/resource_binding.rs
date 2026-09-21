@@ -1,4 +1,4 @@
-use crate::convert::NativeJson;
+use super::convert::NativeJson;
 use mcp_oauth_rust::resource_credentials::ResourceCredentials;
 use mcp_protocol_rust::json;
 use napi::bindgen_prelude::*;
@@ -77,7 +77,7 @@ impl NativeResourceCredentials {
     }
     #[napi(factory)]
     pub fn import_session(env: Env, source: Unknown<'_>) -> Result<Self> {
-        let value = crate::registration_binding::read_credential_json(env, source)
+        let value = super::registration_binding::read_credential_json(env, source)
             .map_err(|_| napi::Error::from_reason("Invalid OAuth import session"))?;
         ResourceCredentials::import_session(value)
             .map(|state| Self { state })

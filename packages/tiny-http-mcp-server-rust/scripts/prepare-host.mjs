@@ -36,4 +36,5 @@ for(const name of readdirSync(client)){
 }
 for(const name of readdirSync(oauth))if(name.endsWith('.js')||name.endsWith('.d.ts'))writeFileSync(new URL(name,oauthOutput),readFileSync(new URL(name,oauth),'utf8').replaceAll('./mcp-oauth-rust.node','../../tiny-http-mcp-server-rust.node'));
 copyFileSync(new URL('../../auth-store-rust/src/runtime.js',import.meta.url),new URL('auth-store-runtime.js',oauthOutput));
+copyFileSync(new URL('../../auth-store-rust/src/credential-transaction-lock.js',import.meta.url),new URL('credential-transaction-lock.js',oauthOutput));
 copyFileSync(new URL('../../auth-store-rust/src/index.d.ts',import.meta.url),new URL('auth-store-types.d.ts',oauthOutput));

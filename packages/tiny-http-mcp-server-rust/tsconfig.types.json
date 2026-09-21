@@ -5,7 +5,10 @@
     "skipLibCheck": true,
     "target": "ES2022",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "@modelcontextprotocol/sdk/*": ["../../node_modules/@modelcontextprotocol/sdk/dist/esm/*"]
+    }
   },
   "include": ["tests/types.ts"]
 }

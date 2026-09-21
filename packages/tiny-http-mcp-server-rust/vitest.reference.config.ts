@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const referenceRoot=fileURLToPath(new URL('../tiny-http-mcp-server/src/',import.meta.url));
 export default defineConfig({
+ resolve:{dedupe:['@modelcontextprotocol/sdk']},
  root:fileURLToPath(new URL('../../',import.meta.url)),
  plugins:[{name:'rust-http-primitives-conformance',enforce:'pre',resolveId(source,importer){
   if(importer?.endsWith('/tiny-http-mcp-server/vitest.setup.ts')&&source==='./src/test-support.js')return fileURLToPath(new URL('./dist/test-support.js',import.meta.url));

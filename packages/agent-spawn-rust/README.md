@@ -15,6 +15,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Capture native OTLP traces, logs and metrics using declarative agent overlays.
 - Resolve host/docker runtime policies and capability checks through an embedded owned SDK.
 - Bridge active skills and hooks for a run, retaining ownership and rollback.
+- Launch CLI agents through owned runtimes, capturing output, activity deadlines and scoped telemetry.
 
 ```typescript
 import { buildSpawnArgs, listSpawnableAgents } from '@poe-code/agent-spawn-rust';
@@ -30,7 +31,7 @@ console.log(launch.binaryName, launch.displayArgs);
 
 An omitted permission mode selects `auto`. Agents without an unattended approval channel reject it; `yolo` requires an explicit request. Large UTF-8 prompts and embedded NULs use stdin where the selected agent supports automatic fallback. Display arguments redact prompt text while execution arguments preserve it.
 
-This private, experimental package currently supplies registry and argument planning. Full agent execution is still being implemented. Runtime configuration and host/docker environment factories are embedded in the package. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
+This private, experimental package supplies CLI execution, registry and argument planning. Streaming, interactive and ACP execution are still being implemented. Runtime configuration and host/docker environment factories are embedded in the package. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
 
 ```typescript
 import { createSpawnRetry } from '@poe-code/agent-spawn-rust';
@@ -132,3 +133,22 @@ Resource bridges use the embedded Rust skill and hook policies. They preserve
 existing files and collision warnings, clean up hooks before skills, and roll back
 skills when hook preparation fails. Missing references reject with recovery
 guidance. Repeated cleanup retains ownership and leaves user files intact.
+
+```typescript
+import { spawn } from '@poe-code/agent-spawn-rust';
+
+const result = await spawn('codex', {
+  prompt: 'Review this repository', mode: 'read', cwd: process.cwd(),
+  activityTimeoutMs: 30_000,
+});
+console.log(result.stdout, result.exitCode);
+```
+
+`spawn` uses the embedded planner, runtime and process hosts. Per-call environment
+values override mode/MCP settings; `undefined` removes an inherited variable.
+Skills and hooks are leased for the run, and temporary MCP JSON files merge with
+existing settings before restoring their exact previous bytes. Cancellation and
+activity deadlines reject; tee callbacks preserve their host object identity.
+Logs append both channels on a best-effort basis. Dry runs redact the prompt and
+skip resource, filesystem and process effects. `spawn.parallel` supports the same
+bounded concurrency and cancellation options as injected parallel handles.

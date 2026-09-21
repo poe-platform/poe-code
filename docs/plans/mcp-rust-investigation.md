@@ -6508,3 +6508,36 @@ still unit in_progress;other validation jobs succeeded. No successful current
 root publication verified. Foreign changes preserved. Continuous14:23:59–14:32:04
 adds485s,total117059s(32.52h). Minimum fulfilled;full objective incomplete.
 Continue accounting after14:32:04UTC.
+
+### Owned CLI agent execution, 2026-09-21 14:42 UTC
+
+Missing spawn/MCP lifecycle APIs and portable execution facts reproduced with
+failing SDK/native/core tests before implementation. Rust selects stdin from the
+same declarative catalog as argument planning and recursively merges MCP JSON.
+Node supplies filesystem/process effects around the embedded owned planner,
+harness,process runner,runtime and resource engines. Added spawn,scoped/noop
+telemetry and spawn.parallel. Temporary MCP files restore exact previous bytes;
+logs append both channels,best effort. Native planner DTOs exclude cyclic host
+callbacks,signals and middleware. No original consumer integration.
+
+Maintained21Rust cases/27native groups/359SDK cases in13files and bidirectional
+covered options/results/context/signatures pass. Reference active-child abort
+fixtures now await production async open/upload and provide child.unref,without
+replacing the real owned factory. Two streaming retry cases are explicitly held
+for the next execution phase. fmt/clippy/shared checks/ESLint pass. Selected
+uncached38-build closure at concurrency1 passes. Manual smoke ran /bin/echo
+through actual spawn;viewed out/rust-spawn-execution.png showing prompt-redacted
+dry run and captured exit0 using the owned design logger.
+Packed one addon/353audited sources+declarations/zero npm runtime groups. Blocked
+external-import direct/packed16MiBworkers each finish512spawns,512dryruns and64
+parallel launches. Workers inject the owned state registry with memfs promises;
+mock children consume stdin to model pipe backpressure. No filesystem fixtures.
+Finite old-generation limits do not bound total/native memory,and process RSS is
+shared. No performance advantage asserted for host orchestration. Evidence
+out/rust-spawn-execution-*;initial mock-backpressure/state-FS mistakes corrected.
+
+OAuth886c8f141 pushed and exact remote main verified. Root release35605641955
+still unit in_progress;all other validations succeeded. Latest root runs pending
+or cancelled by subsequent pushes;no successful current root publication verified.
+Foreign changes preserved. Continuous14:32:04–14:42:09 adds605s,total117664s
+(32.68h). Minimum fulfilled;full objective incomplete. Continue after14:42:09UTC.

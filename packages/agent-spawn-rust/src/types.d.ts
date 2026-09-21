@@ -157,3 +157,62 @@ export interface AcpSpawnConfig {
   mcpEnv?: (servers: McpSpawnConfig) => Record<string, string>;
 }
 export type SpawnConfig = CliSpawnConfig | FileSpawnConfig | AcpSpawnConfig;
+
+export type OtelSpan = {
+  setAttribute(key: string, value: unknown): void;
+  addEvent(name: string, attrs: Record<string, unknown>): void;
+  end(): void;
+};
+export interface OtelSink {
+  startSpan(name: string, attrs: Record<string, unknown>): OtelSpan;
+  recordException(span: OtelSpan, error: unknown): void;
+}
+export interface SpawnOptions {
+  prompt: string;
+  cwd?: string;
+  model?: string;
+  mode?: SpawnMode;
+  args?: string[];
+  mcpServers?: McpSpawnConfig;
+  skills?: string[];
+  hooks?: import("./resources.js").HookBridgeOptions;
+  resumeThreadId?: string;
+  useStdin?: boolean;
+  interactive?: boolean;
+  signal?: AbortSignal;
+  otelSink?: OtelSink;
+  captureOtel?: boolean;
+  captureOtelContent?: boolean;
+  env?: Record<string, string | undefined>;
+  middlewares?: import("./stream.js").AcpMiddleware[];
+  tee?: { stdout?: { write(chunk: string): void }; stderr?: { write(chunk: string): void } };
+  activityTimeoutMs?: number;
+  logPath?: string;
+  logDir?: string;
+  logFileName?: string;
+  runtime?: import("./harness/poe-command-execution.js").RuntimeOverrideOptions["runtime"];
+  runtimeImage?: string;
+  runtimeConfigCwd?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
+  runnerSync?: import("./harness/poe-command-execution.js").RuntimeOverrideOptions["runnerSync"];
+}
+export interface SpawnResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  durationMs?: number;
+  threadId?: string;
+  usage?: SpawnUsage;
+  logFile?: string;
+  detached?: { jobId: string; envId: string };
+}
+export interface SpawnLogger {
+  dryRun(message: string): void;
+}
+export interface SpawnContext {
+  dryRun?: boolean;
+  logger?: SpawnLogger;
+  homeDir?: string;
+  state?: import("./harness/config/core.js").StateManager;
+}

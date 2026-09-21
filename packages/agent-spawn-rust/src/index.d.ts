@@ -95,3 +95,6 @@ export type { NativeOtelRecord, NativeOtelCapture } from "./native-otel.js";
 export { resolveSpawnExecution, UnsupportedRuntimeCapabilityError } from "./runtime.js";
 export { bridgeResourcesForRun, cleanupResourcesForRun } from "./resources.js";
 export type { HookBridgeOptions, BridgedRunManifest } from "./resources.js";
+
+export { spawn, isActivityTimeoutError } from "./spawn.js";
+export { noopOtelSink } from "./observe.js";

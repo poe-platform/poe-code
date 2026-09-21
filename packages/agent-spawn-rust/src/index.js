@@ -36,7 +36,12 @@ export function serializeJsonMcpArgs(servers) {
 }
 function config(entry, descriptor, acp) {
   if (!descriptor) return undefined;
-  const { order, mcp, modelTransforms, resume, argsRecipe, ...data } = descriptor,
+  const { mcp, modelTransforms, resume, argsRecipe } = descriptor,
+    data = Object.fromEntries(
+      Object.entries(descriptor).filter(
+        ([key]) => !["order", "mcp", "modelTransforms", "resume", "argsRecipe"].includes(key)
+      )
+    ),
     id = entry.metadata.id;
   const result = { ...data, agentId: id };
   if (mcp?.channel === "args")
@@ -50,7 +55,10 @@ function config(entry, descriptor, acp) {
     };
   if (modelTransforms) result.modelTransform = (model) => planner.model(id, model);
   if (resume) {
-    const { argsTemplate, hintArgsTemplate, ...data } = resume;
+    const { hintArgsTemplate } = resume;
+    const data = Object.fromEntries(
+      Object.entries(resume).filter(([key]) => !["argsTemplate", "hintArgsTemplate"].includes(key))
+    );
     result.resume = {
       ...data,
       args: (thread, cwd) => planner.resume(id, thread, cwd, false),
@@ -126,7 +134,16 @@ export function resolveConfig(input, env = process.env) {
 export function buildSpawnArgs(input, options) {
   const result = planner.build(
     input,
-    JSON.stringify({ ...options, cwd: options.cwd ?? process.cwd() }),
+    JSON.stringify({
+      prompt: options.prompt,
+      model: options.model,
+      mode: options.mode,
+      args: options.args,
+      mcpServers: options.mcpServers,
+      resumeThreadId: options.resumeThreadId,
+      useStdin: options.useStdin,
+      cwd: options.cwd ?? process.cwd()
+    }),
     process.env.POE_AGENT_BINARY
   );
   result.env ??= undefined;
@@ -163,3 +180,6 @@ export { createToolRenderState, sessionUpdateToEvents } from "./render.js";
 export { startNativeOtelCapture } from "./native-otel.js";
 export { resolveSpawnExecution, UnsupportedRuntimeCapabilityError } from "./runtime.js";
 export { bridgeResourcesForRun, cleanupResourcesForRun } from "./resources.js";
+
+export { spawn, isActivityTimeoutError } from "./spawn.js";
+export { noopOtelSink } from "./observe.js";

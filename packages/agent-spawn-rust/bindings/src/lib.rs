@@ -94,6 +94,13 @@ impl NativeSpawnPlanner {
             .map_err(Error::from_reason)
     }
     #[napi]
+    pub fn selected_stdin(&self, input: String, options: Utf16String) -> Result<NativeJson> {
+        self.planner
+            .selected_stdin(&input, &parse(options)?)
+            .map(|v| NativeJson(v.unwrap_or(Value::Null)))
+            .map_err(Error::from_reason)
+    }
+    #[napi]
     pub fn model(&self, input: String, model: Utf16String) -> Result<Utf16String> {
         let config = self
             .planner
@@ -501,4 +508,11 @@ pub fn spawn_render_output(content: Utf16String) -> Result<Utf16String> {
 #[napi]
 pub fn spawn_otel_signal(path: Utf16String) -> Option<String> {
     agent_spawn_rust::otel::signal(&path).map(str::to_owned)
+}
+
+#[napi]
+pub fn spawn_merge_mcp(existing: Utf16String, addition: Utf16String) -> Result<NativeJson> {
+    agent_spawn_rust::execution::merge_mcp(&parse(existing)?, &parse(addition)?)
+        .map(NativeJson)
+        .map_err(Error::from_reason)
 }

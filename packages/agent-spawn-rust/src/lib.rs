@@ -1,6 +1,7 @@
 //! Independent declarative spawn planning and execution policies.
 pub mod adapters;
 pub mod command;
+pub mod execution;
 pub mod mcp;
 pub mod otel;
 pub mod parallel;
@@ -276,6 +277,20 @@ impl Planner {
             .iter()
             .map(|d| text(field(&d.metadata, "id")))
             .collect()
+    }
+    pub fn selected_stdin(&self, input: &str, options: &Value) -> Result<Option<Value>, String> {
+        let definition = self
+            .definition(input)
+            .ok_or_else(|| format!("Unknown agent \"{input}\"."))?;
+        let id = text(field(&definition.metadata, "id"));
+        let config = definition
+            .spawn_config
+            .as_ref()
+            .ok_or_else(|| format!("Agent \"{id}\" has no spawn config."))?;
+        if field(config, "kind") != &s("cli") {
+            return Err(format!("Agent \"{id}\" does not support CLI spawn."));
+        }
+        Ok(stdin_mode(config, options).cloned())
     }
     pub fn build(
         &self,

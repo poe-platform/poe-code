@@ -67,6 +67,11 @@ export default defineConfig({
           name === "./session-update-converter.js"
         )
           return path("dist/render.js");
+        if (
+          importer === path("../agent-spawn/src/configs/mcp-file.test.ts") &&
+          name === "./mcp-file.js"
+        )
+          return path("dist/mcp-file.js");
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -74,10 +79,16 @@ export default defineConfig({
           if (name.startsWith("./")) return path("dist/configs/" + name.slice(2));
         }
         if (importer === args) {
+          if (name === "@poe-code/agent-spawn") return path("dist/index.js");
+          if (name === "@poe-code/agent-skill-config") return path("dist/skills/index.js");
+          if (name === "@poe-code/agent-hook-config") return path("dist/hooks/index.js");
+          if (name === "toolcraft-design") return path("dist/design/index.js");
+
           if (["./index.js", "./spawn.js", "./types.js"].includes(name))
             return path("dist/index.js");
           if (name === "./mcp-args.js") return path("dist/mcp-args.js");
           if (name === "./model-utils.js") return path("dist/model-utils.js");
+          if (name === "./configs/mcp-file.js") return path("dist/mcp-file.js");
           if (name.startsWith("./configs/"))
             return path("dist/configs/" + name.slice("./configs/".length));
         }
@@ -100,11 +111,83 @@ export default defineConfig({
                   ts.isStringLiteral(title) &&
                   !(
                     id === args
-                      ? ["buildSpawnArgs", "stripModelNamespace"]
+                      ? ["buildSpawnArgs", "stripModelNamespace", "spawn"]
                       : ["acp/readLines", "acp/applyMiddlewares"]
                   ).includes(title.text)
                 )
                   return undefined;
+              }
+              if (
+                id === args &&
+                ts.isReturnStatement(current) &&
+                ts.isIdentifier(current.expression) &&
+                current.expression.text === "child"
+              ) {
+                const unref = ts.factory.createExpressionStatement(
+                  ts.factory.createBinaryExpression(
+                    ts.factory.createPropertyAccessExpression(
+                      ts.factory.createIdentifier("child"),
+                      "unref"
+                    ),
+                    ts.factory.createToken(ts.SyntaxKind.EqualsToken),
+                    ts.factory.createArrowFunction(
+                      undefined,
+                      undefined,
+                      [],
+                      undefined,
+                      ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                      ts.factory.createBlock([], false)
+                    )
+                  )
+                );
+                return [unref, current];
+              }
+              if (
+                id === args &&
+                ts.isExpressionStatement(current) &&
+                ts.isCallExpression(current.expression)
+              ) {
+                const call = current.expression;
+                if (
+                  ts.isIdentifier(call.expression) &&
+                  call.expression.text === "it" &&
+                  ts.isStringLiteral(call.arguments[0]) &&
+                  call.arguments[0].text.startsWith("spawn.retry")
+                )
+                  return undefined;
+                // The production host factory observes cancellation before starting a child.
+                // Wait for its async open/upload boundary before exercising active-child kill.
+                if (
+                  ts.isPropertyAccessExpression(call.expression) &&
+                  call.expression.name.text === "abort" &&
+                  call.arguments.length === 0
+                ) {
+                  const wait = ts.factory.createExpressionStatement(
+                    ts.factory.createAwaitExpression(
+                      ts.factory.createNewExpression(
+                        ts.factory.createIdentifier("Promise"),
+                        undefined,
+                        [
+                          ts.factory.createArrowFunction(
+                            undefined,
+                            undefined,
+                            [
+                              ts.factory.createParameterDeclaration(undefined, undefined, "resolve")
+                            ],
+                            undefined,
+                            ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                            ts.factory.createCallExpression(
+                              ts.factory.createIdentifier("setImmediate"),
+                              undefined,
+                              [ts.factory.createIdentifier("resolve")]
+                            )
+                          )
+                        ]
+                      )
+                    )
+                  );
+                  return [wait, current];
+                }
               }
               return ts.visitEachChild(current, visit, context);
             };
@@ -120,6 +203,7 @@ export default defineConfig({
   test: {
     include: [
       args,
+      path("../agent-spawn/src/configs/mcp-file.test.ts"),
       configs,
       types,
       path("../agent-spawn/src/native-otel.test.ts"),

@@ -72,3 +72,27 @@ type Resources = Pick<typeof OriginalResources, "bridgeResourcesForRun" | "clean
 const resourcesOriginal: Resources = own;
 const resourcesOwn: Pick<typeof own, keyof Resources> = null as unknown as Resources;
 void [resourcesOriginal, resourcesOwn];
+
+type ExecutionOptions = original.SpawnOptions;
+const executionOptionsA: own.SpawnOptions = null as unknown as ExecutionOptions;
+const executionOptionsB: ExecutionOptions = null as unknown as own.SpawnOptions;
+const executionResultA: own.SpawnResult = null as unknown as original.SpawnResult;
+const executionResultB: original.SpawnResult = null as unknown as own.SpawnResult;
+const executionContextA: own.SpawnContext = null as unknown as original.SpawnContext;
+const executionContextB: original.SpawnContext = null as unknown as own.SpawnContext;
+const spawnSignatureA: (
+  agentId: string,
+  options: original.SpawnOptions,
+  context?: original.SpawnContext
+) => Promise<original.SpawnResult> = own.spawn;
+const spawnSignatureB: typeof own.spawn = null as unknown as typeof original.spawn;
+void [
+  executionOptionsA,
+  executionOptionsB,
+  executionResultA,
+  executionResultB,
+  executionContextA,
+  executionContextB,
+  spawnSignatureA,
+  spawnSignatureB
+];

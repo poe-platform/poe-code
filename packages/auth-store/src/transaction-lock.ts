@@ -20,6 +20,7 @@ export async function withSecretStoreFileLock<T>(
   operation: () => Promise<T>,
   options: SecretStoreLockOptions = {}
 ): Promise<T> {
+  options = { ...options };
   const timeoutMs = options.timeoutMs ?? 30_000;
   if (!Number.isFinite(timeoutMs) || timeoutMs < 0 || timeoutMs > 2_147_483_647)
     throw new Error("Invalid secret-store transaction lock timeout");

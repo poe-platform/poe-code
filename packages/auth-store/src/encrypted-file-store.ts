@@ -136,6 +136,7 @@ export class EncryptedFileStore implements SecretStore {
   }
 
   async withLock<T>(operation: () => Promise<T>, options: SecretStoreLockOptions = {}): Promise<T> {
+    options = { ...options };
     await this.assertCredentialPathHasNoSymbolicLinks(`${this.filePath}.lock`);
     if (this.fs.readdir === undefined) throw new Error("Secret-store transaction locks require filesystem readdir support");
     return withSecretStoreFileLock(this.fs as SecretStoreLockFileSystem, `${this.filePath}.lock`, operation, options);

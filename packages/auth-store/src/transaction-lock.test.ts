@@ -185,3 +185,42 @@ it("locks the same Keychain service/account across instances without executing s
   expect(names.join(" ")).not.toContain("account");
   expect(names.join(" ")).not.toContain("service");
 });
+
+it.each(["file", "keychain", "raw"] as const)("retains %s lock cancellation while its initial path check waits", async kind => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  let waiting = true;
+  const fs = { ...f.fs, lstat: async (...args: Parameters<typeof f.fs.lstat>) => {
+    if (waiting) { waiting = false; entered.resolve(); await resume.promise; }
+    return f.fs.lstat(...args);
+  } };
+  const controller = new AbortController(), reason = new Error("cancel original lock acquisition"), options = { signal: controller.signal };
+  const operation = vi.fn(async () => "should not enter canceled lock");
+  const store = kind === "file" ? new EncryptedFileStore({ fs, filePath: "/home/test/credential.enc", salt: "fixture" })
+    : new KeychainStore({ service: "service", account: "account", lock: { fs, directory: "/home/test/keychain-locks" } });
+  const lock = kind === "raw" ? withSecretStoreFileLock(fs, "/home/test/raw-lock", operation, options) : store.withLock(operation, options);
+  const observed = lock.catch(error => error);
+  try {
+    await entered.promise;
+    controller.abort(reason); options.signal = new AbortController().signal; resume.resolve();
+    expect(await observed).toBe(reason); expect(operation).not.toHaveBeenCalled();
+  } finally { resume.resolve(); await observed; }
+});
+
+it.each(["file", "keychain", "raw"] as const)("ignores an unrelated replacement %s lock signal during path checks", async kind => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  let waiting = true;
+  const fs = { ...f.fs, lstat: async (...args: Parameters<typeof f.fs.lstat>) => {
+    if (waiting) { waiting = false; entered.resolve(); await resume.promise; }
+    return f.fs.lstat(...args);
+  } };
+  const options = { signal: new AbortController().signal }, operation = vi.fn(async () => "original lock policy");
+  const store = kind === "file" ? new EncryptedFileStore({ fs, filePath: "/home/test/credential.enc", salt: "fixture" })
+    : new KeychainStore({ service: "service", account: "account", lock: { fs, directory: "/home/test/keychain-locks" } });
+  const lock = kind === "raw" ? withSecretStoreFileLock(fs, "/home/test/raw-lock", operation, options) : store.withLock(operation, options);
+  const observed = lock.catch(error => error);
+  try {
+    await entered.promise;
+    options.signal = AbortSignal.abort(new Error("unrelated replacement lock cancellation")); resume.resolve();
+    expect(await observed).toBe("original lock policy"); expect(operation).toHaveBeenCalledOnce();
+  } finally { resume.resolve(); await observed; }
+});

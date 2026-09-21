@@ -390,3 +390,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     Verify full new grant/expiry, no replacement directory/plaintext credentials,
     actual state/S256/loopback delivery, four exchanges/four retired sessions and
     no tool/resource/DCR calls. Inspect safe summary output and purge owned QA.
+
+36. Gate the initial real filesystem path check for encrypted-file, host
+    Keychain-adapter and raw locks. Abort each original signal and replace its
+    caller handle with a fresh one; require the original reason and no operation,
+    HTTP redemption or credential write. Repeat with a valid original signal and
+    unrelated aborted replacement; require one actual HTTP rotating redemption
+    and full persisted grant per mode. Verify encrypted records contain no
+    plaintext grants and every own claim is removed (or never created). Require
+    exactly three redemptions/writes across six acquisitions. Keychain uses a
+    synthetic command adapter; do not alter OS credentials. Inspect safe summary
+    output and purge only owned synthetic evidence.

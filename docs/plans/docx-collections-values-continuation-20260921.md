@@ -9,6 +9,8 @@ native runtime, ambient document I/O or network acquisition.
 
 Root owns `live-collection-protocols.test.ts`,
 `relationship-default-owner.test.ts`, `relationship-collection-protocols.test.ts`,
+`live-collection-command.test.ts`,
+`image-resource-collection.test.ts`,
 the validated relationship-default methods in `package-view.ts`, the shared
 admitted-image symbol export there, the image-resource reuse call sites in
 `inline-shape-model.ts`, this plan and the continuation evidence in `docs/docx`.
@@ -41,3 +43,9 @@ authoring assumed undocumented row/shape `equals` methods; those assertions were
 corrected to existing handles/references before the product red qualification.
 The accidental complete package run during red authoring was cancelled (130),
 and is not final verification. No timeout limits were increased.
+
+After resource reuse passed, a separate original case reproduced duplicate
+owner-local image relationships. Insertion now uses existing `relate_to` as
+well as the existing admitted-image primitive. An additional original opaque
+resource case reproduced byte-only reuse across unequal declared content types;
+that existing primitive now requires matching content type before byte comparison.

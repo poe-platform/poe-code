@@ -48,7 +48,7 @@ const coreWrite = Symbol("core-write");
 const packageImage = Symbol("image");
 const packageImages = Symbol("images");
 const packageDocument = Symbol("document");
-const packageAdmittedImage = Symbol("admitted-image");
+export const packageAdmittedImage = Symbol("admitted-image");
 const packageDefaultPart = Symbol("default-part");
 /** Internal original styles-part factory over the same admitted package. */
 export const packageDefaultStyles = Symbol("default-styles");
@@ -262,6 +262,7 @@ export class PackageView {
     this.#binding.writable();
     const bytes = image.blob;
     for (const part of this[packageImages]()) {
+      if (part.content_type !== image.content_type) continue;
       const candidate = part.blob;
       if (candidate.length === bytes.length && candidate.every((value, index) => value === bytes[index])) return part;
     }

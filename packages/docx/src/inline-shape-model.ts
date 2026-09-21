@@ -7,12 +7,10 @@ import { Emu, isLength, WD_INLINE_SHAPE, type Length } from "./formatting-values
 import type { ModelRef, ModelStore } from "./model-store.js";
 import { DocumentPackage } from "./package.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
-import { relativePartTarget } from "./part-uri.js";
-import { xmlValue } from "./create-content.js";
 import { inlineImageRun } from "./inline-image-xml.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { numericSequence } from "./numeric-index.js";
-import { ImagePartView, packageBindImage } from "./package-view.js";
+import { ImagePartView, packageAdmittedImage } from "./package-view.js";
 
 /** Ordered run drawing content, with capability-bound image metadata. */
 export class Drawing {
@@ -229,19 +227,9 @@ export function insertModelImage(
       ns = documentDialects[dialectForNamespace(store.xml(ref.part).root.namespace)!];
     if (owner.namespace !== ns.w || !["r", "body"].includes(owner.localName))
       throw new InputTypeError("Unsupported live picture insertion owner.");
-    const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
-    const suffix = {
-      "image/png": ".png",
-      "image/jpeg": ".jpg",
-      "image/gif": ".gif",
-      "image/bmp": ".bmp",
-      "image/tiff": ".tiff"
-    }[image.content_type];
-    const part = graph.allocatePartName(
-      store.mainPart.slice(0, store.mainPart.lastIndexOf("/") + 1) + "media/image",
-      suffix
-    );
-    const relationshipId = graph.allocateRelationshipId(ref.part),
+    const imagePart = store.package[packageAdmittedImage](image),
+      graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
+    const relationshipId = store.part(ref.part).relate_to(imagePart, `${ns.r}/image`),
       drawingIds = new Set<number>();
     for (const member of store.snapshot().members) {
       const type = graph.parts.find((p) => p.partname === "/" + member.name)?.content_type;
@@ -260,28 +248,6 @@ export function insertModelImage(
     let drawingId = 1;
     while (drawingIds.has(drawingId)) drawingId++;
     if (drawingId > 4294967295) throw new ResourceLimitError("No drawing identifier is available.");
-    store.setPart(part, image.blob, image.content_type);
-    const relName =
-      ref.part.slice(0, ref.part.lastIndexOf("/") + 1) +
-      "_rels/" +
-      ref.part.slice(ref.part.lastIndexOf("/") + 1) +
-      ".rels";
-    const edge = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${relationshipId}" Type="${ns.r}/image" Target="${xmlValue(relativePartTarget(ref.part, part))}"/>`;
-    if (store.snapshot().members.some((m) => "/" + m.name === relName))
-      store.change(relName, (xml) => xml.insertChildren(xml.root, edge));
-    else
-      store.setPart(
-        relName,
-        new TextEncoder().encode(
-          `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${edge}</Relationships>`
-        )
-      );
-    const imagePart = store.package.parts.find(
-      (candidate) => candidate.partname.toString() === part
-    );
-    if (!(imagePart instanceof ImagePartView))
-      throw new InvalidValueError("Inserted image part is unavailable.");
-    store.package[packageBindImage](imagePart, image);
     const { run } = inlineImageRun(ns, drawingId, relationshipId, {
       width: cx.emu,
       height: cy.emu,

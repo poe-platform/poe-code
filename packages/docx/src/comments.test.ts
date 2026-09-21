@@ -183,6 +183,34 @@ it("counts preceding hyperlink text before choosing comment endpoints", async ()
   expect(await xml(await edit(output, "remove", { comment: 1 }))).toBe(await xml(input));
 });
 
+it.each(["footnoteRef", "endnoteRef"])("rejects body replacement that would delete a later paragraph %s", async reference => {
+  const input = await textFixture(`<w:p>${markers("Ocean")}</w:p>`, stories(`<w:comment w:id="4" w:author="Mira">${paragraph("First thought")}<w:p>${run("Second thought")}<w:r><w:${reference}/></w:r></w:p></w:comment>`));
+  const volume = Volume.fromJSON({ "/out": "" });
+  await expect(docx.editDocumentComments(input, { operation: "comments.set", options: {
+    comment: 1, text: "Final thought", output: "-"
+  } }, { ...editContext, stdout: { async write(b) { volume.appendFileSync("/out", b); } } })).rejects.toMatchObject({ code: "unsupported-edit" });
+  expect(volume.readFileSync("/out").length).toBe(0);
+  const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
+    args: ["comments", "set", "-", "--comment", "1", "--text", "Final thought", "--output", "-"].map(s => new TextEncoder().encode(s)),
+    cwd: "/", signal: textContext.signal, filesystem: { async readFile() { throw new Error("Unexpected read"); } },
+    stdin: { async *[Symbol.asyncIterator]() { yield input; } },
+    stdout: { async write(b) { volume.appendFileSync("/out", b); } }, stderr: { async write() {} }
+  });
+  expect(result.exitCode).toBe(1);
+  expect(volume.readFileSync("/out").length).toBe(0);
+});
+
+it("preserves a retained paragraph reference and an unrelated comment exactly", async () => {
+  const reference = `<w:r xmlns:w="${w}"><w:rPr><w:i/></w:rPr><w:footnoteRef/></w:r>`;
+  const other = body("Unselected note", 9);
+  const input = await textFixture(`<w:p>${markers("Ocean")}</w:p><w:p>${markers("Bay", 9)}</w:p>`, stories(`<w:comment w:id="4" w:author="Mira"><w:p>${reference}${run("First thought")}</w:p>${paragraph("Second thought")}</w:comment>` + other));
+  const output = await edit(input, "set", { comment: 1, text: "Final thought" });
+  expect(await xml(output)).toBe(await xml(input));
+  expect(await xml(output, "word/comments.xml")).toContain(reference);
+  expect(await xml(output, "word/comments.xml")).toContain(other);
+  expect((await read(output)).items[0]!.text).toBe("Final thought");
+});
+
 it("rejects a hyperlink range instead of anchoring the following run", async () => {
   const input = await textFixture(`<w:p><w:bookmarkStart w:id="7" w:name="Survey"/><w:hyperlink w:anchor="Survey">${run("Map")}</w:hyperlink><w:bookmarkEnd w:id="7"/>${run("Bay")}</w:p>`);
   const volume = Volume.fromJSON({ "/out": "" });

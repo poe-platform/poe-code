@@ -8,7 +8,7 @@ import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import { closedRecord, encodeLocation, SelectionError, type Location } from "./location-token.js";
 import type { DocxOperationArguments } from "./operation-types.js";
-import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
+import { paragraphReferenceMarkers, paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
 import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { resolveDocxSelection } from "./simple-selection.js";
@@ -149,8 +149,12 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
         const paragraphs = record.node.children;
         if (paragraphs.some(p => p.namespace !== w || p.localName !== "p")) throw new UnsupportedEditError("Comment text assignment cannot discard rich blocks.");
         if (paragraphs.length === 1 && state.document.text({ select: record.location.token }).text === options.text) continue;
+        const hasReference = (node: typeof record.node): boolean => {
+          budget.charge("work", 1);
+          return node.namespace === w && paragraphReferenceMarkers.has(node.localName) || node.children.some(hasReference);
+        };
         const replacements = paragraphs.map((p, i) => {
-          if (i && (p.content.some(c => c.kind !== "element" && (c.kind !== "text" || c.text.trim())) || p.children.some(n => !["pPr", "r", "hyperlink"].includes(n.localName))))
+          if (i && (hasReference(p) || p.content.some(c => c.kind !== "element" && (c.kind !== "text" || c.text.trim())) || p.children.some(n => !["pPr", "r", "hyperlink"].includes(n.localName))))
             throw new UnsupportedEditError("Comment text assignment cannot discard annotated paragraphs.");
           const properties = p.children.find(n => n.namespace === w && n.localName === "pPr");
           const replacement = replaceParagraphContent(record.editor, p, properties ? record.editor.sourceXml(properties) : "", i ? "" : options.text);

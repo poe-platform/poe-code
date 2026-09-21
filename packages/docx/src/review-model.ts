@@ -45,22 +45,24 @@ export class Comments implements Iterable<Comment> {
     text(value);
     text(author);
     if (initials !== null) text(initials);
-    const styles = this.store.stylesFor(this.ref.part);
-    const style = styles.has("Comment Text")
-      ? styles.at("Comment Text")
-      : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
-    const used = new Set(this.nodes.map(id));
-    let next = 0;
-    while (used.has(next)) next++;
-    const timestamp = this.store.context.timestamp.toISOString();
-    this.store.change(this.ref.part, (xml) => {
-      const root = this.store.node(this.ref);
-      xml.insertChildren(
-        root,
-        `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}><cm:p><cm:pPr><cm:pStyle cm:val="${xmlValue(style.style_id!)}"/></cm:pPr>${paragraphTextRun(root.namespace, value)}</cm:p></cm:comment>`
-      );
+    return this.store.transaction(() => {
+      const styles = this.store.stylesFor(this.ref.part);
+      const style = styles.has("Comment Text")
+        ? styles.at("Comment Text")
+        : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
+      const used = new Set(this.nodes.map(id));
+      let next = 0;
+      while (used.has(next)) next++;
+      const timestamp = this.store.context.timestamp.toISOString();
+      this.store.change(this.ref.part, (xml) => {
+        const root = this.store.node(this.ref);
+        xml.insertChildren(
+          root,
+          `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}><cm:p><cm:pPr><cm:pStyle cm:val="${xmlValue(style.style_id!)}"/></cm:pPr>${paragraphTextRun(root.namespace, value)}</cm:p></cm:comment>`
+        );
+      });
+      return this.get(next)!;
     });
-    return this.get(next)!;
   }
 }
 export class Comment {

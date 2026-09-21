@@ -185,3 +185,16 @@ UTF16 and identity bounds; terminal output is limited to 4,096 items. Valid stre
 match the official SDK in mocked comparisons and are faster in the current scoped
 benchmark. Full SDK snapshot validation for malformed event ordering, universal
 performance gains and complete agent-runtime compatibility remain unverified.
+
+
+`shellPlugin({ cwd, allowedPaths })` adds `run_command`, `read_background` and
+`kill_background`. Foreground calls stream notifications and support cancellation
+and timeouts; background calls return handles that can be read, killed or disposed.
+Each output stream keeps its latest 131,072 UTF16 units and reports omitted text.
+Rust owns quote/operator scanning, read/edit command policy, timeout validation and
+bounded output buffers. Native buffers report allocations and retirement to Node's
+garbage collector. Node owns subprocesses, process-group termination, filesystem
+checks and notification callbacks. Policy parsing is limited to 1,048,576 UTF16 units;
+this policy check is not a general shell sandbox. Common policy cases are faster in
+the current scoped benchmark; arbitrary shell syntax and all-platform process
+behavior remain outside the verified coverage.

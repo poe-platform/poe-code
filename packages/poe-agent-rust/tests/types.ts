@@ -226,3 +226,8 @@ import { openaiResponsesPlugin as referenceResponsesPlugin } from "../../poe-age
 const responsesA: typeof referenceResponsesPlugin = own.openaiResponsesPlugin;
 const responsesB: typeof own.openaiResponsesPlugin = referenceResponsesPlugin;
 void [responsesA, responsesB];
+
+import referenceShell from "../../poe-agent/dist/plugins/poe-agent-plugin-shell.js";
+const shellA: typeof referenceShell = own.shellPlugin;
+const shellB: typeof own.shellPlugin = referenceShell;
+void [shellA, shellB];

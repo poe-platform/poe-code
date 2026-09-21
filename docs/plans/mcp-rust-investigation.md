@@ -5101,3 +5101,50 @@ adds429s through last pre-checkpoint clock08:48:12, excludes checkpoint gap, the
 adds105s from08:51:58–08:53:43:total97485s (27.08h). Minimum fulfilled; remaining
 shell/web/registry/builder/session/spawn/toolcraft/Python/platform/performance work
 incomplete. Continue after08:53:43 UTC.
+
+### Shell plugin, 2026-09-21 09:06 UTC
+
+Additive `shellPlugin` supplies run_command/read_background/kill_background with
+foreground/background execution, cancellation, bounded capture, notifications,
+timeouts, kill escalation and disposal. Rust owns UTF16 quote/operator/variable
+scanning, reference read/edit policy, timeout bounds and131072-unit output rings.
+Node preserves subprocess/process-group effects, filesystem/symlink checks, callback
+errors and original result diagnostics. No shell-quote runtime dependency. Policy
+input exceeds1048576 UTF16 units rejects with a policy diagnostic. This is not a
+shell sandbox; arbitrary shell syntax/prototype-backed environment substitution and
+all-platform behavior are not exhaustively accepted.
+
+Own Rust unresolved-module red preceded implementation. Reference reds found an
+elided host import; native cross-product reds found curl --data-raw= handling,
+unterminated substitution token boundaries and escaped wildcard policy. Repairs
+precede settled maintained checks53 Rust cases,90 native groups,314 complete original
+reference cases/21files,bidirectional types,fmt/clippy,focused ESLint and diff checks.
+Uncached maintained selected closure113workspaces/36builds/339edges passes. Real
+subprocess reference cases cover output, background read/kill/dispose, timeout,
+cancellation and unresolved/rejected notifications. Native fixtures compare quote,
+wrapper, environment-assignment, operator, glob, malformed-substitution and exact
+surrogate output behavior.
+
+Packed audit129 JS/declaration files,one addon,zero runtime groups/imports (explicit
+SDK development adapter exception retained). Direct/packed16MiB old-space workers
+each complete2048 injected foreground calls/4096policy checks/2048bounded-buffer
+cycles. Initial retention metric test failed: process.memoryUsage.external exposes
+only40 additional bytes for16 buffers, but does not represent manual NAPI allocation
+accounting in this runtime. Binding now reports actual ring capacities through
+napi_adjust_external_memory, balances retirement using custom_finalize and exposes
+the returned V8 counter through the internal append operation. Maintained tests use
+that counter rather than falsely treating the Node metric as proof. Four64-buffer
+16MiB GC cycles register allocations, avoid growth under replacements and retire
+accounting after collection (one last loop-slot buffer stays live). Finite evidence
+is not universal memory superiority or leak freedom; wider native-accounting audit
+is still outstanding. Heap/RSS observations remain separate. Evidence
+out/rust-poe-agent-shell-*.
+
+Five alternating warmed16384-check samples: original CPU21.96–24.84ms versus own
+12.02–13.34ms, scoped policy speed PASS. Does not establish subprocess speed or
+complete runtime superiority. Responses3133d9ac1 exact remote-main delivery verified;
+release35580327258 pending. Legacy35579223367 build/audit/checks/bash pass, unit still
+in_progress; no successful current publication verified. Concurrent safe-bash
+commits preserved. Continuous active08:53:43–09:06:32 adds769s,total98254s (27.29h).
+Minimum fulfilled; remaining web/registry/builder/session/spawn/toolcraft/Python/
+platform/performance acceptance incomplete. Continue after09:06:32 UTC.

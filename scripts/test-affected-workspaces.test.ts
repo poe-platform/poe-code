@@ -1,4 +1,5 @@
 import { createFsFromVolume, Volume } from "memfs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createWorkspaceTestPlan, parseWorkspaceArguments } from "./build-workspaces.mjs";
 
@@ -20,6 +21,16 @@ function selected(changedFiles: string[]) {
 }
 
 describe("change-based unit scope", () => {
+  it("retains actual Bash DOCX integration consumers for source changes only", () => {
+    const root = path.resolve(import.meta.dirname, "..");
+    const source = createWorkspaceTestPlan(root, { changedFiles: ["packages/docx/src/fields.ts"] });
+    const tests = createWorkspaceTestPlan(root, { changedFiles: ["packages/docx/src/fields.test.ts"] });
+    expect(source.testStages.map(stage => stage.name)).toContain("virtual-bash");
+    expect(source.testStages.map(stage => stage.name)).toContain("@poe-code/safe-bash-optional");
+    expect(tests.testStages.map(stage => stage.name)).not.toContain("virtual-bash");
+    expect(tests.testStages.map(stage => stage.name)).not.toContain("@poe-code/safe-js");
+  });
+
   it("runs changed packages, their transitive consumers and root ownership", () => {
     expect(selected(["packages/docx/src/fields.ts"])).toEqual(["root", "consumer", "docx"]);
   });

@@ -29,7 +29,10 @@
       "browser": "./dist/core.browser.js",
       "import": "./dist/index.js"
     },
-    "./search": { "types": "./dist/search.d.ts", "import": "./dist/search.js" },
+    "./search": {
+      "types": "./dist/search.d.ts",
+      "import": "./dist/search.js"
+    },
     "./optional-host": {
       "types": "./dist/optional-host.d.ts",
       "import": "./dist/optional-host.js"
@@ -537,7 +540,8 @@
     "safe-bash-command-csvgrep": "*",
     "safe-bash-command-csvcut": "*",
     "safe-bash-command-htmlq": "*",
-    "safe-bash-csv-engine": "*"
+    "safe-bash-csv-engine": "*",
+    "docx": "*"
   },
   "poeCode": {
     "packageLint": {

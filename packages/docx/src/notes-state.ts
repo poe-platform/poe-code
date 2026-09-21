@@ -6,6 +6,7 @@ import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, isXmlContentType, type XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { trimXmlWhitespace } from "./stored-lexical.js";
 
 export type NoteKind = "footnote" | "endnote";
 export interface NoteNumbering { readonly format: string; readonly start: number; readonly restart: string }
@@ -33,7 +34,8 @@ export function noteAttribute(node: XmlElement, name: string): string | undefine
   return node.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
 }
 function idOf(node: XmlElement): number {
-  const raw = noteAttribute(node, "id");
+  const attribute = noteAttribute(node, "id");
+  const raw = attribute === undefined ? undefined : trimXmlWhitespace(attribute);
   const digits = raw?.startsWith("-") || raw?.startsWith("+") ? raw.slice(1) : raw;
   if (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(raw)) || Number(raw) < -1)
     throw new InvalidPackageError("Note IDs must be bounded integers with an explicit value.");
@@ -49,8 +51,10 @@ function numbering(node: XmlElement | undefined, kind: NoteKind, fallback: NoteN
     if (nodes.length && !value) throw new InvalidPackageError("Note numbering rules require a value.");
     return value;
   };
-  const start = values("numStart"), restart = values("numRestart");
-  if (start !== undefined && (!start || [...start].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(start)) || Number(start) < 1))
+  const storedStart = values("numStart"), restart = values("numRestart");
+  const start = storedStart === undefined ? undefined : trimXmlWhitespace(storedStart);
+  const digits = start?.startsWith("+") || start?.startsWith("-") ? start.slice(1) : start;
+  if (start !== undefined && (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(start)) || Number(start) < 1))
     throw new InvalidPackageError("Note numbering start must be a positive integer.");
   if (restart !== undefined && !["continuous", "eachSect", "eachPage"].includes(restart)) throw new InvalidPackageError("Unknown note numbering restart rule.");
   return { format: values("numFmt") ?? fallback.format, start: start === undefined ? fallback.start : Number(start), restart: restart ?? fallback.restart };

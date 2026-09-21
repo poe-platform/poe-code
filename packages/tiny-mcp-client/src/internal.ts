@@ -2509,6 +2509,13 @@ export type HttpTransportFetch = (
   init?: RequestInit
 ) => Promise<Response>;
 
+export class HttpTransportError extends Error {
+  constructor(message: string, readonly status: number, readonly method: "GET" | "POST" | "DELETE") {
+    super(message);
+    this.name = "HttpTransportError";
+  }
+}
+
 export interface HttpTransportOptions {
   url: string;
   /** Legacy SSE uses a GET stream that announces the RPC POST endpoint. */
@@ -2910,7 +2917,7 @@ export class HttpTransport implements McpTransport {
       if (hasSessionId && response.status === 404) {
         void response.body?.cancel().catch(() => undefined);
         this.sessionId = undefined;
-        this.dispose(new Error("HTTP transport session expired (404 response)"));
+        this.dispose(new HttpTransportError("HTTP transport session expired (404 response)", 404, "POST"));
         return;
       }
 
@@ -3080,7 +3087,7 @@ export class HttpTransport implements McpTransport {
     const message = responseBody.length === 0
       ? `HTTP transport DELETE failed (${statusDescriptor})`
       : `HTTP transport DELETE failed (${statusDescriptor}): ${responseBody}`;
-    throw new Error(message);
+    throw new HttpTransportError(message, response.status, "DELETE");
   }
 
   private async consumeGetSseStream(): Promise<void> {
@@ -3095,13 +3102,14 @@ export class HttpTransport implements McpTransport {
 
     if (response.status === 405) {
       void response.body?.cancel().catch(() => undefined);
+      if (this.mode === "sse") throw new HttpTransportError("Legacy SSE GET failed (405)", 405, "GET");
       throw new HttpTransportGetSseNotSupportedError();
     }
 
     if (response.status === 404) {
       void response.body?.cancel().catch(() => undefined);
       this.sessionId = undefined;
-      throw new Error("HTTP transport session expired (GET 404 response)");
+      throw new HttpTransportError("HTTP transport session expired (GET 404 response)", 404, "GET");
     }
 
     if (!response.ok) {
@@ -3110,7 +3118,7 @@ export class HttpTransport implements McpTransport {
       const message = responseBody.length === 0
         ? `HTTP transport GET failed (${statusDescriptor})`
         : `HTTP transport GET failed (${statusDescriptor}): ${responseBody}`;
-      throw new Error(message);
+      throw new HttpTransportError(message, response.status, "GET");
     }
 
     const contentType = response.headers.get("Content-Type");
@@ -3197,7 +3205,7 @@ export class HttpTransport implements McpTransport {
       responseBody.length === 0
         ? `HTTP transport POST failed (${statusDescriptor})`
         : `HTTP transport POST failed (${statusDescriptor}): ${responseBody}`;
-    throw new Error(message);
+    throw new HttpTransportError(message, response.status, "POST");
   }
 
   private async maybeHandleUnauthorizedResponse(response: Response): Promise<boolean> {

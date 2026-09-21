@@ -10,6 +10,7 @@ export {
   ERROR_METHOD_NOT_FOUND,
   ERROR_PARSE,
   HttpTransport,
+  HttpTransportError,
   JsonRpcMessageLayer,
   McpClient,
   McpError,

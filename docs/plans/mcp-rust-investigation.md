@@ -5320,3 +5320,48 @@ providers/task-list/poe-code-config/agent-harness-tools Rust counterparts and wi
 spawn/runtime/performance acceptance remain; Python remains architectural follow-up.
 Continuous09:41:36–09:49:55 adds499s,total100748s (27.99h). Minimum fulfilled without
 claiming goal completion. Continue accounting after09:49:55 UTC.
+
+### Independent providers, 2026-09-21 10:03 UTC
+
+Additive private @poe-code/providers-rust provides original registry, auth strategy,
+API shape resolution, built-in provider exports and ordered catalog. One JSON
+definition per provider; filename supplies identity and build/source generators
+derive all exports without provider-ID branches. Rust owns catalog decoding,
+identity lookup, primitive credential trimming, ranking and effectful ordered
+selection. Node retains provider references, opaque credential-key identity,
+callback/store effects, custom trimming/array methods and locale tie sorting.
+Rust definition decode returns errors without panics for malformed/non-object data.
+Original private TypeScript class branding remains nominal; public methods/types
+pass bidirectional structural checks. No production integration or runtime deps.
+
+Missing core/native reds precede implementation. New own/original effect fixtures
+reproduce missing IteratorClose result validation, opaque/changing storage-key
+handling and custom credential trim failures. Repairs preserve lazy getter reads,
+original predicate errors, intrinsic method invocation and map upsert behavior.
+A100000-candidate16MiB stress worker fails ERR_WORKER_OUT_OF_MEMORY before repair:
+callback handles retained rejected values within one native call. Binding now uses
+per-iteration NAPI handle scopes and roots only matched payloads in the outer
+result. Same worker passes after repair (sample forced-GC peak5.90MB). Permanent
+bounded-heap native regression retained. Broad native allocation audit remains
+incomplete; no universal memory superiority/leak claim.
+
+Maintained4 Rust cases,5 native groups,67 full original references/10files,public
+method/declaration checks,fmt/clippy,whole new-host ESLint/diff pass. Uncached
+maintained selected closure114workspaces/9builds/345edges passes. Packed audit
+30JS/declaration files,one addon,zero runtime groups/imports. Direct/packed16MiB
+workers each finish4096 registries/8192read-only store reads/4096writes/4096deletes/
+16384shape matches/100000rejected generated candidates; forced-GC heap peaks
+6.23MB/5.55MB. Root lock contains only two new workspace/link records; original
+source and concurrent changes preserved.
+
+Five warmed alternating1024 registry/filter/mocked-credential samples give
+original CPU0.681–1.643ms versus own6.069–8.216ms, scoped speed FAIL, identical
+credential-unit/match totals. This measures Node/native crossings and mocked
+stores,not actual filesystem/network authentication. Evidence out/rust-providers-*.
+
+Agent exportsa74a51f2b exact remote-main delivery verified; release35585521932
+pending. Registry35583768081 build/audit/checks/unit-cached success,unit/bash still
+in_progress; publication unverified. Missing task-list/poe-code-config/harness
+counterparts,wider spawn/runtime/platform/performance acceptance remain.
+Continuous09:49:55–10:03:10 adds795s,total101543s (28.21h). Minimum fulfilled without
+claiming completion. Continue accounting after10:03:10 UTC.

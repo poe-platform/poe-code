@@ -1242,3 +1242,18 @@ logs and canceled766-suite replay are retained losslessly. This closes only the
 named F05/F18 continuation defect. The fresh767-suite gate, all remaining family
 public variants and full normative/renderer reconciliation remain open; nothing
 was pushed or released.
+
+The [active block continuation public qualification](text-style-user-edge-audit-20260920/list-block-continuation-public-final-scoped-verification.json)
+independently passes all12288 required dialect/kind/prefix/carrier/codec,
+body/cell, start/level, direct/ordered SDK/actual opted-in CLI and publish/dry
+identities, with zero failures/skips/unrun cases. Original numbering bytes and
+instance7 survive continuation; explicit start1 remains a new instance. Ordered
+prospective text reads, sink/sentinel atomicity, SAX binding/level/start checks
+and graph/member/codec/carrier/trivia/formatting retention all pass. The original
+inner-batch dryRun verifier error and canceled execution remain lossless history;
+qualified expectations retain every case and assert the caller's outer preview
+flag. All3714 package/config authority files match the fresh767-suite gate.
+A canceled redundant future replay earns zero credit; its unchanged12288-case
+denominator is bound to the actual current exact passing report. Source changes
+invalidate this binding. Complete F08–F15/F18 acceptance, all other cohorts and
+renderer/normative reconciliation remain open; no push or release occurred.

@@ -10,6 +10,7 @@ Node addon. The package is additive and has no npm runtime dependencies.
 - Inspect environment overrides, initialize project configuration and select edit targets.
 - Parse host/container runtime settings, memory options and provider base URLs.
 - Compose pipeline, experiment and loop callbacks.
+- Track template images and runtime jobs with serialized atomic mutations.
 
 ```ts
 import { createConfigStore, defineScope } from "@poe-code/poe-code-config-rust";
@@ -35,8 +36,13 @@ adapters. Runtime merges reject recursion beyond 512 levels. Numeric strings use
 ECMAScript whitespace and decimal/hexadecimal/binary/octal admission; non-finite
 results are ignored.
 
-This first surface does not yet expose configured-service migration, state/job/
-template registries or TypeScript schema compilation. It is not a full replacement
+Rust also owns job/template validation, accepted job statuses, integer exit-code
+checks, safe job identifiers and template hash admission. Node retains registry
+I/O, mutation promises, inherited/getter behavior, array hooks, dates and locale
+ordering.
+
+This surface does not yet expose configured-service migration or TypeScript
+schema compilation. It is not a full replacement
 for the original package. Existing production imports remain unchanged. Native
 artifacts have currently been validated on macOS arm64; performance and broader
 platform acceptance remain under review.

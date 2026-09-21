@@ -5716,3 +5716,32 @@ Client35591743711 cancelled by workflow concurrency; no successful publication
 verified. Concurrent safe-bash files preserved. Continuous11:08:41–11:18:11 adds
 570s,total105741s (29.37h). Minimum fulfilled; full objective remains incomplete.
 Continue accounting after11:18:11 UTC.
+
+### Config job/template state registries, 2026-09-21 11:24 UTC
+
+Added complete current state manager/job/template public surfaces. Rust owns lazy
+job/template validation,statuses,integer exit codes,safe UTF16 job IDs and matching
+template hash admission. Host retains inherited property reads,custom array.every
+hooks,entry identity/extra fields,mutation promise queues,atomic/exclusive writes,
+symlink traversal checks,dates and locale ordering. Missing state-module/root-export
+reds precede additions. Native getter red reproduces premature revoked-proxy shape
+classification; separated primitive checks from array/record checks and retained
+original repeated reads. Template hash changing type on its second read now yields
+normal exclusion rather than conversion failure. No production state changes.
+
+Maintained10Rust cases,6native groups,157original references/6files,covered
+bidirectional public types,fmt/clippy/hostESLint pass. Uncached selected117workspaces/
+16builds/358edges passes. Refreshed packed63JS/declarations,one addon,zero runtime
+groups/imports. Direct/packed16MiB-old-generation workers each4096merges/4096coercions/
+128sets/128gets plus32job put/update/get and32template puts/list,34memfs files,no tmp
+files. Final JS heaps9.18/11.96MiB,RSS79.13/81.39MiB;not total/native memory bounds.
+Five alternating warmed32job memfs put/update+filtered list samples: original
+wall5.41–6.54ms/CPU5.66–11.38ms versus ownwall6.53–7.05ms/CPU6.79–13.90ms;
+wall slower each pair,CPU mixed,scoped performance FAIL. Evidence
+out/rust-poe-config-state-*. Config service migration/schema compiler and wider
+harness/execution/platform/performance acceptance remain incomplete.
+
+Harnessf9269f8ab exact remote-main verified,release35593391772 pending; snapshots
+35592527002 in_progress. No successful publication verified. Concurrent OAuth/
+safe-bash files preserved. Continuous11:18:11–11:24:08 adds357s,total106098s (29.47h).
+Minimum fulfilled,objective incomplete. Continue accounting after11:24:08 UTC.

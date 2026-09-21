@@ -226,3 +226,69 @@ pub fn config_owned_document(
         ("references", Value::Array(references)),
     ])))
 }
+impl poe_code_config_rust::state::Host for Host<'_> {
+    type Value = u32;
+    type Error = Error;
+    fn is_record(&mut self, value: u32) -> Result<bool> {
+        Self::boolean(self.call("stateRecord", vec![number(value)])?)
+    }
+    fn is_array(&mut self, value: u32) -> Result<bool> {
+        Self::boolean(self.call("stateArray", vec![number(value)])?)
+    }
+    fn kind(&mut self, value: u32) -> Result<poe_code_config_rust::state::Kind> {
+        use poe_code_config_rust::state::Kind;
+        Ok(
+            match Self::id(self.call("stateKind", vec![number(value)])?)? {
+                0 => Kind::Undefined,
+                1 => Kind::Record,
+                2 => Kind::String,
+                3 => Kind::Number,
+                4 => Kind::Array,
+                5 => Kind::Other,
+                _ => return Err(Error::from_reason("Invalid state value kind")),
+            },
+        )
+    }
+    fn read(&mut self, value: u32, key: &str) -> Result<u32> {
+        Self::id(self.call("read", vec![number(value), Value::String(u(key))])?)
+    }
+    fn text(&mut self, value: u32) -> Result<Vec<u16>> {
+        let Value::String(text) = self.call("text", vec![number(value)])? else {
+            return Err(Error::from_reason("Invalid state string"));
+        };
+        Ok(text)
+    }
+    fn number(&mut self, value: u32) -> Result<f64> {
+        Ok(match self.call("numeric", vec![number(value)])? {
+            Value::Number(value) => value,
+            Value::Null => f64::NAN,
+            _ => return Err(Error::from_reason("Invalid state number")),
+        })
+    }
+    fn all_strings(&mut self, value: u32) -> Result<bool> {
+        Self::boolean(self.call("strings", vec![number(value)])?)
+    }
+    fn entries(&mut self, value: u32) -> Result<document::Entries<u32>> {
+        document::Host::entries(self, value)
+    }
+}
+#[napi]
+pub fn config_state_policy(operation: String, value: u32, hook: Hook) -> Result<NativeJson> {
+    use poe_code_config_rust::state;
+    let mut host = Host { hook };
+    Ok(NativeJson(match operation.as_str() {
+        "job" => Value::Bool(state::valid_job(&mut host, value)?),
+        "template" => Value::Bool(state::valid_template(&mut host, value)?),
+        "templates" => Value::Array(
+            state::templates(&mut host, value)?
+                .into_iter()
+                .map(|(key, value)| Value::Array(vec![Value::String(key), number(value)]))
+                .collect(),
+        ),
+        _ => return Err(Error::from_reason("Invalid state policy")),
+    }))
+}
+#[napi]
+pub fn config_safe_job_id(id: Utf16String, absolute: bool) -> bool {
+    poe_code_config_rust::state::safe_job_id(&id, absolute)
+}

@@ -2,3 +2,4 @@
 pub mod coerce;
 pub mod document;
 pub mod owned;
+pub mod state;

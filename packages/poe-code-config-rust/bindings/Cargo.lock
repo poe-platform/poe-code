@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "agent-defs-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -281,6 +288,7 @@ dependencies = [
 name = "poe-code-config-rust-node"
 version = "0.1.0"
 dependencies = [
+ "agent-defs-rust",
  "config-extends-rust",
  "config-mutations-rust",
  "frontmatter-rust-napi-core",
@@ -290,6 +298,7 @@ dependencies = [
  "napi-build",
  "napi-derive",
  "poe-code-config-rust",
+ "providers-rust",
  "toolcraft-design-rust",
 ]
 
@@ -300,6 +309,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "providers-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
 ]
 
 [[package]]

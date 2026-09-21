@@ -5745,3 +5745,31 @@ Harnessf9269f8ab exact remote-main verified,release35593391772 pending; snapshot
 35592527002 in_progress. No successful publication verified. Concurrent OAuth/
 safe-bash files preserved. Continuous11:18:11–11:24:08 adds357s,total106098s (29.47h).
 Minimum fulfilled,objective incomplete. Continue accounting after11:24:08 UTC.
+
+### Configured services, 2026-09-21 11:30 UTC
+
+Added current load/save/unconfigure surfaces, legacy credential migration,
+exclusive invalid backups, global/project layer migration and removal rollback.
+Rust owns stable UTF16 file deduplication, primitive optional text normalization
+and API-shape admission. Owned provider and agent catalogs embed in the same addon;
+Node preserves own-property boundaries, literal keys, iterator/map/trim hooks,
+extra migration fields, filesystem operations, warning callbacks and rollback.
+Missing core-module and redirected original-reference reds precede implementation.
+No production integration.
+
+Maintained12Rust cases,8native groups,174original references/7files,bidirectional
+covered public types,fmt/clippy/ESLint pass. Uncached selected117workspaces/
+19builds/360edges passes. Packed102JS/declarations,one addon,zero runtime groups/
+imports. Direct/packed16MiB-old-generation workers each4096merges/4096coercions/
+128sets/128gets,32jobs put/update/get,32templates put/list,32service saves/removals;
+35memfs files,no tmp. Heaps13.04/12.57MiB,RSS80.86/83.19MiB;not total/native
+memory bounds. Five warmed alternating32service saves/normalized reads/removals:
+originalwall7.47–9.63ms/CPU8.89–24.32ms versus ownwall14.43–19.01ms/
+CPU15.80–34.63ms;wall slower each pair,CPU mixed,scoped performance FAIL.
+Evidence out/rust-poe-config-services-*.
+
+State051ca9a96 verified exactly on remote main;release35593905592 pending,
+publication unverified. Concurrent OAuth/safe-bash changes preserved. Conservative
+restart11:26:15–11:30:47 adds272s,total106370s (29.55h). Unknown interval after
+11:24:08 and checkpoint pause excluded. Minimum fulfilled;objective incomplete.
+Continue accounting after11:30:47 UTC.

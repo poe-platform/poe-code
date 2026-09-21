@@ -1,6 +1,9 @@
 import type {ConfigDocument} from "./types.js";
 import {createRequire} from "node:module";
 interface ConfigNative {
+ configServiceFiles(values:string[]):string[];
+ configServiceText(value:string):string|null;
+ configServiceShape(value:string):boolean;
  configStatePolicy(operation:string,value:number,hook:Hook):boolean|[string,number][];
  configSafeJobId(id:string,absolute:boolean):boolean;
  configOwnedDocument(snapshot:Buffer,root:number,override:number,operation:string):{data:ConfigDocument;references:[(string|number)[],number][]};

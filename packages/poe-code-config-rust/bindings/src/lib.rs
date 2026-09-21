@@ -292,3 +292,25 @@ pub fn config_state_policy(operation: String, value: u32, hook: Hook) -> Result<
 pub fn config_safe_job_id(id: Utf16String, absolute: bool) -> bool {
     poe_code_config_rust::state::safe_job_id(&id, absolute)
 }
+
+#[path = "../../../providers-rust/bindings/src/lib.rs"]
+mod providers;
+pub use providers::*;
+#[path = "../../../agent-defs-rust/bindings/src/lib.rs"]
+mod agents;
+pub use agents::*;
+#[napi]
+pub fn config_service_files(values: Vec<Utf16String>) -> Vec<Utf16String> {
+    poe_code_config_rust::services::files(values.into_iter().map(|value| value.to_vec()).collect())
+        .into_iter()
+        .map(Into::into)
+        .collect()
+}
+#[napi]
+pub fn config_service_text(value: Utf16String) -> Option<Utf16String> {
+    poe_code_config_rust::services::optional_text(&value).map(Into::into)
+}
+#[napi]
+pub fn config_service_shape(value: Utf16String) -> bool {
+    poe_code_config_rust::services::is_api_shape(&value)
+}

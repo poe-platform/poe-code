@@ -91,3 +91,7 @@ export {
   type TemplateEntry,
   type TemplateRegistry
 } from "./state/index.js";
+export {
+ loadConfiguredServices,saveConfiguredService,unconfigureService,
+ type ConfiguredServiceMetadata,type SaveConfiguredServiceOptions,type UnconfigureServiceOptions
+} from "./configured-services.js";

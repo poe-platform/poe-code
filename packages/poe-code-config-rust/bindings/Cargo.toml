@@ -7,6 +7,8 @@ license = "MIT"
 [lib]
 crate-type = ["cdylib"]
 [dependencies]
+providers-rust = { path = "../../providers-rust" }
+agent-defs-rust = { path = "../../agent-defs-rust" }
 config-extends-rust = { path = "../../config-extends-rust" }
 poe-code-config-rust={path=".."}
 toolcraft-design-rust = { path = "../../toolcraft-design-rust" }

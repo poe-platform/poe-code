@@ -16,7 +16,7 @@ export default defineConfig({
         )
           return;
         const modules = new Map([
-          ["./config.js", "config"], ["./jobs.js", "state/jobs"], ["./templates.js", "state/templates"], ["./index.js", id.endsWith("/state/state.test.ts")?"state/index":"index"],
+          ["./configured-services.js", "configured-services"], ["./config.js", "config"], ["./jobs.js", "state/jobs"], ["./templates.js", "state/templates"], ["./index.js", id.endsWith("/state/state.test.ts")?"state/index":"index"],
           ["./inspect.js", "inspect"], ["./merge.js", "merge"],
           ["./resolve.js", "resolve"], ["./schema.js", "schema"],
           ["./store.js", "store"], ["./runtime.js", "runtime"],
@@ -50,7 +50,7 @@ export default defineConfig({
   ],
   test: {
     globals: true,
-    include: ["state/state.test.ts", "poe-code-config.test.ts", "runtime.test.ts", "memory.test.ts", "merge-callbacks.test.ts", "provider-config.test.ts"
+    include: ["configured-services.test.ts", "state/state.test.ts", "poe-code-config.test.ts", "runtime.test.ts", "memory.test.ts", "merge-callbacks.test.ts", "provider-config.test.ts"
     ].map((name) => path(new URL(name, root))),
     environment: "node",
     fileParallelism: false,

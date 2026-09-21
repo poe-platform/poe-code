@@ -11,6 +11,7 @@ Node addon. The package is additive and has no npm runtime dependencies.
 - Parse host/container runtime settings, memory options and provider base URLs.
 - Compose pipeline, experiment and loop callbacks.
 - Track template images and runtime jobs with serialized atomic mutations.
+- Save configured services, migrate legacy credentials and remove global/project layers with rollback.
 
 ```ts
 import { createConfigStore, defineScope } from "@poe-code/poe-code-config-rust";
@@ -41,8 +42,11 @@ checks, safe job identifiers and template hash admission. Node retains registry
 I/O, mutation promises, inherited/getter behavior, array hooks, dates and locale
 ordering.
 
-This surface does not yet expose configured-service migration or TypeScript
-schema compilation. It is not a full replacement
+Rust owns stable file deduplication, optional primitive text normalization and
+API shape admission. The owned provider/agent catalogs share the same addon. Node
+retains service metadata hooks, I/O, layered migration and rollback.
+
+This surface does not yet expose TypeScript schema compilation. It is not a full replacement
 for the original package. Existing production imports remain unchanged. Native
 artifacts have currently been validated on macOS arm64; performance and broader
 platform acceptance remain under review.

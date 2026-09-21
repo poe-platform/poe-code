@@ -2,4 +2,5 @@
 pub mod coerce;
 pub mod document;
 pub mod owned;
+pub mod services;
 pub mod state;

@@ -1,6 +1,6 @@
 # safe-bash-mcp
 
-Discover tool schemas for remote MCP servers using the repository's MCP client.
+Turn remote MCP tools into safe-bash commands using the repository's MCP client.
 Supply known schemas to skip network discovery, or leave `tools` absent to fetch
 every page automatically. Streamable HTTP and legacy HTTP/SSE endpoints are
 handled by `tiny-mcp-client`. Discovery tries legacy SSE automatically only when
@@ -26,6 +26,8 @@ server identity, capabilities and instructions.
 | `fetchRemoteMcpSchema(server, options)` | Resolve one server's tool schemas |
 | `resolveRemoteMcpSchemas(servers, options)` | Preflight a registry and resolve it in order |
 | `compileToolArguments(tool, options)` | Compile validated argument parsing and deterministic flag metadata |
+| `createRemoteMcpCommands(servers, options)` | Generate safe-bash command definitions |
+| `remoteMcpCommands(servers, options)` | Generate a plugin that registers those commands |
 
 Use `headers` or the client's `oauth` options for credentials. URLs must use
 HTTP or HTTPS without embedded credentials or fragments. Discovery supports
@@ -64,5 +66,40 @@ numbers that would become non-finite or silently round integer literals fail.
 Internal and external references use the schema compiler; supply external
 documents through its `registry` option.
 
-Safe-bash command generation and the OAuth credential initialization command
+Register a generated plugin on your shell:
+
+```ts
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { remoteMcpCommands } from "safe-bash-mcp";
+
+const shell = new Shell({ fs: createMemoryFileSystem() });
+shell.use(await remoteMcpCommands([
+  { name: "catalog", url: "https://catalog.example/mcp", tools: knownTools }
+]));
+try {
+  const result = await shell.exec("catalog search_items --query '005930'");
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+Each server name becomes a command; exact tool names become subcommands.
+`catalog --help` lists tools, and `catalog search_items --help` shows arguments.
+Help uses supplied or discovered schemas without connecting again. For tool
+names beginning with a dash, use `catalog -- '--tool' [arguments]`.
+Use inline flags such as `--query=--help` for literal values beginning with
+`--`. `--raw -` and `--raw=-` read a bounded UTF-8 JSON object from virtual
+stdin, supporting shell input redirection and pipelines.
+
+Stdout contains the complete MCP result as one JSON value, including all content
+blocks, structured output and metadata. Tool failures and invalid structured
+output return exit code 1; invalid arguments return 2 before connecting. Protocol
+and transport errors produce JSON diagnostics on stderr with codes, data and
+HTTP status when available. Output writes are awaited and cancellation closes
+owned requests. Set `maxOutputBytes` to bound command output (default 16 MiB).
+Output schemas and external schema registrations are captured during generation.
+Registration checks all command conflicts before registering any of them.
+
+Reproducible artifact generation and the OAuth credential initialization command
 are under development.

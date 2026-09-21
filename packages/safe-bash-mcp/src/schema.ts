@@ -1,12 +1,10 @@
 import {
-  HttpTransport,
-  HttpTransportError,
-  McpClient,
   type HttpTransportOptions,
   type Implementation,
   type ServerCapabilities,
   type Tool
 } from "tiny-mcp-client";
+import { remoteLimits, withRemoteMcpClient } from "./remote.js";
 
 /** A caller-owned remote registry entry. An empty tools array disables discovery. */
 export interface RemoteMcpServer {
@@ -38,21 +36,6 @@ export interface SchemaFetchOptions {
   readonly maxTools?: number;
   readonly maxResponseBytes?: number;
   readonly requestTimeoutMs?: number;
-}
-
-function positiveLimit(value: number, name: string): number {
-  if (!Number.isSafeInteger(value) || value < 1)
-    throw new Error(`${name} must be a positive safe integer`);
-  return value;
-}
-
-function limitsFor(options: SchemaFetchOptions) {
-  return {
-    maxPages: positiveLimit(options.maxPages ?? 100, "maxPages"),
-    maxTools: positiveLimit(options.maxTools ?? 10_000, "maxTools"),
-    maxResponseBytes: positiveLimit(options.maxResponseBytes ?? 16 * 1024 * 1024, "maxResponseBytes"),
-    requestTimeoutMs: positiveLimit(options.requestTimeoutMs ?? 30_000, "requestTimeoutMs")
-  };
 }
 
 function object(value: unknown): value is Record<string, unknown> {
@@ -94,54 +77,12 @@ export async function fetchRemoteMcpSchema(
   options: SchemaFetchOptions = {}
 ): Promise<RemoteMcpSchema> {
   options.signal?.throwIfAborted();
-  const limits = limitsFor(options);
+  const limits = remoteLimits(options);
   validateServer(server, limits.maxTools);
   if (server.tools !== undefined) {
     return { name: server.name, url: server.url, source: "provided", tools: structuredClone([...server.tools]) };
   }
-  return discoverRemoteSchema(server, options, limits, server.transport === "sse" ? "sse" : "streamable-http");
-}
-
-async function discoverRemoteSchema(
-  server: RemoteMcpServer,
-  options: SchemaFetchOptions,
-  limits: ReturnType<typeof limitsFor>,
-  mode: "sse" | "streamable-http"
-): Promise<RemoteMcpSchema> {
-  const client = new McpClient({
-    clientInfo: { name: "safe-bash-mcp", version: "0.0.1" },
-    protocolVersion: server.protocolVersion,
-    requestTimeoutMs: limits.requestTimeoutMs
-  });
-  const transport = new HttpTransport({
-    url: server.url,
-    mode,
-    headers: server.headers,
-    oauth: server.oauth,
-    fetch: options.fetch,
-    oauthDiscoveryCache: options.oauthDiscoveryCache,
-    onWarning: options.onWarning,
-    maxResponseBytes: limits.maxResponseBytes
-  });
-  try {
-    try {
-      await client.connect(transport, { signal: options.signal });
-    } catch (primaryError) {
-      options.signal?.throwIfAborted();
-      if (server.transport !== undefined || mode !== "streamable-http" ||
-          !(primaryError instanceof HttpTransportError) || primaryError.method !== "POST" ||
-          (primaryError.status !== 404 && primaryError.status !== 405)) throw primaryError;
-      await client.close();
-      transport.dispose();
-      await transport.closed;
-      options.signal?.throwIfAborted();
-      try {
-        return await discoverRemoteSchema(server, options, limits, "sse");
-      } catch (fallbackError) {
-        options.signal?.throwIfAborted();
-        throw new AggregateError([primaryError, fallbackError], "Remote MCP HTTP and legacy SSE discovery failed", { cause: primaryError });
-      }
-    }
+  return withRemoteMcpClient(server, options, async client => {
     const tools: Tool[] = [];
     const names = new Set<string>();
     const cursors = new Set<string>();
@@ -167,11 +108,7 @@ async function discoverRemoteSchema(
       cursor = result.nextCursor;
     }
     throw new Error("MCP schema page limit exceeded");
-  } finally {
-    await client.close();
-    transport.dispose();
-    await transport.closed;
-  }
+  });
 }
 
 /** Validate the complete registry before connecting, then preserve caller order. */
@@ -180,7 +117,7 @@ export async function resolveRemoteMcpSchemas(
   options: SchemaFetchOptions = {}
 ): Promise<RemoteMcpSchema[]> {
   options.signal?.throwIfAborted();
-  const limits = limitsFor(options);
+  const limits = remoteLimits(options);
   const names = new Set<string>();
   for (const server of servers) {
     validateServer(server, limits.maxTools);

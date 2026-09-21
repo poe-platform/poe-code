@@ -647,6 +647,8 @@ export { isJsonValue } from "./json.js";
 export { cloneDefaultValue } from "./clone-default.js";
 export { unicodeLength } from "./json-schema/utils.js";
 export { compileJsonSchema, formatIssues } from "./json-schema/index.js";
+export { projectJsonSchemaProperties } from "./json-schema/properties.js";
+export type { JsonSchemaProperty } from "./json-schema/properties.js";
 export { normalizeLegacyNullability } from "./json-schema/normalize-nullability.js";
 export { withJsonSchema, nativeJsonSchema } from "./native-json-schema.js";
 export type { NativeSchema } from "./native-json-schema.js";

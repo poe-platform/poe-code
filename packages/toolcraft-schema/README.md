@@ -11,6 +11,7 @@ and JSON Schema generation.
 - Runtime validation with `validateValue()`
 - JSON Schema serialization via `toJsonSchema()`
 - JSON Schema document serialization via `toJsonSchemaDocument()`
+- Native JSON Schema compilation and property projection with reference support
 
 ## Usage
 
@@ -82,6 +83,16 @@ const validation = validateValue(schema, {
 - `validateValue(schema, value)` returns `{ ok: true, value }` for valid input.
 - Invalid input returns `{ ok: false, issues }` with path-aware diagnostics.
 - Validation applies defaults from schema descriptors.
+
+`compileJsonSchema(document, options)` validates complete native JSON Schema
+documents. `projectJsonSchemaProperties(document, options)` supplies stable
+property names, unconditional required metadata, resolved schema annotations,
+and candidate validators for CLI generation. It follows references, compositions,
+embedded resource IDs and conditional declarations using the same compiler.
+Property candidate validators accept values matching at least one declaration;
+validate the complete object to enforce branch-dependent and combined constraints.
+Both functions accept a `registry` for external schema documents without network
+fetching.
 
 ## Environment Variables
 

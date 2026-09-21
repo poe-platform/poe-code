@@ -247,6 +247,10 @@
     "docx#test:unit": {
       "dependsOn": [
         "build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/safe-bash/src/**"
       ]
     }
   }

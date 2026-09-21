@@ -29,6 +29,57 @@ describe("change-based unit scope", () => {
     expect(source.testStages.map(stage => stage.name)).toContain("@poe-code/safe-bash-optional");
     expect(tests.testStages.map(stage => stage.name)).not.toContain("virtual-bash");
     expect(tests.testStages.map(stage => stage.name)).not.toContain("@poe-code/safe-js");
+    const shell = createWorkspaceTestPlan(root, { changedFiles: ["packages/safe-bash/src/shell.ts"] });
+    expect(shell.testStages.map(stage => stage.name)).toContain("docx");
+  });
+
+  it("retains declared external task inputs without creating build dependency cycles", () => {
+    const options = fixture();
+    options.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: {
+      build: { dependsOn: ["^build"] },
+      "virtual-bash#test:unit": { dependsOn: ["build"] },
+      "docx#test:unit": { inputs: ["$TURBO_DEFAULT$", "$TURBO_ROOT$/packages/bash/src/**"] }
+    } }));
+    const plan = createWorkspaceTestPlan("/repo", { ...options, changedFiles: ["packages/bash/src/shell.ts"] });
+    expect(plan.testStages.map(stage => stage.name)).toEqual(["root", "virtual-bash", "docx"]);
+    expect(plan.buildStages.map(stage => stage.name)).toEqual(["portable", "virtual-bash"]);
+    expect(createWorkspaceTestPlan("/repo", { ...options, changedFiles: ["packages/bash/tests/shell.test.ts"] }).testStages.map(stage => stage.name))
+      .toEqual(["root", "virtual-bash"]);
+  });
+
+  it("retains live Markdown task inputs and declared global inputs", () => {
+    const options = fixture();
+    options.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({
+      globalDependencies: ["docs/shared/*.md"],
+      tasks: { build: { dependsOn: ["^build"] }, "docx#test:unit": { inputs: ["$TURBO_ROOT$/docs/fixtures/*.md"] } }
+    }));
+    expect(createWorkspaceTestPlan("/repo", { ...options, changedFiles: ["docs/fixtures/input.md"] }).testStages.map(stage => stage.name))
+      .toEqual(["root", "docx"]);
+    expect(createWorkspaceTestPlan("/repo", { ...options, changedFiles: ["docs/shared/settings.md"] }).testStages.map(stage => stage.name))
+      .toEqual(["root", "virtual-bash", "consumer", "docx", "safe-js"]);
+    options.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: {
+      build: { dependsOn: ["^build"] }, "//#test:unit": { inputs: ["$TURBO_ROOT$/docs/fixtures/*.md"] }
+    } }));
+    expect(createWorkspaceTestPlan("/repo", { ...options, changedFiles: ["docs/fixtures/input.md"] }).testStages.map(stage => stage.name))
+      .toEqual(["root"]);
+  });
+
+  it("uses the full plan when external input matching is unavailable or ambiguous", () => {
+    const options = fixture();
+    for (const input of ["../bash/src/**", "$TURBO_ROOT$/packages/bash/src/**"]) {
+      options.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: {
+        build: { dependsOn: ["^build"] }, "docx#test:unit": { inputs: [input] }
+      } }));
+      const native = Object.getOwnPropertyDescriptor(path, "matchesGlob");
+      Object.defineProperty(path, "matchesGlob", { configurable: true, value: undefined });
+      try {
+        expect(createWorkspaceTestPlan("/repo", { ...options, changedFiles: ["packages/bash/src/shell.ts"] }).testStages.map(stage => stage.name))
+          .toEqual(["root", "virtual-bash", "consumer", "docx", "safe-js"]);
+      } finally {
+        if (native) Object.defineProperty(path, "matchesGlob", native);
+        else Reflect.deleteProperty(path, "matchesGlob");
+      }
+    }
   });
 
   it("runs changed packages, their transitive consumers and root ownership", () => {

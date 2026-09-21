@@ -270,6 +270,23 @@ export function affectedUnitWorkspaces(plan, changedFiles) {
   for (const filename of changedFiles) {
     assert.ok(typeof filename === "string" && filename && !filename.startsWith("/") && !filename.includes("\0")
       && !filename.includes("\\") && !filename.split("/").some(part => part === ".." || part === "." || !part), "Invalid repository-relative changed path");
+    for (const input of plan.configuration.globalDependencies ?? []) {
+      if (typeof path.matchesGlob !== "function" || path.matchesGlob(filename, input)) return undefined;
+    }
+    for (const workspace of [{ name: ".", path: null, manifest: plan.rootManifest }, ...plan.workspaces]) {
+      if (!workspace.manifest.scripts?.["test:unit"]) continue;
+      const id = workspace.path === null ? "//#test:unit" : workspace.name + "#test:unit";
+      const settings = { ...plan.configuration.tasks["test:unit"], ...plan.configuration.tasks[id] };
+      for (const input of settings.inputs ?? []) {
+        if (input.startsWith("../")) return undefined;
+        if (!input.startsWith("$TURBO_ROOT$/")) continue;
+        if (typeof path.matchesGlob !== "function") return undefined;
+        if (path.matchesGlob(filename, input.slice("$TURBO_ROOT$/".length))) {
+          if (workspace.path !== null) changed.add(workspace.name);
+          root = true;
+        }
+      }
+    }
     if (filename.startsWith("docs/")) {
       if (filename.endsWith(".md")) continue;
       return undefined;

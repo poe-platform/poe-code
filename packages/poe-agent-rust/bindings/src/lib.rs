@@ -277,3 +277,5 @@ pub mod agent_host_binding;
 pub mod builtin_plugins_binding;
 
 pub mod context_plugins_binding;
+
+pub mod file_tools_binding;

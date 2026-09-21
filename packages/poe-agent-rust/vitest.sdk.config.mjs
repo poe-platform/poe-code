@@ -11,6 +11,28 @@ export default defineConfig({
       name: "rust-agent-runtime-reference",
       enforce: "pre",
       transform(code, id) {
+        if (id === path("../poe-agent/src/plugins/poe-agent-plugin-files.test.ts")) {
+          const source = ts.createSourceFile(
+            id,
+            code,
+            ts.ScriptTarget.Latest,
+            true,
+            ts.ScriptKind.TS
+          );
+          const transformed = ts.transform(source, [
+            (context) => (root) =>
+              ts.visitNode(root, function visit(node) {
+                if (ts.isStringLiteral(node) && node.text === "./poe-agent-plugin-files.js")
+                  return ts.factory.createStringLiteral(path("dist/plugin-files.js"));
+                return ts.visitEachChild(node, visit, context);
+              })
+          ]);
+          try {
+            return { code: ts.createPrinter().printFile(transformed.transformed[0]), map: null };
+          } finally {
+            transformed.dispose();
+          }
+        }
         if (id === path("../poe-agent/src/plugins/plugins.test.ts")) {
           const source = ts.createSourceFile(
             id,
@@ -211,6 +233,7 @@ export default defineConfig({
       resolveId(name, importer) {
         if (
           [
+            path("../poe-agent/src/plugins/poe-agent-plugin-files.test.ts"),
             path("../poe-agent/src/plugins/plugins.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-policy.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-mcp.test.ts"),
@@ -220,6 +243,7 @@ export default defineConfig({
           ].includes(importer)
         ) {
           const modules = new Map([
+            ["./poe-agent-plugin-files.js", "plugin-files"],
             ["./poe-agent-plugin-mcp.js", "plugin-mcp"],
             ["./poe-agent-plugin-policy.js", "plugin-policy"],
             ["./poe-agent-plugin-max-iterations.js", "plugin-max-iterations"],
@@ -294,6 +318,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/plugins/poe-agent-plugin-files.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-memory.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-compaction.test.ts"),
       path("../poe-agent/src/plugins/plugins.test.ts"),

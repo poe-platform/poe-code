@@ -152,3 +152,14 @@ awareness; Node retains summarizer callbacks and observable history mutation.
 storage. `systemPromptPlugin` prepends the bundled prompt and `environmentPlugin`
 adds working-directory and Node details. Resource loading, timestamps, serialization
 and prompt spreads use Node semantics. Compaction is slower in current benchmarks.
+
+`filesPlugin({ cwd, allowedPaths })` adds `read_file`, `edit_file`, `list_files`,
+`grep` and `glob`. Reads support exact line windows and image results; edits create,
+overwrite or replace text through atomic temporary files. Allowed paths and symlink
+checks apply before access. Rust owns UTF16 line slicing, exact replacement/counting,
+image classification and glob matching; Node retains filesystem operations, sorting,
+argument effects and cancellation. Glob matching supports hidden files, globstars,
+classes, POSIX classes, braces/ranges and extended groups without `fast-glob`.
+Directory matches are batched into one native call. Traversal detects symlink cycles;
+patterns exceeding 16,384 units, 64 nesting levels or 10,000 range alternatives reject.
+`grep` requires the `rg` executable or an injected `searchContent` function.

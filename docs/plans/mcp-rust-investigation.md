@@ -4863,3 +4863,64 @@ claimed. Overall agent builder/session/remaining providers/files/shell/web/regis
 closure/platform/performance acceptance incomplete. Continuous active07:25:45–07:34:30
 adds525s, bringing conservative effort to93,753s (26.04h). Minimum fulfilled;
 continue after07:34:30 UTC.
+
+### Poe agent file tools and owned glob matcher, 2026-09-21 08:01 UTC
+
+Resumed after checkpoint at07:37:09 UTC; excluded the07:34:30–07:37:09 gap.
+Context5598f45b6 push completed and exact remote-main inclusion verified. Validated
+root35568626036 CPU775.7ms failure against current safe-js harness. Profiling showed
+repeated sandbox initialization dominated the corpus, while regex exhaustion used
+only~2ms. Atomic21c6f6741 combines mapped/race/any deterministic assertions into one
+sandbox execution, still repeats the complete result twice, preserves every other
+attack and retains750ms CPU/2000ms wall limits. Maintained adversarial route passes141
+cases (one declared slow case skipped), focused ESLint/diff checks pass. Commit pushed
+and exact remote main verified; root35573960603 remains pending. Earlier35569873132,
+35571163016 and35573682657 are cancelled. No current successful release verified.
+
+Missing portable-module/native-artifact reference reds precede own filesPlugin and
+Rust UTF16 file core. Implements read_file/edit_file/list_files/grep/glob with original
+schemas/policy, allowed-path checks, image results, line offsets/limits, atomic edits,
+create collisions and cleanup/retry effects. Rust owns exact line windows, MIME
+classification, nonoverlapping KMP search/counting and replacement templates. Single
+replacement preserves JS $$/$&/prefix/suffix expansion; replace_all stays literal.
+Node retains argument getter timing, filesystem/callback effects, locale/mtime sort,
+AbortSignal and process launch. Grep still requires rg or injected searchContent;
+zero npm runtime dependencies does not mean zero executable/OS requirements.
+
+Owned Rust glob parsing/matching replaces fast-glob runtime import. Supports hidden
+files, static prefixes, globstars, classes/literal brackets/POSIX classes, nested
+braces/padded numeric and alpha ranges, extended/bare groups and negated-group suffix
+semantics. Node traverses only the prefix/depth admitted by Rust and sends all file
+candidates per directory in one native batch. Static lookups and filtering preserve
+original behavior; malformed group patterns select no files. Ancestry tracking
+bounds symlink cycles while retaining separate noncyclic aliases. Pattern16384-unit,
+nesting64 and range10000-alternative limits are deliberate bounded-input deviations.
+Matcher uses owned sets/memoized sequence endpoints, not an external regex/glob crate.
+
+Maintained checks pass45 Rust cases,70 native groups,264 complete applicable original
+cases/17 files,bidirectional file-plugin declarations and fmt/clippy. Memfs fixtures
+cross-check full official fast-glob output (including its posix/brace settings), seeded
+128 line reads,512 exact edits,bulk128-path flags,side-effect order and cycle termination.
+Initial eager reference import broke process mocks; AST rewriting each original
+lazy import to the own artifact preserves mock timing and prevents reference fallback.
+Focused syntax/format/diff checks pass. Uncached maintained closure113 workspaces/
+36 builds/339 edges passes. Direct/packed16MiB old-space workers each run512 reads,
+512 atomic edits,512 globs,512 injected grep calls,image/create-collision and escaped
+path checks with external imports blocked. Cumulative context/builtin/host/real-MCP
+workers pass; recursive packed audit119 JS/declaration files,one addon,zero runtime
+package groups/imports (explicit SDK development adapter exception only). Evidence
+out/rust-poe-agent-files-*.
+
+Initial wall samples overlapped other CPU checks; reran after own checks settled and
+recorded thread CPU as well as wall time. Five alternating warmed512 line-read samples
+on252842-unit content measure TS CPU2.15–3.49ms versus Rust8.52–9.66ms:FAIL.32 glob
+traversals/256 files measure TS CPU7.97–17.01ms versus Rust9.39–12.84ms:mixed/FAIL.
+No uniform performance advantage accepted. Isolated16MiB old-space workload builds/
+reclaims32768 glob contexts,1048576 path flags and32768 edits;four GC/yield rounds per
+2048 contexts keep post-GC heap4.87→4.91MB,RSS59.5→68.5MB. Finite reclamation evidence
+only; full leak freedom,stability and memory superiority remain unproven.
+
+Continuous active07:37:09–08:01:02 adds1433s, bringing conservative effort to95186s
+(26.44h). Minimum fulfilled; overall builder/session/remaining plugins/toolcraft/
+spawn closure/platform/Python/performance acceptance incomplete. Continue after
+08:01:02 UTC.

@@ -212,3 +212,8 @@ const contextCompactionA: typeof referenceCompactionPlugin = own.compactionPlugi
 const contextCompactionB: typeof own.compactionPlugin = referenceCompactionPlugin;
 const contextAuditA: typeof referenceAuditPlugin = own.auditLogPlugin;
 void [contextMemoryA, contextMemoryB, contextCompactionA, contextCompactionB, contextAuditA];
+
+import referenceFilesPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-files.js";
+const filesA: typeof referenceFilesPlugin = own.filesPlugin;
+const filesB: typeof own.filesPlugin = referenceFilesPlugin;
+void [filesA, filesB];

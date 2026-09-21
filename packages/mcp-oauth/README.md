@@ -96,7 +96,9 @@ OAuth callback query parameters are rejected before binding a listener.
 creating the provider. Imported tokens that cannot be sent as HTTP header
 values fail with diagnostics that omit their contents. Omit
 `redirectUri` to allocate a random loopback port. Standalone callback sessions
-accept the same `redirectUri`, `signal` and `timeoutMs` options. Cancellation,
+accept the same `redirectUri`, `signal` and `timeoutMs` options. They capture configuration,
+landing-page data and selected callbacks before invoking a host listener factory;
+original signals and selected callback receivers/live method state remain active. Cancellation,
 timeout and explicit close settle pending code waits and release listeners.
 Always close a standalone session in `finally`. Failed callback responses declare
 plain UTF-8 text with content sniffing disabled; provider markup remains literal

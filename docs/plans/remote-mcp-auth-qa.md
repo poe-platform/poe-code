@@ -543,3 +543,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     exact005930 and custom markup title/body; retain escaped HTML success. Close
     every standalone session in finally and prove listeners released. Inspect
     safe summary output and purge only owned synthetic evidence.
+
+49. Create standalone real HTTP callback sessions with exact fixed loopback
+    redirects including their query. Mutate caller redirect/signal/browser/input
+    handles or nested landing data from the host listener factory. Require
+    original validated redirect/page, original live signals, original callbacks/
+    receiver with updated host method state, and no replacement callback. Cover
+    four actual state/S256-bound success callbacks with escaped original pages/
+    exact005930, one original manual input and original cancellation before
+    listener bind. Require every listener released; inspect safe summary output
+    and purge only owned synthetic evidence.

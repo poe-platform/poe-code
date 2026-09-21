@@ -19,6 +19,73 @@ class Listener extends EventEmitter {
 }
 
 describe("loopback authorization ownership", () => {
+  it("retains its validated redirect when the listener factory mutates caller options", async () => {
+    const listener = new Listener(), redirectUri = "http://127.0.0.1:39119/callback?application=one";
+    const options = { redirectUri, createServer: () => {
+      options.redirectUri = "https://unrelated.example/callback";
+      return listener.asServer();
+    } };
+    const session = await createLoopbackAuthorizationSession(options);
+    try { expect(session.redirectUri).toBe(redirectUri); expect(listener.listen).toHaveBeenCalledWith(39119, "127.0.0.1", expect.any(Function)); }
+    finally { session.close(); }
+  });
+
+  it.each(["unrelated abort", "original abort"] as const)("retains its original signal through listener factory option mutation: %s", async mutation => {
+    const listener = new Listener(), controller = new AbortController(), reason = new Error("original loopback canceled");
+    const options = { signal: controller.signal, createServer: () => {
+      options.signal = mutation === "unrelated abort" ? AbortSignal.abort(new Error("replacement cancellation")) : new AbortController().signal;
+      if (mutation === "original abort") controller.abort(reason);
+      return listener.asServer();
+    } };
+    if (mutation === "original abort") {
+      await expect(createLoopbackAuthorizationSession(options)).rejects.toBe(reason);
+      expect(listener.close).toHaveBeenCalledOnce();
+    } else {
+      const session = await createLoopbackAuthorizationSession(options);
+      session.close(); expect(listener.close).toHaveBeenCalledOnce();
+    }
+  });
+
+  it.each(["browser", "input"] as const)("retains its selected %s callback before the listener factory runs", async mutation => {
+    const listener = new Listener(), originalBrowser = vi.fn(async () => {}), replacementBrowser = vi.fn(async () => {});
+    const originalInput = vi.fn(async () => "http://127.0.0.1/callback?state=expected-state&code=005930");
+    const replacementInput = vi.fn(async () => "http://127.0.0.1/callback?state=expected-state&code=005931");
+    const options = { openBrowser: originalBrowser, readLine: originalInput, createServer: () => {
+      if (mutation === "browser") options.openBrowser = replacementBrowser;
+      else options.readLine = replacementInput;
+      return listener.asServer();
+    } };
+    const session = await createLoopbackAuthorizationSession(options);
+    try {
+      expect(await session.waitForCode("https://auth.example/authorize?state=expected-state")).toBe("005930");
+      expect(originalBrowser).toHaveBeenCalledOnce(); expect(originalInput).toHaveBeenCalledOnce();
+      expect(replacementBrowser).not.toHaveBeenCalled(); expect(replacementInput).not.toHaveBeenCalled();
+    } finally { session.close(); }
+  });
+
+  it("owns its landing page before the listener factory mutates the original data", async () => {
+    const listener = new Listener(), landingPage = { title: "Original title", body: "Original body" };
+    const session = await createLoopbackAuthorizationSession({ landingPage, createServer: () => {
+      Object.assign(landingPage, { title: "host-mutated title", body: "host-mutated body" }); return listener.asServer();
+    } });
+    try {
+      const pending = session.waitForCode("https://auth.example/authorize?state=expected-state"), end = vi.fn();
+      listener.emit("request", { url: "/callback?state=expected-state&code=005930" }, { writeHead: vi.fn(), end });
+      expect(await pending).toBe("005930");
+      expect(end.mock.calls[0][0]).toContain("Original title"); expect(end.mock.calls[0][0]).toContain("Original body");
+      expect(end.mock.calls[0][0]).not.toContain("host-mutated");
+    } finally { session.close(); }
+  });
+
+  it("preserves selected callback receivers and live host method state", async () => {
+    const listener = new Listener();
+    const options = { marker: "initial", createServer() { expect(this).toBe(options); return listener.asServer(); },
+      async readLine() { expect(this).toBe(options); expect(this.marker).toBe("updated"); return "http://127.0.0.1/callback?state=expected-state&code=005930"; } };
+    const session = await createLoopbackAuthorizationSession(options); options.marker = "updated";
+    try { expect(await session.waitForCode("https://auth.example/authorize?state=expected-state")).toBe("005930"); }
+    finally { session.close(); }
+  });
+
   it.each(["http://localhost:39119/oauth/callback?app=one", "http://127.0.0.1:39119/callback", "http://[::1]:39119/callback"])
     ("preserves and listens on the exact configured redirect %s", async redirectUri => {
       const listener = new Listener();

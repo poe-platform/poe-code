@@ -42,6 +42,10 @@ export class OAuthAuthorizationError extends Error {
 export async function createLoopbackAuthorizationSession(
   options: LoopbackAuthorizationOptions = {}
 ): Promise<LoopbackAuthorizationSession> {
+  const selected = { ...options };
+  options = { ...selected, createServer: selected.createServer?.bind(options),
+    openBrowser: selected.openBrowser?.bind(options), readLine: selected.readLine?.bind(options),
+    landingPage: selected.landingPage === undefined ? undefined : { ...selected.landingPage } };
   options.signal?.throwIfAborted();
   const timeoutMs = options.timeoutMs ?? 120_000;
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)

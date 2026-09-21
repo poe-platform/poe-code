@@ -40,10 +40,14 @@ const verifier = createJwksTokenVerifier({
 - `client`
   - `mode: "dynamic"` with optional `metadata`
   - `mode: "static"` with `clientId`, optional `clientSecret`, optional `metadata`
-- `browser.openBrowser(url)`
+- `allowInteractive: false` prevents interactive login while retaining cached tokens and silent refresh
+- `browser.openBrowser(url)` optional
 - `browser.readLine()` optional
 - `browser.createServer()` optional
 - `browser.landingPage` optional
+- `browser.redirectUri` optional exact registered HTTP loopback callback with a fixed port
+- `browser.signal` optional cancellation signal
+- `browser.timeoutMs` optional authorization deadline (default 120,000 ms)
 - `sessionStore` optional
 - `authStore` optional `auth-store` backend config for the default session store
 - `now()` optional clock override
@@ -61,6 +65,18 @@ const verifier = createJwksTokenVerifier({
 | `allowInsecureJwks`      | `boolean`           | `false`        | Permit non-HTTPS JWKS URLs. Loopback HTTP URLs are allowed without enabling this option. |
 | `requireAccessTokenType` | `boolean`           | `false`        | Require the JWT `typ` protected header to be `at+jwt`.                                   |
 | `fetch`                  | `typeof fetch`      | global `fetch` | Custom fetch implementation.                                                             |
+
+Fixed redirects support `localhost`, `127.0.0.1`, and `::1` over HTTP. Their
+exact spelling, port, path and query are preserved through registration,
+authorization and code exchange. Credentials, fragments, port zero and reserved
+OAuth callback query parameters are rejected before binding a listener. Omit
+`redirectUri` to allocate a random loopback port. Standalone callback sessions
+accept the same `redirectUri`, `signal` and `timeoutMs` options. Cancellation,
+timeout and explicit close settle pending code waits and release listeners.
+Always close a successful standalone session in `finally`.
+
+Configure `client.metadata.scope` to request a precise scope set; broader
+discovery metadata does not override it.
 
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.
 

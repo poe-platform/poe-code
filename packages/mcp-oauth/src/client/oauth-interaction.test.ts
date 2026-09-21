@@ -1,0 +1,85 @@
+import http from "node:http";
+import { EventEmitter } from "node:events";
+import { expect, it, vi } from "vitest";
+import { createDefaultOAuthClientProvider } from "./default-oauth-client-provider.js";
+import type { OAuthDiscoveryResult, StoredOAuthSession } from "./types.js";
+
+const resource = "https://resource.example/mcp";
+const issuer = "https://auth.example";
+const discovery: OAuthDiscoveryResult = {
+  resource, resourceMetadataUrl: `${resource}/metadata`, resourceMetadata: { resource, authorization_servers: [issuer], scopes_supported: ["read", "write"] },
+  authorizationServer: issuer, authorizationServerMetadataUrl: `${issuer}/metadata`, authorizationServerMetadata: {
+    issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, registration_endpoint: `${issuer}/register`,
+    response_types_supported: ["code"], code_challenge_methods_supported: ["S256"], scopes_supported: ["read", "write"]
+  }
+};
+class Listener extends EventEmitter {
+  port = 49152;
+  listen(port: number, _host: string, ready: () => void) { this.port = port || 49152; queueMicrotask(ready); return this; }
+  address() { return { port: this.port, address: "127.0.0.1", family: "IPv4" }; }
+  close() { return this; }
+}
+
+function interaction(settings: { allowInteractive?: boolean; redirectUri?: string; scope?: string } = {}) {
+  let authorization!: URL;
+  const callback = Promise.withResolvers<string>();
+  let session: StoredOAuthSession | null = null;
+  const createServer = vi.fn(() => new Listener() as unknown as http.Server);
+  const openBrowser = vi.fn(async (url: string) => {
+    authorization = new URL(url);
+    const redirect = new URL(authorization.searchParams.get("redirect_uri")!);
+    redirect.searchParams.set("code", "authorization-code");
+    redirect.searchParams.set("state", authorization.searchParams.get("state")!);
+    callback.resolve(redirect.toString());
+  });
+  const fetch = vi.fn(async (url: string | URL, _init?: RequestInit) => Response.json(String(url).endsWith("/register")
+    ? { client_id: "registered-client", redirect_uris: ["http://localhost/callback"] }
+    : { access_token: "token", token_type: "Bearer", expires_in: 3600 }));
+  const provider = createDefaultOAuthClientProvider({
+    client: { mode: "dynamic", metadata: { scope: settings.scope } }, allowInteractive: settings.allowInteractive,
+    browser: { openBrowser, readLine: () => callback.promise, createServer, redirectUri: settings.redirectUri },
+    sessionStore: { load: async () => session, save: async (_key, value) => { session = value; }, clear: async () => { session = null; } }
+  });
+  return { fetch, createServer, openBrowser, seed: (value: StoredOAuthSession) => { session = value; }, authorization: () => authorization, run: () => provider.handleUnauthorized({
+    requestUrl: new URL(resource), response: new Response(null, { status: 401 }), challenge: null, discovery, fetch
+  }) };
+}
+
+it("keeps the exact fixed redirect through registration, authorization and code exchange", async () => {
+  const redirectUri = "http://localhost:39119/oauth/callback?app=one";
+  const fixture = interaction({ redirectUri });
+  expect(await fixture.run()).toEqual({ action: "retry" });
+  expect(JSON.parse(String(fixture.fetch.mock.calls[0]?.[1]?.body)).redirect_uris).toEqual([redirectUri]);
+  expect(fixture.authorization().searchParams.get("redirect_uri")).toBe(redirectUri);
+  expect(new URLSearchParams(String(fixture.fetch.mock.calls[1]?.[1]?.body)).get("redirect_uri")).toBe(redirectUri);
+});
+
+it("requests configured scopes even when discovery advertises wider permissions", async () => {
+  const fixture = interaction({ scope: "read" });
+  expect(await fixture.run()).toEqual({ action: "retry" });
+  expect(fixture.authorization().searchParams.get("scope")).toBe("read");
+});
+
+it("fails headless unauthorized requests promptly without allocating a callback or launching a browser", async () => {
+  const fixture = interaction({ allowInteractive: false });
+  expect(await fixture.run()).toMatchObject({ action: "fail", error: { message: expect.stringContaining("interactive") } });
+  expect(fixture.createServer).not.toHaveBeenCalled();
+  expect(fixture.openBrowser).not.toHaveBeenCalled();
+  expect(fixture.fetch).not.toHaveBeenCalled();
+});
+
+it("allows silent refresh in headless mode and preserves the registered client", async () => {
+  const fixture = interaction({ allowInteractive: false });
+  fixture.seed({ resource, authorizationServer: issuer, client: { clientId: "previous-client" },
+    tokens: { accessToken: "expired", refreshToken: "rotating-refresh", tokenType: "Bearer", expiresAt: 0 },
+    discovery: { resourceMetadataUrl: discovery.resourceMetadataUrl, resourceMetadata: discovery.resourceMetadata,
+      authorizationServerMetadata: discovery.authorizationServerMetadata } });
+  expect(await fixture.run()).toEqual({ action: "retry" });
+  expect(fixture.fetch).toHaveBeenCalledOnce();
+  expect(fixture.fetch.mock.calls[0]?.[0]).toBe(`${issuer}/token`);
+  const body = new URLSearchParams(String(fixture.fetch.mock.calls[0]?.[1]?.body));
+  expect(body.get("client_id")).toBe("previous-client");
+  expect(body.get("refresh_token")).toBe("rotating-refresh");
+  expect(fixture.createServer).not.toHaveBeenCalled();
+  expect(fixture.openBrowser).not.toHaveBeenCalled();
+});

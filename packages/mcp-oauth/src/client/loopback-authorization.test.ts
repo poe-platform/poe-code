@@ -18,6 +18,7 @@ async function requestUrl(url: string): Promise<{ status: number; body: string }
 describe("createLoopbackAuthorizationSession", () => {
   it("rejects when the loopback listener cannot start", async () => {
     class FailingServer extends EventEmitter {
+      close(): this { return this; }
       listen(): this {
         queueMicrotask(() => this.emit("error", new Error("address in use")));
         return this;

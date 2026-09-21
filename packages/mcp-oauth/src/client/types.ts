@@ -102,8 +102,14 @@ export interface DefaultOAuthClientProviderOptions {
         clientSecret?: string;
         metadata?: OAuthClientMetadata;
       };
+  /** Disable interactive authorization while allowing cached tokens and silent refresh. */
+  allowInteractive?: boolean;
   browser: {
-    openBrowser(url: string): Promise<void>;
+    openBrowser?(url: string): Promise<void>;
+    /** Exact registered HTTP loopback redirect URI. */
+    redirectUri?: string;
+    signal?: AbortSignal;
+    timeoutMs?: number;
     readLine?: () => Promise<string>;
     createServer?: () => http.Server;
     landingPage?: {

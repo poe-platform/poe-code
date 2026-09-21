@@ -12,6 +12,11 @@ export interface LoopbackAuthorizationOptions {
   createServer?: () => http.Server;
   landingPage?: OAuthLandingPage;
   callbackPath?: string;
+  /** Exact registered HTTP loopback redirect, including its fixed port and query. */
+  redirectUri?: string;
+  signal?: AbortSignal;
+  /** Bounds listener setup and authorization; defaults to two minutes. */
+  timeoutMs?: number;
 }
 
 export interface LoopbackAuthorizationSession {
@@ -23,36 +28,88 @@ export interface LoopbackAuthorizationSession {
 export async function createLoopbackAuthorizationSession(
   options: LoopbackAuthorizationOptions = {}
 ): Promise<LoopbackAuthorizationSession> {
-  const callbackPath = options.callbackPath ?? "/callback";
+  options.signal?.throwIfAborted();
+  const timeoutMs = options.timeoutMs ?? 120_000;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
+    throw new Error("OAuth authorization timeoutMs must be a positive supported timer interval");
+  const target = loopbackTarget(options);
   const server = options.createServer ? options.createServer() : http.createServer();
-  const port = await startServer(server);
-  const redirectUri = `http://127.0.0.1:${port}${callbackPath}`;
+  const controller = new AbortController();
+  let closed = false;
+  let used = false;
+  const callerAbort = (): void => controller.abort(options.signal?.reason);
+  const teardown = (): void => {
+    if (closed) return;
+    closed = true;
+    clearTimeout(timer);
+    options.signal?.removeEventListener("abort", callerAbort);
+    server.closeAllConnections?.();
+    server.close();
+  };
+  const timer = setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
+  timer.unref?.();
+  controller.signal.addEventListener("abort", teardown, { once: true });
+  options.signal?.addEventListener("abort", callerAbort, { once: true });
+  if (options.signal?.aborted) callerAbort();
+  let port: number;
+  try { port = await startServer(server, target.port, target.host, controller.signal); }
+  catch (error) { controller.abort(error); throw error; }
+  const redirectUri = options.redirectUri ?? `http://127.0.0.1:${port}${target.callbackPath}`;
 
   return {
     redirectUri,
     async waitForCode(authorizationUrl: string): Promise<string> {
-      return waitForAuthorizationCode(server, authorizationUrl, options, callbackPath);
+      controller.signal.throwIfAborted();
+      if (used) throw new Error("OAuth authorization session has already been used");
+      used = true;
+      try {
+        return await waitForAuthorizationCode(server, authorizationUrl, options, target.callbackPath, controller.signal);
+      } finally { clearTimeout(timer); }
     },
     close(): void {
-      server.closeAllConnections?.();
-      server.close();
+      controller.abort(new Error("OAuth authorization session closed"));
     }
   };
 }
 
-async function startServer(server: http.Server): Promise<number> {
-  return new Promise<number>((resolve, reject) => {
-    const handleError = (error: Error) => {
-      server.off("error", handleError);
-      reject(error);
-    };
+function loopbackTarget(options: LoopbackAuthorizationOptions): { port: number; host: string; callbackPath: string } {
+  if (options.redirectUri !== undefined) {
+    let url: URL;
+    try { url = new URL(options.redirectUri); }
+    catch (cause) { throw new Error("Invalid OAuth loopback redirect URI", { cause }); }
+    const forbiddenQuery = ["code", "state", "error", "error_description", "iss"];
+    if (url.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+      || url.username || url.password || url.hash || url.port === "0"
+      || forbiddenQuery.some(name => url.searchParams.has(name))
+      || [...options.redirectUri].some(char => char.codePointAt(0)! <= 32)
+      || (options.callbackPath !== undefined && options.callbackPath !== url.pathname))
+      throw new Error("Invalid OAuth loopback redirect URI");
+    return { port: url.port ? Number(url.port) : 80, host: url.hostname === "[::1]" ? "::1" : url.hostname, callbackPath: url.pathname };
+  }
+  const callbackPath = options.callbackPath ?? "/callback";
+  const parsed = new URL(callbackPath, "http://127.0.0.1");
+  if (!callbackPath.startsWith("/") || parsed.origin !== "http://127.0.0.1" || parsed.pathname !== callbackPath || parsed.search || parsed.hash)
+    throw new Error("Invalid OAuth loopback callback path");
+  return { port: 0, host: "127.0.0.1", callbackPath };
+}
 
+async function startServer(server: http.Server, port: number, host: string, signal: AbortSignal): Promise<number> {
+  signal.throwIfAborted();
+  return new Promise<number>((resolve, reject) => {
+    const cleanup = (): void => { server.off("error", handleError); signal.removeEventListener("abort", aborted); };
+    const handleError = (error: Error): void => { cleanup(); reject(error); };
+    const aborted = (): void => { cleanup(); reject(signal.reason); };
     server.once("error", handleError);
-    server.listen(0, "127.0.0.1", () => {
-      server.off("error", handleError);
-      const address = server.address() as { port: number };
-      resolve(address.port);
-    });
+    signal.addEventListener("abort", aborted, { once: true });
+    try {
+      server.listen(port, host, () => {
+        cleanup();
+        if (signal.aborted) { server.close(); reject(signal.reason); return; }
+        const address = server.address();
+        if (address === null || typeof address === "string") { reject(new Error("OAuth listener has no TCP address")); return; }
+        resolve(address.port);
+      });
+    } catch (error) { cleanup(); reject(error); }
   });
 }
 
@@ -60,105 +117,62 @@ function waitForAuthorizationCode(
   server: http.Server,
   authorizationUrl: string,
   options: LoopbackAuthorizationOptions,
-  callbackPath: string
+  callbackPath: string,
+  signal: AbortSignal
 ): Promise<string> {
+  signal.throwIfAborted();
   const expectedAuthorization = readExpectedAuthorizationCallback(authorizationUrl);
 
   return new Promise<string>((resolve, reject) => {
     let settled = false;
-    const settle = (fn: () => void) => {
-      if (!settled) {
-        settled = true;
-        fn();
-      }
+    const settle = (fn: () => void): void => {
+      if (settled) return;
+      settled = true;
+      server.off("request", request);
+      signal.removeEventListener("abort", aborted);
+      fn();
     };
-
-    server.on("request", (req: http.IncomingMessage, res: http.ServerResponse) => {
-      const url = new URL(req.url ?? "/", "http://127.0.0.1");
-
+    const aborted = (): void => settle(() => reject(signal.reason));
+    const request = (req: http.IncomingMessage, res: http.ServerResponse): void => {
+      let url: URL;
+      try { url = new URL(req.url ?? "/", "http://127.0.0.1"); }
+      catch { res.writeHead(400); res.end("Invalid callback URL"); return; }
       if (url.pathname !== callbackPath) {
-        res.writeHead(404);
-        res.end("Not found");
-        return;
+        res.writeHead(404); res.end("Not found"); return;
       }
-
       const callbackParameters = {
-        code: url.searchParams.get("code"),
-        error: url.searchParams.get("error"),
-        errorDescription: url.searchParams.get("error_description"),
-        state: url.searchParams.get("state"),
-        iss: url.searchParams.get("iss")
+        code: url.searchParams.get("code"), error: url.searchParams.get("error"),
+        errorDescription: url.searchParams.get("error_description"), state: url.searchParams.get("state"), iss: url.searchParams.get("iss")
       };
-
       try {
         validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
-      } catch (error) {
-        res.writeHead(400);
-        res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
-        settle(() => reject(error instanceof Error ? error : new Error(String(error))));
-        return;
-      }
-
-      const authorizationError = callbackParameters.error;
-      if (authorizationError !== null) {
-        const description = callbackParameters.errorDescription ?? authorizationError;
-        res.writeHead(400);
-        res.end(`Authorization failed: ${description}`);
-        settle(() => reject(createAuthorizationError(authorizationError, description)));
-        return;
-      }
-
-      try {
-        const code = validateAuthorizationCallbackParameters(
-          callbackParameters,
-          expectedAuthorization
-        );
-
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(buildSuccessPage(options.landingPage));
+        if (callbackParameters.error !== null)
+          throw createAuthorizationError(callbackParameters.error, callbackParameters.errorDescription ?? callbackParameters.error);
+        const code = validateAuthorizationCallbackParameters(callbackParameters, expectedAuthorization);
+        res.writeHead(200, { "Content-Type": "text/html" }); res.end(buildSuccessPage(options.landingPage));
         settle(() => resolve(code));
       } catch (error) {
-        res.writeHead(400);
-        res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
-        settle(() => reject(error instanceof Error ? error : new Error(String(error))));
-      }
-    });
-
-    if (options.readLine !== undefined) {
-      options
-        .readLine()
-        .then((input) => {
-          const callbackParameters = extractCallbackParametersFromInput(input);
-          if (callbackParameters === null) {
-            settle(() => reject(new Error("OAuth callback missing authorization code")));
-            return;
-          }
-
-          try {
-            validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
-            if (callbackParameters.error !== null) {
-              const description = callbackParameters.errorDescription ?? callbackParameters.error;
-              throw createAuthorizationError(callbackParameters.error, description);
-            }
-
-            const code = validateAuthorizationCallbackParameters(
-              callbackParameters,
-              expectedAuthorization
-            );
-            settle(() => resolve(code));
-          } catch (error) {
-            settle(() => reject(error instanceof Error ? error : new Error(String(error))));
-          }
-        })
-        .catch((error) => {
-          settle(() => reject(error instanceof Error ? error : new Error(String(error))));
-        });
-    }
-
-    if (options.openBrowser !== undefined) {
-      options.openBrowser(authorizationUrl).catch((error) => {
+        res.writeHead(400); res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
         settle(() => reject(error));
-      });
+      }
+    };
+    server.on("request", request);
+    signal.addEventListener("abort", aborted, { once: true });
+    if (options.readLine !== undefined) {
+      void Promise.resolve().then(() => settled ? undefined : options.readLine!()).then(input => {
+        if (settled) return;
+        const callbackParameters = extractCallbackParametersFromInput(input!);
+        if (callbackParameters === null) throw new Error("OAuth callback missing authorization code");
+        validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
+        if (callbackParameters.error !== null)
+          throw createAuthorizationError(callbackParameters.error, callbackParameters.errorDescription ?? callbackParameters.error);
+        const code = validateAuthorizationCallbackParameters(callbackParameters, expectedAuthorization);
+        settle(() => resolve(code));
+      }).catch(error => settle(() => reject(error)));
+    }
+    if (options.openBrowser !== undefined) {
+      void Promise.resolve().then(() => settled ? undefined : options.openBrowser!(authorizationUrl))
+        .catch(error => settle(() => reject(error)));
     }
   });
 }

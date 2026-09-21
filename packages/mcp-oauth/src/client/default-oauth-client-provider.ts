@@ -153,6 +153,7 @@ export function createDefaultOAuthClientProvider(
       return session;
     }
 
+    if (options.allowInteractive === false) throw new Error("OAuth interactive authorization is disabled");
     return authorizeSession(canonicalResource, session, sessionDiscovery, fetch);
   }
 
@@ -264,7 +265,10 @@ export function createDefaultOAuthClientProvider(
           openBrowser: options.browser.openBrowser,
           readLine: options.browser.readLine,
           createServer: options.browser.createServer,
-          landingPage: options.browser.landingPage
+          landingPage: options.browser.landingPage,
+          redirectUri: options.browser.redirectUri,
+          signal: options.browser.signal,
+          timeoutMs: options.browser.timeoutMs
         });
         let resolvedClient: ResolvedOAuthClient | null = null;
 

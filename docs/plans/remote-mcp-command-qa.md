@@ -160,3 +160,13 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     calls, nonzero status and credential-free diagnostics. Repeat via virtual
     stdin, inspect import help/summary/byte-failure screenshots and purge owned
     synthetic evidence. Existing native process-lock QA covers actual native locks.
+
+26. Primary close reasons: return an oversized initialization body after assigning
+    a session. Delay DELETE beyond 50 ms, then separately return DELETE HTTP 500.
+    Native connect and generated tool execution must retain the response-byte
+    failure. HttpTransport.closeReason must resolve before deletion completes;
+    transport.closed must await cleanup and retain the DELETE failure separately.
+    Inspect the CLI diagnostic screenshot, require empty result stdout and exit1,
+    and verify every assigned session receives DELETE. Buffered initialization
+    responses and generic transport state transitions remain covered by the
+    maintained native transport tests. Purge only owned fixtures and screenshots.

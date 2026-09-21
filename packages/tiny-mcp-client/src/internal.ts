@@ -231,11 +231,13 @@ export class McpClient {
     this.subscribedResourceUris.clear();
     this.activeProgressTokens.clear();
 
-    const transportClosedReason = transport.closed
-      .then((closedEvent) => closedEvent.reason)
+    const transportClosedReason = (transport.closeReason ?? transport.closed
+      .then((closedEvent) => closedEvent.reason))
       .catch((error: unknown) =>
         error instanceof Error ? error : new Error(String(error))
       );
+    let primaryCloseReason: Error | undefined;
+    void transportClosedReason.then(reason => { primaryCloseReason = reason; });
     const messageLayer = new JsonRpcMessageLayer(
       transport.readable,
       transport.writable,
@@ -376,7 +378,7 @@ export class McpClient {
           return;
         }
 
-        this.messageLayer?.dispose(closedEvent.reason);
+        this.messageLayer?.dispose(primaryCloseReason ?? closedEvent.reason);
         this.messageLayer = null;
         this.transport = null;
         this.currentState = "closed";
@@ -1111,6 +1113,8 @@ export interface McpTransport {
   readable: Readable;
   writable: Writable;
   closed: Promise<McpTransportClosedEvent>;
+  /** Primary close reason, available before asynchronous transport cleanup finishes. */
+  readonly closeReason?: Promise<Error>;
   dispose(reason?: Error): void;
   filterTools?(tools: Tool[], reset?: boolean): Tool[];
   /** Complete a legacy initialization handshake before the client reports ready. */
@@ -2680,6 +2684,8 @@ export class HttpTransport implements McpTransport {
   readonly readable: Readable;
   readonly writable: Writable;
   readonly closed: Promise<McpTransportClosedEvent>;
+  readonly closeReason: Promise<Error>;
+  private resolveCloseReason: ((reason: Error) => void) | undefined;
   private readonly url: string;
   private readonly mode: "streamable-http" | "sse";
   private legacyEndpoint: string | undefined;
@@ -2740,6 +2746,7 @@ export class HttpTransport implements McpTransport {
         });
     this.readable = this.readStream;
     this.writable = this.writeStream;
+    this.closeReason = new Promise(resolve => { this.resolveCloseReason = resolve; });
     this.closed = new Promise((resolve) => {
       this.resolveClosed = resolve;
     });
@@ -2801,6 +2808,8 @@ export class HttpTransport implements McpTransport {
     this.rejectLegacyEndpoint?.(reason);
     this.rejectLegacyEndpoint = undefined;
     this.resolveLegacyEndpoint = undefined;
+    this.resolveCloseReason?.(reason);
+    this.resolveCloseReason = undefined;
     this.toolParameterHeaders.clear();
     this.abortInFlightFetches(reason);
     this.cancelOpenResponseReaders();

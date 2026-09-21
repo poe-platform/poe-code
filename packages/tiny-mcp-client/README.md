@@ -64,6 +64,12 @@ make transport decisions without parsing error messages. Legacy HTTP/SSE
 reporting ready. Completion failures reject the connection and expose
 `rpcMethod: "notifications/initialized"`; they are not setup transport mismatches.
 
+`HttpTransport.closeReason` resolves with the original failure as disposal begins.
+Client requests retain that reason even if session deletion is slow or fails.
+Await `transport.closed` to finish cleanup; its reason reports a deletion failure
+when cleanup fails, otherwise the original reason. Custom transports can expose
+the same optional `closeReason` promise when closing requires asynchronous work.
+
 ## OAuth HTTP support
 
 `HttpTransport` accepts `oauth` options from `mcp-oauth`. When a protected server returns a Bearer `WWW-Authenticate` challenge, the transport discovers protected-resource metadata, loads authorization-server metadata, lets the OAuth provider handle authorization, and retries the request when credentials are available.

@@ -83,3 +83,37 @@ it.each(["declared bytes", "stream bytes", "malformed UTF-8"])(
     }
   }
 );
+
+it.each(["slow deletion", "failed deletion"])(
+  "keeps initialization failure primary despite %s", async mode => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const deleting = Promise.withResolvers<void>(), deletion = Promise.withResolvers<Response>();
+    const transport = new HttpTransport({ url: "https://mcp.invalid/limits", maxResponseBytes: 8,
+      fetch: async (_url, init) => {
+        if (init?.method === "DELETE") { deleting.resolve(); return deletion.promise; }
+        if (init?.method !== "POST") return new Response(null, { status: 405 });
+        return new Response("123456789", { headers: { "Content-Type": "application/json", "Mcp-Session-Id": "failed-session" } });
+      } });
+    const client = new McpClient({ clientInfo: { name: "limit-test", version: "1" }, protocolVersion: "2025-03-26" });
+    const outcome = client.connect(transport).catch(error => error);
+    let cleaned = false;
+    void transport.closed.then(() => { cleaned = true; });
+    try {
+      await Promise.race([deleting.promise, outcome.then(error => { throw error; })]);
+      const primary = await transport.closeReason;
+      expect(primary.message).toContain("8 bytes");
+      expect(cleaned).toBe(false);
+      if (mode === "slow deletion") await vi.advanceTimersByTimeAsync(51);
+      deletion.resolve(new Response(null, { status: mode === "failed deletion" ? 500 : 204 }));
+      const error = await outcome;
+      expect(error.message).toContain("8 bytes");
+      expect(error).toBe(primary);
+      const closed = await transport.closed;
+      if (mode === "failed deletion") expect(closed.reason).toMatchObject({ status: 500, method: "DELETE" });
+      else expect(closed.reason).toBe(error);
+    } finally {
+      deletion.resolve(new Response(null, { status: 204 }));
+      await client.close(); transport.dispose(); await transport.closed; vi.useRealTimers();
+    }
+  }
+);

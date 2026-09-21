@@ -5922,3 +5922,36 @@ TOML release35598431393 cancelled by concurrency;compiler35597375742 ongoing
 unit,otherjobs successful. No successful publication verified. Concurrent changes
 preserved. Continuous12:18:42–12:22:24 adds222s,total109279s (30.36h).
 Minimum fulfilled;objective incomplete. Continue accounting after12:22:24 UTC.
+
+
+### Harness plan discovery/archive, 2026-09-21 12:27 UTC
+
+Added discoverPlans/openPlanList/archivePlan,readiness parse/labels/comparison and
+run-queue summaries. Owned task-list hosts/declarations and Rust codec/process
+bindings embed in one harness addon;no npm runtime imports/dependencies added.
+Rust owns exact markdown-ID extraction,readiness validation/presentation and
+summary formatting;Node retains filesystem access,hooks,duplicate paths,task
+metadata,archive transition orchestration and modification-time/locale sorting.
+Original21reference cases added,including metadata acknowledgement and failed
+archive non-overwrite. Core/reference missing-module reds precede additions.
+A proposed quoted-format assertion did not match the original:both SDKs normalize
+notes quotes during passthrough archive;concrete oracle confirms equal output,
+assertion repaired without changing code. Existing YAML editor limitations remain;
+this is not full replacement acceptance. No production integration.
+
+Maintained12Rust cases,11native groups,171references/14files,bidirectional covered
+public types,fmt/clippy/ESLint pass. Native diagnostics retain JSON hooks/errors,
+BigInt/Symbol handling,right-before-left readiness getters,UTF16 labels,embedded
+task operations and untouched neighbor files. Uncached selected117workspaces/
+26builds/361edges passes. Packed89files/one addon,no npm runtime groups,external
+npm resolution blocked;workflow/queue/log/plan discovery+archive checks pass.
+16MiB-old-generation memfs worker512discoveries/256archives retains6.06MiBheap/
+80.08MiBRSS;finite evidence,not total/native memory bounds. Five alternating warmed
+32discoveries of32plans:originalwall58.15–64.71ms/CPU64.84–92.63ms,ownwall33.80–38.15ms/
+CPU38.11–47.83ms;scoped plan discovery PASS each pair. Prior simple discovery/log
+performance failures unchanged. Evidence out/rust-harness-plans-*.
+
+Logs4dbcb2d1c exactly verified on remote main;release35599205236 pending;
+compiler35597375742 unit ongoing. No successful current publication verified.
+Concurrent changes preserved. Continuous12:22:24–12:27:55 adds331s,total109610s
+(30.45h). Minimum fulfilled;objective incomplete. Continue accounting after12:27:55UTC.

@@ -22,11 +22,16 @@ version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
  "agent-harness-tools-rust",
+ "config-mutations-rust",
+ "config-mutations-rust-napi-core",
  "mcp-protocol-rust",
  "mcp-protocol-rust-napi-core",
  "napi",
  "napi-build",
  "napi-derive",
+ "process-runner-rust",
+ "task-list-rust",
+ "user-error-rust",
 ]
 
 [[package]]
@@ -40,6 +45,25 @@ name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+
+[[package]]
+name = "config-mutations-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "config-mutations-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust-napi-core",
+]
 
 [[package]]
 name = "convert_case"
@@ -161,6 +185,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mcp-oauth-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
 
@@ -258,6 +289,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "process-runner-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-oauth-rust",
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -307,6 +346,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "task-list-rust"
+version = "0.1.0"
+
+[[package]]
+name = "toolcraft-design-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "toolcraft-design-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -317,6 +378,10 @@ name = "unicode-segmentation"
 version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
+
+[[package]]
+name = "user-error-rust"
+version = "0.1.0"
 
 [[package]]
 name = "windows-link"

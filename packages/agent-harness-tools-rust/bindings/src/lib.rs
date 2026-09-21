@@ -228,3 +228,39 @@ pub fn harness_log_filename(
         .map_err(|_| napi::Error::from_reason("Run log filename requires seven UTC components"))?;
     Ok(agent_harness_tools_rust::logs::file_name(&role, &date).into())
 }
+#[path = "../../../task-list-rust/bindings/src/lib.rs"]
+mod tasks;
+pub use tasks::*;
+#[napi]
+pub fn harness_plan_file_id(filename: Utf16String) -> Option<Utf16String> {
+    agent_harness_tools_rust::plans::file_id(&filename).map(Utf16String::from)
+}
+#[napi]
+pub fn harness_plan_readiness(value: Option<Utf16String>) -> Option<Utf16String> {
+    agent_harness_tools_rust::plans::readiness(value.as_deref()).map(Utf16String::from)
+}
+#[napi]
+pub fn harness_readiness_label(label: Utf16String, ready: bool) -> Utf16String {
+    agent_harness_tools_rust::plans::readiness_label(&label, ready).into()
+}
+#[napi]
+pub fn harness_compare_readiness(left: bool, right: bool) -> i32 {
+    agent_harness_tools_rust::plans::compare_readiness(left, right)
+}
+#[napi]
+pub fn harness_queue_summary(
+    completed_plans: u32,
+    plans: u32,
+    completed_messages: u32,
+    messages: u32,
+    pending: u32,
+) -> Utf16String {
+    agent_harness_tools_rust::plans::queue_summary(
+        completed_plans,
+        plans,
+        completed_messages,
+        messages,
+        pending,
+    )
+    .into()
+}

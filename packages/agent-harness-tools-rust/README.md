@@ -11,6 +11,9 @@ The package is additive and has no npm runtime dependencies.
 - Run document workflows, hooks, stages and sequences with injected callbacks.
 - Resolve loop agents and map source paths into execution worktrees.
 - Discover workflow documents with project overrides and symlink/traversal checks.
+- Discover markdown plans, filter kinds, and sort ready plans before drafts.
+- Open plan task lists and archive plans with finalization metadata.
+- Summarize completed plans, follow-up messages and pending work.
 - Generate distinct plan log directories and UTC role filenames.
 - Reject log directories whose canonical ancestors escape the state directory.
 
@@ -44,8 +47,7 @@ checks normalized containment and merges project/global entries by exact filenam
 Supply your filesystem adapter through `discoverWorkflowDocs({cwd, homeDir,
 subDirectory, fs})`; discovery ignores missing directories and symbolic links.
 
-This first surface does not expose plan storage, process/runtime
-execution, log streaming, dashboards or workspace transfer. It is not a full replacement
+This surface does not expose process/runtime execution, log streaming, dashboards or workspace transfer. It is not a full replacement
 for the original package. Loop-agent callbacks use a structural symbol cancellation
 type: original SDK callbacks can be supplied, but the original SDK's unique symbol
 prevents the reverse full-module type assignment. Custom array/intrinsic hooks
@@ -61,3 +63,14 @@ directory through your filesystem adapter. With `realpath`, it checks existing
 ancestors before creating the final directory and validates the result afterward.
 Without `realpath`, checks are lexical. Rust formats ASCII labels and UTC filename
 components; Node supplies SHA-256, platform paths, dates and filesystem operations.
+
+Use `discoverPlans({cwd, homeDir, planDirectory, fs})` to list plans or
+`archivePlan({...options, id, metadataPatch})` to archive one. The owned task-list
+SDK and its Rust codecs share the harness addon. Node retains filesystem access,
+metadata hooks and display-path sorting; Rust selects file IDs, validates readiness
+and formats readiness labels and queue summaries. Broader YAML editing limits of
+the owned task-list implementation still apply.
+
+A local memfs benchmark of 32 discoveries over 32 markdown plans takes about
+34–38 ms native versus 58–65 ms in TypeScript. This scoped result does not establish
+performance on other filesystems or platforms.

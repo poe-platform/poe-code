@@ -11,3 +11,7 @@ export {mapSourcePathIntoWorktree} from "./worktree-path.js";
 export {discoverWorkflowDocs,resolveWorkflowPath,type DiscoverDocsOptions} from "./paths.js";
 
 export {ensureSafeRunLogDir,makeRunLogFileName,resolveRunLogDir,slugifyPlanPath,type RunLogFileSystem,type ResolveRunLogDirOptions} from "./run-logs.js";
+
+export {archivePlan,discoverPlans,openPlanList,parsePlanReadiness,type ArchivePlanOptions,type DiscoverPlansOptions,type OpenPlanListOptions,type PlanReadiness,type PlanRef} from "./plans.js";
+export {comparePlanReadiness,formatPlanReadinessLabel} from "./plan-readiness.js";
+export {formatRunQueueSummary} from "./run-queue-summary.js";

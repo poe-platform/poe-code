@@ -1,0 +1,172 @@
+import * as fsPromises from "node:fs/promises";
+import path from "node:path";
+import { openTaskList, type TaskList, type TaskListFs } from "./tasks/index.js";
+import { native } from "./native.js";
+import { resolveWorkflowPath } from "./paths.js";
+import { comparePlanReadiness } from "./plan-readiness.js";
+
+const PLAN_LIST_NAME = "plans";
+function hasOwnErrorCode(error:unknown,code:string):boolean {
+ return typeof error==="object"&&error!==null&&Object.prototype.hasOwnProperty.call(error,"code")&&(error as {code?:unknown}).code===code;
+}
+
+export interface PlanRef {
+  id: string;
+  absolutePath: string;
+  displayPath: string;
+  kind: string;
+  name: string;
+  readiness: PlanReadiness;
+}
+
+export type PlanReadiness = "draft" | "ready";
+
+export interface DiscoverPlansOptions {
+  cwd: string;
+  homeDir: string;
+  planDirectory: string;
+  kinds?: readonly string[];
+  fs?: TaskListFs;
+}
+
+export interface ArchivePlanOptions {
+  cwd: string;
+  homeDir: string;
+  planDirectory: string;
+  id: string;
+  fs?: TaskListFs;
+  metadataPatch?: Record<string, unknown>;
+}
+
+export interface OpenPlanListOptions {
+  cwd: string;
+  homeDir: string;
+  planDirectory: string;
+  fs?: TaskListFs;
+}
+
+async function directoryExists(fs: TaskListFs, directoryPath: string): Promise<boolean> {
+  try {
+    return (await fs.stat(directoryPath)).isDirectory();
+  } catch (error) {
+    if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+type PlanFile = { absolutePath: string; updatedAt: number };
+
+async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map<string, PlanFile>> {
+  const fileNames = await fs.readdir(directoryPath);
+  const filesById = new Map<string, PlanFile>();
+
+  for (const fileName of fileNames) {
+    const id = native.harnessPlanFileId(fileName);
+    if (id === null) {
+      continue;
+    }
+
+    const absolutePath = path.join(directoryPath, fileName);
+    const stat = await fs.stat(absolutePath);
+    if (stat.isFile()) {
+      const existing = filesById.get(id);
+      if (existing !== undefined) {
+        throw new Error(`Duplicate active plan identifier "${id}": ${existing.absolutePath} and ${absolutePath}`);
+      }
+      filesById.set(id, { absolutePath, updatedAt: stat.mtimeMs });
+    }
+  }
+
+  return filesById;
+}
+
+function isPathWithin(basePath: string, targetPath: string): boolean {
+  const relativePath = path.relative(basePath, targetPath);
+
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
+}
+
+function displayPlanPath(absolutePath: string, cwd: string, homeDir: string): string {
+  if (isPathWithin(cwd, absolutePath)) {
+    return path.relative(cwd, absolutePath);
+  }
+
+  if (isPathWithin(homeDir, absolutePath)) {
+    const relativeToHome = path.relative(homeDir, absolutePath);
+    return relativeToHome.length === 0 ? "~" : `~/${relativeToHome}`;
+  }
+
+  return absolutePath;
+}
+
+function planKind(metadata: Record<string, unknown>): string {
+  return String(metadata.kind ?? "plan");
+}
+
+export function parsePlanReadiness(value: unknown): PlanReadiness {
+  if(value===undefined||typeof value==="string"){
+    const readiness=native.harnessPlanReadiness(value);
+    if(readiness!==null)return readiness as PlanReadiness;
+  }
+  throw new Error(`Invalid plan readiness ${JSON.stringify(value)}; expected "draft" or "ready".`);
+}
+
+export async function discoverPlans(options: DiscoverPlansOptions): Promise<PlanRef[]> {
+  const resolvedDirectory = resolveWorkflowPath(options.planDirectory,options.cwd,options.homeDir);
+  const fs = options.fs ?? (fsPromises as unknown as TaskListFs);
+  if (!(await directoryExists(fs, resolvedDirectory))) {
+    return [];
+  }
+
+  const [taskList, filesById] = await Promise.all([
+    openPlanList(options),
+    readPlanPaths(fs, resolvedDirectory)
+  ]);
+  const kindFilter = options.kinds === undefined ? undefined : new Set(options.kinds);
+  const tasks = await taskList.list(PLAN_LIST_NAME).all();
+
+  return tasks
+    .map((task) => ({
+      id: task.id,
+      name: task.name,
+      kind: planKind(task.metadata),
+      readiness: parsePlanReadiness(task.metadata.readiness),
+      absolutePath: filesById.get(task.id)?.absolutePath ?? path.join(resolvedDirectory, `${task.id}.md`),
+      updatedAt: filesById.get(task.id)?.updatedAt ?? 0
+    }))
+    .filter((plan) => kindFilter === undefined || kindFilter.has(plan.kind))
+    .map((plan) => ({
+      ...plan,
+      displayPath: displayPlanPath(plan.absolutePath, options.cwd, options.homeDir)
+    }))
+    .sort(
+      (left, right) =>
+        comparePlanReadiness(left, right) ||
+        right.updatedAt - left.updatedAt ||
+        left.displayPath.localeCompare(right.displayPath)
+    )
+    .map(({ updatedAt: _updatedAt, ...plan }) => plan);
+}
+
+export const archivePlan = async (options: ArchivePlanOptions): Promise<string> => {
+  const taskList = await openPlanList(options);
+  const plans = taskList.list(PLAN_LIST_NAME);
+
+  const archived = await plans.fire(options.id, "archive", {
+    ...(options.metadataPatch ? { metadataPatch: options.metadataPatch } : {})
+  });
+  return archived.sourcePath!;
+};
+
+export function openPlanList(options: OpenPlanListOptions): Promise<TaskList> {
+  return openTaskList({
+    type: "markdown-dir",
+    path: resolveWorkflowPath(options.planDirectory,options.cwd,options.homeDir),
+    singleList: PLAN_LIST_NAME,
+    frontmatterMode: "passthrough",
+    fs: options.fs
+  });
+}

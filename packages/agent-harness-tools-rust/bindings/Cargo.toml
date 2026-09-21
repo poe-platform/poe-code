@@ -9,6 +9,11 @@ license = "MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
+task-list-rust={path="../../task-list-rust"}
+config-mutations-rust={path="../../config-mutations-rust"}
+config-mutations-rust-napi-core={path="../../config-mutations-rust/bindings/shared"}
+process-runner-rust={path="../../process-runner-rust"}
+user-error-rust={path="../../user-error-rust"}
 agent-defs-rust = { path = "../../agent-defs-rust" }
 agent-harness-tools-rust={path=".."}
 mcp-protocol-rust = { path = "../../mcp-protocol-rust" }

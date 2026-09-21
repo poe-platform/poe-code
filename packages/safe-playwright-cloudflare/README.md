@@ -35,6 +35,10 @@ select sessions inside that owner's instance. The library never constructs an
 authenticated owner key, routes Durable Objects, admits owners, stores profiles,
 or schedules automatic persistence.
 
+Owned browser release errors name failed cleanup phases and phases still pending
+at the five-second deadline. The aggregate retains the original errors; its
+message contains only fixed phase names, without session IDs or protocol data.
+
 An optional second argument supplies `loadState(session, signal)`. Explicit
 `contextOptions.storageState`, including an empty state, overrides that callback.
 The fourth argument bounds storage restoration bytes; its default is 2 MiB.

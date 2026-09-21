@@ -83,7 +83,9 @@ test("owner release preserves DELETE failure and closes every acquired socket ex
 	secondary.accept();
 	const first = resource.release();
 	expect(resource.release()).toBe(first);
-	await expect(first).rejects.toThrow("release");
+	await expect(first).rejects.toThrow(
+		"Owned browser release failed (failed: provider deletion)",
+	);
 	await Promise.all(provider.closes);
 	expect(
 		provider.requests.filter((method) => method === "DELETE"),

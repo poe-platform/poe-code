@@ -134,10 +134,10 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 		disconnect();
 		releasing = finishOwnedBrowserCleanup(
 			[
-				attempt(() => control?.close()),
-				attempt(() => privacy.close()),
-				attempt(() => browser?.close()),
-				attempt(async () => {
+				["storage control", attempt(() => control?.close())],
+				["private transport", attempt(() => privacy.close())],
+				["public connection", attempt(() => browser?.close())],
+				["provider deletion", attempt(async () => {
 					try {
 						await deleteBrowser();
 						finalizeBrowserOwnerTermination(upstreams, true);
@@ -145,8 +145,8 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 						finalizeBrowserOwnerTermination(upstreams, false);
 						throw error;
 					}
-				}),
-				attempt(async () => {
+				})],
+				["upstream closure", attempt(async () => {
 					const outcomes = await Promise.allSettled(
 						[...upstreams].map(waitForBrowserSocketClose),
 					);
@@ -158,7 +158,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 							failures,
 							"Owned browser upstream closure failed",
 						);
-				}),
+				})],
 			],
 			AbortSignal.timeout(BROWSER_RELEASE_MS),
 		);
@@ -204,11 +204,11 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 }
 
 async function finishOwnedBrowserCleanup(
-	operations: Promise<void>[],
+	operations: [phase: string, completion: Promise<void>][],
 	signal: AbortSignal,
 ): Promise<void> {
 	const outcomes: PromiseSettledResult<void>[] = [];
-	const completed = operations.map((operation, index) =>
+	const completed = operations.map(([, operation], index) =>
 		operation.then(
 			() => {
 				outcomes[index] = { status: "fulfilled", value: undefined };
@@ -238,8 +238,22 @@ async function finishOwnedBrowserCleanup(
 	const failures = outcomes
 		.filter((outcome) => outcome.status === "rejected")
 		.map((outcome) => outcome.reason);
-	if (failures.length)
-		throw new AggregateError(failures, "Owned browser release failed");
+	if (failures.length) {
+		const failed = operations
+			.filter((_, index) => outcomes[index]?.status === "rejected")
+			.map(([phase]) => phase);
+		const pending = operations
+			.filter((_, index) => outcomes[index] === undefined)
+			.map(([phase]) => phase);
+		const details = [
+			...(failed.length ? [`failed: ${failed.join(", ")}`] : []),
+			...(pending.length ? [`pending: ${pending.join(", ")}`] : []),
+		];
+		throw new AggregateError(
+			failures,
+			`Owned browser release failed (${details.join("; ")})`,
+		);
+	}
 }
 
 /** Concurrent cleanup paths share one deletion and the same provider outcome. */

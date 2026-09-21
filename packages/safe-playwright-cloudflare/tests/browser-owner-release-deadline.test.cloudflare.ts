@@ -42,6 +42,11 @@ test.each([
 		});
 		if (!(failure instanceof AggregateError))
 			throw new Error("Missing aggregate owner release failure");
+		expect(failure.message).toContain("pending:");
+		expect(failure.message).toContain("upstream closure");
+		if (deleteStatus === 503)
+			expect(failure.message).toContain("failed: provider deletion");
+		else expect(failure.message).not.toContain("failed:");
 		const failures = failure.errors.map((error) => String(error));
 		expect(failures).toContain(
 			"Error: Owned browser release deadline exceeded",

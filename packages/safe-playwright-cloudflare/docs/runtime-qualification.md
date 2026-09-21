@@ -90,3 +90,44 @@ Pinned macOS ARM64 Bun executable SHA-256:
 | 1.3.11  | `1d77af7bfd811aebb7d37bec496a5eed14fe227ded3ab7866d2f39786e8107b6` |
 | 1.3.12  | `39e644cea4e6db24a3af36013695655d6f789b4b98f1f13bacb882ac6e5c3c18` |
 | 1.4.2   | `35d20dd0263e5c950194434b925454fdfa9ba6e4467da960410fa05b08a7a5b5` |
+
+## Sustained upload investigation on September 21, 2026
+
+Issue 245 followed consumer PR 15084 at
+`6c6d4101981c9c67f4a2279754f6e4380bbfb97a`. Its first CI attempt
+([job 106484931751](https://github.com/poe-internal/poe2/actions/runs/35645488374/job/106484931751))
+returned HTTP 500 with `Owned browser release failed` during sustained uploads;
+subsequent close-all also failed. The top-level message did not identify which
+cleanup operation failed. This observation does not establish a cause.
+The same-SHA retry
+([job 106490714925](https://github.com/poe-internal/poe2/actions/runs/35645488374/job/106490714925))
+passed that exact test in 1.80 seconds, compared with the failed attempt's
+17.42 seconds; the retry build job succeeded. No source change separated
+these attempts. This does not prove a shared cause with other CI failures.
+
+The exact installed `@poe-platform/safe-bash@0.1.713` with
+`@cloudflare/playwright@1.3.6` completed five synthetic native Chromium sessions:
+one serial session, then two rounds with two concurrent sessions. Each session
+clicked a button that sent 33 sequential 2 MiB POST bodies and waited for its
+completion element before releasing its public adapter lease. The local HTTP
+server received all 165 uploads (346,030,080 bytes), every Worker response was
+HTTP 200, and the Browser Rendering session list was empty after release.
+Native shutdown emitted trusted `Network connection lost` events, but these
+did not fail release. This was concurrent synthetic session load, not the
+consumer's full CI workload or its exact persistence integration.
+
+The current checkout's maintained native session-capacity fixture also passed
+its shell-driven 33-upload sequence, exact 66 MiB byte assertion, explicit
+close-all, and empty session-list assertion. Host: Linux x64, Node 22,
+Miniflare `4.20260708.1`, compatibility date `2026-07-08`, `nodejs_compat`.
+This container could not launch sandboxed Chromium; a temporary host-side
+launcher added `--no-sandbox` only to matching synthetic fixture browsers.
+The detached-browser ownership guardian remained enabled. These results do
+not qualify Chromium sandbox behavior or deployed Browser Run.
+
+The original release failure remains unreproduced. Release messages now name
+failed cleanup phases and phases pending at the existing five-second deadline,
+so a consumer retaining only `String(error)` can distinguish provider deletion,
+storage control, private transport, public connection, and upstream closure.
+Original aggregate errors and physical close confirmation remain intact. No
+admission guard, transport budget, test deadline, or release deadline changed.

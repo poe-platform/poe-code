@@ -2722,6 +2722,16 @@ closure, malformed/getter/cross-platform/aggregate/performance acceptance and
 24-hour actual effort. Release6a082b4c6 is pending; successful publication remains
 unverified.
 
+### MCP HTTP binding embeddability — 2026-09-21
+
+Embedding the existing own HTTP binding in another single-addon fixture reproduced
+an unused private-import warning under denied warnings. Re-exported the existing
+native response-message type so the parent crate can use that binding's alias.
+No runtime behavior or TypeScript imports change. The maintained HTTP package's
+443 Vitest cases,48 native groups, Rust groups and lint pass. The new fixture's
+native tests independently exercise the combined artifact; implementation remains
+additive and the overall rewrite remains incomplete.
+
 - Repository: `packages/tiny-stdio-mcp-server/src/server.ts`, `src/protocol.ts`, and
   `src/index.ts`; `packages/tiny-mcp-client/src/internal.ts`, `src/index.ts`, and
   `scripts/build.mjs`; `packages/tiny-http-mcp-server/src/http-server.ts`,

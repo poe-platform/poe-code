@@ -161,4 +161,4 @@ pub fn http_test_reverse(text: Utf16String) -> Utf16String {
 
 #[path = "../../../tiny-mcp-client-rust/bindings/src/lib.rs"]
 pub mod embedded_client;
-use embedded_client::NativeHttpResponseMessages;
+pub use embedded_client::NativeHttpResponseMessages;

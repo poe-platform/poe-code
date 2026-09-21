@@ -496,7 +496,7 @@ export function createDefaultOAuthClientProvider(
   ): Promise<ResolvedOAuthClient> {
     parentSignal?.throwIfAborted();
 
-    if (clientMode === "static" || configuredClient?.registration !== undefined) {
+    if (clientMode === "static" || configuredClient !== null) {
       if (configuredClient === null) {
         throw new Error("OAuth client_id must not be blank");
       }
@@ -515,14 +515,6 @@ export function createDefaultOAuthClientProvider(
       discovery.authorizationServerMetadata,
       "registration_endpoint"
     );
-    if (registrationEndpoint === undefined && configuredClient !== null) {
-      return {
-        kind: "static",
-        fromStoredRegistration: false,
-        client: configuredClient
-      };
-    }
-
     let storedClient = await loadRegisteredClient(discovery.authorizationServer);
     const importedClient = existingSession?.client.registrationOwnership === "caller" ? existingSession.client :
       storedClient?.registrationOwnership === "caller" ? storedClient : undefined;
@@ -561,19 +553,12 @@ export function createDefaultOAuthClientProvider(
     }
 
     if (existingSession !== null && existingSession.client.clientId.length > 0 && !hasExpiredClientSecret(existingSession.client, now) && registrationMatchesRedirect(existingSession.client, redirectUri)) {
-      const isConfiguredStaticFallback =
-        configuredClient !== null &&
-        existingSession.client.clientId === configuredClient.clientId &&
-        existingSession.client.clientSecret === configuredClient.clientSecret;
-
-      if (!isConfiguredStaticFallback) {
-        await saveRegisteredClient(discovery.authorizationServer, existingSession.client);
-        return {
-          kind: "dynamic",
-          fromStoredRegistration: true,
-          client: existingSession.client
-        };
-      }
+      await saveRegisteredClient(discovery.authorizationServer, existingSession.client);
+      return {
+        kind: "dynamic",
+        fromStoredRegistration: true,
+        client: existingSession.client
+      };
     }
 
     const supported = getSupportedTokenAuthMethods(discovery.authorizationServerMetadata);

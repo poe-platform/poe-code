@@ -47,6 +47,7 @@ alone do not establish either native error type.
 
 - `client`
   - `mode: "dynamic"` with optional `metadata`
+    and optional existing `clientId`/`clientSecret`
   - `mode: "static"` with `clientId`, optional `clientSecret`, optional `metadata`
 - `allowInteractive: false` prevents interactive login while retaining cached tokens and silent refresh
 - `sessionLockTimeoutMs` limits acquisition waits for a session transaction lock (default 30,000 ms; integer from 1 to 2147483647)
@@ -266,6 +267,10 @@ Static clients and dynamic initial-grant imports require cached grants to match
 the original normalized client ID and secret. A different client configuration
 fails before attaching or refreshing credentials and retains the stored record;
 select separate persistence or explicitly reset the session to change apps.
+An explicitly supplied client ID is used for consent in either mode, including
+when discovery advertises a registrar. Dynamic registration creates a client
+only when no existing app identity is supplied; URL client IDs stay opaque and
+do not trigger client-metadata fetching or registration fallback.
 Use `persistenceNamespace: "personal"` or `"work"` to keep separate native
 profiles for the same resource/issuer. `createAuthStoreSessionStore(options,
 namespace)` addresses the same profile when seeding or inspecting credentials.

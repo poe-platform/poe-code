@@ -303,6 +303,9 @@ An explicit client ID/secret must match the cached grant's original app, in
 both static and dynamic modes. A changed app or explicit scope fails before
 using or refreshing that grant; select separate persistence or reset/import
 credentials for the new configuration.
+Consent also uses that supplied app in either mode, even when discovery
+advertises dynamic registration. Leave the client ID empty in dynamic mode
+to create a new app; an existing app is never replaced by automatic registration.
 Existing access-token imports require the original client ID; refresh-token/expiry fields
 require an access token. `expiresAt` is a decimal Unix epoch millisecond value.
 Optional `expiresIn` references supply lifetime in seconds, anchored once at

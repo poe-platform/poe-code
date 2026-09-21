@@ -52,7 +52,7 @@ export interface RemoteMcpInitialization {
 }
 
 const credentialFields = {
-  clientId: { suffix: "CLIENT_ID", description: "OAuth app/client ID; required for static registration." },
+  clientId: { suffix: "CLIENT_ID", description: "OAuth app/client ID; required for static mode. A supplied ID uses that app in any mode. Leave empty in dynamic mode to create an app." },
   clientSecret: { suffix: "CLIENT_SECRET", description: "OAuth app/client secret, if required by the app." },
   scope: { suffix: "SCOPE", description: "Requested OAuth scopes, separated by spaces; overrides the public fallback." },
   redirectUri: { suffix: "REDIRECT_URI", description: "Exact registered callback URL; overrides the public fallback. Empty uses a random loopback port." },

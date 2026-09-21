@@ -798,3 +798,18 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     metadata GETs/one hundred twenty-six credential MCP POSTs/twenty-one retired
     HTTP sessions/twenty-one closed SSE streams. Inspect successful screenshot;
     purge only owned synthetic evidence.
+
+72. In dynamic mode supply explicit public, confidential and URL app IDs while
+    the issuer advertises registration and client-metadata support. Through
+    actual HTTP/SSE schema, generated-tool and resource routes, begin fresh,
+    with expired imports or expired persisted grants. Require fifty-four
+    original-factory/state-S256 callbacks/code exchanges with original exact app
+    IDs/secrets and zero DCR/client-document fetch. Recreate headless providers
+    at expiry; require fifty-four silent original-app refreshes with durable
+    pending intent before each redemption. Complete thirty-six schemas,
+    thirty-six calls and thirty-six text+blob reads retaining guidance/falsey
+    JSON/nested metadata/exact005930, one hundred eight metadata GETs/three hundred twenty-four
+    credential MCP POSTs/fifty-four retired HTTP sessions/fifty-four closed SSE
+    streams. Actual mcp init --format=env explains supplied app identity and
+    empty dynamic IDs while leaving credentials empty. Inspect successful
+    screenshot; purge only owned synthetic evidence.

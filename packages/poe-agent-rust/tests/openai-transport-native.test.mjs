@@ -50,6 +50,25 @@ test("frame projection batches each read and delivers its valid prefix before a 
   assert.deepEqual(batches, [2]);
 });
 
+test("Responses frame projection batches named events per network read", async () => {
+  const client = new OwnOpenAI({
+    apiKey: "test",
+    fetch: async () =>
+      response(
+        'event: response.output_text.delta\ndata: {"type":"response.output_text.delta","delta":"one"}\n\nevent: response.completed\ndata: {"type":"response.completed"}\n\n'
+      )
+  });
+  const batches = [];
+  const events = await collect(
+    client.responses.stream({ model: "m", input: "hello" }).mapFrames((frames) => {
+      batches.push(frames.length);
+      return frames.map((frame) => frame.type);
+    })
+  );
+  assert.deepEqual(events, ["response.output_text.delta", "response.completed"]);
+  assert.deepEqual(batches, [2]);
+});
+
 test("abort cancels a returned stream even before its iterator is started", async () => {
   let canceled = 0;
   const controller = new AbortController(),

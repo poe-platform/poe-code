@@ -222,3 +222,7 @@ import { openaiChatCompletionsPlugin as referenceChatPlugin } from "../../poe-ag
 const chatA: typeof referenceChatPlugin = own.openaiChatCompletionsPlugin;
 const chatB: typeof own.openaiChatCompletionsPlugin = referenceChatPlugin;
 void [chatA, chatB];
+import { openaiResponsesPlugin as referenceResponsesPlugin } from "../../poe-agent/dist/plugins/poe-agent-plugin-openai-responses.js";
+const responsesA: typeof referenceResponsesPlugin = own.openaiResponsesPlugin;
+const responsesB: typeof own.openaiResponsesPlugin = referenceResponsesPlugin;
+void [responsesA, responsesB];

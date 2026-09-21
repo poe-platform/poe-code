@@ -5064,3 +5064,40 @@ no current publication success verified. Continuous active08:33:29–08:41:03 ad
 bringing conservative effort to96951s (26.93h). Minimum fulfilled; remaining
 Responses/shell/web/registry/builder/session/spawn/toolcraft/Python/platform/performance
 acceptance incomplete. Continue after08:41:03 UTC.
+
+### Responses provider, 2026-09-21 08:53 UTC
+
+Additive `openaiResponsesPlugin` uses the owned fetch transport and Rust tool
+alias/UTF16 assembly, model support, usage and terminal-state policy. Host keeps
+request serialization, exact JSON.parse diagnostics and original opaque reasoning
+payloads. Reasoning effort/summary/project/include options preserve reference
+request behavior. Default include requests encrypted reasoning. Native batches stop
+at terminal events and defer tool-parse success/stop resolution correctly within
+one batch. Responses requests start immediately; deferred iteration observes errors
+without an unhandled rejection. Original provider suites execute own artifact mocks
+with explicit import guards; SDK runtime remains development-only.
+
+Reference and Rust reds preceded implementation (out/rust-poe-agent-responses-*).
+Maintained checks pass51 Rust cases,87 native groups,292 complete applicable original
+reference cases/20files,bidirectional declarations,fmt/clippy,focused ESLint and
+diff check. Uncached maintained selected closure113workspaces/36builds/339edges passes.
+64 seeded valid official-SDK HTTP streams compare event lists and request bodies,
+including message/tool/reasoning creation, usage and all three terminal states.
+Archive audit127 JS/declaration files,one addon,zero runtime groups/imports (explicit
+SDK development adapter exception retained). Direct/packed16MiB old-space workers
+each finish1024 calls/8192events plus128 early returns/128 pending-read cancellations;
+caller abort listeners release. Finite workload evidence does not prove leak freedom.
+
+Five alternating warmed512-call/16384-text-frame samples: original SDK provider CPU
+108.03–159.80ms versus own49.24–57.00ms, scoped speed PASS. This includes bypassing
+SDK Responses snapshot bookkeeping; full malformed event-order validation is not
+reproduced. Null terminal usage/exception parity and broad memory/stability/platform
+acceptance remain unverified. Chat speed FAIL remains separate; no universal Rust
+superiority or complete agent runtime claimed. Evidence out/rust-poe-agent-responses-*.
+
+Legacy d2e425771 exact remote-main verified. Release35579223367 audit success/build
+in_progress; no current successful publication verified. Conservative active effort
+adds429s through last pre-checkpoint clock08:48:12, excludes checkpoint gap, then
+adds105s from08:51:58–08:53:43:total97485s (27.08h). Minimum fulfilled; remaining
+shell/web/registry/builder/session/spawn/toolcraft/Python/platform/performance work
+incomplete. Continue after08:53:43 UTC.

@@ -12,14 +12,17 @@ export default defineConfig({
       enforce: "pre",
       transform(code, id) {
         if (
-          ["poe-agent-plugin-openai-chat-completions.test.ts", "openai-auth.test.ts"].some(
-            (name) => id === path("../poe-agent/src/plugins/" + name)
-          )
+          [
+            "poe-agent-plugin-openai-chat-completions.test.ts",
+            "poe-agent-plugin-openai-responses.test.ts",
+            "openai-auth.test.ts"
+          ].some((name) => id === path("../poe-agent/src/plugins/" + name))
         ) {
           const replacements = new Map([
             ["auth-store", "openai-auth-store"],
             ["openai", "openai-transport"],
             ["./openai-auth.js", "openai-auth"],
+            ["./poe-agent-plugin-openai-responses.js", "plugin-openai-responses"],
             ["./poe-agent-plugin-openai-chat-completions.js", "plugin-openai-chat-completions"]
           ]);
           const source = ts.createSourceFile(
@@ -42,7 +45,9 @@ export default defineConfig({
           try {
             const guard = id.endsWith("openai-auth.test.ts")
               ? `import {resolveOpenaiApiKey as ownAuthContract} from ${JSON.stringify(path("dist/openai-auth.js"))}; if(resolveOpenaiApiKey!==ownAuthContract)throw new Error("Auth contracts must execute own module");`
-              : `import {openaiChatCompletionsPlugin as ownChatContract} from ${JSON.stringify(path("dist/plugin-openai-chat-completions.js"))}; if(openaiChatCompletionsPlugin!==ownChatContract)throw new Error("Chat contracts must execute own module");`;
+              : id.endsWith("poe-agent-plugin-openai-responses.test.ts")
+                ? `import {openaiResponsesPlugin as ownResponsesContract} from ${JSON.stringify(path("dist/plugin-openai-responses.js"))}; if(openaiResponsesPlugin!==ownResponsesContract)throw new Error("Responses contracts must execute own module");`
+                : `import {openaiChatCompletionsPlugin as ownChatContract} from ${JSON.stringify(path("dist/plugin-openai-chat-completions.js"))}; if(openaiChatCompletionsPlugin!==ownChatContract)throw new Error("Chat contracts must execute own module");`;
             return {
               code: ts.createPrinter().printFile(transformed.transformed[0]) + "\n" + guard,
               map: null
@@ -359,6 +364,7 @@ export default defineConfig({
   test: {
     include: [
       path("../poe-agent/src/plugins/openai-auth.test.ts"),
+      path("../poe-agent/src/plugins/poe-agent-plugin-openai-responses.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-openai-chat-completions.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-files.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-memory.test.ts"),

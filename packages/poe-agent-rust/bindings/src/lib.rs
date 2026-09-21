@@ -280,3 +280,4 @@ pub mod context_plugins_binding;
 
 pub mod file_tools_binding;
 pub mod openai_binding;
+pub mod responses_binding;

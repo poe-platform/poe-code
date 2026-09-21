@@ -173,5 +173,15 @@ Rust assembles tools and maps usage/stops in batches per network read; Node pres
 request objects and exact argument-parse diagnostics. Retained tool state is limited
 to 8,388,608 UTF16 units and 4,096 tool identities/indices; error bodies to 1 MiB.
 The official SDK is only a development reference. The transport alone is faster in
-mocked benchmarks; the full provider currently fails its speed gate. Responses
-transport support is internal; its provider plugin is still pending.
+mocked benchmarks; the full Chat provider currently fails its speed gate.
+
+`openaiResponsesPlugin({ apiKey, baseUrl, reasoningEffort, reasoningSummary })`
+adds Responses models with streamed text, tools, reasoning summaries and opaque
+encrypted reasoning payloads. It uses the same owned transport and credential
+precedence. Rust maintains tool aliases/arguments and maps usage and terminal
+states; Node serializes messages and preserves argument-parse diagnostics. Include
+defaults to `reasoning.encrypted_content`. Tool/alias state has the same retained
+UTF16 and identity bounds; terminal output is limited to 4,096 items. Valid streams
+match the official SDK in mocked comparisons and are faster in the current scoped
+benchmark. Full SDK snapshot validation for malformed event ordering, universal
+performance gains and complete agent-runtime compatibility remain unverified.

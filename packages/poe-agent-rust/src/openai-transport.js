@@ -57,8 +57,23 @@ export default class OpenAI {
     };
     this.responses = { stream: (body, request) => this.#responses(body, request) };
   }
-  async *#responses(body, request) {
-    yield* await this.#request("responses", { ...body, stream: true }, request);
+  #responses(body, request) {
+    const ready = this.#request("responses", { ...body, stream: true }, request);
+    // The SDK starts Responses requests immediately, while consumers observe
+    // failures through iteration. Handle the promise without swallowing its error.
+    void ready.catch(() => {});
+    const projection = { started: false };
+    const iterator = (async function* () {
+      projection.started = true;
+      const stream = await ready;
+      yield* projection.map ? stream.mapFrames(projection.map) : stream;
+    })();
+    iterator.mapFrames = (map) => {
+      if (projection.started) throw new Error("Cannot project a consumed stream");
+      projection.map = map;
+      return iterator;
+    };
+    return iterator;
   }
   async #request(path, body, { signal } = {}) {
     const options = this.#options;
@@ -68,6 +83,7 @@ export default class OpenAI {
     });
     if (options.organization !== undefined)
       headers.set("openai-organization", options.organization);
+    if (options.project !== undefined) headers.set("openai-project", options.project);
     for (const [name, value] of Object.entries(options.defaultHeaders ?? {})) {
       if (value === null) headers.delete(name);
       else if (value !== undefined) headers.set(name, value);

@@ -2,10 +2,10 @@
 use mcp_protocol_rust::{json::Value, strings::trim_ecmascript};
 use std::collections::HashMap;
 
-fn text(value: &str) -> Value {
+pub(super) fn text(value: &str) -> Value {
     Value::String(value.encode_utf16().collect())
 }
-fn object(fields: Vec<(&str, Value)>) -> Value {
+pub(super) fn object(fields: Vec<(&str, Value)>) -> Value {
     Value::Object(
         fields
             .into_iter()
@@ -13,13 +13,13 @@ fn object(fields: Vec<(&str, Value)>) -> Value {
             .collect(),
     )
 }
-fn string(value: Option<&Value>) -> Option<&[u16]> {
+pub(super) fn string(value: Option<&Value>) -> Option<&[u16]> {
     match value {
         Some(Value::String(value)) => Some(value),
         _ => None,
     }
 }
-fn integer(value: Option<&Value>) -> Option<f64> {
+pub(super) fn integer(value: Option<&Value>) -> Option<f64> {
     match value {
         Some(Value::Number(value)) if value.is_finite() && *value >= 0.0 => Some(value.floor()),
         _ => None,

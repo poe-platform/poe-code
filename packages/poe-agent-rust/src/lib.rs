@@ -166,3 +166,4 @@ pub mod context_plugins;
 pub mod file_tools;
 pub mod openai_chat;
 pub mod openai_policy;
+pub mod openai_responses;

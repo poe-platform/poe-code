@@ -44,10 +44,10 @@ impl NativeAgentChatStream {
     }
 }
 
-fn property<'env>(source: Unknown<'env>, name: &str) -> Result<Unknown<'env>> {
+pub(super) fn property<'env>(source: Unknown<'env>, name: &str) -> Result<Unknown<'env>> {
     source.coerce_to_object()?.get_named_property(name)
 }
-fn optional_property<'env>(source: Unknown<'env>, name: &str) -> Result<Unknown<'env>> {
+pub(super) fn optional_property<'env>(source: Unknown<'env>, name: &str) -> Result<Unknown<'env>> {
     if matches!(
         source.get_type()?,
         napi::ValueType::Null | napi::ValueType::Undefined
@@ -57,7 +57,7 @@ fn optional_property<'env>(source: Unknown<'env>, name: &str) -> Result<Unknown<
         property(source, name)
     }
 }
-fn scalar(value: Unknown<'_>) -> Result<Value> {
+pub(super) fn scalar(value: Unknown<'_>) -> Result<Value> {
     Ok(match value.get_type()? {
         napi::ValueType::String => Value::String(unsafe { value.cast::<Utf16String>()? }.to_vec()),
         napi::ValueType::Number => Value::Number(unsafe { value.cast::<f64>()? }),
@@ -65,7 +65,7 @@ fn scalar(value: Unknown<'_>) -> Result<Value> {
         _ => Value::Null,
     })
 }
-fn fields(values: Vec<(&str, Value)>) -> Value {
+pub(super) fn fields(values: Vec<(&str, Value)>) -> Value {
     Value::Object(
         values
             .into_iter()

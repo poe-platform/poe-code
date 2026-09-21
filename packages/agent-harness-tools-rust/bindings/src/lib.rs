@@ -1,8 +1,8 @@
 //! One addon owns queue state and embeds the declarative agent catalog.
-#[path = "../../../agent-defs-rust/bindings/src/lib.rs"]
-mod catalog;
+#[path = "../../../poe-code-config-rust/bindings/src/lib.rs"]
+mod config;
 use agent_harness_tools_rust::queue::{Item, Queue, Status};
-pub use catalog::*;
+pub use config::*;
 use mcp_protocol_rust::json::Value;
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::bindgen_prelude::*;
@@ -229,6 +229,8 @@ pub fn harness_log_filename(
     Ok(agent_harness_tools_rust::logs::file_name(&role, &date).into())
 }
 #[path = "../../../task-list-rust/bindings/src/lib.rs"]
+// Both embedded SDKs re-export the same shared configuration bindings.
+#[allow(unused_imports)]
 mod tasks;
 pub use tasks::*;
 #[napi]
@@ -346,4 +348,9 @@ pub fn harness_ulid(time: BigInt, random: Buffer) -> napi::Result<String> {
         .try_into()
         .map_err(|_| napi::Error::from_reason("ULID requires ten entropy bytes"))?;
     Ok(agent_harness_tools_rust::command::ulid(time, entropy))
+}
+#[napi]
+pub fn harness_runtime_admission(read: Function<'_, String, bool>) -> napi::Result<Option<String>> {
+    agent_harness_tools_rust::execution::admit(|fact| read.call(fact.name().to_owned()))
+        .map(|error| error.map(|error| error.name().to_owned()))
 }

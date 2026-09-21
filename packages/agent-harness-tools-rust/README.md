@@ -21,6 +21,7 @@ The package is additive and has no npm runtime dependencies.
 - Register and select custom execution factories by runtime type.
 - Run commands inline or detached with persisted job lifecycle updates.
 - Reuse an execution environment through command sessions.
+- Resolve runtime configuration and overrides before executing commands.
 
 ```ts
 import { createRunQueue } from "@poe-code/agent-harness-tools-rust";
@@ -52,7 +53,7 @@ checks normalized containment and merges project/global entries by exact filenam
 Supply your filesystem adapter through `discoverWorkflowDocs({cwd, homeDir,
 subDirectory, fs})`; discovery ignores missing directories and symbolic links.
 
-This surface does not expose runtime configuration resolution, dashboards or workspace transfer. It is not a full replacement
+This surface does not expose dashboards or workspace transfer. It is not a full replacement
 for the original package. Loop-agent callbacks use a structural symbol cancellation
 type: original SDK callbacks can be supplied, but the original SDK's unique symbol
 prevents the reverse full-module type assignment. Custom array/intrinsic hooks
@@ -102,3 +103,13 @@ Rust validates inactivity timeouts, encodes IDs and tracks committed job phases;
 Node retains streams, promises, cancellation, input delivery, workspace operations
 and caller-supplied state. Real process-group timeout behavior has separate macOS integration evidence;
 it is not counted among the in-memory unit cases.
+
+`resolvePoeCommandExecution({cwd, env, argv, tool, context, runtime})` loads global
+and project runtime configuration, applies overrides and selects a registered
+factory. Supply `context.state` to retain your state manager. The owned configuration
+SDK shares the harness addon; Rust checks requested capabilities in lazy priority
+order and Node retains property getters and exception identities.
+
+A local benchmark of 1,024 resolutions with absent configuration files takes
+6–9 ms with the Rust package versus 4–6 ms with the original. This scope does not
+currently demonstrate a performance improvement.

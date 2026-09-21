@@ -22,15 +22,20 @@ version = "0.1.0"
 dependencies = [
  "agent-defs-rust",
  "agent-harness-tools-rust",
+ "config-extends-rust",
  "config-mutations-rust",
  "config-mutations-rust-napi-core",
+ "frontmatter-rust-napi-core",
  "mcp-protocol-rust",
  "mcp-protocol-rust-napi-core",
  "napi",
  "napi-build",
  "napi-derive",
+ "poe-code-config-rust",
  "process-runner-rust",
+ "providers-rust",
  "task-list-rust",
+ "toolcraft-design-rust",
  "user-error-rust",
 ]
 
@@ -45,6 +50,16 @@ name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+
+[[package]]
+name = "config-extends-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "frontmatter-rust",
+ "mcp-protocol-rust",
+ "toolcraft-design-rust",
+]
 
 [[package]]
 name = "config-mutations-rust"
@@ -79,6 +94,25 @@ name = "ctor"
 version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "914a755b7c2d4af2bdcff7ce1739e2db9a1b81a9b07123d8015786ae03c0980d"
+
+[[package]]
+name = "frontmatter-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+]
+
+[[package]]
+name = "frontmatter-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust-napi-core",
+ "frontmatter-rust",
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+]
 
 [[package]]
 name = "futures"
@@ -280,6 +314,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
+name = "poe-code-config-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -293,6 +335,13 @@ name = "process-runner-rust"
 version = "0.1.0"
 dependencies = [
  "mcp-oauth-rust",
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "providers-rust"
+version = "0.1.0"
+dependencies = [
  "mcp-protocol-rust",
 ]
 

@@ -6079,3 +6079,32 @@ Maintained36Rust cases,19native groups,117original references/5files and
 fmt/clippy pass. Uncached selected harness closure117workspaces/30builds/362edges
 also passes with the nested SDK. Evidence out/rust-config-extends-embedding-* and
 out/rust-harness-execution-unit.log. No production imports changed.
+
+### Harness runtime configuration resolution, 2026-09-21 12:58 UTC
+
+Added applyRuntimeOverrides/resolvePoeCommandExecution and capability error/types.
+The entire owned config SDK and task-list SDK share one harness addon; SDK hosts
+and declarations are embedded with AST-rewritten native loader paths, including
+nested agent loaders. Rust requests capability facts lazily in original detach
+then transfer priority. Node retains configuration I/O,parse/resolve SDK adapters,
+getters,caller state/open-spec identities and foreign exception identities. Missing
+core/reference reds and nested-binding compiler red precede implementation.
+
+Maintained23Rust cases,22native groups,230original references/18files and covered
+module type parity pass;fmt/clippy/ESLint pass. Uncached selected117workspaces/
+30builds/362edges passes. Packed one addon with zero npm runtime dependency groups
+passes all prior scenarios plus runtime resolution/override/capability checks with
+external npm resolution blocked. Evidence out/rust-harness-execution-*.
+
+Five alternating warmed pairs of1024runtime resolutions over absent config paths
+and caller-supplied in-memory state:originalwall3.87–6.39ms/CPU3.83–24.06ms,
+ownwall6.24–9.10ms/CPU6.22–15.84ms. Wall slower in all pairs;performance acceptance
+FAIL.16MiBold-generation worker8192resolutions/128capability rejections retains
+6.03MiBheap/67.08MiBRSS;finite local evidence,not native/total/platform bounds.
+No production integration,real config mutations or model/network calls.
+
+Config embedding3bbe07d17 pushed and remote delivery checked separately. Plans
+release35599744513 in_progress;command35601923765 pending. No successful current
+publication verified. Concurrent changes preserved. Continuous12:50:11–12:58:45
+adds514s,total111460s(30.96h). Minimum fulfilled;objective incomplete.
+Continue accounting after12:58:45UTC.

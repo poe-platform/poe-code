@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { editDocumentTables, type TableEditRequest } from "./table-edit.js";
 import { getDocumentXml, openDocumentLocations, parseDocumentXml } from "./index.js";
-import { paragraph, textContext, textFixture } from "../tests/fixtures/text.js";
+import { paragraph, textContext, textFixture, w } from "../tests/fixtures/text.js";
 const cell = (value: string) => `<w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/><w:shd w:fill="F0F0F0"/></w:tcPr>${paragraph(value)}</w:tc>`;
 const row = (a: string, b: string, header = false) => `<w:tr><w:trPr>${header ? '<w:tblHeader/>' : ''}<w:cantSplit/></w:trPr>${cell(a)}${cell(b)}</w:tr>`;
 const table = (rows = row("A", "B", true) + row("C", "D")) => `<w:tbl><w:tblPr><!--keep--><w:tblW w:w="2000" w:type="dxa"/><w:tblBorders><w:top w:val="single"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/><w:gridCol w:w="1000"/></w:tblGrid>${rows}</w:tbl>`;
@@ -79,6 +79,16 @@ it("assigns multiline text to a multi-paragraph cell without extra old paragraph
   const paragraphs = result.table.children.find(n => n.localName === "tr")!.children.find(n => n.localName === "tc")!.children.filter(n => n.localName === "p");
   expect(paragraphs).toHaveLength(1);
   expect(result.xml).not.toContain('old two');
+});
+it.each(["footnote", "endnote"])("rejects cell replacement that would discard a later paragraph's %s reference before publication", async kind => {
+  const reference = `<w:r><w:${kind}Reference w:id="7"/></w:r>`;
+  const source = table().replace(paragraph("A"), `<w:p>${reference}</w:p><w:p>${reference}</w:p>`);
+  const input = await textFixture(source, { [kind + "s"]: { kind: kind + "s", xml: `<w:${kind}s xmlns:w="${w}"><w:${kind} w:id="7"><w:p><w:r><w:${kind}Ref/></w:r><w:r><w:t>Survey note</w:t></w:r></w:p></w:${kind}></w:${kind}s>` } });
+  const volume = Volume.fromJSON({ "/out": "unchanged" });
+  await expect(editDocumentTables(input, { operation: "tables.set", options: { table: 1, cell: "A1", text: "new", output: "-" } }, {
+    ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }
+  })).rejects.toMatchObject({ code: "unsupported-edit" });
+  expect(volume.readFileSync("/out", "utf8")).toBe("unchanged");
 });
 it("rejects deleting cross-cell bookmarks and merged structural edits", async () => {
   const marked = table().replace(paragraph("A"), '<w:p><w:bookmarkStart w:id="9" w:name="Across"/></w:p>').replace(paragraph("B"), '<w:p><w:bookmarkEnd w:id="9"/></w:p>');

@@ -52,6 +52,19 @@ docx schema text replace
 docx help images add
 ```
 
+Table selectors and structural indexes are 1-based: `--table 1 --cell B2`
+selects the second column of the second row. `tables set --text VALUE` replaces
+that cell's value and runs; formatting-only `tables set` retains its text.
+Use `text replace` for preserving replacement within existing runs. Setting a
+cell never grows a table. `tables rows add --index N` and `tables columns add
+--index N` insert blank rows/columns before N; count+1 appends, as does an omitted
+insertion index. The corresponding `remove` commands require an existing index.
+All edits require `--output` or `--in-place`, except `--dry-run`.
+Whole-cell replacement rejects fields, nested tables and removal of annotated
+later paragraphs, including note/comment references. Location tokens supplied
+with `--select` must belong to the current input; ambiguous or missing anchors
+and out-of-bounds coordinates fail before publication.
+
 ## Every option and schema
 
 [The exhaustive option register](usage-contracts.json) captures all 1,517 operation

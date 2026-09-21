@@ -10,7 +10,7 @@ import type { DocxOperationArguments } from "./operation-types.js";
 import { DocumentPackage } from "./package.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { replaceParagraphContent } from "./paragraph-content.js";
+import { paragraphAnnotationMarkers, paragraphReferenceMarkers, replaceParagraphContent } from "./paragraph-content.js";
 import { editDocumentParagraphs } from "./paragraph-edit.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
@@ -165,7 +165,7 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
         for (const [i, p] of paragraphs.entries()) {
           const props = one(p, "pPr");
           const updated = replaceParagraphContent(xml, p, props ? xml.sourceXml(props) : "", i === 0 ? opts.text : "");
-          if (i > 0 && (p.content.some(c => c.kind !== "element" && c.kind !== "text") || descendants(p).some(c => c.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd", "proofErr"].includes(c.localName)))) throw new UnsupportedEditError("Cell replacement cannot remove annotated paragraphs.");
+          if (i > 0 && (p.content.some(c => c.kind !== "element" && c.kind !== "text") || descendants(p).some(c => c.namespace === w && (paragraphAnnotationMarkers.has(c.localName) || paragraphReferenceMarkers.has(c.localName))))) throw new UnsupportedEditError("Cell replacement cannot remove annotated paragraphs.");
           targetPatches.set(p, i === 0 ? updated : "");
         }
       }

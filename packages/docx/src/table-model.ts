@@ -333,16 +333,14 @@ export class Table {
       grid = this.grid(),
       rowRefs = grid.rows.map((row) => this.store.ref(this.ref.part, grid.original(row)));
     if (
-      grid.physical.some(
-        (cells, i) =>
-          cells.some((p) => p.span !== 1 || p.owner.rowSpan !== 1) ||
-          grid.slots[i]!.filter(Boolean).length !== grid.columns.length
-      )
+      grid.slots.some(slots => slots.filter(Boolean).length !== grid.columns.length)
     )
-      throw new UnsupportedEditError("Adding columns requires an unmerged rectangular table.");
+      throw new UnsupportedEditError("Adding columns requires a rectangular table without omitted cells.");
+    if (grid.rows.length) this.store.context.budget.table(grid.rows.length, grid.columns.length + 1);
+    else this.store.context.budget.check("tableColumns", grid.columns.length + 1);
     this.store.change(this.ref.part, (xml) => {
       const table = this.store.node(this.ref),
-        decl = child(table, "tblGrid")!;
+        decl = child(table, "tblGrid", activeModelChildren(this.store, this.ref.part))!;
       xml.insertChildren(decl, mark(table.namespace, "gridCol", { w: value }));
       for (const row of rowRefs)
         xml.insertChildren(

@@ -1209,3 +1209,19 @@ F08/F09/F10 revision ancestry (2026-09-20): [foreign namespace evidence](text-st
 F08/F10/F12/F13 native table-history dependency (2026-09-20): [exact original3408/current5268 bindings](text-style-user-edge-audit-20260920/native-table-history-original3408-current-exact-bindings.json.gz) and [verification](text-style-user-edge-audit-20260920/native-table-history-final-verification.json) retain every genuine original memfs failure/control and all history snapshots. Native tblPrChange/tblGridChange/trPrChange/tcPrChange/cellIns/cellDel/cellMerge and row history affected text/formatting/owned insertion edits reject atomically through active carriers; unrelated outside edits, inactive histories and ignorable foreign names remain editable. All5268 cases/13 maintained focused suites pass without skips, with exact nondirty-member/order/relationship/input/destination retention. Selected maintained lint/build and inspected Strict template actual CLI screenshot pass. Local commit c81699bec; no push/publication. Required expanded batch/codec/prefix/cardinality/dry variants, full764-suite gate and complete normative reconciliation remain open.
 
 F14/Office SDK5 native integer validation dependency (2026-09-20): [source-validator reconciliation](text-style-user-edge-audit-20260920/native-style-scalar-source-validator-contract-reconciliation.json), [original624 exact bindings](text-style-user-edge-audit-20260920/native-style-scalar-original624-current-exact-bindings.json) and [final2354 verification](text-style-user-edge-audit-20260920/native-style-scalar-final-verification.json) retain192 genuine original scalar failures,24 original discovery failures and every authoring/error/older expectation report. Native defined/latent priority/default_priority/load_count setters retain signed32/null validation; direct priority0..99 and direct nonnegative safe loadCount remain distinct. All2354 cases/11 suites pass, including192 preexisting wider signed-safe XML read/save/unrelated-edit controls and1505 source-qualified neighboring cases. Older -1/native safe-max characterization identities and original data remain; source-qualified results add persisted negative success and reject above32 rather than reinterpret historical failures as passes. Exact CLI/SDK/batch JSON schema bounds, maintained selected lint/build and inspected actual CLI screenshot pass. Local commit b0e3cdb53; no push/publication. All352 retained public jobs/43 reviewers, original and additive persistent/carrier/native-receiver/dry variants and complete F08–F15/F18 reconciliation remain required. Preparation/canceled/unexecuted/mapping-only evidence earns zero acceptance; full families remain open.
+
+## Native list table-history boundary — 2026-09-20
+
+The [list history receipt](text-style-user-edge-audit-20260920/list-native-table-history-final-verification.json)
+binds the original 512 failing memfs cases to exact current passes. Direct SDK
+and actual opted-in CLI list insertion, changed levels and restart now refuse
+active affected native table/grid/row/cell history atomically. All 120 baseline
+inactive/foreign/outside/unchanged controls remain admitted; independent SAX
+checks retain their paragraph counts and selected numbering bindings. The final
+selected maintained run passes 2,690 distinct cases across 14 suites, with zero
+skipped/unrun cases or loading errors; package lint/build and an inspected ASCII
+CLI screenshot pass. Original red reports, verifier type errors and unchanged
+source snapshots remain retained, with lossless compressed execution evidence.
+This closes the named F18/F27 list boundary defect only. Every remaining full
+F08–F15/F18 requirement, public variant, renderer review and fresh aggregate gate
+remains open; canceled predecessors have zero aggregate credit. No push/release.

@@ -22,8 +22,10 @@ import { activeModelChildren } from "./model-active-children.js";
 /** Stored text only; drawings and field instructions never execute. */
 export function modelText(node: XmlElement, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
   let text = "";
-  const visit = (current: XmlElement) => {
-    if (current.namespace !== node.namespace) return;
+  const pending = [node];
+  while (pending.length) {
+    const current = pending.pop()!;
+    if (current.namespace !== node.namespace) continue;
     const name = current.localName;
     if (name === "t") text += current.text;
     else if (name === "tab" || name === "ptab") text += "\t";
@@ -38,10 +40,11 @@ export function modelText(node: XmlElement, children: (node: XmlElement) => read
         ))
     )
       text += "\n";
-    else if (["p", "hyperlink", "r"].includes(name))
-      for (const child of children(current)) visit(child);
-  };
-  visit(node);
+    else if (["p", "hyperlink", "r"].includes(name)) {
+      const content = children(current);
+      for (let index = content.length - 1; index >= 0; index--) pending.push(content[index]!);
+    }
+  }
   return text;
 }
 

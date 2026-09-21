@@ -16,6 +16,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 - Resolve host/docker runtime policies and capability checks through an embedded owned SDK.
 - Bridge active skills and hooks for a run, retaining ownership and rollback.
 - Launch CLI agents through owned runtimes, capturing output, activity deadlines and scoped telemetry.
+- Stream normalized events with middleware history, delivery disposal and attached retries.
 
 ```typescript
 import { buildSpawnArgs, listSpawnableAgents } from '@poe-code/agent-spawn-rust';
@@ -31,7 +32,7 @@ console.log(launch.binaryName, launch.displayArgs);
 
 An omitted permission mode selects `auto`. Agents without an unattended approval channel reject it; `yolo` requires an explicit request. Large UTF-8 prompts and embedded NULs use stdin where the selected agent supports automatic fallback. Display arguments redact prompt text while execution arguments preserve it.
 
-This private, experimental package supplies CLI execution, registry and argument planning. Streaming, interactive and ACP execution are still being implemented. Runtime configuration and host/docker environment factories are embedded in the package. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
+This private, experimental package supplies CLI execution, registry and argument planning. Streaming execution is available; interactive and ACP execution are still being implemented. Runtime configuration and host/docker environment factories are embedded in the package. Existing consumers retain the original `@poe-code/agent-spawn` package. Current native artifact checks cover macOS arm64; additional platforms and Python bindings remain pending. Rust does not guarantee better performance at the Node boundary.
 
 ```typescript
 import { createSpawnRetry } from '@poe-code/agent-spawn-rust';
@@ -152,3 +153,22 @@ activity deadlines reject; tee callbacks preserve their host object identity.
 Logs append both channels on a best-effort basis. Dry runs redact the prompt and
 skip resource, filesystem and process effects. `spawn.parallel` supports the same
 bounded concurrency and cancellation options as injected parallel handles.
+
+```typescript
+import { spawnStreaming } from '@poe-code/agent-spawn-rust';
+
+const handle = spawnStreaming({
+  agentId: 'codex', prompt: 'Review this repository', mode: 'read',
+});
+for await (const event of handle.events) render(event);
+const result = await handle.done;
+```
+
+Streaming frames CRLF and final lines in Rust, normalizes agent events through the
+owned adapters and keeps only unread delivery unless middleware requests history.
+Closing delivery releases buffered events while the producer and middleware
+transcript continue. Middleware runs around the process and may replace its event
+stream. Usage and thread metadata remain in middleware context; raw streaming
+results retain the original empty stdout contract. Streaming activity deadlines
+reset on stdout only. Native capture records reach middleware before it completes.
+`spawn.retry` uses this same execution path for attempt-tagged events and telemetry.

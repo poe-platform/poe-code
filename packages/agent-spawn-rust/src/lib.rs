@@ -388,6 +388,7 @@ impl Planner {
         let mode = resolve_mode(&public_config, mode.as_deref())?;
         command_options.extend(args(&mode, "args"));
         let stdin = stdin_mode(config, options);
+        let streaming = field(options, "streamingTransport") == &Value::Bool(true);
         let mut prompt_index = None;
         let push_prompt = |result: &mut Vec<Value>, index: &mut Option<usize>| {
             if let Some(stdin) = stdin {
@@ -395,7 +396,9 @@ impl Planner {
                     *index = Some(result.len());
                     result.push(field(options, "prompt").clone());
                 }
-                result.extend(args(stdin, "extraArgs"));
+                if !streaming || options_before {
+                    result.extend(args(stdin, "extraArgs"));
+                }
             } else {
                 *index = Some(result.len());
                 result.push(field(options, "prompt").clone());
@@ -412,6 +415,9 @@ impl Planner {
             }
             push_prompt(&mut result, &mut prompt_index);
             result.extend(command_options);
+            if streaming && let Some(stdin) = stdin {
+                result.extend(args(stdin, "extraArgs"));
+            }
             if !resume_before {
                 result.extend(resume_args1);
             }

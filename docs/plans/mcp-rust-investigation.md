@@ -6541,3 +6541,44 @@ still unit in_progress;all other validations succeeded. Latest root runs pending
 or cancelled by subsequent pushes;no successful current root publication verified.
 Foreign changes preserved. Continuous14:32:04–14:42:09 adds605s,total117664s
 (32.68h). Minimum fulfilled;full objective incomplete. Continue after14:42:09UTC.
+
+### Owned streaming agent execution and retries, 2026-09-21 14:56 UTC
+
+Missing streaming/retry/core APIs reproduced before implementation. Added owned
+spawnStreaming and attached spawn.retry,composing the same single addon/runtime/
+resource engines. Rust owns CRLF/final-line framing,adapter states,usage totals
+and FIFO batching/abandonment. Node owns process effects,middleware context,
+receive timestamps and host-value identity. Delivery disposal releases cached and
+unread objects while producer history/usage continue for middleware. Scoped
+telemetry records each retry attempt. Capture metadata reaches middleware before
+it exits. No original consumer integration.
+
+Maintained24Rust cases/34native groups/402SDK cases in13files and bidirectional
+complete spawn/streaming signatures pass. Corrected reference filtering to retain
+nested groups and SDK globals,expanding previously omitted stdin/deadline checks.
+Native memfs oracle comparisons cover split UTF8/CRLF/final lines,middleware
+histories and delivery abandonment. Queue batches cover opaque identity,cached
+read disposal,partial-read close/push races. Batched adapter encoding falls back
+to direct conversion for nonfinite numbers,after an overflow-number regression
+proved serialized null was incorrect. fmt/clippy/shared checks/ESLint pass.
+Final selected uncached38-build closure passes at concurrency1. Viewed harmless
+/bin/echo streaming screenshot out/rust-spawn-streaming.png;deliberate non-JSON
+input yields adapter error event and process exit0.
+
+Performance gate remains FAIL for8192small Codex messages. Initial5warmed pairs:
+own50.67–55.32ms vs10.88–15.45ms. Microtask line/adapter/queue batching reduces
+crossings,with isolated post-batch5pairs roughly30–35ms vs13–18ms. These
+optimizations do not establish superiority over TypeScript. Reusable core and
+correctness are delivered additively;broader performance acceptance stays open.
+Packed one addon/356audited sources+declarations/zero npm runtime groups and
+blocked external imports pass. Direct/packed16MiBworkers each complete512spawns,
+512dryruns,64parallel launches,128streams/8192events and1024abandonments. Owned
+state registry and default persistence effects use memfs. Old-generation limits
+do not bound total/native memory;shared RSS and transient heap are not isolated
+memory superiority evidence. Evidence out/rust-spawn-streaming-*.
+
+CLI11dd00b38 pushed and exact remote main verified. Root release35605641955 still
+unit in_progress,other validations successful. No successful current root
+publication verified. Foreign changes preserved. Continuous14:42:09–14:56:11
+adds842s,total118506s(32.92h). Minimum fulfilled;full objective incomplete.
+Continue accounting after14:56:11UTC.

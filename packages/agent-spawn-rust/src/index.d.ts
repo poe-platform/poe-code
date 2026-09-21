@@ -98,3 +98,6 @@ export type { HookBridgeOptions, BridgedRunManifest } from "./resources.js";
 
 export { spawn, isActivityTimeoutError } from "./spawn.js";
 export { noopOtelSink } from "./observe.js";
+
+export { spawnStreaming } from "./spawn-streaming.js";
+export type { SpawnStreamingOptions, SpawnStreamingResult } from "./spawn-streaming.js";

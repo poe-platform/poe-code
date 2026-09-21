@@ -72,6 +72,17 @@ export default defineConfig({
           name === "./mcp-file.js"
         )
           return path("dist/mcp-file.js");
+        if (importer === path("../agent-spawn/src/acp/acp.test.ts")) {
+          if (name === "./spawn.js") return path("dist/spawn-streaming.js");
+          if (name === "../adapters/index.js") return path("dist/adapters.js");
+          if (name === "../configs/mcp-file.js") return path("dist/mcp-file.js");
+          if (name === "@poe-code/agent-skill-config") return path("dist/skills/index.js");
+          if (name === "toolcraft-design") return path("dist/design/index.js");
+          if (name === "@poe-code/agent-harness-tools") return path("dist/harness/index.js");
+          if (name === "../mcp-args.js") return path("dist/mcp-args.js");
+          if (name.startsWith("../configs/"))
+            return path("dist/configs/" + name.slice("../configs/".length));
+        }
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -102,6 +113,7 @@ export default defineConfig({
             const visit = (current) => {
               if (
                 ts.isExpressionStatement(current) &&
+                ts.isSourceFile(current.parent) &&
                 ts.isCallExpression(current.expression) &&
                 ts.isIdentifier(current.expression.expression) &&
                 current.expression.expression.text === "describe"
@@ -112,16 +124,21 @@ export default defineConfig({
                   !(
                     id === args
                       ? ["buildSpawnArgs", "stripModelNamespace", "spawn"]
-                      : ["acp/readLines", "acp/applyMiddlewares"]
+                      : ["acp/readLines", "acp/applyMiddlewares", "acp/spawnStreaming"]
                   ).includes(title.text)
                 )
                   return undefined;
               }
               if (
-                id === args &&
                 ts.isReturnStatement(current) &&
-                ts.isIdentifier(current.expression) &&
-                current.expression.text === "child"
+                current.expression &&
+                ((ts.isIdentifier(current.expression) && current.expression.text === "child") ||
+                  (id === acp &&
+                    ts.isObjectLiteralExpression(current.expression) &&
+                    current.expression.properties.some(
+                      (property) =>
+                        ts.isShorthandPropertyAssignment(property) && property.name.text === "child"
+                    )))
               ) {
                 const unref = ts.factory.createExpressionStatement(
                   ts.factory.createBinaryExpression(
@@ -142,25 +159,21 @@ export default defineConfig({
                 );
                 return [unref, current];
               }
-              if (
-                id === args &&
-                ts.isExpressionStatement(current) &&
-                ts.isCallExpression(current.expression)
-              ) {
+              if (ts.isExpressionStatement(current) && ts.isCallExpression(current.expression)) {
                 const call = current.expression;
-                if (
-                  ts.isIdentifier(call.expression) &&
-                  call.expression.text === "it" &&
-                  ts.isStringLiteral(call.arguments[0]) &&
-                  call.arguments[0].text.startsWith("spawn.retry")
-                )
-                  return undefined;
                 // The production host factory observes cancellation before starting a child.
                 // Wait for its async open/upload boundary before exercising active-child kill.
                 if (
                   ts.isPropertyAccessExpression(call.expression) &&
                   call.expression.name.text === "abort" &&
-                  call.arguments.length === 0
+                  call.arguments.length === 0 &&
+                  (() => {
+                    let parent = current.parent;
+                    while (parent && !ts.isArrowFunction(parent)) parent = parent.parent;
+                    return parent?.modifiers?.some(
+                      (modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword
+                    );
+                  })()
                 ) {
                   const wait = ts.factory.createExpressionStatement(
                     ts.factory.createAwaitExpression(
@@ -217,6 +230,7 @@ export default defineConfig({
       path("../agent-spawn/src/acp/session-update-converter.test.ts")
     ],
     environment: "node",
+    globals: true,
     fileParallelism: false,
     maxWorkers: 1,
     pool: "forks",

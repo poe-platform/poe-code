@@ -294,8 +294,39 @@ impl NativeSpawnQueue {
         Self::default()
     }
     #[napi]
+    pub fn abandon(&mut self) {
+        self.state = poe_acp_client_rust::client::Queue::default();
+        self.state.complete();
+    }
+    #[napi]
     pub fn push(&mut self, token: f64) -> bool {
         self.state.push(Value::Number(token))
+    }
+    #[napi]
+    pub fn push_many(&mut self, tokens: Vec<f64>) -> bool {
+        for token in tokens {
+            if !self.state.push(Value::Number(token)) {
+                return false;
+            }
+        }
+        true
+    }
+    #[napi]
+    pub fn poll_many(&mut self, count: u32) -> QueueBatch {
+        let mut tokens = vec![];
+        let mut kind = None;
+        for _ in 0..count.clamp(1, 4096) {
+            let action = self.state.poll();
+            if let Some(Value::Number(token)) = action.get("value") {
+                tokens.push(*token);
+            } else {
+                if let Some(Value::String(value)) = action.get("type") {
+                    kind = Some(String::from_utf16_lossy(value));
+                }
+                break;
+            }
+        }
+        QueueBatch { tokens, kind }
     }
     #[napi]
     pub fn poll(&mut self) -> NativeJson {
@@ -394,6 +425,19 @@ impl NativeSpawnAdapter {
         })
     }
     #[napi]
+    pub fn lines(&mut self, lines: Vec<Utf16String>) -> Either<String, NativeJson> {
+        let mut packets = vec![];
+        for line in lines {
+            packets.extend(self.state.line(&line));
+        }
+        let packets = Value::Array(packets);
+        if packets.is_finite_json() {
+            Either::A(json::stringify(&packets))
+        } else {
+            Either::B(NativeJson(packets))
+        }
+    }
+    #[napi]
     pub fn line(&mut self, line: Utf16String) -> NativeJson {
         NativeJson(Value::Array(self.state.line(&line)))
     }
@@ -434,8 +478,10 @@ pub struct NativeSpawnLines {
 #[napi]
 impl NativeSpawnLines {
     #[napi(constructor)]
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(trim_cr: Option<bool>) -> Self {
+        Self {
+            state: agent_spawn_rust::stream::LineBuffer::new(trim_cr.unwrap_or(false)),
+        }
     }
     #[napi]
     pub fn push(&mut self, chunk: Utf16String) -> Vec<Utf16String> {
@@ -515,4 +561,32 @@ pub fn spawn_merge_mcp(existing: Utf16String, addition: Utf16String) -> Result<N
     agent_spawn_rust::execution::merge_mcp(&parse(existing)?, &parse(addition)?)
         .map(NativeJson)
         .map_err(Error::from_reason)
+}
+
+#[napi]
+#[derive(Default)]
+pub struct NativeSpawnUsage {
+    state: agent_spawn_rust::stream::Usage,
+}
+#[napi]
+impl NativeSpawnUsage {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn observe(&mut self, fields: Vec<Option<f64>>) -> NativeJson {
+        let mut input = [None; 4];
+        for (index, value) in fields.into_iter().take(4).enumerate() {
+            input[index] = value;
+        }
+        self.state.observe(input);
+        NativeJson(self.state.value())
+    }
+}
+
+#[napi(object)]
+pub struct QueueBatch {
+    pub tokens: Vec<f64>,
+    pub kind: Option<String>,
 }

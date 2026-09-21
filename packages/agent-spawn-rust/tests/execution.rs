@@ -55,3 +55,20 @@ fn mcp_merge_recurses_only_into_objects_and_retains_caller_bytes_for_host_restor
     assert!(execution::merge_mcp(&Value::Null, &after).is_err());
     assert!(execution::merge_mcp(&v("[]"), &after).is_err());
 }
+
+#[test]
+fn streaming_stdin_placement_is_distinct_from_captured_cli_launches() {
+    let p = Planner::builtins();
+    let built = p
+        .build(
+            "codex",
+            &v(r#"{"prompt":"secret","useStdin":true,"streamingTransport":true}"#),
+            None,
+        )
+        .unwrap();
+    let Value::Array(args) = built.get("args").unwrap() else {
+        panic!()
+    };
+    assert_eq!(args.last(), Some(&v(r#""-""#)));
+    assert!(!args.contains(&v(r#""secret""#)));
+}

@@ -5,6 +5,8 @@ import { buildSpawnArgs, resolveConfig, mergeSpawnEnvironment } from "./index.js
 import { getMcpEnv } from "./mcp-args.js";
 import { applyMcpFile } from "./mcp-file.js";
 import { observeAgentSpawn } from "./observe.js";
+import { spawnStreaming } from "./spawn-streaming.js";
+import { createSpawnRetry } from "./retry.js";
 import { createSpawnParallel } from "./parallel.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./resources.js";
@@ -154,3 +156,8 @@ function resolveLogPath(options) {
     return undefined;
   return path.join(options.logDir, name);
 }
+
+spawn.retry = createSpawnRetry((service, options) => {
+  const handle = spawnStreaming({ ...options, agentId: service });
+  return { events: handle.events, result: handle.done };
+});

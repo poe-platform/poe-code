@@ -6,6 +6,7 @@ export declare function spawn(
   context?: SpawnContext
 ): Promise<SpawnResult>;
 export declare namespace spawn {
+  const retry: import("./retry.js").SpawnRetryFunction<SpawnOptions, SpawnResult>;
   const parallel: ReturnType<typeof createSpawnParallel<string, SpawnOptions, SpawnResult>>;
 }
 export declare function isActivityTimeoutError(error: unknown): boolean;

@@ -96,3 +96,11 @@ void [
   spawnSignatureA,
   spawnSignatureB
 ];
+
+type StreamingExecution = Pick<typeof original, "spawnStreaming">;
+const streamingExecutionA: StreamingExecution = own;
+const streamingExecutionB: Pick<typeof own, keyof StreamingExecution> =
+  null as unknown as StreamingExecution;
+const completeSpawnA: typeof original.spawn = own.spawn;
+const completeSpawnB: typeof own.spawn = null as unknown as typeof original.spawn;
+void [streamingExecutionA, streamingExecutionB, completeSpawnA, completeSpawnB];

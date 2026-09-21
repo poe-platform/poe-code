@@ -2,8 +2,21 @@
 pub struct LineBuffer {
     buffer: Vec<u16>,
     ended: bool,
+    trim_cr: bool,
 }
 impl LineBuffer {
+    pub fn new(trim_cr: bool) -> Self {
+        Self {
+            trim_cr,
+            ..Self::default()
+        }
+    }
+    fn line(&self, mut value: Vec<u16>) -> Vec<u16> {
+        if self.trim_cr && value.last() == Some(&13) {
+            value.pop();
+        }
+        value
+    }
     pub fn push(&mut self, chunk: &[u16]) -> Vec<Vec<u16>> {
         if self.ended {
             return vec![];
@@ -14,7 +27,7 @@ impl LineBuffer {
         let mut result = vec![];
         for index in old..self.buffer.len() {
             if self.buffer[index] == 10 {
-                result.push(self.buffer[start..index].to_vec());
+                result.push(self.line(self.buffer[start..index].to_vec()));
                 start = index + 1;
             }
         }
@@ -36,7 +49,7 @@ impl LineBuffer {
         if remaining.is_empty() {
             None
         } else {
-            Some(remaining)
+            Some(self.line(remaining))
         }
     }
     pub fn retained_capacity(&self) -> usize {
@@ -61,5 +74,38 @@ pub fn validate_callback(position: usize, callable: bool) -> Result<(), String> 
         Err(format!("Invalid ACP middleware at index {position}"))
     } else {
         Ok(())
+    }
+}
+
+#[derive(Default)]
+pub struct Usage {
+    totals: [f64; 2],
+    optional: [Option<f64>; 2],
+}
+impl Usage {
+    pub fn observe(&mut self, fields: [Option<f64>; 4]) {
+        for (index, value) in fields.into_iter().enumerate() {
+            if let Some(value) = value.filter(|v| v.is_finite()) {
+                if index < 2 {
+                    self.totals[index] += value;
+                } else {
+                    let slot = &mut self.optional[index - 2];
+                    *slot = Some(slot.unwrap_or(0.0) + value);
+                }
+            }
+        }
+    }
+    pub fn value(&self) -> mcp_protocol_rust::json::Value {
+        use mcp_protocol_rust::json::Value;
+        let mut fields = vec![
+            ("inputTokens", Value::Number(self.totals[0])),
+            ("outputTokens", Value::Number(self.totals[1])),
+        ];
+        for (key, value) in ["cachedTokens", "costUsd"].into_iter().zip(self.optional) {
+            if let Some(value) = value {
+                fields.push((key, Value::Number(value)));
+            }
+        }
+        crate::o(fields)
     }
 }

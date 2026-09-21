@@ -126,7 +126,11 @@ timeoutMs })`. Reset acquires the raw identity backend lock, so it can recover
 corrupt or undecryptable records without reading their old contents. It atomically
 retires the identity's grant and registrations and writes a marker that suppresses
 stale initial grants. The default lock wait is 30 seconds. Other names/profiles
-are untouched, and symlink paths are still refused.
+are untouched, and symlink paths are still refused. Native reset, import and
+transaction callbacks retain their original signal while locks or reconciliation
+wait; replacing a caller handle cannot change subsequent cancellation checks.
+Cancellation after a completed identity write prevents the transaction callback
+from running and retains that already persisted identity.
 
 Configure `client.metadata.scope` to request a precise scope set; broader
 discovery metadata does not override it. Explicit scopes must match the cached

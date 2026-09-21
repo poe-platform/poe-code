@@ -401,3 +401,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     exactly three redemptions/writes across six acquisitions. Keychain uses a
     synthetic command adapter; do not alter OS credentials. Inspect safe summary
     output and purge only owned synthetic evidence.
+
+37. Hold each native named identity lock, then queue reset, import or a session
+    transaction with an original live signal. Replace the caller handle with an
+    unrelated aborted signal and release the holder. Require the original
+    operation to complete: reset removes client/grant and suppresses stale
+    initial environment replay; import retains full new client/extensions/grant;
+    transaction reads the unchanged complete grant and obtains complete JSON/
+    metadata/exact005930 from actual HTTP. Verify encrypted records omit
+    plaintext credentials and own lock claims are removed. Separately gate the
+    active identity reconciliation rename, abort the original signal and replace
+    its caller handle with a fresh one. Require original cancellation identity
+    and no subsequent user callback/HTTP work. The completed identity write is
+    retained; do not claim rollback of committed persistence. Inspect safe
+    summary output and purge owned evidence.

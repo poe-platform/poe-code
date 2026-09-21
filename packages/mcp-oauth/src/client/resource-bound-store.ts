@@ -62,6 +62,7 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
     }
   };
   async function replace(record: ResourceCredentials, options: { signal?: AbortSignal; timeoutMs?: number }): Promise<void> {
+    options = { ...options };
     options.signal?.throwIfAborted();
     const timeoutMs = options.timeoutMs ?? 30_000;
     if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
@@ -113,6 +114,7 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
   }
   result.sessionStore = {
     async withLock(resource, operation, options) {
+      options = { ...options };
       if (store.withLock === undefined) throw new Error("OAuth resource identity backend must support transaction locks");
       return store.withLock(async () => {
         options.signal?.throwIfAborted();

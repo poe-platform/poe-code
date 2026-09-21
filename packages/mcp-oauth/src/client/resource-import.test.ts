@@ -110,3 +110,38 @@ it.each([0, -1, 1.5, Infinity, 2_147_483_648])("rejects unsupported import lock 
   await expect(f.stores.importSession(grant(), { timeoutMs })).rejects.toThrow("timeoutMs");
   expect(await f.stores.sessionStore.load(resource)).toBeNull();
 });
+
+it.each(["reset", "import", "transaction"] as const)("retains the original %s signal through native lock callback checks", async kind => {
+  const f = fixture(); await f.stores.importSession(grant());
+  const entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const owner = f.stores.sessionStore.withLock!(resource, async () => { entered.resolve(); await resume.promise; }, {});
+  await entered.promise;
+  const options = { signal: new AbortController().signal, timeoutMs: 1000 }, operation = vi.fn(async () => "original transaction");
+  const run = kind === "reset" ? f.stores.reset(resource, options) : kind === "import" ? f.stores.importSession(grant(), options)
+    : f.stores.sessionStore.withLock!(resource, operation, options);
+  const observed = run.catch(error => error);
+  try {
+    await setImmediate();
+    options.signal = AbortSignal.abort(new Error("unrelated replacement native cancellation")); resume.resolve();
+    expect(await observed).toBe(kind === "transaction" ? "original transaction" : undefined);
+    expect(await f.stores.sessionStore.load(resource)).toEqual(kind === "reset" ? null : grant());
+    if (kind === "transaction") expect(operation).toHaveBeenCalledOnce();
+  } finally { resume.resolve(); await Promise.allSettled([owner, observed]); }
+});
+
+it("checks original transaction cancellation after an active identity reconciliation write", async () => {
+  const f = fixture(), entered = Promise.withResolvers<void>(), resume = Promise.withResolvers<void>();
+  const rename = f.fs.rename.bind(f.fs);
+  const intercepted = vi.spyOn(f.fs, "rename").mockImplementation(async (...args) => {
+    if (String(args[1]).endsWith(".enc")) { entered.resolve(); await resume.promise; }
+    return rename(...args);
+  });
+  const controller = new AbortController(), reason = new Error("cancel active identity reconciliation"), options = { signal: controller.signal, timeoutMs: 1000 };
+  const operation = vi.fn(async () => "should not enter canceled transaction");
+  const observed = f.stores.sessionStore.withLock!(resource, operation, options).catch(error => error);
+  try {
+    await entered.promise;
+    controller.abort(reason); options.signal = new AbortController().signal; resume.resolve();
+    expect(await observed).toBe(reason); expect(operation).not.toHaveBeenCalled();
+  } finally { resume.resolve(); await observed; intercepted.mockRestore(); }
+});

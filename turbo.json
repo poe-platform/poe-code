@@ -186,6 +186,11 @@
       "dependsOn": [
         "build"
       ]
+    },
+    "@poe-code/process-launcher#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

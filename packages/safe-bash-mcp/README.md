@@ -320,6 +320,9 @@ Browser snapshots also retain the selected opener, input reader, listener
 factory, redirect, cancellation signal and authorization deadline.
 The selected host methods retain their original receiver and live host state,
 including class methods that use private fields.
+Native client snapshots also retain mode, app ID/secret, token-auth method and
+declared client metadata regardless of enumerability. Public `none` clients
+withhold secrets, and an explicit scope still rejects a broader returned grant.
 Relative-lifetime host clocks must return valid integer epoch milliseconds
 within the JavaScript Date range; binding rejects invalid anchors before store
 factories run, even when adding the lifetime would produce a valid expiry.

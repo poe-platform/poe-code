@@ -784,3 +784,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     text+blob reads. Require forty metadata GETs/fifty-six credential MCP POSTs/
     ten retired HTTP sessions/ten closed SSE streams. Inspect successful
     screenshot; purge only owned synthetic evidence.
+
+71. Supply own nonenumerable native client mode, clientId, clientSecret,
+    tokenEndpointAuthMethod and metadata scope/clientName/softwareId/softwareVersion
+    through actual HTTP/SSE schema, generated-tool and resource routes. Capture
+    before caller replacement during offline command generation. Require
+    forty-eight original-factory/state/S256 callbacks and code exchanges,
+    eighteen complete DCR requests/extension-preserving registrations, forty-two
+    public exchanges withholding secrets and six confidential exchanges using
+    the original secret. Six broader-scope grants remain inactive and never
+    reach MCP. Complete fourteen schemas/fourteen full falsey-JSON calls/fourteen
+    text+blob reads retaining guidance/nested metadata/exact005930, ninety-six
+    metadata GETs/one hundred twenty-six credential MCP POSTs/twenty-one retired
+    HTTP sessions/twenty-one closed SSE streams. Inspect successful screenshot;
+    purge only owned synthetic evidence.

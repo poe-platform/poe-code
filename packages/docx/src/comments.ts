@@ -16,6 +16,7 @@ import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { findRelationshipPart } from "./relationship-part.js";
 import { nextCommentId } from "./comment-id.js";
+import { normalizePropertyDate } from "./property-values.js";
 
 export type CommentReadRequest = { [K in "comments.list" | "comments.get"]: { readonly operation: K; readonly options: DocxOperationArguments<K> } }["comments.list" | "comments.get"];
 export type CommentEditRequest = { [K in "comments.add" | "comments.set" | "comments.remove"]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }["comments.add" | "comments.set" | "comments.remove"];
@@ -141,7 +142,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
       types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(part)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/>`);
     }
     const comments = editPart(part, `<w:comments xmlns:w="${w}"/>`);
-    comments.insertChildren(comments.root, `<cm:comment xmlns:cm="${w}" cm:id="${id}" cm:author="${xmlValue(options.author)}" cm:date="${xmlValue(options.timestamp)}"${options.initials === null ? "" : ` cm:initials="${xmlValue(options.initials ?? "")}"`}><cm:p>${paragraphTextRun(w, options.text ?? "")}</cm:p></cm:comment>`);
+    comments.insertChildren(comments.root, `<cm:comment xmlns:cm="${w}" cm:id="${id}" cm:author="${xmlValue(options.author)}" cm:date="${normalizePropertyDate(options.timestamp)}"${options.initials === null ? "" : ` cm:initials="${xmlValue(options.initials ?? "")}"`}><cm:p>${paragraphTextRun(w, options.text ?? "")}</cm:p></cm:comment>`);
     updates.push({ before, id, kind: "insert" });
   } else {
     const records = selectedComments(state, request.operation, options);

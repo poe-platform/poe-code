@@ -3,6 +3,7 @@ import type { ArchiveLimits } from "./archive.js";
 import { DocumentPackage } from "./package.js";
 import { xmlValue } from "./create-content.js";
 import { compatibilityContainers } from "./compatibility.js";
+import { normalizePropertyDate } from "./property-values.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import type { Location } from "./location-token.js";
@@ -47,7 +48,8 @@ function textRun(node: XmlElement, text: string, xml: DocumentXmlEditor, budget:
 
 /** Stage original run slices only after every affected owner and boundary has been checked. */
 export function stageTrackedText(editor: DocumentArchiveEditor, edits: readonly TrackedTextEdit[], metadata: { readonly author: string; readonly timestamp: string }, budget: DocumentBudget, limits: ArchiveLimits): void {
-  xmlValue(metadata.author); xmlValue(metadata.timestamp);
+  xmlValue(metadata.author);
+  const timestamp = normalizePropertyDate(metadata.timestamp);
   const used = new Set<number>();
   for (const part of new DocumentPackage(editor.snapshot(), limits, budget).parts) {
     if (!isXmlContentType(part.content_type)) continue;
@@ -69,7 +71,7 @@ export function stageTrackedText(editor: DocumentArchiveEditor, edits: readonly 
   const wrap = (kind: "ins" | "del", run: string, w: string) => {
     while (used.has(next)) { budget.charge("work", 1); next++; }
     budget.check("work", 1); used.add(next);
-    return `<rt:${kind} xmlns:rt="${xmlValue(w)}" rt:id="${next++}" rt:author="${xmlValue(metadata.author)}" rt:date="${xmlValue(metadata.timestamp)}">${run}</rt:${kind}>`;
+    return `<rt:${kind} xmlns:rt="${xmlValue(w)}" rt:id="${next++}" rt:author="${xmlValue(metadata.author)}" rt:date="${timestamp}">${run}</rt:${kind}>`;
   };
   const groups = new Map<string, TrackedTextEdit[]>();
   for (const edit of edits) { const group = groups.get(edit.paragraph.token) ?? []; group.push(edit); groups.set(edit.paragraph.token, group); }

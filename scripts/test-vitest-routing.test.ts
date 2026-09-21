@@ -95,6 +95,21 @@ describe("native workspace routing with shared Vitest", () => {
     });
   }
 
+  it("rejects missing or clearly foreign exact files before any build or test child", async () => {
+    for (const filename of ["packages/alpha/src/missing.test.ts", "packages/beta/src/unit.test.ts"]) {
+      const { fileSystem, start, options } = fixture();
+      const manifest = JSON.parse(fileSystem.readFileSync("/repo/packages/alpha/package.json", "utf8"));
+      manifest.scripts.build = "required-build";
+      fileSystem.writeFileSync("/repo/packages/alpha/package.json", JSON.stringify(manifest));
+      const configuration = JSON.parse(fileSystem.readFileSync("/repo/turbo.json", "utf8"));
+      configuration.tasks["alpha#test:unit"] = { dependsOn: ["build"] };
+      fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify(configuration));
+      await expect(testWorkspaces("/repo", { ...options, workspaces: ["alpha"], testFiles: [filename] }))
+        .rejects.toThrow();
+      expect(start).not.toHaveBeenCalled();
+    }
+  });
+
   it("stops before native tests when the shared process fails", async () => {
     const { host, start, options } = fixture("test:unit:shared");
     await expect(testWorkspaces("/repo", options)).rejects.toMatchObject({ exitCode: 7 });

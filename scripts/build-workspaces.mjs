@@ -600,6 +600,14 @@ export async function testWorkspaces(rootDirectory, options = {}) {
     testStages = sharedVitestStages(plan, fileSystem);
   }
   assert.ok(testFiles === undefined || testStages.length === 1 && testStages[0].event === "test:unit:shared", "Focused files require the maintained hook-free shared Vitest route");
+  if (testFiles !== undefined) {
+    const phase = testStages[0].phases[0];
+    for (const filename of plan.testFiles) {
+      const absolute = path.join(plan.root, filename), metadata = fileSystem.lstatSync(absolute);
+      assert.ok(metadata.isFile() && !metadata.isSymbolicLink(), "Not a regular exact test file: " + filename);
+      assert.ok(phase.path === null || phase.selectors.some(selector => filename === selector || filename.startsWith(selector.endsWith("/") ? selector : selector + "/")), "Test file is outside selected unit ownership: " + filename);
+    }
+  }
   if (dryRun) return { dryRun: true, plannedTests: plan.testStages.length, plannedBuilds: plan.buildStages.length, testStages: plan.testStages, buildStages: plan.buildStages.map(stage => ({ name: stage.name, path: stage.path, event: stage.event ?? "build" })), ...(plan.selectedWorkspaces === undefined ? {} : { selectedWorkspaces: plan.selectedWorkspaces }), ...(testFiles === undefined ? {} : { testFiles: plan.testFiles }) };
   const caching = cache !== false && ciGroup !== "fresh" && environment.TURBO_FORCE !== "true" && (cacheStore || (spawn === spawnChild && fileSystem === fs));
   childEnvironment.POE_CHECK_CACHE = caching ? "1" : "0";

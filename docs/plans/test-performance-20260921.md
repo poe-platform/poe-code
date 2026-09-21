@@ -58,3 +58,7 @@ A 100-read benchmark of a 256 KiB stored member reproduced 758.66 ms of assertio
 ## Signed native priority transport checks
 
 The ongoing complete run reproduced the older command test rejecting priority -4. Current native setters deliberately admit the signed 32-bit interval (see b0e3cdb53), and existing native admission checks already preserve negative priorities. The command test now checks SDK/CLI parity for -4, both inclusive signed limits and both immediately outside limits, retaining null, zero, positive and fractional controls. All nine cases pass through the maintained exact-file route; no production semantics were changed.
+
+## Exact-file preflight
+
+A failing memfs routing case showed that missing or clearly foreign exact files could still launch build/test children. The root runner now checks regular-file existence and declared workspace selector boundaries before builds, while Vitest retains the final actual-discovery ownership check. Four focused runner files pass 258 cases plus two root stress checks; changed runner ESLint passes. Native hooks/pools are still rejected before spawning, and root ownership remains derived from maintained Vitest configuration.

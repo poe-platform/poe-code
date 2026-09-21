@@ -69,7 +69,7 @@ export function createDefaultOAuthClientProvider(
   }
   const initialGrant = options.initialGrant === undefined ? undefined : {
     resource: canonicalizeResourceIndicator(options.initialGrant.resource),
-    tokens: normalizeStoredTokens(options.initialGrant.tokens),
+    tokens: normalizeImportedTokens(options.initialGrant.tokens, now),
     client: configuredClient
   };
   if (initialGrant !== undefined && (initialGrant.tokens === undefined || initialGrant.client === null))
@@ -713,6 +713,21 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
   };
 }
 
+
+function normalizeImportedTokens(value: unknown, now: () => number): StoredOAuthTokens | undefined {
+  if (!isObjectRecord(value)) return undefined;
+  const absolute = getOwnEntry(value, "expiresAt");
+  const lifetime = getOwnEntry(value, "expiresIn");
+  const issuedAt = getOwnEntry(value, "issuedAt");
+  if (lifetime !== undefined && (typeof lifetime !== "number" || !Number.isSafeInteger(lifetime) || lifetime < 0))
+    throw new Error("OAuth initial grant has invalid relative expiry");
+  if (issuedAt !== undefined && (typeof issuedAt !== "number" || !Number.isSafeInteger(issuedAt) ||
+    Math.abs(issuedAt) > MAX_JS_DATE_MS))
+    throw new Error("OAuth initial grant has invalid issuance time");
+  const expiresAt = absolute !== undefined && absolute !== null ? absolute :
+    lifetime === undefined ? null : (issuedAt === undefined ? now() : issuedAt as number) + (lifetime as number) * 1000;
+  return normalizeStoredTokens({ ...value, expiresAt });
+}
 
 function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
   if (value === undefined || !isObjectRecord(value)) {

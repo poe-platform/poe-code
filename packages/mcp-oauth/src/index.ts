@@ -40,6 +40,7 @@ export type {
   StoredOAuthSession,
   StoredOAuthClient,
   StoredOAuthTokens,
+  ImportedOAuthTokens,
 } from "./client/types.js";
 export type {
   JwksTokenVerifier,

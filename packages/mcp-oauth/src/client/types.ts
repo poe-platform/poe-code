@@ -73,6 +73,15 @@ export interface StoredOAuthTokens {
   scope?: string;
 }
 
+/** Import-time lifetimes are normalized once into persisted epoch milliseconds. */
+export interface ImportedOAuthTokens extends Omit<StoredOAuthTokens, "expiresAt"> {
+  expiresAt?: number | null;
+  /** Remaining lifetime at import, or total lifetime when issuedAt is provided. */
+  expiresIn?: number;
+  /** Original issuance time in Unix epoch milliseconds. */
+  issuedAt?: number;
+}
+
 /** Full RFC 7591 response, including JSON provider extensions. */
 export interface OAuthClientRegistration extends Record<string, unknown> {
   client_id: string;
@@ -147,7 +156,7 @@ export interface DefaultOAuthClientProviderOptions {
   /** Import an existing grant for one resource. Persisted sessions take precedence. */
   initialGrant?: {
     resource: string;
-    tokens: StoredOAuthTokens;
+    tokens: ImportedOAuthTokens;
   };
   browser: {
     openBrowser?(url: string): Promise<void>;

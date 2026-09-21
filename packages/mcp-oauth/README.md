@@ -106,8 +106,13 @@ Select a separate persistence namespace for another scope profile. No scope is
 invented when the client does not configure one.
 
 Imported `initialGrant.tokens` use `accessToken`, optional `refreshToken`,
-`tokenType: "Bearer"`, `expiresAt` (Unix epoch milliseconds or `null` if unknown),
-and optional `scope`. A fresh imported token is used only for its resource.
+`tokenType: "Bearer"`, optional `expiresAt` (Unix epoch milliseconds or `null`
+if unknown), and optional `scope`. `expiresIn` is a lifetime in seconds and is
+anchored once at import. For a delayed import, provide the original `issuedAt`
+in epoch milliseconds or its real absolute `expiresAt`; a numeric absolute
+expiry takes precedence. Without either, the relative value means remaining
+lifetime at import. Omitted expiry stays unknown. A fresh imported token is
+used only for its resource.
 Discovery binds an expired or explicitly rejected grant before silent refresh,
 using the original configured client. Persisted sessions take precedence,
 including sessions whose tokens have been cleared; an import cannot revive them.

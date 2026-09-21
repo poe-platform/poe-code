@@ -103,7 +103,7 @@ export default defineConfig({
         }
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
-          if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
+          if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js", "../spawn.js"].includes(name))
             return path("dist/index.js");
           if (name.startsWith("./")) return path("dist/configs/" + name.slice(2));
         }

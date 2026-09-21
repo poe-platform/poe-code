@@ -6913,3 +6913,18 @@ events-*. Checklist optimization6e8baf8d7 pushed and remote main verified.
 No current successful root publication verified. Foreign changes preserved.
 Continuous16:35:00–16:38:00 adds180s,total124615s(34.62h). Minimum fulfilled;
 full objective incomplete. Continue accounting after16:38:00UTC.
+
+### Corrected Cursor argument reference routing, 2026-09-21 16:44 UTC
+
+A maintained package run timed out loading original ../spawn.js from the configs
+oracle. Verified that resolver branch omitted this import, so the Cursor argument
+cases exercised original spawn and its cold dependency tree. Routed this specific
+import to the owned root API. All562reference cases16files now pass, including
+Cursor argument conversion against the Rust implementation. Scoped config ESLint
+passes. No production logic changed; no timeout increase. Separate atomic test
+adapter repair. In-progress log-catalog runtime/core checks also pass; final
+selected artifact closure is still running and its feature is not delivered yet.
+ACPcf154ff60 pushed and exact remote main verified before later foreign delivery.
+No current successful root publication verified. Foreign changes preserved.
+Continuous16:38:00–16:44:00 adds360s,total124975s(34.72h). Minimum fulfilled;
+full objective incomplete. Continue accounting after16:44:00UTC.

@@ -35,3 +35,19 @@ const previewSdk: OriginalPreview = design.dashboard;
 const ownPreview: Pick<typeof design.dashboard, keyof OriginalPreview> =
   null as unknown as OriginalPreview;
 void [previewSdk, ownPreview];
+
+type Logging = Pick<
+  typeof originalDesign,
+  | "createLogger"
+  | "logger"
+  | "stripAnsi"
+  | "resolveOutputFormat"
+  | "withOutputFormat"
+  | "resetOutputFormatCache"
+  | "configureTheme"
+  | "getThemeConfig"
+  | "resetTheme"
+>;
+const loggingOriginal: Logging = design;
+const loggingOwn: Pick<typeof design, keyof Logging> = null as unknown as Logging;
+void [loggingOriginal, loggingOwn];

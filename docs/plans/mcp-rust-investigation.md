@@ -6413,3 +6413,43 @@ Runtime7911f1b0d pushed and exact remote main verified. Structured lock snapshot
 serialization unintentionally normalized a duplicate root devDependency key. Restore
 the exact committed root representation using a parsed workspace-only slice;
 concurrent worktree removal remains unstaged. Workspace dependency semantics unchanged.
+
+### Portable logger formatting and host scopes, 2026-09-21 14:16 UTC
+
+Added createLogger,logger,stripAnsi,owned theme config/reset,and scoped output-format
+APIs. Rust owns UTF16 guide/continuation formatting,Markdown normalization,JSON
+messages,stateless log control stripping and brand/theme symbols. Node observes
+color/theme env,retains AsyncLocalStorage scopes,emitter identity and stdout effects.
+Rust-generated immutable prefixes and symbols allow short clean host admissions
+without native copying. This does not integrate existing design consumers. Log
+cleanup intentionally preserves the current SDK policy for DCS content;streaming
+preview filters remain the separate safe metadata filter.
+
+Missing-core/native API reds precede implementation. Maintained17Rust cases/20
+native groups and bidirectional covered types pass. Native comparisons include
+all3output formats,3brands,2themes,forced color,empty/multiline messages,OSC/CSI/
+DCS controls,lone/pair surrogates,detached emitter methods and async scope/cache
+behavior. fmt/clippy/shared checks/ESLint pass. Uncached selected117workspaces/
+6builds/365edges passes at explicit build concurrency1. Own duplicate closure was
+briefly started during test completion;no distinct artifact versions were used.
+Manual QA:run owned logger demo via maintained screenshot route,inspect coherent
+symbols,guides,continuation lines,Markdown/JSON. Viewed out/rust-design-logging.png.
+
+Initial short Markdown/JSON16384messages cost22.73–24.83/30.78–32.08ms vs original
+2.49–2.98/2.48–2.92ms;host admission removes boundary overhead. Final5alternating
+warmed samples:16384single terminal own19.27–21.08ms vs91.95–98.89ms;Markdown
+1.70–1.75vs2.20–2.46;JSON1.54–2.01vs2.01–2.21.256large1024-line messages:
+terminal2.37–2.64vs14.77–15.30;Markdown2.40–2.47vs15.44–16.10;JSON5.22–5.61vs
+12.47–12.94ms. Every wall pair improves in these finite cases. No general speed
+or memory superiority claim.
+Packed11files/one addon/7audited sources+declarations,zero npm runtime groups,external
+resolution blocked passes. Direct/packed16MiBworkers each complete131072layouts,
+262144preview updates,65536log messages,retain4.90MiBGC heap. Shared RSS is not an
+isolated native memory bound. Evidence out/rust-design-logging-*.
+
+Runtime7911f1b0d and lock representation repairba4ba641f pushed and separately
+exact remote main verified. Root release35605641955 still unit in_progress;
+latest queued runs cancelled by following pushes. No successful current root
+publication verified. Concurrent changes preserved. Continuous14:09:53–14:16:33
+adds400s,total116128s(32.26h). Minimum fulfilled;full objective incomplete.
+Continue accounting after14:16:33UTC.

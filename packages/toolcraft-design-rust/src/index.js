@@ -58,3 +58,14 @@ export function createOutputPreviewBuffer() {
 }
 
 export * as dashboard from "./dashboard.js";
+export {
+  createLogger,
+  logger,
+  stripAnsi,
+  resolveOutputFormat,
+  withOutputFormat,
+  resetOutputFormatCache,
+  configureTheme,
+  getThemeConfig,
+  resetTheme
+} from "./logging.js";

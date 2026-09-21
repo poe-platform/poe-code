@@ -27,6 +27,8 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard.limitOutputPreview` | Keep the latest output within a 16,384-code-unit preview |
 | `dashboard.createOutputPreviewBuffer` | Retain bounded live deltas in the Rust core |
 | `createTerminalStringFilter` | Filter split OSC/DCS strings while retaining complete CSI controls |
+| `createLogger`, `logger` | Emit coherent terminal, Markdown or JSON messages |
+| `withOutputFormat` | Scope an output format across asynchronous work |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -39,7 +41,7 @@ nonfinite numbers and BigInt survive the transfer. Getters, functions, proxies
 and custom iterators use the host callback environment. Standalone Rust callers
 can use `data::Graph` and a fresh `data::DataEnvironment` for each render.
 
-This supplies template composition, dashboard geometry and bounded output ownership. The complete dashboard
+This supplies template composition, dashboard geometry, bounded output ownership and log formatting. The complete dashboard
 renderer, interactive controls and existing application integrations remain in
 the original package. Rendering remains slower than the JavaScript implementation. In one Node 22
 ARM64 measurement, a 256-item section takes about 216 µs through the data path,
@@ -78,3 +80,18 @@ controls, and cap pending controls at 1,024 code units. Rust owns live preview
 chunks; Node supplies string ingress and returned snapshots. Input and temporary
 conversion memory are outside the retained-state budget. Unlike the original
 helper, a negative-infinite tail budget terminates safely for ANSI text.
+
+```ts
+import { logger, withOutputFormat } from 'toolcraft-design-rust';
+
+logger.info('Agent started');
+logger.resolved('Runtime', 'host');
+withOutputFormat('json', () => logger.warn('Authorization required'));
+```
+
+`createLogger(emitter)` sends messages directly to your callback. Without an emitter,
+Rust formats terminal guides, Markdown lines and structured JSON. The host writes
+stdout, preserves asynchronous format scopes and observes color/theme settings.
+Small plain Markdown/JSON messages use a host path with Rust-supplied prefixes to
+avoid native transfer overhead. `stripAnsi` follows the original log cleanup policy;
+use the streaming preview filter when OSC/DCS payloads can span chunks.

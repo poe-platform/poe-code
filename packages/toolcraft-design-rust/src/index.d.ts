@@ -57,3 +57,22 @@ export declare namespace dashboard {
   function limitOutputPreview(text: string): string;
   function createOutputPreviewBuffer(): { push(text: string): void; text(): string };
 }
+export type OutputFormat = "terminal" | "markdown" | "json";
+export interface LoggerOutput {
+  info(message: string): void;
+  success(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+  resolved(label: string, value: string): void;
+  errorResolved(label: string, value: string): void;
+  message(message: string, symbol?: string): void;
+}
+export declare function createLogger(emitter?: (message: string) => void): LoggerOutput;
+export declare const logger: LoggerOutput;
+export declare function stripAnsi(value: string): string;
+export declare function resolveOutputFormat(env?: { OUTPUT_FORMAT?: string }): OutputFormat;
+export declare function withOutputFormat<T>(format: OutputFormat, operation: () => T): T;
+export declare function resetOutputFormatCache(): void;
+export declare function configureTheme(patch: { brand?: string; label?: string }): void;
+export declare function getThemeConfig(): { brand: string; label: string };
+export declare function resetTheme(): void;

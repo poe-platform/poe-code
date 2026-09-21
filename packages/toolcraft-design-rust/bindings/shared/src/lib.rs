@@ -332,3 +332,32 @@ pub fn output_preview_limit(text: Utf16String) -> Utf16String {
 pub fn output_preview_retain_start(text: Utf16String, start: f64) -> Utf16String {
     toolcraft_design_rust::preview::retain_from_start(&text, start).into()
 }
+#[napi]
+pub fn design_strip_ansi(text: Utf16String) -> Utf16String {
+    toolcraft_design_rust::logging::strip(&text).into()
+}
+#[napi]
+pub fn design_brand_known(brand: String) -> bool {
+    toolcraft_design_rust::logging::brand_known(&brand)
+}
+#[napi]
+pub fn design_log_symbol(level: String, brand: String, light: bool, color: bool) -> Utf16String {
+    toolcraft_design_rust::logging::symbol(&level, &brand, light, color).into()
+}
+#[napi]
+pub fn design_log_render(
+    level: String,
+    text: Utf16String,
+    format: String,
+    symbol: Utf16String,
+    secondary: Utf16String,
+) -> Utf16String {
+    toolcraft_design_rust::logging::render(
+        &level,
+        &text,
+        toolcraft_design_rust::logging::format(&format),
+        &symbol,
+        &secondary,
+    )
+    .into()
+}

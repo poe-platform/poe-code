@@ -219,3 +219,12 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     authoritative original supplied tools/guidance and no replacement endpoint
     requests. Verify two tools/list operations and retired sessions, inspect the
     result screenshot and purge only owned synthetic fixtures/evidence.
+
+33. Reconnect actual HTTP receive streams after a completed event ID, then after
+    id-less notifications or keepalives. Require exact inherited headers through
+    a third GET. In two other modes send empty id: and require no resume header,
+    including when the initial configuration supplied a cursor. Hold the tool
+    response until the third receive GET, then return complete SSE POST content/
+    falsey structured values/nested metadata/exact005930. Require twelve GETs,
+    four full calls/four distinct retired sessions and zero credential/consent
+    traffic. Inspect safe summary screenshot and purge only owned evidence.

@@ -66,6 +66,9 @@ validation when preparing a registry before constructing transports.
 Receive streams may carry many bounded events and keepalive comments; the limit
 does not cap their lifetime bytes. Use request deadlines and cancellation to
 bound pending operations.
+Receive reconnections retain the last completed event ID through events and
+keepalives without IDs. An explicit empty `id:` clears the resume header,
+including any initially configured value.
 HTTP failures expose `HttpTransportError.status` and `.method`, so callers can
 make transport decisions without parsing error messages. Legacy HTTP/SSE
 `connect()` also waits for the initialized notification POST to complete before

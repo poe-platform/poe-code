@@ -3075,7 +3075,8 @@ export class HttpTransport implements McpTransport {
     }
     if (this.legacyProtocolVersion !== undefined) headers.set("MCP-Protocol-Version", this.legacyProtocolVersion);
     if (this.lastEventId !== undefined) {
-      headers.set("Last-Event-ID", this.lastEventId);
+      if (this.lastEventId === "") headers.delete("Last-Event-ID");
+      else headers.set("Last-Event-ID", this.lastEventId);
     }
     return this.authorizeRequestHeaders(headers, signal);
   }
@@ -3391,17 +3392,17 @@ export class HttpTransport implements McpTransport {
         if (context?.completed || (options.stopAfterInitialization && this.initializationRequestId === undefined)) {
           void reader.cancel().catch(() => undefined); return;
         }
-        this.lastEventId = parser.lastEventId;
+        this.lastEventId = parser.lastEventId ?? this.lastEventId;
       }
 
       const trailingChunk = decoder.decode();
       if (trailingChunk.length > 0) {
         this.writeSseMessages(parser.push(trailingChunk), context);
-        this.lastEventId = parser.lastEventId;
+        this.lastEventId = parser.lastEventId ?? this.lastEventId;
       }
 
       this.writeSseMessages(parser.flush(), context);
-      this.lastEventId = parser.lastEventId;
+      this.lastEventId = parser.lastEventId ?? this.lastEventId;
       if (context !== undefined && !context.completed) throw new Error("MCP HTTP stream ended before its final response");
     } catch (error) {
       void reader.cancel().catch(() => undefined);

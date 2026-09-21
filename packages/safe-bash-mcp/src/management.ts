@@ -285,16 +285,21 @@ export function createRemoteMcpManagementCommand(
         if (resource !== undefined) {
           const selected = resource;
           try {
-            const settings = options.resources;
+            const resourceOptions = options.resources ?? {};
+            const settings = { ...snapshotRemoteMcpSchemaOptions(resourceOptions),
+              binding: resourceOptions.binding, maxInputBytes: resourceOptions.maxInputBytes };
             const resourceSignal = settings?.signal;
             const signal = resourceSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resourceSignal]);
             signal.throwIfAborted();
+            const maxResourceInputBytes = Math.min(maxInputBytes,
+              commandLimit(selected.maxInputBytes ?? settings.maxInputBytes ?? maxInputBytes, "maxInputBytes"));
+            const request = snapshotRemoteMcpResourceRequest(selected.request, maxResourceInputBytes);
             const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
             const [bound] = bindRemoteMcpConfiguration({ version: 1, servers: [server] }, settings?.binding ?? { env: context.env });
-            const result = await accessRemoteMcpResources(bound, selected.request, { ...snapshotRemoteMcpSchemaOptions(settings ?? {}),
+            const result = await accessRemoteMcpResources(bound, request, { ...settings,
               requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
               maxResponseBytes: selected.maxResponseBytes ?? settings?.maxResponseBytes,
-              maxInputBytes: Math.min(maxInputBytes, selected.maxInputBytes ?? settings?.maxInputBytes ?? maxInputBytes), signal });
+              maxInputBytes: maxResourceInputBytes, signal });
             output = `${JSON.stringify(result)}\n`;
           } catch (error) {
             operation.signal.throwIfAborted();

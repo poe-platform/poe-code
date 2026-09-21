@@ -31,6 +31,32 @@ function remote(options: { fail?: boolean; wait?: boolean; resources?: boolean }
   return { fetch, requests, requestStarted };
 }
 
+it.each(["fetch", "maxInputBytes", "maxResponseBytes", "requestTimeoutMs", "maxPages", "maxTools"] as const)(
+  "captures management resource %s before credential factories run", async field => {
+    const f = remote(), replacement = vi.fn<HttpTransportFetch>(() => { throw new Error("replacement fetch selected"); });
+    const settings = { fetch: f.fetch, maxInputBytes: field === "maxInputBytes" ? 1 : 4096,
+      maxResponseBytes: field === "maxResponseBytes" ? 1 : 4096, requestTimeoutMs: 1000, maxPages: 100, maxTools: 10,
+      binding: { env: { APP_ID: "original-app" }, oauth: { sessionStore: vi.fn(() => {
+        if (field === "fetch") settings.fetch = replacement;
+        else settings[field] = field === "maxInputBytes" || field === "maxResponseBytes" ? 4096 : 0;
+        return { load: async () => null, save: async () => {}, clear: async () => {} };
+      }) } } };
+    const definition = createRemoteMcpManagementCommand([{ ...server, auth: { type: "oauth", clientMode: "static", env: { clientId: "APP_ID" } } }], { resources: settings });
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
+    try {
+      const result = await shell.exec("mcp resource docs file:///remote/readme");
+      if (field === "maxInputBytes" || field === "maxResponseBytes") {
+        expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+        expect(result.stderr).toContain(field === "maxInputBytes" ? "input byte limit" : "exceeds 1 bytes");
+        if (field === "maxInputBytes") expect(f.fetch).not.toHaveBeenCalled();
+      } else { expect(result.exitCode).toBe(0); expect(JSON.parse(result.stdout)).toEqual(read); }
+      if (field === "maxInputBytes") expect(settings.binding.oauth.sessionStore).not.toHaveBeenCalled();
+      else expect(settings.binding.oauth.sessionStore).toHaveBeenCalledOnce();
+      expect(replacement).not.toHaveBeenCalled();
+    } finally { await shell.dispose(); }
+  }
+);
+
 it("lists one preserved resource page with an exact caller cursor and no tool discovery", async () => {
   const f = remote();
   expect(await accessRemoteMcpResources(server, { operation: "list", cursor: "cursor=a=b" }, { fetch: f.fetch })).toEqual(listed);
@@ -130,6 +156,18 @@ it("honors a pre-aborted management resource signal before credential binding", 
     const result = await shell.exec("mcp resource docs memo://one");
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("resource canceled before setup");
+    expect(readToken).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+it("rejects the host resource input ceiling before credential binding", async () => {
+  const f = remote(), readToken = vi.fn(() => { throw new Error("must remain unread"); });
+  const definition = createRemoteMcpManagementCommand([{ ...server, auth: { type: "bearer", env: "TOKEN" } }], {
+    resources: { fetch: f.fetch, maxInputBytes: 1, binding: { env: Object.defineProperty({}, "TOKEN", { get: readToken }) } }
+  });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
+  try {
+    const result = await shell.exec("mcp resource docs file:///remote/readme");
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe(""); expect(result.stderr).toContain("resource input byte limit");
     expect(readToken).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
   } finally { await shell.dispose(); }
 });

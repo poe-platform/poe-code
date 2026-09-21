@@ -978,3 +978,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     session retirement and SSE stream closure independently. Inspect actual
     help/result/conflict diagnostics in a successful screenshot; purge owned
     synthetic evidence after recording outcomes.
+
+85. Run management resource operations over actual HTTP/SSE with credential
+    factories replacing fetch, deadline, page/tool limits and input/response
+    ceilings. Require eight original positive operations, two retained one-byte
+    response failures and two input failures before factories/network. Also
+    supply inaccessible environments under the host input ceiling; both fail on
+    resource size before credential inspection. Preserve complete text/blob
+    contents, metadata and exact005930 without tools/list or consent. Independently
+    await retired HTTP sessions/closed SSE streams; inspect actual result/limit
+    diagnostics in a successful screenshot and purge owned evidence.

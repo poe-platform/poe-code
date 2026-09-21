@@ -60,7 +60,7 @@ export interface OAuthClientProvider {
     requestUrl: URL;
     headers: Headers;
     fetch: OAuthMetadataFetch;
-  }): Promise<void> | void;
+  }): Promise<StoredOAuthTokens | void> | StoredOAuthTokens | void;
   handleUnauthorized(input: {
     requestUrl: URL;
     response: Response;

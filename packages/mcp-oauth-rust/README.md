@@ -39,7 +39,9 @@ capabilities in its own addon and has no runtime import of `auth-store`.
 The default provider supports cached tokens, coalesced refresh/authorization,
 static clients and dynamic registration. Its Rust effect machine owns expiry,
 credential binding, endpoint security, registration plans, PKCE parameters and
-bounded retry decisions. Host callbacks provide browser input, fetch and storage.
+bounded retry decisions. Host callbacks provide browser input, fetch and storage. Successful request
+authorization returns an owned normalized token snapshot as well as attaching the
+Authorization header.
 
 ```ts
 import { createDefaultOAuthClientProvider } from "mcp-oauth-rust";
@@ -76,7 +78,7 @@ const accessToken = await verifier.verify({
 ```
 
 This package preserves application imports while the additive rewrite is developed.
-New provider token snapshots, profile persistence, session transactions and
+Profile persistence, session transactions and
 client/scope/refresh-outcome contracts are being reconciled with the evolving
 original; full provider conformance is currently incomplete. Integration and
 broader performance validation remain separate work.

@@ -3650,8 +3650,9 @@ run asynchronously and preserve arbitrary rejection causes.
 
 Portable/native reds precede changes. All31 portable Rust cases,6 complete native
 loopback groups and20 complete original loopback/lifecycle cases pass. Focused
-lint/fmt/clippy/types/formatting and uncached113-workspace/8-build/338-edge closure
-pass. Direct/packed16MiB workers each run512 listener cycles (384 successful,
+lint/fmt/clippy/formatting and uncached113-workspace/8-build/338-edge closure
+pass. The broad TypeScript fixture fails on the newer provider returned-token
+contract and remains required follow-up; loopback options are declared locally. Direct/packed16MiB workers each run512 listener cycles (384 successful,
 128 arbitrary-cause cancellations), verify single-use waits and all listener
 cleanup, and reject unsafe redirects before listener allocation. Artifact audit
 covers14 JS/declaration files, one addon and zero runtime groups. Heap endpoints
@@ -3666,3 +3667,21 @@ conformance. Tool registry commit4d3f64f9f is verified on remote main. Release
 publication, overall rewrite and minimum24-hour effort remain unfinished.
 Active04:03:46–04:18:55 UTC adds909s; total82256s (22.85h), minimum remaining
 4144s (1h09m04s). Work continues beyond this recorded boundary.
+
+### OAuth Rust authorized-token snapshots, 2026-09-21 04:23 UTC
+
+A valid-current-client native red reproduces authorizeRequest returning undefined
+instead of the normalized grant. Success now returns a fresh snapshot after
+attaching the header; mutation cannot alter persisted/native-normalized tokens.
+The provider return declaration now admits the original token-or-void contract.
+The complete focused native snapshot case and broad TypeScript fixture pass after
+red reproduction; maintained uncached build closure, package build, prior unchanged
+Rust lint and whitespace checks pass. Evidence out/rust-oauth-snapshot-*.
+
+The prior loopback delivery entry incorrectly included broad type-check success:
+the actual fixture failed at the supplied-provider assignment because its
+returned-token contract was outdated. That entry is corrected above; the fixture
+now passes with this increment. Callback commitb89dafb9b was pushed; remote
+verification continues separately. Provider/client/scope/storage conformance
+failures still require follow-up. No release or overall/minimum-effort completion
+is claimed. Work continues beyond04:18:55 effort boundary.

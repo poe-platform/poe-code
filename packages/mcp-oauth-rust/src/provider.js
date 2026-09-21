@@ -459,6 +459,7 @@ export function createDefaultOAuthClientProvider(options) {
       if (session === null || session.tokens === undefined || expired(session.tokens)) return;
       unwrap(native.providerRequestMatches(url, session.resource));
       input.headers.set("Authorization", `Bearer ${session.tokens.accessToken}`);
+      return { ...session.tokens };
     },
     async handleUnauthorized(input) {
       try {

@@ -3,8 +3,9 @@
 The `packages/docx` utility exports `validateDocumentArchive(archive, options?, budget?)`,
 `documentValidationProfile`, `SemanticValidationError`, and
 `writeDocumentArchive(archive, sink, options, context)`. This records the bounded
-package-semantic-validation milestone, with the later
-[hostile-input review](../plans/docx-malformed-input-adversarial-review.md).
+package-semantic-validation milestone. The later hostile-input review is
+preserved in Git history; read it with
+`git show 16e7a8833b8fdcc867336b58c175ecc57194f815:docs/plans/docx-malformed-input-adversarial-review.md`.
 The implemented `validateDocument(input, context, options?)` utility and
 `docx validate` command consume these same checks. Live document owners, whole
 public API coverage and rendering remain incomplete.

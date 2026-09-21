@@ -19,3 +19,12 @@ export type { SessionStore } from "./session-log.js";
 export type { SessionEntry } from "./entry-types.js";
 export { normalizeTool, ToolRegistry } from "./tools.js";
 export { DuplicateToolError, PluginSetupError, PromptTransformError } from "./errors.js";
+
+export {
+  cloneAgentPlugin,
+  cloneMcpServerConfig,
+  createResolvedAgentConfig,
+  toRuntimePlugins,
+  resolvePluginSetupOrder
+} from "./config.js";
+export type { ResolvedAgentConfig } from "./config.js";

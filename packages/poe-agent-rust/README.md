@@ -32,3 +32,11 @@ Conversation records live under `~/.poe-code/sessions` by default. Set `homeDir`
 Use `createMemorySessionStore(id)` for isolated entry snapshots, or `await createJsonlSessionStore(id, directory, { fs })` for ordered persistent history. Replay preserves valid records and ignores an incomplete final JSON line; malformed complete lines and invalid entries report context. A failed append also rejects subsequent writes, replay and disposal. Memory-store disposal releases entries and permits reuse. JSONL records and memory snapshots share the parser limits above; an oversized final record is rejected rather than silently discarded.
 
 `ToolRegistry` registers tools, resolves names, lists all tools and selects active tools. Model tools are always visible; internal tools remain hidden; skill tools use exact names or dot/underscore namespace selectors. Invocations preserve synchronous results, promises, streaming generators and original failure causes. Registry copies share normalized snapshots within the same implementation. Like the original private-field registry, `copyFrom` does not accept registries from a different implementation.
+
+`createResolvedAgentConfig` snapshots and freezes plugin configuration while
+retaining callbacks. Tool input schemas receive independent recursive copies.
+MCP server snapshots own argument/environment values. `resolvePluginSetupOrder`
+normalizes both dependency aliases, rejects duplicate/unknown/self/cyclic
+dependencies and keeps stable order. Its Rust planner uses iterative frames;
+JavaScript getters are evaluated only when the corresponding plugin is visited.
+These foundations support the pending agent builder and execution rewrite.

@@ -3887,3 +3887,38 @@ registration/client/transaction workloads. Evidence out/rust-oauth-stored-redire
 Provider native-queue0d6e36a2b push succeeded; remote verification continues
 separately. Root release publication and full goal/minimum24-hour effort remain
 unfulfilled. Concurrent original resource-identity work remains untouched.
+
+### Poe agent Rust immutable configuration, 2026-09-21 04:56 UTC
+
+Portable/native reds precede own immutable plugin/MCP/configuration snapshots and
+lazy dependency ordering. Rust trims names/model strings, normalizes/deduplicates
+both dependency aliases, detects duplicate/unknown/self/cyclic dependencies and
+owns iterative DFS frames and stable ordering. Host JavaScript retains callbacks,
+property getter/spread semantics, frozen snapshots and recursive schema ownership.
+Duplicate names reject before later plugin getters; dependencies are read only
+when their plugin is visited. UTF16 error envelopes preserve lone surrogates.
+Invalid native planner sequences reject without panicking. A20,000-plugin chain
+uses iterative portable frames rather than the original recursive traversal.
+
+All11 Rust cases,16 native groups and82 applicable complete original cases pass.
+The reference runtime selection adds the entire runtime/config describe block;
+other unfinished describes remain explicitly excluded/unaccounted. Five static
+configuration APIs are bidirectionally assignable with original declarations.
+Focused lint/fmt/clippy/formatting and uncached113-workspace/28-build/338-edge
+closure pass. An initial native attempt overlapped the dependency build and failed
+because tiny-mcp-client's reference dist was being rebuilt; the maintained route
+was rerun successfully after closure completion. No fixture failure is waived.
+
+Direct/packed16MiB workers each add2048 frozen configurations and2048 ordered
+plugin plans to the prior provider/storage/history/tool workloads. Artifact audit
+covers26 JS/declaration files, one addon and zero npm runtime groups. Endpoint
+heaps~8.2MB and parent-inclusive RSS are workload observations only; no isolated
+leak/peak or performance advantage acceptance is claimed. Evidence
+out/rust-poe-agent-config-*. Full agent builder/execution/plugins/adapters and the
+remaining closure remain unfinished.
+
+OAuth redirect was rebased from8119801c7 toe10fe00c1 after retaining concurrent
+credential-lock/profile/corrupt-session fixes. It and provider native-queue
+0d6e36a2b are verified on remote main. Root release35562599034 is pending. Minimum
+24-hour actual effort and full rewrite/release acceptance remain open; active work
+continues from04:34:58 recorded continuation boundary.

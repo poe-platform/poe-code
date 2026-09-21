@@ -35,3 +35,32 @@ const errorsA: typeof originalErrors = own;
 const errorsB: Pick<typeof own, keyof typeof originalErrors> =
   null as unknown as typeof originalErrors;
 void [toolsA, toolsB, normalizeA, normalizeB, errorsA, errorsB];
+
+import {
+  createResolvedAgentConfig,
+  cloneAgentPlugin,
+  cloneMcpServerConfig,
+  resolvePluginSetupOrder,
+  toRuntimePlugins
+} from "../dist/index.js";
+import * as referenceConfig from "../../poe-agent/dist/runtime/config.js";
+const configA: typeof referenceConfig.createResolvedAgentConfig = createResolvedAgentConfig;
+const configB: typeof createResolvedAgentConfig = referenceConfig.createResolvedAgentConfig;
+const pluginA: typeof referenceConfig.cloneAgentPlugin = cloneAgentPlugin;
+const pluginB: typeof cloneAgentPlugin = referenceConfig.cloneAgentPlugin;
+const mcpA: typeof referenceConfig.cloneMcpServerConfig = cloneMcpServerConfig;
+const mcpB: typeof cloneMcpServerConfig = referenceConfig.cloneMcpServerConfig;
+const orderA: typeof referenceConfig.resolvePluginSetupOrder = resolvePluginSetupOrder;
+const orderB: typeof resolvePluginSetupOrder = referenceConfig.resolvePluginSetupOrder;
+const runtimeA: typeof referenceConfig.toRuntimePlugins = toRuntimePlugins;
+const runtimeB: typeof toRuntimePlugins = referenceConfig.toRuntimePlugins;
+void configA;
+void configB;
+void pluginA;
+void pluginB;
+void mcpA;
+void mcpB;
+void orderA;
+void orderB;
+void runtimeA;
+void runtimeB;

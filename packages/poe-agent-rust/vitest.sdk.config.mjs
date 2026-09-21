@@ -19,7 +19,12 @@ export default defineConfig({
           true,
           ts.ScriptKind.TS
         );
-        const selected = new Set(["runtime errors", "normalizeTool", "ToolRegistry"]);
+        const selected = new Set([
+          "runtime errors",
+          "normalizeTool",
+          "ToolRegistry",
+          "runtime/config"
+        ]);
         const ranges = source.statements
           .filter(
             (statement) =>
@@ -40,6 +45,7 @@ export default defineConfig({
       },
       resolveId(name, importer) {
         if (importer === path("../poe-agent/src/runtime/runtime.test.ts")) {
+          if (name === "./config.js") return path("dist/config.js");
           if (name === "./tools.js") return path("dist/tools.js");
           if (name === "./errors.js") return path("dist/errors.js");
           if (name === "./tool-names.js") return path("dist/tool-names.js");

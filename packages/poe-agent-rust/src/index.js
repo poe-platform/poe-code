@@ -12,3 +12,11 @@ export { createMemorySessionStore, createJsonlSessionStore } from "./session-log
 
 export { normalizeTool, ToolRegistry } from "./tools.js";
 export { DuplicateToolError, PluginSetupError, PromptTransformError } from "./errors.js";
+
+export {
+  cloneAgentPlugin,
+  cloneMcpServerConfig,
+  createResolvedAgentConfig,
+  toRuntimePlugins,
+  resolvePluginSetupOrder
+} from "./config.js";

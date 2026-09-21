@@ -242,3 +242,5 @@ pub fn agent_runtime_error(kind: Utf16String, name: Utf16String) -> Utf16String 
     };
     poe_agent_rust::tools::runtime_error(kind, &name).into()
 }
+
+pub mod config_binding;

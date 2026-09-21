@@ -65,6 +65,22 @@ describe("JSON Schema object property projection", () => {
     expect(properties.find(property => property.name === "value")?.validate(1).ok).toBe(true);
   });
 
+  it("projects draft-7 schema dependencies while ignoring property dependency arrays", () => {
+    const properties = projectJsonSchemaProperties({
+      $schema: "http://json-schema.org/draft-07/schema#",
+      properties: { enabled: { type: "boolean" }, label: { type: "string" } },
+      dependencies: {
+        enabled: { properties: { retries: { type: "integer", minimum: 0 } }, required: ["retries"] },
+        label: ["enabled"]
+      }
+    });
+    expect(properties.map(property => [property.name, property.required]))
+      .toEqual([["enabled", false], ["label", false], ["retries", false]]);
+    const retries = properties.find(property => property.name === "retries")!;
+    expect(retries.validate(0).ok).toBe(true);
+    expect(retries.validate("0").ok).toBe(false);
+  });
+
   it("ignores draft-7 ref siblings and terminates on recursive references", () => {
     const properties = projectJsonSchemaProperties({ $schema: "http://json-schema.org/draft-07/schema#", $ref: "#/definitions/Base",
       properties: { ignored: { type: "string" } }, definitions: {

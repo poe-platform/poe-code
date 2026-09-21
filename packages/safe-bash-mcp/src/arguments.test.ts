@@ -154,6 +154,24 @@ describe("schema-driven MCP arguments", () => {
     expect(() => parse.parse(["--query", "x"])).toThrow("page");
   });
 
+  it("accepts flags declared by draft-7 schema dependencies and validates their trigger", () => {
+    const parse = parser({ enabled: { type: "boolean" } }, {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      additionalProperties: true,
+      dependencies: {
+        enabled: { properties: { retries: { type: "integer", minimum: 0 } }, required: ["retries"] }
+      }
+    });
+    expect(parse.parameters.find(parameter => parameter.name === "retries"))
+      .toMatchObject({ flag: "--retries", required: false });
+    expect(parse.parse(["--enabled", "--retries", "0"]))
+      .toEqual({ enabled: true, retries: 0 });
+    expect(parse.parse(["--raw", '{"enabled":true,"retries":0}']))
+      .toEqual({ enabled: true, retries: 0 });
+    expect(() => parse.parse(["--enabled"])).toThrow("retries");
+    expect(() => parse.parse(["--enabled", "--retries", "-1"])).toThrow("retries");
+  });
+
   it("never mutates the caller's schemas or shares default objects across calls", () => {
     const properties = { value: { type: "object", default: { nested: [1] } } };
     const parse = parser(properties);

@@ -107,3 +107,11 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     Explicit native timeoutMs:null remains unlimited. Await real legacy stream close
     events, inspect result/hint screenshots, record observations and purge only
     this QA's synthetic fixtures under out.
+
+14. Supply a draft-7 tool schema whose enabled field triggers a schema dependency
+    declaring an integer retries field with minimum 0. Direct and recreated ESM
+    artifact help must show --retries and its description without discovery.
+    Named flags and raw JSON must both send enabled:true and retries:0 unchanged
+    to an actual HTTP endpoint. A missing retries field and retries:-1 must return
+    2 without network access; property dependency arrays must not create fields.
+    Inspect both help/result screenshots and purge this QA's owned evidence.

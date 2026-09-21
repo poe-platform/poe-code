@@ -104,7 +104,9 @@ with `--yes` or the SDK's `{ yes: true }`; explicit falsey values are preserved.
 Argument parsing defaults to a 1 MiB input byte limit (`maxInputBytes`). JSON
 numbers that would become non-finite or silently round integer literals fail.
 Internal and external references use the schema compiler; supply external
-documents through its `registry` option.
+documents through its `registry` option. Flags also include fields declared in
+conditional branches and draft-7 schema dependencies; the complete schema
+enforces their conditional requirements before connecting.
 
 Register a generated plugin on your shell:
 

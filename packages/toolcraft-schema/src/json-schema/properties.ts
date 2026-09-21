@@ -100,10 +100,10 @@ export function projectJsonSchemaProperties(
         if (child) visit(child);
       });
     }
-    for (const keyword of ["then", "else", "dependentSchemas"]) {
-      if (keyword === "dependentSchemas" && isObject(node.schema.dependentSchemas)) {
-        for (const key of Object.keys(node.schema.dependentSchemas)) {
-          const child = node.children.get(`dependentSchemas/${key}`);
+    for (const keyword of ["then", "else", "dependentSchemas", "dependencies"]) {
+      if ((keyword === "dependentSchemas" || keyword === "dependencies") && isObject(node.schema[keyword])) {
+        for (const key of Object.keys(node.schema[keyword])) {
+          const child = node.children.get(`${keyword}/${key}`);
           if (child) visit(child);
         }
       } else {

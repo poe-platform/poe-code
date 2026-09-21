@@ -6312,3 +6312,50 @@ Release35606937764 pending,OAuth35605641955 in_progress;no successful current
 publication verified. Concurrent edits preserved. Continuous13:38:20–13:43:18
 adds298s,total114133s(31.70h). Minimum fulfilled;full objective incomplete.
 Continue accounting after13:43:18UTC.
+
+### Bounded Rust output previews and terminal strings, 2026-09-21 13:55 UTC
+
+Added limitOutputPreview,createOutputPreviewBuffer,retainOutputTail,streaming
+createTerminalStringFilter and Rust-derived preview constants. Existing dashboard
+namespace shape exposes the two public preview helpers with live owned bindings.
+Rust owns UTF16 tails,chunk retention,truncation notice/control boundaries and
+split OSC/DCS/CSI state. Node keeps host budget coercion and a cached clean-string
+admission path. Hidden terminal strings do not leak across chunks;CSI state is
+capped at1024code units;preview chunk text is bounded at16384code units. Input,
+transient conversion and chunk metadata are outside that text budget.
+
+Missing-core red precedes code. Comparison run exposed original negative-infinite
+budget+ANSI nontermination;stopped only the owned test process. A separate bounded
+child prints oracle entered then ETIMEDOUT/SIGTERM,confirming actual source
+nontermination. Original SDK untouched;Rust bounds its scan and returns empty.
+That input has an own finite regression instead of falsely counting oracle parity.
+Maintained15Rust cases/17native groups/covered types pass. Native comparisons
+exercise all split boundaries,oversized controls,cancel bytes,C1 forms,UTF16 lone/
+paired surrogates,line/CSI tail preference,fractional/nonfinite budgets,coercion/
+exception identity,detached methods and8192seeded live updates. fmt/clippy/shared
+checks/ESLint pass. Uncached selected117workspaces/6builds/363edges passes. Manual
+QA:execute owned preview demo through maintained screenshot route,inspect hidden
+metadata absence,styled output,truncation notice and latest complete lines. Viewed
+out/rust-design-preview.png;no screenshot tests added.
+
+Five alternating warmed pairs:65536plain admissions ownwall2.22–3.37ms/CPU2.15–
+5.62ms vs originalwall2.64–4.90ms/CPU2.52–11.06ms;these skip native work after
+Rust policy admission.256filtered bursts own10.83–11.41ms/CPU10.36–10.66ms vs
+original30.64–33.14ms/CPU29.15–31.13ms.8192live updates own7.78–8.66ms/CPU7.32–
+7.97ms vs original17.23–19.44ms/CPU16.17–22.82ms. Every wall pair improves in
+these finite workloads;local performance acceptance PASS for these cases only.
+
+Isolated16MiB-old-generation-limit processes each complete262144styled updates,
+retain16239preview units and two-GC final snapshots. Own finalheap3.85MiB/RSS68.02
+vs originalheap3.15MiB/RSS81.36;own startupRSS44.34 vs original40.86. Lower final
+RSS in this workload,not lower retained JS heap or a total/native memory bound.
+Packed10files/one addon/6audited sources+declarations,zero runtime npm groups and
+external imports blocked passes. Direct/packed16MiBworkers each complete131072
+layouts plus262144preview updates,filter/control regressions and retain4.73MiBheap
+afterGC(shared RSS206.55/246.11MiB). Evidence out/rust-design-preview-*.
+
+Layoutf4e448025 pushed and exact remote main verified separately. OAuth release
+35605641955 unit in_progress;all other validation jobs succeeded. Layout release
+35607517275 pending. No successful current publication verified. Concurrent edits
+preserved. Continuous13:43:18–13:55:56 adds758s,total114891s(31.91h).
+Minimum fulfilled;full objective incomplete. Continue accounting after13:55:56UTC.

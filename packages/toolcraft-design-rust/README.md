@@ -24,6 +24,9 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `resolveTemplatePartials` | Expand nested partials with standalone indentation |
 | `TemplateParseError` | Read the malformed tag and UTF-16 line/column |
 | `computeDashboardLayout` | Calculate clipped pane, footer and compact summary rectangles |
+| `dashboard.limitOutputPreview` | Keep the latest output within a 16,384-code-unit preview |
+| `dashboard.createOutputPreviewBuffer` | Retain bounded live deltas in the Rust core |
+| `createTerminalStringFilter` | Filter split OSC/DCS strings while retaining complete CSI controls |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -36,7 +39,7 @@ nonfinite numbers and BigInt survive the transfer. Getters, functions, proxies
 and custom iterators use the host callback environment. Standalone Rust callers
 can use `data::Graph` and a fresh `data::DataEnvironment` for each render.
 
-This supplies template composition and dashboard geometry. The complete dashboard
+This supplies template composition, dashboard geometry and bounded output ownership. The complete dashboard
 renderer, interactive controls and existing application integrations remain in
 the original package. Rendering remains slower than the JavaScript implementation. In one Node 22
 ARM64 measurement, a 256-item section takes about 216 µs through the data path,
@@ -58,3 +61,20 @@ including very small terminals. Optional `rightPaneWidth`, `footerHeight` and
 `borderWidth` match the existing layout policy. The portable core calculates
 geometry; the Node binding retains JavaScript numeric coercion and property-read
 behavior. This API does not start a terminal renderer or modify terminal state.
+
+```ts
+import { dashboard } from 'toolcraft-design-rust';
+
+const output = dashboard.createOutputPreviewBuffer();
+output.push('Starting run\n');
+output.push('Latest progress\n');
+console.log(output.text());
+```
+
+Previews preserve the latest complete lines, add a truncation notice when needed,
+and avoid cutting a UTF-16 surrogate pair or retaining partial CSI parameters.
+Streaming filters remove OSC/DCS payloads across chunks, preserve complete styling
+controls, and cap pending controls at 1,024 code units. Rust owns live preview
+chunks; Node supplies string ingress and returned snapshots. Input and temporary
+conversion memory are outside the retained-state budget. Unlike the original
+helper, a negative-infinite tail budget terminates safely for ANSI text.

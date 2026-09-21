@@ -251,3 +251,84 @@ pub fn dashboard_layout(
         toolcraft_design_rust::layout::geometry([width, height, border, footer, right]).to_vec(),
     )
 }
+
+#[napi(object)]
+pub struct TerminalFilterReply {
+    pub text: Utf16String,
+    pub active: bool,
+}
+#[derive(Default)]
+#[napi]
+pub struct NativeTerminalStringFilter {
+    filter: toolcraft_design_rust::preview::TerminalStringFilter,
+}
+#[napi]
+impl NativeTerminalStringFilter {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self {
+            filter: Default::default(),
+        }
+    }
+    #[napi]
+    pub fn push(&mut self, text: Utf16String) -> TerminalFilterReply {
+        let output = self.filter.push(&text);
+        TerminalFilterReply {
+            text: output.into(),
+            active: self.filter.active(),
+        }
+    }
+}
+#[derive(Default)]
+#[napi]
+pub struct NativeOutputPreviewBuffer {
+    buffer: toolcraft_design_rust::preview::PreviewBuffer,
+}
+#[napi]
+impl NativeOutputPreviewBuffer {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self {
+            buffer: Default::default(),
+        }
+    }
+    #[napi]
+    pub fn push(&mut self, text: Utf16String) {
+        self.buffer.push(&text);
+    }
+    #[napi]
+    pub fn text(&self) -> Utf16String {
+        self.buffer.text().into()
+    }
+}
+#[napi]
+pub fn output_preview_policy() -> NativeJson {
+    use toolcraft_design_rust::preview;
+    NativeJson(Value::Object(vec![
+        (
+            "maxChars".encode_utf16().collect(),
+            Value::Number(preview::MAX_CHARS as f64),
+        ),
+        (
+            "notice".encode_utf16().collect(),
+            Value::String(preview::NOTICE.encode_utf16().collect()),
+        ),
+        (
+            "controls".encode_utf16().collect(),
+            Value::Array(
+                preview::CONTROL_STARTS
+                    .into_iter()
+                    .map(|unit| Value::String(vec![unit]))
+                    .collect(),
+            ),
+        ),
+    ]))
+}
+#[napi]
+pub fn output_preview_limit(text: Utf16String) -> Utf16String {
+    toolcraft_design_rust::preview::limit(&text).into()
+}
+#[napi]
+pub fn output_preview_retain_start(text: Utf16String, start: f64) -> Utf16String {
+    toolcraft_design_rust::preview::retain_from_start(&text, start).into()
+}

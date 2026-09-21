@@ -24,3 +24,14 @@ import { computeDashboardLayout, type LayoutOptions, type DashboardLayout } from
 const layoutOptions: LayoutOptions = { totalWidth: 80, totalHeight: 24 };
 const layout: DashboardLayout = computeDashboardLayout(layoutOptions);
 void layout;
+
+import * as design from "../dist/index.js";
+import type * as originalDesign from "toolcraft-design";
+type OriginalPreview = Pick<
+  typeof originalDesign.dashboard,
+  "limitOutputPreview" | "createOutputPreviewBuffer"
+>;
+const previewSdk: OriginalPreview = design.dashboard;
+const ownPreview: Pick<typeof design.dashboard, keyof OriginalPreview> =
+  null as unknown as OriginalPreview;
+void [previewSdk, ownPreview];

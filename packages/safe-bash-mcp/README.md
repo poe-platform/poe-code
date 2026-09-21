@@ -136,7 +136,9 @@ OAuth requires an explicit `clientMode: "static"` or `"dynamic"`. Templates
 include client ID/secret, scope, redirect URL, access/refresh tokens and expiry
 in Unix epoch milliseconds. Every template value is empty; public scope and
 redirect defaults remain in configuration. Bearer tokens and arbitrary headers
-also use explicit `{ env: "VARIABLE_NAME" }` references. Literal credentials
+also use explicit `{ env: "VARIABLE_NAME" }` references. Reference names are
+plain variable names; configuration does not interpolate `${VAR}` or
+`${env:VAR}` strings. Literal credentials
 and unknown configuration fields are rejected. Supplied schemas remain
 authoritative, including an empty tool list.
 

@@ -55,6 +55,19 @@ describe("remote MCP initialization and declarative configuration", () => {
     expect(result.envTemplate).toContain("MCP_CATALOG_ACCESS_TOKEN=\n");
   });
 
+  it.each(["${env:TOKEN}", "${TOKEN}", "${TOKEN:-fallback}", "$env:TOKEN"])("rejects string interpolation syntax as a credential reference: %s", env => {
+    expect(() => initRemoteMcpConfiguration([{ ...server, auth: { type: "bearer", env } }])).toThrow("environment variable name");
+    expect(() => initRemoteMcpConfiguration([{ ...server, headers: { "X-Key": { env } } }])).toThrow("environment variable name");
+    const configuration = initRemoteMcpConfiguration([{ ...server, headers: { "X-Key": { env: "TOKEN" } } }]).configuration;
+    configuration.servers[0].headers!["X-Key"].env = env;
+    expect(() => parseRemoteMcpConfiguration(configuration)).toThrow("environment variable name");
+  });
+
+  it("rejects literal header placeholders instead of treating them as credential values", () => {
+    expect(() => initRemoteMcpConfiguration([{ ...server, headers: { "X-Key": "${env:TOKEN}" } }])).toThrow();
+    expect(() => parseRemoteMcpConfiguration({ version: 1, servers: [{ ...server, headers: { "X-Key": "${env:TOKEN}" } }] })).toThrow();
+  });
+
   it("derives stable noncolliding environment names for colliding server stems regardless of order", () => {
     const servers = ["catalog-1", "catalog_1", "catalog_1_2", "世界"].map(name => ({ ...server, name, auth: { type: "bearer" as const } }));
     const first = initRemoteMcpConfiguration(servers);

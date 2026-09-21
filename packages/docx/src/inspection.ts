@@ -12,9 +12,11 @@ import { readDocumentArchive } from "./admission.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { MarkupCompatibility, compatibilityProfileForPart, documentCompatibilityProfile, type CompatibilityContent } from "./compatibility.js";
 import { isXmlContentType, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
+import { revisionInfo } from "./revision-markup.js";
+import type { DocxOperationArguments } from "./operation-types.js";
 import { LocationIndex } from "./location-index.js";
-import { DocumentLocations } from "./locations.js";
-import { encodeGeneratedLocation as encodeLocation, type Location, type LocationPayload } from "./location-token.js";
+import { DocumentLocations, docxLocationBudgets, type LocationQuery } from "./locations.js";
+import { encodeGeneratedLocation as encodeLocation, SelectionError, type Location, type LocationPayload } from "./location-token.js";
 import { validateDocumentArchive, type ValidationData, type ValidationOptions } from "./validation.js";
 
 export interface InspectionPart { readonly name: string; readonly contentType: string; readonly bytes: number; readonly sha256: string }
@@ -61,7 +63,33 @@ export interface InspectionData {
 }
 
 export const inspectionLocationView = Symbol("inspection-location-view");
-interface InspectionContext extends ArchiveContext { readonly [inspectionLocationView]?: { document?: DocumentLocations } }
+interface InspectionContext extends ArchiveContext { readonly [inspectionLocationView]?: { document?: DocumentLocations; roots?: ReadonlyMap<string, XmlElement> } }
+
+/** Narrow location details while preserving the independently inventoried package census. */
+export function selectInspectionLocations(document: DocumentLocations, roots: ReadonlyMap<string, XmlElement>, options: DocxOperationArguments<"inspect">): readonly Location[] {
+  if (options.select !== undefined) return [document.resolve(options.select)];
+  const section = options.section === undefined ? undefined : document.at("section", options.section);
+  const query: LocationQuery = { scope: options.scope ?? "body", ...(options.section === undefined ? {} : { section: options.section }) };
+  let owner: Location | undefined;
+  if (options.comment !== undefined || options.note !== undefined)
+    owner = document.at("story", (options.comment ?? options.note)!, { scope: options.comment === undefined ? query.scope ?? "body" : "comments" });
+  for (const kind of ["table", "cell", "paragraph", "run", "image", "link", "control", "revision", "shape", "field", "bookmark"] as const) {
+    if (options[kind] === undefined) continue;
+    if (kind === "cell") owner = document.cell(owner!.token, options.cell!);
+    else if (kind === "revision") {
+      const budget = docxLocationBudgets.get(document)!;
+      const revisions = document.list("annotation", owner ? { owner: owner.token } : query).filter(location => {
+        budget.charge("work", location.value.path.length + 1);
+        let node = roots.get(location.value.part);
+        for (const index of location.value.path) node = node?.children[index];
+        return node !== undefined && revisionInfo(node) !== undefined;
+      });
+      owner = revisions[options.revision! - 1];
+      if (!owner) throw new SelectionError("missing-selection");
+    } else owner = document.at(kind, options[kind] as number, owner ? { owner: owner.token } : query);
+  }
+  return owner ? [owner] : section && (options.scope === undefined || options.scope === "body") ? [section] : document.list("story", query);
+}
 
 const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 function attribute(node: XmlElement, name: string, namespace = ""): string | undefined {
@@ -171,7 +199,10 @@ export async function inspectDocument(input: Uint8Array, context: InspectionCont
   counts.cachedPages = pages.length === 1 && typeof pages[0]!.value === "number" && pages[0]!.value >= 0 ? pages[0]!.value : null;
   const index = new LocationIndex(archive, limits, archive.mainPart, archive.dialect, budget, graph, roots);
   const view = context[inspectionLocationView];
-  if (view) view.document = new DocumentLocations(archive, sourceSha256, { ...context, limits, signal, budget }, "inventory", index);
+  if (view) {
+    view.document = new DocumentLocations(archive, sourceSha256, { ...context, limits, signal, budget }, "inventory", index);
+    view.roots = roots;
+  }
   counts.images = index.entries.filter(entry => entry.kind === "image").length;
   const stories = index.entries.filter(entry => entry.kind === "story").map(entry => {
     const value: LocationPayload = { version: 1, sourceSha256, generation: context[documentSession]?.generation ?? 0, part: entry.part, story: entry.story, path: entry.path, range: null };

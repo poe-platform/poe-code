@@ -34,10 +34,10 @@ import { archiveSettings, type ArchiveLimits, ResourceLimitError, CancellationEr
 import { DocumentBudget, documentLimitDefaults, type DocumentLimits } from "./budget.js";
 import { createDocxCommandEngine, commandDiagnostic, docxInvocationBudgets, type DocxCommandRequest } from "./command.js";
 import { DocumentIo } from "./io.js";
-import { inspectDocument, inspectionLocationView, validateDocument } from "./inspection.js";
+import { inspectDocument, inspectionLocationView, selectInspectionLocations, validateDocument } from "./inspection.js";
 import type { DocumentLocations } from "./locations.js";
-import type { DocumentScope } from "./location-index.js";
 import type { Location } from "./location-token.js";
+import type { XmlElement } from "./package-xml.js";
 import { executeXmlCommand } from "./xml-command.js";
 import { PublicationError, type PublicationInput } from "./publication.js";
 import { asPermissionError } from "./io-errors.js";
@@ -173,7 +173,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
         if (invocation.operation !== "extract" && !shapeOperation && !packageResourceOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && !["tables.get", "tables.list", "paragraphs.get", "runs.get", "paragraphs.list", "runs.list"].includes(invocation.operation) && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "capabilities" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && !["sanitize", "text.replace", "lorem.set"].includes(invocation.operation) && invocation.operation !== "runs.set" && !["paragraphs.remove", "runs.remove", "tables.remove", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.remove", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
-        if (!fontOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined && !(key === "shape" && (shapeOperation || ["text.get", "text.replace"].includes(invocation.operation))))) {
+        if (!fontOperation && invocation.operation !== "inspect" && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined && !(key === "shape" && (shapeOperation || ["text.get", "text.replace"].includes(invocation.operation))))) {
           throw Object.assign(new Error("This inspection selector is not implemented."), { code: "unsupported-profile" });
         }
         const input = invocation.inputs[0]!;
@@ -289,33 +289,15 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
           output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: "capabilities", ok: true, data: discovery.data, warnings: [], errors: [], affected: 0, locations: [] }) + "\n" : discovery.human);
           budget.check("serializedOutput", output.length);
         } else {
-          const inspectionView: { document?: DocumentLocations } = {};
+          const inspectionView: { document?: DocumentLocations; roots?: ReadonlyMap<string, XmlElement> } = {};
           const readContext = { ...context, [inspectionLocationView]: inspectionView };
           const data = invocation.operation === "text.get" ? await extractDocumentText(bytes, context, invocation.options as TextOptions)
             : invocation.operation === "inspect" ? await inspectDocument(bytes, readContext)
             : await validateDocument(bytes, context, invocation.options.profile === undefined ? {} : { profile: invocation.options.profile as "core-v1" });
           const locations: Location[] = [];
           if ("segments" in data) locations.push(...new Map(data.segments.map(segment => [segment.location.token, segment.location])).values());
-          if (invocation.operation === "inspect") {
-            const selected = invocation.options;
-            if ("stories" in data && !["select", "section", "comment", "note", "table", "cell", "paragraph", "run", "image"].some(key => selected[key] !== undefined)) {
-              const scope = selected.scope ?? "body";
-              locations.push(...data.stories.filter(story => scope === "all-stories" || story.kind === scope).map(story => story.location));
-            } else {
-              const document = inspectionView.document!;
-              if (typeof selected.select === "string") locations.push(document.resolve(selected.select));
-              else {
-                const query = { scope: (selected.scope ?? "body") as DocumentScope, ...(selected.section !== undefined ? { section: selected.section as number } : {}) };
-                let owner: Location | undefined;
-                if (selected.comment !== undefined || selected.note !== undefined) owner = document.at("story", (selected.comment ?? selected.note) as number, { scope: selected.comment !== undefined ? "comments" : query.scope });
-                for (const kind of ["table", "cell", "paragraph", "run", "image"] as const) {
-                  if (selected[kind] === undefined) continue;
-                  owner = kind === "cell" ? document.cell(owner!.token, selected.cell as string) : document.at(kind, selected[kind] as number, owner ? { owner: owner.token } : query);
-                }
-                locations.push(...(owner ? [owner] : document.list("story", query)));
-              }
-            }
-          }
+          if (invocation.operation === "inspect")
+            locations.push(...selectInspectionLocations(inspectionView.document!, inspectionView.roots!, invocation.options as DocxOperationArguments<"inspect">));
           const valid = !("valid" in data) || data.valid;
           exitCode = valid ? 0 : 1;
           const warnings = "warnings" in data ? data.warnings.map(warning => typeof warning === "string" ? { code: "partial-validation", message: warning } : warning) : [];

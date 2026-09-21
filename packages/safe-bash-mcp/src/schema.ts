@@ -108,6 +108,12 @@ function snapshotOAuthOptions(oauth: NonNullable<RemoteMcpServer["oauth"]>): Non
   );
   return {
     ...oauth,
+    allowInteractive: oauth.allowInteractive,
+    sessionLockTimeoutMs: oauth.sessionLockTimeoutMs,
+    persistenceNamespace: oauth.persistenceNamespace,
+    resourceIdentity: oauth.resourceIdentity,
+    sessionStore: oauth.sessionStore,
+    now: oauth.now,
     client: { ...oauth.client,
       ...(oauth.client.metadata === undefined ? {} : { metadata: { ...oauth.client.metadata } }),
       ...(oauth.client.registration === undefined ? {} : { registration: structuredClone(oauth.client.registration) }) },

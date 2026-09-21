@@ -744,3 +744,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     twelve closed SSE streams, full schema/guidance/text+blob resources/falsey
     tool JSON/exact005930, and zero store writes/token/consent. Inspect corrected
     successful summary screenshot; purge only owned synthetic evidence.
+
+68. Supply own nonenumerable native allowInteractive, now, sessionStore,
+    sessionLockTimeoutMs, persistenceNamespace and resourceIdentity through
+    actual HTTP/SSE schema, generated-tool and resource routes. Require twelve
+    namespace/custom-store conflict preflights before network and six headless
+    rejections without starting consent. Offline generation captures policy and
+    original handles before caller mutation. Retain original valid clock/store
+    credentials and selected lock ceilings through eighteen successful sessions,
+    complete schemas/guidance/tool JSON/falsey metadata/exact005930 and text+blob
+    resources. Require fifty-four MCP POSTs/twelve metadata GETs/nine retired
+    HTTP sessions/nine closed SSE streams/zero writes or consent. Keep session
+    IDs stable in the synthetic HTTP fixture. Inspect successful summary
+    screenshot; purge only owned evidence.

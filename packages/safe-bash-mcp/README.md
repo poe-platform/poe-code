@@ -313,6 +313,9 @@ time, a relative lifetime means remaining lifetime at binding. Init emits empty
 Direct native OAuth options retain own nonenumerable `expiresAt`, `expiresIn`
 and `issuedAt` values through schema/command/resource snapshots. Their absence
 must not replace an authoritative expiry with a new or unknown lifetime.
+Interaction, lock, namespace and resource-identity policies also survive these
+snapshots, alongside the selected live clock and session-store handles,
+regardless of property enumerability.
 Relative-lifetime host clocks must return valid integer epoch milliseconds
 within the JavaScript Date range; binding rejects invalid anchors before store
 factories run, even when adding the lifetime would produce a valid expiry.

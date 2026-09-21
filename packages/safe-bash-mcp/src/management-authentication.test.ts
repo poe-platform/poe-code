@@ -250,3 +250,21 @@ it.each(["mcp auth", "mcp auth unknown", "mcp auth catalog other", "mcp auth cat
   try { const result = await f.shell.exec(script); expect(result.exitCode).toBe(2); expect(result.stdout).toBe(""); expect(f.fetch).not.toHaveBeenCalled(); }
   finally { await f.shell.dispose(); }
 });
+
+it("withholds reflected refresh credentials from native OAuth CLI errors while keeping recovery status", async () => {
+  const f = oauthFixture(), resource = "https://resource.example/mcp", issuer = "https://issuer.example";
+  await f.binding.oauth.sessionStore().save(resource, { resource, authorizationServer: issuer, client: { clientId: "host-client" },
+    tokens: { accessToken: "expired", refreshToken: "private-refresh", tokenType: "Bearer", expiresAt: 0 },
+    discovery: { resourceMetadataUrl: `${resource}/metadata`, resourceMetadata: { resource, authorization_servers: [issuer] },
+      authorizationServerMetadata: { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } } });
+  const base = f.fetch.getMockImplementation()!;
+  f.fetch.mockImplementation(async (url, init) => String(url) === `${issuer}/token`
+    ? Response.json({ error: "invalid_client", error_description: "refresh_token=private-refresh client_secret=private-secret", error_uri: "https://auth.example/error?access_token=private-access" }, { status: 400 })
+    : base(url, init));
+  const result = await createRemoteMcpManagementCommand(f.servers, { authentication: { binding: f.binding, fetch: f.fetch } }).execute(f.context);
+  expect(result.exitCode).toBe(1);
+  expect(f.output().stdout).toBe("");
+  expect(f.output().stderr).not.toContain("private-");
+  expect(JSON.parse(f.output().stderr).error).toMatchObject({ name: "OAuthError", status: 400, oauthError: "invalid_client", outcomeKnown: true });
+  expect(f.observer).not.toHaveBeenCalled();
+});

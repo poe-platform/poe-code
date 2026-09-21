@@ -2,6 +2,7 @@ import {
   collectBytes, commandRuntimeIdentity, createOutputOperation, getCommandArguments,
   type CommandContext, type CommandDefinition, type OutputOperation, type VirtualShellPlugin
 } from "@poe-platform/safe-bash/contracts";
+import { OAuthError } from "mcp-oauth";
 import { HttpTransportError, McpError, type Tool, type CallToolResult } from "tiny-mcp-client";
 import { compileJsonSchema, formatIssues, type CompiledJsonSchema, type CompileJsonSchemaOptions } from "toolcraft-schema";
 import { compileToolArguments, type ToolArgumentParseOptions, type ToolArgumentParser } from "./arguments.js";
@@ -63,9 +64,22 @@ function wantsToolHelp(args: readonly string[]): boolean {
   return false;
 }
 
+const publicOAuthErrorCodes = new Set([
+  "invalid_request", "invalid_client", "invalid_grant", "unauthorized_client", "unsupported_grant_type", "invalid_scope",
+  "invalid_token", "insufficient_scope", "access_denied", "unsupported_response_type", "server_error", "temporarily_unavailable",
+  "interaction_required", "login_required", "consent_required", "account_selection_required", "invalid_redirect_uri",
+  "invalid_client_metadata", "invalid_software_statement", "unapproved_software_statement", "invalid_target", "invalid_response"
+]);
+
 export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 0): Record<string, unknown> {
   if (depth > 8 || seen.has(error)) return { message: "Nested error details omitted" };
   seen.add(error);
+  if (error instanceof OAuthError) {
+    const code = publicOAuthErrorCodes.has(error.error) ? error.error : undefined;
+    return { name: "OAuthError", message: code === undefined ? `OAuth request failed (HTTP ${error.status})` : `OAuth ${code} (HTTP ${error.status})`,
+      status: error.status, ...(code === undefined ? {} : { oauthError: code }),
+      retryable: error.retryable, terminal: error.terminal, outcomeKnown: error.outcomeKnown };
+  }
   const details: Record<string, unknown> = {
     name: error instanceof Error ? error.name : "Error",
     message: error instanceof Error ? error.message : typeof error === "string" ? error : "Remote MCP operation failed"

@@ -323,3 +323,9 @@ rediscover tools. The parser checks a SHA-256 content digest and snapshot/config
 agreement before touching credentials. `maxArtifactBytes` bounds generated JSON
 and modules individually, and parsed artifacts (default 32 MiB). Existing
 configuration, discovery, cancellation and credential limits still apply.
+
+CLI OAuth failure summaries keep the HTTP status, recognized recovery code,
+retryability and known-outcome flags. Provider descriptions, error URIs and
+unknown extension codes are withheld because they can reflect app/token
+credentials. Direct SDK OAuthError objects remain intact for host observers.
+Other MCP protocol error codes/data and ordinary failure causes are preserved.

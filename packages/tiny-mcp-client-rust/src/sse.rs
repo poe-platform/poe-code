@@ -8,6 +8,7 @@ pub struct SseMessage {
 pub struct SseParser {
     max_event_bytes: usize,
     accept_endpoint: bool,
+    accept_all: bool,
     buffer: Vec<u16>,
     buffer_bytes: usize,
     skip_lf: bool,
@@ -37,6 +38,7 @@ impl SseParser {
         Ok(Self {
             max_event_bytes,
             accept_endpoint: false,
+            accept_all: false,
             buffer: Vec::new(),
             buffer_bytes: 0,
             skip_lf: false,
@@ -53,6 +55,11 @@ impl SseParser {
     }
     pub fn with_endpoint_events(mut self) -> Self {
         self.accept_endpoint = true;
+        self
+    }
+    /// Emit all named SSE events for typed streaming protocols.
+    pub fn with_all_events(mut self) -> Self {
+        self.accept_all = true;
         self
     }
     pub fn last_event_id(&self) -> Option<Vec<u16>> {
@@ -93,7 +100,14 @@ impl SseParser {
         }
         Ok(())
     }
-    pub fn push(&mut self, mut chunk: &[u16]) -> Result<Vec<SseMessage>, String> {
+    pub fn push(&mut self, chunk: &[u16]) -> Result<Vec<SseMessage>, String> {
+        let result = self.push_chunk(chunk);
+        if result.is_err() {
+            self.flush();
+        }
+        result
+    }
+    fn push_chunk(&mut self, mut chunk: &[u16]) -> Result<Vec<SseMessage>, String> {
         let mut messages = Vec::new();
         if chunk.is_empty() {
             return Ok(messages);
@@ -130,10 +144,11 @@ impl SseParser {
                 self.last_event_id = Some(self.event_id.clone());
             }
             if self.has_data
-                && self.event_type.as_ref().is_none_or(|event| {
-                    text_is(event, "message")
-                        || (self.accept_endpoint && text_is(event, "endpoint"))
-                })
+                && (self.accept_all
+                    || self.event_type.as_ref().is_none_or(|event| {
+                        text_is(event, "message")
+                            || (self.accept_endpoint && text_is(event, "endpoint"))
+                    }))
             {
                 messages.push(SseMessage {
                     data: std::mem::take(&mut self.data),
@@ -141,7 +156,7 @@ impl SseParser {
                     event: self
                         .event_type
                         .as_ref()
-                        .filter(|event| text_is(event, "endpoint"))
+                        .filter(|event| self.accept_all || text_is(event, "endpoint"))
                         .cloned(),
                 });
             }

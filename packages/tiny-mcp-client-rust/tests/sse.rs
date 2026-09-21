@@ -89,3 +89,38 @@ fn endpoint_events_are_opt_in_bounded_and_preserved_across_chunks() {
             .is_err()
     );
 }
+
+#[test]
+fn arbitrary_named_events_are_an_explicit_streaming_mode() {
+    let input = units(
+        "event: response.output_text.delta\ndata: {\"delta\":\"hello\"}\n\nevent: error\ndata: failed\n\n",
+    );
+    let mut default = SseParser::new(1024).unwrap();
+    assert!(default.push(&input).unwrap().is_empty());
+    for split in 0..=input.len() {
+        let mut parser = SseParser::new(1024).unwrap().with_all_events();
+        let mut events = parser.push(&input[..split]).unwrap();
+        events.extend(parser.push(&input[split..]).unwrap());
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].event, Some(units("response.output_text.delta")));
+        assert_eq!(events[0].data, units("{\"delta\":\"hello\"}"));
+        assert_eq!(events[1].event, Some(units("error")));
+    }
+    let mut bounded = SseParser::new(16).unwrap().with_all_events();
+    assert!(bounded.push(&input).is_err());
+}
+
+#[test]
+fn framing_failure_releases_partial_fields_and_preserves_only_completed_cursor() {
+    let mut parser = SseParser::new(16).unwrap();
+    parser.push(&units("id: saved\ndata: first\n\n")).unwrap();
+    parser.push(&units("data: 12345678\n")).unwrap();
+    assert!(parser.push(&units("data: 12345678\n")).is_err());
+    assert_eq!(parser.last_event_id(), Some(units("saved")));
+    for _ in 0..32 {
+        let events = parser.push(&units("data: ok\n\n")).unwrap();
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].data, units("ok"));
+        assert_eq!(events[0].id, None);
+    }
+}

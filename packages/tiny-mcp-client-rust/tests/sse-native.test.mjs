@@ -43,3 +43,21 @@ test("seeded UTF16 event streams preserve filtering, raw values and cursor acros
     compare(chunks, 128);
   }
 });
+test("named provider SSE frames are explicitly enabled without changing MCP filtering", () => {
+  const source="event: response.output_text.delta\ndata: {\"delta\":\"🌍\"}\r\n\r\nevent: error\ndata: failed\n\n";
+  assert.deepEqual(new NativeSseParser(1024).push(source), []);
+  for(let split=0;split<=source.length;split++) {
+    const parser=new NativeSseParser(1024,false,true);
+    const events=[...parser.push(source.slice(0,split)),...parser.push(source.slice(split))];
+    assert.deepEqual(events,[{event:"response.output_text.delta",data:'{"delta":"🌍"}'},{event:"error",data:"failed"}]);
+  }
+  assert.throws(()=>new NativeSseParser(16,false,true).push(source),{message:"SSE event exceeds 16 bytes"});
+});
+test("size failures retire partial data before accepting the next frame", () => {
+ const parser=new NativeSseParser(16);
+ parser.push("id: saved\ndata: first\n\n");
+ parser.push("data: 12345678\n");
+ assert.throws(()=>parser.push("data: 12345678\n"),{message:"SSE event exceeds 16 bytes"});
+ for(let n=0;n<32;n++) assert.deepEqual(parser.push("data: ok\n\n"),[{data:"ok"}]);
+ assert.equal(parser.lastEventId,"saved");
+});

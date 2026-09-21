@@ -241,3 +241,28 @@ import { resolvePluginsFromConfig as referenceResolvePlugins } from "../../poe-a
 const pluginResolveA: typeof referenceResolvePlugins = own.resolvePluginsFromConfig;
 const pluginResolveB: typeof own.resolvePluginsFromConfig = referenceResolvePlugins;
 void [pluginResolveA, pluginResolveB];
+
+const builderA: typeof original.agent = own.agent;
+const builderB: typeof own.agent = null as unknown as typeof original.agent;
+const sessionA: typeof original.createAgentSession = own.createAgentSession;
+const sessionB: typeof own.createAgentSession =
+  null as unknown as typeof original.createAgentSession;
+import type * as originalHostFactories from "../../poe-agent/dist/runtime/agent-host.js";
+const processFactoryA: typeof originalHostFactories.createProcessSpawnSession =
+  own.createProcessSpawnSession;
+const processFactoryB: typeof own.createProcessSpawnSession =
+  null as unknown as typeof originalHostFactories.createProcessSpawnSession;
+const memoryFactoryA: typeof originalHostFactories.createInMemorySpawnSession =
+  own.createInMemorySpawnSession;
+const memoryFactoryB: typeof own.createInMemorySpawnSession =
+  null as unknown as typeof originalHostFactories.createInMemorySpawnSession;
+void [
+  builderA,
+  builderB,
+  sessionA,
+  sessionB,
+  processFactoryA,
+  processFactoryB,
+  memoryFactoryA,
+  memoryFactoryB
+];

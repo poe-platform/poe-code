@@ -27,7 +27,9 @@
     "openai": "6.49.0",
     "tiny-mcp-client-rust": "*",
     "typescript": "5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "@poe-code/poe-acp-client-rust": "*",
+    "@poe-code/user-error-rust": "*"
   },
   "files": [
     "dist",

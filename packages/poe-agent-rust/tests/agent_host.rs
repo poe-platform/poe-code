@@ -15,3 +15,14 @@ fn host_fork_sequence_and_spawn_output_are_owned_and_preserve_utf16() {
     output.append(&[0xD83C, 0xDF0D]);
     assert_eq!(output.finish(), [0xD800, 0xD83C, 0xDF0D]);
 }
+
+#[test]
+fn memory_transport_is_closed_once_and_issues_only_live_session_ids() {
+    let mut state = poe_agent_rust::agent_host::MemoryTransport::default();
+    assert_eq!(state.next_session(), Ok(1));
+    assert_eq!(state.next_session(), Ok(2));
+    assert!(state.begin_close());
+    assert!(!state.begin_close());
+    assert!(state.closed());
+    assert!(state.next_session().is_err());
+}

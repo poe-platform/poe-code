@@ -14,3 +14,5 @@ export interface McpSpawnServer {
    */
   timeout?: number;
 }
+
+export type McpSpawnConfig = Record<string, McpSpawnServer>;

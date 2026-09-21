@@ -236,6 +236,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
+name = "poe-acp-client-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "poe-agent-rust"
 version = "0.1.0"
 dependencies = [
@@ -253,8 +260,10 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
+ "poe-acp-client-rust",
  "poe-agent-rust",
  "tiny-mcp-client-rust",
+ "user-error-rust",
 ]
 
 [[package]]
@@ -349,6 +358,10 @@ name = "unicode-segmentation"
 version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
+
+[[package]]
+name = "user-error-rust"
+version = "0.1.0"
 
 [[package]]
 name = "windows-link"

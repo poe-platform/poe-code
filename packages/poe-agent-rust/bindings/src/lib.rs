@@ -287,3 +287,10 @@ pub mod shell_binding;
 pub mod web_binding;
 
 pub mod plugin_config_binding;
+
+pub mod caller_ack_binding;
+
+#[path = "../../../poe-acp-client-rust/bindings/src/lib.rs"]
+pub mod embedded_acp;
+#[path = "../../../user-error-rust/bindings/src/lib.rs"]
+pub mod embedded_user_error;

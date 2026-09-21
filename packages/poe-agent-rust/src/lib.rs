@@ -176,3 +176,5 @@ mod html_entities;
 pub mod html_markdown;
 
 pub mod plugin_config;
+
+pub mod caller_ack;

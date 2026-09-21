@@ -62,3 +62,32 @@ for (const [from, to] of [
   copyFileSync(new URL("../auth-store-rust/src/" + from, root), new URL(to, oauthOutput));
 
 copyFileSync(new URL("src/SYSTEM_PROMPT.md", root), new URL("SYSTEM_PROMPT.md", dist));
+
+const acpSource = new URL("../poe-acp-client-rust/src/", root),
+  acpOutput = new URL("acp/", dist);
+mkdirSync(acpOutput, { recursive: true });
+for (const name of readdirSync(acpSource))
+  if (name.endsWith(".js") || name.endsWith(".d.ts"))
+    writeFileSync(
+      new URL(name, acpOutput),
+      readFileSync(new URL(name, acpSource), "utf8").replaceAll(
+        "./poe-acp-client-rust.node",
+        "../poe-agent-rust.node"
+      )
+    );
+for (const name of ["index.js", "index.d.ts"])
+  writeFileSync(
+    new URL(name === "index.js" ? "user-error.js" : "user-error.d.ts", dist),
+    readFileSync(new URL("../user-error-rust/src/" + name, root), "utf8").replaceAll(
+      "./user-error-rust.node",
+      "./poe-agent-rust.node"
+    )
+  );
+
+writeFileSync(
+  new URL("session-update-types.d.ts", dist),
+  readFileSync(new URL("../agent-spawn-rust/src/acp-types.d.ts", root), "utf8").replaceAll(
+    "./acp-protocol-types.js",
+    "./acp-types.js"
+  )
+);

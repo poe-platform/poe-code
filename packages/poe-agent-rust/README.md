@@ -1,6 +1,6 @@
 # Poe Agent Rust
 
-Resolve plugin-provided models with an independent Rust core and no npm runtime dependencies. Providers register through plugins; matching runs in order and stops at the first supported model.
+Build agents and reusable conversation sessions with an independent Rust core and no npm runtime dependencies. Providers register through plugins; matching runs in order and stops at the first supported model.
 
 - Collect provider registrations and report name collisions with both contributors.
 - Preserve provider/callback identity and opaque plugin options.
@@ -8,6 +8,8 @@ Resolve plugin-provided models with an independent Rust core and no npm runtime 
 - Validate tool names with an ASCII scanner, without a regular-expression engine.
 - Register frozen tool snapshots and select model-visible tools by skill/namespace.
 - Save/load conversation records with Rust role/content validation and injectable storage.
+- Run immutable builders, stream events and acknowledge caller-controlled tool intents.
+- Resume, navigate and fork conversations through memory or JSONL sessions.
 
 ```typescript
 import { collectProviders, resolveProvider } from "@poe-code/poe-agent-rust";
@@ -17,7 +19,7 @@ const provider = resolveProvider(providers, "openai/gpt-5");
 const model = await provider.createModel("openai/gpt-5", context);
 ```
 
-This private experimental package currently provides runtime foundations. Agent builders and session adapters are still being implemented. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
+This private experimental package provides additive agent builders, session adapters and runtime foundations. Existing consumers retain `@poe-code/poe-agent`. Shipped declarations describe supported APIs and their structural contracts only. Native artifact checks currently cover macOS arm64; additional platforms and Python bindings remain pending. Small Node-to-Rust calls can be slower than the original TypeScript implementation.
 
 ```typescript
 import { createAgentSessionStore } from "@poe-code/poe-agent-rust";
@@ -39,7 +41,7 @@ MCP server snapshots own argument/environment values. `resolvePluginSetupOrder`
 normalizes both dependency aliases, rejects duplicate/unknown/self/cyclic
 dependencies and keeps stable order. Its Rust planner uses iterative frames;
 JavaScript getters are evaluated only when the corresponding plugin is visited.
-These foundations support the pending agent builder and execution rewrite.
+The immutable builder uses these snapshots and the owned execution runtime.
 
 `runPluginSetup(plugins, context)` registers tools, prompt transforms and hooks
 before each plugin's setup callback, then waits for queued MCP discovery. Completed
@@ -51,7 +53,7 @@ tools use server namespaces and retain multimodal content, tool signals and
 structured errors. Discovery rejects repeated cursors and continuations beyond
 128 pages. The Rust MCP client and OAuth implementation are embedded in the same
 addon, with no npm runtime dependencies. Node supplies subprocesses, streams and
-plugin callbacks. Higher-level session adapters remain pending.
+plugin callbacks. The public builder and session adapters use the same owned discovery path.
 
 `createFileAwarenessTracker(cwd)` records normalized file reads and writes in
 ordered, deduplicated Rust sets. Snapshots return independent JavaScript Sets.
@@ -220,3 +222,32 @@ suggestions. Rust tracks duplicate names and calculates UTF16 edit distances wit
 linear auxiliary memory; Node executes factories and locale-sensitive tie sorting.
 The current benchmark is faster for long unknown names and slower for ordinary
 small configurations. Existing consumers and defaults remain unchanged.
+
+
+```typescript
+import { agent, openaiResponsesPlugin } from "@poe-code/poe-agent-rust";
+
+const builder = agent().model("openai/gpt-5").use(openaiResponsesPlugin());
+const result = await builder.run("Explain this project", { cwd: "/project" });
+```
+
+`agent()` creates immutable builders with `model`, `use`, `tools`, `mcp`, `run`,
+`stream` and `acp`. Inject `acpModel` for custom providers. ACP sessions expose
+caller acknowledgements; duplicate/unknown acknowledgements reject and abort
+retires pending callbacks. Rust owns pending intent identity and insertion order;
+Node retains callback/results, provider creation, transcript I/O and run effects.
+Pending acknowledgements are limited to 4,096 intents and 1,048,576 aggregate UTF16
+identity units. Small injected-model tool runs are slower than the TypeScript
+reference in the current complete-builder benchmark.
+
+`await createAgentSession({ model, plugins, persist })` creates reusable sessions
+with history, tree snapshots, navigation and forks. Without `plugins` or
+`pluginsConfig`, the default Responses, Chat, system-prompt, files, shell and web
+plugins are owned implementations. Omit `persist` for in-memory history or supply
+`{ directory }` for JSONL persistence. Child sessions use the embedded owned ACP
+client; `createProcessSpawnSession` supports external ACP executables and
+`createInMemorySpawnSession` supports an injected session factory. The in-memory
+transport rejects work after disposal, retires late session creations, awaits
+notification callbacks and reports cleanup failures through its closed result.
+These lifecycle protections are stronger than the current original adapter.
+Wider process/platform and performance acceptance remain incomplete.

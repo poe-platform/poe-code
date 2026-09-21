@@ -53,3 +53,32 @@ impl<T> ToolYield<T> {
         }
     }
 }
+
+/// Identity and terminal state for the in-memory ACP transport.
+#[derive(Default)]
+pub struct MemoryTransport {
+    closed: bool,
+    sequence: u32,
+}
+impl MemoryTransport {
+    pub fn closed(&self) -> bool {
+        self.closed
+    }
+    pub fn begin_close(&mut self) -> bool {
+        if self.closed {
+            return false;
+        }
+        self.closed = true;
+        true
+    }
+    pub fn next_session(&mut self) -> Result<u32, &'static str> {
+        if self.closed {
+            return Err("In-memory ACP transport is disposed.");
+        }
+        self.sequence = self
+            .sequence
+            .checked_add(1)
+            .ok_or("In-memory ACP session identity overflow.")?;
+        Ok(self.sequence)
+    }
+}

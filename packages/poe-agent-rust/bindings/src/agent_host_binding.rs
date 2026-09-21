@@ -114,3 +114,28 @@ pub fn map_agent_tool_yield<'env>(
     let result = super::transcript_binding::encode(env, event.template())?;
     Ok(unsafe { Unknown::from_raw_unchecked(env.raw(), result) })
 }
+
+#[napi]
+#[derive(Default)]
+pub struct NativeAgentMemoryTransport {
+    state: poe_agent_rust::agent_host::MemoryTransport,
+}
+#[napi]
+impl NativeAgentMemoryTransport {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi(getter)]
+    pub fn closed(&self) -> bool {
+        self.state.closed()
+    }
+    #[napi]
+    pub fn begin_close(&mut self) -> bool {
+        self.state.begin_close()
+    }
+    #[napi]
+    pub fn next_session(&mut self) -> Result<u32> {
+        self.state.next_session().map_err(napi::Error::from_reason)
+    }
+}

@@ -5241,3 +5241,51 @@ pending,publication unverified. Prior continuous09:22:58–09:28:46 adds348s; ch
 gap excluded. New active09:30:35–09:32:00 adds85s conservatively,total99673s (27.69h).
 Minimum fulfilled; builder/session/spawn/toolcraft/platform/performance acceptance
 and later Python bindings remain incomplete. Continue accounting after09:32:00 UTC.
+
+### Public builder, sessions and child factories, 2026-09-21 09:41 UTC
+
+Additive agent/model/use/tools/mcp/run/stream/acp exports now use the owned config,
+provider/plugins, execution, hooks, tools and transcript foundations. Reusable
+createAgentSession supports default owned plugins, injected providers, history,
+JSONL persistence, tree snapshots, navigation and forks. Owned ACP client and
+user-error core embed in the same addon. Explicit owned development dependencies
+record their maintained build closure; root lock update contains only those two
+references, retaining concurrent original-package changes. Node retains async
+callbacks, arbitrary results/property effects, provider creation and I/O; this
+does not assert a fully native execution path.
+
+Rust caller ACK state has exact UTF16 identities/insertion order, duplicate/unknown
+retirement and index reuse once empty.4096pending intents/1048576aggregate identity
+units bounds reject without losing existing requests. Rust in-memory transport
+state closes once and rejects session IDs after disposal. New reds reproduce
+late creation retention, unhandled disposal/notification failures and completion
+notifications after disposal. Host waits for pending creations, retires late
+sessions, awaits notification callbacks, rejects disposed requests/prompts and
+reports cleanup errors through closed. These guards intentionally exceed original
+adapter lifecycle behavior; original source is unchanged. Initial own ACK fixture
+used invoke instead of Tool.call; fixture corrected without implementation change.
+
+Maintained60 Rust cases,105 native groups,434 original reference cases/27files,
+bidirectional builder/session/factory declarations,fmt/clippy,focused changed-host
+ESLint and diff checks pass.96 seeded complete own/original builder scenarios
+compare tools, failures, usage, resume, stdout and disposal. Uncached maintained
+closure113workspaces/37builds/341edges passes. A broad extra ESLint invocation found
+require-yield on two intentional terminal-only generators in existing owned tools;
+focused new/changed adapters pass; documenting those semantics is a separate next
+atomic change.
+
+Packed audit159 JS/declaration files,one addon,zero runtime groups/imports with
+SDK development adapter exception. Direct/packed16MiB old-space workers each finish
+1024 tool runs/128forkable sessions/128caller ACKs/128abort retirements/512child
+sessions,balanced child disposals and no retained caller abort listeners. This
+finite coverage is not a comprehensive allocation/platform/leak acceptance.
+Five warmed alternating512 complete injected-model tool-run samples give original
+CPU16.692–36.261ms versus own47.972–66.307ms, scoped speed FAIL with identical output
+units. Native runtime crossing overhead remains an outstanding performance issue;
+do not claim general superiority. Evidence out/rust-poe-agent-builder-*.
+
+Registry249c8207e exact remote-main delivery verified; release35583768081 in_progress.
+Publication remains unverified. Concurrent safe-bash/OAuth commits preserved.
+Continuous09:32:00–09:41:36 adds576s,total100249s (27.85h). Minimum fulfilled; wider
+agent-spawn/toolcraft/platform/performance acceptance and later Python remain
+incomplete. Continue accounting after09:41:36 UTC.

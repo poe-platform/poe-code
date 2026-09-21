@@ -12,6 +12,72 @@ export default defineConfig({
       enforce: "pre",
       transform(code, id) {
         if (
+          ["agent.test.ts", "agent-session.test.ts", "agent.mcp-spawn.test.ts"].some(
+            (name) => id === path("../poe-agent/src/" + name)
+          )
+        ) {
+          const replacements = new Map([
+            ["./agent.js", "agent"],
+            ["./agent-session.js", "agent-session"],
+            ["./index.js", "index"],
+            ["./runtime/agent-host.js", "agent-host"],
+            ["./plugins/poe-agent-plugin-spawn.js", "plugin-spawn"],
+            ["./plugins/poe-agent-plugin-max-iterations.js", "plugin-max-iterations"],
+            ["./plugins/poe-agent-plugin-files.js", "plugin-files"],
+            ["./plugins/poe-agent-plugin-shell.js", "plugin-shell"],
+            ["./plugins/poe-agent-plugin-web.js", "plugin-web"],
+            ["./plugins/poe-agent-plugin-system-prompt.js", "plugin-system-prompt"],
+            ["./plugins/poe-agent-plugin-policy.js", "plugin-policy"],
+            ["./plugins/poe-agent-plugin-openai-responses.js", "plugin-openai-responses"],
+            [
+              "./plugins/poe-agent-plugin-openai-chat-completions.js",
+              "plugin-openai-chat-completions"
+            ],
+            ["./plugins/resolve-plugins.js", "resolve-plugins"],
+            ["./runtime/resolve-provider.js", "providers"],
+            ["./runtime/tool-names.js", "tool-names"],
+            ["./runtime/file-awareness.js", "file-awareness"],
+            ["./runtime/acp-core.js", "acp-core"],
+            ["./system-prompt.js", "system-prompt"],
+            ["tiny-mcp-client", "client/index"]
+          ]);
+          const source = ts.createSourceFile(
+            id,
+            code,
+            ts.ScriptTarget.Latest,
+            true,
+            ts.ScriptKind.TS
+          );
+          const transformed = ts.transform(source, [
+            (context) => (root) =>
+              ts.visitNode(root, function visit(node) {
+                if (ts.isStringLiteral(node) && replacements.has(node.text))
+                  return ts.factory.createStringLiteral(
+                    path("dist/" + replacements.get(node.text) + ".js")
+                  );
+                return ts.visitEachChild(node, visit, context);
+              })
+          ]);
+          try {
+            const name = id.endsWith("agent-session.test.ts") ? "createAgentSession" : "agent";
+            const module = name === "agent" ? "agent" : "agent-session";
+            const guard =
+              "\nimport {" +
+              name +
+              " as ownAgentContract} from " +
+              JSON.stringify(path("dist/" + module + ".js")) +
+              (name === "agent"
+                ? '; if(agent!==ownAgentContract)throw new Error("Agent contracts must execute own module");'
+                : '; if(typeof ownAgentContract!=="function")throw new Error("Session contracts require own module");');
+            return {
+              code: ts.createPrinter().printFile(transformed.transformed[0]) + guard,
+              map: null
+            };
+          } finally {
+            transformed.dispose();
+          }
+        }
+        if (
           [
             "poe-agent-plugin-openai-chat-completions.test.ts",
             "poe-agent-plugin-openai-responses.test.ts",
@@ -286,7 +352,7 @@ export default defineConfig({
                   );
                 return [
                   declaration(ownItems, path("dist/agent-host.js")),
-                  declaration(referenceItems, path("../poe-agent/dist/runtime/agent-host.js"))
+                  declaration(referenceItems, path("dist/agent-host.js"))
                 ];
               }
               return ts.visitEachChild(node, visit, context);
@@ -398,6 +464,9 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/agent.test.ts"),
+      path("../poe-agent/src/agent-session.test.ts"),
+      path("../poe-agent/src/agent.mcp-spawn.test.ts"),
       path("../poe-agent/src/plugins/registry.test.ts"),
       path("../poe-agent/src/plugins/resolve-plugins.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"),

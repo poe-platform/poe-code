@@ -3,6 +3,8 @@ import { Volume } from "memfs";
 import { compileJsonSchema } from "toolcraft-schema";
 import { createPptxCommandEngine } from "./command-engine.js";
 import { storedArchive } from "../tests/fixtures/archive.js";
+import { assessCapabilities } from "./capabilities-discovery.js";
+import * as office from "@poe-code/office-package";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 const context = {
@@ -39,6 +41,35 @@ const engine = createPptxCommandEngine({
   context,
   maxArgumentBytes: 65536,
   maxOutputBytes: 4000000
+});
+
+it("inspects every capability part without Node timer delays", async () => {
+  const timer = vi.spyOn(globalThis, "setTimeout");
+  try {
+    const input = storedArchive([{ name: "tree.xml", bytes: encode(
+      '<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' + '<p:sld/>'.repeat(300) + '</p:presentation>'
+    ) }]);
+    const result = await assessCapabilities(input, context);
+    expect(result.parts.map(part => part.part)).toEqual(["/tree.xml"]);
+    expect(timer).not.toHaveBeenCalled();
+  } finally { timer.mockRestore(); }
+});
+
+it("retains cancellation during capability node inspection", async () => {
+  const input = storedArchive([{ name: "tree.xml", bytes: encode(
+    '<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' + '<p:sld/>'.repeat(300) + '</p:presentation>'
+  ) }]);
+  const controller = new AbortController(), reason = new Error("cancel capability inspection");
+  const turn = office.yieldEventLoop;
+  let calls = 0;
+  const scheduler = vi.spyOn(office, "yieldEventLoop").mockImplementation(async () => {
+    if (++calls === 2) controller.abort(reason);
+    await turn();
+  });
+  try {
+    await expect(assessCapabilities(input, { ...context, signal: controller.signal })).rejects.toBe(reason);
+    expect(calls).toBe(2);
+  } finally { scheduler.mockRestore(); }
 });
 async function invoke(args: string[], input = bytes) {
   const volume = Volume.fromJSON({ "/input.pptx": Buffer.from(input) });

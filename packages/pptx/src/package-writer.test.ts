@@ -27,6 +27,19 @@ const members = [
   { name: "ppt/media/é.bin", bytes: Uint8Array.of(0, 255, 17) }
 ];
 
+it("cooperates between stored payload chunks without Node timer delays", async () => {
+  const timer = vi.spyOn(globalThis, "setTimeout");
+  try {
+    const payload = new Uint8Array(1025).fill(17);
+    let otherTurn = false;
+    setImmediate(() => { otherTurn = true; });
+    const output = await writePackageArchive([{ name: "payload", bytes: payload }], context, { compression: "store" });
+    expect(otherTurn).toBe(true);
+    expect(timer).not.toHaveBeenCalled();
+    expect(inspectZip(output).map(({ name, payload }) => [name, payload])).toEqual([["payload", payload]]);
+  } finally { timer.mockRestore(); }
+});
+
 function withDescriptor(signed: boolean, deflated: boolean): Uint8Array {
   const original = storedArchive([{ name: "keep", bytes: text("123456789") }]);
   const payload = deflated

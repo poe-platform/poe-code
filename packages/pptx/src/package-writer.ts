@@ -1,4 +1,5 @@
 import { createZipCodec, crc32, type ZipEntry } from "@poe-code/office-package/zip";
+import { yieldEventLoop } from "@poe-code/office-package";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput } from "./contracts.js";
 import type { PackageContext } from "./package-reader.js";
@@ -167,7 +168,7 @@ export async function writePackageArchive(
         for (let offset = 0; offset < member.bytes.length; offset += limits.chunkSize) {
           signal.throwIfAborted();
           checksum = crc32(member.bytes.subarray(offset, offset + limits.chunkSize), checksum);
-          await new Promise<void>((resolve) => setTimeout(resolve, 0));
+          await yieldEventLoop();
         }
         entries.push({
           ...attributes,

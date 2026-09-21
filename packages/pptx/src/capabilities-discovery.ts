@@ -1,3 +1,4 @@
+import { yieldEventLoop } from "@poe-code/office-package";
 import type { BinaryInput } from "./contracts.js";
 import { parseContentTypes } from "./content-types.js";
 import { OfficeError } from "./errors.js";
@@ -109,7 +110,7 @@ export async function assessCapabilities(input: BinaryInput, context: SelectionC
   let xmlBytes = 0;
   const parts: { part: string; contentType: string | null }[] = [];
   for (const part of reader.names) {
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await yieldEventLoop();
     context.signal?.throwIfAborted();
     let contentType: string | null = null;
     if (types && part !== "/[Content_Types].xml") {
@@ -158,7 +159,7 @@ export async function assessCapabilities(input: BinaryInput, context: SelectionC
       const pending: XmlElement[] = [xml.root];
       let visited = 0;
       while (pending.length) {
-        if (++visited % 256 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        if (++visited % 256 === 0) await yieldEventLoop();
         context.signal?.throwIfAborted();
         const node = pending.pop()!;
         if (

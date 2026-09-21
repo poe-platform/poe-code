@@ -18,6 +18,7 @@ import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, editActiveRelationshipXml, UnsupportedEditError } from "./xml-write.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { hyperlinkHistory } from "./hyperlink-history.js";
+import { compatibilityContainers } from "./compatibility.js";
 
 export type LinkEditOperation = "links.add" | "links.set" | "links.remove";
 export type LinkEditRequest = { [K in LinkEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[LinkEditOperation];
@@ -129,7 +130,11 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
       for (const position of before.value.path) { parent = node; node = node.children[position]!; ancestors.push(node); }
       if (ancestors.some(n => n.namespace === w && ["ins", "del", "moveFrom", "moveTo", "sdt", "fldSimple"].includes(n.localName))) throw new UnsupportedEditError("Links inside tracked or controlled content require dedicated operations.");
       const adding = request.operation === "links.add";
-      if (node.namespace !== w || (adding ? node.localName !== "p" : node.localName !== "hyperlink" || parent.namespace !== w || parent.localName !== "p")) throw new UnsupportedEditError("Link insertion requires a paragraph; link edits require a direct paragraph hyperlink.");
+      const containers = new Set(xml.compatibility[compatibilityContainers]);
+      let paragraphPosition = ancestors.length - 2;
+      while (paragraphPosition > 0 && containers.has(ancestors[paragraphPosition]!)) paragraphPosition--;
+      const paragraph = ancestors[paragraphPosition]!;
+      if (node.namespace !== w || (adding ? node.localName !== "p" : node.localName !== "hyperlink" || paragraph.namespace !== w || paragraph.localName !== "p")) throw new UnsupportedEditError("Link insertion requires a paragraph; link edits require a direct paragraph hyperlink.");
       const oldId = attribute(node, r, "id"), anchor = attribute(node, w, "anchor");
       const oldEdge = relationshipXmlRows(rels.root, budget).find(edge => edge.rId === oldId);
       if (oldEdge && (oldEdge.reltype !== r + "/hyperlink" || !oldEdge.is_external)) throw new UnsupportedEditError("Unsupported link relationship.");
@@ -169,7 +174,7 @@ export async function editDocumentLinks(input: Uint8Array, request: LinkEditRequ
           return [child, runElementOpen({ ...child, attributes }) + xml.sourceXml(child, new Map(), true) + `</${child.name}>`];
         })) : new Map(), true);
         xml.replaceElement(node, label);
-        updates.push({ before, path: before.value.path.slice(0, -1), kind: options.deleteContent ? "remove" : "unwrap", locationKind: "paragraph" });
+        updates.push({ before, path: before.value.path.slice(0, paragraphPosition), kind: options.deleteContent ? "remove" : "unwrap", locationKind: "paragraph" });
       }
       if (oldId) retired.add(oldId);
       xml = new DocumentXmlEditor(xml.serialize(), {}, undefined, budget);

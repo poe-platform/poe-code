@@ -283,3 +283,25 @@ pub fn harness_log_tee(argv: Vec<Utf16String>, job: Utf16String) -> napi::Result
         .map(|args| args.into_iter().map(Utf16String::from).collect())
         .map_err(napi::Error::from_reason)
 }
+#[napi]
+#[derive(Default)]
+pub struct NativeHarnessFactories {
+    core: agent_harness_tools_rust::env_registry::Registry,
+}
+#[napi]
+impl NativeHarnessFactories {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn register(&mut self, key: Utf16String) -> napi::Result<u32> {
+        self.core
+            .register(key.to_vec())
+            .map_err(napi::Error::from_reason)
+    }
+    #[napi]
+    pub fn get(&self, key: Utf16String) -> Option<u32> {
+        self.core.get(&key)
+    }
+}

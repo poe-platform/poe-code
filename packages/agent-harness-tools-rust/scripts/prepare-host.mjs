@@ -23,3 +23,15 @@ function embedTaskHosts(source,target){
  }
 }
 embedTaskHosts(new URL("../task-list-rust/dist/",root),tasks);
+
+// Runtime interface types are self-contained even before runtime host integration.
+function embedConfigTypes(source,target){
+ mkdirSync(target,{recursive:true});
+ for(const entry of readdirSync(source,{withFileTypes:true})){
+  const input=new URL(entry.name+(entry.isDirectory()?"/":""),source),output=new URL(entry.name+(entry.isDirectory()?"/":""),target);
+  if(entry.isDirectory())embedConfigTypes(input,output);
+  else if(entry.name.endsWith(".d.ts"))copyFileSync(input,output);
+ }
+}
+embedConfigTypes(new URL("../poe-code-config-rust/dist/",root),new URL("config/",dist));
+copyFileSync(new URL("../task-list-rust/src/runner-types.d.ts",root),new URL("runner-types.d.ts",dist));

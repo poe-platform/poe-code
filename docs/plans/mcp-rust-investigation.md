@@ -5986,3 +5986,36 @@ compiler35597375742 completed failure,investigating unit log. No successful curr
 publication verified. Concurrent changes preserved. Continuous12:27:55–12:33:13
 adds318s,total109928s(30.54h). Minimum fulfilled;objective incomplete.
 Continue accounting after12:33:13UTC.
+
+
+### Harness execution-factory registry, 2026-09-21 12:40 UTC
+
+Added register/select execution-factory APIs and complete owned public execution
+interfaces. Rust assigns immutable slots by exact UTF16 runtime name,with65536
+name budget and transactional rejection;replacement reuses slots. Node retains
+factory callbacks/references and caches immutable IDs,avoiding native calls for
+known replacements/selections. Slot IDs never move/remove,so cache is valid.
+Embedded owned config/process declarations require no original SDK consumer types;
+dev bridges are not packaged. Built-in execution factories remain unregistered.
+Missing core/reference reds precede implementation. Max-capacity replacement,
+exact names/unpairedUTF16,independent native registries,factory identity/getter
+order and unknown-type diagnostics covered. No production integration.
+
+Maintained18Rust cases,17native groups,198references/16files,bidirectional covered
+types,fmt/clippy/ESLint pass. Uncached final selected117workspaces/30builds/362edges
+passes. Packed146files/one addon,no npm runtime groups,external npm resolution
+blocked;all prior scenarios plus registration/replacement/selection pass.
+16MiB-old-generation worker131072replacements/131072selections retains5.06MiBheap/
+56.47MiBRSS;finite evidence,not total/native bounds. Before caching65536warm
+replacement/selection pairs ownwall15.62–16.50ms vs original0.79–1.08ms,FAIL.
+After caching five alternating pairs originalwall0.81–1.47ms/CPU0.79–3.22ms,
+ownwall0.76–0.84ms/CPU0.76–0.84ms;better each pair,scoped cached registry PASS.
+This measures Node cached dispatch,not Rust computation or new-name admission.
+Evidence out/rust-harness-env-*.
+
+Streama7a62ea5c exactly verified on remote main;release35600258716 pending;
+plans35599744513 in_progress. Compiler35597375742 unit failed the known pre-fix
+TOML oracle;current main contains the delivered repair. No successful publication
+verified. Concurrent changes preserved. Continuous12:33:13–12:40:51 adds458s,
+total110386s(30.66h). Minimum fulfilled;objective incomplete.
+Continue accounting after12:40:51UTC.

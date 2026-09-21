@@ -17,4 +17,5 @@ export {comparePlanReadiness,formatPlanReadinessLabel} from "./plan-readiness.js
 export {formatRunQueueSummary} from "./run-queue-summary.js";
 
 export {streamLogFile,waitForExit,wrapForLogTee,type LogStreamEnv,type LogStreamFs} from "./log-stream.js";
-export type {LogChunk} from "./log-types.js";
+
+export * from "./execution-env.js";

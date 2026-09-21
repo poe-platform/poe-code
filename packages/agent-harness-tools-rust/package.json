@@ -27,7 +27,8 @@
     "typescript": "5.9.3",
     "vitest": "4.1.11",
     "@poe-code/task-list-rust": "*",
-    "memfs": "4.56.10"
+    "memfs": "4.56.10",
+    "@poe-code/poe-code-config-rust": "*"
   },
   "files": [
     "dist",

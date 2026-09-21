@@ -18,6 +18,7 @@ The package is additive and has no npm runtime dependencies.
 - Reject log directories whose canonical ancestors escape the state directory.
 - Replay or follow managed job logs without splitting UTF-8 characters.
 - Wait for decimal exit status with cancellation and symlink checks.
+- Register and select custom execution factories by runtime type.
 
 ```ts
 import { createRunQueue } from "@poe-code/agent-harness-tools-rust";
@@ -83,3 +84,11 @@ quotes the `wrapForLogTee` command and finds complete UTF-8 prefixes. Node owns
 file reads, buffers, watchers and timers. The adapter releases watchers even when
 they notify synchronously. It retains the original behavior for incomplete trailing
 UTF-8 bytes when a job exits. These APIs do not execute the generated shell command.
+
+`registerExecutionEnvFactory(factory)` retains the factory object and
+`selectExecutionEnv(runtime)` returns the latest registration for its type.
+Rust assigns stable slots by exact UTF-16 runtime name. Node caches immutable
+slot IDs so repeated registration and selection avoid native crossings; replacement
+releases the prior host reference. The registry admits at most 65,536 distinct runtime names,
+and existing names remain replaceable at capacity. Node holds factory callbacks;
+no built-in execution factories are registered automatically by this package.

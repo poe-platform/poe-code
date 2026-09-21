@@ -185,7 +185,7 @@ export async function editDocumentStories(input: Uint8Array, request: StoryEditR
   const removedIds = new Set<string>();
   for (const [position, id] of refs) {
     const owner = owners[position - 1]!;
-    const old = owner.node?.children.find(node => node.namespace === w && node.localName === name + "Reference" && sectionAttribute(node, "type") === variant);
+    const old = owner.node && current.children(owner.node).find(node => node.namespace === w && node.localName === name + "Reference" && sectionAttribute(node, "type") === variant);
     const oldId = old?.attributes.find(a => a.namespace === r && a.localName === "id")?.value;
     if (oldId) removedIds.add(oldId);
     const markup = id === null ? "" : `<sb:${name}Reference xmlns:sb="${w}" xmlns:sr="${r}" sb:type="${variant}" sr:id="${xmlValue(id)}"/>`;

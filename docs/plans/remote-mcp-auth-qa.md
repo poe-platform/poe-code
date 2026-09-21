@@ -582,3 +582,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     values/nested metadata/exact005930. Retire six distinct sessions without
     consent/persistence. Inspect the safe summary screenshot and purge owned
     synthetic evidence.
+
+53. Seed native encrypted expired grants with original app/full discovery. Return
+    explicit null/numeric/array/object/empty/whitespace refresh_token fields from
+    an actual token endpoint; require six safe virtual-shell failures and durable
+    tokenless pending records. Recreate independent native providers with stale
+    imports and require no replay. Retain valid omission and surrounding-space
+    rotation semantics through independent command recreation and artificial
+    expiry. Require ten actual redemptions, four full calls/exact005930/false/0/
+    nested metadata and four distinct retired sessions. Verify encrypted0600
+    records and removed claims, zero consent, inspect the safe summary screenshot
+    and purge only owned synthetic evidence.

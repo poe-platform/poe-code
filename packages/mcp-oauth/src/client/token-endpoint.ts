@@ -191,6 +191,8 @@ async function requestTokens(input: {
   }
 
   const refreshToken = getOwnEntry(payload, "refresh_token");
+  if (refreshToken !== undefined && (typeof refreshToken !== "string" || refreshToken.trim().length === 0))
+    throw new Error("OAuth token response has invalid refresh_token");
   const scope = getOwnEntry(payload, "scope");
   const normalizedRefreshToken =
     typeof refreshToken === "string" && refreshToken.trim().length > 0

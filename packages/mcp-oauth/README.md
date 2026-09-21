@@ -273,6 +273,8 @@ Before sending a refresh request, the provider persists a tokenless session with
 A successful response replaces it with the rotated grant. A crash, cancellation,
 network disconnect or incomplete response leaves the marker, so another process
 cannot replay a possibly consumed refresh token or revive the initial import.
+An explicit `refresh_token` must be a nonempty string; malformed fields also
+retain the pending marker. Omitting it preserves the previous refresh token.
 Such a session requires fresh authorization. Interactive unauthorized handling
 can recover it; headless requests fail with an explicit unknown-outcome error.
 Only complete OAuth error responses establish a rejected request and allow a

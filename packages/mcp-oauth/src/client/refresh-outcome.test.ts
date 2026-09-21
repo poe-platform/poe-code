@@ -64,6 +64,24 @@ it("preserves cancellation identity and blocks replay after a redeemed response 
   expect(fetch).toHaveBeenCalledOnce();
 });
 
+it.each([null, 42, [], { private: "private-rotated-grant" }, "", " \t\n"].map(refreshToken => ({ refreshToken })))("quarantines malformed explicit refresh-token responses instead of preserving a redeemed grant: $refreshToken", async ({ refreshToken }) => {
+  const f = fixture(), fetch = vi.fn(async () => Response.json({ access_token: "winner", refresh_token: refreshToken, token_type: "Bearer", expires_in: 3600 }));
+  await expect(f.authorize(fetch)).rejects.toThrow("OAuth token response has invalid refresh_token");
+  expect(f.session()).toMatchObject({ refreshState: "pending", client: initial.client });
+  expect(f.session().tokens).toBeUndefined();
+  await expect(f.authorize(fetch)).rejects.toThrow("refresh outcome");
+  expect(fetch).toHaveBeenCalledOnce();
+});
+
+it("retains the previous refresh grant when a valid response omits the optional field", async () => {
+  const f = fixture(), fetch = vi.fn(async () => Response.json({ access_token: "winner", token_type: "Bearer", expires_in: 3600 }));
+  expect(await f.authorize(fetch)).toBe("Bearer winner");
+  expect(f.session().tokens?.refreshToken).toBe("single-use-refresh");
+  expect(f.session()).not.toHaveProperty("refreshState");
+  expect(await f.authorize(fetch)).toBe("Bearer winner");
+  expect(fetch).toHaveBeenCalledOnce();
+});
+
 it("does not send a refresh request if intent persistence fails", async () => {
   const f = fixture(), failure = new Error("cannot persist intent"), fetch = vi.fn(async () => Response.json({ access_token: "winner", token_type: "Bearer" }));
   f.store.save = async () => { throw failure; };

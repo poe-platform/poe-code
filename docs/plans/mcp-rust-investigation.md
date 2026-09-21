@@ -4154,3 +4154,46 @@ Authentication7ab4a11d8 is pushed. Root35564441063 remains pending; publication
 remains unverified. Continuous active05:23:55–05:28:09 adds254s, bringing conservative
 effort to86,172s (23.94h). Minimum24h remains unfulfilled by228s; full rewrite remains
 incomplete. Active work continues after05:28:09 UTC.
+
+### Poe agent Rust session history reconstruction, 2026-09-21 05:33 UTC
+
+Portable/native reds precede Rust branch identity/traversal and staged entry-kind
+classification, with own collectBranch/findHead/buildMessages exports. Latest
+sample duplicate IDs win; original entry references survive; sibling parents remain
+unread. Node captures map-time entry references and retains tool intent association,
+args serialization hooks/errors, opaque multimodal result arrays and compaction
+formatting. Native traversal runs within one call; parent/kind getter failures retain
+arbitrary causes. Invalid native input lengths reject rather than panic. Kind getters
+retain original repeated/changing comparisons. Source references compile both ways.
+
+Repeated branch IDs reject with a cycle error instead of retaining an unbounded
+history. This intentional additive safety difference also rejects a parent getter
+that deliberately revisits an ID before eventually terminating. It is disclosed,
+not counted as parity with the original infinite-cycle behavior. Portable branch
+indices can own names or borrow ingress slices; the napi traversal borrows native
+UTF16 buffers to avoid a second per-name owned copy. Borrowed lookup/cycle reds and
+native regression checks pass. Remaining full execution/agent/plugins are pending.
+
+All20 Rust cases,33 native groups and120 applicable complete original cases pass.
+The reference route adds the entire3-case session-tree file. An initial expected
+JSON escape used a literal backslash rather than the intended lone surrogate; that
+fixture was corrected and the complete maintained route passes, without treating a
+fixture failure as source parity. Focused lint/fmt/clippy/formatting and uncached
+113-workspace/28-build/338-edge closure pass; package tests rerun after closure.
+Direct/packed16MiB workers each add1024 branch collections and1024 reconstructions
+of32 entries. Audit covers38 JS/declaration files, one addon and zero npm runtime
+groups. Endpoint heaps~9.8MB and parent-inclusive RSS establish no isolated leak/
+peak/memory advantage. Speed gate fails:1024 reconstructions/32768 entries over
+seven alternating rounds original~1.07–1.14ms vs final Rust~11.10–12.66ms. The earlier
+owned-copy variant had original~1.39–1.72ms and Rust~14.72–16.62ms; changed process/
+round conditions prevent attributing the difference solely to borrowed ingress.
+Evidence out/rust-poe-agent-session-tree-*.
+
+Scopef8cfebb14 is pushed and verified at remote main. Root35564678720 is pending;
+no successful current root publication is claimed. Concurrent original suites
+continue expanding. Current OAuth registration trust work has359/378 original cases
+pass;19 required failures across explicit authenticate/resource-identity files
+remain. Continuous active05:28:09–05:33:23 adds314s, bringing conservative actual
+effort to86,486s (24.02h). The minimum24-hour effort requirement is fulfilled, but
+the full rewrite/performance/memory/platform/release acceptance is NOT achieved.
+Active implementation continues after05:33:23 UTC.

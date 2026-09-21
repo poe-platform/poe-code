@@ -74,3 +74,11 @@ and host serialization/fallback behavior. Rust validates fields in observable
 short-circuit order, including changing/inherited getters, and formats image
 labels without changing UTF-16. Sparse arrays follow JavaScript array traversal.
 These small binding calls remain slower than TypeScript in current benchmarks.
+
+`collectBranch`, `findHead` and `buildMessages` reconstruct session conversations,
+including tool calls/results and compaction summaries. Branches keep original entry
+references and use the latest duplicate ID. Parent properties are read only on the
+selected branch. Rust owns identity lookup, traversal and staged entry-kind
+classification; Node retains serialization and opaque message content. Repeated
+branch IDs reject as cycles, protecting against unbounded traversal. This also
+rejects a changing parent getter that deliberately revisits an ID before ending.

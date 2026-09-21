@@ -134,3 +134,8 @@ import * as referenceResults from "../../poe-agent/dist/runtime/tool-results.js"
 const resultsA: typeof referenceResults = own;
 const resultsB: Pick<typeof own, keyof typeof referenceResults> = referenceResults;
 void [resultsA, resultsB];
+
+import * as referenceTree from "../../poe-agent/dist/runtime/session/session-tree.js";
+const treeA: typeof referenceTree = own;
+const treeB: Pick<typeof own, keyof typeof referenceTree> = referenceTree;
+void [treeA, treeB];

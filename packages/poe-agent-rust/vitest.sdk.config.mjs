@@ -63,6 +63,11 @@ export default defineConfig({
           name === "./file-awareness.js"
         )
           return path("dist/file-awareness.js");
+        if (
+          importer === path("../poe-agent/src/runtime/session/session-tree.test.ts") &&
+          name === "./session-tree.js"
+        )
+          return path("dist/session-tree.js");
         if (importer === providers && name === "./resolve-provider.js")
           return path("dist/providers.js");
         if (
@@ -82,6 +87,7 @@ export default defineConfig({
   test: {
     include: [
       providers,
+      path("../poe-agent/src/runtime/session/session-tree.test.ts"),
       path("../poe-agent/src/runtime/file-awareness.test.ts"),
       names,
       path("../poe-agent/src/session-store.test.ts"),

@@ -130,6 +130,12 @@ can recover it; headless requests fail with an explicit unknown-outcome error.
 Only complete OAuth error responses establish a rejected request and allow a
 transient retry or restoration of the original grant. Gateway error pages do not.
 
+Native persisted OAuth reads always reject corrupt encrypted documents and
+invalid stored JSON, with diagnostics that omit decrypted contents. They retain
+the existing record for explicit reset rather than interpreting corruption as
+an absent session and reviving an initial grant. Caller file-backend settings
+cannot disable this policy.
+
 ## Environment Variables
 
 This package exposes no direct environment variables. When `authStore` is used,

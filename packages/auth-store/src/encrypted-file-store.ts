@@ -51,6 +51,8 @@ export interface EncryptedFileStoreInput {
   getMachineIdentity?: () => MachineIdentity | Promise<MachineIdentity>;
   getHomeDirectory?: () => string;
   getRandomBytes?: (size: number) => Buffer;
+  /** Fail closed instead of treating malformed or unauthenticated documents as absent. */
+  throwOnInvalidDocument?: boolean;
 }
 
 export class EncryptedFileStore implements SecretStore {
@@ -61,6 +63,7 @@ export class EncryptedFileStore implements SecretStore {
   private readonly getMachineIdentity: () => MachineIdentity | Promise<MachineIdentity>;
   private readonly getRandomBytes: (size: number) => Buffer;
   private keyPromise: Promise<Buffer> | null = null;
+  private readonly throwOnInvalidDocument: boolean;
 
   constructor(input: EncryptedFileStoreInput) {
     this.fs = input.fs ?? fs;
@@ -86,6 +89,7 @@ export class EncryptedFileStore implements SecretStore {
     }
     this.getMachineIdentity = input.getMachineIdentity ?? defaultMachineIdentity;
     this.getRandomBytes = input.getRandomBytes ?? randomBytes;
+    this.throwOnInvalidDocument = input.throwOnInvalidDocument ?? false;
   }
 
   async get(): Promise<string | null> {
@@ -102,6 +106,7 @@ export class EncryptedFileStore implements SecretStore {
 
     const document = parseEncryptedDocument(rawDocument);
     if (!document) {
+      if (this.throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
       return null;
     }
 
@@ -116,6 +121,7 @@ export class EncryptedFileStore implements SecretStore {
         iv.byteLength !== ENCRYPTION_IV_BYTES ||
         authTag.byteLength !== ENCRYPTION_AUTH_TAG_BYTES
       ) {
+        if (this.throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
         return null;
       }
 
@@ -124,6 +130,7 @@ export class EncryptedFileStore implements SecretStore {
       const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
       return plaintext.toString("utf8");
     } catch {
+      if (this.throwOnInvalidDocument) throw new Error("Invalid encrypted credential document; reset the store explicitly to recover");
       return null;
     }
   }

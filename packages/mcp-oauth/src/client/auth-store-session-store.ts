@@ -39,7 +39,9 @@ export function createAuthStoreSessionStore(
         return null;
       }
 
-      const parsed = JSON.parse(value);
+      let parsed: unknown;
+      try { parsed = JSON.parse(value); }
+      catch { throw new Error("Stored OAuth session must be valid JSON; reset the store explicitly to recover"); }
       if (isStoredOAuthSession(parsed)) {
         return parsed;
       }
@@ -66,7 +68,9 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput): OAu
         return null;
       }
 
-      const parsed = JSON.parse(value);
+      let parsed: unknown;
+      try { parsed = JSON.parse(value); }
+      catch { throw new Error("Stored OAuth client must be valid JSON; reset the store explicitly to recover"); }
       const clientId = isObjectRecord(parsed) ? getOwnString(parsed, "clientId") : undefined;
       if (clientId !== undefined) {
         const client: Record<string, unknown> = { clientId };
@@ -104,6 +108,7 @@ function createNamedSecretStore(
 
   const fileStore = {
     ...options.fileStore,
+    throwOnInvalidDocument: true,
     filePath:
       parsedFilePath === null
         ? undefined

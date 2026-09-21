@@ -56,6 +56,10 @@ directory or filesystem adapter. Injected encrypted-file adapters need
 - Configurable salt, directory, and file name
 - File permissions: `0600`
 - Random IV per write
+- `fileStore.throwOnInvalidDocument: true` makes malformed or unauthenticated
+  existing documents fail with a safe diagnostic; missing files still return
+  `null`. The default treats invalid documents as absent. Strict reads preserve
+  the existing file until an explicit reset or replacement.
 
 ### macOS Keychain
 

@@ -651,6 +651,26 @@ describe("EncryptedFileStore", () => {
     await expect(store.get()).resolves.toBeNull();
   });
 
+  it.each(["malformed", "tampered", "wrong-key"])("fails closed on %s documents when strict reads are configured", async mode => {
+    const fs = createMemFs(), filePath = "/home/test/strict.enc";
+    const input = { fs, filePath, salt: "strict-fixture", getMachineIdentity: () => ({ hostname: "host", username: "user" }) };
+    const writer = new EncryptedFileStore(input);
+    const reader = new EncryptedFileStore({ ...input, throwOnInvalidDocument: true, salt: mode === "wrong-key" ? "wrong-fixture" : input.salt });
+    expect(await reader.get()).toBeNull();
+    await writer.set("private-credential");
+    if (mode === "malformed") await fs.writeFile(filePath, "private-invalid-document");
+    if (mode === "tampered") {
+      const value = JSON.parse(await fs.readFile(filePath, "utf8"));
+      value.authTag = Buffer.alloc(16).toString("base64");
+      await fs.writeFile(filePath, JSON.stringify(value));
+    }
+    const error = await reader.get().catch(error => error);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toContain("Invalid encrypted credential document");
+    expect(error.message).not.toContain("private");
+    expect(await fs.readFile(filePath, "utf8")).not.toBe("");
+  });
+
   it("does not treat inherited filesystem error codes as missing files", async () => {
     const fs: EncryptedFileStoreFileSystem = {
       readFile: vi.fn(async () => {

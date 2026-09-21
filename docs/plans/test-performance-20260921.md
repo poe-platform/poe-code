@@ -50,3 +50,7 @@ The built public consumer ran as one selected file after five fresh dependency b
 ## Generated output lint
 
 The second full root lint completed its traversal of 16,928 configured files; all 223 rule errors came from generated audit scripts under root `output`, primarily unused probe imports. The generated output directory now shares the global exclusion used for `out`, `dist` and screenshots. Audit artifacts are preserved. A third maintained root lint checks the resulting source selection; no rules were disabled.
+
+## Independent assertion checksums
+
+A 100-read benchmark of a 256 KiB stored member reproduced 758.66 ms of assertion work in the independent bitwise CRC witness. DOCX assertions now use Node's independent native zlib checksum when provided (Node 22.2+), retaining the original bitwise witness on older hosts. No production checksum implementation is reused; framing, payload sizes, every checksum and corrupt payload rejection remain checked. A red host-path test verified the missed native witness; native/fallback check-vector and existing corruption checks pass 25 tests. The equivalent benchmark takes 5.16 ms after the change. This microbenchmark measures the assertion helper, not an additional 99% whole-suite gain. Package lint and both production/test type checks pass with six existing warnings.

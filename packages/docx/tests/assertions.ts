@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { inflateRawSync } from "node:zlib";
+import * as zlib from "node:zlib";
 import { SaxesParser } from "saxes";
 
 type Parts = ReadonlyMap<string, Uint8Array>;
@@ -70,7 +70,7 @@ export function readPackage(bytes: Uint8Array): Map<string, Uint8Array> {
     const input = bytes.subarray(start, start + compressed);
     let payload: Uint8Array;
     if (method === 8) {
-      const result = inflateRawSync(input, { maxOutputLength: 262144, info: true }) as unknown as {
+      const result = zlib.inflateRawSync(input, { maxOutputLength: 262144, info: true }) as unknown as {
         buffer: Uint8Array;
         engine: { bytesWritten: number };
       };
@@ -78,13 +78,19 @@ export function readPackage(bytes: Uint8Array): Map<string, Uint8Array> {
       payload = Uint8Array.from(result.buffer);
     } else payload = input.slice();
     assert.equal(payload.length, size, "ZIP payload size");
-    let checksum = 0xffffffff;
-    for (const byte of payload) {
-      checksum ^= byte;
-      for (let bit = 0; bit < 8; bit++)
-        checksum = (checksum >>> 1) ^ (checksum & 1 ? 0xedb88320 : 0);
+    let checksum: number;
+    if (typeof zlib.crc32 === "function") checksum = zlib.crc32(payload);
+    else {
+      // Node before 22.2 has no native CRC witness.
+      checksum = 0xffffffff;
+      for (const byte of payload) {
+        checksum ^= byte;
+        for (let bit = 0; bit < 8; bit++)
+          checksum = (checksum >>> 1) ^ (checksum & 1 ? 0xedb88320 : 0);
+      }
+      checksum = (checksum ^ 0xffffffff) >>> 0;
     }
-    assert.equal((checksum ^ 0xffffffff) >>> 0, crc, "ZIP payload CRC");
+    assert.equal(checksum, crc, "ZIP payload CRC");
     parts.set(name, payload);
     cursor = next;
   }

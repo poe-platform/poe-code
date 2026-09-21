@@ -1,7 +1,8 @@
 import { expect, it, vi } from "vitest";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 import type { HttpTransportFetch } from "tiny-mcp-client";
-import { generateRemoteMcpArtifact, initRemoteMcpConfiguration, remoteMcpArtifactPlugin } from "./index.js";
+import { createRemoteMcpCommands, generateRemoteMcpArtifact, initRemoteMcpConfiguration, remoteMcpArtifactPlugin } from "./index.js";
 
 async function artifact() {
   return (await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{
@@ -25,6 +26,23 @@ function resource() {
     return Response.json({ jsonrpc: "2.0", id: request.id, result });
   });
 }
+
+it.each((["command", "recreation"] as const).flatMap(route => (["yes", "maxInputBytes", "maxOutputBytes"] as const).map(field => ({ route, field }))))(
+  "retains hidden command $field through $route", async ({ route, field }) => {
+    const fetch = resource(), commands = { fetch, yes: true, maxInputBytes: field === "maxInputBytes" ? 1 : 4096, maxOutputBytes: field === "maxOutputBytes" ? 1 : 4096 };
+    Object.defineProperty(commands, field, { enumerable: false });
+    const generated = await artifact(), shell = new Shell({ fs: createMemoryFileSystem(), ...(route === "command" ? {
+      commands: new CommandRegistry(await createRemoteMcpCommands([{ name: "catalog", url: "https://catalog.example/mcp", protocolVersion: "2025-03-26", tools: generated.schemas[0].tools }], commands))
+    } : {}) });
+    try {
+      if (route === "recreation") shell.use(await remoteMcpArtifactPlugin(generated, { binding: { env: { APP_ID: "original-app" }, oauth: { sessionStore: () => ({ load: async () => null, save: async () => {}, clear: async () => {} }) } }, commands }));
+      const result = await shell.exec(field === "yes" ? "catalog find" : "catalog find --query 005930");
+      if (field === "yes") { expect(result.exitCode).toBe(0); expect(JSON.parse(result.stdout).structuredContent).toEqual({ query: "005930" }); }
+      else { expect(result.exitCode).not.toBe(0); expect(result.stdout).toBe(""); }
+      if (field === "maxInputBytes") expect(fetch).not.toHaveBeenCalled(); else expect(fetch).toHaveBeenCalled();
+    } finally { await shell.dispose(); }
+  }
+);
 
 it.each(["fetch", "input limit", "output limit", "response limit", "formats"] as const)(
   "captures artifact command %s before credential binding callbacks", async mutation => {

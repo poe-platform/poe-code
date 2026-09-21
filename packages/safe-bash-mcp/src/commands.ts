@@ -203,6 +203,7 @@ export async function createRemoteMcpCommands(
   for (const server of servers) validateCommandName(server.name);
   const settings = {
     ...snapshotRemoteMcpSchemaOptions(options),
+    yes: options.yes,
     schemaValidation: {
       ...options.schemaValidation,
       ...(options.schemaValidation?.registry === undefined ? {} : { registry: structuredClone(options.schemaValidation.registry) }),

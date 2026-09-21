@@ -133,6 +133,8 @@ commas; use a JSON array or repeat the flag for multiple string elements.
 `--raw <json>` accepts a complete object and validates required fields after
 parsing. Raw input cannot be mixed with named arguments. Defaults apply only
 with `--yes` or the SDK's `{ yes: true }`; explicit falsey values are preserved.
+The SDK opt-in also survives nonenumerable options. Artifact recreation retains
+that opt-in and declared input/output ceilings before credential callbacks run.
 Argument parsing defaults to a 1 MiB input byte limit (`maxInputBytes`). JSON
 numbers that would become non-finite or silently round integer literals fail.
 Internal and external references use the schema compiler; supply external

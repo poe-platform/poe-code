@@ -943,3 +943,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     screenshot. Require20 metadata GETs/20 credentialed MCP POSTs/five HTTP
     retirements/five server-observed SSE closes. Keep direct SDK callback receiver
     binding host-owned. Purge owned synthetic evidence.
+
+82. Supply hidden SDK yes/input/output command policies through direct and
+    recreated commands across actual HTTP/SSE. Replace caller flags/ceilings after
+    direct preparation and through eight recreation credential factories. Require
+    four original opt-ins preserving defaults/exact005930/false/zero/two blocks/
+    nested complete output, four input failures before transport, four output
+    failures without partial stdout, and four no-yes missing-default failures
+    offline. Require eight complete remote calls/24 MCP POSTs/four HTTP retirements/
+    four server-observed SSE closes. Inspect actual recreated result/error JSON
+    and successful summary screenshot; purge owned synthetic evidence.

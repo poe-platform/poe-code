@@ -174,6 +174,7 @@ export function parseRemoteMcpArtifact(value: unknown, options: ArtifactOptions 
 /** Prepare an artifact's commands without rediscovery, using explicit runtime credentials. */
 export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactPluginOptions): Promise<Awaited<ReturnType<typeof remoteMcpCommands>>> {
   const commands = { ...snapshotRemoteMcpSchemaOptions(options.commands ?? {}),
+    yes: options.commands?.yes, maxInputBytes: options.commands?.maxInputBytes, maxOutputBytes: options.commands?.maxOutputBytes,
     schemaValidation: { ...options.commands?.schemaValidation,
       ...(options.commands?.schemaValidation?.formats === undefined ? {} : { formats: { ...options.commands.schemaValidation.formats } }) } };
   commands.signal?.throwIfAborted();

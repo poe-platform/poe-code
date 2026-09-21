@@ -26,7 +26,7 @@
     "src/rendering/print/NOTICE.md"
   ],
   "scripts": {
-    "build": "node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
     "test:unit": "node scripts/generate-providers.mjs && cd ../.. && vitest run packages/ssconvert/src",
     "test": "node scripts/generate-providers.mjs && cd ../.. && vitest run packages/ssconvert/src",
     "lint": "node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.consumer.json"

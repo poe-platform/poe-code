@@ -207,7 +207,17 @@
     "!packages/csvkit/dist/operations/workbook-iso.d.ts",
     "!packages/csvkit/dist/operations/workbook-iso.d.ts.map",
     "packages/csvkit/THIRD_PARTY_NOTICES.txt",
-    "packages/ssconvert/dist"
+    "packages/ssconvert/dist",
+    "packages/ssconvert/LICENSE",
+    "packages/ssconvert/src/encoding/LGPL-2.1.txt",
+    "packages/ssconvert/src/encoding/NOTICE.md",
+    "packages/ssconvert/src/encoding/tables.ts",
+    "packages/ssconvert/src/encoding/transliteration-tables.ts",
+    "packages/ssconvert/src/encoding/target-transliteration-tables.ts",
+    "packages/ssconvert/src/encoding/ucs2-transliteration-tables.ts",
+    "packages/ssconvert/src/codecs/html-NOTICE.md",
+    "packages/ssconvert/src/codecs/legacy-binary-NOTICE.md",
+    "packages/ssconvert/src/rendering/print/NOTICE.md"
   ],
   "engines": {
     "node": ">=18.18"

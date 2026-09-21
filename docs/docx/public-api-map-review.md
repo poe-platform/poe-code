@@ -1,5 +1,12 @@
 # DOCX public API map review
 
+The [dated acceptance resumption](whole-api-acceptance-20260921.md) supersedes
+the historical nullable-alignment and missing Paragraph.element route gaps. The
+register now retains all 1,337 prior rows plus that additional public member
+(1,338 total). All eleven registered original workflows execute; complete per-row
+and guide-heading acceptance remains blocked, including public unsupported
+numbering construction. Historical counts below retain their audit-time scope.
+
 The [current resumption](whole-api-resumption.md) supersedes the earlier
 missing-export observations: all 33 now exist. Each of the 1,337 rows links a
 current structural observation and matching typed schema IDs. Eleven workflow

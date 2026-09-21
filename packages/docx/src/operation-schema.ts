@@ -645,6 +645,7 @@ export type DocxOperationId =
   | "model.table._Rows.table.get"
   | "model.table._Columns.table.get"
   | "model.text.paragraph.Paragraph.add_run.call"
+  | "model.text.paragraph.Paragraph.element.get"
   | "model.text.paragraph.Paragraph.alignment.get"
   | "model.text.paragraph.Paragraph.alignment.set"
   | "model.text.paragraph.Paragraph.clear.call"

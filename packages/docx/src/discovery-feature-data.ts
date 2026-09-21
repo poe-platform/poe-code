@@ -1,4 +1,5 @@
 export const declaredOperationFeatures: Readonly<Record<string, readonly string[]>> = {
+  "model.text.paragraph.Paragraph.element.get": ["F04", "F05", "F07", "F08"],
   "pack": ["F01", "F50"],
   "paragraphs.list": ["F08"],
   "paragraphs.get": ["F01", "F04", "F08", "F19"],

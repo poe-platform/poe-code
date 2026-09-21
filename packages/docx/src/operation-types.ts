@@ -1174,6 +1174,7 @@ export interface DocxOperationArgumentMap {
   "model.enum.section.WD_HEADER_FOOTER_INDEX.from_xml.call": Readonly<{ "xmlValue": string | null }>;
   "model.enum.section.WD_HEADER_FOOTER_INDEX.to_xml.call": Readonly<{ "value": number | DocxEnumValue<"WD_HEADER_FOOTER_INDEX"> | null }>;
   "model.text.run.Run.element.get": Readonly<Record<string, never>>;
+  "model.text.paragraph.Paragraph.element.get": Readonly<Record<string, never>>;
   "model.section.Sections.count.call": Readonly<{ "value": DocxModelHandle<"Section"> }>;
   "model.section.Sections.index.call": Readonly<{ "value": DocxModelHandle<"Section">; "start"?: number | undefined; "stop"?: number | undefined }>;
   "model.section.Sections.__contains__.call": Readonly<{ "value": DocxModelHandle<"Section"> }>;
@@ -2697,6 +2698,7 @@ export interface DocxBatchArgumentMap {
   "model.enum.section.WD_HEADER_FOOTER_INDEX.from_xml.call": Readonly<{ "xmlValue": string | null }>;
   "model.enum.section.WD_HEADER_FOOTER_INDEX.to_xml.call": Readonly<{ "value": number | DocxEnumValue<"WD_HEADER_FOOTER_INDEX"> | null }>;
   "model.text.run.Run.element.get": Readonly<Record<string, never>>;
+  "model.text.paragraph.Paragraph.element.get": Readonly<Record<string, never>>;
   "model.section.Sections.count.call": Readonly<{ "value": DocxModelHandle<"Section"> }>;
   "model.section.Sections.index.call": Readonly<{ "value": DocxModelHandle<"Section">; "start"?: number | undefined; "stop"?: number | undefined }>;
   "model.section.Sections.__contains__.call": Readonly<{ "value": DocxModelHandle<"Section"> }>;
@@ -4202,6 +4204,7 @@ export interface DocxBatchItemMap {
   "model.enum.section.WD_HEADER_FOOTER_INDEX.from_xml.call": { readonly operation: "model.enum.section.WD_HEADER_FOOTER_INDEX.from_xml.call"; readonly arguments: DocxBatchArgumentMap["model.enum.section.WD_HEADER_FOOTER_INDEX.from_xml.call"]; readonly resultHandle?: string | undefined };
   "model.enum.section.WD_HEADER_FOOTER_INDEX.to_xml.call": { readonly operation: "model.enum.section.WD_HEADER_FOOTER_INDEX.to_xml.call"; readonly arguments: DocxBatchArgumentMap["model.enum.section.WD_HEADER_FOOTER_INDEX.to_xml.call"]; readonly receiver: DocxModelHandle<"WD_HEADER_FOOTER_INDEX">; readonly resultHandle?: string | undefined };
   "model.text.run.Run.element.get": { readonly operation: "model.text.run.Run.element.get"; readonly arguments: DocxBatchArgumentMap["model.text.run.Run.element.get"]; readonly receiver: DocxModelHandle<"Run">; readonly resultHandle?: string | undefined };
+  "model.text.paragraph.Paragraph.element.get": { readonly operation: "model.text.paragraph.Paragraph.element.get"; readonly arguments: DocxBatchArgumentMap["model.text.paragraph.Paragraph.element.get"]; readonly receiver: DocxModelHandle<"Paragraph">; readonly resultHandle?: string | undefined };
   "model.section.Sections.count.call": { readonly operation: "model.section.Sections.count.call"; readonly arguments: DocxBatchArgumentMap["model.section.Sections.count.call"]; readonly receiver: DocxModelHandle<"Sections">; readonly resultHandle?: string | undefined };
   "model.section.Sections.index.call": { readonly operation: "model.section.Sections.index.call"; readonly arguments: DocxBatchArgumentMap["model.section.Sections.index.call"]; readonly receiver: DocxModelHandle<"Sections">; readonly resultHandle?: string | undefined };
   "model.section.Sections.__contains__.call": { readonly operation: "model.section.Sections.__contains__.call"; readonly arguments: DocxBatchArgumentMap["model.section.Sections.__contains__.call"]; readonly receiver: DocxModelHandle<"Sections">; readonly resultHandle?: string | undefined };

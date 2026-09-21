@@ -76,7 +76,7 @@ function resourceArguments(args: readonly string[], maxInputBytes: number): { na
   return { name, request: snapshotRemoteMcpResourceRequest(request, Math.min(maxInputBytes, policy.maxInputBytes ?? maxInputBytes)), ...policy };
 }
 
-function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; file?: string } {
+function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; file?: string; maxImportBytes?: number; timeoutMs?: number } {
   const command = args[0];
   let name: string | undefined;
   let json = false;
@@ -84,6 +84,8 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
   let requestTimeoutMs: number | undefined;
   let reset = false;
   let file: string | undefined;
+  let maxImportBytes: number | undefined;
+  let timeoutMs: number | undefined;
   for (let index = 1; index < args.length; index++) {
     const arg = args[index];
     if (arg === "--json") {
@@ -101,6 +103,12 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
       if (file !== undefined) throw new Error("--file can only be supplied once");
       file = arg === "--file" ? args[++index] : arg.slice("--file=".length);
       if (file === undefined || file === "") throw new Error("--file requires a virtual path or - for stdin");
+    } else if (command === "import" && (arg === "--max-import-bytes" || arg.startsWith("--max-import-bytes="))) {
+      if (maxImportBytes !== undefined) throw new Error("--max-import-bytes can only be supplied once");
+      maxImportBytes = positiveArgument(arg === "--max-import-bytes" ? args[++index] : arg.slice("--max-import-bytes=".length), "--max-import-bytes");
+    } else if (command === "import" && (arg === "--lock-timeout-ms" || arg.startsWith("--lock-timeout-ms="))) {
+      if (timeoutMs !== undefined) throw new Error("--lock-timeout-ms can only be supplied once");
+      timeoutMs = positiveArgument(arg === "--lock-timeout-ms" ? args[++index] : arg.slice("--lock-timeout-ms=".length), "--lock-timeout-ms", 2_147_483_647);
     } else if (arg === "--timeout-ms" || arg.startsWith("--timeout-ms=")) {
       if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
       requestTimeoutMs = positiveArgument(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length), "--timeout-ms", 2_147_483_647);
@@ -113,7 +121,7 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
     }
   }
   if (name === undefined) throw new Error(`${command} requires a server name`);
-  return { name, json, reset, noBrowser, requestTimeoutMs, file };
+  return { name, json, reset, noBrowser, requestTimeoutMs, file, maxImportBytes, timeoutMs };
 }
 
 /** Create configuration and artifact commands for a host-owned static remote registry. */
@@ -170,6 +178,9 @@ export function createRemoteMcpManagementCommand(
     "uses epoch milliseconds. Optional top-level issuedAt uses epoch milliseconds",
     "for delayed imports. Absolute expiry wins over remaining relative lifetime.", "",
     "--timeout-ms <milliseconds> bounds input, discovery and persistence (default 30000).",
+    "--lock-timeout-ms <milliseconds> sets the separate persistence lock wait (default 30000).",
+    "--max-import-bytes <bytes> bounds credential input (default 1048576).",
+    "CLI values override host import settings; the host command input limit also applies.",
     "Host-owned persistence requires an atomic import hook. Input is bounded by",
     "the host input limit; malformed JSON is rejected without quoting credentials.", "", "  --help  Show this help.", ""].join("\n");
   const help = [
@@ -305,15 +316,16 @@ export function createRemoteMcpManagementCommand(
             if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647)
               throw new Error("Import requestTimeoutMs must be a positive supported timer interval");
             const signal = AbortSignal.any([parentSignal, AbortSignal.timeout(requestTimeoutMs)]);
+            const maxImportBytes = Math.min(maxInputBytes, commandLimit(selected.maxImportBytes ?? settings?.maxImportBytes ?? maxInputBytes, "maxImportBytes"));
             const file = selected.file;
             let source = context.stdin;
             if (file !== undefined && file !== "-") {
               const path = posix.resolve(context.cwd, file);
               source = context.fs.readStream === undefined
-                ? toByteSource(await context.fs.readFile(path, { signal, maxBytes: maxInputBytes }))
+                ? toByteSource(await context.fs.readFile(path, { signal, maxBytes: maxImportBytes }))
                 : context.fs.readStream(path, { signal });
             }
-            const bytes = await collectBytes(source, { signal, maxBytes: maxInputBytes });
+            const bytes = await collectBytes(source, { signal, maxBytes: maxImportBytes });
             let json: string;
             try { json = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
             catch { throw new Error("OAuth credential input must be valid UTF-8"); }
@@ -321,7 +333,8 @@ export function createRemoteMcpManagementCommand(
               ...options, ...settings, binding: settings?.binding ?? options.authentication?.binding ?? { env: context.env },
               fetch: settings?.fetch ?? options.authentication?.fetch,
               requestTimeoutMs,
-              maxImportBytes: settings?.maxImportBytes ?? maxInputBytes, signal
+              timeoutMs: selected.timeoutMs ?? settings?.timeoutMs,
+              maxImportBytes, signal
             });
           } catch (error) {
             operation.signal.throwIfAborted();

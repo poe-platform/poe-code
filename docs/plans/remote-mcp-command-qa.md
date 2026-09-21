@@ -151,3 +151,12 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     lower response to one byte and verify exit1, empty result stdout and session
     retirement. Inspect resource help and byte-limit diagnostic screenshots and
     purge only this QA's owned fixtures.
+
+25. Import policy overrides: against a real local OAuth metadata endpoint, import
+    a virtual credential file with --max-import-bytes 4096 and
+    --lock-timeout-ms=1000 over host values of one. Verify two metadata requests,
+    exact original client/grant and timeoutMs=1000 at the atomic host hook. Lower
+    the byte budget below the payload and verify no additional metadata/hook
+    calls, nonzero status and credential-free diagnostics. Repeat via virtual
+    stdin, inspect import help/summary/byte-failure screenshots and purge owned
+    synthetic evidence. Existing native process-lock QA covers actual native locks.

@@ -343,7 +343,12 @@ stdin. `--json` emits the public import summary. `--timeout-ms` bounds input,
 discovery and persistence (default 30,000 ms). `mcp import --help` shows payload
 and expiry guidance. Management `options.credentialImport` supplies SDK settings
 and otherwise uses the authentication binding's persistence or shell environment.
-The host's `maxInputBytes` also bounds credential input (default 1 MiB).
+`--max-import-bytes <bytes>` overrides the import budget (default 1 MiB),
+and `--lock-timeout-ms <milliseconds>` overrides the separate persistence lock
+wait (default 30,000 ms). Both accept separated or inline positive values. Input
+collection stops at the smaller of the selected import budget and the host's
+`maxInputBytes` ceiling, before JSON parsing or OAuth discovery. A smaller host
+`credentialImport.maxImportBytes` budget also applies while reading.
 
 The import discovers and validates OAuth metadata, then atomically saves the
 original client and grant for the configured name/profile. It does not initialize,

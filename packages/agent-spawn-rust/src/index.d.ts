@@ -103,3 +103,6 @@ export { spawnStreaming } from "./spawn-streaming.js";
 export type { SpawnStreamingOptions, SpawnStreamingResult } from "./spawn-streaming.js";
 
 export { spawnInteractive } from "./spawn-interactive.js";
+
+export type { SpawnAcpOptions, SpawnAcpResult } from "./spawn-acp.js";
+export { spawnAcp } from "./spawn-acp.js";

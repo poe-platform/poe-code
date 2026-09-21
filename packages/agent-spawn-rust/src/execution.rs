@@ -102,3 +102,25 @@ pub fn interactive_plan(
     }
     Ok(o(fields))
 }
+
+/// ACP auto-mode rejection follows the protocol's stable option priority.
+pub fn acp_rejection(options: &Value) -> Value {
+    use crate::{field, o, s};
+    if let Value::Array(options) = options {
+        for kind in ["reject_once", "reject_always"] {
+            if let Some(option) = options
+                .iter()
+                .find(|option| field(option, "kind") == &s(kind))
+            {
+                return o(vec![
+                    ("outcome", s("selected")),
+                    ("optionId", field(option, "optionId").clone()),
+                ]);
+            }
+        }
+    }
+    o(vec![("outcome", s("cancelled"))])
+}
+pub fn acp_exit_code(stop_reason: &str) -> u32 {
+    u32::from(!matches!(stop_reason, "completed" | "end_turn"))
+}

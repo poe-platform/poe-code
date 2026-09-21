@@ -74,6 +74,8 @@ export default defineConfig({
           return path("dist/mcp-file.js");
         if (importer === path("../agent-spawn/src/acp/acp.test.ts")) {
           if (name === "./spawn.js") return path("dist/spawn-streaming.js");
+          if (name === "./spawn-acp.js") return path("dist/spawn-acp.js");
+          if (name === "@poe-code/poe-acp-client") return path("dist/acp/acp-client.js");
           if (name === "../adapters/index.js") return path("dist/adapters.js");
           if (name === "../configs/mcp-file.js") return path("dist/mcp-file.js");
           if (name === "@poe-code/agent-skill-config") return path("dist/skills/index.js");
@@ -131,7 +133,7 @@ export default defineConfig({
                   !(
                     id === args
                       ? ["buildSpawnArgs", "stripModelNamespace", "spawn"]
-                      : ["acp/readLines", "acp/applyMiddlewares", "acp/spawnStreaming"]
+                      : ["acp/readLines", "acp/applyMiddlewares", "acp/spawnStreaming", "spawnAcp"]
                   ).includes(title.text)
                 )
                   return undefined;

@@ -107,3 +107,20 @@ fn interactive_transport_uses_interactive_catalog_arguments_without_print_mode()
     };
     assert!(!args.contains(&v(r#""-p""#)));
 }
+
+#[test]
+fn acp_permissions_prioritize_single_rejection_and_stop_reasons_are_explicit() {
+    assert_eq!(
+        execution::acp_rejection(&v(
+            r#"[{"kind":"reject_always","optionId":"all"},{"kind":"reject_once","optionId":"one"}]"#
+        )),
+        v(r#"{"outcome":"selected","optionId":"one"}"#)
+    );
+    assert_eq!(
+        execution::acp_rejection(&v(r#"[{"kind":"allow_once","optionId":"allow"}]"#)),
+        v(r#"{"outcome":"cancelled"}"#)
+    );
+    assert_eq!(execution::acp_exit_code("completed"), 0);
+    assert_eq!(execution::acp_exit_code("end_turn"), 0);
+    assert_eq!(execution::acp_exit_code("cancelled"), 1);
+}

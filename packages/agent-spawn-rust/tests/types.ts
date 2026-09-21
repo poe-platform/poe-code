@@ -109,3 +109,7 @@ type Interactive = Pick<typeof original, "spawnInteractive">;
 const interactiveA: Interactive = own;
 const interactiveB: Pick<typeof own, keyof Interactive> = null as unknown as Interactive;
 void [interactiveA, interactiveB];
+
+const acpOwn: typeof original.spawnAcp = own.spawnAcp;
+const acpReference: typeof own.spawnAcp = null as unknown as typeof original.spawnAcp;
+void [acpOwn, acpReference];

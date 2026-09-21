@@ -14,8 +14,22 @@ function freeze(value) {
   }
   return value;
 }
+function snapshotMcpServers(servers) {
+  return Object.fromEntries(
+    Object.entries(servers).map(([name, server]) => [
+      name,
+      {
+        command: server.command,
+        args: server.args,
+        env: server.env,
+        timeout: server.timeout,
+        autoApprove: server.autoApprove
+      }
+    ])
+  );
+}
 export function toJsonMcpServers(servers) {
-  const mapped = native.spawnJsonServers(JSON.stringify(servers));
+  const mapped = native.spawnJsonServers(JSON.stringify(snapshotMcpServers(servers)));
   for (const key of Object.keys(mapped)) {
     if (mapped[key].args) mapped[key].args = servers[key].args;
     if (mapped[key].env) mapped[key].env = servers[key].env;
@@ -23,16 +37,16 @@ export function toJsonMcpServers(servers) {
   return Object.assign(Object.create(null), mapped);
 }
 export function serializeGooseMcpArgs(servers) {
-  return native.spawnMcp(JSON.stringify(servers), "goose");
+  return native.spawnMcp(JSON.stringify(snapshotMcpServers(servers)), "goose");
 }
 export function serializeOpenCodeMcpEnv(servers) {
-  return native.spawnMcp(JSON.stringify(servers), "opencode");
+  return native.spawnMcp(JSON.stringify(snapshotMcpServers(servers)), "opencode");
 }
 export function serializeCodexMcpArgs(servers) {
-  return native.spawnMcp(JSON.stringify(servers), "codex");
+  return native.spawnMcp(JSON.stringify(snapshotMcpServers(servers)), "codex");
 }
 export function serializeJsonMcpArgs(servers) {
-  return native.spawnMcp(JSON.stringify(servers), "json");
+  return native.spawnMcp(JSON.stringify(snapshotMcpServers(servers)), "json");
 }
 function config(entry, descriptor, acp) {
   if (!descriptor) return undefined;
@@ -45,9 +59,11 @@ function config(entry, descriptor, acp) {
     id = entry.metadata.id;
   const result = { ...data, agentId: id };
   if (mcp?.channel === "args")
-    result.mcpArgs = (servers) => native.spawnMcp(JSON.stringify(servers), mcp.format);
+    result.mcpArgs = (servers) =>
+      native.spawnMcp(JSON.stringify(snapshotMcpServers(servers)), mcp.format);
   if (mcp?.channel === "env")
-    result.mcpEnv = (servers) => native.spawnMcp(JSON.stringify(servers), mcp.format);
+    result.mcpEnv = (servers) =>
+      native.spawnMcp(JSON.stringify(snapshotMcpServers(servers)), mcp.format);
   if (mcp?.channel === "file")
     result.mcpFile = {
       relativePath: mcp.relativePath,

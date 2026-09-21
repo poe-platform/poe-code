@@ -590,3 +590,17 @@ pub struct QueueBatch {
     pub tokens: Vec<f64>,
     pub kind: Option<String>,
 }
+
+#[path = "../../../poe-acp-client-rust/bindings/src/lib.rs"]
+mod acp;
+pub use acp::*;
+#[napi]
+pub fn spawn_acp_rejection(options: Utf16String) -> Result<NativeJson> {
+    Ok(NativeJson(agent_spawn_rust::execution::acp_rejection(
+        &parse(options)?,
+    )))
+}
+#[napi]
+pub fn spawn_acp_exit_code(stop_reason: String) -> u32 {
+    agent_spawn_rust::execution::acp_exit_code(&stop_reason)
+}

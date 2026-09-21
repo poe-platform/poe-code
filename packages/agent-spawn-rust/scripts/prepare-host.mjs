@@ -67,7 +67,8 @@ function embedHosts(source, target) {
               current.text.endsWith("/process-runner-rust.node") ||
               current.text.endsWith("/agent-skill-config-rust.node") ||
               current.text.endsWith("/agent-hook-config-rust.node") ||
-              current.text.endsWith("/toolcraft-design-rust.node"))
+              current.text.endsWith("/toolcraft-design-rust.node") ||
+              current.text.endsWith("/poe-acp-client-rust.node"))
           )
             return ts.factory.createStringLiteral(binding);
           return ts.visitEachChild(current, visit, context);
@@ -91,3 +92,5 @@ embedHosts(
 );
 embedHosts(new URL("../../agent-hook-config-rust/dist/", import.meta.url), new URL("hooks/", dist));
 embedHosts(new URL("../../toolcraft-design-rust/dist/", import.meta.url), new URL("design/", dist));
+
+embedHosts(new URL("../../poe-acp-client-rust/dist/", import.meta.url), new URL("acp/", dist));

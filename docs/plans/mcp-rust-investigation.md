@@ -6610,3 +6610,45 @@ Streaming eddb3ac04 pushed and exact remote main verified. Root release356156091
 still in_progress; no successful current root publication verified. Foreign
 changes preserved. Continuous14:56:11–15:05:48 adds577s,total119083s(33.08h).
 Minimum fulfilled; full objective incomplete. Continue accounting after15:05:48UTC.
+
+### Owned ACP session execution, 2026-09-21 15:22 UTC
+
+Missing ACP core/SDK APIs reproduced before implementation. Added spawnAcp with
+the embedded owned protocol client behind the same addon. Rust owns permission
+rejection priority, stop-reason exits, catalog/model/MCP policy, protocol state,
+usage totals and delivery FIFO. Node owns process effects, authentication/session
+orchestration, abort/disposal, middleware history and opaque event identity.
+Session loading respects negotiated capabilities; auto mode rejects permissions
+explicitly and yolo approves. Runtime overrides reject before starting a client.
+No original consumer integration.
+
+Maintained26Rust cases/38native groups/446SDK cases in14files and bidirectional
+ACP signatures pass. Native comparisons use both real production clients over
+in-memory JSON-RPC process fixtures, including permissions, resume, usage,
+metadata/history and delivery disposal. A hidden-own MCP property regression
+reproduced against the reference, then explicit business-field snapshots repaired
+validation/serialization while retaining host args/env identity. The initial load
+fixture correctly failed without advertised loading support; fixed the fixture.
+fmt/clippy/shared checks/changed-scope ESLint pass. Final selected uncached38-build
+closure passes at concurrency1. Viewed out/rust-spawn-acp.png with the real owned
+protocol engine and a clearly identified in-memory process fixture.
+
+Packed one addon/382audited sources+declarations/zero npm runtime groups. Blocked
+external imports pass. Combined direct/packed24MiBworkers each complete512spawns,
+512dryruns,64parallel,128streams/8192events,128interactive,128ACP runs and1024
+abandonments. Combined16MiBworkers FAIL with heap exhaustion; retain that limit
+as an open memory acceptance result. Isolated direct/packed16MiBworkers each
+complete2048ACP runs; sampled live JS heap settles around9MiB. Initial synchronous
+fixtures accumulated stream-close nextTick work during uninterrupted microtasks;
+one event-loop turn between ACP runs models real child I/O and fixes the isolated
+failure. Fixture launch records are released after each run. Client-only imports
+also avoid loading unused protocol report/stream hosts. Old-generation limits do
+not bound total/native memory; RSS is shared, not superiority evidence. No ACP
+performance superiority asserted. Evidence out/rust-spawn-acp-*; script quoting
+errors and diagnostic overlapping helper/worker run are not acceptance evidence.
+
+Interactive6011190fc pushed and exact remote main verified. Root release35615609195
+still unit in_progress, every other validation job succeeded. No successful current
+root publication verified. Foreign changes preserved. Continuous15:05:48–15:22:02
+adds974s,total120057s(33.35h). Minimum fulfilled; full objective incomplete.
+Continue accounting after15:22:02UTC.

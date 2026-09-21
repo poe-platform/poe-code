@@ -185,3 +185,20 @@ Interactive execution inherits the terminal streams and uses each agent’s
 declarative prompt, resume, model and mode policies. Runtime overrides and
 resource bridges share the captured execution path. Agents without interactive
 support reject before opening a runtime.
+
+```typescript
+import { spawnAcp } from '@poe-code/agent-spawn-rust';
+
+const handle = spawnAcp({ agentId: 'opencode', prompt: 'Review this repository' });
+for await (const event of handle.events) render(event);
+console.log(await handle.done);
+```
+
+ACP execution embeds the owned Rust protocol client in the same addon. It
+initializes and authenticates when required, creates or resumes sessions, and
+returns assistant text, thread ID and reported response usage. Auto mode rejects
+permission requests explicitly; yolo mode approves them. Abort cancels the active
+session and disposes the client. Middleware keeps its transcript and may replace
+the delivered stream; closing delivery releases unread events. ACP does not
+support runtime overrides. MCP command and environment fields retain hidden own
+properties at the host boundary.

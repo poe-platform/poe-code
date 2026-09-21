@@ -50,3 +50,8 @@ type Stream = Pick<typeof original, "readLines" | "applyMiddlewares">;
 const k: Stream = own;
 const l: Pick<typeof own, keyof Stream> = null as unknown as Stream;
 void [k, l];
+
+type Render = Pick<typeof original, "createToolRenderState" | "sessionUpdateToEvents">;
+const m: Render = own;
+const n: Pick<typeof own, keyof Render> = null as unknown as Render;
+void [m, n];

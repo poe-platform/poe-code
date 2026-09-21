@@ -24,7 +24,8 @@ export default defineConfig({
             path("../agent-spawn/src/run-command.integration.test.ts"),
             path("../agent-spawn/src/adapters/adapters.test.ts"),
             path("../agent-spawn/src/adapters/action-presentation.test.ts"),
-            path("../agent-spawn/src/acp/acp.test.ts")
+            path("../agent-spawn/src/acp/acp.test.ts"),
+            path("../agent-spawn/src/acp/session-update-converter.test.ts")
           ].includes(importer) &&
           name === "./run-command.js"
         )
@@ -33,7 +34,8 @@ export default defineConfig({
           [
             path("../agent-spawn/src/adapters/adapters.test.ts"),
             path("../agent-spawn/src/adapters/action-presentation.test.ts"),
-            path("../agent-spawn/src/acp/acp.test.ts")
+            path("../agent-spawn/src/acp/acp.test.ts"),
+            path("../agent-spawn/src/acp/session-update-converter.test.ts")
           ].includes(importer)
         ) {
           if (
@@ -55,6 +57,11 @@ export default defineConfig({
           ["./line-reader.js", "./middleware.js"].includes(name)
         )
           return path("dist/stream.js");
+        if (
+          importer === path("../agent-spawn/src/acp/session-update-converter.test.ts") &&
+          name === "./session-update-converter.js"
+        )
+          return path("dist/render.js");
         if (importer === types && name === "./types.js") return path("dist/types.js");
         if (importer === configs) {
           if (["./index.js", "./mcp.js", "./resolve-config.js", "../types.js"].includes(name))
@@ -116,7 +123,8 @@ export default defineConfig({
       path("../agent-spawn/src/run-command.integration.test.ts"),
       path("../agent-spawn/src/adapters/adapters.test.ts"),
       path("../agent-spawn/src/adapters/action-presentation.test.ts"),
-      path("../agent-spawn/src/acp/acp.test.ts")
+      path("../agent-spawn/src/acp/acp.test.ts"),
+      path("../agent-spawn/src/acp/session-update-converter.test.ts")
     ],
     environment: "node",
     fileParallelism: false,

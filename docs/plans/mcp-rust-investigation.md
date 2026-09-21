@@ -3477,3 +3477,35 @@ and diff whitespace checks pass. Evidence out/rust-root-private-workspace-* and
 out/rust-release-35557365606-unit.log. Stream-framing commit7efd29145 was pushed;
 remote ancestry/release verification will continue separately. Goal and minimum
 24-hour effort remain unfinished; no publication is verified.
+
+### ACP session-update conversion, 2026-09-21 03:48 UTC
+
+The independent converter uses Rust for render-kind/title/tool-start/completion
+admission and usage/cache/reported-cost policy. Public mutable sets/maps supply
+per-tool facts to Rust; original state identity and caller mutations are preserved.
+Opaque raw inputs and plan entries stay in the originating isolate. Node supplies
+JSON/string effects for opaque output only after Rust emits a completion; Rust
+selects text-content fallback. Portable red tests precede implementation. Native
+reds reproduce eager pending-output/deduplicated-input effects and unnecessary
+cost/unused-title getter evaluation. Effects are now deferred to emitted events,
+USD costs are captured once and unused update titles are not read.
+
+All17 portable Rust cases,13 native groups and310 applicable original cases pass.
+The complete original converter suite (16 cases) is redirected without filters.
+Native checks preserve cyclic input/plan-entry identity, cyclic-output fallback,
+external state clearing/changes, surrogate ids/titles, NaN/Infinity usage and cost
+reporting. Bidirectional public declarations, focused unit/types/lint/fmt/clippy/
+formatting and explicit uncached build closure pass. Direct/packed16MiB workers
+each convert2048 updates into2048 render events, retain4 public render states and
+complete the existing planning/retry/parallel/command/adapter/framing/middleware
+workload. Recursive AST import audit covers38 files, one addon and no npm runtime
+/peer/optional groups. Heap endpoints~9.1/~12.8MB are bounded workload evidence;
+RSS includes auditor parent. Caller-owned render maps retain tool history until
+cleared/discarded. Structured conversion fields use the disclosed bounded parser;
+unrestricted host-value interoperability and aggregate/getter/performance
+acceptance remain unfinished. Evidence out/rust-agent-spawn-render-*. This is
+locally verified; delivery is recorded separately. Root metadata correction
+45c7cf2e5 and stream commit7efd29145 are verified ancestors of remote main.
+Release35558479691 is in progress; no successful publication is verified. Full
+spawn/runtime/telemetry/resource/design and poe-agent closure remain unfinished,
+as does the minimum24-hour actual effort. Work continues beyond03:41:16 boundary.

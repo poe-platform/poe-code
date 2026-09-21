@@ -508,3 +508,34 @@ pub fn spawn_middleware_callback(position: u32, callable: bool) -> Result<()> {
     agent_spawn_rust::stream::validate_callback(position as usize, callable)
         .map_err(Error::from_reason)
 }
+#[napi]
+pub fn spawn_render_kind(kind: Option<Utf16String>) -> Utf16String {
+    agent_spawn_rust::render::render_kind(kind.as_deref()).into()
+}
+#[napi]
+pub fn spawn_render_convert(
+    input: Utf16String,
+    started: bool,
+    kind: Option<Utf16String>,
+    title: Option<Utf16String>,
+    numbers: Vec<Option<f64>>,
+) -> Result<NativeJson> {
+    Ok(NativeJson(agent_spawn_rust::render::convert(
+        &parse(input)?,
+        agent_spawn_rust::render::Facts {
+            started,
+            prior_kind: kind.map(|v| v.to_vec()),
+            prior_title: title.map(|v| v.to_vec()),
+            numbers,
+        },
+    )))
+}
+#[napi]
+pub fn spawn_render_output(content: Utf16String) -> Result<Utf16String> {
+    let content = parse(content)?;
+    let value = Value::Object(vec![("content".encode_utf16().collect(), content)]);
+    match agent_spawn_rust::render::output(&value) {
+        Value::String(value) => Ok(value.into()),
+        _ => Err(Error::from_reason("Invalid tool output")),
+    }
+}

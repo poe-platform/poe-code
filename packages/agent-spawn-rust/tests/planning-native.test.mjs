@@ -271,3 +271,116 @@ test("line framing agrees for every UTF-8 split and preserves CR/empty lines", a
       (error) => Object.is(error, reason)
     );
 });
+test("session conversion defers opaque payload effects until emitted tool events", () => {
+  for (const implementation of [reference, own]) {
+    const state = implementation.createToolRenderState();
+    const update = {
+      sessionUpdate: "tool_call_update",
+      toolCallId: "t",
+      status: "pending",
+      get rawOutput() {
+        throw Error("must not serialize pending output");
+      }
+    };
+    assert.equal(implementation.sessionUpdateToEvents(update, state)[0].event, "tool_start");
+    const repeated = {
+      sessionUpdate: "tool_call",
+      toolCallId: "t",
+      kind: "read",
+      title: "file",
+      status: "pending",
+      get rawInput() {
+        throw Error("must not read input for a deduplicated start");
+      }
+    };
+    assert.deepEqual(implementation.sessionUpdateToEvents(repeated, state), []);
+  }
+});
+test("session conversion preserves opaque input/plan identity, mutable state and NaN usage", () => {
+  for (const implementation of [reference, own]) {
+    const state = implementation.createToolRenderState(),
+      payload = {};
+    payload.self = payload;
+    const entry = { content: "step", priority: "medium", status: "pending", _meta: payload },
+      entries = [entry];
+    assert.equal(
+      implementation.sessionUpdateToEvents({ sessionUpdate: "plan", entries }, state)[0].entries,
+      entries
+    );
+    const update = {
+      sessionUpdate: "tool_call",
+      toolCallId: "t\ud800",
+      title: "file\udc00",
+      kind: "execute",
+      rawInput: payload,
+      status: "pending"
+    };
+    assert.equal(implementation.sessionUpdateToEvents(update, state)[0].input, payload);
+    state.startedToolCalls.clear();
+    state.toolCallKinds.set(update.toolCallId, "read");
+    const complete = implementation.sessionUpdateToEvents(
+      {
+        sessionUpdate: "tool_call_update",
+        toolCallId: update.toolCallId,
+        status: "completed",
+        rawInput: payload,
+        rawOutput: payload
+      },
+      state
+    );
+    assert.equal(complete[0].kind, "read");
+    assert.equal(complete[0].input, payload);
+    assert.equal(complete[1].path, "[object Object]");
+    const usage = implementation.sessionUpdateToEvents(
+      {
+        sessionUpdate: "usage_update",
+        used: 10,
+        size: 20,
+        _meta: { inputTokens: NaN, outputTokens: Infinity, cachedTokens: NaN },
+        cost: { amount: 0.1, currency: "USD" }
+      },
+      state
+    )[0];
+    assert.ok(Number.isNaN(usage.inputTokens));
+    assert.equal(usage.outputTokens, Infinity);
+    assert.equal(Object.hasOwn(usage, "cachedTokens"), false);
+    assert.equal(usage.costUsd, 0.1);
+  }
+});
+test("reported costs are read only for USD and unused update titles stay opaque", () => {
+  for (const implementation of [reference, own]) {
+    for (const currency of ["USD", "EUR"]) {
+      let reads = 0;
+      const value = implementation.sessionUpdateToEvents(
+        {
+          sessionUpdate: "usage_update",
+          used: 1,
+          size: 2,
+          cost: {
+            currency,
+            get amount() {
+              reads++;
+              return 0.1;
+            }
+          }
+        },
+        implementation.createToolRenderState()
+      )[0];
+      assert.equal(reads, currency === "USD" ? 1 : 0);
+      assert.equal(Object.hasOwn(value, "costUsd"), currency === "USD");
+    }
+    assert.deepEqual(
+      implementation.sessionUpdateToEvents(
+        {
+          sessionUpdate: "tool_call_update",
+          toolCallId: "t",
+          get title() {
+            throw Error("unused title");
+          }
+        },
+        implementation.createToolRenderState()
+      ),
+      []
+    );
+  }
+});

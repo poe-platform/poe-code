@@ -3,6 +3,7 @@ pub mod adapters;
 pub mod command;
 pub mod mcp;
 pub mod parallel;
+pub mod render;
 pub mod retry;
 pub mod stream;
 use agent_defs_rust::{Definition, Registry};

@@ -80,7 +80,7 @@ writeFileSync(
   new URL("src/index.d.ts", root),
   imports +
     index +
-    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\nexport {runCommand} from './run-command.js';\nexport type {CommandRunner,CommandRunnerOptions,CommandRunnerResult} from './run-command.js';\nexport {adaptClaude,adaptCodex,adaptNative,getAdapter} from './adapters.js';\nexport {readLines,applyMiddlewares} from './stream.js';\n"
+    "\nexport {createSpawnRetry,calculateBackoffMs,defaultIsRetryable} from './retry.js';\nexport type {SpawnRetryOptions,SpawnHandle,SpawnRetryFunction} from './retry.js';\nexport {createSpawnParallel,SpawnParallelError} from './parallel.js';\nexport type {SpawnParallelTuple,SpawnParallelThunk,SpawnParallelCall,SpawnParallelOptions} from './parallel.js';\nexport {runCommand} from './run-command.js';\nexport type {CommandRunner,CommandRunnerOptions,CommandRunnerResult} from './run-command.js';\nexport {adaptClaude,adaptCodex,adaptNative,getAdapter} from './adapters.js';\nexport {readLines,applyMiddlewares} from './stream.js';\nexport {createToolRenderState,sessionUpdateToEvents} from './render.js';\nexport type {ToolRenderState} from './render.js';\n"
 );
 
 writeFileSync(
@@ -183,4 +183,37 @@ writeFileSync(
     "\n" +
     declarations("acp/line-reader.d.ts", ["readLines"]) +
     "\n"
+);
+
+const renderSource = ts.createSourceFile(
+  "render.d.ts",
+  readFileSync(new URL("../agent-spawn/dist/acp/session-update-converter.d.ts", root), "utf8"),
+  ts.ScriptTarget.Latest,
+  true,
+  ts.ScriptKind.TS
+);
+writeFileSync(
+  new URL("src/render.d.ts", root),
+  renderSource.statements
+    .map((statement) => {
+      if (ts.isImportDeclaration(statement)) {
+        const name = statement.moduleSpecifier.text;
+        const local =
+          name === "@poe-code/poe-acp-client"
+            ? "./acp-protocol-types.js"
+            : name === "./types.js"
+              ? "./acp-types.js"
+              : null;
+        if (!local) throw Error("Unexpected render contract dependency");
+        statement = ts.factory.updateImportDeclaration(
+          statement,
+          statement.modifiers,
+          statement.importClause,
+          ts.factory.createStringLiteral(local),
+          statement.attributes
+        );
+      }
+      return ts.createPrinter().printNode(ts.EmitHint.Unspecified, statement, renderSource);
+    })
+    .join("\n") + "\n"
 );

@@ -180,3 +180,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     selected AbortSignal still cancels after its option handle is replaced. Use
     explicit in-memory session stores; inspect safe summary output visually and
     purge only this QA's synthetic directory and screenshot after recording.
+
+19. Establish an offline_access grant against a real local issuer using native
+    encrypted session persistence. Expire the stored grant, recreate a headless
+    provider, and hold its rotating refresh request. During redemption, mutate
+    the original fileStore path and encryption salt. Inspect the original record
+    for durable pending intent and require the original lock claim to remain.
+    Start an independently recreated follower against the original settings,
+    release redemption, and require exactly one refresh and identical winning
+    Authorization headers. The original record must retain the rotated grant,
+    the replacement directory must remain absent, released lock claims must be
+    empty, and encrypted files must contain none of the synthetic tokens. Purge
+    only this QA's data before a visual rerun, then record results and purge its
+    entire owned out directory and screenshot.

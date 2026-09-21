@@ -61,6 +61,9 @@ The default provider captures client, interaction, callback, landing-page and
 lock policies when created. Create a new provider to change those settings.
 Selected callbacks, stores, clocks and AbortSignals remain live host dependencies;
 aborting the original signal still cancels authorization.
+Native session and client persistence factories also capture file paths, salts,
+Keychain identities, lock locations and selected filesystem/command handles.
+Mutating these settings cannot redirect a later read or write.
 
 `createJwksTokenVerifier(options)` accepts:
 

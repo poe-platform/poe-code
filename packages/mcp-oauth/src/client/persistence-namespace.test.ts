@@ -41,6 +41,54 @@ it("isolates stored dynamic clients across profiles sharing an issuer", async ()
   expect(await createAuthStoreClientStore(f.options, "profile-b").load(issuer)).toEqual({ clientId: "b", clientSecret: "private-b" });
 });
 
+it.each(["path", "salt", "replacement"])("captures session persistence %s before caller configuration changes", async mutation => {
+  const f = fixture(), original = { ...f.options, fileStore: { ...f.options.fileStore } };
+  const store = createAuthStoreSessionStore(f.options, "profile-a");
+  if (mutation === "path") f.options.fileStore.filePath = "/home/other/session.enc";
+  else if (mutation === "salt") f.options.fileStore.salt = "other-salt";
+  else f.options.fileStore = { ...f.options.fileStore, filePath: "/home/other/session.enc", salt: "other-salt" };
+  await store.save(resource, session);
+  expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toEqual(session);
+  expect(await store.load(resource)).toEqual(session);
+  await store.clear(resource);
+  expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toBeNull();
+});
+
+it("captures issuer-client persistence before caller configuration changes", async () => {
+  const f = fixture(), original = { ...f.options, fileStore: { ...f.options.fileStore } };
+  const store = createAuthStoreClientStore(f.options, "profile-a");
+  f.options.fileStore.filePath = "/home/other/client.enc";
+  const client = { clientId: "original-app", clientSecret: "original-private-secret" };
+  await store.save(issuer, client);
+  expect(await createAuthStoreClientStore(original, "profile-a").load(issuer)).toEqual(client);
+  expect(await store.load(issuer)).toEqual(client);
+  await store.clear(issuer);
+  expect(await createAuthStoreClientStore(original, "profile-a").load(issuer)).toBeNull();
+});
+
+it("keeps transaction writes on the originally locked credential record", async () => {
+  const f = fixture(), original = { ...f.options, fileStore: { ...f.options.fileStore } };
+  const store = createAuthStoreSessionStore(f.options, "profile-a");
+  await store.withLock!(resource, async () => {
+    f.options.fileStore.filePath = "/home/other/session.enc";
+    await expect(createAuthStoreSessionStore(original, "profile-a").withLock!(resource, async () => "bypassed", { timeoutMs: 0 })).rejects.toThrow("lock");
+    await store.save(resource, session);
+    expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toEqual(session);
+    expect(await f.fs.readdir("/home/test")).toHaveLength(2);
+  }, { timeoutMs: 1000 });
+  const names = await f.fs.readdir("/home/test");
+  expect(names.filter(name => name.endsWith(".enc"))).toHaveLength(1);
+  expect(await f.fs.readdir(`/home/test/${names.find(name => name.endsWith(".lock"))}`)).toEqual([]);
+});
+
+it("retains the original host filesystem dependency after option-handle replacement", async () => {
+  const f = fixture(), original = { ...f.options, fileStore: { ...f.options.fileStore } };
+  const store = createAuthStoreSessionStore(f.options, "profile-a");
+  f.options.fileStore.fs = createFsFromVolume(new Volume()).promises;
+  await store.save(resource, session);
+  expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toEqual(session);
+});
+
 it("uses the provider's namespace consistently while preserving another profile's pending refresh", async () => {
   const f = fixture();
   await createAuthStoreSessionStore(f.options, "profile-a").save(resource, session);
@@ -80,6 +128,30 @@ it("uses distinct Keychain accounts for profiles sharing the configured service/
   const accounts = new Set(runCommand.mock.calls.map(([, args]) => args[args.indexOf("-a") + 1]));
   expect(accounts.size).toBe(2);
   expect([...accounts].join(" ")).not.toContain("profile-");
+});
+
+it("captures Keychain identity, lock location and command dependency at creation", async () => {
+  const values = new Map<string, string>(), fs = createFsFromVolume(new Volume()).promises;
+  const runCommand = vi.fn(async (_command: string, args: string[]) => {
+    const key = JSON.stringify([args[args.indexOf("-s") + 1], args[args.indexOf("-a") + 1]]);
+    if (args[0] === "add-generic-password") { values.set(key, args[args.indexOf("-w") + 1]); return { stdout: "", stderr: "", exitCode: 0 }; }
+    return { stdout: values.get(key) ?? "", stderr: "", exitCode: values.has(key) ? 0 : 44 };
+  });
+  const options = { backend: "keychain" as const, platform: "darwin" as const,
+    keychainStore: { service: "original-service", account: "original-account", runCommand, lock: { fs, directory: "/locks/original" } } };
+  const original = { ...options, keychainStore: { ...options.keychainStore, lock: { ...options.keychainStore.lock } } };
+  const store = createAuthStoreSessionStore(options, "profile-a");
+  options.keychainStore.service = "replacement-service";
+  options.keychainStore.account = "replacement-account";
+  options.keychainStore.lock.directory = "/locks/replacement";
+  options.keychainStore.runCommand = vi.fn(async () => { throw new Error("replacement command invoked"); });
+  await store.withLock!(resource, async () => {
+    expect(await fs.readdir("/locks/original")).toHaveLength(1);
+    await store.save(resource, session);
+  }, { timeoutMs: 1000 });
+  expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toEqual(session);
+  expect([...values.keys()][0]).toContain("original-service");
+  expect([...values.keys()][0]).toContain("original-account:");
 });
 
 it.each(["", "   ", "a".repeat(1025), "😀".repeat(257), 42])("rejects invalid namespaces before storing credentials: %s", namespace => {

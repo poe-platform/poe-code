@@ -25,6 +25,7 @@ export function createAuthStoreSessionStore(
   namespace?: string
 ): OAuthSessionStore {
   assertPersistenceNamespace(namespace);
+  options = snapshotPersistenceOptions(options);
   return {
     async withLock(resource, operation, lockOptions) {
       const store = createResourceSecretStore(resource, options, namespace);
@@ -60,6 +61,7 @@ export function createAuthStoreSessionStore(
 
 export function createAuthStoreClientStore(options: CreateSecretStoreInput, namespace?: string): OAuthClientStore {
   assertPersistenceNamespace(namespace);
+  options = snapshotPersistenceOptions(options);
   return {
     async load(issuer: string): Promise<StoredOAuthClient | null> {
       const store = createIssuerSecretStore(issuer, options, namespace);
@@ -86,6 +88,15 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput, name
       const store = createIssuerSecretStore(issuer, options, namespace);
       await store.delete();
     }
+  };
+}
+
+function snapshotPersistenceOptions(options: CreateSecretStoreInput): CreateSecretStoreInput {
+  return {
+    ...options,
+    ...(options.fileStore === undefined ? {} : { fileStore: { ...options.fileStore } }),
+    ...(options.keychainStore === undefined ? {} : { keychainStore: { ...options.keychainStore,
+      ...(options.keychainStore.lock === undefined ? {} : { lock: { ...options.keychainStore.lock } }) } })
   };
 }
 

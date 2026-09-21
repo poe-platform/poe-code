@@ -21,3 +21,10 @@ workspace. Keep temporary host fixtures and outputs in
    functional validation; do not query a live third-party service.
 5. Record the observed results in the main remote MCP progress ledger. Remove
    only this QA's fixture and output directory.
+6. Repeat generation with external input/output references and a generation
+   `schemaRegistry`. Run a local HTTP MCP endpoint, then load the written ESM
+   module in a separate process from cwd `/` without supplying another registry.
+   Verify schema-derived help, string identity preservation and structured
+   output validation. Loading must not perform another tools/list request.
+   Compare repeated JSON/module bytes, inspect the archived registry screenshot,
+   and verify no synthetic runtime credential appears in the archive.

@@ -162,3 +162,122 @@ it("bounds generated and parsed artifact bytes and observes cancellation before 
   await expect(generateRemoteMcpArtifact(configuration, { schema: { fetch, signal: controller.signal } })).rejects.toBe(reason);
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it("archives external input and output documents for a dependency-free imported module", async () => {
+  const id = "https://catalog.example/schema";
+  const registry = { [id]: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } };
+  const referenced = { ...tool, inputSchema: { $ref: id }, outputSchema: { $ref: id } };
+  const configuration = initRemoteMcpConfiguration([{ ...server, tools: [referenced] }]).configuration;
+  const generated = await generateRemoteMcpArtifact(configuration, { schemaRegistry: registry });
+  expect(generated.artifact.schemaRegistry).toEqual(registry);
+  registry[id].properties.query.type = "integer";
+  const module = await import(`data:text/javascript;base64,${Buffer.from(generated.module).toString("base64")}`);
+  const f = remote(), shell = new Shell({ fs: createMemoryFileSystem() });
+  shell.use(await remoteMcpArtifactPlugin(module.default, { binding: { env: {} }, commands: { fetch: f.fetch } }));
+  try {
+    const result = await shell.exec("catalog search_items --query 005930");
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout).structuredContent).toEqual({ query: "005930" });
+    expect(f.requests.some(request => request.method === "tools/list")).toBe(false);
+  } finally { await shell.dispose(); }
+});
+
+it("snapshots external documents before discovery and hashes their contents deterministically", async () => {
+  const id = "https://catalog.example/schema", document = { type: "string", enum: ["b", "a"] };
+  const registry = { [id]: document };
+  const configuration = initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration;
+  const pending = generateRemoteMcpArtifact(configuration, { schemaRegistry: registry });
+  document.type = "integer";
+  const first = await pending;
+  const second = await generateRemoteMcpArtifact(configuration, { schemaRegistry: { [id]: { enum: ["b", "a"], type: "string" } } });
+  expect(first.json).toBe(second.json);
+  expect(first.module).toBe(second.module);
+  const changed = structuredClone(first.artifact);
+  changed.schemaRegistry![id] = false;
+  expect(() => parseRemoteMcpArtifact(changed)).toThrow("digest");
+});
+
+it("rejects unsafe or oversized registries before reading credentials or connecting", async () => {
+  const { configuration } = initRemoteMcpConfiguration([{ ...server, auth: { type: "bearer", env: "TOKEN" } }]);
+  const getter = vi.fn(() => ({ type: "string" })), fetch = vi.fn<HttpTransportFetch>();
+  const registry = Object.defineProperty({}, "https://catalog.example/schema", { enumerable: true, get: getter });
+  const env = { get TOKEN(): string { throw new Error("read secret"); } };
+  await expect(generateRemoteMcpArtifact(configuration, { schemaRegistry: registry, binding: { env }, schema: { fetch } })).rejects.toThrow("schema registry");
+  await expect(generateRemoteMcpArtifact(configuration, { schemaRegistry: { large: { description: "x".repeat(1024) } }, maxArtifactBytes: 100, binding: { env }, schema: { fetch } })).rejects.toThrow("artifact byte limit");
+  expect(getter).not.toHaveBeenCalled();
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+it("refuses incomplete external-reference artifacts instead of emitting unusable commands", async () => {
+  const configuration = initRemoteMcpConfiguration([{ ...server, tools: [{ ...tool, inputSchema: { $ref: "https://catalog.example/missing" } }] }]).configuration;
+  await expect(generateRemoteMcpArtifact(configuration)).rejects.toThrow();
+});
+
+it("rejects conflicting host registry overrides before consulting runtime credentials", async () => {
+  const id = "https://catalog.example/schema", registry = { [id]: { type: "string" } };
+  const { configuration } = initRemoteMcpConfiguration([{ ...server, tools: [tool], auth: { type: "bearer", env: "TOKEN" } }]);
+  const generated = await generateRemoteMcpArtifact(configuration, { schemaRegistry: registry });
+  const env = { get TOKEN(): string { throw new Error("read secret"); } };
+  await expect(remoteMcpArtifactPlugin(generated.artifact, { binding: { env }, commands: { schemaValidation: { registry: { [id]: false } } } })).rejects.toThrow("registry conflict");
+  const f = remote(), shell = new Shell({ fs: createMemoryFileSystem() });
+  shell.use(await remoteMcpArtifactPlugin(generated.artifact, { binding: { env: { TOKEN: "runtime-secret" } }, commands: { fetch: f.fetch, schemaValidation: { registry } } }));
+  try { expect((await shell.exec("catalog search_items --query x")).exitCode).toBe(0); }
+  finally { await shell.dispose(); }
+});
+
+it("rejects host additions that could redefine archived document identities", async () => {
+  const id = "https://catalog.example/schema";
+  const configuration = initRemoteMcpConfiguration([{ ...server, tools: [{ ...tool, inputSchema: { $ref: id } }] }]).configuration;
+  const generated = await generateRemoteMcpArtifact(configuration, { schemaRegistry: { [id]: tool.inputSchema } });
+  await expect(remoteMcpArtifactPlugin(generated.artifact, { binding: { env: {} }, commands: { schemaValidation: { registry: {
+    "https://catalog.example/z-alias": { $id: id, type: "object", properties: { query: { type: "integer" } } }
+  } } } })).rejects.toThrow("registry conflict");
+});
+
+it("quarantines resolved credentials present in archived external documents", async () => {
+  const f = remote(), { configuration } = initRemoteMcpConfiguration([{ ...server, auth: { type: "bearer", env: "TOKEN" } }]);
+  const error = await generateRemoteMcpArtifact(configuration, { schemaRegistry: { "https://catalog.example/schema": { description: "private-token-value" } }, binding: { env: { TOKEN: "private-token-value" } }, schema: { fetch: f.fetch } }).catch(error => error);
+  expect(error).toBeInstanceOf(Error);
+  expect(error.message).toContain("resolved credential");
+  expect(error.message).not.toContain("private-token-value");
+});
+
+it("keeps registry snapshots unchanged while remote discovery is awaiting the host", async () => {
+  const id = "https://catalog.example/schema", document = { type: "string" }, f = remote();
+  let started!: () => void, resume!: () => void;
+  const ready = new Promise<void>(resolve => { started = resolve; });
+  const gate = new Promise<void>(resolve => { resume = resolve; });
+  const fetch: HttpTransportFetch = async (url, init) => {
+    if (JSON.parse(String(init?.body)).method === "initialize") { started(); await gate; }
+    return f.fetch(url, init);
+  };
+  const pending = generateRemoteMcpArtifact(initRemoteMcpConfiguration([server]).configuration, { schemaRegistry: { [id]: document }, schema: { fetch } });
+  await ready;
+  document.type = "integer";
+  resume();
+  expect((await pending).artifact.schemaRegistry).toEqual({ [id]: { type: "string" } });
+});
+
+it("rejects invalid archived documents even after recomputing their digest", async () => {
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration, { schemaRegistry: { "https://catalog.example/schema": true } });
+  const changed = structuredClone(generated.artifact);
+  changed.schemaRegistry!["https://catalog.example/schema"] = { type: "invalid" };
+  const { digest: ignoredDigest, ...payload } = changed;
+  changed.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+  expect(() => parseRemoteMcpArtifact(changed)).toThrow("JSON Schema type");
+});
+
+it("keeps older version-one artifacts compatible with host external registrations", async () => {
+  const id = "https://catalog.example/schema";
+  const generated = await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{ ...server, tools: [tool] }]).configuration);
+  const legacy = structuredClone(generated.artifact);
+  legacy.configuration.servers[0].tools![0].inputSchema = { $ref: id };
+  legacy.schemas[0].tools[0].inputSchema = { $ref: id };
+  const { digest: ignoredDigest, ...payload } = legacy;
+  legacy.digest = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+  expect(parseRemoteMcpArtifact(legacy).schemaRegistry).toBeUndefined();
+  const f = remote(), shell = new Shell({ fs: createMemoryFileSystem() });
+  shell.use(await remoteMcpArtifactPlugin(legacy, { binding: { env: {} }, commands: { fetch: f.fetch, schemaValidation: { registry: { [id]: tool.inputSchema } } } }));
+  try { expect((await shell.exec("catalog search_items --query 005930")).exitCode).toBe(0); }
+  finally { await shell.dispose(); }
+});

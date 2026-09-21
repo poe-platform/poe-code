@@ -313,7 +313,15 @@ their order. Artifacts contain no generation timestamp, temporary filesystem
 path or resolved credential values. Only absent schemas require credential
 binding and network discovery. Server identity, capabilities, instructions,
 annotations and complete input/output schemas remain in the snapshot. Generation
-refuses discovery metadata that echoes a known resolved credential, including
+Supply external JSON Schema documents with generation `schemaRegistry`; they
+are snapshotted before discovery, included in the digest, and loaded without
+separate host registrations. Missing references fail generation. An archived
+registry is authoritative: host `commands.schemaValidation.registry` may repeat
+identical archived documents, but additions or changed documents fail before
+credential binding. Custom format functions remain host-supplied through
+`commands.schemaValidation.formats`. Older artifacts without a registry still
+accept a host registry.
+Generation refuses discovery metadata or external documents that echo a known resolved credential, including
 persisted/rotated grants observed during authorization, with safe diagnostics.
 
 The ESM data module has no dependency imports and can be loaded from any working

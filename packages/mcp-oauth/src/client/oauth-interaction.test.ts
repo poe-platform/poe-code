@@ -22,7 +22,7 @@ class Listener extends EventEmitter {
 
 function interaction(settings: { allowInteractive?: boolean; redirectUri?: string; scope?: string } = {}) {
   let authorization!: URL;
-  const callback = Promise.withResolvers<string>();
+  let callback = Promise.withResolvers<string>();
   let session: StoredOAuthSession | null = null;
   const createServer = vi.fn(() => new Listener() as unknown as http.Server);
   const openBrowser = vi.fn(async (url: string) => {
@@ -31,6 +31,7 @@ function interaction(settings: { allowInteractive?: boolean; redirectUri?: strin
     redirect.searchParams.set("code", "authorization-code");
     redirect.searchParams.set("state", authorization.searchParams.get("state")!);
     callback.resolve(redirect.toString());
+    callback = Promise.withResolvers<string>();
   });
   const fetch = vi.fn(async (url: string | URL, _init?: RequestInit) => Response.json(String(url).endsWith("/register")
     ? { client_id: "registered-client", redirect_uris: JSON.parse(String(_init?.body)).redirect_uris }
@@ -68,6 +69,50 @@ it("explicitly authenticates without fabricating a rejected resource request", a
   await f.provider.authenticate!({ requestUrl: new URL(resource), fetch: f.fetch, discover });
   expect(discover).toHaveBeenCalledOnce();
   expect(f.openBrowser).toHaveBeenCalledOnce();
+});
+
+it("joins overlapping interactive authorizations through token persistence without replacing PKCE", async () => {
+  const f = interaction(), entered = Promise.withResolvers<void>(), finish = Promise.withResolvers<void>();
+  const original = f.fetch.getMockImplementation()!;
+  f.fetch.mockImplementation(async (url, init) => {
+    if (String(url).endsWith("/token")) { entered.resolve(); await finish.promise; }
+    return original(url, init);
+  });
+  const owner = f.run();
+  await entered.promise;
+  const follower = f.run();
+  try {
+    expect(f.openBrowser).toHaveBeenCalledOnce();
+    expect(f.createServer).toHaveBeenCalledOnce();
+    finish.resolve();
+    expect(await Promise.all([owner, follower])).toEqual([{ action: "retry" }, { action: "retry" }]);
+    expect(f.openBrowser).toHaveBeenCalledOnce();
+    expect(f.fetch).toHaveBeenCalledTimes(2);
+    expect(f.session()?.tokens?.accessToken).toBe("token");
+  } finally { finish.resolve(); await Promise.allSettled([owner, follower]); }
+});
+
+it("rearms an interactive transaction after the owner fails while a follower is waiting", async () => {
+  const f = interaction(), entered = Promise.withResolvers<void>(), finish = Promise.withResolvers<void>();
+  const original = f.fetch.getMockImplementation()!;
+  let tokenRequests = 0;
+  f.fetch.mockImplementation(async (url, init) => {
+    if (String(url).endsWith("/token") && ++tokenRequests === 1) {
+      entered.resolve(); await finish.promise;
+      return Response.json({ error: "invalid_grant" }, { status: 400 });
+    }
+    return original(url, init);
+  });
+  const owner = f.run();
+  await entered.promise;
+  const follower = f.run();
+  try {
+    finish.resolve();
+    expect(await owner).toMatchObject({ action: "fail", error: { error: "invalid_grant" } });
+    expect(await follower).toEqual({ action: "retry" });
+    expect(f.openBrowser).toHaveBeenCalledTimes(2);
+    expect(f.session()?.tokens?.accessToken).toBe("token");
+  } finally { finish.resolve(); await Promise.allSettled([owner, follower]); }
 });
 
 it("rejects explicit authentication discovery for another resource before registration or consent", async () => {

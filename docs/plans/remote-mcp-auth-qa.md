@@ -101,3 +101,14 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     redirection, malformed JSON, invalid UTF-8 and bounded virtual input. Render
     and inspect focused import help and public JSON output. Purge only synthetic
     fixtures and generated evidence after review.
+
+13. Run a local rotating-token issuer and HTTP MCP endpoint with a built native
+    encrypted store. Import a fresh synthetic G1 grant through the public SDK.
+    Start two independent hosts and hold both G1 resource requests until both
+    arrive, then return 401 to each. Exactly one refresh redemption must occur;
+    both hosts must initialize with persisted G2 and no replay. Explicitly import
+    expired G2, start six independent hosts, and verify one further redemption,
+    convergence on G3, and retained rotated refresh credentials. Recreate all
+    stores independently, prohibit browser interaction, recursively inspect native
+    files for absence of plaintext synthetic credentials, and purge only the
+    concurrency fixture directory under out after recording results.

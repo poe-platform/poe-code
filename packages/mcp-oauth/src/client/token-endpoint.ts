@@ -128,7 +128,7 @@ async function requestTokens(input: {
   if (method !== "none" && (input.clientSecret === undefined || input.clientSecret.trim() === ""))
     throw new Error("OAuth token endpoint authentication requires a client secret");
   const body = new URLSearchParams(input.params);
-  const headers = new Headers({ "Content-Type": "application/x-www-form-urlencoded" });
+  const headers = new Headers({ Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" });
   if (method === "client_secret_basic") {
     const encoded = new URLSearchParams({ credential: input.clientId }).toString().slice("credential=".length);
     const encodedSecret = new URLSearchParams({ credential: input.clientSecret! }).toString().slice("credential=".length);

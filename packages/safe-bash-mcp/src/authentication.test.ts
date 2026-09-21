@@ -43,6 +43,27 @@ it("explicitly authenticates even with supplied schemas, emits the complete URL 
   expect(f.opener).not.toHaveBeenCalled();
   expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
 });
+
+it("isolates separate-origin OAuth JSON requests from MCP Accept, tenant and protocol headers", async () => {
+  const f = fixture();
+  const configuration = { ...f.configuration, headers: { Accept: { env: "MCP_ACCEPT" }, "X-Tenant": { env: "TENANT" } } };
+  const fetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    if (String(input) === resource) {
+      expect(headers.get("Accept")).toBe("application/json, text/event-stream");
+      expect(headers.get("X-Tenant")).toBe("synthetic-tenant");
+    } else {
+      expect(headers.get("Accept")).toBe("application/json");
+      expect(headers.has("Authorization")).toBe(false);
+      expect(headers.has("X-Tenant")).toBe(false);
+      expect(headers.has("MCP-Protocol-Version")).toBe(false);
+    }
+    return f.fetch(input, init);
+  });
+  await authenticateRemoteMcpServer(configuration, { binding: { ...f.binding, env: { ...f.binding.env, MCP_ACCEPT: "text/event-stream", TENANT: "synthetic-tenant" } }, fetch, onAuthorizationUrl: f.observed });
+  expect(fetch.mock.calls.some(([url]) => String(url) === `${issuer}/token`)).toBe(true);
+  expect(f.observed).toHaveBeenCalledOnce();
+});
 it("establishes the configured OAuth grant even when initialization is publicly accessible", async () => {
   const f = fixture(true);
   await authenticateRemoteMcpServer(f.configuration, { binding: f.binding, fetch: f.fetch, onAuthorizationUrl: f.observed });

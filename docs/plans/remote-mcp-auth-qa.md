@@ -5,6 +5,15 @@ Use only synthetic credentials and a local token endpoint. Temporary host
 fixtures and screenshots belong in out/remote-mcp-auth-qa and are purged after
 inspection.
 
+For OAuth HTTP content negotiation, run separate local protected-resource and
+authorization-server origins. Configure MCP Accept, tenant and custom User-Agent
+headers. Authenticate dynamically through an actual loopback callback, then
+advance the host clock and silently refresh the persisted grant. All OAuth
+metadata, DCR and token requests must carry Accept: application/json without
+MCP tenant, protocol or bearer headers. Native default fetch must send a nonempty
+User-Agent, while the configured MCP User-Agent stays intact. Verify exactly one
+consent/DCR, one code exchange and one refresh, with no tool listing/calling.
+
 1. Prepare a static OAuth registry with client_secret_basic authentication,
    explicit client credential environment references and supplied tool schemas.
    Register the management command in a real safe-bash Shell. Render and inspect

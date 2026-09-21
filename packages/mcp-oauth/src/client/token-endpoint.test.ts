@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   OAuthError,
   exchangeAuthorizationCode,
+  refreshAccessToken,
   readOAuthJsonObjectResponse
 } from "./token-endpoint.js";
 
@@ -42,6 +43,15 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe("token endpoint parsing", () => {
+  it.each(["authorization_code", "refresh_token"])("requests JSON responses for %s content negotiation", async grantType => {
+    const fetch = async (_url: string | URL, init?: RequestInit) => new Headers(init?.headers).get("Accept") === "application/json"
+      ? jsonResponse({ access_token: "negotiated-access", token_type: "Bearer" })
+      : new Response("<html>Choose a response format</html>", { headers: { "Content-Type": "text/html" } });
+    const common = { tokenEndpoint: "https://auth.example.test/token", clientId: "client", resource: "https://resource.example.test/", fetch, now: () => 1000 };
+    const result = grantType === "refresh_token" ? refreshAccessToken({ ...common, refreshToken: "refresh" })
+      : exchangeAuthorizationCode({ ...common, code: "code", codeVerifier: "verifier", redirectUri: "http://127.0.0.1/callback" });
+    await expect(result).resolves.toMatchObject({ accessToken: "negotiated-access" });
+  });
   it.each(["read\n", "\tread", "\n", "", " ", null, 7, ["read"]])("rejects malformed explicit token scope %j", async scope => {
     await expect(exchangeAuthorizationCode({
       tokenEndpoint: "https://auth.example.test/token", clientId: "client", code: "code", codeVerifier: "verifier",

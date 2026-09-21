@@ -576,6 +576,7 @@ export function createDefaultOAuthClientProvider(
     const response = await fetchMcpResponse(fetch, registrationEndpoint, {
       method: "POST",
       headers: {
+        Accept: "application/json",
         "Content-Type": "application/json"
       },
       body: JSON.stringify(registrationBody),

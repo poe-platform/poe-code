@@ -40,6 +40,14 @@ it("preserves complete DCR response arrays, timestamps and provider metadata in 
   expect(f.session()?.client).toMatchObject({ clientId: "registered", clientSecret: "private-client-secret", registration });
 });
 
+it("requests JSON registration responses from content-negotiating issuers", async () => {
+  const f = fixture();
+  f.fetch.mockImplementation(async (url, init) => new Headers(init?.headers).get("Accept") === "application/json"
+    ? Response.json(String(url).endsWith("/register") ? registration : { access_token: "access", token_type: "Bearer" })
+    : new Response("<html>Choose a response format</html>", { headers: { "Content-Type": "text/html" } }));
+  expect(await f.run()).toEqual({ action: "retry" });
+});
+
 it("preserves complete registration through the native client store", async () => {
   const fs = createFsFromVolume(new Volume()).promises;
   const store = createAuthStoreClientStore({ backend: "file", fileStore: { fs, filePath: "/home/test/clients.enc", salt: "fixture",

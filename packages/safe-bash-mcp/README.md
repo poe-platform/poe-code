@@ -192,6 +192,8 @@ time, a relative lifetime means remaining lifetime at binding. Init emits empty
 Persisted rotated or cleared grants take precedence over imported environment
 tokens. A fresh import avoids discovery; an expired or explicitly rejected grant
 binds validated discovery before refreshing with its original client.
+OAuth metadata, registration and token requests negotiate JSON independently
+from MCP Accept, tenant and protocol headers.
 
 Authenticate one configured server explicitly, including when its tool schemas
 are supplied:

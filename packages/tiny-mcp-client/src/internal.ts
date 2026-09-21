@@ -2738,6 +2738,13 @@ export class HttpTransport implements McpTransport {
   }: HttpTransportOptions) {
     if (!Number.isSafeInteger(maxResponseBytes) || maxResponseBytes < 1)
       throw new Error("HTTP response byte limit must be a positive safe integer");
+    try {
+      const target = new URL(url);
+      if (!["http:", "https:"].includes(target.protocol) || target.username || target.password || target.href.includes("#"))
+        throw new Error("Invalid HTTP transport target");
+    } catch {
+      throw new Error("HTTP transport URL must be an absolute HTTP URL without credentials or fragment");
+    }
     this.maxResponseBytes = maxResponseBytes;
     this.url = url;
     this.mode = mode;

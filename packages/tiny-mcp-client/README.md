@@ -63,6 +63,11 @@ embedded credentials or fragments; endpoint changes close the connection.
 Empty fragment delimiters are rejected too; escaped hashes in an endpoint path
 or query remain literal data.
 Both transports accept the same headers, OAuth provider and response limits.
+The original HTTP transport target must be an absolute HTTP/HTTPS URL without
+credentials or a fragment, including an empty trailing `#`. Invalid targets fail
+before OAuth provider construction or clock reads. Empty queries and escaped
+path/query delimiters remain valid; accepted target strings keep their spelling.
+
 Static HTTP headers are copied and validated when the transport is constructed,
 before OAuth callbacks run. Invalid headers fail without reflecting their values.
 Use `snapshotHttpTransportHeaders(headers)` to apply the same ownership and safe

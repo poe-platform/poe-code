@@ -269,3 +269,14 @@ out/remote-mcp-output-qa. Purge only this directory after recording results.
     values/nested metadata/exact005930. Require thirty closed receive streams/
     eight HTTP fallback failures and zero metadata/token/consent/credential writes.
     Inspect safe summary screenshot and purge only owned synthetic evidence.
+
+38. Before native HTTP/SSE OAuth construction, reject original malformed/relative/
+    non-HTTP/credential-bearing/named+empty-fragment targets with fourteen safe
+    errors and zero host clocks/fetch calls. Through actual native/schema/generated/
+    resource/management routes retain exact uppercase-scheme original target
+    strings and escaped hash path/query data under all three legacy revisions.
+    Require thirty handshakes/twelve complete calls/six full schemas/six text+blob
+    resource reads, eighty-four credential POSTs/fifteen retired HTTP sessions/
+    fifteen closed SSE receive streams, with full guidance/falsey metadata/
+    exact005930 and zero OAuth metadata/token/consent. Inspect summary screenshot;
+    purge only owned synthetic evidence.

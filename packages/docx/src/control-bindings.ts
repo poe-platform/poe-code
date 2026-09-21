@@ -74,7 +74,7 @@ export async function editDocumentControlBindings(input: Uint8Array, options: Do
   const targetSteps = JSON.parse(target.key)[1] as readonly (readonly [string, string])[];
   for (const declaration of ownership.declarations) {
     if (declaration.storeItemId?.toLowerCase() !== storeId) continue;
-    const sdtPath = declaration.path.slice(0, -2);
+    const sdtPath = declaration.controlPath;
     if (allItems.some(item => item.location.value.part === declaration.part && JSON.stringify(item.location.value.path) === JSON.stringify(sdtPath))) continue;
     let steps: readonly (readonly [string, string])[];
     try { const mapping = parseDocumentXml(new TextEncoder().encode(`<mapping ${declaration.prefixMappings ?? ""}/>`), {}, budget).root; if (!declaration.xpath?.startsWith("/") || mapping.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/")) reject(); steps = declaration.xpath.slice(1).split("/").map(name => expanded(name, mapping.namespaces, budget)); }

@@ -11,7 +11,10 @@ export function fieldInstructionTokens(instruction: string): { value: string; st
     const start = i, quoted = instruction[i] === '"';
     if (quoted) i++;
     const valueStart = i;
-    while (i < instruction.length && (quoted ? instruction[i] !== '"' : !" \t\r\n".includes(instruction[i]!))) i++;
+    while (i < instruction.length && (quoted ? instruction[i] !== '"' : !" \t\r\n".includes(instruction[i]!))) {
+      if (quoted && instruction[i] === "\\" && instruction[i + 1] === '"') i += 2;
+      else i++;
+    }
     const value = instruction.slice(valueStart, i);
     if (quoted) {
       if (i === instruction.length) throw new UnsupportedEditError("Malformed quoted field operand.");

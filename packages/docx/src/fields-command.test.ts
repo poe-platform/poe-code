@@ -83,3 +83,14 @@ it("retains operation envelopes for declared field batch items", () => {
   expectTypeOf<docx.DocxBatchItemMap["captions.add"]>().toEqualTypeOf<{ readonly operation: "captions.add"; readonly arguments: docx.DocxBatchArgumentMap["captions.add"] }>();
   expectTypeOf<docx.DocxBatchItemMap["captions.set"]>().toEqualTypeOf<{ readonly operation: "captions.set"; readonly arguments: docx.DocxBatchArgumentMap["captions.set"] }>();
 });
+
+it("edits TOC levels through direct flags while preserving quoted style operands and unselected fields", async () => {
+  const retained = '<w:fldSimple w:instr=" TOC ">' + run("Retained contents 19") + '</w:fldSimple>';
+  const bytes = await textFixture('<w:p><w:fldSimple w:instr=" TOC \\t &quot;Heading Coast\\&quot; \\o literal,1&quot; \\o &quot;1-3&quot; " w:dirty="off" w:fldLock="on">' + run("Selected contents 8") + '</w:fldSimple>' + retained + '</w:p>');
+  const result = await command(bytes, ["toc", "set", "input.docx", "--field", "1", "--levels", "2-5", "--update", "false", "--output", "-"]);
+  expect(result.exitCode, result.stderr).toBe(0);
+  const fields = (await docx.inspectDocumentFields(result.stdout, {}, textContext)).items;
+  expect(fields[0]).toMatchObject({ instruction: ' TOC \\t "Heading Coast\\" \\o literal,1" \\o "2-5" ', result: "Selected contents 8", update: false, locked: true });
+  const archive = await docx.readDocumentArchive(result.stdout, textContext);
+  expect(new TextDecoder().decode(archive.members.find(m => m.name === "word/document.xml")!.bytes)).toContain(retained);
+});

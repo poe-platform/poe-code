@@ -94,3 +94,13 @@ it("changes only selected instruction operands, preserving switches and complex 
   const page = await edit(ref.bytes, "fields.set", { field: 2, kind: "PAGE" });
   expect((await docx.inspectDocumentFields(page.bytes, {}, textContext)).items[1]).toMatchObject({ instruction: " PAGE ", result: "Label" });
 });
+
+it("preserves escaped quotes in existing TOC style switches during typed level edits", async () => {
+  const instruction = ' TOC \\t "Heading Coast\\" \\o literal,1" \\o "1-3" \\h ';
+  const input = await textFixture('<w:p><w:fldSimple w:instr="' + instruction.split('"').join('&quot;') + '" w:dirty="off" w:fldLock="on">' + run("Coastal contents 8") + '</w:fldSimple></w:p>');
+  const edited = await edit(input, "toc.set", { field: 1, levels: { start: 2, end: 5 } });
+  expect((await docx.inspectDocumentFields(edited.bytes, {}, textContext)).items[0]).toMatchObject({
+    instruction: instruction.split('"1-3"').join('"2-5"'), result: "Coastal contents 8", update: false, locked: true
+  });
+  expect(edited.xml).toContain('w:dirty="off" w:fldLock="on"');
+});

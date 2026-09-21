@@ -27,6 +27,13 @@ export interface LoopbackAuthorizationSession {
   close(): void;
 }
 
+/** Capture declared configuration regardless of property enumerability. */
+export function snapshotLoopbackAuthorizationOptions(options: LoopbackAuthorizationOptions): LoopbackAuthorizationOptions {
+  return { ...options, openBrowser: options.openBrowser, readLine: options.readLine, createServer: options.createServer,
+    callbackPath: options.callbackPath, redirectUri: options.redirectUri, signal: options.signal, timeoutMs: options.timeoutMs,
+    landingPage: options.landingPage === undefined ? undefined : { ...options.landingPage } };
+}
+
 /** Authorization callback denial, retaining the provider diagnostic for host observers. */
 export class OAuthAuthorizationError extends Error {
   /** Recognize errors from separately bundled copies of this package. */
@@ -43,10 +50,9 @@ export class OAuthAuthorizationError extends Error {
 export async function createLoopbackAuthorizationSession(
   options: LoopbackAuthorizationOptions = {}
 ): Promise<LoopbackAuthorizationSession> {
-  const selected = { ...options };
+  const selected = snapshotLoopbackAuthorizationOptions(options);
   options = { ...selected, createServer: selected.createServer?.bind(options),
-    openBrowser: selected.openBrowser?.bind(options), readLine: selected.readLine?.bind(options),
-    landingPage: selected.landingPage === undefined ? undefined : { ...selected.landingPage } };
+    openBrowser: selected.openBrowser?.bind(options), readLine: selected.readLine?.bind(options) };
   options.signal?.throwIfAborted();
   const timeoutMs = options.timeoutMs ?? 120_000;
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)

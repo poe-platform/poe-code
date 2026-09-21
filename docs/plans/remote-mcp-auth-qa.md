@@ -757,3 +757,18 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     HTTP sessions/nine closed SSE streams/zero writes or consent. Keep session
     IDs stable in the synthetic HTTP fixture. Inspect successful summary
     screenshot; purge only owned evidence.
+
+69. Supply own nonenumerable browser signal, timeoutMs, redirectUri,
+    createServer, openBrowser and readLine through actual HTTP/SSE schema,
+    generated-tool and resource routes. Offline commands capture the original
+    policy/hooks before caller replacement. Require six original-cancellation
+    failures and six invalid-deadline failures before listener creation or code
+    redemption. Complete twenty-four original-factory/state-bound/S256 exchanges
+    with exact redirects, eighteen actual HTTP callbacks and six manual readers.
+    Require eight full schemas/eight complete falsey-JSON tool calls/eight
+    text+blob reads retaining guidance/nested metadata/exact005930, seventy-two
+    metadata GETs/seventy-two credential MCP POSTs/twelve retired HTTP sessions/
+    twelve closed SSE streams. Standalone sessions retain hidden callback path,
+    landing page and original live cancellation in three actual checks. No
+    refresh claim in this scope. Inspect successful screenshot; purge owned
+    synthetic evidence.

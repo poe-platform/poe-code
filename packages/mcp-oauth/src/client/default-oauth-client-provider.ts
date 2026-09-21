@@ -21,7 +21,7 @@ import {
   createAuthStoreSessionStore,
   assertPersistenceNamespace
 } from "./auth-store-session-store.js";
-import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback-authorization.js";
+import { createLoopbackAuthorizationSession, loopbackTarget, snapshotLoopbackAuthorizationOptions } from "./loopback-authorization.js";
 import { createAuthorizationState } from "./authorization-state.js";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
 import {
@@ -50,8 +50,7 @@ export function createOAuthClientProvider(
 export function createDefaultOAuthClientProvider(
   options: DefaultOAuthClientProviderOptions
 ): OAuthClientProvider {
-  const browser = { ...options.browser,
-    ...(options.browser.landingPage === undefined ? {} : { landingPage: { ...options.browser.landingPage } }) };
+  const browser = snapshotLoopbackAuthorizationOptions(options.browser);
   const clientMode = options.client.mode;
   const interactiveEnabled = options.allowInteractive !== false;
   const sessionLockTimeoutMs = options.sessionLockTimeoutMs;

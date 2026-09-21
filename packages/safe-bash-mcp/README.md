@@ -316,6 +316,8 @@ must not replace an authoritative expiry with a new or unknown lifetime.
 Interaction, lock, namespace and resource-identity policies also survive these
 snapshots, alongside the selected live clock and session-store handles,
 regardless of property enumerability.
+Browser snapshots also retain the selected opener, input reader, listener
+factory, redirect, cancellation signal and authorization deadline.
 Relative-lifetime host clocks must return valid integer epoch milliseconds
 within the JavaScript Date range; binding rejects invalid anchors before store
 factories run, even when adding the lifetime would produce a valid expiry.

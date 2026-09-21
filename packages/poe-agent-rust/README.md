@@ -6,6 +6,7 @@ Resolve plugin-provided models with an independent Rust core and no npm runtime 
 - Preserve provider/callback identity and opaque plugin options.
 - Wrap support-check failures with the model, provider names and original cause.
 - Validate tool names with an ASCII scanner, without a regular-expression engine.
+- Register frozen tool snapshots and select model-visible tools by skill/namespace.
 - Save/load conversation records with Rust role/content validation and injectable storage.
 
 ```typescript
@@ -29,3 +30,5 @@ const restored = await store.load(session.threadId);
 Conversation records live under `~/.poe-code/sessions` by default. Set `homeDir` or inject an `fs` implementation to choose storage. Loaded records require version 1, conversation metadata and supported message/tool-result content. Missing records return `undefined`; unsafe thread paths, invalid messages and unsupported versions are rejected. Session files currently share the Rust parser's 16 MiB/depth-128/262,144-value limits, so unrestricted file interoperability remains incomplete. Saving uses standard JavaScript serialization and keeps its hook/error behavior.
 
 Use `createMemorySessionStore(id)` for isolated entry snapshots, or `await createJsonlSessionStore(id, directory, { fs })` for ordered persistent history. Replay preserves valid records and ignores an incomplete final JSON line; malformed complete lines and invalid entries report context. A failed append also rejects subsequent writes, replay and disposal. Memory-store disposal releases entries and permits reuse. JSONL records and memory snapshots share the parser limits above; an oversized final record is rejected rather than silently discarded.
+
+`ToolRegistry` registers tools, resolves names, lists all tools and selects active tools. Model tools are always visible; internal tools remain hidden; skill tools use exact names or dot/underscore namespace selectors. Invocations preserve synchronous results, promises, streaming generators and original failure causes. Registry copies share normalized snapshots within the same implementation. Like the original private-field registry, `copyFrom` does not accept registries from a different implementation.

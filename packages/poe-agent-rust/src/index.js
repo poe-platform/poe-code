@@ -9,3 +9,6 @@ export { InvalidToolNameError } from "./tool-names.js";
 export { createAgentSessionStore } from "./session-store.js";
 
 export { createMemorySessionStore, createJsonlSessionStore } from "./session-log.js";
+
+export { normalizeTool, ToolRegistry } from "./tools.js";
+export { DuplicateToolError, PluginSetupError, PromptTransformError } from "./errors.js";

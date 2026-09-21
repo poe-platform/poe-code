@@ -130,3 +130,5 @@ pub fn session_error(id: &[u16]) -> Vec<u16> {
 }
 
 pub mod session_log;
+
+pub mod tools;

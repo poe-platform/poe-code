@@ -82,7 +82,7 @@ writeFileSync(
 );
 writeFileSync(
   new URL("src/index.d.ts", root),
-  "export {collectProviders,resolveProvider,DuplicateProviderNameError,ProviderResolutionError} from './providers.js';\nexport {InvalidToolNameError} from './tool-names.js';\nexport type {AgentPlugin,Provider,ProviderContext,ProviderStreamEvent} from './plugin-types.js';\nexport type {ChatMessage,Tool,ToolResult,ToolResultPart} from './types.js';\nexport {createAgentSessionStore} from './session-store.js';\nexport type {AgentSessionStore,PersistedAgentSession} from './session-store.js';\nexport {createMemorySessionStore,createJsonlSessionStore} from './session-log.js';\nexport type {SessionStore} from './session-log.js';\nexport type {SessionEntry} from './entry-types.js';\n"
+  "export {collectProviders,resolveProvider,DuplicateProviderNameError,ProviderResolutionError} from './providers.js';\nexport {InvalidToolNameError} from './tool-names.js';\nexport type {AgentPlugin,Provider,ProviderContext,ProviderStreamEvent} from './plugin-types.js';\nexport type {ChatMessage,Tool,ToolResult,ToolResultPart} from './types.js';\nexport {createAgentSessionStore} from './session-store.js';\nexport type {AgentSessionStore,PersistedAgentSession} from './session-store.js';\nexport {createMemorySessionStore,createJsonlSessionStore} from './session-log.js';\nexport type {SessionStore} from './session-log.js';\nexport type {SessionEntry} from './entry-types.js';\nexport {normalizeTool,ToolRegistry} from './tools.js';\nexport {DuplicateToolError,PluginSetupError,PromptTransformError} from './errors.js';\n"
 );
 
 seed(
@@ -98,4 +98,17 @@ seed(
   "session-log",
   ["JsonlSessionStoreFs", "SessionStore", "createMemorySessionStore", "createJsonlSessionStore"],
   "import type {SessionEntry} from './entry-types.js';"
+);
+
+seed(
+  "runtime/tools.d.ts",
+  "tools",
+  ["normalizeTool", "ToolRegistry"],
+  "import type {NormalizedTool,Tool} from './types.js';"
+);
+seed(
+  "runtime/errors.d.ts",
+  "errors",
+  ["DuplicateToolError", "PluginSetupError", "PromptTransformError"],
+  ""
 );

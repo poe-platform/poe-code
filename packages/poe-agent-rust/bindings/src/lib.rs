@@ -182,3 +182,63 @@ pub fn agent_session_log_decode(source: Utf16String) -> NativeJson {
             .collect(),
     ))
 }
+
+#[napi]
+#[derive(Default)]
+pub struct NativeAgentToolCatalog {
+    state: poe_agent_rust::tools::ToolCatalog,
+}
+#[napi]
+impl NativeAgentToolCatalog {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Self::default()
+    }
+    #[napi]
+    pub fn get(&self, name: Utf16String) -> Option<u32> {
+        self.state.get(&name).map(|index| index as u32)
+    }
+    #[napi]
+    pub fn upsert(&mut self, name: Utf16String) -> u32 {
+        self.state.upsert(name.to_vec()) as u32
+    }
+    #[napi]
+    pub fn active(&self, visibility: Vec<Utf16String>, skills: Vec<Utf16String>) -> Vec<u32> {
+        use poe_agent_rust::tools::Visibility;
+        let visibility = visibility
+            .iter()
+            .map(|value| match String::from_utf16_lossy(value).as_str() {
+                "model" => Visibility::Model,
+                "internal" => Visibility::Internal,
+                _ => Visibility::Skill,
+            })
+            .collect::<Vec<_>>();
+        self.state
+            .active(
+                &visibility,
+                &skills
+                    .into_iter()
+                    .map(|value| value.to_vec())
+                    .collect::<Vec<_>>(),
+            )
+            .into_iter()
+            .map(|index| index as u32)
+            .collect()
+    }
+}
+#[napi]
+pub fn agent_trim(value: Utf16String) -> Utf16String {
+    mcp_protocol_rust::strings::trim_ecmascript(&value)
+        .to_vec()
+        .into()
+}
+#[napi]
+pub fn agent_runtime_error(kind: Utf16String, name: Utf16String) -> Utf16String {
+    use poe_agent_rust::tools::RuntimeErrorKind;
+    let kind = match String::from_utf16_lossy(&kind).as_str() {
+        "tool" => RuntimeErrorKind::Tool,
+        "setup" => RuntimeErrorKind::Setup,
+        _ => RuntimeErrorKind::Prompt,
+    };
+    poe_agent_rust::tools::runtime_error(kind, &name).into()
+}

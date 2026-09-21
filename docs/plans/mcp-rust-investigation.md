@@ -3598,3 +3598,40 @@ out/rust-poe-agent-log-*. Session commitff44b885c is verified on remote main.
 Release35558479691 still runs fresh unit after other validation jobs passed;
 no successful publication is verified. Full rewrite and minimum effort remain
 open. Work continues beyond the04:03:46 active-segment boundary.
+
+### Poe Agent Rust tool registry, 2026-09-21 04:16 UTC
+
+Independent Rust tool catalog owns ordered name indices, lookup trimming,
+selector normalization/deduplication and exact/dot/underscore namespace
+visibility. Node owns frozen normalized snapshots, callbacks, opaque schemas/
+policy, generator method admission and promise/generator effects. Copies preserve
+shared snapshots and replacement order. Selector getter effects run before native
+catalog admission to permit registration reentry without borrowed-state failure.
+Rust also owns runtime-error diagnostics; Node error classes preserve stack/cause.
+
+Portable red precedes implementation. All7 Rust cases,13 native groups and77
+applicable original cases pass. The complete runtime-errors/normalizeTool/
+ToolRegistry describes (18 cases) are extracted with the TypeScript AST; all other
+runtime describes remain explicitly excluded and uncounted. Native checks preserve
+cyclic schema identity, receivers, bound call snapshots, arbitrary sync/async
+failure reasons, streamed generator identity, registry-copy replacement order,
+selector callback mutation and Unicode namespace boundaries. Bidirectional tool
+normalization/errors and public registry methods pass; nominal private copyFrom
+accepts only same-implementation registries, as disclosed. Focused unit/lint/fmt/
+clippy/formatting and uncached113-workspace/28-build/338-edge closure pass.
+Direct/packed16MiB workers each add2048 tool registrations,1024 lookups,512
+visibility selections and512 actual invocations to provider/storage/history work.
+Recursive artifact audit covers24 files, one addon and zero npm runtime groups.
+Heap endpoints~10MB and parent-inclusive RSS are bounded evidence only. The tool
+benchmark gate fails:4096 lookups/64-tool visibility selections per round take
+original~8–10ms versus Rust~28–30ms after warmup. No performance/memory advantage
+is claimed. Evidence out/rust-poe-agent-tools-*.
+
+History commit152ca653e is verified on remote main. Release35558479691 failed
+fresh unit in mcp-oauth-rust: callback denial body, authorizeRequest returned token
+snapshots and concurrent session store effects differ from the evolving original.
+Current local red also reveals new client/scope/session hardening and profile
+persistence contracts; production concurrent edits are preserved. These remain
+required follow-up work, not waived failures. This tool increment is focused-check
+verified; remote delivery is recorded separately. Overall rewrite, release and
+minimum24-hour effort remain open. Work continues from04:03:46 UTC boundary.

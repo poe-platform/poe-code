@@ -17,3 +17,5 @@ export type { AgentSessionStore, PersistedAgentSession } from "./session-store.j
 export { createMemorySessionStore, createJsonlSessionStore } from "./session-log.js";
 export type { SessionStore } from "./session-log.js";
 export type { SessionEntry } from "./entry-types.js";
+export { normalizeTool, ToolRegistry } from "./tools.js";
+export { DuplicateToolError, PluginSetupError, PromptTransformError } from "./errors.js";

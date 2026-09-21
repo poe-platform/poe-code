@@ -29,8 +29,11 @@ test('forced owner reset during outstanding POST inspects unknown outcome and re
   let running: Promise<unknown> | undefined;
   try {
     await worker.ready;
-    running = worker.dispatchFetch('http://fixture/start', { method: 'POST', body: `http://127.0.0.1:${address.port}`, signal: abort.signal }).catch(() => {});
-    await outstanding;
+    const starting = worker.dispatchFetch('http://fixture/start', { method: 'POST', body: `http://127.0.0.1:${address.port}`, signal: abort.signal });
+    running = starting.catch(() => {});
+    await Promise.race([outstanding, starting.then(async response => {
+      throw new Error(`Recovery fixture returned before the POST: ${response.status} ${await response.text()}`);
+    })]);
     expect(effects).toBe(1);
     abort.abort();
     await worker.dispose();
@@ -38,10 +41,11 @@ test('forced owner reset during outstanding POST inspects unknown outcome and re
     await worker.ready;
     const expected = { name: 'owned', status: 'saved-storage', livePageStateLost: true,
       operation: { operationId: 'post-112', status: 'unknown' } };
-    for (const route of ['inspect', 'inspect', 'recover', 'inspect']) {
+    for (const route of ['inspect', 'inspect', 'recover', 'inspect', 'attach-recover']) {
       const response = await worker.dispatchFetch(`http://fixture/${route}`);
-      expect(response.status).toBe(200);
       const text = await response.text();
+      expect(response.status, `${route}: ${text}`).toBe(200);
+      if (route === 'attach-recover') expect(response.headers.get('x-attached-session')).toBe('owned');
       expect(JSON.parse(text)).toEqual(expected);
       expect(text).not.toContain('never-print');
       expect(effects).toBe(1);

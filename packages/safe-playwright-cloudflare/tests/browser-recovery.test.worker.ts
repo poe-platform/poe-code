@@ -8,14 +8,21 @@ const limits = { maxBytes: 1024 * 1024, maxTabs: 4 };
 export default { async fetch(request: Request, env: Env) {
   const signal = new AbortController().signal;
   const adapter = createCloudflarePlaywrightAdapter(env.BROWSER);
-  const controller = createPlaywrightController({ adapter, abilities: {
+  const controller = createPlaywrightController({ adapter, namedSessionAttachment: true, abilities: {
+    attach: true, 'tab-list': true,
     press: { scope: 'session', async execute({ browserSession }) {
       await browserSession!.page!.evaluate!(async () => {
         await fetch('/effect', { method: 'POST' });
       }, undefined);
     } },
   }, persistence: {
-    async restore() { throw new Error('Inspection must never restore'); },
+    async restore({ name, signal }) {
+      if (name !== 'owned') return undefined;
+      const bytes = await env.RECOVERY.get('profile', 'arrayBuffer');
+      if (!bytes) return undefined;
+      return restoreBrowserProfile({ adapter, profile: parseBrowserProfile(new Uint8Array(bytes), limits), limits,
+        name, signal, recovery: true });
+    },
     async checkpoint() {}, async delete() {},
     async inspectRecovery() {
       return { hasStorage: await env.RECOVERY.get('profile') !== null,
@@ -28,12 +35,24 @@ export default { async fetch(request: Request, env: Env) {
     const lease = await adapter.acquire({ acquisitionId: 'recovery-start', session: 'owned', browser: 'chromium', headless: true, signal });
     const page = await lease.context.newPage();
     await page.goto(origin + '/one-time?token=never-print');
+    await lease.context.addCookies!([{ name: 'session', value: 'retained', domain: '127.0.0.1', path: '/' }]);
     await controller.restoreSession({ name: 'owned', async acquire() { return { lease, selectedPage: page }; } });
     await env.RECOVERY.put('profile', await checkpointBrowserProfile(controller.inspectSessions()[0]!, limits, signal));
     await controller.run({ args: ['-s=owned', 'press', 'Enter'], operationId: 'post-112', env: {}, signal, async write() {} });
     return Response.json(await controller.inspectRecovery({ name: 'owned' }));
   }
   try {
+    if (new URL(request.url).pathname === '/attach-recover') {
+      await controller.run({ args: ['attach', 'owned'], env: {}, signal, async write() {} });
+      const session = controller.inspectSessions()[0]!;
+      if (session.selectedPage!.url() !== 'about:blank') throw new Error('Attachment must not replay interrupted navigation');
+      if (!(await session.context.cookies!()).some(cookie => cookie.name === 'session' && cookie.value === 'retained')) throw new Error('Committed profile cookie was not restored');
+      const recovery = await controller.inspectRecovery({ name: 'owned' });
+      let tabs = '';
+      await controller.run({ args: ['tab-list'], env: {}, signal, async write(text) { tabs += text; } });
+      if (!tabs.includes('current')) throw new Error('Subsequent invocation did not use attachment');
+      return Response.json(recovery, { headers: { 'x-attached-session': session.name } });
+    }
     if (new URL(request.url).pathname === '/recover') {
       const bytes = await env.RECOVERY.get('profile', 'arrayBuffer');
       if (!bytes) throw new Error('Missing profile');

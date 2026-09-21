@@ -32,6 +32,8 @@ export interface PlaywrightControllerOptions {
   readonly adapter?: PlaywrightAdapter;
   readonly abilities?: PlaywrightAbilities;
   readonly persistence?: PlaywrightSessionPersistence;
+  /** Opt in only when this controller and persistence are bound to one authenticated owner. */
+  readonly namedSessionAttachment?: boolean;
   readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number; readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number; readonly maxCommandBytes?: number };
   /** Billing declarations are separate; reporting/charging is not implemented. */
   readonly billing?: never;
@@ -129,7 +131,8 @@ interface Session {
 export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
   if (!options || typeof options !== 'object') throw new TypeError('Invalid Playwright configuration');
   if (options.adapter !== undefined && (!options.adapter || typeof options.adapter.acquire !== 'function')) throw new TypeError('An injected Playwright adapter is required');
-  if (Object.keys(options).some(key => !['adapter', 'abilities', 'limits', 'billing', 'persistence'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
+  if (Object.keys(options).some(key => !['adapter', 'abilities', 'limits', 'billing', 'persistence', 'namedSessionAttachment'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
+  if (options.namedSessionAttachment !== undefined && typeof options.namedSessionAttachment !== 'boolean') throw new TypeError('Invalid named session attachment capability');
   if (options.persistence && ['restore', 'checkpoint', 'delete'].some(key => typeof Reflect.get(options.persistence!, key) !== 'function')) throw new TypeError('Invalid Playwright persistence');
   if (options.persistence?.close !== undefined && typeof options.persistence.close !== 'function') throw new TypeError('Invalid Playwright persistence close');
   if (options.persistence?.list !== undefined && typeof options.persistence.list !== 'function') throw new TypeError('Invalid Playwright persistence list');
@@ -149,8 +152,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   let refSequence = 0;
   for (const value of [maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, maxSnapshotBytes, maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
+  const pendingRestores = new Set<string>();
+  const occupiedSessions = (except?: string) => new Set([
+    ...[...sessions.values()].filter(session => session.state !== 'closed').map(session => session.name),
+    ...pendingRestores,
+  ].filter(name => name !== except)).size;
   const outcomes = new Map<string, PlaywrightOperationOutcome>();
   const explicitlyClosed = new Set<string>();
+  let attachedSession: string | undefined;
   let suppressUnknownRestores = false;
   const tails = new Map<string, Promise<void>>();
   const work = new Set<Promise<unknown>>();
@@ -403,7 +412,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (previous && previous.state !== 'closed') throw new Error(`Session already ${previous.state}: ${name}`);
       if (previous?.releasing) await previous.releasing;
       check();
-      if ([...sessions.values()].filter(session => session.state !== 'closed').length >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
+      if (occupiedSessions(name) >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
       const epoch = Array.from(crypto.getRandomValues(new Uint32Array(4)), value => String(value).padStart(10, '0')).join('');
       const session: Session = { name, generation: ++generation, state: 'acquiring', cleanups: new Set(),
         ...(request.recovery === undefined ? {} : { recovery: request.recovery }),
@@ -417,6 +426,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       const cancel = () => { if (session.lease) void release(session).catch(() => {}); };
       try {
         const restored = await acquire.call(request, { signal });
+        if ([...sessions.values()].some(other => other !== session && other.state !== 'closed' && other.lease
+          && (other.lease === restored.lease || other.lease.context === restored.lease?.context))) throw new TypeError('Restored Playwright lease is already owned by another session');
         session.lease = restored.lease;
         if (restored.recovery === 'saved-storage') session.recovery = 'saved-storage';
         if (session.recovery === 'saved-storage' || restored.livePageStateLost === true) session.livePageStateLost = true;
@@ -457,6 +468,37 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     try { await operation; }
     finally { work.delete(operation); }
   };
+  // Called only while holding this name's queue. Persistence returns a fresh
+  // owned lease from its last committed resumable profile.
+  const restorePersistedSession = async (name: string, signal: AbortSignal): Promise<void> => {
+    signal.throwIfAborted();
+    if (!options.persistence || explicitlyClosed.has(name) || suppressUnknownRestores && !sessions.has(name)) return;
+    const current = sessions.get(name);
+    if (current && current.state !== 'closed') return;
+    if (current?.releasing) await current.releasing;
+    if (occupiedSessions(name) >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
+    pendingRestores.add(name);
+    try {
+      const restored = await options.persistence.restore({ name, signal });
+      if (!restored) return;
+      let transferred = false;
+      try {
+        await restoreSession({ name, signal,
+          ...(restored.recovery === undefined ? {} : { recovery: restored.recovery }),
+          ...(restored.expiresAt === undefined ? {} : { expiresAt: restored.expiresAt }),
+          ...(restored.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: restored.idleTimeoutMs }),
+          ...(restored.contextOptions === undefined ? {} : { contextOptions: restored.contextOptions }),
+          ...(restored.configuration === undefined ? {} : { configuration: restored.configuration }),
+          acquire: async () => { transferred = true; return restored; } }, true);
+      } catch (error) {
+        if (!transferred) {
+          try { await restored.lease.release(); }
+          catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Playwright restoration and cleanup failed'); }
+        }
+        throw error;
+      }
+    } finally { pendingRestores.delete(name); }
+  };
   const run = async (invocation: PlaywrightInvocation): Promise<void> => {
     const commandBudget = createPlaywrightCommandBudget(maxCommandBytes);
     let reportedError = false;
@@ -468,6 +510,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     } };
     if (lifetime.signal.aborted) throw new Error('Playwright controller is disposed');
     const parsed = parseInvocation(invocation, abilities, options.adapter);
+    if ('session' in parsed && options.namedSessionAttachment && parsed.command !== 'attach' && !parsed.explicitSession && attachedSession !== undefined) parsed.session = attachedSession;
     if (invocation.operationId !== undefined) validatePlaywrightSessionName(invocation.operationId);
     const operationId = invocation.operationId ?? (options.persistence?.recordOperation ? crypto.randomUUID() : undefined);
     invocation.signal.throwIfAborted();
@@ -768,7 +811,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     const execute = async () => {
       check();
       if (parsed.command === 'help') {
-        const help = formatPlaywrightHelp(parsed.topic, abilities);
+        const help = formatPlaywrightHelp(parsed.topic, abilities, options.namedSessionAttachment);
         await write(parsed.json ? JSON.stringify({ help: help.trimEnd() }, null, 2) + '\n' : help);
         check();
         return;
@@ -783,9 +826,41 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const targets = [parsed.args[0], parsed.options.cdp, parsed.options.endpoint, parsed.options.extension].filter(Boolean);
         if (targets.length > 1) throw new Error('only one of [name], --cdp, --endpoint, or --extension can be specified');
         if (!targets.length || parsed.options.extension === true) throw new Error('no target specified for attach command; use one of [name], --cdp, --endpoint, or --extension to specify the target to attach to.');
-        throw new Error('An authenticated browser attachment broker is unavailable in this host');
+        if (!options.namedSessionAttachment) throw new Error('An authenticated browser attachment broker is unavailable in this host');
+        if (Object.keys(parsed.options).length) throw new Error('Only owner-scoped named session attachment is supported; attachment options are unavailable');
+        const name = parsed.args[0]!;
+        validatePlaywrightSessionName(name);
+        if (parsed.explicitSession && parsed.session !== name) throw new Error('Attachment session must match the owned target name');
+        await enqueue(name, async () => {
+          check();
+          await retireExpired();
+          if (explicitlyClosed.has(name)) throw new Error(`Session closed: ${name}; reopen explicitly`);
+          const wasLive = sessions.get(name)?.state === 'open';
+          if (!wasLive && options.persistence?.list && !(await savedSessions(local.signal)).some(saved => saved.name === name)) throw new Error(`No resumable owned session: ${name}`);
+          await restorePersistedSession(name, local.signal);
+          const session = sessions.get(name);
+          if (!session || session.state !== 'open') throw new Error(`No resumable owned session: ${name}`);
+          if (!wasLive) active = session;
+          checkSession(session);
+          // Selection owns no lease and does not reset or checkpoint live state.
+          await write(parsed.json ? JSON.stringify({ session: name, status: 'attached' }, null, 2) + '\n' : `Browser '${name}' attached.\n`);
+          checkSession(session);
+          attachedSession = name;
+          retained = true;
+        });
+        return;
       }
       if (parsed.command === 'detach' && !ability.execute) {
+        if (options.namedSessionAttachment) {
+          await enqueue(parsed.session, async () => {
+            check();
+            const attached = attachedSession === parsed.session;
+            await write(parsed.json ? JSON.stringify({ session: parsed.session, status: attached ? 'detached' : 'not-attached' }, null, 2) + '\n'
+              : `Browser '${parsed.session}' is ${attached ? 'detached' : 'not attached'}.\n`);
+            if (attachedSession === parsed.session) attachedSession = undefined;
+          });
+          return;
+        }
         const known = sessions.has(parsed.session) || (await savedSessions(local.signal)).some(session => session.name === parsed.session);
         if (known) throw new Error(parsed.json ? `session '${parsed.session}' was not attached; use close to stop it.` : `session '${parsed.session}' was not attached; use \`playwright-cli${parsed.session === 'default' ? '' : ` -s=${parsed.session}`} close\` to stop it.`);
         await write(parsed.json ? JSON.stringify({ session: parsed.session, status: 'not-attached' }, null, 2) + '\n' : `Browser '${parsed.session}' is not attached.\n`);
@@ -820,11 +895,13 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if ((parsed.command === 'close-all' || parsed.command === 'kill-all') && !ability.execute) {
         const saved = await savedSessions(local.signal);
         suppressUnknownRestores = true;
+        attachedSession = undefined;
         const closed = [...new Set([...saved.map(session => session.name), ...[...sessions.values()].filter(session => session.state === 'open').map(session => session.name)])];
         if (parsed.command === 'kill-all') for (const session of sessions.values()) void release(session).catch(() => {});
         const results = await Promise.allSettled([...new Set([...sessions.keys(), ...tails.keys()])].map(name => enqueue(name, async () => {
           check();
           explicitlyClosed.add(name);
+          if (attachedSession === name) attachedSession = undefined;
           const session = sessions.get(name);
           if (session) await retireForCommand(session, parsed.command === 'kill-all');
         })));
@@ -849,28 +926,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         let commandFailure: { error: unknown } | undefined;
         await (async () => {
           check();
-          if (options.persistence && ability.scope === 'session' && !['open', 'close', 'close-all', 'list', 'delete-data'].includes(parsed.command)
-            && !explicitlyClosed.has(parsed.session) && (!suppressUnknownRestores || sessions.has(parsed.session))
-            && (!sessions.has(parsed.session) || sessions.get(parsed.session)!.state === 'closed')) {
-            const restored = await options.persistence.restore({ name: parsed.session, signal: local.signal });
-            if (restored) {
-              let transferred = false;
-              try {
-                await restoreSession({ name: parsed.session, signal: local.signal,
-                  ...(restored.recovery === undefined ? {} : { recovery: restored.recovery }),
-                  ...(restored.expiresAt === undefined ? {} : { expiresAt: restored.expiresAt }),
-                  ...(restored.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: restored.idleTimeoutMs }),
-                  ...(restored.contextOptions === undefined ? {} : { contextOptions: restored.contextOptions }),
-                  ...(restored.configuration === undefined ? {} : { configuration: restored.configuration }),
-                  acquire: async () => { transferred = true; return restored; } }, true);
-              } catch (error) {
-                if (!transferred) {
-                  try { await restored.lease.release(); }
-                  catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Playwright restoration and cleanup failed'); }
-                }
-                throw error;
-              }
-            }
+          if (ability.scope === 'session' && !['open', 'close', 'close-all', 'list', 'delete-data'].includes(parsed.command)) {
+            await restorePersistedSession(parsed.session, local.signal);
             check();
           }
           const current = sessions.get(parsed.session);
@@ -983,6 +1040,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             const session = sessions.get(parsed.session);
             const wasOpen = session?.state === 'open' || (await savedSessions(local.signal)).some(saved => saved.name === parsed.session);
             explicitlyClosed.add(parsed.session);
+            if (attachedSession === parsed.session) attachedSession = undefined;
             const errors: unknown[] = [];
             try { if (session) await retireForCommand(session); } catch (error) { errors.push(error); }
             try { await options.persistence?.close?.(parsed.session, local.signal); } catch (error) { errors.push(error); }
@@ -996,6 +1054,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           if (parsed.command === 'delete-data') {
             const session = sessions.get(parsed.session);
             explicitlyClosed.add(parsed.session);
+            if (attachedSession === parsed.session) attachedSession = undefined;
             const errors: unknown[] = [];
             try { if (session && session.state !== 'closed') await release(session); } catch (error) { errors.push(error); }
             try {
@@ -1021,7 +1080,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             check();
             // Preflight and reservation are synchronous: another session cannot
             // claim this slot during retirement's asynchronous boundary.
-            const occupied = [...sessions.values()].filter(s => s.state !== 'closed').length;
+            const occupied = occupiedSessions();
             if (occupied >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
             active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${++refSequence}`), cleanups: new Set(), idleTimeoutMs: openOptions.idleTimeoutMs, contextOptions: openOptions.contextOptions };
             active.configuration = { ...openOptions.configuration, browserName: openOptions.browser, headless: openOptions.headless };

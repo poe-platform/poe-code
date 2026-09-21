@@ -82,9 +82,13 @@ test("native named sessions preserve tabs and cookies after capacity rejection",
     expect(report.results[2]!.stderr).toContain("session capacity exceeded");
     expect(report.results[2]!.requests).toEqual([]);
     expect(report.results[3]!.stdout).toContain("/set-cookies)");
+    expect(report.results[3]!.stdout).toContain("Browser 'first' attached.");
+    expect(report.results[3]!.stdout).toContain("1: (current)");
+    expect(report.results[3]!.requests).toEqual([]);
     expect(report.results[4]!.stdout).toContain("session=first");
     expect(report.results[4]!.stdout).toContain("theme=dark");
     expect(report.results[5]!.stdout).toContain("No cookies");
+    expect(report.results[5]!.stdout).toContain("Browser 'first' is detached.");
     expect(report.results.slice(1, 6).map((result) => result.sessions.length)).toEqual([
       2, 2, 2, 2, 2
     ]);

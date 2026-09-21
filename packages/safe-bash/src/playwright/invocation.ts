@@ -29,6 +29,7 @@ export type ParsedInvocation = {
   json: boolean;
   raw: boolean;
   session: string;
+  readonly explicitSession?: boolean;
   args: readonly string[];
   options: Readonly<Record<string, string | boolean | readonly string[]>>;
   browser: BrowserEngine;
@@ -115,7 +116,7 @@ export function parseInvocation(invocation: PlaywrightInvocation, abilities: Rea
   const [min, max] = ability.arity;
   if (positional.length < min || positional.length > max) throw new Error(`Invalid arguments for ${command}`);
   const reference = playwrightCommandReference[command];
-  const parsed: ParsedInvocation = { command, json, raw: raw || ('raw' in reference && reference.raw), session, args: Object.freeze(positional), options: Object.freeze(options), browser: 'chromium', headless: true, fullPage: false, imageType: 'png', scale: 'css' };
+  const parsed: ParsedInvocation = { command, json, raw: raw || ('raw' in reference && reference.raw), session, explicitSession: sessionValues !== undefined || invocation.env.PLAYWRIGHT_CLI_SESSION !== undefined, args: Object.freeze(positional), options: Object.freeze(options), browser: 'chromium', headless: true, fullPage: false, imageType: 'png', scale: 'css' };
   if (ability.execute) return parsed;
   const browser = options.browser === 'chrome' ? 'chromium' : options.browser ?? 'chromium';
   if (browser !== 'chromium' && browser !== 'firefox' && browser !== 'webkit') throw new Error(`Unsupported browser: ${browser}`);

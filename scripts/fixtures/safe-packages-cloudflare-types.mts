@@ -23,4 +23,4 @@ const persistence: PlaywrightSessionPersistence = {
   async checkpoint(session, signal) { await host.save(session.name, await checkpointBrowserProfile(session, limits, signal), signal); },
   async delete(name, signal) { await host.remove(name, signal); },
 };
-createPlaywrightCli({adapter, persistence, limits: {maxSessions: 2, maxTabs: 8}});
+createPlaywrightCli({adapter, persistence, namedSessionAttachment: true, limits: {maxSessions: 2, maxTabs: 8}});

@@ -91,6 +91,49 @@ Ordinary command errors preserve a healthy session.
 
 ## Persistence
 
+Hosts opt into owner-scoped named attachment with
+`createPlaywrightCli({ adapter, persistence, namedSessionAttachment: true })`
+or the same option on `createPlaywrightController`. Enable it only when the
+controller and every persistence callback are bound to the current authenticated
+owner, for example one agent Durable Object. Guest aliases never authorize
+access to another owner. The capability performs no global provider discovery
+and never accepts a CDP URL, endpoint, or extension connection.
+
+`playwright-cli attach NAME` reuses that controller's live named session,
+preserving its context, selected tab, snapshot references, and browser state.
+If no live lease remains, it calls owner-scoped persistence to restore the last
+committed resumable profile. With `list` configured, the name must be present in
+its unexpired resumable metadata before restoration. Without `list`, `restore`
+must itself refuse missing, closed, deleted, or expired profiles before acquiring
+a browser. Missing targets fail; attachment never invokes the adapter to open a
+new blank session as a fallback. A reconstructed profile may contain inert blank
+tabs by the existing profile policy and must report `livePageStateLost: true`.
+
+Attachment changes the controller's default selection across shell invocations.
+Explicit `-s=NAME`, `--session=NAME`, or `PLAYWRIGHT_CLI_SESSION` overrides that
+selection for a command. When supplied on `attach`, the explicit session must
+equal the target name; rebinding a lease under a different alias is refused.
+Selection creates no additional session entry or lease owner. Multiple
+attachments to one name share its existing restore/action/close queue, and
+pending restorations count against the session limit before host allocation.
+
+`detach` clears the default attachment while retaining the owned live session
+and profile; explicit commands can still use it. Detaching another name leaves
+the current attachment selected. `close` and `delete-data` clear an attachment
+to that name and suppress restoration. `close-all` and `kill-all` clear selection
+and retire all owned sessions. Cancellation during restoration drains and retires
+a late acquired lease without publishing selection. Cancelling selection of an
+already live session does not retire that session. Attachment does not replay
+interrupted operations, reset live contexts, or checkpoint completed actions.
+It leaves the previous operation receipt intact, so interrupted work remains
+inspectable. Hosts retain responsibility for durable profile validation and must
+choose inert recovery when initialization or saved URLs could repeat effects.
+
+CDP, endpoint, extension, config, and idle-timeout attachment options fail before
+persistence or browser I/O. Existing custom attachment abilities retain their
+own behavior; the named capability governs built-in attachment only. Hosts that
+omit the capability continue to receive the unsupported broker diagnostic.
+
 Optional persistence callbacks operate within the host's trusted owner scope:
 
 - `checkpoint` receives the current context, selected page, validated context

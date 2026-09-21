@@ -12,6 +12,7 @@ interface Env {
 export class CapacitySessions extends DurableObject<Env> {
   #requests: { method: string; url: string }[] = [];
   #cli = createPlaywrightCli({
+    namedSessionAttachment: true,
     adapter: createCloudflarePlaywrightAdapter({
       fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
         this.#requests.push({ method: init?.method ?? "GET", url: String(input) });
@@ -81,9 +82,9 @@ export default {
         `PLAYWRIGHT_CLI_SESSION=first playwright-cli open; playwright-cli -s first tab-new ${origin}/set-cookies`,
         "PLAYWRIGHT_CLI_SESSION=ignored playwright-cli -s second open; playwright-cli -s second tab-list",
         "playwright-cli -s third open",
-        "playwright-cli -s first tab-list",
-        `playwright-cli -s first goto ${origin}/cookies; playwright-cli -s first snapshot`,
-        `playwright-cli -s second goto ${origin}/cookies; playwright-cli -s second snapshot`,
+        "playwright-cli attach first; playwright-cli tab-list",
+        `playwright-cli goto ${origin}/cookies; playwright-cli snapshot`,
+        `playwright-cli -s second goto ${origin}/cookies; playwright-cli -s second snapshot; playwright-cli detach`,
         "playwright-cli close-all",
         "playwright-cli list",
         `playwright-cli open ${origin}/; playwright-cli tab-new ${origin}/`,

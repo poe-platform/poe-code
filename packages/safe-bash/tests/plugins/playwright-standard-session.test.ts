@@ -263,7 +263,7 @@ test('persistence restores lazily in the session queue; help/list never acquire 
   } finally { await f.controller.dispose(); }
 });
 
-for (const reason of ['expired', 'cancelled', 'capacity'] as const) test(`lazy persistence retires the returned lease when ${reason} prevents ownership transfer`, async () => {
+for (const reason of ['expired', 'cancelled'] as const) test(`lazy persistence retires the returned lease when ${reason} prevents ownership transfer`, async () => {
   const signal = new AbortController();
   let released = 0;
   const persistence: PlaywrightSessionPersistence = {
@@ -282,9 +282,27 @@ for (const reason of ['expired', 'cancelled', 'capacity'] as const) test(`lazy p
   });
   const run = (args: string[]) => controller.run({ args, env: {}, signal: signal.signal, async write() {} });
   try {
-    if (reason === 'capacity') await run(['-s=already-open', 'open']);
-    await assert.rejects(run(['goto', 'https://example.com']), reason === 'expired' ? /expired/ : reason === 'cancelled' ? /cancelled restore/ : /capacity/);
+    await assert.rejects(run(['goto', 'https://example.com']), reason === 'expired' ? /expired/ : /cancelled restore/);
     assert.equal(released, 1);
+  } finally { await controller.dispose(); await f.controller.dispose(); }
+});
+
+test('lazy persistence rejects full capacity before calling the host', async () => {
+  const f = fixture();
+  let restores = 0;
+  const controller = createPlaywrightController({
+    adapter: { browsers: { chromium: { headed: false } }, async acquire() { return f.lease(); } },
+    persistence: {
+      async restore() { restores++; return { lease: f.lease() }; },
+      async checkpoint() {}, async delete() {},
+    }, limits: { maxSessions: 1 },
+  });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    await run(['-s=already-open', 'open']);
+    await assert.rejects(run(['goto', 'https://example.com']), /capacity/);
+    assert.equal(restores, 0);
+    assert.deepEqual(controller.inspectSessions().map(session => session.name), ['already-open']);
   } finally { await controller.dispose(); await f.controller.dispose(); }
 });
 

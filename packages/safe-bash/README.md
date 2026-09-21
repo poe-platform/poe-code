@@ -295,6 +295,12 @@ Portable browser profiles restore blank tabs by default, preserving storage,
 settings, tab count, and selection. Only pass `tabRestoration: 'navigate'` to
 `restoreBrowserProfile` when replaying saved URLs is authorized; action URLs can
 repeat effects. Use `recovery: true` to also suppress configuration and provider scripts.
+Owner-bound hosts can enable `namedSessionAttachment: true` on
+`createPlaywrightCli({ adapter, persistence, ... })` to support `attach NAME`.
+It selects an existing live session or restores its committed resumable profile
+for subsequent invocations. Explicit `-s=NAME` overrides selection; `detach`
+retains the browser, while `close` retires it. See the
+[host capability contract](src/contracts/playwright-sessions.md#persistence).
 
 For Cloudflare Workers, start with the exported `cloudflareWorkerLimits` profile
 and configure command-family buffers at no more than 8 MiB. Create a separate

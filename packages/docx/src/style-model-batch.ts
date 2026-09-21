@@ -178,9 +178,14 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
           throw new DocxUsageError("The provider does not own the required native part role.");
         value = part;
       } else {
+        const receiver = resolve(item.receiver);
         const args = Object.fromEntries(Object.entries(item.arguments).map(([key, value]) => [key, resolve(value)]));
+        // Paragraph setters validate the supplied sign before length rounding.
+        // Other native receivers may require constructed Length instances.
+        const supplied = item.arguments.value;
+        if (receiver instanceof ParagraphFormat && item.operation.endsWith(".set") && supplied !== null && typeof supplied === "object" && "value" in supplied && "unit" in supplied) args.value = supplied;
         const imageAction = imageBatchActions.get(item.operation), packageAction = packageViewBatchActions.get(item.operation);
-        value = await (imageAction ? imageAction(resolve(item.receiver), args, settings) : packageAction ? packageAction(resolve(item.receiver), args, settings) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(resolve(item.receiver), args));
+        value = await (imageAction ? imageAction(receiver, args, settings) : packageAction ? packageAction(receiver, args, settings) : (structureModelBatchActions.get(item.operation) ?? styleModelBatchActions.get(item.operation))!(receiver, args));
       }
       if (item.resultHandle) {
         if (value && typeof value === "object" && Symbol.iterator in value && "next" in value) {

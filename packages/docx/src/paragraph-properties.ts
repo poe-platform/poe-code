@@ -40,6 +40,13 @@ export function newTabStopXml(namespace: string, tab: DocxTabStop, spacesLeader:
 
 /** Merge supplied direct properties while retaining untouched lexical content. */
 export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElement, options: DocxOperationArguments<"paragraphs.set">, styleId?: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children, spacesLeader: "none" | null = "none"): string {
+  for (const value of [options.spaceBefore, options.spaceAfter, typeof options.lineSpacing === "object" ? options.lineSpacing : undefined]) {
+    if (value != null && value.value < 0) throw new DocxUsageError("Paragraph spacing cannot be negative.");
+  }
+  if (typeof options.lineSpacing === "number") {
+    const line = Math.round(options.lineSpacing * 240);
+    if (line < 1 || !Number.isSafeInteger(line)) throw new DocxUsageError("Line spacing multiples must round to positive safe integer storage.");
+  }
   const w = paragraph.namespace;
   const strict = w === documentDialects.strict.w;
   const directional = (value: string) => strict ? ({ left: "start", right: "end" }[value] ?? value) : value;

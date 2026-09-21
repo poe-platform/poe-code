@@ -1257,3 +1257,9 @@ A canceled redundant future replay earns zero credit; its unchanged12288-case
 denominator is bound to the actual current exact passing report. Source changes
 invalidate this binding. Complete F08–F15/F18 acceptance, all other cohorts and
 renderer/normative reconciliation remain open; no push or release occurred.
+
+### Native paragraph spacing assignment boundary — 2026-09-20
+
+The [current scoped receipt](text-style-user-edge-audit-20260920/native-spacing-scoped-current-verification.json) binds F09/F13/F14 contract6.5/9.1 spacing to all640 original memfs identities through native model, model-only SDK batch, ordered SDK and actual opted-in CLI; Strict/Transitional DOCX/DOTX paragraph/style owners. Before code,344 genuine failures,288 valid controls and8 already-rejected invalid CLI cases were executed. Current640/640 and1449/1449 selected maintained cases pass without skips. Negative lengths reject before rounding/mutation, numeric multiples require positive safe storage, zero physical lengths/resets and signed indentation remain valid. The native batch retains raw paragraph-format Length descriptors for sign validation. Destination/input/dirty-member/relationship/formatting retention is asserted.
+
+Both original and qualified observers, failures and canceled runs remain losslessly retained. Lint/types and selected workspace build pass; actual CLI ASCII screenshot was visually inspected and has zero Unicode renderer credit. This is named spacing evidence only. The13824 current public variants and full768-suite replay are pending, and the prior12288 list variants require fresh current-source execution after this dependency changed source. Complete F08–F15/F18 acceptance remains open; no queued/prepared/canceled/unrun evidence is a pass. Nothing pushed or released.

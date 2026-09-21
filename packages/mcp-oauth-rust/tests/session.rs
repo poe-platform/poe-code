@@ -25,6 +25,6 @@ fn client_storage_preserves_own_secret_json_value_and_accepts_empty_client_id() 
     ))
     .unwrap();
     assert_eq!(client.get("clientSecret"), Some(&Value::Null));
-    assert_eq!(client.get("extra"), None);
+    assert_eq!(client.get("extra"), Some(&Value::Bool(true)));
     assert!(read_stored_client(&value("{}")).is_err());
 }

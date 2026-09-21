@@ -38,7 +38,8 @@ listeners and rejects pending waits; close is idempotent and code waits are sing
 Encrypted session and client-registration persistence uses the embedded Rust
 credential store. URI-specific filenames and Keychain accounts match the original
 package, including resource normalization and machine-bound encrypted documents.
-Session admission and client-field projection run in Rust. The package ships these
+Session admission runs in Rust and client registration loads retain all validated metadata.
+Malformed stored JSON reports an explicit recovery error. The package ships these
 capabilities in its own addon and has no runtime import of `auth-store`.
 
 The default provider supports cached tokens, coalesced refresh/authorization,

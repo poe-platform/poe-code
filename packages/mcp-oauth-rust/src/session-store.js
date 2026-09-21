@@ -31,12 +31,7 @@ function namedStore(key, options, client) {
 function decodeStored(raw, client) {
   const result = native.readStoredOauthValue(raw, client);
   if (Object.hasOwn(result, "parseError")) {
-    JSON.parse(raw); // Preserve platform SyntaxError diagnostics for malformed JSON.
-    throw new Error(
-      client
-        ? "Stored OAuth client must be a JSON object with clientId"
-        : "Stored OAuth session must match the expected shape"
-    );
+    throw new Error(`Stored OAuth ${client ? "client" : "session"} must be valid JSON; reset the store explicitly to recover`);
   }
   if (Object.hasOwn(result, "error")) throw new Error(result.error);
   return result.value;

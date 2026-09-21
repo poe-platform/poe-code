@@ -50,15 +50,8 @@ pub fn validate_session(value: &Value) -> bool {
             .all(|key| tokens.get(key).is_none_or(|value| nonblank(Some(value))))
 }
 pub fn read_stored_client(value: &Value) -> Result<Value, &'static str> {
-    let Some(Value::String(client)) = value.get("clientId") else {
+    if !matches!(value.get("clientId"), Some(Value::String(_))) {
         return Err("Stored OAuth client must be a JSON object with clientId");
-    };
-    let mut fields = vec![(
-        "clientId".encode_utf16().collect(),
-        Value::String(client.clone()),
-    )];
-    if let Some(secret) = value.get("clientSecret") {
-        fields.push(("clientSecret".encode_utf16().collect(), secret.clone()));
     }
-    Ok(Value::Object(fields))
+    Ok(value.clone())
 }

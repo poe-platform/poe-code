@@ -26,13 +26,15 @@ export class OAuthError extends Error {
   readonly outcomeKnown: boolean;
 
   constructor(shape: OAuthErrorShape, status: number, outcomeKnown = true) {
-    super(shape.error_description ?? shape.error);
+    const description = Object.hasOwn(shape, "error_description") ? shape.error_description : undefined;
+    const uri = Object.hasOwn(shape, "error_uri") ? shape.error_uri : undefined;
+    super(description ?? (outcomeKnown ? shape.error : `OAuth HTTP response did not contain a valid error (HTTP ${status})`));
     this.name = "OAuthError";
     this.error = shape.error;
-    this.errorDescription = shape.error_description;
-    this.errorUri = shape.error_uri;
-    this.error_description = shape.error_description;
-    this.error_uri = shape.error_uri;
+    this.errorDescription = description;
+    this.errorUri = uri;
+    this.error_description = description;
+    this.error_uri = uri;
     this.status = status;
     this.retryable = isRetryableOAuthError(this);
     this.terminal = !this.retryable;
@@ -226,7 +228,8 @@ export async function readOAuthJsonObjectResponse(
   const record = payload as Record<string, unknown>;
   if (!response.ok) {
     const error = getOwnEntry(record, "error");
-    throw new OAuthError(readOAuthError(record, fallbackError.error), response.status, typeof error === "string" && error.trim().length > 0);
+    if (typeof error !== "string" || error.trim() === "") throw fallbackError;
+    throw new OAuthError(readOAuthError(record), response.status);
   }
 
   return record;
@@ -251,7 +254,7 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
 }
 
 function createFallbackOAuthError(status: number): OAuthError {
-  const error = status === 503 ? "temporarily_unavailable" : "server_error";
+  const error = status === 503 ? "temporarily_unavailable" : status >= 500 ? "server_error" : "invalid_response";
   return new OAuthError({ error }, status, false);
 }
 

@@ -173,7 +173,7 @@ describe("token endpoint parsing", () => {
 
         expect(error).toBeInstanceOf(OAuthError);
         expect(error).toMatchObject({
-          error: "server_error",
+          error: "invalid_response",
           errorDescription: undefined,
           errorUri: undefined,
           status: 400
@@ -181,4 +181,22 @@ describe("token endpoint parsing", () => {
       }
     );
   });
+});
+
+it.each([400, 401, 403, 404])("classifies malformed HTTP %s token responses as nonretryable with unknown consumption", async status => {
+  const error = await readOAuthJsonObjectResponse(new Response("private-marker", { status })).catch((error: unknown) => error);
+  expect(error).toMatchObject({ status, error: "invalid_response", retryable: false, terminal: true, outcomeKnown: false });
+  expect(error.message).toContain(`HTTP ${status}`);
+  expect(error.message).not.toContain("private-marker");
+});
+it.each([500, 503])("keeps malformed HTTP %s server responses retryable with unknown consumption", async status => {
+  const error = await readOAuthJsonObjectResponse(new Response("private-marker", { status })).catch((error: unknown) => error);
+  expect(error).toMatchObject({ status, retryable: true, terminal: false, outcomeKnown: false });
+});
+
+it.each([{}, { error: "" }, { error: "  " }, { error_description: "private-marker" }])("treats incomplete JSON OAuth errors as unstructured rejection: %j", async payload => {
+  const error = await readOAuthJsonObjectResponse(Response.json(payload, { status: 403 })).catch((error: unknown) => error);
+  expect(error).toMatchObject({ status: 403, error: "invalid_response", retryable: false, outcomeKnown: false });
+  expect(error.message).toContain("HTTP 403");
+  expect(error.message).not.toContain("private-marker");
 });

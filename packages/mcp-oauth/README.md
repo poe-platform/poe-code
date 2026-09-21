@@ -33,7 +33,7 @@ const verifier = createJwksTokenVerifier({
 - `normalizeOAuthScope(value)`: validate scope syntax and normalize its case-sensitive set.
 - `canonicalizeResourceIndicator(value)`: resource indicator canonicalization.
 - `createJwksTokenVerifier(options)`: JWKS-backed access-token verifier for MCP servers.
-- `OAuthError`: token endpoint error type.
+- `OAuthError`: OAuth HTTP error type with status, retryability and known-outcome fields.
 
 ## Configuration
 
@@ -244,3 +244,10 @@ cannot disable this policy.
 
 This package exposes no direct environment variables. When `authStore` is used,
 `auth-store` honors its own backend environment variables.
+
+Malformed OAuth HTTP errors retain their numeric HTTP status without echoing
+response bodies. Raw/incomplete client-error responses (including registration
+HTTP 403) are nonretryable `invalid_response` errors; authorization fails without
+waiting for consent that never started. Raw server errors remain transient.
+`outcomeKnown: false` still withholds an uncertain rotating refresh family: a
+nonretryable HTTP status alone does not prove a refresh token was unconsumed.

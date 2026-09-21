@@ -5,12 +5,12 @@ import type { OAuthMetadataFetch } from "./types.js";
 
 const issuer = "https://auth.example";
 const resource = "https://resource.example/mcp";
-const close = vi.hoisted(() => vi.fn());
+const { close, waitForCode } = vi.hoisted(() => ({ close: vi.fn(), waitForCode: vi.fn(async () => "code") }));
 vi.mock("./loopback-authorization.js", async importOriginal => ({
   ...await importOriginal<typeof import("./loopback-authorization.js")>(),
-  createLoopbackAuthorizationSession: async () => ({ redirectUri: "http://127.0.0.1:12345/callback", waitForCode: async () => "code", close })
+  createLoopbackAuthorizationSession: async () => ({ redirectUri: "http://127.0.0.1:12345/callback", waitForCode, close })
 }));
-afterEach(() => { vi.restoreAllMocks(); close.mockClear(); });
+afterEach(() => { vi.restoreAllMocks(); close.mockClear(); waitForCode.mockClear(); });
 
 function register(fetch: OAuthMetadataFetch) {
   const provider = createDefaultOAuthClientProvider({
@@ -53,5 +53,18 @@ it("cancels a stalled registration body and closes the authorization callback on
   } finally {
     try { bodyController.close(); } catch { /* Already cancelled. */ }
     await observed;
+  }
+});
+
+it.each([400, 401, 403, 404])("fails a malformed HTTP %s registration rejection without another attempt or consent wait", async status => {
+  const fetch = vi.fn(async () => new Response("Forbidden private-marker", { status }));
+  const result = await register(fetch);
+  expect(result).toMatchObject({ action: "fail", error: { status, retryable: false, outcomeKnown: false } });
+  expect(fetch).toHaveBeenCalledOnce();
+  expect(waitForCode).not.toHaveBeenCalled();
+  expect(close).toHaveBeenCalledOnce();
+  if (result.action === "fail") {
+    expect(result.error.message).toContain(`HTTP ${status}`);
+    expect(result.error.message).not.toContain("private-marker");
   }
 });

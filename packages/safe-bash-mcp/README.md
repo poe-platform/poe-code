@@ -28,6 +28,9 @@ server identity, capabilities and instructions.
 | `compileToolArguments(tool, options)` | Compile validated argument parsing and deterministic flag metadata |
 | `createRemoteMcpCommands(servers, options)` | Generate safe-bash command definitions |
 | `remoteMcpCommands(servers, options)` | Generate a plugin that registers those commands |
+| `initRemoteMcpConfiguration(servers, options)` | Create versioned configuration and empty credential templates |
+| `parseRemoteMcpConfiguration(value, options)` | Validate and copy configuration from JSON text or an object |
+| `createRemoteMcpManagementCommand(servers, options)` | Create the safe-bash `mcp init` command |
 
 Use `headers` or the client's `oauth` options for credentials. URLs must use
 HTTP or HTTPS without embedded credentials or fragments. Discovery supports
@@ -101,5 +104,34 @@ owned requests. Set `maxOutputBytes` to bound command output (default 16 MiB).
 Output schemas and external schema registrations are captured during generation.
 Registration checks all command conflicts before registering any of them.
 
-Reproducible artifact generation and the OAuth credential initialization command
+Prepare credential configuration without reading secrets or connecting:
+
+```ts
+import { initRemoteMcpConfiguration, createRemoteMcpManagementCommand } from "safe-bash-mcp";
+
+const servers = [{
+  name: "catalog", url: "https://catalog.example/mcp",
+  auth: {
+    type: "oauth" as const, clientMode: "static" as const,
+    env: { clientId: "GOOGLE_APP_ID", clientSecret: "GOOGLE_APP_SECRET" },
+    scope: "read offline_access", redirectUri: "http://localhost:39119/callback"
+  }
+}];
+const { configuration, envTemplate } = initRemoteMcpConfiguration(servers);
+const management = createRemoteMcpManagementCommand(servers);
+// Register management with your shell's CommandRegistry.
+```
+
+`mcp init` prints `{ configuration, envTemplate }` as JSON. Use
+`mcp init --format config` or `mcp init --format env` for separate outputs that
+can be redirected to files. `mcp init --help` explains the available formats.
+OAuth requires an explicit `clientMode: "static"` or `"dynamic"`. Templates
+include client ID/secret, scope, redirect URL, access/refresh tokens and expiry
+in Unix epoch milliseconds. Every template value is empty; public scope and
+redirect defaults remain in configuration. Bearer tokens and arbitrary headers
+also use explicit `{ env: "VARIABLE_NAME" }` references. Literal credentials
+and unknown configuration fields are rejected. Supplied schemas remain
+authoritative, including an empty tool list.
+
+Runtime binding of declarative credentials and reproducible artifact generation
 are under development.

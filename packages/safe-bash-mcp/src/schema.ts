@@ -111,11 +111,8 @@ export async function fetchRemoteMcpSchema(
   });
 }
 
-/** Validate the complete registry before connecting, then preserve caller order. */
-export async function resolveRemoteMcpSchemas(
-  servers: readonly RemoteMcpServer[],
-  options: SchemaFetchOptions = {}
-): Promise<RemoteMcpSchema[]> {
+/** Preflight every remote registry entry before any connection or generation. */
+export function preflightRemoteMcpServers(servers: readonly RemoteMcpServer[], options: SchemaFetchOptions = {}): void {
   options.signal?.throwIfAborted();
   const limits = remoteLimits(options);
   const names = new Set<string>();
@@ -124,6 +121,14 @@ export async function resolveRemoteMcpSchemas(
     if (names.has(server.name)) throw new Error(`Duplicate server '${server.name}'`);
     names.add(server.name);
   }
+}
+
+/** Validate the complete registry before connecting, then preserve caller order. */
+export async function resolveRemoteMcpSchemas(
+  servers: readonly RemoteMcpServer[],
+  options: SchemaFetchOptions = {}
+): Promise<RemoteMcpSchema[]> {
+  preflightRemoteMcpServers(servers, options);
   const schemas: RemoteMcpSchema[] = [];
   for (const server of servers) schemas.push(await fetchRemoteMcpSchema(server, options));
   return schemas;

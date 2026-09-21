@@ -13,17 +13,17 @@ export interface RemoteMcpCommandOptions extends SchemaFetchOptions, ToolArgumen
   readonly schemaValidation?: CompileJsonSchemaOptions;
 }
 
-function commandLimit(value: number, name: string): number {
+export function commandLimit(value: number, name: string): number {
   if (!Number.isSafeInteger(value) || value < 1) throw new Error(`${name} must be a positive safe integer`);
   return value;
 }
 
-function validateCommandName(name: string): void {
+export function validateCommandName(name: string): void {
   if (typeof name !== "string" || name.length === 0 || [...name].some(char => char === "/" || char === "\0" || char.trim() === ""))
     throw new Error("Remote MCP command name must be nonempty and contain no whitespace, slash or NUL");
 }
 
-function textLine(text: string): string {
+export function textLine(text: string): string {
   let line = "";
   for (const char of text) {
     if (char === "\n" || char === "\r") break;
@@ -33,7 +33,7 @@ function textLine(text: string): string {
   return line;
 }
 
-function shellWord(word: string): string {
+export function shellWord(word: string): string {
   return [...word].every(char => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-".includes(char)) && word.length > 0
     ? word : `'${word.split("'").join("'\\''")}'`;
 }
@@ -63,7 +63,7 @@ function wantsToolHelp(args: readonly string[]): boolean {
   return false;
 }
 
-function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 0): Record<string, unknown> {
+export function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 0): Record<string, unknown> {
   if (depth > 8 || seen.has(error)) return { message: "Nested error details omitted" };
   seen.add(error);
   const details: Record<string, unknown> = {
@@ -80,7 +80,7 @@ function errorDetails(error: unknown, seen = new Set<unknown>(), depth = 0): Rec
   return details;
 }
 
-async function emit(operation: OutputOperation, text: string, maxBytes: number): Promise<void> {
+export async function emit(operation: OutputOperation, text: string, maxBytes: number): Promise<void> {
   if (Buffer.byteLength(text, "utf8") > maxBytes) throw new Error("MCP command output byte limit exceeded");
   const bytes = new TextEncoder().encode(text);
   for (let offset = 0; offset < bytes.length; offset += 16 * 1024) {
@@ -89,7 +89,7 @@ async function emit(operation: OutputOperation, text: string, maxBytes: number):
   }
 }
 
-function argumentText(context: CommandContext, maxBytes: number): string[] {
+export function argumentText(context: CommandContext, maxBytes: number): string[] {
   const carrier = getCommandArguments(context);
   const decoder = new TextDecoder("utf-8", { fatal: true });
   let bytes = 0;

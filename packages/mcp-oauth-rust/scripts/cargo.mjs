@@ -8,6 +8,10 @@ if (process.argv[2] === "build" || process.argv[2] === "test") {
     new URL("../dist/auth-store-runtime.js", import.meta.url)
   );
   copyFileSync(
+    new URL("../../auth-store-rust/src/credential-transaction-lock.js", import.meta.url),
+    new URL("../dist/credential-transaction-lock.js", import.meta.url)
+  );
+  copyFileSync(
     new URL("../../auth-store-rust/src/index.d.ts", import.meta.url),
     new URL("../dist/auth-store-types.d.ts", import.meta.url)
   );

@@ -1,8 +1,9 @@
-import { createCipheriv, createDecipheriv, randomBytes, randomUUID, scrypt } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID, scrypt } from "node:crypto";
 import { promises as defaultFs } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { withSecretStoreFileLock } from "./credential-transaction-lock.js";
 // Bundled once alongside each consuming addon; no package import is needed.
 export function createCredentialStoreBindings(native) {
   const derivedKeys = new native.NativeDerivedKeyCache();
@@ -102,6 +103,12 @@ export function createCredentialStoreBindings(native) {
           throw error;
         }
       }
+    }
+    async withLock(operation, options = {}) {
+      await this.#assertPath(`${this.#filePath}.lock`);
+      if (this.#fs.readdir === undefined)
+        throw new Error("Secret-store transaction locks require filesystem readdir support");
+      return withSecretStoreFileLock(this.#fs, `${this.#filePath}.lock`, operation, options);
     }
     #getKey() {
       if (this.#keyPromise === null) {
@@ -206,6 +213,9 @@ export function createCredentialStoreBindings(native) {
   class KeychainStore {
     #plan;
     #run;
+    #lockFs;
+    #lockDirectory;
+    #lockIdentity;
     constructor(input) {
       try {
         this.#plan = new native.NativeKeychainPlan(input.service, input.account);
@@ -213,6 +223,12 @@ export function createCredentialStoreBindings(native) {
         throw new Error(error.message);
       }
       this.#run = input.runCommand ?? runSecurityCommand;
+      this.#lockFs = input.lock?.fs ?? defaultFs;
+      this.#lockDirectory = input.lock?.directory ?? path.join(homedir(), ".auth-store", "keychain-locks");
+      this.#lockIdentity = createHash("sha256").update(JSON.stringify([input.service.trim(), input.account.trim()])).digest("hex");
+    }
+    async withLock(operation, options = {}) {
+      return withSecretStoreFileLock(this.#lockFs, path.join(this.#lockDirectory, this.#lockIdentity), operation, options);
     }
     async #execute(operation, value) {
       let args;

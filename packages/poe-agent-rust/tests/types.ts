@@ -202,3 +202,13 @@ const builtinMcpA: typeof referenceMcpPlugin = own.mcpPlugin;
 const builtinPolicyA: typeof referencePolicyPlugin = own.policyPlugin;
 const builtinPolicyB: typeof own.policyPlugin = referencePolicyPlugin;
 void [builtinSkillsA, builtinSkillsB, builtinScratchA, builtinMcpA, builtinPolicyA, builtinPolicyB];
+
+import referenceMemoryPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-memory.js";
+import referenceCompactionPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-compaction.js";
+import referenceAuditPlugin from "../../poe-agent/dist/plugins/poe-agent-plugin-audit-log.js";
+const contextMemoryA: typeof referenceMemoryPlugin = own.memoryPlugin;
+const contextMemoryB: typeof own.memoryPlugin = referenceMemoryPlugin;
+const contextCompactionA: typeof referenceCompactionPlugin = own.compactionPlugin;
+const contextCompactionB: typeof own.compactionPlugin = referenceCompactionPlugin;
+const contextAuditA: typeof referenceAuditPlugin = own.auditLogPlugin;
+void [contextMemoryA, contextMemoryB, contextCompactionA, contextCompactionB, contextAuditA];

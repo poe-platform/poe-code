@@ -69,3 +69,14 @@ export { default as maxIterationsPlugin } from "./plugin-max-iterations.js";
 export { default as scratchpadPlugin } from "./plugin-scratchpad.js";
 export { default as skillsPlugin } from "./plugin-skills.js";
 export { default as spawnPlugin } from "./plugin-spawn.js";
+export { default as memoryPlugin } from "./plugin-memory.js";
+export type { MemoryPluginOptions, MemoryPluginConfigOptions } from "./plugin-memory.js";
+export { default as compactionPlugin } from "./plugin-compaction.js";
+export type {
+  CompactionPluginOptions,
+  CompactionPluginConfigOptions
+} from "./plugin-compaction.js";
+export { default as auditLogPlugin } from "./plugin-audit-log.js";
+export { default as systemPromptPlugin } from "./plugin-system-prompt.js";
+export { default as environmentPlugin } from "./plugin-environment.js";
+export { loadSystemPrompt, loadSystemPromptSync } from "./system-prompt.js";

@@ -21,7 +21,10 @@ export default defineConfig({
           );
           const selected = new Set([
             "poe-agent-plugin-max-iterations",
-            "poe-agent-plugin-scratchpad"
+            "poe-agent-plugin-scratchpad",
+            "poe-agent-plugin-audit-log",
+            "poe-agent-plugin-system-prompt",
+            "poe-agent-plugin-environment"
           ]);
           const filtered = ts.factory.updateSourceFile(
             source,
@@ -36,7 +39,7 @@ export default defineConfig({
           );
           const output =
             ts.createPrinter().printFile(filtered) +
-            `\nimport nativeScratch from ${JSON.stringify(path("dist/plugin-scratchpad.js"))};\nimport nativeMaximum from ${JSON.stringify(path("dist/plugin-max-iterations.js"))};\nif(scratchpad!==nativeScratch||maxIterations!==nativeMaximum)throw new Error("Built-in contracts must execute the Rust package");`;
+            `\nimport nativeScratch from ${JSON.stringify(path("dist/plugin-scratchpad.js"))};\nimport nativeMaximum from ${JSON.stringify(path("dist/plugin-max-iterations.js"))};\nif(scratchpad!==nativeScratch||maxIterations!==nativeMaximum)throw new Error("Built-in contracts must execute the Rust package");\nimport nativeAudit from ${JSON.stringify(path("dist/plugin-audit-log.js"))};\nimport nativeEnvironment from ${JSON.stringify(path("dist/plugin-environment.js"))};\nimport nativeSystemPrompt from ${JSON.stringify(path("dist/plugin-system-prompt.js"))};\nif(auditLog!==nativeAudit||environment!==nativeEnvironment||systemPromptPlugin!==nativeSystemPrompt)throw new Error("Context contracts must execute the Rust package");`;
           return { code: output, map: null };
         }
         if (id === path("../poe-agent/src/plugins/poe-agent-plugin-policy.test.ts")) {
@@ -76,6 +79,20 @@ export default defineConfig({
             code:
               code +
               `\nimport {getOptionalNumber as nativeArgument} from ${JSON.stringify(path("dist/plugin-args.js"))};\nif(getOptionalNumber!==nativeArgument)throw new Error("Argument contracts must execute the Rust package");`,
+            map: null
+          };
+        if (id === path("../poe-agent/src/plugins/poe-agent-plugin-memory.test.ts"))
+          return {
+            code:
+              code +
+              `\nimport nativeMemory from ${JSON.stringify(path("dist/plugin-memory.js"))};\nif(memoryPlugin!==nativeMemory)throw new Error("Memory contracts must execute the Rust package");`,
+            map: null
+          };
+        if (id === path("../poe-agent/src/plugins/poe-agent-plugin-compaction.test.ts"))
+          return {
+            code:
+              code +
+              `\nimport nativeCompaction from ${JSON.stringify(path("dist/plugin-compaction.js"))};\nif(compactionPlugin!==nativeCompaction)throw new Error("Compaction contracts must execute the Rust package");`,
             map: null
           };
         if (
@@ -197,7 +214,9 @@ export default defineConfig({
             path("../poe-agent/src/plugins/plugins.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-policy.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-mcp.test.ts"),
-            path("../poe-agent/src/plugins/plugin-args.test.ts")
+            path("../poe-agent/src/plugins/plugin-args.test.ts"),
+            path("../poe-agent/src/plugins/poe-agent-plugin-memory.test.ts"),
+            path("../poe-agent/src/plugins/poe-agent-plugin-compaction.test.ts")
           ].includes(importer)
         ) {
           const modules = new Map([
@@ -208,6 +227,12 @@ export default defineConfig({
             ["./poe-agent-plugin-skills.js", "plugin-skills"],
             ["./poe-agent-plugin-spawn.js", "plugin-spawn"],
             ["./plugin-args.js", "plugin-args"],
+            ["./poe-agent-plugin-memory.js", "plugin-memory"],
+            ["./poe-agent-plugin-compaction.js", "plugin-compaction"],
+            ["./poe-agent-plugin-system-prompt.js", "plugin-system-prompt"],
+            ["./poe-agent-plugin-environment.js", "plugin-environment"],
+            ["./poe-agent-plugin-audit-log.js", "plugin-audit-log"],
+            ["../system-prompt.js", "system-prompt"],
             ["../runtime/hooks.js", "hooks"],
             ["../runtime/run-context.js", "run-context"],
             ["../runtime/acp-core.js", "acp-core"],
@@ -269,6 +294,8 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/plugins/poe-agent-plugin-memory.test.ts"),
+      path("../poe-agent/src/plugins/poe-agent-plugin-compaction.test.ts"),
       path("../poe-agent/src/plugins/plugins.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-policy.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-mcp.test.ts"),

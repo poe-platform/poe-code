@@ -160,3 +160,5 @@ pub mod model_messages;
 pub mod agent_host;
 
 pub mod builtin_plugins;
+
+pub mod context_plugins;

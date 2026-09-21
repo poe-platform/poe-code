@@ -60,3 +60,5 @@ for (const [from, to] of [
   ["index.d.ts", "auth-store-types.d.ts"]
 ])
   copyFileSync(new URL("../auth-store-rust/src/" + from, root), new URL(to, oauthOutput));
+
+copyFileSync(new URL("src/SYSTEM_PROMPT.md", root), new URL("SYSTEM_PROMPT.md", dist));

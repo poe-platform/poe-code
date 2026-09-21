@@ -138,3 +138,17 @@ Skills guidance lists active definitions, tags and available tool names while No
 preserves custom iterators, getters and metadata. Spawn arguments use shared Rust
 scalar validation; Node executes the injected spawn callback. Other built-ins and
 the complete built-in configuration registry remain in progress.
+
+`memoryPlugin` finds the nearest project `AGENTS.md` and user memory file, expands
+trusted `@` file imports and caches the load per plugin. It rejects import cycles,
+escaping paths and symlinked files. Rust scans UTF16 lines/import paths and owns the
+active import set; Node performs injected filesystem and canonical-path checks.
+
+`compactionPlugin` summarizes old context after the configured threshold, preserves
+ordinary system messages and recent turns, and runs pre/post compaction hooks.
+Rust chooses kept/dropped entries, formats summaries and renders sorted file
+awareness; Node retains summarizer callbacks and observable history mutation.
+`auditLogPlugin` writes Rust-assembled JSONL tool/compaction records through injected
+storage. `systemPromptPlugin` prepends the bundled prompt and `environmentPlugin`
+adds working-directory and Node details. Resource loading, timestamps, serialization
+and prompt spreads use Node semantics. Compaction is slower in current benchmarks.

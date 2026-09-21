@@ -275,3 +275,5 @@ pub mod model_messages_binding;
 pub mod agent_host_binding;
 
 pub mod builtin_plugins_binding;
+
+pub mod context_plugins_binding;

@@ -4813,3 +4813,53 @@ Hostaf2d00d03 push completed; exact remote main delivery verified. Root355686260
 uncached unit remains in_progress and no current successful release verified.
 Continuous active07:18:08–07:25:45 adds457s, bringing conservative effort to93,228s
 (25.90h). Minimum fulfilled; full rewrite remains incomplete. Continue after07:25:45.
+
+### Poe agent memory/compaction/audit/system/environment context, 2026-09-21 07:34 UTC
+
+Portable context primitive tests and missing-artifact reference reds precede own
+memoryPlugin,compactionPlugin,auditLogPlugin,systemPromptPlugin,environmentPlugin and
+bundled prompt loaders. The source system prompt is copied additively and maintained
+host preparation ships it. Rust scans UTF16 memory lines/imports without regexes,
+owns active import paths and rejects cycles. Node performs nearest-file walking,
+trusted canonical-path/symlink checks, filesystem operations and cached promises.
+All original recursive memory behavior,handle-text preservation,escaped import
+rejection,nearest-file selection and own-code ENOENT handling remain exercised.
+
+Rust compaction scans user turns backwards, defers numeric limit coercion until a
+user is found, then lazily classifies only the old prefix. It preserves ordinary
+systems/recent entries, drops old summaries and retains original entry identity.
+Zero/fractional/NaN/infinite limits match original semantics. Node runs pre/post
+hooks,summarizer arity/callbacks and observable message/summary mutation. Rust formats
+summaries and sorts/renders UTF16 file awareness. Audit templates preserve timestamp/
+field order and opaque serializer payloads while Node owns dates,JSON.stringify and
+append error policy. System/environment prompt spreads/resource IO remain in Node.
+Initial napi3 legacy string conversion included a terminator/lossy String path;
+using owned Utf16String conversion preserves lone surrogates and exact bytes.
+
+Maintained checks pass40 Rust cases,64 native groups,251 complete original reference
+cases/16 files,typed context-plugin assignments and fmt/clippy. Explicit import
+guards prove every selected context plugin executes the own artifact. Seeded64
+mixed-role histories compare full compaction decisions/callback requests,including
+post-hook summary changes; native access-order cases prove tail names/unused limit
+coercion are not evaluated. Memfs recursive/cycle/cached-failure comparisons and
+all26 ECMAScript whitespace scanner cases pass. Uncached closure113 workspaces/
+36 builds/339 edges passes. Direct/packed16MiB workers each run256 cached memory
+loads/768 reads,512 audit records,256 compactions and bundled-resource equality,
+with external imports blocked. Cumulative builtin/host/plugin/real-MCP workers pass;
+recursive audit115 JS/declaration files,one addon,zero runtime groups. Evidence
+out/rust-poe-agent-context-*.
+
+Five alternating warmed512-compaction/65,536-message samples measure TS4.61–5.65ms
+versus Rust29.15–32.22ms: speed gate FAIL. Isolated16MiB old-space workload creates
+16,384 memory plugins and compacts16,384 histories with four collections/yields per
+2048 batch; post-GC heap7.63→7.76MB,RSS75.2→75.9MB. Finite reclamation only; no
+universal memory/speed/stability advantage or complete closure accepted.
+
+Builtinsbd4d62ca9 push completed; exact remote main verified. Root35568626036 is now
+failed: safe-js adversarial corpus aggregate CPU775.7ms exceeded its750ms budget;
+31,122 other safe-js cases pass and preceding Rust native workspaces pass. Inspect
+current harness/test and validate a focused repair independently; no release success
+claimed. Overall agent builder/session/remaining providers/files/shell/web/registry/
+closure/platform/performance acceptance incomplete. Continuous active07:25:45–07:34:30
+adds525s, bringing conservative effort to93,753s (26.04h). Minimum fulfilled;
+continue after07:34:30 UTC.

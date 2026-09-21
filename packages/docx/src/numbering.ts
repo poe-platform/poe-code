@@ -511,14 +511,26 @@ export class NumberingGraph {
         if (priorLevel) patches.set(priorLevel, (priorStart ? "" : startXml) + levelXml);
         const tail = (priorStart || priorLevel ? "" : startXml) + (priorLevel ? "" : levelXml);
         const rewrite = (node: XmlElement): string | undefined => {
-          this.budget.charge("work", 1);
-          if (patches.has(node)) return patches.get(node)!;
-          const changed = new Map<XmlElement, string>();
-          for (const child of node.children) {
-            const replacement = rewrite(child);
-            if (replacement !== undefined) changed.set(child, replacement);
+          const pending = [{ node, position: 0, changed: new Map<XmlElement, string>() }];
+          this.budget.charge("retainedBytes", 64);
+          while (pending.length) {
+            const frame = pending.at(-1)!;
+            if (frame.position === 0) this.budget.charge("work", 1);
+            if (!patches.has(frame.node) && frame.position < frame.node.children.length) {
+              this.budget.charge("retainedBytes", 64);
+              pending.push({ node: frame.node.children[frame.position++]!, position: 0, changed: new Map() });
+              continue;
+            }
+            const replacement = patches.has(frame.node) ? patches.get(frame.node)!
+              : frame.changed.size ? this.xml.sourceXml(frame.node, frame.changed) : undefined;
+            pending.pop();
+            if (!pending.length) return replacement;
+            if (replacement !== undefined) {
+              this.budget.charge("retainedBytes", 16);
+              pending.at(-1)!.changed.set(frame.node, replacement);
+            }
           }
-          return changed.size ? this.xml.sourceXml(node, changed) : undefined;
+          return undefined;
         };
         const direct = new Map<XmlElement, string>();
         for (const child of old.children) {
@@ -534,15 +546,20 @@ export class NumberingGraph {
   }
   /** Bind inherited compatibility names before relocating a numbering fragment. */
   private fragment(node: XmlElement, content: string, value?: number): string {
-    const chain: XmlElement[] = [];
-    const find = (current: XmlElement): boolean => {
+    const pending = [{ node: this.xml.root, position: 0 }];
+    this.budget.charge("work", 1);
+    this.budget.charge("retainedBytes", 24);
+    while (pending.length) {
+      const frame = pending.at(-1)!;
+      if (frame.node === node) break;
+      if (frame.position === frame.node.children.length) { pending.pop(); continue; }
       this.budget.charge("work", 1);
-      chain.push(current);
-      if (current === node || current.children.some(find)) return true;
-      chain.pop();
-      return false;
-    };
-    if (!find(this.xml.root)) throw new UnsupportedEditError("Numbering fragment has no source owner.");
+      this.budget.charge("retainedBytes", 24);
+      pending.push({ node: frame.node.children[frame.position++]!, position: 0 });
+    }
+    if (!pending.length) throw new UnsupportedEditError("Numbering fragment has no source owner.");
+    this.budget.charge("retainedBytes", pending.length * 8);
+    const chain = pending.map(frame => frame.node);
     const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
     const bindings = new Map(node.namespaces), controls = new Map<string, Set<string>>();
     const prefixFor = (uri: string): string => {
@@ -629,8 +646,20 @@ export class NumberingGraph {
       for (let index = 0; index < rewritten.length; index++) view.setUint16(index * 2, rewritten.charCodeAt(index), encoding === "UTF-16LE");
     }
     const editor = new DocumentXmlEditor(bytes, {}, undefined, this.budget);
-    this.budget.charge("insertedNodes", parseDocumentXml(new TextEncoder().encode(`<root${[...root.namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("")}>${additions}${instances}</root>`), {}, this.budget).root.children.reduce((total, n) => total + countNodes(n), 0));
+    this.budget.charge("insertedNodes", parseDocumentXml(new TextEncoder().encode(`<root${[...root.namespaces].filter(([p]) => p !== "xml").map(([p, uri]) => ` ${p ? "xmlns:" + p : "xmlns"}="${xmlValue(uri)}"`).join("")}>${additions}${instances}</root>`), {}, this.budget).root.children.reduce((total, n) => total + countNodes(n, this.budget), 0));
     return editor.serialize();
   }
 }
-function countNodes(node: XmlElement): number { return 1 + node.children.reduce((n, child) => n + countNodes(child), 0); }
+function countNodes(node: XmlElement, budget: DocumentBudget): number {
+  const pending = [node];
+  budget.charge("retainedBytes", 8);
+  let count = 0;
+  while (pending.length) {
+    const current = pending.pop()!;
+    budget.charge("work", 1 + current.children.length);
+    budget.charge("retainedBytes", current.children.length * 8);
+    count++;
+    for (const child of current.children) pending.push(child);
+  }
+  return count;
+}

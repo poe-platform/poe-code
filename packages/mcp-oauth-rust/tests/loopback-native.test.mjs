@@ -265,3 +265,39 @@ test("callback ambiguity rejects duplicate recognized fields before state bindin
         error.message.includes("Invalid OAuth loopback redirect URI")
       );
 });
+
+test("private landing-page receivers are captured before browser mutation", async () => {
+  class Page {
+    #title = "Original <title>";
+    #body = "Original & body";
+    get title() {
+      return this.#title;
+    }
+    get body() {
+      return this.#body;
+    }
+    mutate() {
+      this.#title = "Replacement";
+      this.#body = "Replacement";
+    }
+  }
+  for (const api of [reference, own]) {
+    const page = new Page(),
+      server = new Server(),
+      session = await api.createLoopbackAuthorizationSession({
+        landingPage: page,
+        createServer: () => server,
+        openBrowser: async () => page.mutate()
+      });
+    try {
+      const waiting = session.waitForCode("https://auth.example/authorize?state=expected");
+      const response = server.request("/callback?state=expected&code=005930");
+      assert.equal(await waiting, "005930");
+      assert.ok(response.body.includes("Original &lt;title&gt;"));
+      assert.ok(response.body.includes("Original &amp; body"));
+      assert.equal(response.body.includes("Replacement"), false);
+    } finally {
+      session.close();
+    }
+  }
+});

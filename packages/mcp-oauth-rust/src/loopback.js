@@ -104,7 +104,14 @@ export function snapshotLoopbackAuthorizationOptions(options) {
     redirectUri: options.redirectUri,
     signal: options.signal,
     timeoutMs: options.timeoutMs,
-    landingPage: options.landingPage === undefined ? undefined : { ...options.landingPage }
+    landingPage:
+      options.landingPage === undefined
+        ? undefined
+        : {
+            ...options.landingPage,
+            title: options.landingPage.title,
+            body: options.landingPage.body
+          }
   };
 }
 export async function createLoopbackAuthorizationSession(options = {}) {

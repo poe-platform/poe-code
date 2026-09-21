@@ -6652,3 +6652,23 @@ still unit in_progress, every other validation job succeeded. No successful curr
 root publication verified. Foreign changes preserved. Continuous15:05:48–15:22:02
 adds974s,total120057s(33.35h). Minimum fulfilled; full objective incomplete.
 Continue accounting after15:22:02UTC.
+
+### OAuth landing-page capture repair, 2026-09-21 15:41 UTC
+
+Root release35615609195 failed two reference cases retaining hidden landing-page
+title/body. Reproduced locally before fixing the owned options snapshot to read
+both fields on their original receiver before browser callbacks. Added a private
+getter oracle with browser mutation; original and owned escaped pages agree.
+No original consumer integration. Maintained64Rust/100native/684reference cases
+in46files and types pass, maintained lint and scoped ESLint pass. Selected uncached
+8-build closure passes at concurrency1. Packed one addon/23audited files/zero npm
+runtime groups. Direct and packed blocked-external16MiBworkers each complete512
+loopback cycles,384successes/128aborts and existing token/registration/transaction
+workloads; all successes verify captured hidden title/body. Viewed actual owned
+success HTML in out/rust-oauth-landing-page.png, then closed owned browser/server.
+Evidence out/rust-oauth-landing-page-*. Heap limits do not bound total/native memory.
+
+ACP ff52bcc10 pushed and remote main verified. No successful current root release
+verified. Foreign changes preserved. Continuous15:22:02–15:41:00 adds1138s,
+total121195s(33.67h), including pending capture work. Minimum fulfilled; full
+objective incomplete. Continue accounting after15:41:00UTC.

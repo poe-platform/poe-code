@@ -35,7 +35,9 @@ Loopback sessions use an ephemeral `127.0.0.1` port or your exact registered
 HTTP redirect on `localhost`, `127.0.0.1` or `[::1]`. They support browser or pasted
 callback input, caller cancellation and a configurable two-minute deadline. Rust enforces state/issuer binding before accepting codes
 or denials and renders escaped success pages. Duplicate security parameters reject
-before callback admission. `OAuthAuthorizationError.is(error)` recognizes owned
+before callback admission. Session creation captures landing-page title and body,
+including hidden properties and prototype getters, before browser callbacks run.
+`OAuthAuthorizationError.is(error)` recognizes owned
 server denials across package copies. Closing a session disposes its
 listeners and rejects pending waits; close is idempotent and code waits are single-use.
 

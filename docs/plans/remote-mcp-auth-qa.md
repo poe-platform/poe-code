@@ -469,3 +469,13 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     exact005930. Count two original redemptions, four initialized/retired sessions
     and no wrong endpoints, consent or metadata discovery. Verify private records
     and empty own claim directories. Inspect safe summary and purge owned QA.
+
+42. Discover explicit resource metadata against actual local HTTP with throwing,
+    aborting and stalled unrelated shared-cache readers. Require zero reads, the
+    exact hinted URL including its query, one issuer metadata GET, complete
+    nested public extensions and one validated shared-cache write per mode.
+    Mutate the returned result and verify subsequent default discovery reuses an
+    independent memory copy without extra network/shared reads. Require exactly
+    six metadata GETs across three modes and no unintended candidates. Inspect
+    safe summary output and purge owned synthetic evidence. Cache writes remain
+    part of explicit discovery; only reads/reuse are bypassed.

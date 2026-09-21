@@ -377,7 +377,7 @@ export class OAuthMetadataDiscovery {
       return structuredClone(memoryCachedResult);
     }
 
-    const sharedCachedResult = await waitForCache(this.cache?.get(cacheKey), signal);
+    const sharedCachedResult = resourceMetadataUrl === undefined ? await waitForCache(this.cache?.get(cacheKey), signal) : undefined;
     signal?.throwIfAborted();
     if (
       sharedCachedResult !== null &&

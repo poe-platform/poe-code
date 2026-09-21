@@ -110,3 +110,15 @@ describe("OAuth discovery cache validation", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 });
+
+it.each(["throw", "abort"] as const)("does not consult an unrelated shared cache during explicit metadata discovery: %s", async behavior => {
+  const controller = new AbortController(), hint = "https://resource.example.com/explicit-metadata?tenant=one";
+  const get = vi.fn(() => {
+    if (behavior === "throw") throw new Error("unrelated cache is unavailable");
+    controller.abort(new Error("unrelated cache canceled lookup")); return validResult();
+  }), set = vi.fn();
+  const fetch = vi.fn(async (input: string | URL) => Response.json(String(input) === hint ? validResult().resourceMetadata : validResult().authorizationServerMetadata));
+  await expect(discoverOAuthMetadata(resource, { cache: { get, set }, fetch, signal: controller.signal, resourceMetadataUrl: hint })).resolves.toEqual({ ...validResult(), resourceMetadataUrl: hint });
+  expect(get).not.toHaveBeenCalled(); expect(set).toHaveBeenCalledWith(resource, { ...validResult(), resourceMetadataUrl: hint });
+  expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([hint, validResult().authorizationServerMetadataUrl]);
+});

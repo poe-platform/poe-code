@@ -6,3 +6,4 @@ rust-version="1.88"
 license="MIT"
 [dependencies]
 mcp-protocol-rust={path="../mcp-protocol-rust"}
+config-mutations-rust={path="../config-mutations-rust"}

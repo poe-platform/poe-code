@@ -201,3 +201,28 @@ pub fn config_coerce(
         _ => None,
     }
 }
+#[napi]
+pub fn config_owned_document(
+    snapshot: Buffer,
+    root: u32,
+    over: u32,
+    operation: String,
+) -> Result<NativeJson> {
+    let graph = poe_code_config_rust::owned::Graph::decode(
+        config_mutations_rust::snapshot::decode(&snapshot).map_err(Error::from_reason)?,
+    )
+    .map_err(Error::from_reason)?;
+    let data = match operation.as_str() {
+        "merge" => graph.merge(root as usize, over as usize),
+        "normalize" => graph.normalize(root as usize),
+        "scope" => graph.normalize_scope(root as usize),
+        _ => Err("Invalid owned config operation"),
+    }
+    .map_err(Error::from_reason)?;
+    let mut references = vec![];
+    let data = snapshot_value(data, &mut vec![Value::String(u("data"))], &mut references)?;
+    Ok(NativeJson(object(vec![
+        ("data", data),
+        ("references", Value::Array(references)),
+    ])))
+}

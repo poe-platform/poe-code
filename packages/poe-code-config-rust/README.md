@@ -23,6 +23,10 @@ await settings.scope(scope).set("timeout", 60);
 console.log(await settings.scope(scope).getAll());
 ```
 
+Plain data records use one native document operation with opaque references to
+selected values. Accessors, proxies or changed host intrinsics use the observable
+callback path; neither path clones unchanged branches.
+
 Rust owns scope/document normalization, runtime merge policy and primitive
 coercion. Owned layered-document parsing/resolution is embedded in the same addon.
 Node retains filesystem access, atomic writes/recovery, custom JSON parsers,

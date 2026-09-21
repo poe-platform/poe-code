@@ -1,6 +1,17 @@
+import {recordSnapshot} from "./record-snapshot.js";
 import {native} from "./native.js";
 import type {ConfigDocument} from "./types.js";
 export function documentPolicy(operation:"normalize"|"scope"|"merge",value:unknown,override?:unknown):ConfigDocument {
+ const snapshot=recordSnapshot(operation,value,override);
+ if(snapshot!==null){
+  const result=native.configOwnedDocument(snapshot.buffer,snapshot.root,snapshot.override,operation);
+  for(const [path,id]of result.references){
+   let parent:Record<string|number,unknown>=result;
+   for(let n=0;n<path.length-1;n++)parent=parent[path[n]] as Record<string|number,unknown>;
+   Object.defineProperty(parent,path.at(-1)!,{value:id<0?undefined:snapshot.references[id],configurable:true,enumerable:true,writable:true});
+  }
+  return result.data;
+ }
  const values:unknown[]=[];
  function intern(value:unknown):number {const id=values.length;values.push(value);return id;}
  function hook(operation:string,args:unknown[]):string {

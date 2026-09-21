@@ -13,3 +13,6 @@ writeFileSync(new URL("native.js",frontmatter),"export {native} from '../native.
 for(const name of ["yaml-snapshot.js","snapshot.js"])copyFileSync(new URL("../config-mutations-rust/src/"+name,root),new URL(name,config));
 for(const name of ["engine.js","data.js"])copyFileSync(new URL("../toolcraft-design-rust/src/"+name,root),new URL(name,design));
 copyFileSync(new URL("src/provider-types.d.ts",root),new URL("provider-types.d.ts",dist));
+
+copyFileSync(new URL("../config-mutations-rust/src/snapshot.js",root),new URL("snapshot.js",dist));
+copyFileSync(new URL("src/snapshot.d.ts",root),new URL("snapshot.d.ts",dist));

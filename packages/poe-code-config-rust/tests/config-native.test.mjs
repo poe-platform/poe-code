@@ -33,3 +33,11 @@ test("runtime recursion is bounded and failed policies leave inputs unchanged",(
  const merged=deepMergeDocuments(original,{});
  assert.equal(Object.hasOwn(merged,"__proto__"),true);assert.equal(merged.__proto__.__proto__,"literal");
 });
+test("record snapshots promote shared shallow shells when runtime needs deeper merging",()=>{
+ const leftArgs={A:"one"},rightArgs={B:"two"},left={args:leftArgs},right={args:rightArgs};
+ const result=deepMergeDocuments({core:left,runtime:left},{core:right,runtime:right});
+ assert.equal(result.core.args,rightArgs);
+ assert.deepEqual(result.runtime.args,{A:"one",B:"two"});
+ const leftRuntime={};Object.defineProperty(leftRuntime,"A",{value:"one"});
+ assert.deepEqual(deepMergeDocuments({runtime:{args:leftRuntime}},{runtime:{args:{A:undefined,B:"two"}}}).runtime.args,{A:"one",B:"two"});
+});

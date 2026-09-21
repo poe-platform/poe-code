@@ -5645,3 +5645,31 @@ release35583768081 failed as recorded,successful publication unverified. Concurr
 OAuth files preserved. Continuous11:00:15–11:03:44 adds209s,total104874s (29.13h).
 Minimum fulfilled; full closure/runtime/platform/performance objective incomplete.
 Continue accounting after11:03:44 UTC.
+
+### Config record snapshots, 2026-09-21 11:08 UTC
+
+Added a single-crossing Rust record graph path for normalization/scope/runtime
+merge. Selected values remain opaque host references,including whole unchanged
+object/array branches. Nonenumerable own values can participate when the other
+layer enumerates the key. Proxies,accessor descriptors,changed host intrinsics,
+more than100000handles or inspection depth above512fall back to observable foreign
+callbacks. Shared graph records track inspection context: a native fixture
+reproduced missing nested runtime fields when an object was first seen as a shallow
+scope; repaired promotion retains shallow leaf identity and deep runtime merging.
+Missing Rust owned-module red precedes core; shared-shell red precedes repair.
+
+Maintained8Rust cases,4native groups,125original references/5files,types,
+fmt/clippy/hostESLint pass. Uncached selected116workspaces/16builds/354edges passes.
+Refreshed packed53JS/declarations,one addon,zero runtime groups/imports. Direct/
+packed16MiB-old-generation workers each4096merges/4096coercions/128sets/128gets,
+one memfs store;final JS heaps12.16/12.07MiB,RSS76.77/78.95MiB. Not total/native
+memory bounds. Five warmed alternating64sets/gets+256runtime merge pairs now
+originalwall5.15–7.66ms/CPU7.09–15.07ms versus ownwall10.53–15.67ms/
+CPU14.24–28.01ms; wall slower in each pair,scoped performance still FAIL. Previous
+baseline cannot prove a paired crossing-optimization improvement. Evidence
+out/rust-poe-config-owned-*,out/rust-poe-config-shared-shell-red.log.
+
+Foundation580a51ea4 exact remote-main verified,release35592066783 pending;
+successful publication remains unverified. Concurrent OAuth work preserved.
+Continuous11:03:44–11:08:41 adds297s,total105171s (29.21h). Full objective remains
+incomplete. Continue accounting after11:08:41 UTC.

@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "config-mutations-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
 
@@ -10,5 +17,6 @@ version = "0.1.0"
 name = "poe-code-config-rust"
 version = "0.1.0"
 dependencies = [
+ "config-mutations-rust",
  "mcp-protocol-rust",
 ]

@@ -266,7 +266,8 @@ OAuth uses the native provider and defaults to headless operation. Set
 Configured scope and exact redirect values come from environment references or
 their public fallbacks. Binding captures the selected OAuth option handles before
 calling host clocks or store factories, so those callbacks cannot replace the
-factory used for later servers. Supply `oauth.sessionStore(server)` for host-owned
+factory used for later servers. Browser settings, nested landing-page values and
+native persistence paths/settings are captured at the same boundary. Supply `oauth.sessionStore(server)` for host-owned
 persistence, or `oauth.authStore` for the native secret-store backend.
 `oauth.sessionLockTimeoutMs` bounds transaction lock acquisition (default 30 s).
 Cancellation settles native provider calls while a host store callback waits.

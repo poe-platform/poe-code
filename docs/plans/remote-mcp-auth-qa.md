@@ -316,3 +316,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     complete results/exact005930, four distinct retired sessions, no tools/list
     and no consent/token traffic. Inspect safe summary output and purge owned
     synthetic evidence.
+
+30. Bind native OAuth with a relative imported grant, original browser opener,
+    nested landing page and encrypted file path. Let the clock mutate all three
+    caller settings during binding. Expire the grant and complete actual local
+    static-app state/S256/loopback consent with the original opener/page. Require
+    one consent and code exchange, original app/redirect/verifier, original
+    encrypted record/anchored new expiry, no replacement directory and no
+    plaintext synthetic grants. Recreate a headless host at the original path
+    without initial tokens and require silent reuse. Read a complete remote
+    text/blob/metadata resource through actual HTTP, retire its one session and
+    require no tools/list or tools/call. Await actual page-body delivery before
+    inspecting the safe summary screenshot; record results and purge only
+    owned synthetic evidence.

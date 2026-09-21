@@ -1,3 +1,4 @@
+import { snapshotOAuthBrowserOptions, snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
 import {
   MCP_PROTOCOL_VERSIONS,
   type McpProtocolVersion,
@@ -104,13 +105,9 @@ function snapshotOAuthOptions(oauth: NonNullable<RemoteMcpServer["oauth"]>): Non
     client: { ...oauth.client,
       ...(oauth.client.metadata === undefined ? {} : { metadata: { ...oauth.client.metadata } }),
       ...(oauth.client.registration === undefined ? {} : { registration: structuredClone(oauth.client.registration) }) },
-    browser: { ...oauth.browser,
-      ...(oauth.browser.landingPage === undefined ? {} : { landingPage: { ...oauth.browser.landingPage } }) },
+    browser: snapshotOAuthBrowserOptions(oauth.browser),
     ...(oauth.initialGrant === undefined ? {} : { initialGrant: { ...oauth.initialGrant, tokens: { ...oauth.initialGrant.tokens } } }),
-    ...(oauth.authStore === undefined ? {} : { authStore: { ...oauth.authStore,
-      ...(oauth.authStore.fileStore === undefined ? {} : { fileStore: { ...oauth.authStore.fileStore } }),
-      ...(oauth.authStore.keychainStore === undefined ? {} : { keychainStore: { ...oauth.authStore.keychainStore,
-        ...(oauth.authStore.keychainStore.lock === undefined ? {} : { lock: { ...oauth.authStore.keychainStore.lock } }) } }) } })
+    ...(oauth.authStore === undefined ? {} : { authStore: snapshotOAuthPersistenceOptions(oauth.authStore) })
   };
 }
 

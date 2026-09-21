@@ -34,7 +34,9 @@ message, without echoing response credentials. They are terminal below status500
 Loopback sessions use an ephemeral `127.0.0.1` port or your exact registered
 HTTP redirect on `localhost`, `127.0.0.1` or `[::1]`. They support browser or pasted
 callback input, caller cancellation and a configurable two-minute deadline. Rust enforces state/issuer binding before accepting codes
-or denials and renders escaped success pages. Closing a session disposes its
+or denials and renders escaped success pages. Duplicate security parameters reject
+before callback admission. `OAuthAuthorizationError.is(error)` recognizes owned
+server denials across package copies. Closing a session disposes its
 listeners and rejects pending waits; close is idempotent and code waits are single-use.
 
 Encrypted session and client-registration persistence uses the embedded Rust
@@ -72,17 +74,23 @@ never quote credential input.
 `withOAuthSessionTransaction` serializes complete operations for a resource
 across callers sharing a store, while other resources proceed independently.
 Canceled or timed-out waiters cannot release the owner, and failures allow later
-operations to continue. An optional backend `withLock` encloses the operation.
+operations to continue. Cancellation settles the caller promptly while unfinished
+host work keeps its lease until completion. `waitForOAuthOperation` provides the
+same observation behavior for custom operations. An optional backend `withLock`
+encloses the operation.
 Rust owns ticket ordering and timeout admission; Node supplies promises and timers.
 
 The default provider supports cached tokens, coalesced refresh/authorization,
 static clients and dynamic registration. Its Rust effect machine owns expiry,
 credential binding, endpoint security, registration plans, PKCE parameters and
-bounded retry decisions. Host callbacks provide browser input, fetch and storage. Successful request
-Provider persistence retains requested scopes and dynamic registration metadata.
+bounded retry decisions. Discovery issuer URLs reject credentials, query strings,
+and fragments before credential reads. Host callbacks provide browser input,
+fetch and storage. Provider persistence retains requested scopes and dynamic registration metadata.
 Complete session operations serialize per store and resource. Refreshes persist a
 tokenless intent before redemption; uncertain outcomes require new authorization.
-Request cancellation aborts token reads and callback waits. Rejected requests
+Request cancellation aborts token reads and callback waits. Provider, request,
+discovery and persistence options are snapshotted before asynchronous work;
+invalid clocks reject without concealing callback failures. Rejected requests
 retain their full grant provenance, so delayed 401s reuse a newer persisted winner.
 Cached tokens must match the configured static client ID and secret. Successful request
 authorization returns an owned normalized token snapshot as well as attaching the

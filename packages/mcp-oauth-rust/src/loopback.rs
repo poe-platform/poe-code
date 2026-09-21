@@ -18,12 +18,14 @@ pub struct CallbackBinding {
 pub struct CallbackError {
     pub message: Vec<u16>,
     pub response: Vec<u16>,
+    pub denial: Option<(Vec<u16>, Vec<u16>)>,
 }
 impl CallbackError {
     fn plain(message: &str) -> Self {
         Self {
             message: message.encode_utf16().collect(),
             response: message.encode_utf16().collect(),
+            denial: None,
         }
     }
 }
@@ -62,7 +64,11 @@ impl CallbackBinding {
             message.extend(" — ".encode_utf16());
             message.extend(description);
             let response = message.clone();
-            return Err(CallbackError { message, response });
+            return Err(CallbackError {
+                message,
+                response,
+                denial: Some((error.clone(), description.clone())),
+            });
         }
         callback
             .code
@@ -71,6 +77,20 @@ impl CallbackBinding {
             .cloned()
             .ok_or_else(|| CallbackError::plain("OAuth callback missing authorization code"))
     }
+}
+pub const CALLBACK_PARAMETERS: &[&str] = &[
+    "code",
+    "state",
+    "iss",
+    "error",
+    "error_description",
+    "error_uri",
+];
+pub fn duplicate_parameter(counts: &[u32]) -> Option<&'static str> {
+    CALLBACK_PARAMETERS
+        .iter()
+        .zip(counts)
+        .find_map(|(name, count)| (*count > 1).then_some(*name))
 }
 pub fn normalize_input(input: &[u16]) -> Vec<u16> {
     let cleaned: Vec<u16> = input

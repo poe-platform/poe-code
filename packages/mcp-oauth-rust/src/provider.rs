@@ -70,8 +70,7 @@ pub fn normalize_tokens(value: &Value) -> Option<Value> {
     }
     Some(Value::Object(fields))
 }
-/// Relative import lifetimes are anchored at the import clock, never at a later request.
-pub fn normalize_imported_tokens(value: &Value, now: f64) -> Result<Option<Value>, String> {
+fn imported_timing(value: &Value) -> Result<(Option<f64>, Option<f64>), String> {
     let lifetime = match value.get("expiresIn") {
         None => None,
         Some(Value::Number(n))
@@ -82,14 +81,26 @@ pub fn normalize_imported_tokens(value: &Value, now: f64) -> Result<Option<Value
         _ => return Err("OAuth initial grant has invalid relative expiry".into()),
     };
     let issued = match value.get("issuedAt") {
-        None => now,
+        None => None,
         Some(Value::Number(n))
             if n.is_finite() && n.fract() == 0.0 && n.abs() <= 8_640_000_000_000_000.0 =>
         {
-            *n
+            Some(*n)
         }
         _ => return Err("OAuth initial grant has invalid issuance time".into()),
     };
+    Ok((lifetime, issued))
+}
+pub fn imported_clock_required(value: &Value) -> Result<bool, String> {
+    let (lifetime, issued) = imported_timing(value)?;
+    Ok(lifetime.is_some()
+        && issued.is_none()
+        && matches!(value.get("expiresAt"), None | Some(Value::Null)))
+}
+/// Relative import lifetimes are anchored at the import clock, never at a later request.
+pub fn normalize_imported_tokens(value: &Value, now: f64) -> Result<Option<Value>, String> {
+    let (lifetime, issued) = imported_timing(value)?;
+    let issued = issued.unwrap_or(now);
     let expires = match value.get("expiresAt") {
         Some(expires) if !matches!(expires, Value::Null) => expires.clone(),
         _ => lifetime.map_or(Value::Null, |lifetime| {
@@ -252,6 +263,13 @@ pub struct Endpoint<'a> {
     pub access_token: bool,
 }
 impl Endpoint<'_> {
+    pub fn validate_issuer(&self, query: bool) -> Result<(), String> {
+        self.validate("Authorization server issuer", true)?;
+        if query {
+            return Err("Authorization server issuer must not include query or fragment".into());
+        }
+        Ok(())
+    }
     pub fn validate(&self, label: &str, secure: bool) -> Result<(), String> {
         if !secure {
             return if self.access_token {
@@ -337,6 +355,10 @@ pub fn metadata_endpoints(metadata: &Value, interactive: bool) -> Result<Value, 
         return Err("Authorization server metadata must advertise code_challenge_methods_supported including S256".into());
     }
     let mut fields = vec![
+        property(
+            "issuer",
+            Value::String(required(metadata, "issuer")?.to_vec()),
+        ),
         property(
             "authorization",
             Value::String(required(metadata, "authorization_endpoint")?.to_vec()),

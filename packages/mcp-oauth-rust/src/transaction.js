@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { waitForOAuthOperation } from "./cancellable-operation.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 const stores = new WeakMap();
 export async function withOAuthSessionTransaction(store, resource, operation, options = {}) {
@@ -17,6 +18,7 @@ export async function withOAuthSessionTransaction(store, resource, operation, op
   const current = new Promise((resolve) => (release = resolve)),
     tail = previous.then(() => current);
   queue.tails.set(ticket, tail);
+  let running;
   try {
     let timer, rejectWait;
     const waiting = new Promise((resolve, reject) => {
@@ -37,14 +39,17 @@ export async function withOAuthSessionTransaction(store, resource, operation, op
       options.signal?.removeEventListener("abort", abort);
     }
     options.signal?.throwIfAborted();
-    return store.withLock === undefined
-      ? await operation()
-      : await store.withLock(resource, operation, {
-          signal: options.signal,
-          timeoutMs: Math.max(0, timeoutMs - (performance.now() - started))
-        });
+    running = (async () =>
+      store.withLock === undefined
+        ? operation()
+        : store.withLock(resource, operation, {
+            signal: options.signal,
+            timeoutMs: Math.max(0, timeoutMs - (performance.now() - started))
+          }))();
+    return await waitForOAuthOperation(running, options.signal);
   } finally {
-    release();
+    if (running === undefined) release();
+    else void running.then(release, release);
     void tail.then(() => {
       queue.tails.delete(ticket);
       queue.policy.retire(resource, ticket);

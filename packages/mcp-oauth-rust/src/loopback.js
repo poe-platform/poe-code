@@ -1,10 +1,30 @@
 import http from "node:http";
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
+const callbackFields = native.authorizationCallbackParameters();
+const authorizationErrorBrand = Symbol.for("poe-platform.mcp-oauth.OAuthAuthorizationError");
+export class OAuthAuthorizationError extends Error {
+  static is(value) {
+    return (
+      value instanceof Error &&
+      Object.getOwnPropertyDescriptor(value, authorizationErrorBrand)?.value === true
+    );
+  }
+  constructor(error, errorDescription) {
+    super(`OAuth authorization failed: ${error} — ${errorDescription}`);
+    this.name = "OAuthAuthorizationError";
+    this.error = error;
+    this.errorDescription = errorDescription;
+    Object.defineProperty(this, authorizationErrorBrand, { value: true });
+  }
+}
 export function buildSuccessPage(page) {
   return native.renderSuccessPage(page?.title, page?.body);
 }
 function callbackParameters(url) {
+  native.validateCallbackMultiplicity(
+    callbackFields.map((name) => url.searchParams.getAll(name).length)
+  );
   return {
     code: url.searchParams.get("code"),
     error: url.searchParams.get("error"),
@@ -16,14 +36,20 @@ function callbackParameters(url) {
 function manualParameters(input) {
   const text = native.normalizeCallbackInput(input);
   if (text.length === 0) return null;
+  let url;
   try {
-    return callbackParameters(new URL(text));
+    url = new URL(text);
   } catch {
     return { code: text, error: null, errorDescription: null, state: null, iss: null };
   }
+  return callbackParameters(url);
 }
 export function extractCodeFromInput(input) {
-  return manualParameters(input)?.code ?? null;
+  try {
+    return manualParameters(input)?.code ?? null;
+  } catch {
+    return null;
+  }
 }
 export function loopbackTarget(options) {
   if (options.redirectUri !== undefined) {
@@ -38,10 +64,8 @@ export function loopbackTarget(options) {
       hostname: url.hostname,
       port: url.port,
       credentials: !!(url.username || url.password),
-      fragment: !!url.hash,
-      forbiddenQuery: ["code", "state", "error", "error_description", "iss"].some((name) =>
-        url.searchParams.has(name)
-      ),
+      fragment: url.href.includes("#"),
+      forbiddenQuery: callbackFields.some((name) => url.searchParams.has(name)),
       controls: [...options.redirectUri].some((char) => char.codePointAt(0) <= 32),
       pathMatches: options.callbackPath === undefined || options.callbackPath === url.pathname
     };
@@ -71,6 +95,14 @@ export function loopbackTarget(options) {
   return { port: 0, host: "127.0.0.1", callbackPath };
 }
 export async function createLoopbackAuthorizationSession(options = {}) {
+  const selected = { ...options };
+  options = {
+    ...selected,
+    createServer: selected.createServer?.bind(options),
+    openBrowser: selected.openBrowser?.bind(options),
+    readLine: selected.readLine?.bind(options),
+    landingPage: selected.landingPage === undefined ? undefined : { ...selected.landingPage }
+  };
   options.signal?.throwIfAborted();
   const timeout = options.timeoutMs ?? 120_000;
   if (!native.authorizationTimerValid(typeof timeout === "number" ? timeout : NaN))
@@ -156,6 +188,11 @@ export async function createLoopbackAuthorizationSession(options = {}) {
           const onAbort = () => settle(false, controller.signal.reason);
           const resultFor = (parameters) => {
             const result = binding.resolve(JSON.stringify(parameters));
+            if (Object.hasOwn(result, "authorizationError"))
+              throw new OAuthAuthorizationError(
+                result.authorizationError,
+                result.authorizationErrorDescription
+              );
             if (Object.hasOwn(result, "error")) throw Error(result.error);
             return result.code;
           };
@@ -179,7 +216,10 @@ export async function createLoopbackAuthorizationSession(options = {}) {
               response.end(buildSuccessPage(options.landingPage));
               settle(true, code);
             } catch (error) {
-              response.writeHead(400);
+              response.writeHead(400, {
+                "Content-Type": "text/plain; charset=utf-8",
+                "X-Content-Type-Options": "nosniff"
+              });
               response.end(error instanceof Error ? error.message : "Invalid OAuth callback");
               settle(false, error);
             }

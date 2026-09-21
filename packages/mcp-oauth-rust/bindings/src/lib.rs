@@ -274,19 +274,54 @@ impl NativeCallbackBinding {
         };
         let fields = match self.binding.resolve(&callback) {
             Ok(code) => vec![("code".encode_utf16().collect(), Value::String(code))],
-            Err(error) => vec![
-                (
-                    "error".encode_utf16().collect(),
-                    Value::String(error.message),
-                ),
-                (
-                    "response".encode_utf16().collect(),
-                    Value::String(error.response),
-                ),
-            ],
+            Err(error) => {
+                let mut fields = vec![
+                    (
+                        "error".encode_utf16().collect(),
+                        Value::String(error.message),
+                    ),
+                    (
+                        "response".encode_utf16().collect(),
+                        Value::String(error.response),
+                    ),
+                ];
+                if let Some((error, description)) = error.denial {
+                    fields.push((
+                        "authorizationError".encode_utf16().collect(),
+                        Value::String(error),
+                    ));
+                    fields.push((
+                        "authorizationErrorDescription".encode_utf16().collect(),
+                        Value::String(description),
+                    ));
+                }
+                fields
+            }
         };
         Ok(convert::NativeJson(Value::Object(fields)))
     }
+}
+
+#[napi]
+pub fn authorization_callback_parameters() -> Vec<String> {
+    mcp_oauth_rust::loopback::CALLBACK_PARAMETERS
+        .iter()
+        .map(|name| (*name).to_owned())
+        .collect()
+}
+#[napi]
+pub fn validate_callback_multiplicity(counts: Vec<u32>) -> Result<()> {
+    if counts.len() != mcp_oauth_rust::loopback::CALLBACK_PARAMETERS.len() {
+        return Err(napi::Error::from_reason(
+            "Invalid OAuth callback parameter counts",
+        ));
+    }
+    if let Some(name) = mcp_oauth_rust::loopback::duplicate_parameter(&counts) {
+        return Err(napi::Error::from_reason(format!(
+            "OAuth callback parameter '{name}' must occur only once"
+        )));
+    }
+    Ok(())
 }
 
 #[napi]

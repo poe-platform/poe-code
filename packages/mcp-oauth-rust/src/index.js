@@ -4,6 +4,7 @@ export { OAuthError, isRetryableOAuthError } from "./tokens.js";
 export {
   buildSuccessPage,
   extractCodeFromInput,
+  OAuthAuthorizationError,
   createLoopbackAuthorizationSession
 } from "./loopback.js";
 export { createAuthStoreSessionStore } from "./session-store.js";
@@ -20,3 +21,4 @@ export { parseOAuthTokenGrant } from "./token-grant.js";
 export { createResourceBoundOAuthStores } from "./resource-store.js";
 
 export { normalizeOAuthScope } from "./scope.js";
+export { waitForOAuthOperation } from "./cancellable-operation.js";

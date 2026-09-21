@@ -5,13 +5,13 @@ fn value(text: &str) -> Value {
 }
 #[test]
 fn token_fields_trim_ecmascript_whitespace_and_preserve_undefined_clock_semantics() {
-    let fields = TokenFields::parse(&value(r#"{"access_token":" \ufefftoken\ud800 ","token_type":"bEaReR","refresh_token":" refresh ","scope":" scope "}"#)).unwrap();
+    let fields = TokenFields::parse(&value(r#"{"access_token":" \ufefftoken\u00ff ","token_type":"bEaReR","refresh_token":" refresh ","scope":" scope "}"#)).unwrap();
     assert!(!fields.needs_clock());
     let result = fields.complete(None).unwrap();
     assert_eq!(
         result.get("accessToken"),
         Some(&Value::String(
-            "token".encode_utf16().chain([0xd800]).collect()
+            "token".encode_utf16().chain([0x00ff]).collect()
         ))
     );
     assert_eq!(result.get("expiresAt"), Some(&Value::Null));
@@ -184,4 +184,63 @@ fn malformed_error_responses_are_terminal_below_server_status_without_credential
             );
         }
     }
+}
+
+#[test]
+fn access_header_admission_precedes_other_token_field_errors() {
+    for access in [
+        vec![b't' as u16, 0xd800],
+        vec![b't' as u16, 0],
+        vec![b't' as u16, 10, b'x' as u16],
+        vec![b't' as u16, 0x100],
+    ] {
+        let payload = Value::Object(vec![(
+            "access_token".encode_utf16().collect(),
+            Value::String(access),
+        )]);
+        assert_eq!(
+            TokenFields::parse(&payload).unwrap_err(),
+            "OAuth token response access_token is not a valid HTTP header value"
+        );
+    }
+    for unit in 0..=255u16 {
+        let payload = Value::Object(vec![
+            (
+                "access_token".encode_utf16().collect(),
+                Value::String(vec![b't' as u16, unit, b'x' as u16]),
+            ),
+            (
+                "token_type".encode_utf16().collect(),
+                Value::String("Bearer".encode_utf16().collect()),
+            ),
+        ]);
+        assert_eq!(
+            TokenFields::parse(&payload).is_ok(),
+            !matches!(unit, 0 | 10 | 13)
+        );
+    }
+}
+
+#[test]
+fn invalid_clock_anchor_cannot_be_repaired_by_a_positive_lifetime() {
+    let fields = TokenFields::parse(&value(
+        r#"{"access_token":"t","token_type":"Bearer","expires_in":1}"#,
+    ))
+    .unwrap();
+    assert_eq!(
+        fields.complete(Some(-8_640_000_000_001_000.0)).unwrap_err(),
+        "OAuth token response has invalid expires_in"
+    );
+    let fields = TokenFields::parse(&value(
+        r#"{"access_token":"t","token_type":"Bearer","expires_in":0,"refresh_token":123}"#,
+    ))
+    .unwrap();
+    assert_eq!(
+        fields.complete(Some(f64::NAN)).unwrap_err(),
+        "OAuth token response has invalid expires_in"
+    );
+    assert_eq!(
+        fields.complete(Some(0.0)).unwrap_err(),
+        "OAuth token response has invalid refresh_token"
+    );
 }

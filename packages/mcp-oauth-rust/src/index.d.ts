@@ -206,6 +206,12 @@ export interface LoopbackAuthorizationSession {
 }
 export declare function buildSuccessPage(landingPage?: OAuthLandingPage): string;
 export declare function extractCodeFromInput(input: string): string | null;
+export declare class OAuthAuthorizationError extends Error {
+  readonly error: string;
+  readonly errorDescription: string;
+  constructor(error: string, errorDescription: string);
+  static is(value: unknown): value is OAuthAuthorizationError;
+}
 export declare function createLoopbackAuthorizationSession(
   options?: LoopbackAuthorizationOptions
 ): Promise<LoopbackAuthorizationSession>;
@@ -256,10 +262,16 @@ export interface OAuthTokenGrantImportOptions {
   readonly issuedAt?: number;
   readonly now?: () => number;
 }
-export declare function parseOAuthTokenGrant(value: unknown, options?: OAuthTokenGrantImportOptions): StoredOAuthTokens;
+export declare function parseOAuthTokenGrant(
+  value: unknown,
+  options?: OAuthTokenGrantImportOptions
+): StoredOAuthTokens;
 
 export interface ResourceBoundOAuthStores {
-  importSession(session: StoredOAuthSession, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
+  importSession(
+    session: StoredOAuthSession,
+    options?: { signal?: AbortSignal; timeoutMs?: number }
+  ): Promise<void>;
   readonly sessionStore: OAuthSessionStore;
   readonly clientStore: {
     load(issuer: string): Promise<StoredOAuthClient | null>;
@@ -269,7 +281,11 @@ export interface ResourceBoundOAuthStores {
   readonly initialGrantAllowed: boolean;
   reset(resource: string, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
 }
-export declare function createResourceBoundOAuthStores(options: CreateSecretStoreInput, namespace: string | undefined, identity: string): ResourceBoundOAuthStores;
+export declare function createResourceBoundOAuthStores(
+  options: CreateSecretStoreInput,
+  namespace: string | undefined,
+  identity: string
+): ResourceBoundOAuthStores;
 
 export interface ImportedOAuthTokens extends Omit<StoredOAuthTokens, "expiresAt"> {
   expiresAt?: number | null;
@@ -277,3 +293,7 @@ export interface ImportedOAuthTokens extends Omit<StoredOAuthTokens, "expiresAt"
   issuedAt?: number;
 }
 export declare function normalizeOAuthScope(value: unknown): string | undefined;
+export declare function waitForOAuthOperation<T>(
+  operation: Promise<T>,
+  signal?: AbortSignal
+): Promise<T>;

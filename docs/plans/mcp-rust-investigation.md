@@ -6186,3 +6186,35 @@ fragment and clock contracts. Some original source edits are concurrent;they are
 preserved and used only as dev references. OAuth work remains uncommitted/incomplete.
 No successful release verified. Continuous13:06:24–13:16:33 adds609s,total112528s
 (31.26h). Minimum fulfilled;objective incomplete. Continue accounting after13:16:33UTC.
+
+### OAuth current SDK contract alignment, 2026-09-21 13:26 UTC
+
+Reproduced release OAuth failures through the maintained package route, then
+aligned callback multiplicity/error branding, Fetch ByteString token headers,
+refresh validation order, raw issuance anchors, owned provider/request/discovery/
+persistence snapshots, empty fragment boundaries, native issuer query/security
+admission before credential reads, and cancellable host completion. Transaction
+leases stay owned until actual backend/operation completion even when callers
+cancel. Initial grants call the clock only for unanchored relative expiry and
+retain original callback exceptions. No production integration or external
+application writes. Concurrent original OAuth fixes used as dev references and
+preserved. New native cancellable helper and portable clock/issuer regressions
+are additive; concrete reds precede changes.
+
+Maintained62Rust cases,95native groups,617references/40files and covered types
+pass. fmt/clippy/ESLint pass. Uncached selected117workspaces/8builds/363edges
+passes. Packed27files/one addon/23auditedJS+declarations,zero runtime npm groups
+and external resolution blocked passes the finite broad mock workload. Direct
+and packed16MiBworkers each complete512callback cycles(384success/128abort),
+1024authentications,3072transactions,8192token imports and thousands of owned
+credential/identity/policy transitions. Retainedheap9.76/9.82MiB;shared-process
+RSS177.47/200.27MiB is not isolated native memory or a bound.
+
+Five alternating warmed4096raw grant imports:Rustwall37.88–43.34ms vs original
+17.36–18.34ms. Performance acceptance FAIL for this tiny repeated adapter path;
+no overall Rust speed/memory/stability claim. Evidence out/rust-oauth-alignment-*.
+Latest prior auth20c07afa3 exactly verified on remote main. Release35604633840
+pending;35602764806 in_progress;plans35599744513 failed OAuth unit/publication
+skipped. No successful current publication verified. Continuous13:16:33–13:26:01
+adds568s,total113096s(31.42h). Minimum fulfilled;full objective incomplete.
+Continue accounting after13:26:01UTC.

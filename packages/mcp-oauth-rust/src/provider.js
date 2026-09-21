@@ -17,6 +17,7 @@ import {
 import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 import { fetchMcpResponse } from "./http.js";
+import { waitForOAuthOperation } from "./cancellable-operation.js";
 import {
   exchangeAuthorizationCode,
   refreshAccessToken,
@@ -77,8 +78,9 @@ function validateUrl(value, label, secure = false) {
         protocol: url.protocol,
         hostname: url.hostname,
         credentials: url.username !== "" || url.password !== "",
-        fragment: url.hash !== "",
-        accessToken: url.searchParams.has("access_token")
+        fragment: url.href.includes("#"),
+        accessToken: url.searchParams.has("access_token"),
+        query: url.href.includes("?")
       }),
       label,
       secure
@@ -89,6 +91,7 @@ function endpoints(metadata, interactive = false) {
   const values = unwrap(
     native.providerEndpoints(JSON.stringify(project(metadata, METADATA)), interactive)
   );
+  validateUrl(values.issuer, "Authorization server issuer", true);
   validateUrl(values.authorization, "Authorization endpoint");
   validateUrl(values.token, "Token endpoint");
   validateUrl(values.authorization, "Authorization endpoint", true);
@@ -128,6 +131,16 @@ export function createOAuthClientProvider(options) {
     : createDefaultOAuthClientProvider(options);
 }
 export function createDefaultOAuthClientProvider(options) {
+  options = {
+    ...options,
+    client: { ...options.client },
+    browser: {
+      ...options.browser,
+      ...(options.browser.landingPage === undefined
+        ? {}
+        : { landingPage: { ...options.browser.landingPage } })
+    }
+  };
   assertPersistenceNamespace(options.persistenceNamespace);
   loopbackTarget(options.browser);
   const resolvedClientMetadata = clientMetadata(options.client);
@@ -139,15 +152,36 @@ export function createDefaultOAuthClientProvider(options) {
       )
     ) ?? undefined;
   if (options.resourceIdentity !== undefined && options.sessionStore !== undefined)
-    throw new Error("OAuth resourceIdentity requires native-owned persistence; custom stores own their resource trust policy");
-  const resourceStores = options.resourceIdentity === undefined ? undefined :
-    createResourceBoundOAuthStores(options.authStore ?? {}, options.persistenceNamespace, options.resourceIdentity);
+    throw new Error(
+      "OAuth resourceIdentity requires native-owned persistence; custom stores own their resource trust policy"
+    );
+  const resourceStores =
+    options.resourceIdentity === undefined
+      ? undefined
+      : createResourceBoundOAuthStores(
+          options.authStore ?? {},
+          options.persistenceNamespace,
+          options.resourceIdentity
+        );
   const sessionStore =
-    resourceStores?.sessionStore ?? options.sessionStore ??
+    resourceStores?.sessionStore ??
+    options.sessionStore ??
     createAuthStoreSessionStore(options.authStore, options.persistenceNamespace);
-  const clientStore = resourceStores?.clientStore ??
-    (options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
-  const now = options.now ?? Date.now;
+  const clientStore =
+    resourceStores?.clientStore ??
+    (options.authStore === undefined
+      ? null
+      : createAuthStoreClientStore(options.authStore, options.persistenceNamespace));
+  const clock = options.now ?? Date.now;
+  const now = () => {
+    const timestamp = clock();
+    try {
+      native.validateGrantTimestamp(timestamp);
+    } catch {
+      throw new Error("OAuth clock must return valid epoch milliseconds");
+    }
+    return timestamp;
+  };
   const registration =
     options.client.registration === undefined
       ? undefined
@@ -175,19 +209,26 @@ export function createDefaultOAuthClientProvider(options) {
       (url.protocol !== "http:" && url.protocol !== "https:") ||
       url.username ||
       url.password ||
-      url.hash
+      url.href.includes("#")
     )
       throw new Error(
         "OAuth initial grant resource must be an HTTP URL without credentials or fragments"
       );
+    const imported = JSON.stringify(
+      project(options.initialGrant.tokens, [...TOKENS, "expiresIn", "issuedAt"])
+    );
+    let clockRequired;
+    try {
+      clockRequired = native.providerImportedClockRequired(imported);
+    } catch (error) {
+      throw new Error(error.message);
+    }
+    const importedAt = clockRequired ? now() : 0;
     let tokens;
     try {
-      tokens = native.providerNormalizeImportedTokens(
-        JSON.stringify(project(options.initialGrant.tokens, [...TOKENS, "expiresIn", "issuedAt"])),
-        Number(now())
-      );
-    } catch {
-      throw new Error("OAuth initial grant has invalid tokens or expiry");
+      tokens = native.providerNormalizeImportedTokens(imported, importedAt);
+    } catch (error) {
+      throw new Error(error.message);
     }
     if (tokens === null || configuredClient === null)
       throw new Error("OAuth initial grant requires valid tokens and the original client ID");
@@ -222,6 +263,7 @@ export function createDefaultOAuthClientProvider(options) {
   async function loadSession(resource) {
     const value = await sessionStore.load(resource);
     if (value === null) return null;
+    const discovery = structuredClone(value.discovery);
     const refreshState = ownEntry(value, "refreshState");
     if (
       refreshState !== undefined &&
@@ -239,8 +281,16 @@ export function createDefaultOAuthClientProvider(options) {
     } catch (error) {
       throw new Error(error.message);
     }
+    if (normalized.tokens != null) {
+      try {
+        new Headers({ Authorization: `Bearer ${normalized.tokens.accessToken}` });
+      } catch {
+        throw new Error("Stored OAuth access token is not a valid HTTP header value");
+      }
+    }
     return {
       ...value,
+      discovery,
       client: normalized.client ?? { clientId: "" },
       tokens: normalized.tokens ?? undefined
     };
@@ -306,12 +356,28 @@ export function createDefaultOAuthClientProvider(options) {
     signal,
     rejectedTokens
   ) {
+    signal?.throwIfAborted();
+    if (discovery !== undefined) {
+      unwrap(
+        native.providerBindingAction(
+          resource,
+          JSON.stringify({
+            discovery: {
+              authorizationServer: scalar(discovery.authorizationServer),
+              authorizationServerMetadata: project(discovery.authorizationServerMetadata, METADATA)
+            }
+          })
+        )
+      );
+      endpoints(discovery.authorizationServerMetadata);
+    }
     resource = canonicalizeResourceIndicator(resource);
     return withOAuthSessionTransaction(
       sessionStore,
       resource,
       async () => {
         let session = await loadSession(resource);
+        signal?.throwIfAborted();
         if (resourceStores !== undefined) {
           registeredClients.clear();
           if (!resourceStores.initialGrantAllowed) initialGrantConsumed = true;
@@ -436,6 +502,7 @@ export function createDefaultOAuthClientProvider(options) {
         );
         let clock;
         for (;;) {
+          signal?.throwIfAborted();
           const effect = flow.next(clock);
           clock = undefined;
           switch (effect) {
@@ -490,6 +557,7 @@ export function createDefaultOAuthClientProvider(options) {
     const promise = (async () => {
       const retries = new native.NativeOAuthRetryState();
       await sessionStore.save(resource, { ...clearTokens(session), refreshState: "pending" });
+      signal?.throwIfAborted();
       try {
         let tokens;
         for (;;) {
@@ -803,6 +871,10 @@ export function createDefaultOAuthClientProvider(options) {
   }
   return {
     async authenticate(input) {
+      input = {
+        ...input,
+        ...(input.discover === undefined ? {} : { discover: input.discover.bind(input) })
+      };
       input.signal?.throwIfAborted();
       validateUrl(input.requestUrl, "Protected resource request URL");
       const resource = canonicalizeResourceIndicator(input.requestUrl);
@@ -816,7 +888,9 @@ export function createDefaultOAuthClientProvider(options) {
       )
         return { ...initialGrant.tokens };
       if (input.discover === undefined) return;
-      const discovery = await input.discover();
+      const discovery = structuredClone(
+        await waitForOAuthOperation(input.discover(), input.signal)
+      );
       input.signal?.throwIfAborted();
       unwrap(
         native.providerRequestMatches(resource, canonicalizeResourceIndicator(discovery.resource))
@@ -827,6 +901,7 @@ export function createDefaultOAuthClientProvider(options) {
       return { ...session.tokens };
     },
     async authorizeRequest(input) {
+      input = { ...input };
       validateUrl(input.requestUrl, "Protected resource request URL");
       const url = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensure(url, undefined, input.fetch, false, false, input.signal);
@@ -845,29 +920,45 @@ export function createDefaultOAuthClientProvider(options) {
       return { ...session.tokens };
     },
     async handleUnauthorized(input) {
+      input = { ...input };
       try {
+        input.signal?.throwIfAborted();
+        let presented = input.presentedTokens;
+        if (presented != null) {
+          try {
+            presented = native.providerNormalizeTokens(JSON.stringify(project(presented, TOKENS)));
+          } catch (error) {
+            throw new Error(error.message);
+          }
+          if (presented === null)
+            throw new Error(
+              "OAuth rejected-request provenance does not match its authorization header"
+            );
+        }
+        const challengeError = input.challenge?.params.error;
+        input = {
+          ...input,
+          discovery: structuredClone(input.discovery),
+          ...(input.requestHeaders === undefined
+            ? {}
+            : { requestHeaders: new Headers(input.requestHeaders) }),
+          ...(presented === undefined ? {} : { presentedTokens: presented })
+        };
         validateUrl(input.requestUrl, "Protected resource request URL");
         const url = canonicalizeResourceIndicator(input.requestUrl),
           resource = canonicalizeResourceIndicator(input.discovery.resource);
         unwrap(native.providerRequestMatches(url, resource));
-        const cached = await loadSession(resource);
+        const cached = await waitForOAuthOperation(loadSession(resource), input.signal);
+        input.signal?.throwIfAborted();
         const currentTokens =
           cached?.tokens ??
           (!initialGrantConsumed && initialGrant?.resource === resource
             ? initialGrant.tokens
             : undefined);
         let rejectedCurrent = currentTokens !== undefined;
-        let presented = input.presentedTokens;
         if (presented !== undefined) {
           rejectedCurrent = false;
           if (presented !== null) {
-            try {
-              presented = native.providerNormalizeTokens(
-                JSON.stringify(project(presented, TOKENS))
-              );
-            } catch (error) {
-              throw new Error(error.message);
-            }
             const header = input.requestHeaders?.get("Authorization") ?? "";
             const separator = header.indexOf(" ");
             if (
@@ -883,7 +974,7 @@ export function createDefaultOAuthClientProvider(options) {
             );
           }
         }
-        const challenge = input.challenge?.params.error;
+        const challenge = challengeError;
         const force =
           rejectedCurrent &&
           (challenge === "invalid_token" ||

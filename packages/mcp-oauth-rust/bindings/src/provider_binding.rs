@@ -104,7 +104,12 @@ pub fn provider_validate_endpoint(
         access_token: input.get("accessToken") == Some(&Value::Bool(true)),
     };
     Ok(result(
-        endpoint.validate(&label, secure).map(|()| Value::Null),
+        (if label == "Authorization server issuer" {
+            endpoint.validate_issuer(input.get("query") == Some(&Value::Bool(true)))
+        } else {
+            endpoint.validate(&label, secure)
+        })
+        .map(|()| Value::Null),
     ))
 }
 #[napi]
@@ -309,6 +314,10 @@ pub fn rejected_grant_matches(text: Utf16String) -> Result<bool> {
     })
 }
 
+#[napi]
+pub fn provider_imported_clock_required(text: Utf16String) -> Result<bool> {
+    provider::imported_clock_required(&parse(&text)?).map_err(napi::Error::from_reason)
+}
 #[napi]
 pub fn provider_normalize_imported_tokens(text: Utf16String, now: f64) -> Result<NativeJson> {
     let result = provider::normalize_imported_tokens(&parse(&text)?, now)

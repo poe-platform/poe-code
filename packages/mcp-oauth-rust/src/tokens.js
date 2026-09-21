@@ -100,7 +100,7 @@ async function requestTokens(input, grant) {
   const now = fields.needsClock ? input.now() : undefined;
   let result;
   try {
-    result = fields.complete(now);
+    result = fields.complete(typeof now === "number" ? now : NaN);
   } catch (error) {
     throw new Error(error.message);
   }

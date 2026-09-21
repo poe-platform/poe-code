@@ -16,10 +16,16 @@ fn trimmed(value: Option<&Value>) -> Option<Vec<u16>> {
     let end = text.iter().rposition(|unit| !whitespace(*unit))? + 1;
     Some(text[start..end].to_vec())
 }
+/// Fetch Headers converts to ByteString and rejects NUL, LF and CR.
+pub fn valid_header_value(value: &[u16]) -> bool {
+    value
+        .iter()
+        .all(|unit| *unit <= 255 && !matches!(*unit, 0 | 10 | 13))
+}
 #[derive(Debug)]
 pub struct TokenFields {
     access: Vec<u16>,
-    refresh: Option<Vec<u16>>,
+    refresh: Option<Value>,
     scope: Option<Value>,
     expires: Option<f64>,
 }
@@ -27,6 +33,9 @@ impl TokenFields {
     pub fn parse(payload: &Value) -> Result<Self, &'static str> {
         let access = trimmed(payload.get("access_token"))
             .ok_or("OAuth token response missing access_token")?;
+        if !valid_header_value(&access) {
+            return Err("OAuth token response access_token is not a valid HTTP header value");
+        }
         let bearer = match payload.get("token_type") {
             Some(Value::String(text)) => {
                 text.len() == 6
@@ -50,7 +59,7 @@ impl TokenFields {
         };
         Ok(Self {
             access,
-            refresh: trimmed(payload.get("refresh_token")),
+            refresh: payload.get("refresh_token").cloned(),
             scope: payload.get("scope").cloned(),
             expires,
         })
@@ -62,12 +71,22 @@ impl TokenFields {
         let expires_at = match self.expires {
             None => Value::Null,
             Some(seconds) => {
-                let date = now.ok_or(INVALID_EXPIRY)? + seconds * 1000.0;
+                let issued = now.ok_or(INVALID_EXPIRY)?;
+                if !crate::grant::valid_timestamp(issued) {
+                    return Err(INVALID_EXPIRY);
+                }
+                let date = issued + seconds * 1000.0;
                 if !date.is_finite() || date.fract() != 0.0 || date.abs() > 8_640_000_000_000_000.0
                 {
                     return Err(INVALID_EXPIRY);
                 }
                 Value::Number(date)
+            }
+        };
+        let refresh = match self.refresh.as_ref() {
+            None => None,
+            Some(value) => {
+                Some(trimmed(Some(value)).ok_or("OAuth token response has invalid refresh_token")?)
             }
         };
         let mut fields = vec![
@@ -78,8 +97,8 @@ impl TokenFields {
             ),
             property("expiresAt", expires_at),
         ];
-        if let Some(refresh) = &self.refresh {
-            fields.push(property("refreshToken", Value::String(refresh.clone())));
+        if let Some(refresh) = refresh {
+            fields.push(property("refreshToken", Value::String(refresh)));
         }
         let scope = crate::scope::normalize(self.scope.as_ref())?;
         if self.scope.is_some() && scope.is_none() {

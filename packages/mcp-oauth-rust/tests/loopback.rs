@@ -116,3 +116,29 @@ fn fixed_redirects_accept_only_exact_loopback_host_and_reject_parameter_spoofing
         ));
     }
 }
+
+#[test]
+fn callback_parameter_multiplicity_uses_recognized_field_priority() {
+    use mcp_oauth_rust::loopback::{CALLBACK_PARAMETERS, duplicate_parameter};
+    for index in 0..CALLBACK_PARAMETERS.len() {
+        let mut counts = vec![1; CALLBACK_PARAMETERS.len()];
+        counts[index] = 2;
+        assert_eq!(
+            duplicate_parameter(&counts),
+            Some(CALLBACK_PARAMETERS[index])
+        );
+    }
+    assert_eq!(duplicate_parameter(&[1; 6]), None);
+    assert_eq!(duplicate_parameter(&[3; 6]), Some("code"));
+    let failure = CallbackBinding::new(None)
+        .resolve(&CallbackParameters {
+            error: Some(text("access_denied")),
+            error_description: Some(text("Denied")),
+            ..Default::default()
+        })
+        .unwrap_err();
+    assert_eq!(
+        failure.denial,
+        Some((text("access_denied"), text("Denied")))
+    );
+}

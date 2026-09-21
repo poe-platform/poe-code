@@ -317,3 +317,52 @@ fn configured_dynamic_apps_check_cached_and_pending_grants_before_any_recovery()
         );
     }
 }
+
+#[test]
+fn imported_clock_is_only_needed_for_unanchored_relative_expiry() {
+    use mcp_oauth_rust::provider::imported_clock_required;
+    for input in [
+        r#"{}"#,
+        r#"{"expiresAt":1000,"expiresIn":2}"#,
+        r#"{"expiresIn":2,"issuedAt":1000}"#,
+    ] {
+        assert_eq!(imported_clock_required(&value(input)), Ok(false));
+    }
+    assert_eq!(
+        imported_clock_required(&value(r#"{"expiresIn":2}"#)),
+        Ok(true)
+    );
+    assert_eq!(
+        imported_clock_required(&value(r#"{"expiresAt":null,"expiresIn":2}"#)),
+        Ok(true)
+    );
+    assert!(imported_clock_required(&value(r#"{"expiresAt":1000,"expiresIn":-1}"#)).is_err());
+    assert!(imported_clock_required(&value(r#"{"expiresAt":1000,"issuedAt":null}"#)).is_err());
+}
+
+#[test]
+fn issuer_url_policy_rejects_queries_after_secure_admission() {
+    let issuer = Endpoint {
+        protocol: "https:",
+        hostname: "issuer.example",
+        credentials: false,
+        fragment: false,
+        access_token: false,
+    };
+    assert_eq!(issuer.validate_issuer(false), Ok(()));
+    assert_eq!(
+        issuer.validate_issuer(true),
+        Err("Authorization server issuer must not include query or fragment".into())
+    );
+    let insecure = Endpoint {
+        protocol: "http:",
+        hostname: "issuer.example",
+        credentials: false,
+        fragment: false,
+        access_token: false,
+    };
+    assert_eq!(
+        insecure.validate_issuer(true),
+        Err("Authorization server issuer must use https unless it targets a loopback host".into())
+    );
+}

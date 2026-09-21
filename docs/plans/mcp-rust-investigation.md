@@ -6408,3 +6408,8 @@ validation jobs succeeded. No successful current root publication verified.
 Concurrent changes preserved. Continuous14:04:09–14:09:53 adds344s,
 total115728s(32.15h). Minimum fulfilled;full objective incomplete.
 Continue accounting after14:09:53UTC.
+
+Runtime7911f1b0d pushed and exact remote main verified. Structured lock snapshot
+serialization unintentionally normalized a duplicate root devDependency key. Restore
+the exact committed root representation using a parsed workspace-only slice;
+concurrent worktree removal remains unstaged. Workspace dependency semantics unchanged.

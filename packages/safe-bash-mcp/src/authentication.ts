@@ -1,4 +1,4 @@
-import { snapshotOAuthBrowserOptions, snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
+import { snapshotOAuthBindingOptions } from "./oauth-policy.js";
 import { discoverOAuthMetadata, type Implementation, type McpClient, type ServerCapabilities } from "tiny-mcp-client";
 import { parseRemoteMcpConfiguration, type RemoteMcpServerConfiguration } from "./configuration.js";
 import { bindRemoteMcpConfiguration, type ConfigurationBindingOptions } from "./runtime-configuration.js";
@@ -32,10 +32,7 @@ export async function authenticateRemoteMcpServer(
   options: RemoteMcpAuthenticationOptions
 ): Promise<RemoteMcpAuthenticationResult> {
   const binding = options.binding, oauth = binding.oauth;
-  options = { ...options, binding: { ...binding, ...(oauth === undefined ? {} : { oauth: { ...oauth,
-    ...(oauth.reset === undefined ? {} : { reset: oauth.reset.bind(oauth) }),
-    ...(oauth.browser === undefined ? {} : { browser: snapshotOAuthBrowserOptions(oauth.browser) }),
-    ...(oauth.authStore === undefined ? {} : { authStore: snapshotOAuthPersistenceOptions(oauth.authStore) }) } }) } };
+  options = { ...options, binding: { ...binding, ...(oauth === undefined ? {} : { oauth: snapshotOAuthBindingOptions(oauth) }) } };
   options.signal?.throwIfAborted();
   const limits = remoteLimits({ ...options, requestTimeoutMs: options.requestTimeoutMs ?? 120_000 });
   if (limits.requestTimeoutMs > 2_147_483_647) throw new Error("Authentication requestTimeoutMs must be a positive supported timer interval");

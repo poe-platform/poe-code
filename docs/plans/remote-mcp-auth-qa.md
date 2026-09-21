@@ -813,3 +813,19 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     streams. Actual mcp init --format=env explains supplied app identity and
     empty dynamic IDs while leaving credentials empty. Inspect successful
     screenshot; purge only owned synthetic evidence.
+
+73. Supply environment-binding OAuth policies through nonenumerable properties
+    and a host class with private clock/store state. Exercise schema discovery,
+    generated commands, resources, explicit SDK auth, recreated artifacts and
+    management auth over actual HTTP and SSE. Require twenty-four invalid-clock
+    or zero-lock-ceiling failures before traffic. Retain original private stores
+    and factories, let the selected clock observe live state so expired relative
+    imports are withheld, and require zero clock reads for unknown lifetimes.
+    Capture interactive opt-in before the caller replaces it; require eight real
+    state/S256 callbacks/code exchanges. Require six complete schemas/six calls/
+    six text+blob reads/six recreated calls and two SDK/two management auth results.
+    Retain guidance, falsey structured values, nested metadata and exact005930
+    where the route returns them. Expect forty factories, eighty MCP POSTs,
+    sixteen metadata GETs, fourteen HTTP retirements and fourteen SSE closes.
+    Management auth reports connection status; the SDK also returns instructions.
+    Inspect the successful summary screenshot and purge owned evidence.

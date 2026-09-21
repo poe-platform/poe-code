@@ -1,4 +1,4 @@
-import { snapshotOAuthBrowserOptions, snapshotOAuthPersistenceOptions } from "./oauth-policy.js";
+import { snapshotOAuthBindingOptions } from "./oauth-policy.js";
 import { credentialEnvironmentReader } from "./credential-environment.js";
 import { createDefaultOAuthClientProvider, type DefaultOAuthClientProviderOptions, type OAuthClientProvider,
   type OAuthSessionStore } from "mcp-oauth";
@@ -29,9 +29,7 @@ export interface BoundRemoteMcpServer extends Omit<RemoteMcpServer, "oauth"> {
 /** Resolve explicit environment references into runtime-only credentials without network or artifact writes. */
 export function bindRemoteMcpConfiguration(value: unknown, options: ConfigurationBindingOptions): BoundRemoteMcpServer[] {
   const oauth = options.oauth;
-  options = { ...options, ...(oauth === undefined ? {} : { oauth: { ...oauth,
-    ...(oauth.browser === undefined ? {} : { browser: snapshotOAuthBrowserOptions(oauth.browser) }),
-    ...(oauth.authStore === undefined ? {} : { authStore: snapshotOAuthPersistenceOptions(oauth.authStore) }) } }) };
+  options = { ...options, ...(oauth === undefined ? {} : { oauth: snapshotOAuthBindingOptions(oauth) }) };
   const configuration = parseRemoteMcpConfiguration(value, options);
   const read = credentialEnvironmentReader(options);
   // Capture only this registry's references before invoking any host clock.

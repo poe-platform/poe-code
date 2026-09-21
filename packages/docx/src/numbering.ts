@@ -111,7 +111,9 @@ export class NumberingGraph {
     if (id === 0 || instances?.length !== 1) throw new UnsupportedEditError("Numbering instance is missing or ambiguous.");
     const num = instances[0]!;
     this.attributes(num, ["numId"]);
-    const definitions = this.abstracts.get(integer(numberingAttribute(numberingChild(num, "abstractNumId"))));
+    const reference = numberingChild(num, "abstractNumId");
+    if (reference) this.scalar(reference, ["val"]);
+    const definitions = this.abstracts.get(integer(numberingAttribute(reference)));
     if (definitions?.length !== 1) throw new UnsupportedEditError("Abstract numbering definition is missing or ambiguous.");
     let definition = definitions[0]!;
     this.attributes(definition, ["abstractNumId"]);

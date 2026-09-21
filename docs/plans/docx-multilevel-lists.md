@@ -43,3 +43,30 @@ paragraph/instance/level/override graphs rather than tag existence.
   restarts, mixed styles, style relationships and picture-resource preservation.
 - No visual CLI behavior changed; no renderer/native-reference QA claimed.
 - Commit owned files on main only; no push/release; later tasks remain pending.
+
+## Acceptance verification continuation
+
+Review reproduced one additional opaque-graph defect: `abstractNumId` references
+with unknown attributes or nested elements were interpreted as ordinary IDs,
+and restart materialization discarded their content. Two original memfs cases
+failed before the correction (32 existing passes). Affected references now use
+the existing scalar validator before resolution. Both list continuation and
+restart reject these references as `unsupported-edit`; unrelated edits preserve
+their exact numbering bytes and paragraph bindings. The focused suite passed
+all 34 tests after correction.
+
+The maintained DOCX build closure and package lint/source/test typechecks passed;
+lint retained one warning in untouched `operation-types.test.ts`. Historical
+live-numbering red/green logs were inspected separately and establish only their
+recorded read/owner subset. The prior utility five-failure cycle is recorded
+above; no separate raw utility log was located. Existing utility tests exercise
+CLI/SDK serialized-byte parity and schema support. No visual CLI behavior changed,
+and renderer, downloaded-corpus and native-reference QA were not run.
+
+The root unit runner rejects `--workspace=docx`; scoped verification uses the
+declared `npm test --workspace=docx` route. The first workspace run loaded the
+intentional red cases and was stopped; it is not passing evidence. The fresh
+post-correction workspace run passed 245 files and 5,090 tests (233.34 seconds).
+`/out` is unavailable
+on this host (read-only filesystem), so no temporary evidence files were created.
+Whole-public-API and later level-definition/construction tasks remain pending.

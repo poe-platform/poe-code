@@ -1,4 +1,5 @@
 import { DocxUsageError } from "./argument-json.js";
+import { storedBooleanValue } from "./stored-lexical.js";
 import { xmlValue } from "./create-content.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { paragraphUnits } from "./paragraph-properties.js";
@@ -24,9 +25,12 @@ function integer(node: XmlElement | undefined, key: string, fallback: number | n
   return Number(value);
 }
 export function sectionBoolean(node: XmlElement | undefined, attribute = "val", absent = false): boolean {
+  if (node === undefined) return absent;
   const value = sectionAttribute(node, attribute);
-  if (value !== undefined && !["0", "1", "true", "false", "on", "off"].includes(value)) throw new UnsupportedEditError("Invalid section policy value.");
-  return node === undefined ? absent : value === undefined ? attribute === "val" || absent : ["1", "true", "on"].includes(value);
+  if (value === undefined) return attribute === "val" || absent;
+  const decoded = storedBooleanValue(value);
+  if (decoded === null) throw new UnsupportedEditError("Invalid section policy value.");
+  return decoded;
 }
 export function readSectionProperties(node: XmlElement | undefined, children: (node: XmlElement) => readonly XmlElement[] = node => node.children) {
   const size = sectionChild(node, "pgSz", children), margin = sectionChild(node, "pgMar", children), columns = sectionChild(node, "cols", children), numbers = sectionChild(node, "pgNumType", children);

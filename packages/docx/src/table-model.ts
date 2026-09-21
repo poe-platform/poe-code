@@ -281,11 +281,12 @@ export class Table {
   }
   get style(): TableStyle | null {
     return this.store.tableStyle(
-      attr(child(child(this.store.node(this.ref), "tblPr"), "tblStyle"), "val") ?? null
+      attr(child(child(this.store.node(this.ref), "tblPr"), "tblStyle"), "val") ?? null,
+      this.ref.part
     );
   }
   set style(value: string | TableStyle | null) {
-    const id = this.store.tableStyleId(value);
+    const id = this.store.tableStyleId(value, this.ref.part);
     properties(this.store, this.ref, "tblPr", "tblStyle", id === null ? null : { val: id });
   }
   add_row(): _Row {

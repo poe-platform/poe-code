@@ -169,7 +169,7 @@ it("changes relationship type, target and external mode in one transactional ass
 it("returns the existing style domain from its live part view", async () => {
   const model = await openDocumentStyleModel(undefined, textContext);
   expect(model.styles.part.styles).toBe(model.styles);
-  expect(StylePartView.default(model.package)).toBe(model.styles.part);
+  expect(StylePartView.default(model.package)).not.toBe(model.styles.part);
   const style = model.styles.part.styles.add_style("Harbor", WD_STYLE_TYPE.CHARACTER);
   expect(model.styles.at("Harbor").equals(style)).toBe(true);
 });

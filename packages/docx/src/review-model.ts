@@ -45,9 +45,10 @@ export class Comments implements Iterable<Comment> {
     text(value);
     text(author);
     if (initials !== null) text(initials);
-    const style = this.store.styles.has("Comment Text")
-      ? this.store.styles.at("Comment Text")
-      : this.store.styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
+    const styles = this.store.stylesFor(this.ref.part);
+    const style = styles.has("Comment Text")
+      ? styles.at("Comment Text")
+      : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
     const used = new Set(this.nodes.map(id));
     let next = 0;
     while (used.has(next)) next++;
@@ -75,11 +76,11 @@ export class Comment {
     return this.store.element(this.ref);
   }
   equals(other: unknown): boolean {
+    this.store.node(this.ref);
     return (
       other instanceof Comment &&
       other.store === this.store &&
-      other.ref.part === this.ref.part &&
-      other.ref.id === this.ref.id
+      this.store.node(this.ref) === other.store.node(other.ref)
     );
   }
   get comment_id(): number {
@@ -414,13 +415,16 @@ export function bindCommentRange(
   runs: import("./block-model.js").Run | readonly import("./block-model.js").Run[],
   value = "",
   author = "",
-  initials: string | null = ""
+  initials: string | null = "",
+  mainPart = store.mainPart
 ): Comment {
   text(value);
   text(author);
   if (initials !== null) text(initials);
   const { first, last } = validateCommentRange(store, runs);
-  const comment = new Comments(store, store.ensureComments()).add_comment(value, author, initials);
+  if (store.xml(first.ref.part).root.localName === "document" && first.ref.part !== mainPart)
+    throw new UnsupportedEditError("Comment endpoints require this document owner.");
+  const comment = new Comments(store, store.ensureComments(mainPart)).add_comment(value, author, initials);
   applyCommentRange(store, first, last, comment.comment_id);
   return comment;
 }
@@ -435,9 +439,10 @@ export function markCommentRange(
   if (!Number.isSafeInteger(comment_id) || comment_id < 0)
     throw new InputTypeError("Expected a nonnegative comment ID.");
   validateCommentRange(store, [first, last]);
-  const main = store.xml(store.mainPart).root,
+  const owner = store.documentOwner(first.ref.part);
+  const main = store.xml(owner).root,
     dialect = dialectForNamespace(main.namespace)!;
-  const edges = [...store.part(store.mainPart).rels.values()].filter(
+  const edges = [...store.part(owner).rels.values()].filter(
     (edge) => edge.reltype === documentDialects[dialect].r + "/comments"
   );
   if (edges.length !== 1 || edges[0]!.is_external)
@@ -451,13 +456,19 @@ export function markCommentRange(
     (["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) &&
       commentAttribute(node, "id") === String(comment_id)) ||
     node.children.some(visit);
-  if (
-    store
-      .snapshot()
-      .members.some(
-        (member) => member.name.endsWith(".xml") && visit(store.xml("/" + member.name).root)
-      )
-  )
+  const storyParts = new Set([owner]);
+  for (const name of storyParts) {
+    for (const edge of store.part(name).rels.values()) {
+      if (edge.is_external) continue;
+      const target = edge.target_part;
+      if (!target.partname.toString().endsWith(".xml")) continue;
+      const targetName = target.partname.toString();
+      const root = store.xml(targetName).root;
+      if (root.localName !== "document" && root.namespace === main.namespace)
+        storyParts.add(targetName);
+    }
+  }
+  if ([...storyParts].some(name => visit(store.xml(name).root)))
     throw new UnsupportedEditError("Comment body already has an anchor.");
   applyCommentRange(store, first, last, comment_id);
 }

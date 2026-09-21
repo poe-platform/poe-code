@@ -19,11 +19,20 @@ import { Image, type ImageModelInput, type ImageModelContext } from "./image-mod
 import type { DocumentModelInput } from "./model-input.js";
 import type { DocumentModelContext } from "./model-context.js";
 import type { Length } from "./formatting-values.js";
+import { Comments } from "./review-model.js";
+import { Settings } from "./settings-model.js";
+import { inlineImageRun } from "./inline-image-xml.js";
+import { runElementOpen } from "./run-properties.js";
+import type { DocumentView } from "./document-model.js";
+import type { bindDocumentStyles, BaseStyle, StylePartView, Styles } from "./styles-model.js";
+import { originalModelDefaults } from "./default-model-styles.js";
+import type { DocxEnumValue } from "./operation-types.js";
 
 const relNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
 const relContentType = "application/vnd.openxmlformats-package.relationships+xml";
 const packageRegister = Symbol("register");
-const packagePart = Symbol("part");
+/** Internal resolution of admitted owned parts, including unattached defaults. */
+export const packageOwnedPart = Symbol("part");
 const packageMetadata = Symbol("metadata");
 const packageRelationships = Symbol("relationships");
 const packageEdges = Symbol("edges");
@@ -38,18 +47,29 @@ const coreRead = Symbol("core-read");
 const coreWrite = Symbol("core-write");
 const packageImage = Symbol("image");
 const packageImages = Symbol("images");
+const packageDocument = Symbol("document");
+const packageAdmittedImage = Symbol("admitted-image");
+const packageDefaultPart = Symbol("default-part");
+/** Internal original styles-part factory over the same admitted package. */
+export const packageDefaultStyles = Symbol("default-styles");
+/** Internal cache-only reuse of a typed styles owner. */
+export const packageCachedStyles = Symbol("cached-styles");
 /** Internal admission hook; never a batch callback or public barrel export. */
 export const packageAdmitImages = Symbol("admit-images");
 /** Internal binding of a characterized image to the same admitted package bytes. */
 export const packageBindImage = Symbol("bind-image");
 /** Internal transaction checkpoint; preserves package and retained part identities. */
 export const packageOwnerCheckpoint = Symbol("owner-checkpoint");
+/** Internal removal invalidates the owner before a name can be reused. */
+export const packageInvalidatePart = Symbol("invalidate-part");
 const packageLoadImage = Symbol("load-image");
 const partNames = new WeakMap<PartView, string>();
 
 /** Internal binding to the admitted model; publication remains with that owner. */
 export interface PackageViewBinding {
   readonly context: ArchiveContext;
+  document?(partname?: string): DocumentView;
+  stylesPart?(partname: string): StylePartView;
   snapshot(): DocumentArchive;
   stage(archive: DocumentArchive, rename?: { from: string; to: string }): void;
   version(): number;
@@ -75,12 +95,60 @@ export class PackageView {
   readonly #images = new Map<string, Image>();
   constructor(binding: PackageViewBinding) { this.#binding = binding; }
   static async open(input: DocumentModelInput, context?: DocumentModelContext): Promise<PackageView> {
-    const { openDocumentStyleModel } = await import("./styles-model.js");
-    const model = await openDocumentStyleModel(input, context);
-    model.package.after_unmarshal();
-    return model.package;
+    const { Document } = await import("./document-model.js");
+    const document = await Document(input, context);
+    const owner = document.part.package;
+    owner.after_unmarshal();
+    return owner;
+  }
+  [packageCachedStyles](partname: string): Styles | undefined {
+    const part = this.#parts.get(asciiKey(normalizePartName(partname)));
+    return part instanceof XmlPartView && "styles" in part ? (part as StylePartView).styles : undefined;
+  }
+  [packageDefaultStyles](bindStyles: typeof bindDocumentStyles): StylePartView {
+    const name = this.next_partname("/word/styles%d.xml").toString();
+    const namespace = this.main_document_part.element.namespace;
+    return this[packageAdmitPart](name, "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", new TextEncoder().encode(`<w:styles xmlns:w="${namespace}">${originalModelDefaults(namespace)}</w:styles>`), partname => {
+      const binding: { part?: StylePartView } = {};
+      binding.part = bindStyles({
+      context: this.#binding.context,
+      package: this,
+      partname,
+      read: () => this.current().graph.getPart(binding.part?.partname.toString() ?? partname).bytes,
+      write: bytes => {
+        this.#binding.writable();
+        const { archive } = this.current();
+        const metadata = this.current().graph.getPart(binding.part?.partname.toString() ?? partname);
+        this.commit({ ...archive, members: archive.members.map(member => "/" + member.name === metadata.partname ? { ...member, bytes } : member) });
+      },
+      writable: () => this.#binding.writable()
+    }).part;
+      return binding.part;
+    }) as StylePartView;
+  }
+  [packageDefaultPart](kind: "header" | "footer" | "comments" | "settings"): XmlPartView {
+    this.#binding.writable();
+    const namespace = this.main_document_part.element.namespace;
+    const localName = ({ header: "hdr", footer: "ftr", comments: "comments", settings: "settings" })[kind];
+    const name = this.next_partname(`/word/${kind}%d.xml`);
+    const emptyParagraph = kind === "header" || kind === "footer" ? "<ds:p/>" : "";
+    return this[packageAdmitPart](name, `application/vnd.openxmlformats-officedocument.wordprocessingml.${kind}+xml`, new TextEncoder().encode(`<ds:${localName} xmlns:ds="${namespace}">${emptyParagraph}</ds:${localName}>`)) as XmlPartView;
   }
   get revision(): number { return this.#revision; }
+  [packageDocument](partname?: string): DocumentView {
+    if (!this.#binding.document) throw new UnsupportedEditError("This package owner has no live document binding.");
+    return this.#binding.document(partname);
+  }
+  [packageInvalidatePart](name: string): void {
+    const key = asciiKey(normalizePartName(name));
+    const part = this.#parts.get(key);
+    if (part) partNames.delete(part);
+    this.#parts.delete(key);
+    this.#relationships.delete(key);
+    this.#images.delete(normalizePartName(name));
+    this.#revision++;
+    this.#cached = undefined;
+  }
   [packageOwnerCheckpoint](): () => void {
     const parts = new Map(this.#parts), relationships = new Map(this.#relationships), images = new Map(this.#images), revision = this.#revision;
     const names = new Map([...parts.values()].map(part => [part, partNames.get(part)!]));
@@ -109,14 +177,19 @@ export class PackageView {
     partNames.set(part, name);
     this.#parts.set(asciiKey(name), part);
   }
-  [packagePart](name: string): PartView {
+  [packageOwnedPart](name: string): PartView {
     const metadata = this.current().graph.getPart(name), key = asciiKey(metadata.partname);
     let part = this.#parts.get(key);
     if (!part) {
       part = metadata.content_type.startsWith("image/") ? new ImagePartView(this, metadata.partname)
         : metadata.content_type === "application/vnd.openxmlformats-package.core-properties+xml" ? new CorePropertiesPartView(this, metadata.partname)
         : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" ? new DocumentPartView(this, metadata.partname)
+        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml" && this.#binding.stylesPart ? this.#binding.stylesPart(metadata.partname)
         : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" ? new NumberingPart(this, metadata.partname)
+        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml" ? new SettingsPartView(this, metadata.partname)
+        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml" ? new CommentsPartView(this, metadata.partname)
+        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml" ? new HeaderPart(this, metadata.partname)
+        : metadata.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml" ? new FooterPart(this, metadata.partname)
         : xmlType(metadata.content_type) ? new XmlPartView(this, metadata.partname) : new PartView(this, metadata.partname);
     }
     return part;
@@ -129,7 +202,7 @@ export class PackageView {
     return { ...metadata, bytes: new Uint8Array(metadata.bytes), modified: new Date(metadata.modified.getTime()) };
   }
   get parts(): readonly PartView[] { return Object.freeze([...this.iter_parts()]); }
-  *iter_parts(): IterableIterator<PartView> { for (const part of this.current().graph.iterParts()) yield this[packagePart](part.partname); }
+  *iter_parts(): IterableIterator<PartView> { for (const part of this.current().graph.iterParts()) yield this[packageOwnedPart](part.partname); }
   *iter_rels(): IterableIterator<RelationshipView> {
     const visited = new Set<string>(), stack = ["/"];
     while (stack.length) {
@@ -143,7 +216,7 @@ export class PackageView {
   }
   get rels(): Relationships { return this[packageRelationships]("/"); }
   get image_parts(): ImageParts { return this.#imageParts ??= new ImageParts(this); }
-  [packageImages](): readonly ImagePartView[] { return this.current().graph.parts.filter(part => part.content_type.startsWith("image/")).map(part => this[packagePart](part.partname) as ImagePartView); }
+  [packageImages](): readonly ImagePartView[] { return this.current().graph.parts.filter(part => part.content_type.startsWith("image/")).map(part => this[packageOwnedPart](part.partname) as ImagePartView); }
   [packageImage](part: ImagePartView): Image {
     const image = this.#images.get(this[packageMetadata](part).partname);
     if (!image) throw new UnsupportedEditError("This image part has no admitted bounded raster characterization.");
@@ -183,6 +256,10 @@ export class PackageView {
     const revision = this.#revision, ownerVersion = this.#binding.version();
     const image = await Image.from_file(input, this.#binding.context as ImageModelContext);
     if (revision !== this.#revision || ownerVersion !== this.#binding.version()) throw new PublicationError("conflict", "Package changed during image admission.");
+    return this[packageAdmittedImage](image);
+  }
+  [packageAdmittedImage](image: Image): ImagePartView {
+    this.#binding.writable();
     const bytes = image.blob;
     for (const part of this[packageImages]()) {
       const candidate = part.blob;
@@ -211,7 +288,7 @@ export class PackageView {
       const metadata = new TextEncoder().encode(`<cp:coreProperties xmlns:cp="${corePropertyNamespace}" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Document</dc:title><cp:lastModifiedBy>${xmlValue(context.author ?? "")}</cp:lastModifiedBy><cp:revision>1</cp:revision><dcterms:modified xsi:type="dcterms:W3CDTF">${modified}</dcterms:modified></cp:coreProperties>`);
       created.archive = { ...created.archive, members: created.archive.members.map(member => member.name === created.name.slice(1) ? { ...member, bytes: metadata } : member) };
       this.commit(created.archive);
-      part = this[packagePart](created.name) as CorePropertiesPartView;
+      part = this[packageOwnedPart](created.name) as CorePropertiesPartView;
     }
     if (!(part instanceof CorePropertiesPartView)) throw new InvalidValueError("Core-properties relationship has an incompatible target.");
     return part.core_properties;
@@ -219,7 +296,7 @@ export class PackageView {
   [packageCore](part: XmlPartView): CoreProperties {
     return new CoreProperties(part, archiveSettings(this.#binding.context).budget);
   }
-  [packageAdmitPart](name: string | PackURI, content_type: string, input: Uint8Array): PartView {
+  [packageAdmitPart](name: string | PackURI, content_type: string, input: Uint8Array, bind?: (partname: string) => PartView): PartView {
     this.#binding.writable();
     if (!(input instanceof Uint8Array) || typeof content_type !== "string" || !content_type) throw new InputTypeError("Expected owned part bytes and a content type.");
     name = normalizePartName(name instanceof PackURI ? name.toString() : name);
@@ -234,7 +311,7 @@ export class PackageView {
     const members = archive.members.map(member => member === types ? { ...member, bytes: xml.serialize() } : member);
     members.push({ name: name.slice(1), bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") });
     this.commit({ ...archive, members });
-    return this[packagePart](name);
+    return bind ? bind(name) : this[packageOwnedPart](name);
   }
   get main_document_part(): DocumentPartView {
     const edges = [...this.rels.values()].filter(edge => edge.reltype.endsWith("/officeDocument") && !edge.is_external);
@@ -244,7 +321,7 @@ export class PackageView {
   [packageRelationships](owner: string): Relationships {
     const key = owner === "/" ? "/" : asciiKey(this.current().graph.getPart(owner).partname);
     let rels = this.#relationships.get(key);
-    if (!rels) { rels = new Relationships(this, owner === "/" ? null : this[packagePart](owner)); this.#relationships.set(key, rels); }
+    if (!rels) { rels = new Relationships(this, owner === "/" ? null : this[packageOwnedPart](owner)); this.#relationships.set(key, rels); }
     return rels;
   }
   [packageEdges](owner: PartView | null): readonly PackageRelationship[] { return this.current().graph.relationships(owner ? this[packageMetadata](owner).partname : "/"); }
@@ -434,7 +511,167 @@ export class XmlPartView extends PartView {
   get part(): this { return this; }
 }
 
-export class DocumentPartView extends XmlPartView {
+export class StoryPart extends XmlPartView {
+  get_style(style_id: string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
+    void this.content_type;
+    const styles = this.package[packageDocument](this.partname.toString()).styles;
+    return styles.get_by_id(style_id, style_type);
+  }
+  get_style_id(style_or_name: BaseStyle | string | null, style_type: DocxEnumValue<"WD_STYLE_TYPE">): string | null {
+    void this.content_type;
+    const styles = this.package[packageDocument](this.partname.toString()).styles;
+    return styles.get_style_id(style_or_name, style_type);
+  }
+  get next_id(): number {
+    let maximum = 0;
+    const pending = [this.element];
+    while (pending.length) {
+      const node = pending.pop()!;
+      for (const [name, value] of node.attributes) if (name.localName === "id" && !name.namespaceURI && value && [...value].every(char => "0123456789".includes(char))) {
+        const id = Number(value);
+        if (!Number.isSafeInteger(id) || id === Number.MAX_SAFE_INTEGER) throw new InvalidValueError("Story drawing ID exceeds the safe integer range.");
+        maximum = Math.max(maximum, id);
+      }
+      pending.push(...node.children);
+    }
+    return maximum + 1;
+  }
+
+  async get_or_add_image(input: ImageModelInput): Promise<readonly [string, Image]> {
+    const root = this.element.tag;
+    const store = this.package[packageDocument]().store;
+    const revision = store.revision;
+    const image = await Image.from_file(input, store.context);
+    void this.content_type;
+    if (revision !== store.revision) throw new PublicationError("conflict", "Story changed during image admission.");
+    const dialect = root.namespaceURI === documentDialects.strict.w ? documentDialects.strict : documentDialects.transitional;
+    return store.transaction(() => {
+      const part = this.package[packageAdmittedImage](image);
+      return Object.freeze([this.relate_to(part, `${dialect.r}/image`), part.image]);
+    });
+  }
+  async new_pic_inline(input: ImageModelInput, width?: number | Length | null, height?: number | Length | null): Promise<XmlElementView> {
+    const root = this.element.tag;
+    const store = this.package[packageDocument]().store;
+    const revision = store.revision;
+    const image = await Image.from_file(input, store.context);
+    const [cx, cy] = image.scaled_dimensions(width, height);
+    void this.content_type;
+    if (revision !== store.revision) throw new PublicationError("conflict", "Story changed during image admission.");
+    return store.transaction(() => {
+      const part = this.package[packageAdmittedImage](image);
+      const dialect = root.namespaceURI === documentDialects.strict.w ? documentDialects.strict : documentDialects.transitional;
+      const id = this.relate_to(part, `${dialect.r}/image`);
+      const budget = store.context.budget;
+      const run = new DocumentXmlEditor(new TextEncoder().encode(inlineImageRun(dialect, this.next_id, id, { width: cx.emu, height: cy.emu, crop: "" }).run), {}, undefined, budget);
+      const inline = run.root.children[0]!.children[0]!;
+      const markup = runElementOpen(inline) + run.sourceXml(inline, new Map(), true) + `</${inline.name}>`;
+      const xml = new DocumentXmlEditor(new TextEncoder().encode(markup), {}, undefined, budget);
+      return bindXmlElementView({ budget, read: () => xml, resolve: editor => editor.root, change: action => action(xml) });
+    });
+  }
+
+}
+
+export class HeaderPart extends StoryPart {
+  static new(owner: PackageView): HeaderPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageDefaultPart]("header") as HeaderPart;
+  }
+}
+
+export class FooterPart extends StoryPart {
+  static new(owner: PackageView): FooterPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageDefaultPart]("footer") as FooterPart;
+  }
+}
+
+export class CommentsPartView extends StoryPart {
+  static default(owner: PackageView): CommentsPartView {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageDefaultPart]("comments") as CommentsPartView;
+  }
+  #comments: Comments | undefined;
+  get comments(): Comments {
+    const store = this.package[packageDocument]().store;
+    const partname = this.partname.toString();
+    void this.content_type;
+    return this.#comments ??= new Comments(store, store.ref(partname, store.xml(partname).root));
+  }
+}
+
+export class SettingsPartView extends XmlPartView {
+  static default(owner: PackageView): SettingsPartView {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    return owner[packageDefaultPart]("settings") as SettingsPartView;
+  }
+  #settings: Settings | undefined;
+  get settings(): Settings {
+    void this.content_type;
+    const document = this.package[packageDocument]();
+    const root = document.element.tag;
+    const dialect = root.namespaceURI === documentDialects.strict.w ? documentDialects.strict : documentDialects.transitional;
+    const edges = [...document.part.rels.values()].filter(edge => edge.reltype === `${dialect.r}/settings` && !edge.is_external);
+    if (edges.length === 1 && edges[0]!.target_part === this) return document.settings;
+    return this.#settings ??= new Settings(document.store, this.partname.toString());
+  }
+}
+
+export class DocumentPartView extends StoryPart {
+  get document(): DocumentView { return this.package[packageDocument](this.partname.toString()); }
+  add_header_part(): readonly [HeaderPart, string] {
+    return this.document.store.transaction(() => {
+      const part = HeaderPart.new(this.package);
+      const root = this.element.tag;
+      const dialect = root.namespaceURI === documentDialects.strict.w ? documentDialects.strict : documentDialects.transitional;
+      return Object.freeze([part, this.relate_to(part, `${dialect.r}/header`)]);
+    });
+  }
+  add_footer_part(): readonly [FooterPart, string] {
+    return this.document.store.transaction(() => {
+      const part = FooterPart.new(this.package);
+      const root = this.element.tag;
+      const dialect = root.namespaceURI === documentDialects.strict.w ? documentDialects.strict : documentDialects.transitional;
+      return Object.freeze([part, this.relate_to(part, `${dialect.r}/footer`)]);
+    });
+  }
+  drop_header_part(rId: string): void {
+    const header = this.header_part(rId);
+    const store = this.document.store;
+    store.transaction(() => {
+      this.drop_rel(rId);
+      const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
+      if (["/", ...graph.parts.filter(part => part.content_type !== relContentType).map(part => part.partname)].some(owner =>
+        graph.relationships(owner).some(edge => !edge.is_external && edge.target_part.partname === header.partname.toString()))) return;
+      const partname = header.partname.toString();
+      const relationshipPart = new PackURI(partname).rels_uri.toString();
+      store.change("/[Content_Types].xml", xml => {
+        for (const child of xml.root.children) if (child.attributes.some(attr => attr.localName === "PartName" && [partname, relationshipPart].includes(attr.value))) xml.replaceElement(child, "");
+      });
+      if (store.snapshot().members.some(member => "/" + member.name === relationshipPart)) store.deletePart(relationshipPart);
+      store.deletePart(partname);
+    });
+  }
+  header_part(rId: string): HeaderPart {
+    const part = this.rels.at(rId).target_part;
+    if (!(part instanceof HeaderPart)) throw new InputTypeError("Expected an owned header relationship.");
+    return part;
+  }
+  footer_part(rId: string): FooterPart {
+    const part = this.rels.at(rId).target_part;
+    if (!(part instanceof FooterPart)) throw new InputTypeError("Expected an owned footer relationship.");
+    return part;
+  }
+  get comments() { return this.document.comments; }
+  get core_properties() { return this.package.core_properties; }
+  get inline_shapes() { return this.document.inline_shapes; }
+  get settings() { return this.document.settings; }
+  get styles() { return this.document.styles; }
+  async save(sink: ArchiveSink): Promise<void> {
+    if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
+    await this.package.save(sink);
+  }
   static override async load(partname: string | PackURI, content_type: string, blob: Uint8Array, owner: PackageView): Promise<DocumentPartView> {
     if (content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") throw new InputTypeError("Expected the document content type.");
     return await super.load(partname, content_type, blob, owner) as DocumentPartView;
@@ -598,7 +835,7 @@ export class RelationshipView {
   get target_part(): PartView {
     const row = this.row();
     if (row.is_external) throw new InvalidValueError("External relationships have no owned target part.");
-    return this.#collection.package[packagePart](row.target_part.partname);
+    return this.#collection.package[packageOwnedPart](row.target_part.partname);
   }
 }
 

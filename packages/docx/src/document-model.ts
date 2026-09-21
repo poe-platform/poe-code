@@ -22,19 +22,26 @@ export class DocumentView {
   readonly ref: ModelRef;
   private boundSettings: Settings | undefined;
   private boundInlineShapes: InlineShapes | undefined;
-  constructor(readonly store: ModelStore) {
-    const root = store.xml(store.mainPart).root;
+  constructor(readonly store: ModelStore, partname = store.mainPart) {
+    const root = store.xml(partname).root;
     const body = root.children.find(
       (child) => child.namespace === root.namespace && child.localName === "body"
     )!;
-    this.ref = store.ref(store.mainPart, body);
+    this.ref = store.ref(partname, body);
+  }
+  equals(other: unknown): boolean {
+    this.store.node(this.ref);
+    return other instanceof DocumentView && other.store === this.store &&
+      this.store.node(this.ref) === other.store.node(other.ref);
   }
   get part() {
-    return this.store.package.main_document_part;
+    this.store.node(this.ref);
+    return this.store.part(this.ref.part) as import("./package-view.js").DocumentPartView;
   }
   get element() {
+    this.store.node(this.ref);
     return this.store.element(
-      this.store.ref(this.store.mainPart, this.store.xml(this.store.mainPart).root)
+      this.store.ref(this.ref.part, this.store.xml(this.ref.part).root)
     );
   }
   get paragraphs() {
@@ -48,12 +55,15 @@ export class DocumentView {
     ) as import("./table-model.js").Table[];
   }
   get styles() {
-    return this.store.styles;
+    this.store.node(this.ref);
+    return this.store.stylesFor(this.ref.part);
   }
   get settings(): Settings {
-    return (this.boundSettings ??= new Settings(this.store));
+    this.store.node(this.ref);
+    return (this.boundSettings ??= new Settings(this.store, undefined, this.ref.part));
   }
   get inline_shapes(): InlineShapes {
+    this.store.node(this.ref);
     return (this.boundInlineShapes ??= new InlineShapes(this.store, this.ref));
   }
   async add_picture(
@@ -73,15 +83,19 @@ export class DocumentView {
     author = "",
     initials: string | null = ""
   ) {
-    return this.store.transaction(() => bindCommentRange(this.store, runs, text, author, initials));
+    this.store.node(this.ref);
+    return this.store.transaction(() => bindCommentRange(this.store, runs, text, author, initials, this.ref.part));
   }
   get sections() {
-    return new Sections(this.store);
+    this.store.node(this.ref);
+    return new Sections(this.store, this.ref.part);
   }
   get comments() {
-    return new Comments(this.store, this.store.ensureComments());
+    this.store.node(this.ref);
+    return new Comments(this.store, this.store.ensureComments(this.ref.part));
   }
   get core_properties() {
+    this.store.node(this.ref);
     return this.store.package.core_properties;
   }
   iter_inner_content() {
@@ -160,6 +174,7 @@ export class DocumentView {
     });
   }
   async save(sink: ArchiveSink): Promise<void> {
+    this.store.node(this.ref);
     await this.store.save(sink);
   }
 }
@@ -178,7 +193,7 @@ export async function Document(
       : await readDocumentArchive(await acquireDocumentModelInput(input, settings), settings);
   const store = new ModelStore(archive, settings, archive.mainPart);
   await store.package[packageAdmitImages]();
-  return new DocumentView(store);
+  return store.document;
 }
 
 export { Paragraph, Run } from "./block-model.js";

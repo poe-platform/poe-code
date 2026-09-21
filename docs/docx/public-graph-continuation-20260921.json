@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "task": {
+    "number": 28,
+    "id": "sdk-live-object-model",
+    "scope": "Complete returned public graph over existing format domain types; later tasks remain pending",
+    "base_commit": "cce1ec9f4",
+    "branch": "main",
+    "delivery": "local commits only; no push or release",
+    "status": "completed supported live-object graph; later tasks pending"
+  },
+  "inputs": {
+    "docs/specs/docx.md": "a3e611eb29a20cb9f3ddfa6d8686cb996ec817d3c1ee1d5ae5b9570fecefb939",
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64",
+    "docs/docx/upstream-api-audit.md": "515e2622f6fe2427229262f5c28b1aad1acc8877be88ae10f21c706e7476836f",
+    "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "docs/docx/upstream-test-audit.md": "c62a986a38d75182a75d630d2d55d05e1c1bcb266b633d976ca31af280d5ec1b",
+    "docs/docx/upstream-test-inventory.json": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+  },
+  "changes": [
+    "Destructive paragraph/cell/run text assignment retains balanced annotation and linked-reference markers while invalidating discarded containers; preserving text replacement remains separately tested.",
+    "Canonical live document and specialized returned story/settings/comments/styles parts use the existing ModelStore and domain primitives.",
+    "Loaded secondary roots retain actual part, section/header/footer and settings/comments/styles owners. Independent comment IDs do not share anchors; multiple story owners reject explicitly.",
+    "Styles reuse existing typed owner graphs and transaction checkpoints; detached original defaults avoid implicit attachment.",
+    "Primary rename updates canonical root and rollback; document graph getters/publication reject invalidated document body handles.",
+    "Typed SDK-backed batch receivers retain specialized returned types, inherited operations and helper admission semantics.",
+    "Inherited styles-part rename follows current owner URI, relocates authority maps/tokens and keeps old-name replacement authority distinct."
+  ],
+  "red_before_code": [
+    {
+      "test": "cell-text-owner.test.ts / paragraph-reference-text.test.ts / run-reference-text.test.ts",
+      "evidence": "Original marker retention and discarded-owner cases failed before extending existing destructive assignment primitives."
+    },
+    {
+      "test": "review-owner-invalidation.test.ts",
+      "evidence": "Removed comment/section equality accepted stale handles; invalidated document graph getter returned without throwing before explicit body validation."
+    },
+    {
+      "test": "part-model-surface.test.ts",
+      "evidence": "Secondary DocumentPart.document returned canonical primary owner; renamed canonical lookup reported Package part was not found; dormant header reference and async failed relation could discard a referenced part or leave orphan media."
+    },
+    {
+      "test": "secondary-document-styles.test.ts",
+      "evidence": "Existing default/inspected styles graph caused part already has an owner view; secondary header add_paragraph failed with Style name was not found before story owner resolution."
+    },
+    {
+      "test": "secondary-document-resources.test.ts",
+      "evidence": "Independent secondary comment ID 0 incorrectly reported Comment body already has an anchor; wrong-root add_comment accepted endpoints before its document owner guard."
+    },
+    {
+      "test": "guide-whole-api-workflows.test.ts / xml-removal",
+      "evidence": "Complete package unit run rejected facade save after valid low-level XML batch edit invalidated original document view; adapter now binds save to the same live package owner while stale Document.save rejects."
+    },
+    {
+      "test": "secondary-document-styles.test.ts / styles part rename",
+      "evidence": "Original inherited partname rename kept a materialized Styles object but Styles.has failed through an old captured URI. Scoped fix must preserve live owner authority across rename and prevent old-name reuse from reviving its aliases."
+    }
+  ],
+  "checks": [
+    {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "result": "ESLint, source and test TypeScript checks passed; one unchanged operation-types.test.ts unused type-only value warning.",
+      "scope": "Earlier candidate; final frozen verification recorded separately."
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=docx --no-cache",
+      "exit_code": 0,
+      "result": "Fresh maintained selected declaration closure passed; safe-fs portable stage selected no native targets.",
+      "scope": "Earlier candidate; final frozen verification recorded separately."
+    },
+    {
+      "command": "npm test --workspace=docx",
+      "exit_code": 1,
+      "files": 236,
+      "tests": 5026,
+      "passed": 5024,
+      "failed": 2,
+      "result": "Nonfinal run reproduced batch XML-removal publication regression and unchanged 5000ms Strict thread timeout; all other cases passed."
+    },
+    {
+      "command": "npx vitest run packages/docx/src/comment-extensions.test.ts packages/docx/src/guide-whole-api-workflows.test.ts --maxWorkers=1",
+      "exit_code": 0,
+      "files": 2,
+      "tests": 50,
+      "result": "Current batch correction and unchanged Strict thread original tests passed; Strict thread case 918ms. Complete maintained final package run remains required."
+    },
+    {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "final": true,
+      "result": "Final frozen source and test TypeScript/ESLint checks passed with one unchanged type-only value warning."
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=docx --no-cache",
+      "exit_code": 0,
+      "final": true,
+      "result": "Final fresh maintained selected docx closure passed; no native targets selected."
+    },
+    {
+      "command": "npm test --workspace=docx -- --maxWorkers=1",
+      "exit_code": 0,
+      "final": true,
+      "files": 236,
+      "tests": 5028,
+      "duration_seconds": 392.64,
+      "result": "Every maintained package case passed with unchanged timeout bounds and original suite membership."
+    },
+    {
+      "command": "node --import tsx --test packages/docx/tests/public-shell.cases.ts",
+      "exit_code": 0,
+      "final": true,
+      "tests": 8,
+      "skipped": 0,
+      "result": "Built public SDK and explicit CLI plugin consumer routes passed."
+    }
+  ],
+  "limits": [
+    "The structural audit retains all 1337 public API rows and 262 enum mappings; it does not promote any source-case coverage or implemented counts from member presence.",
+    "Nested batch document-part publication maps to the validated outer atomic CLI publication; it is not executed as an inner independent save.",
+    "Unsupported numbering factory retains its documented drift/unsupported disposition.",
+    "Full upstream source-case adaptation and later whole-format qualification are pending later tasks."
+  ],
+  "visual_qa": {
+    "procedure": "docs/plans/docx-public-graph-continuation-20260921.md",
+    "command": "npm run screenshot -- cat out/docx-public-parts-cli.txt",
+    "transcript_sha256": "149fe3515dd0d8aafb7841ec356ecd000580e3562d12dc6f20c3046f1532a5cf",
+    "screenshot_sha256": "486407ddc6b02bf09c32c2a9333e5f2e141431b8064cba7fd65ba0e8dfcdbdcf",
+    "inspection": "Viewed generated screenshot: complete neutral versioned JSON, specialized DocumentPart handle, next_id=1, dryRun=true and affected=0; no creating inspection getter or document body output. Invocation-owned artifacts removed after recording.",
+    "route_reason": "Format CLI is a safe-bash command plugin backed by the format SDK, so its generated JSON was inspected through the maintained generic screenshot route; root poe-code has no standalone docx route."
+  },
+  "local_commits": [
+    {
+      "hash": "deefc969e1701d546b12ae2ecfa79de249c5314f",
+      "subject": "fix(docx): preserve annotations in destructive text setters"
+    }
+  ],
+  "owned_source_sha256": {
+    "packages/docx/src/styles-model.ts": "66d09fa1b4a2ae21ce020bf021ec42dc2e9365086fbb723c7824b22d07d90fdb",
+    "packages/docx/src/block-model.ts": "9d28bb55bd494b3565a4b1b08600902f90999321febeb7f4e9cceead47443acb",
+    "packages/docx/src/section-model.ts": "3cb365f23e47f47d7f096d0f915ae05930fd2a18f4428628fdbb75a5db9435a6",
+    "packages/docx/src/table-model.ts": "e35ad5180bf1a112d327382e12c55c72a78dd9938a5c2b9921a2fd3c07fdad92",
+    "packages/docx/src/document-model.ts": "e12e0f62dd23faa859fedaf854340b6e2eaabda146ec771a4485fc892b82f7c5",
+    "packages/docx/src/paragraph-content.ts": "2d72226467cb2b4cc45c91f2ad9fdf8be1fd3e80776a0840b878fdb289aef7f3",
+    "packages/docx/src/settings-model.ts": "c6648cd9ef4f7be0d86c76aa800d9736900b624d16e425ae5ec57018d3afd222",
+    "packages/docx/src/package-view.ts": "088d72b48a6e66ee6857443c7302256e6306582d50553513ef533bf58a21ef72",
+    "packages/docx/src/style-model-batch.ts": "44c69bb38a4f9787a81495f38843f431dd327202f2f8f46cfec25f1e443a5c67",
+    "packages/docx/src/review-model.ts": "2cb4c34cc9d8c92750dc9e31c75ffc8ef2825279cbb76459f1cc293138287546",
+    "packages/docx/src/package-view-batch-operations.ts": "f498e64d1526c1195efa7ecd09f29d85c06c595a024a5cfd274057d7a76c1657",
+    "packages/docx/src/model-store.ts": "1df3d35969d1a821a52f1c22d3424ef6aa5eec2d16caac58fe8ac187a2d4a122"
+  },
+  "graph_commit": "Local commit containing this receipt; final hash reported at delivery."
+}

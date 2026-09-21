@@ -138,10 +138,10 @@ export class Paragraph {
         .find((child) => child.localName === "pPr")
         ?.children.find((child) => child.localName === "pStyle")
         ?.attributes.find((a) => a.localName === "val")?.value ?? null;
-    return this.store.styles.get_by_id(id, WD_STYLE_TYPE.PARAGRAPH) as ParagraphStyle | null;
+    return this.store.stylesFor(this.ref.part).get_by_id(id, WD_STYLE_TYPE.PARAGRAPH) as ParagraphStyle | null;
   }
   set style(value: string | ParagraphStyle | null) {
-    const id = this.store.styles.get_style_id(value, WD_STYLE_TYPE.PARAGRAPH);
+    const id = this.store.stylesFor(this.ref.part).get_style_id(value, WD_STYLE_TYPE.PARAGRAPH);
     this.store.change(this.ref.part, (xml) => {
       const p = this.store.node(this.ref),
         props = p.children.find((child) => child.localName === "pPr");
@@ -166,7 +166,7 @@ export class Paragraph {
     const styleId =
       style === undefined || style === null
         ? null
-        : this.store.styles.get_style_id(style, WD_STYLE_TYPE.CHARACTER);
+        : this.store.stylesFor(this.ref.part).get_style_id(style, WD_STYLE_TYPE.CHARACTER);
     this.store.change(this.ref.part, (xml) => {
       const p = this.store.node(this.ref);
       xml.insertChildren(p, paragraphTextRun(p.namespace, text ?? "", styleId ?? undefined));
@@ -185,7 +185,7 @@ export class Paragraph {
       const styleId =
         style === undefined || style === null
           ? null
-          : this.store.styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH);
+          : this.store.stylesFor(this.ref.part).get_style_id(style, WD_STYLE_TYPE.PARAGRAPH);
       const p = this.store.node(this.ref),
         xml = this.store.xml(this.ref.part);
       let parent: XmlElement | undefined;
@@ -307,10 +307,10 @@ export class Run {
         .find((child) => child.localName === "rPr")
         ?.children.find((child) => child.localName === "rStyle")
         ?.attributes.find((a) => a.localName === "val")?.value ?? null;
-    return this.store.styles.get_by_id(id, WD_STYLE_TYPE.CHARACTER) as CharacterStyle | null;
+    return this.store.stylesFor(this.ref.part).get_by_id(id, WD_STYLE_TYPE.CHARACTER) as CharacterStyle | null;
   }
   set style(value: string | CharacterStyle | null) {
-    const id = this.store.styles.get_style_id(value, WD_STYLE_TYPE.CHARACTER);
+    const id = this.store.stylesFor(this.ref.part).get_style_id(value, WD_STYLE_TYPE.CHARACTER);
     this.store.change(this.ref.part, (xml) => {
       const r = this.store.node(this.ref),
         props = r.children.find((child) => child.localName === "rPr");

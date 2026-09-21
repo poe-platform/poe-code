@@ -1,10 +1,11 @@
+import { DocumentView } from "./document-model.js";
 import { originalModelDefaults } from "./default-model-styles.js";
 import type { DocumentArchive } from "./archive.js";
 import { InputTypeError, archiveSettings, type ArchiveLimits } from "./archive.js";
 import type { AdmittedModelContext } from "./model-context.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { PackageView, XmlPartView, packageOwnerCheckpoint } from "./package-view.js";
+import { PackageView, XmlPartView, packageOwnerCheckpoint, packageOwnedPart, packageInvalidatePart, packageCachedStyles } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { validateDocumentArchive, SemanticValidationError } from "./validation.js";
 import { StaleHandleError } from "./model-errors.js";
@@ -47,9 +48,30 @@ interface Handle {
 /** Shared admitted state; all model writes use the loss-preserving XML editor. */
 export class ModelStore {
   readonly package: PackageView;
-  readonly mainPart: string;
-  private boundStyles: Styles | undefined;
-  private styleBindingToken: object | null = null;
+  private canonicalMainPart: string;
+  get mainPart(): string { return this.canonicalMainPart; }
+  private readonly documents = new Map<XmlPartView, DocumentView>();
+  get document(): DocumentView { return this.documentFor(this.mainPart); }
+  documentFor(partname: string): DocumentView {
+    const part = this.part(partname);
+    const root = this.xml(partname).root;
+    if (root.localName !== "document" || !dialectForNamespace(root.namespace)) throw new InputTypeError("Expected an owned document root.");
+    let document = this.documents.get(part);
+    if (document) {
+      try { this.node(document.ref); }
+      catch (error) {
+        if (!(error instanceof StaleHandleError)) throw error;
+        document = undefined;
+      }
+    }
+    if (!document) {
+      document = new DocumentView(this, partname);
+      this.documents.set(part, document);
+    }
+    return document;
+  }
+  private readonly styleOwners = new Map<string, Styles>();
+  private readonly styleBindingTokens = new Map<string, object>();
   private archive: DocumentArchive;
   private readonly editors = new Map<string, DocumentXmlEditor>();
   private readonly handles = new Map<number, Handle>();
@@ -65,13 +87,15 @@ export class ModelStore {
     mainPart: string
   ) {
     this.archive = archive;
-    this.mainPart = mainPart.startsWith("/") ? mainPart : "/" + mainPart;
+    this.canonicalMainPart = mainPart.startsWith("/") ? mainPart : "/" + mainPart;
     this.package = new PackageView({
       context,
+      document: partname => this.documentFor(this.documentOwner(partname ?? this.mainPart)),
+      stylesPart: partname => this.bindStyles(partname).part,
       snapshot: () => this.snapshot(),
       version: () => this.revision,
       writable: () => this.writable(),
-      stage: (candidate) => {
+      stage: (candidate, rename) => {
         context.budget.charge(
           "retainedBytes",
           (this.archive.members.length + candidate.members.length) * 96
@@ -92,6 +116,15 @@ export class ModelStore {
             .map((member) => "/" + member.name)
         );
         this.archive = candidate;
+        if (rename) {
+          const styles = this.styleOwners.get(rename.from);
+          const token = this.styleBindingTokens.get(rename.from);
+          this.styleOwners.delete(rename.from);
+          this.styleBindingTokens.delete(rename.from);
+          if (styles) this.styleOwners.set(rename.to, styles);
+          if (token) this.styleBindingTokens.set(rename.to, token);
+        }
+        if (rename?.from === this.mainPart) this.canonicalMainPart = rename.to;
         for (const part of this.editors.keys()) if (!unchanged.has(part)) this.editors.delete(part);
         for (const handle of this.handles.values())
           if (!unchanged.has(handle.ref.part)) handle.node = null;
@@ -106,57 +139,85 @@ export class ModelStore {
       ?.target_part.partname;
     if (stylePart) this.bindStyles(stylePart);
   }
-  private bindStyles(partname: string): void {
+  private bindStyles(partname: string): Styles {
+    const existing = this.styleOwners.get(partname) ?? this.package[packageCachedStyles](partname);
+    if (existing) {
+      this.styleOwners.set(partname, existing);
+      return existing;
+    }
     const token = Object.freeze({});
-    this.styleBindingToken = token;
+    this.styleBindingTokens.set(partname, token);
+    const binding: { styles?: Styles } = {};
     const valid = () => {
-      if (this.styleBindingToken !== token)
+      if (this.styleBindingTokens.get(binding.styles?.part.partname.toString() ?? partname) !== token)
         throw new StaleHandleError("The styles owner is detached.");
     };
-    this.boundStyles = bindDocumentStyles({
+    const styles = bindDocumentStyles({
       context: this.context,
       package: this.package,
       partname,
       read: () => {
         valid();
-        return this.xml(partname).serialize();
+        return this.xml(binding.styles?.part.partname.toString() ?? partname).serialize();
       },
       write: (bytes) => {
         valid();
-        this.setPart(partname, bytes);
+        this.setPart(binding.styles?.part.partname.toString() ?? partname, bytes);
       },
       writable: () => {
         valid();
         this.writable();
       }
     });
+    binding.styles = styles;
+    this.styleOwners.set(partname, styles);
+    return styles;
   }
   get styles(): Styles {
-    if (!this.boundStyles) {
+    return this.stylesFor(this.mainPart);
+  }
+  documentOwner(partname: string): string {
+    if (this.xml(partname).root.localName === "document") return partname;
+    const graph = new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget);
+    const owners = graph.parts.filter(part =>
+      part.content_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" &&
+      graph.relationships(part.partname).some(edge => !edge.is_external && edge.target_part.partname === partname)
+    );
+    if (owners.length > 1) throw new UnsupportedEditError("Story has multiple document owners.");
+    return owners[0]?.partname ?? this.mainPart;
+  }
+  stylesFor(partname = this.mainPart): Styles {
+    const owner = this.documentOwner(partname);
+    const dialect = dialectForNamespace(this.xml(owner).root.namespace)!;
+    const graph = new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget);
+    const relationships = graph.relationships(owner).filter(edge => edge.reltype === `${documentDialects[dialect].r}/styles`);
+    if (relationships.length > 1 || relationships[0]?.is_external)
+      throw new InputTypeError("Expected one internal styles owner.");
+    let stylesPart = relationships[0]?.target_part.partname;
+    if (!stylesPart) {
       this.writable();
-      const dialect = dialectForNamespace(this.xml(this.mainPart).root.namespace)!;
       const added = addDocumentStylesPart(
         this.snapshot(),
         {
-          mainPart: this.mainPart.slice(1),
+          mainPart: owner.slice(1),
           dialect,
-          package: new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget)
+          package: graph
         },
         originalModelDefaults(documentDialects[dialect].w),
         this.context.budget
       );
       this.archive = added.archive;
       this.editors.delete(
-        this.mainPart.slice(0, this.mainPart.lastIndexOf("/") + 1) +
+        owner.slice(0, owner.lastIndexOf("/") + 1) +
           "_rels/" +
-          this.mainPart.slice(this.mainPart.lastIndexOf("/") + 1) +
+          owner.slice(owner.lastIndexOf("/") + 1) +
           ".rels"
       );
       this.editors.delete("/[Content_Types].xml");
       this.revision++;
-      this.bindStyles("/" + added.name);
+      stylesPart = "/" + added.name;
     }
-    return this.boundStyles!;
+    return this.bindStyles(stylesPart);
   }
 
   writable(): void {
@@ -169,9 +230,10 @@ export class ModelStore {
     const archive = this.snapshot(),
       editors = new Map(this.editors),
       revision = this.revision,
-      boundStyles = this.boundStyles,
-      styleBindingToken = this.styleBindingToken;
-    const restoreStyles = boundStyles && styleOwnerCheckpoints.get(boundStyles)?.();
+      canonicalMainPart = this.mainPart,
+      styleOwners = new Map(this.styleOwners),
+      styleBindingTokens = new Map(this.styleBindingTokens);
+    const restoreStyles = [...styleOwners.values()].map(styles => styleOwnerCheckpoints.get(styles)?.());
     const restorePackage = this.package[packageOwnerCheckpoint]();
     const handles = new Map([...this.handles].map(([id, handle]) => [id, { ...handle }]));
     this.transactionDepth++;
@@ -189,9 +251,12 @@ export class ModelStore {
       this.handles.clear();
       for (const [id, handle] of handles) this.handles.set(id, handle);
       this.revision = revision;
-      this.boundStyles = boundStyles;
-      this.styleBindingToken = styleBindingToken;
-      restoreStyles?.();
+      this.canonicalMainPart = canonicalMainPart;
+      this.styleOwners.clear();
+      for (const [part, styles] of styleOwners) this.styleOwners.set(part, styles);
+      this.styleBindingTokens.clear();
+      for (const [part, token] of styleBindingTokens) this.styleBindingTokens.set(part, token);
+      for (const restore of restoreStyles) restore?.();
       restorePackage();
       throw error;
     } finally {
@@ -241,6 +306,7 @@ export class ModelStore {
       members: this.archive.members.filter((member) => member.name !== name)
     };
     this.editors.delete("/" + name);
+    this.package[packageInvalidatePart]("/" + name);
     for (const handle of this.handles.values())
       if (handle.ref.part === "/" + name) handle.node = null;
     this.revision++;
@@ -471,14 +537,14 @@ export class ModelStore {
       throw error;
     }
   }
-  tableStyle(id: string | null): TableStyle | null {
-    return this.styles.get_by_id(id, WD_STYLE_TYPE.TABLE) as TableStyle | null;
+  tableStyle(id: string | null, partname = this.mainPart): TableStyle | null {
+    return this.stylesFor(partname).get_by_id(id, WD_STYLE_TYPE.TABLE) as TableStyle | null;
   }
-  tableStyleId(value: string | TableStyle | null): string | null {
-    return this.styles.get_style_id(value, WD_STYLE_TYPE.TABLE);
+  tableStyleId(value: string | TableStyle | null, partname = this.mainPart): string | null {
+    return this.stylesFor(partname).get_style_id(value, WD_STYLE_TYPE.TABLE);
   }
   part(part: string): XmlPartView {
-    const view = this.package.parts.find((view) => view.partname.toString() === part);
+    const view = this.package[packageOwnedPart](part);
     if (!(view instanceof XmlPartView)) throw new StaleHandleError("The XML part is detached.");
     return view;
   }
@@ -539,7 +605,7 @@ export class ModelStore {
     const styleId =
       style === undefined || style === null
         ? null
-        : this.styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH);
+        : this.stylesFor(ref.part).get_style_id(style, WD_STYLE_TYPE.PARAGRAPH);
     const node = this.node(ref);
     const count = node.children.length;
     this.change(ref.part, (xml) => {
@@ -709,31 +775,31 @@ export class ModelStore {
           );
       });
   }
-  ensureComments(): ModelRef {
-    if (!this.transactionDepth) return this.transaction(() => this.ensureComments());
+  ensureComments(mainPart = this.mainPart): ModelRef {
+    if (!this.transactionDepth) return this.transaction(() => this.ensureComments(mainPart));
     const graph = new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget);
-    const r = documentDialects[dialectForNamespace(this.xml(this.mainPart).root.namespace)!].r;
+    const r = documentDialects[dialectForNamespace(this.xml(mainPart).root.namespace)!].r;
     const edges = graph
-      .relationships(this.mainPart)
+      .relationships(mainPart)
       .filter((edge) => edge.reltype === r + "/comments");
     if (edges.length > 1 || edges[0]?.is_external)
       throw new UnsupportedEditError("Expected one internal comments part.");
     let part = edges[0]?.target_part.partname;
     if (!part) {
       part = graph.allocatePartName(
-        this.mainPart.slice(0, this.mainPart.lastIndexOf("/") + 1) + "comments",
+        mainPart.slice(0, mainPart.lastIndexOf("/") + 1) + "comments",
         ".xml"
       );
-      const w = this.xml(this.mainPart).root.namespace;
+      const w = this.xml(mainPart).root.namespace;
       this.setPart(
         part,
         new TextEncoder().encode(`<bm:comments xmlns:bm="${w}"/>`),
         "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"
       );
       const relName =
-        this.mainPart.slice(0, this.mainPart.lastIndexOf("/") + 1) +
+        mainPart.slice(0, mainPart.lastIndexOf("/") + 1) +
         "_rels/" +
-        this.mainPart.slice(this.mainPart.lastIndexOf("/") + 1) +
+        mainPart.slice(mainPart.lastIndexOf("/") + 1) +
         ".rels";
       if (!this.archive.members.some((member) => "/" + member.name === relName))
         this.setPart(
@@ -745,7 +811,7 @@ export class ModelStore {
       this.change(relName, (xml) =>
         xml.insertChildren(
           xml.root,
-          `<Relationship xmlns="${xml.root.namespace}" Id="${graph.allocateRelationshipId(this.mainPart)}" Type="${r}/comments" Target="${relativePartTarget(this.mainPart, part!)}"/>`
+          `<Relationship xmlns="${xml.root.namespace}" Id="${graph.allocateRelationshipId(mainPart)}" Type="${r}/comments" Target="${relativePartTarget(mainPart, part!)}"/>`
         )
       );
     }

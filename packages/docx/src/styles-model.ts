@@ -1,4 +1,4 @@
-import { PackageView, XmlPartView, packageAdmitImages } from "./package-view.js";
+import { PackageView, XmlPartView, packageAdmitImages, packageDefaultStyles } from "./package-view.js";
 import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { budgetSharesReservations } from "./budget.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
@@ -111,9 +111,7 @@ export class StylePartView extends XmlPartView {
   #styles: Styles | undefined;
   static default(owner: PackageView): StylePartView {
     if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
-    const edges = [...owner.main_document_part.rels.values()].filter(edge => edge.reltype.endsWith("/styles") && !edge.is_external);
-    if (edges.length !== 1 || !(edges[0]!.target_part instanceof StylePartView)) throw new InvalidValueError("Expected the live styles part of this owner.");
-    return edges[0]!.target_part as StylePartView;
+    return owner[packageDefaultStyles](bindDocumentStyles);
   }
   get styles(): Styles { return this.#styles ??= new Styles(this.store); }
   constructor(private readonly store: StyleStore, partname: string, ownerPackage: PackageView) { super(ownerPackage, partname); Object.freeze(this); }

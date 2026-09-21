@@ -1,5 +1,5 @@
 //! Futures are polled only on their originating Node thread; filesystem I/O is yielded.
-use crate::{NativeJson, object, snapshot_value, u};
+use super::{NativeJson, object, snapshot_value, u};
 use config_extends_rust::{
     Layer,
     discover::{self, Error as ResolutionError},

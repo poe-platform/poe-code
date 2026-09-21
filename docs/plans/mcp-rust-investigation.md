@@ -6069,3 +6069,13 @@ Registrybe7571002 exactly verified on remote main;release35601000332 pending;
 plans35599744513 in_progress. No successful current publication verified.
 Concurrent changes preserved. Continuous12:40:51–12:50:11 adds560s,total110946s
 (30.82h). Minimum fulfilled;objective incomplete. Continue accounting after12:50:11UTC.
+
+### Config-extends addon embedding repair, 2026-09-21 12:58 UTC
+
+Harness embedding reproduced E0432: resolution.rs imported snapshot_value from
+crate root although its owner can be nested. Importing from the parent module
+preserves standalone behavior and uses the correct embedded snapshot converter.
+Maintained36Rust cases,19native groups,117original references/5files and
+fmt/clippy pass. Uncached selected harness closure117workspaces/30builds/362edges
+also passes with the nested SDK. Evidence out/rust-config-extends-embedding-* and
+out/rust-harness-execution-unit.log. No production imports changed.

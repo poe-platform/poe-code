@@ -92,12 +92,14 @@ export function createAuthStoreClientStore(options: CreateSecretStoreInput, name
 }
 
 function snapshotPersistenceOptions(options: CreateSecretStoreInput): CreateSecretStoreInput {
-  return {
-    ...options, backend: resolveSecretStoreBackend(options),
+  const snapshot = {
+    ...options,
     ...(options.fileStore === undefined ? {} : { fileStore: { ...options.fileStore } }),
     ...(options.keychainStore === undefined ? {} : { keychainStore: { ...options.keychainStore,
       ...(options.keychainStore.lock === undefined ? {} : { lock: { ...options.keychainStore.lock } }) } })
   };
+  snapshot.backend = resolveSecretStoreBackend(snapshot);
+  return snapshot;
 }
 
 export function createNamedSecretStore(

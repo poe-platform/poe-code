@@ -197,3 +197,47 @@ it.each(["", "   ", "a".repeat(1025), "😀".repeat(257), 42])("rejects invalid 
   expect(() => createDefaultOAuthClientProvider({ client: { mode: "dynamic" }, browser: {}, persistenceNamespace: namespace as string,
     sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } })).toThrow("namespace");
 });
+
+it.each(["session", "client"] as const)("owns %s persistence settings before reading a backend environment getter", async kind => {
+  const f = fixture(), original = { ...f.options, fileStore: { ...f.options.fileStore } };
+  const options = { fileStore: f.options.fileStore, backendEnvVar: "MCP_CAPTURE_BACKEND", env: {} as NodeJS.ProcessEnv };
+  const selected = vi.fn(() => { options.fileStore.filePath = "/replacement/session.enc"; options.fileStore.salt = "replacement-salt"; return "file"; });
+  Object.defineProperty(options.env, "MCP_CAPTURE_BACKEND", { get: selected });
+  if (kind === "session") {
+    const store = createAuthStoreSessionStore(options, "profile-a");
+    await store.save(resource, session);
+    expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toEqual(session);
+  } else {
+    const client = { clientId: "original-app", clientSecret: "private-secret" }, store = createAuthStoreClientStore(options, "profile-a");
+    await store.save(issuer, client);
+    expect(await createAuthStoreClientStore(original, "profile-a").load(issuer)).toEqual(client);
+  }
+  expect(selected).toHaveBeenCalledTimes(1);
+  await expect(f.fs.stat("/replacement")).rejects.toMatchObject({ code: "ENOENT" });
+});
+
+it("owns Keychain identity, lock and command settings before backend environment callbacks", async () => {
+  const fs = createFsFromVolume(new Volume()).promises, values = new Map<string, string>();
+  const runCommand = vi.fn(async (_command: string, args: string[]) => {
+    const key = JSON.stringify([args[args.indexOf("-s") + 1], args[args.indexOf("-a") + 1]]);
+    if (args[0] === "add-generic-password") { values.set(key, args[args.indexOf("-w") + 1]); return { stdout: "", stderr: "", exitCode: 0 }; }
+    return { stdout: values.get(key) ?? "", stderr: "", exitCode: values.has(key) ? 0 : 44 };
+  });
+  const replacement = vi.fn(async () => { throw new Error("replacement command invoked"); });
+  const options = { platform: "darwin" as const, backendEnvVar: "MCP_CAPTURE_BACKEND", env: {} as NodeJS.ProcessEnv,
+    keychainStore: { service: "original-service", account: "original-account", runCommand, lock: { fs, directory: "/locks/original" } } };
+  const original = { ...options, backend: "keychain" as const, keychainStore: { ...options.keychainStore, lock: { ...options.keychainStore.lock } } };
+  Object.defineProperty(options.env, "MCP_CAPTURE_BACKEND", { get: () => {
+    options.keychainStore.service = "replacement-service"; options.keychainStore.account = "replacement-account";
+    options.keychainStore.lock.directory = "/locks/replacement"; options.keychainStore.runCommand = replacement;
+    return "keychain";
+  } });
+  const store = createAuthStoreSessionStore(options, "profile-a");
+  await store.withLock!(resource, async () => {
+    expect(await fs.readdir("/locks/original")).toHaveLength(1);
+    await store.save(resource, session);
+  }, { timeoutMs: 1000 });
+  expect(await createAuthStoreSessionStore(original, "profile-a").load(resource)).toEqual(session);
+  expect(replacement).not.toHaveBeenCalled();
+  await expect(fs.stat("/locks/replacement")).rejects.toMatchObject({ code: "ENOENT" });
+});

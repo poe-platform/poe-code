@@ -365,3 +365,16 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     GETs and no initialization/tool/token traffic. Require no unrelated getter or
     session-factory queries. Inspect safe summary output and purge owned evidence.
     This checks configuration ownership, not early backend environment resolution.
+
+34. Create native session and issuer-client stores with a selected backend
+    environment getter that mutates file path/salt during resolution. Require
+    the original encrypted records, one backend read and no replacement
+    directory/plaintext credentials; issuer-client removal must address the same
+    original record. For a host Keychain command adapter, mutate service/account,
+    command handle and nested lock directory in the backend getter. Require the
+    original lock and full stored session, one identity and zero replacement
+    calls/directories. Use both original session records through headless native
+    providers to authorize two actual HTTP requests; preserve complete JSON,
+    nested metadata and exact005930 without consent/token/metadata traffic.
+    This synthetic adapter checks host integration, not the OS Keychain itself.
+    Inspect safe summary output and purge owned evidence.

@@ -174,3 +174,5 @@ pub mod web_tools;
 
 mod html_entities;
 pub mod html_markdown;
+
+pub mod plugin_config;

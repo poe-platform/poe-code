@@ -5215,3 +5215,29 @@ remains unverified; failed/canceled older runs remain separate from delivery.
 Continuous09:18:29–09:22:58 adds269s,total99240s (27.57h). Minimum fulfilled; registry/
 builder/session/spawn/toolcraft/platform/performance acceptance and later Python
 bindings remain incomplete. Continue after09:22:58 UTC.
+
+### Plugin registry and configuration, 2026-09-21 09:32 UTC
+
+Additive frozen builtin specs and public config parser/resolver exports preserve
+the original ordered mutable registry and callback/property behavior. Rust owns
+configured-name identity and UTF16 suggestion distance with one-row O(min(length))
+working memory. Maintained checks56 Rust cases,96 native groups,346 original
+reference cases/24files,bidirectional declarations,fmt/clippy,focused ESLint and
+diff checks pass.17424 independent seeded distance comparisons pass; uncached
+maintained agent closure113workspaces/36builds/339edges passes.
+
+Packed audit135 JS/declaration files,one addon,zero runtime groups/imports with
+explicit SDK development adapter exception. Direct/packed16MiB old-space workers
+each finish1024 resolutions/9216plugins/1024unknowns/1024duplicates and dispose
+created plugins. Initial worker fixture omitted mandatory policy mode; corrected
+fixture uses edit without implementation change. Evidence out/rust-poe-agent-
+plugin-config-*. Five alternating512resolution samples: known three plugins
+original CPU1.127–1.767ms versus own1.674–2.600ms, scoped performance FAIL; unknown
+1024-unit name original404.196–438.947ms versus own40.806–43.598ms, PASS. No universal
+performance or memory acceptance claim.
+
+OAuth08bd41f50 exact remote-main delivery verified; release35583012163 remains
+pending,publication unverified. Prior continuous09:22:58–09:28:46 adds348s; checkpoint
+gap excluded. New active09:30:35–09:32:00 adds85s conservatively,total99673s (27.69h).
+Minimum fulfilled; builder/session/spawn/toolcraft/platform/performance acceptance
+and later Python bindings remain incomplete. Continue accounting after09:32:00 UTC.

@@ -285,3 +285,5 @@ pub mod responses_binding;
 pub mod shell_binding;
 
 pub mod web_binding;
+
+pub mod plugin_config_binding;

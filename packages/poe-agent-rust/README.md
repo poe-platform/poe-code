@@ -136,7 +136,7 @@ at session start, checks tool metadata and calls optional tool validators. Scrat
 notes and normalized skill definitions live in Rust, preserving UTF16 keys/values.
 Skills guidance lists active definitions, tags and available tool names while Node
 preserves custom iterators, getters and metadata. Spawn arguments use shared Rust
-scalar validation; Node executes the injected spawn callback. The complete built-in configuration registry remains in progress.
+scalar validation; Node executes the injected spawn callback. Built-in configuration specs are available through `builtinPluginRegistry`.
 
 `memoryPlugin` finds the nearest project `AGENTS.md` and user memory file, expands
 trusted `@` file imports and caches the load per plugin. It rejects import cycles,
@@ -211,3 +211,12 @@ fixtures match the original converter and pass the current scoped speed check;
 arbitrary malformed HTML and universal memory/performance advantages remain
 unverified. The bundled named-entity data comes from Python's standard library and
 includes its source license; Python bindings remain pending.
+
+
+`resolvePluginsFromConfig([{ name: "shell", options: { cwd: "/project" } }])`
+creates plugins in configuration order from the nine frozen built-in specs. Parsing
+requires own names, preserves opaque options and reports indexed errors and
+suggestions. Rust tracks duplicate names and calculates UTF16 edit distances with
+linear auxiliary memory; Node executes factories and locale-sensitive tie sorting.
+The current benchmark is faster for long unknown names and slower for ordinary
+small configurations. Existing consumers and defaults remain unchanged.

@@ -148,6 +148,18 @@ export default defineConfig({
               `\nimport {getOptionalNumber as nativeArgument} from ${JSON.stringify(path("dist/plugin-args.js"))};\nif(getOptionalNumber!==nativeArgument)throw new Error("Argument contracts must execute the Rust package");`,
             map: null
           };
+        if (
+          [
+            path("../poe-agent/src/plugins/registry.test.ts"),
+            path("../poe-agent/src/plugins/resolve-plugins.test.ts")
+          ].includes(id)
+        )
+          return {
+            code:
+              code +
+              `\nimport {resolvePluginsFromConfig as ownResolve} from ${JSON.stringify(path("dist/resolve-plugins.js"))}; if(resolvePluginsFromConfig!==ownResolve)throw new Error("Plugin config contracts must execute own module");`,
+            map: null
+          };
         if (id === path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"))
           return {
             code:
@@ -292,6 +304,8 @@ export default defineConfig({
       resolveId(name, importer) {
         if (
           [
+            path("../poe-agent/src/plugins/registry.test.ts"),
+            path("../poe-agent/src/plugins/resolve-plugins.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-shell.test.ts"),
             path("../poe-agent/src/plugins/poe-agent-plugin-files.test.ts"),
@@ -304,6 +318,9 @@ export default defineConfig({
           ].includes(importer)
         ) {
           const modules = new Map([
+            ["./registry.js", "plugin-registry"],
+            ["./resolve-plugins.js", "resolve-plugins"],
+            ["../runtime/provider-metadata.js", "provider-metadata"],
             ["./poe-agent-plugin-web.js", "plugin-web"],
             ["./poe-agent-plugin-shell.js", "plugin-shell"],
             ["./poe-agent-plugin-files.js", "plugin-files"],
@@ -381,6 +398,8 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../poe-agent/src/plugins/registry.test.ts"),
+      path("../poe-agent/src/plugins/resolve-plugins.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-web.test.ts"),
       path("../poe-agent/src/plugins/poe-agent-plugin-shell.test.ts"),
       path("../poe-agent/src/plugins/openai-auth.test.ts"),

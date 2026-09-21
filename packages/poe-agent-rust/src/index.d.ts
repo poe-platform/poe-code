@@ -87,3 +87,6 @@ export { openaiResponsesPlugin, type OpenaiResponsesPluginOptions } from "./plug
 export { default as shellPlugin } from "./plugin-shell.js";
 
 export { default as webPlugin } from "./plugin-web.js";
+
+export { builtinPluginRegistry } from "./plugin-registry.js";
+export * from "./resolve-plugins.js";

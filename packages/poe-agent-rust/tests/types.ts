@@ -236,3 +236,8 @@ import referenceWeb from "../../poe-agent/dist/plugins/poe-agent-plugin-web.js";
 const webA: typeof referenceWeb = own.webPlugin;
 const webB: typeof own.webPlugin = referenceWeb;
 void [webA, webB];
+
+import { resolvePluginsFromConfig as referenceResolvePlugins } from "../../poe-agent/dist/plugins/resolve-plugins.js";
+const pluginResolveA: typeof referenceResolvePlugins = own.resolvePluginsFromConfig;
+const pluginResolveB: typeof own.resolvePluginsFromConfig = referenceResolvePlugins;
+void [pluginResolveA, pluginResolveB];

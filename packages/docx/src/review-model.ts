@@ -296,7 +296,7 @@ export class RenderedPageBreak {
     const fragmentChildren = activeXmlChildren(parsed, this.store.context.budget);
     const meaningful = (n: XmlElement): boolean =>
       (n.namespace === p.namespace &&
-        ["t", "tab", "br", "cr", "drawing", "pict", "object"].includes(n.localName)) ||
+        ["t", "tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "drawing", "pict", "object"].includes(n.localName)) ||
       fragmentChildren(n).some(meaningful);
     if (!fragmentChildren(parsed.root).some((n) => n.localName !== "pPr" && meaningful(n))) return null;
     return this.store.detachedParagraph(candidate, this.ref.part);

@@ -5,6 +5,7 @@ import { createRemoteMcpManagementCommand, initRemoteMcpConfiguration } from "./
 
 const servers = [{ name: "catalog", url: "https://catalog.example/mcp", auth: {
   type: "oauth" as const, clientMode: "static" as const, env: { clientId: "GOOGLE_APP_ID", clientSecret: "GOOGLE_APP_SECRET" },
+  clientName: "Host Application",
   tokenEndpointAuthMethod: "client_secret_basic" as const,
   scope: "read offline_access", redirectUri: "http://localhost:39119/callback"
 } }];
@@ -22,6 +23,7 @@ describe("remote MCP management init command", () => {
     const result = await run("mcp init", { GOOGLE_APP_ID: "actual-id", GOOGLE_APP_SECRET: "actual-secret", MCP_CATALOG_ACCESS_TOKEN: "actual-token" });
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout)).toEqual(initRemoteMcpConfiguration(servers));
+    expect(JSON.parse(result.stdout).configuration.servers[0].auth.clientName).toBe("Host Application");
     expect(result.stderr).toBe("");
     for (const secret of ["actual-id", "actual-secret", "actual-token"]) expect(result.stdout).not.toContain(secret);
   });

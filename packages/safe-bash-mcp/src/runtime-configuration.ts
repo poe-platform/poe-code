@@ -82,8 +82,8 @@ export function bindRemoteMcpConfiguration(value: unknown, options: Configuratio
         persistenceNamespace: auth.persistenceNamespace,
         resourceIdentity: options.oauth?.sessionStore === undefined ? server.name : undefined,
         client: auth.clientMode === "static"
-          ? { mode: "static", clientId: clientId!, clientSecret, metadata: { scope }, tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod }
-          : { mode: "dynamic", clientId, clientSecret, metadata: { scope }, tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod },
+          ? { mode: "static", clientId: clientId!, clientSecret, metadata: { clientName: auth.clientName, scope }, tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod }
+          : { mode: "dynamic", clientId, clientSecret, metadata: { clientName: auth.clientName, scope }, tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod },
         allowInteractive: options.oauth?.allowInteractive ?? false,
         sessionLockTimeoutMs: options.oauth?.sessionLockTimeoutMs,
         browser: { ...options.oauth?.browser, redirectUri }, authStore: options.oauth?.authStore, now: options.oauth?.now,

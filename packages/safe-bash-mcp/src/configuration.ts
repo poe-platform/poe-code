@@ -21,6 +21,7 @@ export interface OAuthCredentialReferences {
 export type RemoteMcpAuthenticationConfiguration =
   | { readonly type: "bearer"; readonly token: EnvironmentReference }
   | { readonly type: "oauth"; readonly clientMode: "static" | "dynamic"; readonly persistenceNamespace?: string;
+      readonly clientName?: string;
       readonly tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod; readonly credentials: OAuthCredentialReferences };
 export interface RemoteMcpServerConfiguration extends Omit<RemoteMcpServer, "headers" | "oauth"> {
   readonly headers?: Readonly<Record<string, EnvironmentReference>>;
@@ -34,6 +35,7 @@ export interface InitRemoteMcpServer extends Omit<RemoteMcpServerConfiguration, 
   readonly auth?:
     | { readonly type: "bearer"; readonly env?: string }
     | { readonly type: "oauth"; readonly clientMode: "static" | "dynamic";
+        readonly clientName?: string;
         readonly persistenceNamespace?: string;
         readonly tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
         readonly env?: Partial<Record<keyof OAuthCredentialReferences, string>>;
@@ -64,6 +66,7 @@ const publicReferenceSchema = { ...referenceSchema, properties: { ...referenceSc
 const oauthCredentialSchemas = Object.fromEntries(Object.keys(credentialFields).map(key => [key,
   key === "scope" || key === "redirectUri" ? publicReferenceSchema : referenceSchema]));
 const oauthShape = { type: "object", properties: { type: { const: "oauth" }, clientMode: { enum: ["static", "dynamic"] }, persistenceNamespace: { type: "string", minLength: 1, maxLength: 1024 },
+  clientName: { type: "string", minLength: 1 },
   tokenEndpointAuthMethod: { enum: ["none", "client_secret_post", "client_secret_basic"] } }, required: ["type", "clientMode"], additionalProperties: false };
 const commonServerProperties = {
   name: { type: "string" }, url: { type: "string" }, transport: { enum: ["http", "sse"] }, protocolVersion: { enum: ["2025-03-26", "2026-07-28"] },
@@ -139,6 +142,8 @@ export function parseRemoteMcpConfiguration(value: unknown, options: Configurati
     }
     if (server.auth?.type === "bearer") assertEnvironment(server.auth.token.env);
     if (server.auth?.type === "oauth") {
+      if (server.auth.clientName !== undefined && server.auth.clientName.trim() === "")
+        throw new Error("OAuth clientName must be a nonempty string");
       const namespace = server.auth.persistenceNamespace;
       if (namespace !== undefined && (namespace.trim() === "" || Buffer.byteLength(namespace, "utf8") > 1024))
         throw new Error("OAuth persistence namespace must be a nonempty string within 1024 bytes");
@@ -194,6 +199,7 @@ export function initRemoteMcpConfiguration(servers: readonly InitRemoteMcpServer
       return [field, reference];
     })) as unknown as OAuthCredentialReferences;
     return { ...server, auth: { type: "oauth", clientMode: auth.clientMode,
+      ...(auth.clientName === undefined ? {} : { clientName: auth.clientName }),
       ...(auth.tokenEndpointAuthMethod === undefined ? {} : { tokenEndpointAuthMethod: auth.tokenEndpointAuthMethod }),
       ...(auth.persistenceNamespace === undefined ? {} : { persistenceNamespace: auth.persistenceNamespace }), credentials } };
   });

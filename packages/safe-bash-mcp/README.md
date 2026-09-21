@@ -150,7 +150,10 @@ const management = createRemoteMcpManagementCommand(servers);
 `mcp init` prints `{ configuration, envTemplate }` as JSON. Use
 `mcp init --format config` or `mcp init --format env` for separate outputs that
 can be redirected to files. `mcp init --help` explains the available formats.
-OAuth requires an explicit `clientMode: "static"` or `"dynamic"`. Templates
+OAuth requires an explicit `clientMode: "static"` or `"dynamic"`. Set optional
+public `auth.clientName` to retain the application's display name in configuration
+and artifacts; native dynamic registration sends it as `client_name`.
+Templates
 include client ID/secret, scope, redirect URL, access/refresh tokens and expiry
 in Unix epoch milliseconds. Every template value is empty; public scope and
 redirect defaults remain in configuration. Bearer tokens and arbitrary headers

@@ -44,6 +44,32 @@ it("explicitly authenticates even with supplied schemas, emits the complete URL 
   expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
 });
 
+it("carries the configured OAuth client name through an artifact into native dynamic registration", async () => {
+  const f = fixture();
+  const configuration = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26",
+    auth: { type: "oauth", clientMode: "dynamic", clientName: "Host Application", redirectUri: "http://127.0.0.1:39141/callback" } }]).configuration;
+  const generated = await generateRemoteMcpArtifact(configuration);
+  expect(generated.artifact.configuration.servers[0].auth).toMatchObject({ clientName: "Host Application" });
+  let registrations = 0;
+  const fetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
+    if (String(input) === `${issuer}/register`) {
+      registrations++;
+      const body = JSON.parse(String(init?.body));
+      expect(body.client_name).toBe("Host Application");
+      return Response.json({ ...body, client_id: "original" });
+    }
+    const response = await f.fetch(input, init);
+    return String(input).includes(".well-known/oauth-authorization-server")
+      ? Response.json({ ...await response.json(), registration_endpoint: `${issuer}/register` }) : response;
+  });
+  await authenticateRemoteMcpServer(generated.artifact.configuration.servers[0], { binding: { ...f.binding, env: {} }, fetch, onAuthorizationUrl: f.observed });
+  const recreated = initRemoteMcpConfiguration([{ name: "catalog", url: resource, tools: [], protocolVersion: "2025-03-26",
+    auth: { type: "oauth", clientMode: "dynamic", clientName: "Host Application" } }]).configuration.servers[0];
+  await authenticateRemoteMcpServer(recreated, { binding: { ...f.binding, env: {} }, fetch, onAuthorizationUrl: f.observed });
+  expect(registrations).toBe(1);
+  expect(f.observed).toHaveBeenCalledOnce();
+});
+
 it.each([undefined, "read"])("retains init/artifact consent scope and environment precedence despite a broader challenge: %s", async override => {
   const f = fixture(false, "read offline_access");
   const artifact = await generateRemoteMcpArtifact({ version: 1, servers: [f.configuration] });

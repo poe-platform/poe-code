@@ -5,6 +5,17 @@ const tool = { name: "find", inputSchema: { type: "object", properties: { query:
 const server = { name: "catalog", url: "https://catalog.example/mcp", tools: [tool] };
 
 describe("remote MCP initialization and declarative configuration", () => {
+  it.each(["static", "dynamic"] as const)("retains a caller-selected OAuth client name for %s registration", clientMode => {
+    const { configuration, envTemplate } = initRemoteMcpConfiguration([{ ...server, auth: { type: "oauth", clientMode, clientName: "Host Application" } }]);
+    expect(configuration.servers[0].auth).toMatchObject({ clientName: "Host Application" });
+    expect(parseRemoteMcpConfiguration(JSON.stringify(configuration))).toEqual(configuration);
+    expect(envTemplate).not.toContain("Host Application");
+  });
+
+  it.each(["", "   ", 42])("rejects an unusable OAuth client name: %j", clientName => {
+    expect(() => initRemoteMcpConfiguration([{ ...server, auth: { type: "oauth", clientMode: "dynamic", clientName } } as never])).toThrow("clientName");
+  });
+
   it("preserves authoritative schemas and leaves absent schemas available for discovery", () => {
     const result = initRemoteMcpConfiguration([server, { name: "empty", url: server.url, tools: [] }, { name: "unknown", url: server.url }]);
     expect(result.configuration).toEqual({ version: 1, servers: [server, { name: "empty", url: server.url, tools: [] }, { name: "unknown", url: server.url }] });

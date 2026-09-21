@@ -128,3 +128,17 @@ consent/DCR, one code exchange and one refresh, with no tool listing/calling.
     native files for plaintext synthetic credentials, and purge the QA-owned out
     directory after recording results. Absent explicit scope stays omitted; the
     native provider does not infer consent permissions from advertised scopes.
+
+15. Configure dynamic OAuth with a generic public auth.clientName, supplied
+    tools:[] and no fixed callback. Generate an artifact without connecting,
+    then authenticate against a local HTTP issuer whose registration endpoint
+    requires that exact client_name. Complete the actual native loopback callback
+    through HTTP; verify state, S256 PKCE and the same callback URL throughout
+    DCR/authorization/redemption. Recreate the provider/store from the artifact
+    and repeat explicit auth. Require one registration, one consent, one code
+    exchange and two authenticated initialization sequences, no tools/list/call
+    and no plaintext synthetic grants in the encrypted store. Check mcp init
+    --format config visually retains clientName while the dotenv template keeps
+    its values empty. Caller-supplied registration metadata must remain generic;
+    do not add provider names or implicit allowlist impersonation. Record the
+    outcome and purge only the QA-owned out directory.

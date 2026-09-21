@@ -48,14 +48,30 @@ function walk(node: XmlElement): XmlElement[] { return [node, ...node.children.f
 function owners(root: XmlElement, path: readonly number[]): XmlElement[] {
   const result = [root]; for (const index of path) result.push(result.at(-1)!.children[index]!); return result;
 }
-function logicalText(content: XmlElement, children: (node: XmlElement) => readonly XmlElement[]): string {
-  const visit = (node: XmlElement): string => node.localName === "t" && node.namespace === content.namespace ? node.text :
-    node.namespace === content.namespace && ["tab", "br", "cr"].includes(node.localName) ? node.localName === "tab" ? "\t" : "\n" :
-      children(node).map(visit).join(node.localName === "sdtContent" && children(node).every(n => n.localName === "p") ? "\n" : "");
-  return visit(content);
+function logicalText(content: XmlElement, children: (node: XmlElement) => readonly XmlElement[], budget: DocumentBudget): string {
+  budget.charge("retainedBytes", 192);
+  const pending: (XmlElement | string)[] = [content], chunks: string[] = [];
+  let length = 0;
+  while (pending.length) {
+    const node = pending.pop()!;
+    const text = typeof node === "string" ? node : node.namespace !== content.namespace ? undefined :
+      node.localName === "t" ? node.text : node.localName === "tab" ? "\t" : ["br", "cr"].includes(node.localName) ? "\n" : undefined;
+    if (text !== undefined) {
+      budget.charge("work", text.length); budget.charge("retainedBytes", 8);
+      chunks.push(text); length += text.length; continue;
+    }
+    const nested = children(node as XmlElement);
+    const separated = (node as XmlElement).localName === "sdtContent" && nested.every(n => n.localName === "p");
+    budget.charge("retainedBytes", nested.length * (separated ? 16 : 8));
+    for (let index = nested.length - 1; index >= 0; index--) {
+      pending.push(nested[index]!); if (separated && index > 0) pending.push("\n");
+    }
+  }
+  budget.charge("retainedBytes", length * 2); return chunks.join("");
 }
 export function inspectControlSnapshot(node: XmlElement, location: Location<"control">, archive: ReturnType<DocumentArchiveEditor["snapshot"]>, context: ArchiveContext, xml: DocumentXmlEditor): ControlSnapshot {
-  const { one: child, all: children } = controlChildren(xml, archiveSettings(context).budget);
+  const budget = archiveSettings(context).budget;
+  const { one: child, all: children } = controlChildren(xml, budget);
   let kind: ControlSnapshot["kind"] = "unsupported", value: ControlSnapshot["value"] = null, reason: string | null = null;
   let properties: XmlElement | undefined, content: XmlElement | undefined;
   const choices: { value: string; label: string }[] = [];
@@ -68,7 +84,7 @@ export function inspectControlSnapshot(node: XmlElement, location: Location<"con
     const type = kinds[0];
     const names: Readonly<Record<string, ControlSnapshot["kind"]>> = { text: "plain-text", checkbox: "checkbox", dropDownList: "dropdown", comboBox: "combo-box", date: "date", picture: "picture", richText: "rich-text", repeatingSection: "repeating-section", repeatingSectionItem: "repeating-item" };
     kind = type ? names[type.localName]! : "rich-text";
-    value = logicalText(content, children);
+    value = logicalText(content, children, budget);
     if (["repeating-section", "repeating-item"].includes(kind)) value = null;
     if (kind === "checkbox") { const checked = attr(child(type!, "checked", w14), "val", w14); value = checked === "1" || checked === "true"; if (!["0", "1", "true", "false"].includes(checked ?? "")) throw new UnsupportedEditError("Malformed checkbox state."); }
     if (kind === "dropdown" || kind === "combo-box") {

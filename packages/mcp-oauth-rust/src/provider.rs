@@ -465,15 +465,12 @@ fn resolved(client: Value, kind: &str, stored: bool) -> Value {
         property("fromStoredRegistration", Value::Bool(stored)),
     ])
 }
-pub fn initial_client(options: &Value, has_registration: bool) -> Result<Value, String> {
+pub fn initial_client(options: &Value, _has_registration: bool) -> Result<Value, String> {
     let configured = normalize_client(options, true);
-    if string(options, "mode") == Some(text("static").as_slice()) {
+    if string(options, "mode") == Some(text("static").as_slice()) || configured.is_some() {
         return configured
             .map(|client| resolved(client, "static", false))
             .ok_or_else(|| "OAuth client_id must not be blank".into());
-    }
-    if !has_registration && let Some(client) = configured {
-        return Ok(resolved(client, "static", false));
     }
     Ok(Value::Object(vec![property(
         "action",

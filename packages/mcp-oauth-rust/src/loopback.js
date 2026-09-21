@@ -94,15 +94,21 @@ export function loopbackTarget(options) {
     throw Error("Invalid OAuth loopback callback path");
   return { port: 0, host: "127.0.0.1", callbackPath };
 }
-export async function createLoopbackAuthorizationSession(options = {}) {
-  const selected = { ...options };
-  options = {
-    ...selected,
-    createServer: selected.createServer?.bind(options),
-    openBrowser: selected.openBrowser?.bind(options),
-    readLine: selected.readLine?.bind(options),
-    landingPage: selected.landingPage === undefined ? undefined : { ...selected.landingPage }
+export function snapshotLoopbackAuthorizationOptions(options) {
+  return {
+    ...options,
+    openBrowser: options.openBrowser?.bind(options),
+    readLine: options.readLine?.bind(options),
+    createServer: options.createServer?.bind(options),
+    callbackPath: options.callbackPath,
+    redirectUri: options.redirectUri,
+    signal: options.signal,
+    timeoutMs: options.timeoutMs,
+    landingPage: options.landingPage === undefined ? undefined : { ...options.landingPage }
   };
+}
+export async function createLoopbackAuthorizationSession(options = {}) {
+  options = snapshotLoopbackAuthorizationOptions(options);
   options.signal?.throwIfAborted();
   const timeout = options.timeoutMs ?? 120_000;
   if (!native.authorizationTimerValid(typeof timeout === "number" ? timeout : NaN))

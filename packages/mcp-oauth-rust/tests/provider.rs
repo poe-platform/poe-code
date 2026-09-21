@@ -366,3 +366,27 @@ fn issuer_url_policy_rejects_queries_after_secure_admission() {
         Err("Authorization server issuer must use https unless it targets a loopback host".into())
     );
 }
+#[test]
+fn configured_app_identity_wins_over_advertised_dynamic_registration() {
+    use mcp_oauth_rust::provider::initial_client;
+    let client = value(
+        r#"{"mode":"dynamic","clientId":"original","clientSecret":"secret","tokenEndpointAuthMethod":"client_secret_post"}"#,
+    );
+    for advertised in [false, true] {
+        let result = initial_client(&client, advertised).unwrap();
+        assert_eq!(
+            result.get("kind"),
+            Some(&Value::String("static".encode_utf16().collect()))
+        );
+        assert_eq!(
+            result.get("client").unwrap().get("clientId"),
+            client.get("clientId")
+        );
+    }
+    assert_eq!(
+        initial_client(&value(r#"{"mode":"dynamic"}"#), true)
+            .unwrap()
+            .get("action"),
+        Some(&Value::String("load".encode_utf16().collect()))
+    );
+}

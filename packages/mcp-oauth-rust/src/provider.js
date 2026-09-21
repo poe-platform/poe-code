@@ -14,7 +14,7 @@ import {
   createAuthStoreClientStore,
   assertPersistenceNamespace
 } from "./session-store.js";
-import { createLoopbackAuthorizationSession, loopbackTarget } from "./loopback.js";
+import { createLoopbackAuthorizationSession, loopbackTarget, snapshotLoopbackAuthorizationOptions } from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
 import { fetchMcpResponse } from "./http.js";
 import { waitForOAuthOperation } from "./cancellable-operation.js";
@@ -134,12 +134,7 @@ export function createDefaultOAuthClientProvider(options) {
   options = {
     ...options,
     client: { ...options.client },
-    browser: {
-      ...options.browser,
-      ...(options.browser.landingPage === undefined
-        ? {}
-        : { landingPage: { ...options.browser.landingPage } })
-    }
+    browser: snapshotLoopbackAuthorizationOptions(options.browser)
   };
   assertPersistenceNamespace(options.persistenceNamespace);
   loopbackTarget(options.browser);

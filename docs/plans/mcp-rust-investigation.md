@@ -6359,3 +6359,24 @@ Layoutf4e448025 pushed and exact remote main verified separately. OAuth release
 35607517275 pending. No successful current publication verified. Concurrent edits
 preserved. Continuous13:43:18–13:55:56 adds758s,total114891s(31.91h).
 Minimum fulfilled;full objective incomplete. Continue accounting after13:55:56UTC.
+
+### Current browser and configured-client contracts, 2026-09-21 14:04 UTC
+
+Current original SDK drift reproduced26reference failures before changes. Owned
+loopback snapshots now read declared nonenumerable callback/policy fields and bind
+methods to the live original receiver. Provider uses the same snapshot. Rust initial
+client policy retains every explicitly configured normalized client regardless of
+advertised DCR or mode; blank static IDs still reject. Core red precedes repair.
+Original packages and concurrent edits preserved.
+
+Maintained64Rust cases/95native groups/643reference cases in44files and types pass;
+fmt/clippy/shared checks/ESLint pass. Uncached selected117workspaces/8builds/363edges
+passes. Packed27files/one addon/zero npm runtime groups,external resolution blocked
+and direct/packed16MiB broad worker workloads pass. Evidence
+out/rust-oauth-browser-alignment-*. No performance claim for this contract repair.
+
+Preview469d31198 exact remote main verified earlier;its root Release35608840686
+pending,specialized tiny-http release succeeded,toolcraft release in_progress. No
+successful current poe-code publication verified. Continuous13:55:56–14:04:09
+adds493s,total115384s(32.05h). Minimum fulfilled;full objective incomplete.
+Continue accounting after14:04:09UTC.

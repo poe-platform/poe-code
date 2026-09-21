@@ -81,7 +81,10 @@ encloses the operation.
 Rust owns ticket ordering and timeout admission; Node supplies promises and timers.
 
 The default provider supports cached tokens, coalesced refresh/authorization,
-static clients and dynamic registration. Its Rust effect machine owns expiry,
+static clients and dynamic registration. Explicit client IDs retain their configured
+application even when the server advertises dynamic registration. Browser policies
+also support nonenumerable properties; callback methods retain their original receiver.
+Its Rust effect machine owns expiry,
 credential binding, endpoint security, registration plans, PKCE parameters and
 bounded retry decisions. Discovery issuer URLs reject credentials, query strings,
 and fragments before credential reads. Host callbacks provide browser input,

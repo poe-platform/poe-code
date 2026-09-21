@@ -470,6 +470,7 @@ class InputDeadline {
 }
 
 class InputCursor {
+  readonly identity: object = Object.freeze({});
   readonly #iterator: AsyncIterator<Uint8Array>;
   readonly #provenance: "regular" | "stream" | "unknown";
   readonly #eof: "terminal" | "retryable";
@@ -765,6 +766,25 @@ export class ShellInput implements ByteSource, CommandInput {
   }
 
   get position(): number { return this.#cursor.position; }
+
+  get identity(): object { return this.#cursor.identity; }
+
+  /** Return one available fragment rather than waiting to fill a native read. */
+  readAvailable(maxBytes: number, callerSignal: AbortSignal): Promise<IteratorResult<Uint8Array>> {
+    const signal = AbortSignal.any([this.signal, callerSignal]);
+    return this.#cursor.consume(signal, async () => {
+      if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new RangeError("Invalid input read size");
+      this.#cursor.admitBoundedRead();
+      if (!maxBytes) return { done: false, value: new Uint8Array() };
+      const result = await this.#cursor.take(signal, maxBytes);
+      if (result.done) return result;
+      const count = Math.min(maxBytes, result.value.byteLength);
+      const value = new Uint8Array(result.value.subarray(0, count));
+      if (count < result.value.byteLength) this.#cursor.remainder = result.value.subarray(count);
+      this.#cursor.position += count;
+      return { done: false, value };
+    });
+  }
 
   read(maxBytes: number, callerSignal: AbortSignal): Promise<IteratorResult<Uint8Array>> {
     const signal = AbortSignal.any([this.signal, callerSignal]);

@@ -54,7 +54,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
       const local = signal ? AbortSignal.any([scope!, signal]) : scope!;
       try {
         const result = await action(descriptor!, { signal: local });
-        check(signal);
+        if (syscall !== "write" || !context.preserveWriteReceipt) check(signal);
         return result;
       } catch (error) {
         check(signal);

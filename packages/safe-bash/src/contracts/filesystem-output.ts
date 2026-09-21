@@ -103,7 +103,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     if (capabilities.readOnly === true) throw new FsError("EROFS", { path, syscall: "open" });
     if (flag === "a" ? capabilities.append === false : capabilities.write === false) throw new FsError("ENOTSUP", { path, syscall: "open" });
     if (flag === "wx" && capabilities.exclusiveCreate !== true) throw new FsError("ENOTSUP", { path, syscall: "open" });
-    descriptor = await openCommandFile({ fs: context.fs, signal, registerCleanup, cleanupFailurePrioritySignal: cleanupFailurePrioritySignal ?? context.signal }, path, {
+    descriptor = await openCommandFile({ fs: context.fs, signal, registerCleanup, preserveWriteReceipt: true, cleanupFailurePrioritySignal: cleanupFailurePrioritySignal ?? context.signal }, path, {
       access: "write", creation: flag === "wx" ? "exclusive" : "ifMissing",
       truncate: flag === "w", append: flag === "a", ...(mode === undefined ? {} : { mode }),
     });
@@ -151,9 +151,9 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
           for (let offset = 0; offset < chunk.byteLength;) {
             const end = Math.min(offset + 64 * 1024, chunk.byteLength);
             const count = await descriptor!.write(chunk.subarray(offset, end), null);
-            check();
             if (!count) throw new FsError("EIO", { path, syscall: "write", message: "descriptor write made no progress" });
             offset += count;
+            if (offset < chunk.byteLength) check();
           }
         } catch (reason) {
           failure ??= { reason: context.signal.aborted ? context.signal.reason : reason, cancellation: context.signal.aborted };

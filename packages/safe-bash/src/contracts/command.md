@@ -417,3 +417,13 @@ an explicit failed result: a rejection alone does not establish public-message
 provenance. SafeJS retains its existing syntax/budget exit-status mapping from
 own name/code fields, but those fields never authorize exposing a rejected
 error's message. The host callback receives the original rejection.
+
+`admittedHandles` borrows descriptors from the current invocation frame. Request
+only supported read/write/seek/stat rights; unavailable rights fail rather than
+opening a pathname again. Duplicates share input identity and cursor. Reads
+return one available fragment; a zero-byte read neither consumes input nor
+reports EOF. Shell leases admit at most 64 handles and 16 pending operations
+per handle, with reads and writes bounded to 65,536 bytes. Closing a lease
+drains admitted work without closing the underlying shell descriptor. Enrolled
+output preserves successful write receipts while cancellation drains; later
+operations still fail after cancellation.

@@ -6,6 +6,83 @@ import { ShellLimitError } from "../../src/shell/index.js";
 import type { ShellCommandContext } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 
+test("descriptor leases return an available fragment without filling the request", async () => {
+  const { shell, commands } = setup();
+  let pulls = 0;
+  commands.register({ name: "available-fd", async execute(context) {
+    const lease = await context.admittedHandles!.acquire(0, ["read"], context.signal);
+    try {
+      assert.deepEqual(await lease.read!(0, context.signal), { done: false, value: new Uint8Array() });
+      assert.equal(pulls, 0);
+      assert.deepEqual(await lease.read!(1024, context.signal), { done: false, value: new Uint8Array([0, 255, 7]) });
+      assert.equal(pulls, 1);
+    } finally { await lease.close(); }
+    return { exitCode: 0 };
+  } });
+  const stdin = { [Symbol.asyncIterator]() { return {
+    async next() {
+      if (++pulls > 1) throw new Error("Native reads must return available bytes");
+      return { done: false as const, value: new Uint8Array([0, 255, 7]) };
+    },
+    async return() { return { done: true as const, value: undefined }; },
+  }; } };
+  try { const result = await shell.exec("available-fd", { stdin }); assert.equal(result.exitCode, 0, result.stderr); }
+  finally { await shell.dispose(); }
+});
+
+test("duplicate descriptor leases share the retained cursor and close independently", async () => {
+  const { shell, commands, fs } = setup();
+  await fs.writeFile("/lease-input", new Uint8Array([1, 2, 3]));
+  commands.register({ name: "aliased-fd", async execute(context) {
+    const first = await context.admittedHandles!.acquire(4, ["read"], context.signal);
+    const second = await context.admittedHandles!.acquire(5, ["read"], context.signal);
+    try {
+      assert.equal(first.identity, second.identity);
+      assert.deepEqual((await first.read!(1, context.signal)).value, new Uint8Array([1]));
+      await first.close();
+      assert.deepEqual((await second.read!(2, context.signal)).value, new Uint8Array([2, 3]));
+      await assert.rejects(context.admittedHandles!.acquire(5, ["write"], context.signal), { code: "EBADF" });
+    } finally { await first.close(); await second.close(); }
+    return { exitCode: 0 };
+  } });
+  try { const result = await shell.exec("aliased-fd 4</lease-input 5<&4"); assert.equal(result.exitCode, 0, result.stderr); }
+  finally { await shell.dispose(); }
+});
+
+test("descriptor writes retain successful receipts while cancellation drains", async () => {
+  for (const redirected of [false, true]) {
+    const { shell, commands } = setup();
+    const controller = new AbortController();
+    const reason = new Error("cancel admitted write");
+    const events: string[] = [];
+    let enter!: () => void;
+    const entered = new Promise<void>(resolve => { enter = resolve; });
+    let release!: () => void;
+    const draining = new Promise<void>(resolve => { release = resolve; });
+    commands.register({ name: "receipt-fd", async execute(context) {
+      const lease = await context.admittedHandles!.acquire(redirected ? 3 : 1, ["write"], context.signal);
+      try {
+        assert.equal(await lease.write!(new Uint8Array([1]), context.signal), 1);
+        events.push("receipt");
+        await assert.rejects(lease.write!(new Uint8Array([2]), context.signal), error => error === reason);
+      } finally { await lease.close(); }
+      return { exitCode: 0 };
+    } });
+    const execution = shell.exec(redirected ? "receipt-fd 3>&1" : "receipt-fd", {
+      signal: controller.signal,
+      stdout: { async write() { throw new Error("Use enrolled output"); }, ownedOutput: {
+        consumerClosed: new AbortController().signal,
+        async write() { enter(); await draining; events.push("accepted"); },
+      } },
+    });
+    const outcome = execution.then(() => { throw new Error("Cancellation must reject"); }, error => { assert.equal(error, reason); });
+    try {
+      await entered; controller.abort(reason); release(); await outcome;
+      assert.deepEqual(events, ["accepted", "receipt"]);
+    } finally { release(); await shell.dispose(); }
+  }
+});
+
 test("exec lends process signals to nested invoke and accepts explicit overrides", async () => {
   const { shell, commands } = setup();
   const parent = createProcessSignalChannel();

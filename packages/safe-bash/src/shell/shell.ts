@@ -245,6 +245,7 @@ export class Shell implements PluginHost {
     });
     const io = {
       [invocationScope]: scope,
+      ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
       ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
       stdin: toByteSource(""),
       stdinIsDefault: options.stdin === undefined,

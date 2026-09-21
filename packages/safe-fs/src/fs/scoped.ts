@@ -15,7 +15,8 @@ const operations = new Set<keyof FileSystem>([
   "writeFile", "writeStream",
 ]);
 
-export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge): FileSystem {
+export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge,
+  options: { readonly preserveDescriptorWriteReceipt?: boolean } = {}): FileSystem {
   const original = originals.get(filesystem)?.filesystem ?? filesystem;
   const methods = new Map<PropertyKey, { original: unknown; scoped: unknown }>();
   const assertOpen = (options?: FsOptions): void => {
@@ -98,7 +99,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
   };
   const wrapDescriptor = (descriptor: FileDescriptor): FileDescriptor => {
     let closing: Promise<void> | undefined;
-    const invoke = async <Result>(options: FsOptions, action: (options: FsOptions) => Promise<Result>): Promise<Result> => {
+    const invoke = async <Result>(options: FsOptions, action: (options: FsOptions) => Promise<Result>, preserveReceipt = false): Promise<Result> => {
       assertOpen(options);
       if (closing) throw new FsError("EBADF");
       admit(options);
@@ -106,7 +107,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       if (closing) throw new FsError("EBADF");
       try {
         const result = await action(resizeOptions(options));
-        assertOpen(options);
+        if (!preserveReceipt) assertOpen(options);
         return result;
       } catch (error) { assertOpen(options); throw error; }
     };
@@ -118,7 +119,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       ...(probeRead === undefined ? {} : { probeRead: (options: FsOptions = {}) => invoke(options, scoped => probeRead.call(descriptor, scoped)) }),
       stat: (options = {}) => invoke(options, scoped => descriptor.stat(scoped)),
       read: (buffer, position, options = {}) => invoke(options, scoped => descriptor.read(buffer, position, scoped)),
-      write: (buffer, position, options = {}) => invoke(options, scoped => descriptor.write(buffer, position, scoped)),
+      write: (buffer, position, forwarded = {}) => invoke(forwarded, scoped => descriptor.write(buffer, position, scoped), options.preserveDescriptorWriteReceipt === true),
       truncate: (length, options = {}) => invoke(options, scoped => descriptor.truncate(length, scoped)),
       sync: (dataOnly, options = {}) => invoke(options, scoped => descriptor.sync(dataOnly, scoped)),
       close: () => closing ??= Promise.resolve().then(() => descriptor.close()),

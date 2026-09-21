@@ -2,7 +2,7 @@ import type { CommandContext } from "./command.js";
 import { FsError } from "./errors.js";
 import type { ByteSink } from "./io.js";
 
-export type CountedFileWrite = (chunk: Uint8Array, write: () => Promise<number>) => Promise<number>;
+export type CountedFileWrite = (chunk: Uint8Array, write: () => Promise<number>, preserveReceipt?: boolean) => Promise<number>;
 
 export const filesystemOutputBudgets = new WeakMap<NonNullable<CommandContext["registerCleanup"]>, {
   readonly sinkBudget: (sink: ByteSink) => ByteSink;
@@ -12,6 +12,8 @@ export const filesystemOutputBudgets = new WeakMap<NonNullable<CommandContext["r
 export type FileOutputContext = Pick<CommandContext, "fs" | "signal" | "registerCleanup"> & {
   readonly cleanupFailurePrioritySignal?: AbortSignal | undefined;
   readonly outputBudget?: "shell" | "independent";
+  /** Internal enrolled output path: drain an admitted successful write receipt. */
+  readonly preserveWriteReceipt?: boolean;
 };
 
 export function bindFileOutputBudget(context: Pick<CommandContext, "registerCleanup">, budget: (sink: ByteSink) => ByteSink, countedWrite?: CountedFileWrite): void {
@@ -25,7 +27,7 @@ export function assertCountedFileOutput(context: Pick<CommandContext, "registerC
   if (budget && !budget.countedWrite) throw new FsError("ENOTSUP", { syscall: "write", message: "counted filesystem output budget is not bound" });
 }
 
-export async function writeFileOutputCounted(context: Pick<CommandContext, "registerCleanup" | "signal">,
+export async function writeFileOutputCounted(context: Pick<CommandContext, "registerCleanup" | "signal"> & { readonly preserveWriteReceipt?: boolean },
   chunk: Uint8Array, write: () => Promise<number>): Promise<number> {
   assertCountedFileOutput(context);
   if (!(chunk instanceof Uint8Array)) throw new TypeError("Filesystem output must be Uint8Array");
@@ -44,7 +46,7 @@ export async function writeFileOutputCounted(context: Pick<CommandContext, "regi
     } catch (error) { return Promise.reject(error); }
     active = (async () => {
       const count = await write();
-      context.signal.throwIfAborted();
+      if (!context.preserveWriteReceipt) context.signal.throwIfAborted();
       if (!Number.isSafeInteger(count) || count < 0 || count > requested) throw new FsError("EIO", { syscall: "write", message: "invalid byte count" });
       accepted = count;
       return count;
@@ -55,11 +57,11 @@ export async function writeFileOutputCounted(context: Pick<CommandContext, "regi
   let result: number | undefined;
   let failure: { reason: unknown } | undefined;
   try {
-    result = await (budget?.countedWrite ? budget.countedWrite(chunk, guarded) : guarded());
+    result = await (budget?.countedWrite ? budget.countedWrite(chunk, guarded, context.preserveWriteReceipt) : guarded());
   } catch (reason) { failure = { reason }; }
   accepting = false;
   try { await active; } catch (reason) { failure ??= { reason }; }
-  context.signal.throwIfAborted();
+  if (!context.preserveWriteReceipt || failure) context.signal.throwIfAborted();
   if (failure) throw failure.reason;
   if (accepted === undefined || result !== accepted) throw new FsError("EIO", { syscall: "write", message: "counted writer changed the accepted byte count" });
   return accepted;

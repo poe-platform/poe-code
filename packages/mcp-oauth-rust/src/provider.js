@@ -4,7 +4,6 @@ import {
   registrationMatchesRedirect
 } from "./registration.js";
 import { withOAuthSessionTransaction } from "./transaction.js";
-import { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./registration.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";

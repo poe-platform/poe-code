@@ -1,4 +1,5 @@
 import type { DocumentBudget } from "./budget.js";
+import { storedBooleanValue } from "./stored-lexical.js";
 import type { CompatibilityContent } from "./compatibility.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import type { XmlElement } from "./package-xml.js";
@@ -68,11 +69,11 @@ export function parseFields(root: XmlElement, path: readonly number[], budget: D
   }
   const fail = () => { throw new UnsupportedEditError("Malformed field boundaries or instruction text."); };
   const begin = (node: XmlElement, path: readonly number[], simple: boolean, unsafe: boolean) => {
-    const field: ParsedField = { node, path, form: simple ? "simple" : "complex", instruction: simple ? fieldAttribute(node, "instr") ?? "" : "", result: "", kind: "", update: ["1", "true", "on"].includes(fieldAttribute(node, "dirty") ?? ""), locked: ["1", "true", "on"].includes(fieldAttribute(node, "fldLock") ?? ""), nested: [], text: [], instructions: [], unsafe, separated: simple, unsupported: unsafe };
+    const field: ParsedField = { node, path, form: simple ? "simple" : "complex", instruction: simple ? fieldAttribute(node, "instr") ?? "" : "", result: "", kind: "", update: storedBooleanValue(fieldAttribute(node, "dirty") ?? "0") === true, locked: storedBooleanValue(fieldAttribute(node, "fldLock") ?? "0") === true, nested: [], text: [], instructions: [], unsafe, separated: simple, unsupported: unsafe };
     if (simple && fieldAttribute(node, "instr") === undefined) fail();
     for (const name of ["dirty", "fldLock"]) {
       const value = fieldAttribute(node, name);
-      if (value !== undefined && !["0", "1", "true", "false", "on", "off"].includes(value)) field.unsupported = field.unsafe = true;
+      if (value !== undefined && storedBooleanValue(value) === null) field.unsupported = field.unsafe = true;
     }
     for (const parent of stack) if (parent.separated) parent.unsupported = true;
     if (stack.at(-1) && !stack.at(-1)!.separated) stack.at(-1)!.instructionNested = true;

@@ -23,6 +23,8 @@ const useMock = vi.hoisted(() => vi.fn());
 const modelMock = vi.hoisted(() => vi.fn());
 const agentMock = vi.hoisted(() => vi.fn());
 
+vi.mock("@poe-code/agent-spawn", () => ({ runCommand: vi.fn() }));
+
 vi.mock("./agent.js", () => ({
   agent: agentMock,
   assertPositiveIntegerOption: (value: unknown, key: string) => {

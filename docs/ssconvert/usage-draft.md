@@ -159,12 +159,14 @@ and `PERL_SED`. `PERL_DATE` returns `YYYYMMDD` using the injected clock and
 timezone. `PERL_SED("abc","b","d")` returns `adc`; replacement text stays
 literal, including `$1` and backslashes. Its bounded byte-pattern grammar covers
 ordered alternatives, groups, greedy/lazy repetition, classes, anchors, flags
-and lookahead. Backreferences, lookbehind, advanced pattern syntax and native
+and lookahead, with captures, numeric backreferences `\1`–`\9`, and explicit
+positive/relative `\g{n}` references. Lookbehind, advanced pattern syntax and native
 invalid-pattern/invalid-UTF-8 result representation remain required gaps. Supply
 the binding as `runtimeFunctions` to enable these names. Without it they remain
 absent. An activated native Perl 5.34.1 profile matches 645 substitution controls
 and frozen-clock family controls in UTC and America/Los_Angeles; this does not
-qualify every optional runtime profile.
+qualify every optional runtime profile. The expanded capture corpus matches
+native CSV bytes but exposes an unresolved native loader shutdown failure.
 
 `pythonSampleFunctions.PY_CAPWORDS` normalizes Python whitespace and capitalizes
 whole words using frozen CPython 3.14.2 Unicode 16.0.0 data, including titlecase

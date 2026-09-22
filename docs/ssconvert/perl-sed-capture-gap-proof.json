@@ -1,0 +1,3874 @@
+{
+  "scope": "Bounded PERL_SED capture and numeric backreference implementation; no full grammar/profile completion claim.",
+  "sourceCorpus": {
+    "cases": [
+      {
+        "outputHex": "",
+        "id": "capture-0",
+        "argumentsHex": [
+          "",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-1",
+        "argumentsHex": [
+          "61",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-2",
+        "argumentsHex": [
+          "6161",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e61",
+        "id": "capture-3",
+        "argumentsHex": [
+          "616161",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-4",
+        "argumentsHex": [
+          "61616161",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626162",
+        "id": "capture-5",
+        "argumentsHex": [
+          "61626162",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-6",
+        "argumentsHex": [
+          "61626261",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6224315c6e62",
+        "id": "capture-7",
+        "argumentsHex": [
+          "62616162",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-8",
+        "argumentsHex": [
+          "626262",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61416242",
+        "id": "capture-9",
+        "argumentsHex": [
+          "61416242",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "4124315c6e41",
+        "id": "capture-10",
+        "argumentsHex": [
+          "41616141",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-11",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "2861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-12",
+        "outputHex": "",
+        "argumentsHex": [
+          "",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-13",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-14",
+        "argumentsHex": [
+          "6161",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e61",
+        "id": "capture-15",
+        "argumentsHex": [
+          "616161",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-16",
+        "argumentsHex": [
+          "61616161",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-17",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-18",
+        "outputHex": "6124315c6e61",
+        "argumentsHex": [
+          "61626261",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6224315c6e62",
+        "id": "capture-19",
+        "argumentsHex": [
+          "62616162",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e62",
+        "id": "capture-20",
+        "argumentsHex": [
+          "626262",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-21",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "4124315c6e41",
+        "id": "capture-22",
+        "argumentsHex": [
+          "41616141",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-23",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "28617c62295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-24",
+        "argumentsHex": [
+          "",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-25",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-26",
+        "argumentsHex": [
+          "6161",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-27",
+        "outputHex": "24315c6e61",
+        "argumentsHex": [
+          "616161",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-28",
+        "argumentsHex": [
+          "61616161",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-29",
+        "argumentsHex": [
+          "61626162",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-30",
+        "argumentsHex": [
+          "61626261",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6224315c6e62",
+        "id": "capture-31",
+        "argumentsHex": [
+          "62616162",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-32",
+        "outputHex": "626262",
+        "argumentsHex": [
+          "626262",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-33",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-34",
+        "outputHex": "4124315c6e41",
+        "argumentsHex": [
+          "41616141",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "c3a461c3a461",
+        "id": "capture-35",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "2861627c61295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-36",
+        "outputHex": "",
+        "argumentsHex": [
+          "",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-37",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6161",
+        "id": "capture-38",
+        "argumentsHex": [
+          "6161",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-39",
+        "outputHex": "616161",
+        "argumentsHex": [
+          "616161",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61616161",
+        "id": "capture-40",
+        "argumentsHex": [
+          "61616161",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626162",
+        "id": "capture-41",
+        "argumentsHex": [
+          "61626162",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-42",
+        "argumentsHex": [
+          "61626261",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-43",
+        "outputHex": "62616162",
+        "argumentsHex": [
+          "62616162",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-44",
+        "outputHex": "626262",
+        "argumentsHex": [
+          "626262",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-45",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-46",
+        "outputHex": "41616141",
+        "argumentsHex": [
+          "41616141",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-47",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "2861292862295c325c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-48",
+        "argumentsHex": [
+          "",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-49",
+        "argumentsHex": [
+          "61",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-50",
+        "argumentsHex": [
+          "6161",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e61",
+        "id": "capture-51",
+        "argumentsHex": [
+          "616161",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-52",
+        "outputHex": "24315c6e24315c6e",
+        "argumentsHex": [
+          "61616161",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-53",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-54",
+        "argumentsHex": [
+          "61626261",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-55",
+        "outputHex": "6224315c6e62",
+        "argumentsHex": [
+          "62616162",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-56",
+        "argumentsHex": [
+          "626262",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-57",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "4124315c6e41",
+        "id": "capture-58",
+        "argumentsHex": [
+          "41616141",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "c3a461c3a461",
+        "id": "capture-59",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "2861293f5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-60",
+        "argumentsHex": [
+          "",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6124315c6e",
+        "id": "capture-61",
+        "argumentsHex": [
+          "61",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-62",
+        "argumentsHex": [
+          "6161",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-63",
+        "outputHex": "24315c6e24315c6e6124315c6e",
+        "argumentsHex": [
+          "616161",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-64",
+        "argumentsHex": [
+          "61616161",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6124315c6e6224315c6e6124315c6e6224315c6e",
+        "id": "capture-65",
+        "argumentsHex": [
+          "61626162",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6124315c6e6224315c6e6224315c6e6124315c6e",
+        "id": "capture-66",
+        "argumentsHex": [
+          "61626261",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6224315c6e24315c6e6224315c6e",
+        "id": "capture-67",
+        "argumentsHex": [
+          "62616162",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6224315c6e6224315c6e6224315c6e",
+        "id": "capture-68",
+        "argumentsHex": [
+          "626262",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6124315c6e4124315c6e6224315c6e4224315c6e",
+        "id": "capture-69",
+        "argumentsHex": [
+          "61416242",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e4124315c6e24315c6e4124315c6e",
+        "id": "capture-70",
+        "argumentsHex": [
+          "41616141",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+        "id": "capture-71",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "28612a295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-72",
+        "argumentsHex": [
+          "",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6124315c6e",
+        "id": "capture-73",
+        "argumentsHex": [
+          "61",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e24315c6e",
+        "id": "capture-74",
+        "argumentsHex": [
+          "6161",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-75",
+        "outputHex": "24315c6e24315c6e24315c6e6124315c6e",
+        "argumentsHex": [
+          "616161",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-76",
+        "outputHex": "24315c6e24315c6e24315c6e24315c6e24315c6e",
+        "argumentsHex": [
+          "61616161",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-77",
+        "outputHex": "24315c6e6124315c6e6224315c6e6124315c6e6224315c6e",
+        "argumentsHex": [
+          "61626162",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6124315c6e6224315c6e6224315c6e6124315c6e",
+        "id": "capture-78",
+        "argumentsHex": [
+          "61626261",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6224315c6e24315c6e24315c6e6224315c6e",
+        "id": "capture-79",
+        "argumentsHex": [
+          "62616162",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6224315c6e6224315c6e6224315c6e",
+        "id": "capture-80",
+        "argumentsHex": [
+          "626262",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-81",
+        "outputHex": "24315c6e6124315c6e4124315c6e6224315c6e4224315c6e",
+        "argumentsHex": [
+          "61416242",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-82",
+        "outputHex": "24315c6e4124315c6e24315c6e24315c6e4124315c6e",
+        "argumentsHex": [
+          "41616141",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+        "id": "capture-83",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "28612a3f295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-84",
+        "argumentsHex": [
+          "",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-85",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-86",
+        "argumentsHex": [
+          "6161",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-87",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "616161",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-88",
+        "argumentsHex": [
+          "61616161",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-89",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-90",
+        "argumentsHex": [
+          "61626261",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-91",
+        "outputHex": "6224315c6e62",
+        "argumentsHex": [
+          "62616162",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-92",
+        "argumentsHex": [
+          "626262",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61416242",
+        "id": "capture-93",
+        "argumentsHex": [
+          "61416242",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "4124315c6e41",
+        "id": "capture-94",
+        "argumentsHex": [
+          "41616141",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "c3a461c3a461",
+        "id": "capture-95",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "28617c6161292b5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-96",
+        "outputHex": "",
+        "argumentsHex": [
+          "",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-97",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-98",
+        "outputHex": "6161",
+        "argumentsHex": [
+          "6161",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "616161",
+        "id": "capture-99",
+        "argumentsHex": [
+          "616161",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-100",
+        "outputHex": "61616161",
+        "argumentsHex": [
+          "61616161",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-101",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e61",
+        "id": "capture-102",
+        "argumentsHex": [
+          "61626261",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-103",
+        "outputHex": "62616162",
+        "argumentsHex": [
+          "62616162",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-104",
+        "argumentsHex": [
+          "626262",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61416242",
+        "id": "capture-105",
+        "argumentsHex": [
+          "61416242",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "41616141",
+        "id": "capture-106",
+        "argumentsHex": [
+          "41616141",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-107",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "28612862293f292b5c32",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-108",
+        "outputHex": "",
+        "argumentsHex": [
+          "",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-109",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-110",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "6161",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-111",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "616161",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-112",
+        "argumentsHex": [
+          "61616161",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626162",
+        "id": "capture-113",
+        "argumentsHex": [
+          "61626162",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e61",
+        "id": "capture-114",
+        "argumentsHex": [
+          "61626261",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e62",
+        "id": "capture-115",
+        "argumentsHex": [
+          "62616162",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-116",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "626262",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-117",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "4124315c6e41",
+        "id": "capture-118",
+        "argumentsHex": [
+          "41616141",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-119",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "28617c62292a5c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-120",
+        "argumentsHex": [
+          "",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-121",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "61",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-122",
+        "argumentsHex": [
+          "6161",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-123",
+        "argumentsHex": [
+          "616161",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-124",
+        "argumentsHex": [
+          "61616161",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e6224315c6e62",
+        "id": "capture-125",
+        "argumentsHex": [
+          "61626162",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e626224315c6e",
+        "id": "capture-126",
+        "argumentsHex": [
+          "61626261",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-127",
+        "outputHex": "6224315c6e62",
+        "argumentsHex": [
+          "62616162",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-128",
+        "argumentsHex": [
+          "626262",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e416242",
+        "id": "capture-129",
+        "argumentsHex": [
+          "61416242",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "4124315c6e41",
+        "id": "capture-130",
+        "argumentsHex": [
+          "41616141",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "c3a424315c6ec3a424315c6e",
+        "id": "capture-131",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "283f3d28612b29295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-132",
+        "argumentsHex": [
+          "",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-133",
+        "argumentsHex": [
+          "61",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6161",
+        "id": "capture-134",
+        "argumentsHex": [
+          "6161",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "616161",
+        "id": "capture-135",
+        "argumentsHex": [
+          "616161",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61616161",
+        "id": "capture-136",
+        "argumentsHex": [
+          "61616161",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626162",
+        "id": "capture-137",
+        "argumentsHex": [
+          "61626162",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-138",
+        "argumentsHex": [
+          "61626261",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-139",
+        "outputHex": "62616162",
+        "argumentsHex": [
+          "62616162",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-140",
+        "outputHex": "626262",
+        "argumentsHex": [
+          "626262",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-141",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "41616141",
+        "id": "capture-142",
+        "argumentsHex": [
+          "41616141",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "c3a461c3a461",
+        "id": "capture-143",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "283f2162286129295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-144",
+        "argumentsHex": [
+          "",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-145",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-146",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "6161",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e61",
+        "id": "capture-147",
+        "argumentsHex": [
+          "616161",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-148",
+        "argumentsHex": [
+          "61616161",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-149",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-150",
+        "argumentsHex": [
+          "61626261",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-151",
+        "outputHex": "6224315c6e62",
+        "argumentsHex": [
+          "62616162",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-152",
+        "argumentsHex": [
+          "626262",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-153",
+        "outputHex": "24315c6e6242",
+        "argumentsHex": [
+          "61416242",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-154",
+        "argumentsHex": [
+          "41616141",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-155",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "283f69292861295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-156",
+        "argumentsHex": [
+          "",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-157",
+        "argumentsHex": [
+          "61",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-158",
+        "argumentsHex": [
+          "6161",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e61",
+        "id": "capture-159",
+        "argumentsHex": [
+          "616161",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-160",
+        "outputHex": "24315c6e24315c6e",
+        "argumentsHex": [
+          "61616161",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-161",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-162",
+        "outputHex": "61626261",
+        "argumentsHex": [
+          "61626261",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6224315c6e62",
+        "id": "capture-163",
+        "argumentsHex": [
+          "62616162",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-164",
+        "outputHex": "626262",
+        "argumentsHex": [
+          "626262",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-165",
+        "outputHex": "24315c6e6242",
+        "argumentsHex": [
+          "61416242",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e24315c6e",
+        "id": "capture-166",
+        "argumentsHex": [
+          "41616141",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-167",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "283f693a2861295c3129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "",
+        "id": "capture-168",
+        "argumentsHex": [
+          "",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-169",
+        "argumentsHex": [
+          "61",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "24315c6e",
+        "id": "capture-170",
+        "argumentsHex": [
+          "6161",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-171",
+        "outputHex": "24315c6e61",
+        "argumentsHex": [
+          "616161",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-172",
+        "outputHex": "24315c6e24315c6e",
+        "argumentsHex": [
+          "61616161",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-173",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-174",
+        "outputHex": "61626261",
+        "argumentsHex": [
+          "61626261",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-175",
+        "outputHex": "6224315c6e62",
+        "argumentsHex": [
+          "62616162",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-176",
+        "argumentsHex": [
+          "626262",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61416242",
+        "id": "capture-177",
+        "argumentsHex": [
+          "61416242",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "4124315c6e41",
+        "id": "capture-178",
+        "argumentsHex": [
+          "41616141",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "c3a461c3a461",
+        "id": "capture-179",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "2861295c677b317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-180",
+        "outputHex": "",
+        "argumentsHex": [
+          "",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-181",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6161",
+        "id": "capture-182",
+        "argumentsHex": [
+          "6161",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-183",
+        "outputHex": "616161",
+        "argumentsHex": [
+          "616161",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61616161",
+        "id": "capture-184",
+        "argumentsHex": [
+          "61616161",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-185",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "61626162",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-186",
+        "argumentsHex": [
+          "61626261",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "62616162",
+        "id": "capture-187",
+        "argumentsHex": [
+          "62616162",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-188",
+        "argumentsHex": [
+          "626262",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61416242",
+        "id": "capture-189",
+        "argumentsHex": [
+          "61416242",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "41616141",
+        "id": "capture-190",
+        "argumentsHex": [
+          "41616141",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-191",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "2861292862295c677b2d327d5c677b2d317d",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-192",
+        "outputHex": "",
+        "argumentsHex": [
+          "",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-193",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-194",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "6161",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-195",
+        "outputHex": "24315c6e61",
+        "argumentsHex": [
+          "616161",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-196",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "61616161",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-197",
+        "outputHex": "24315c6e",
+        "argumentsHex": [
+          "61626162",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-198",
+        "outputHex": "6124315c6e61",
+        "argumentsHex": [
+          "61626261",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-199",
+        "outputHex": "6224315c6e62",
+        "argumentsHex": [
+          "62616162",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-200",
+        "outputHex": "24315c6e62",
+        "argumentsHex": [
+          "626262",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-201",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-202",
+        "outputHex": "4124315c6e41",
+        "argumentsHex": [
+          "41616141",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "c3a461c3a461",
+        "id": "capture-203",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "2828617c62292b295c31",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-204",
+        "outputHex": "",
+        "argumentsHex": [
+          "",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-205",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "6161",
+        "id": "capture-206",
+        "argumentsHex": [
+          "6161",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "616161",
+        "id": "capture-207",
+        "argumentsHex": [
+          "616161",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "61616161",
+        "id": "capture-208",
+        "argumentsHex": [
+          "61616161",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-209",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-210",
+        "outputHex": "61626261",
+        "argumentsHex": [
+          "61626261",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "62616162",
+        "id": "capture-211",
+        "argumentsHex": [
+          "62616162",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "626262",
+        "id": "capture-212",
+        "argumentsHex": [
+          "626262",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-213",
+        "outputHex": "61416242",
+        "argumentsHex": [
+          "61416242",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "outputHex": "41616141",
+        "id": "capture-214",
+        "argumentsHex": [
+          "41616141",
+          "5c31286129",
+          "24315c6e"
+        ]
+      },
+      {
+        "id": "capture-215",
+        "outputHex": "c3a461c3a461",
+        "argumentsHex": [
+          "c3a461c3a461",
+          "5c31286129",
+          "24315c6e"
+        ]
+      }
+    ],
+    "stderr": "",
+    "holdouts": [
+      {
+        "outputHex": "61",
+        "id": "capture-holdout-0",
+        "argumentsHex": [
+          "61",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162",
+        "id": "capture-holdout-1",
+        "argumentsHex": [
+          "6162",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-2",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616261",
+        "id": "capture-holdout-3",
+        "argumentsHex": [
+          "616261",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-4",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6162616262",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-5",
+        "outputHex": "616162",
+        "argumentsHex": [
+          "616162",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5861",
+        "id": "capture-holdout-6",
+        "argumentsHex": [
+          "61626261",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "586162",
+        "id": "capture-holdout-7",
+        "argumentsHex": [
+          "6162626162",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-8",
+        "outputHex": "6162616263",
+        "argumentsHex": [
+          "6162616263",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-9",
+        "outputHex": "616161626361",
+        "argumentsHex": [
+          "616161626361",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-10",
+        "outputHex": "6161616161616161",
+        "argumentsHex": [
+          "6161616161616161",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6161",
+        "id": "capture-holdout-11",
+        "argumentsHex": [
+          "6161",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616161616161616161616161",
+        "id": "capture-holdout-12",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616263646566676869696867666564636261",
+        "id": "capture-holdout-13",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "283f3a612862293f292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-14",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162",
+        "id": "capture-holdout-15",
+        "argumentsHex": [
+          "6162",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-16",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "61626162",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-17",
+        "argumentsHex": [
+          "616261",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "586262",
+        "id": "capture-holdout-18",
+        "argumentsHex": [
+          "6162616262",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-19",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "616162",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-20",
+        "argumentsHex": [
+          "61626261",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-21",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "6162626162",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-22",
+        "outputHex": "586263",
+        "argumentsHex": [
+          "6162616263",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58626361",
+        "id": "capture-holdout-23",
+        "argumentsHex": [
+          "616161626361",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-24",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6161616161616161",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-25",
+        "argumentsHex": [
+          "6161",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-26",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-27",
+        "outputHex": "616263646566676869696867666564636261",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "283f3a2861297c62292b5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-28",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162",
+        "id": "capture-holdout-29",
+        "argumentsHex": [
+          "6162",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-30",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "61626162",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-31",
+        "outputHex": "58",
+        "argumentsHex": [
+          "616261",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-32",
+        "outputHex": "586262",
+        "argumentsHex": [
+          "6162616262",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-33",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "616162",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-34",
+        "argumentsHex": [
+          "61626261",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862",
+        "id": "capture-holdout-35",
+        "argumentsHex": [
+          "6162626162",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-36",
+        "outputHex": "586263",
+        "argumentsHex": [
+          "6162616263",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58626361",
+        "id": "capture-holdout-37",
+        "argumentsHex": [
+          "616161626361",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-38",
+        "argumentsHex": [
+          "6161616161616161",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-39",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6161",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-40",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-41",
+        "outputHex": "616263646566676869696867666564636261",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "283f3a2861297c62292a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-holdout-42",
+        "argumentsHex": [
+          "61",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162",
+        "id": "capture-holdout-43",
+        "argumentsHex": [
+          "6162",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-44",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "61626162",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-45",
+        "outputHex": "58",
+        "argumentsHex": [
+          "616261",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-46",
+        "outputHex": "586262",
+        "argumentsHex": [
+          "6162616262",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-47",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "616162",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-48",
+        "outputHex": "58",
+        "argumentsHex": [
+          "61626261",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-49",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "6162626162",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-50",
+        "outputHex": "586263",
+        "argumentsHex": [
+          "6162616263",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-51",
+        "outputHex": "58626361",
+        "argumentsHex": [
+          "616161626361",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-52",
+        "argumentsHex": [
+          "6161616161616161",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-53",
+        "argumentsHex": [
+          "6161",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-54",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616263646566676869696867666564636261",
+        "id": "capture-holdout-55",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "282861297c286229292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-holdout-56",
+        "argumentsHex": [
+          "61",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-57",
+        "outputHex": "6162",
+        "argumentsHex": [
+          "6162",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-58",
+        "outputHex": "58",
+        "argumentsHex": [
+          "61626162",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-59",
+        "outputHex": "616261",
+        "argumentsHex": [
+          "616261",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-60",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6162616262",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-61",
+        "outputHex": "616162",
+        "argumentsHex": [
+          "616162",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5861",
+        "id": "capture-holdout-62",
+        "argumentsHex": [
+          "61626261",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-63",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6162626162",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-64",
+        "outputHex": "5863",
+        "argumentsHex": [
+          "6162616263",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-65",
+        "outputHex": "616161626361",
+        "argumentsHex": [
+          "616161626361",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-66",
+        "outputHex": "6161616161616161",
+        "argumentsHex": [
+          "6161616161616161",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-67",
+        "outputHex": "6161",
+        "argumentsHex": [
+          "6161",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616161616161616161616161",
+        "id": "capture-holdout-68",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-69",
+        "outputHex": "616263646566676869696867666564636261",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "282861297c286229292b5c33",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-70",
+        "argumentsHex": [
+          "61",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-71",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "6162",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-72",
+        "outputHex": "58625862",
+        "argumentsHex": [
+          "61626162",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-73",
+        "outputHex": "586258",
+        "argumentsHex": [
+          "616261",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862586262",
+        "id": "capture-holdout-74",
+        "argumentsHex": [
+          "6162616262",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-75",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "616162",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-76",
+        "outputHex": "58626258",
+        "argumentsHex": [
+          "61626261",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-77",
+        "outputHex": "5862625862",
+        "argumentsHex": [
+          "6162626162",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-78",
+        "outputHex": "5862586263",
+        "argumentsHex": [
+          "6162616263",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-79",
+        "outputHex": "58626358",
+        "argumentsHex": [
+          "616161626361",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-80",
+        "argumentsHex": [
+          "6161616161616161",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-81",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6161",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-82",
+        "outputHex": "58",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-83",
+        "outputHex": "586263646566676869696867666564636258",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "283f3d28617c61612929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-84",
+        "argumentsHex": [
+          "61",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862",
+        "id": "capture-holdout-85",
+        "argumentsHex": [
+          "6162",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-86",
+        "outputHex": "58625862",
+        "argumentsHex": [
+          "61626162",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "586258",
+        "id": "capture-holdout-87",
+        "argumentsHex": [
+          "616261",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-88",
+        "outputHex": "5862586262",
+        "argumentsHex": [
+          "6162616262",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862",
+        "id": "capture-holdout-89",
+        "argumentsHex": [
+          "616162",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58626258",
+        "id": "capture-holdout-90",
+        "argumentsHex": [
+          "61626261",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-91",
+        "outputHex": "5862625862",
+        "argumentsHex": [
+          "6162626162",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862586263",
+        "id": "capture-holdout-92",
+        "argumentsHex": [
+          "6162616263",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58626358",
+        "id": "capture-holdout-93",
+        "argumentsHex": [
+          "616161626361",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-94",
+        "argumentsHex": [
+          "6161616161616161",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-95",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6161",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-96",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-97",
+        "outputHex": "586263646566676869696867666564636258",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "283f3d28612b2929612a5c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-98",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-99",
+        "outputHex": "6162",
+        "argumentsHex": [
+          "6162",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-100",
+        "argumentsHex": [
+          "61626162",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-101",
+        "outputHex": "616261",
+        "argumentsHex": [
+          "616261",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862",
+        "id": "capture-holdout-102",
+        "argumentsHex": [
+          "6162616262",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862",
+        "id": "capture-holdout-103",
+        "argumentsHex": [
+          "616162",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-holdout-104",
+        "argumentsHex": [
+          "61626261",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162626162",
+        "id": "capture-holdout-105",
+        "argumentsHex": [
+          "6162626162",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-106",
+        "outputHex": "5863",
+        "argumentsHex": [
+          "6162616263",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5861626361",
+        "id": "capture-holdout-107",
+        "argumentsHex": [
+          "616161626361",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-108",
+        "outputHex": "58585858",
+        "argumentsHex": [
+          "6161616161616161",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-109",
+        "argumentsHex": [
+          "6161",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-110",
+        "outputHex": "585858585858",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-111",
+        "outputHex": "616263646566676869696867666564636261",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "28617c6162295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-112",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162",
+        "id": "capture-holdout-113",
+        "argumentsHex": [
+          "6162",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "58",
+        "id": "capture-holdout-114",
+        "argumentsHex": [
+          "61626162",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616261",
+        "id": "capture-holdout-115",
+        "argumentsHex": [
+          "616261",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862",
+        "id": "capture-holdout-116",
+        "argumentsHex": [
+          "6162616262",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-117",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "616162",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-holdout-118",
+        "argumentsHex": [
+          "61626261",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-119",
+        "outputHex": "6162626162",
+        "argumentsHex": [
+          "6162626162",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-120",
+        "outputHex": "5863",
+        "argumentsHex": [
+          "6162616263",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5861626361",
+        "id": "capture-holdout-121",
+        "argumentsHex": [
+          "616161626361",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-122",
+        "outputHex": "58585858",
+        "argumentsHex": [
+          "6161616161616161",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-123",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6161",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "585858585858",
+        "id": "capture-holdout-124",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-125",
+        "outputHex": "616263646566676869696867666564636261",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "2861627c61295c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "61",
+        "id": "capture-holdout-126",
+        "argumentsHex": [
+          "61",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162",
+        "id": "capture-holdout-127",
+        "argumentsHex": [
+          "6162",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-128",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-129",
+        "outputHex": "616261",
+        "argumentsHex": [
+          "616261",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-130",
+        "outputHex": "6162616262",
+        "argumentsHex": [
+          "6162616262",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-131",
+        "outputHex": "616162",
+        "argumentsHex": [
+          "616162",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "61626261",
+        "id": "capture-holdout-132",
+        "argumentsHex": [
+          "61626261",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162626162",
+        "id": "capture-holdout-133",
+        "argumentsHex": [
+          "6162626162",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-134",
+        "outputHex": "6162616263",
+        "argumentsHex": [
+          "6162616263",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-135",
+        "outputHex": "616161626361",
+        "argumentsHex": [
+          "616161626361",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6161616161616161",
+        "id": "capture-holdout-136",
+        "argumentsHex": [
+          "6161616161616161",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-137",
+        "outputHex": "6161",
+        "argumentsHex": [
+          "6161",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616161616161616161616161",
+        "id": "capture-holdout-138",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616263646566676869696867666564636261",
+        "id": "capture-holdout-139",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "286129283f3a622863293f292b5c32",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-140",
+        "outputHex": "58",
+        "argumentsHex": [
+          "61",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-141",
+        "outputHex": "5862",
+        "argumentsHex": [
+          "6162",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-142",
+        "outputHex": "58625862",
+        "argumentsHex": [
+          "61626162",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "586258",
+        "id": "capture-holdout-143",
+        "argumentsHex": [
+          "616261",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862586262",
+        "id": "capture-holdout-144",
+        "argumentsHex": [
+          "6162616262",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862",
+        "id": "capture-holdout-145",
+        "argumentsHex": [
+          "616162",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-146",
+        "outputHex": "58626258",
+        "argumentsHex": [
+          "61626261",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-147",
+        "outputHex": "5862625862",
+        "argumentsHex": [
+          "6162626162",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "5862586263",
+        "id": "capture-holdout-148",
+        "argumentsHex": [
+          "6162616263",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-149",
+        "outputHex": "58626358",
+        "argumentsHex": [
+          "616161626361",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-150",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6161616161616161",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-151",
+        "outputHex": "58",
+        "argumentsHex": [
+          "6161",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-152",
+        "outputHex": "58",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "586263646566676869696867666564636258",
+        "id": "capture-holdout-153",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "28615c313f292b",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-154",
+        "outputHex": "61",
+        "argumentsHex": [
+          "61",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162",
+        "id": "capture-holdout-155",
+        "argumentsHex": [
+          "6162",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-156",
+        "outputHex": "61626162",
+        "argumentsHex": [
+          "61626162",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-157",
+        "outputHex": "616261",
+        "argumentsHex": [
+          "616261",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-158",
+        "outputHex": "6162616262",
+        "argumentsHex": [
+          "6162616262",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616162",
+        "id": "capture-holdout-159",
+        "argumentsHex": [
+          "616162",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-160",
+        "outputHex": "61626261",
+        "argumentsHex": [
+          "61626261",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-161",
+        "outputHex": "6162626162",
+        "argumentsHex": [
+          "6162626162",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6162616263",
+        "id": "capture-holdout-162",
+        "argumentsHex": [
+          "6162616263",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "616161626361",
+        "id": "capture-holdout-163",
+        "argumentsHex": [
+          "616161626361",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-164",
+        "outputHex": "6161616161616161",
+        "argumentsHex": [
+          "6161616161616161",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "outputHex": "6161",
+        "id": "capture-holdout-165",
+        "argumentsHex": [
+          "6161",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-166",
+        "outputHex": "616161616161616161616161",
+        "argumentsHex": [
+          "616161616161616161616161",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      },
+      {
+        "id": "capture-holdout-167",
+        "outputHex": "58",
+        "argumentsHex": [
+          "616263646566676869696867666564636261",
+          "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+          "58"
+        ]
+      }
+    ],
+    "holdoutStderr": ""
+  },
+  "tdd": {
+    "original": "216 capture controls fail before implementation; 663 prior controls pass.",
+    "firstRepair": "3failures: two native invalid-UTF-8 representations remain refused; nested optional capture retains stale value incorrectly.",
+    "holdout": "168independent controls expose11 repeat/alternative-state differences. Greedy/lazy min-zero quantified captures clear at invocation; alternatives retain prior successful captures. Final all1047PERL tests pass."
+  },
+  "semantics": [
+    "Numeric backreferences1–9, explicit positive and relative \\g{n} references",
+    "Ordered captures copy across backtracking branches; unmatched references fail",
+    "Positive lookahead captures survive atomic assertion; negative assertions publish no captures",
+    "Repeated optional capture clearing and retained alternate captures qualify against independent native sample",
+    "ASCII-insensitive backreference matching uses the enclosing pattern mode; replacement remains literal",
+    "Capture copies, reference comparisons and capture-reset traversal consume cooperative workbook work/cancellation"
+  ],
+  "nativeActivated": {
+    "profileReceipt": "docs/ssconvert/perl-sed-gap-proof.json",
+    "csvBytesExact": true,
+    "caseCount": 382,
+    "exit": -6,
+    "stderrBytes": 0,
+    "qualification": "Not a successful native CLI parity pass: original and repeat abort at shutdown after exact CSV. LLDB catches malloc invalid free in go_plugin_finalize via go_plugins_shutdown/gnm_shutdown. No native source edits or shutdown bypass. Required clean activated capture-profile/lifecycle qualification remains open.",
+    "patternShards": [
+      {
+        "patternHex": "2861295c31",
+        "cases": 12,
+        "exit": 0,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28617c62295c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "2861627c61295c31",
+        "cases": 26,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "2861292862295c325c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "2861293f5c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28612a295c31",
+        "cases": 11,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28612a3f295c31",
+        "cases": 11,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28617c6161292b5c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28612862293f292b5c32",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28617c62292a5c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f3d28612b29295c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f2162286129295c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f69292861295c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f693a2861295c3129",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "2861295c677b317d",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "2861292862295c677b2d327d5c677b2d317d",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "2828617c62292b295c31",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "5c31286129",
+        "cases": 12,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f3a612862293f292b5c31",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f3a2861297c62292b5c31",
+        "cases": 14,
+        "exit": 0,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f3a2861297c62292a5c31",
+        "cases": 14,
+        "exit": 0,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "282861297c286229292b5c32",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "282861297c286229292b5c33",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f3d28617c61612929612a5c31",
+        "cases": 14,
+        "exit": 0,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "283f3d28612b2929612a5c31",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28617c6162295c31",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "286129283f3a622863293f292b5c32",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "28615c313f292b",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      },
+      {
+        "patternHex": "2861292862292863292864292865292866292867292868292869295c395c385c375c365c355c345c335c325c31",
+        "cases": 14,
+        "exit": -6,
+        "exact": true,
+        "stderrHex": ""
+      }
+    ],
+    "successfulShards": 4,
+    "successfulCases": 54
+  },
+  "public": {
+    "caseCount": 382,
+    "sdkExact": true,
+    "shellExact": true,
+    "checkpointReplayExact": true,
+    "inputUnchanged": true,
+    "sdkDiagnostics": [],
+    "shellStderr": ""
+  },
+  "browserAndWorker": {
+    "browser": {
+      "sed": {
+        "caseCount": 645,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "family": [
+        {
+          "timezone": "UTC",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "timezone": "America/Los_Angeles",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ],
+      "captures": {
+        "caseCount": 382,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      }
+    },
+    "worker": {
+      "sed": {
+        "caseCount": 645,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "family": [
+        {
+          "timezone": "UTC",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "timezone": "America/Los_Angeles",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ],
+      "captures": {
+        "caseCount": 382,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      }
+    }
+  },
+  "invalidUtf8": "Two additional native capture results are explicitly refused; combined15 retained invalid-byte representation obligations, never parity passes.",
+  "checks": {
+    "focused": "1047PERL_SED+17optional=1064 tests pass",
+    "maintained": "340files / 8910tests pass",
+    "lint": "Maintained package lint/production/test/public-consumer types pass",
+    "builtSdk": "Selected workspace output from maintained normal root build; actual SDK/Shell/replay382 controls pass",
+    "screenshots": "Full browser/worker result screenshot inspected; all382 captures and original645/frozen2 remain exact"
+  },
+  "remaining": [
+    "Native activated loader shutdown failure",
+    "Invalid-byte result representation, native invalid-pattern diagnostics",
+    "Bare multi-digit backreference/octal ambiguity",
+    "Lookbehind, named captures, atomic/possessive constructs and wider syntax/classes/profiles",
+    "Containing successful GitHub/registry publication"
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-generate.py",
+      "bytes": 1748,
+      "sha256": "94410a4f42e48194bb16564d4b7b68f42c62ea938e413369ae992d3d5c638090"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-source.json",
+      "bytes": 68719,
+      "sha256": "c14bf4a6c37fbe0b92abc7ce70ed1f9e4349f2aeca3726e1649c424f7d0cf498"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-red.log",
+      "bytes": 429823,
+      "sha256": "06c9d625e539e59880c67093eb28f34db0af9d099c5eb26aa3d23edd55a4699d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-green.log",
+      "bytes": 65008,
+      "sha256": "3dca3e5886841c6ad4328dfdeae91a0417079172e1c5c8de1a7bcfa17ca71f34"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-holdout-red.log",
+      "bytes": 85567,
+      "sha256": "f7859d88af15520b28548e1c4db0996762402c5d739d6386d5ba082ec2cf4ff0"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-holdout-green.log",
+      "bytes": 297,
+      "sha256": "cc1d8342b396b5ed4c9d5551d1ff8c224c0923322285de2882ab1fc6681223b0"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-final-focused.log",
+      "bytes": 375,
+      "sha256": "81ff6c69a51f102285c9947b6afb4e20e556e135858e4d7e110e6abd21f9a1de"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-maintained.log",
+      "bytes": 27203,
+      "sha256": "41f73ff84b35a041c29c7a47038565283746d3b5b6811ee98cee194e54425c7a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-lint.log",
+      "bytes": 165,
+      "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-input.gnumeric",
+      "bytes": 26719,
+      "sha256": "98c3113d9fe67a11f113ee1e2e8d957114b79fb6ae15d0ac7b1d3b8f8e8502b9"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-expected.csv",
+      "bytes": 2204,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-native.csv",
+      "bytes": 2204,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-native-repeat.csv",
+      "bytes": 2204,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-native-backtrace.log",
+      "bytes": 5095,
+      "sha256": "4ba6fc6478ffebf30a90d85f6110bca767c9682fb00a1d16fa2f53a11993dfc8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-native-shards.json",
+      "bytes": 3620,
+      "sha256": "d17383659fcc943ac38a48b5a861d7ba69b37ba6fd4dafdc04718c3abb84532a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-public-results.json",
+      "bytes": 169,
+      "sha256": "b7ebd7b9ec6e7aaf0cd70868482a14ebe93eec27a4f4313c9c7d6af93b85271b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-browser-results.log",
+      "bytes": 1116,
+      "sha256": "7fc9329fe29bf36010369dc29d8c2824d677f1bb90a224cfd052f12f208f0030"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-sed-capture-browser.png",
+      "bytes": 122066,
+      "sha256": "75e5c7a67a38a0907a1a7b188ad709df06fa27468f160a46f6a632a49e250df5"
+    }
+  ],
+  "delivery": {
+    "localCommit": null,
+    "remoteMain": null,
+    "publication": "Pending"
+  }
+}

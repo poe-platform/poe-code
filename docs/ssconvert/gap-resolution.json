@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded explicit port matches645 native activated Perl5.34.1 CSV controls and all four public surfaces/checkpoint. Advanced grammar/captures,13 invalid-UTF-8 results,native invalid-pattern diagnostics,wider optional profiles and publication remain required.",
+      "currentFinding": "Bounded port qualifies original645controls plus382valid capture/backreference controls on SDK/Shell/browser/worker/replay;8910maintained tests. Expanded native loader CSV matches382 but aborts in GOffice shutdown,not a successful parity run.15invalidUTF8 outputs,native invalid-pattern diagnostics,lookbehind/named/advanced grammar,widerprofiles and publication remain required.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -499,12 +499,17 @@
           "kind": "activated-native-loader-and-public-four-surface",
           "path": "docs/ssconvert/perl-sed-gap-proof.json",
           "outcome": "645 exact controls with zero native stderr; frozen clock Perl family UTC/Los_Angeles matches native/SDK/Shell/browser/worker. Required gaps explicitly retained."
+        },
+        {
+          "kind": "independent-capture-source-and-native-lifecycle-observation",
+          "path": "docs/ssconvert/perl-sed-capture-gap-proof.json",
+          "outcome": "216originalred and11holdoutstate regressions repaired;382valid public cases exact,2additional invalid-byte outputs refused. Native bytesexact with shutdownabort retained;54cases on4native shards succeed."
         }
       ],
       "delivery": {
-        "localCommit": null,
-        "remoteMain": null,
-        "publication": null
+        "localCommit": "dfbfd238e027ff59c201fb4668b2385c78f89a57",
+        "remoteMain": "Verified normal push to origin/main",
+        "publication": "Containing publication pending; root cipher dependency declaration failure validated."
       }
     },
     {

@@ -9,6 +9,8 @@ type Node = { kind: "char"; test: (byte: number) => boolean }
   | { kind: "sequence"; nodes: Node[] }
   | { kind: "alternative"; nodes: Node[] }
   | { kind: "repeat"; node: Node; min: number; max: number; lazy: boolean }
+  | { kind: "capture"; node: Node; index: number }
+  | { kind: "reference"; index: number; insensitive: boolean }
   | { kind: "assert"; node: Node; negative: boolean };
 const unsupported = (feature = "pattern syntax or diagnostic"): never => { throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: PERL_SED ${feature}`); };
 const word = (byte: number) => byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122 || byte === 95;
@@ -17,7 +19,8 @@ const fold = (byte: number) => byte >= 65 && byte <= 90 ? byte + 32 : byte;
 /** A byte grammar and step-accounted ordered matcher. No guest pattern is
  * compiled by JavaScript or passed to a native runtime. */
 function compile(pattern: string, host: FunctionHost): Node {
-  let at = 0, depth = 0, nodes = 0;
+  let at = 0, depth = 0, nodes = 0, captures = 0;
+  const references: number[] = [];
   const flags: Flags = { insensitive: false, multiline: false, dotall: false, extended: false };
   const node = <T extends Node>(value: T): T => {
     host.tick();
@@ -39,6 +42,22 @@ function compile(pattern: string, host: FunctionHost): Node {
   function escaped(mode: Flags, inClass = false): Node {
     host.tick();
     const char = pattern[at++]; if (char === undefined) return unsupported();
+    if (!inClass && (char >= "1" && char <= "9" || char === "g")) {
+      let index: number;
+      if (char === "g") {
+        if (pattern[at++] !== "{") return unsupported();
+        const relative = pattern[at] === "-"; if (relative) at++;
+        const number = integer();
+        if (!number || pattern[at++] !== "}") return unsupported();
+        index = relative ? captures - number + 1 : number;
+      } else {
+        index = Number(char);
+        if (pattern[at] !== undefined && pattern[at]! >= "0" && pattern[at]! <= "9") return unsupported();
+      }
+      if (index < 1) return unsupported();
+      references.push(index);
+      return node({ kind: "reference", index, insensitive: mode.insensitive });
+    }
     const common = "nrtfae", values = [10, 13, 9, 12, 7, 27];
     const index = common.indexOf(char); if (index >= 0) return literal(values[index]!, mode);
     if (char === "b" && inClass) return literal(8, mode);
@@ -95,6 +114,7 @@ function compile(pattern: string, host: FunctionHost): Node {
   function group(mode: Flags): Node {
     if (++depth > 64) throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern depth limit exceeded");
     let assertion: boolean | undefined;
+    const capture = pattern[at] === "?" ? undefined : ++captures;
     if (pattern[at] === "?") {
       at++;
       if (pattern[at] === ":") at++;
@@ -116,7 +136,8 @@ function compile(pattern: string, host: FunctionHost): Node {
       }
     }
     const inner = alternative(mode); if (pattern[at++] !== ")") return unsupported(); depth--;
-    return assertion === undefined ? inner : node({ kind: "assert", node: inner, negative: assertion });
+    if (assertion !== undefined) return node({ kind: "assert", node: inner, negative: assertion });
+    return capture === undefined ? inner : node({ kind: "capture", node: inner, index: capture });
   }
   function integer(): number {
     let value = 0, count = 0;
@@ -171,21 +192,41 @@ function compile(pattern: string, host: FunctionHost): Node {
     while (pattern[at] === "|") { at++; result.push(sequence(mode)); }
     return result.length === 1 ? result[0]! : node({ kind: "alternative", nodes: result });
   }
-  const result = alternative(flags); if (at !== pattern.length) return unsupported(); return result;
+  const result = alternative(flags); if (at !== pattern.length) return unsupported();
+  for (const index of references) { host.tick(); if (index > captures) return unsupported(); }
+  return result;
 }
 
-function* match(node: Node, source: string, position: number, host: FunctionHost): Generator<number> {
-  host.tick();
-  if (node.kind === "char") { if (position < source.length && node.test(source.charCodeAt(position))) yield position + 1; }
-  else if (node.kind === "anchor") { if (node.test(source, position)) yield position; }
-  else if (node.kind === "assert") {
-    const inner = match(node.node, source, position, host), found = !inner.next().done; inner.return(undefined);
-    if (found !== node.negative) yield position;
-  } else if (node.kind === "alternative") { for (const child of node.nodes) yield* match(child, source, position, host); }
+type MatchState = { position: number; captures: readonly (readonly [number, number] | undefined)[] };
+
+function* match(node: Node, source: string, state: MatchState, host: FunctionHost): Generator<MatchState> {
+  host.tick(); const position = state.position;
+  if (node.kind === "char") { if (position < source.length && node.test(source.charCodeAt(position))) yield { ...state, position: position + 1 }; }
+  else if (node.kind === "anchor") { if (node.test(source, position)) yield state; }
+  else if (node.kind === "reference") {
+    const captured = state.captures[node.index]; if (captured === undefined) return;
+    const length = captured[1] - captured[0]; if (length > source.length - position) return;
+    for (let offset = 0; offset < length; offset++) {
+      host.tick(); const left = source.charCodeAt(captured[0] + offset), right = source.charCodeAt(position + offset);
+      if (node.insensitive ? fold(left) !== fold(right) : left !== right) return;
+    }
+    yield { ...state, position: position + length };
+  } else if (node.kind === "capture") {
+    for (const result of match(node.node, source, state, host)) {
+      const captures: (readonly [number, number] | undefined)[] = [];
+      for (const capture of result.captures) { host.tick(); captures.push(capture); }
+      captures[node.index] = [position, result.position];
+      yield { ...result, captures };
+    }
+  } else if (node.kind === "assert") {
+    const inner = match(node.node, source, state, host), result = inner.next(); inner.return(undefined);
+    if (result.done) { if (node.negative) yield state; }
+    else if (!node.negative) yield { ...result.value, position };
+  } else if (node.kind === "alternative") { for (const child of node.nodes) yield* match(child, source, state, host); }
   else if (node.kind === "sequence") {
-    const stack: { index: number; iterator: Generator<number> }[] = [];
-    if (!node.nodes.length) { yield position; return; }
-    stack.push({ index: 0, iterator: match(node.nodes[0]!, source, position, host) });
+    const stack: { index: number; iterator: Generator<MatchState> }[] = [];
+    if (!node.nodes.length) { yield state; return; }
+    stack.push({ index: 0, iterator: match(node.nodes[0]!, source, state, host) });
     while (stack.length) {
       host.tick(); const top = stack[stack.length - 1]!, step = top.iterator.next();
       if (step.done) stack.pop();
@@ -193,22 +234,36 @@ function* match(node: Node, source: string, position: number, host: FunctionHost
       else stack.push({ index: top.index + 1, iterator: match(node.nodes[top.index + 1]!, source, step.value, host) });
     }
   } else {
-    type Frame = { position: number; count: number; iterator?: Generator<number>; emitted: boolean; stopped: boolean };
-    const stack: Frame[] = [{ position, count: 0, emitted: false, stopped: false }];
+    if (node.min === 0) {
+      const nested: Node[] = [node.node], cleared = new Set<number>();
+      while (nested.length) {
+        host.tick(); const child = nested.pop()!;
+        if (child.kind === "capture") cleared.add(child.index);
+        if (child.kind === "capture" || child.kind === "repeat" || child.kind === "assert") nested.push(child.node);
+        else if (child.kind === "sequence" || child.kind === "alternative") for (const descendant of child.nodes) { host.tick(); nested.push(descendant); }
+      }
+      if (cleared.size) {
+        const captures: (readonly [number, number] | undefined)[] = [];
+        for (let index = 0; index < state.captures.length; index++) { host.tick(); captures.push(cleared.has(index) ? undefined : state.captures[index]); }
+        state = { ...state, captures };
+      }
+    }
+    type Frame = { state: MatchState; count: number; iterator?: Generator<MatchState>; emitted: boolean; stopped: boolean };
+    const stack: Frame[] = [{ state, count: 0, emitted: false, stopped: false }];
     while (stack.length) {
       host.tick(); const top = stack[stack.length - 1]!;
-      if (node.lazy && !top.emitted) { top.emitted = true; if (top.count >= node.min) yield top.position; }
+      if (node.lazy && !top.emitted) { top.emitted = true; if (top.count >= node.min) yield top.state; }
       if (!top.stopped && top.count < node.max) {
-        top.iterator ??= match(node.node, source, top.position, host);
+        top.iterator ??= match(node.node, source, top.state, host);
         const step = top.iterator.next();
         if (!step.done) {
           if (stack.length >= host.context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PERL_SED match state limit exceeded");
-          stack.push({ position: step.value, count: top.count + 1, emitted: false,
-            stopped: step.value === top.position && top.count + 1 >= node.min });
+          stack.push({ state: step.value, count: top.count + 1, emitted: false,
+            stopped: step.value.position === top.state.position && top.count + 1 >= node.min });
           continue;
         }
       }
-      stack.pop(); if (!node.lazy && top.count >= node.min) yield top.position;
+      stack.pop(); if (!node.lazy && top.count >= node.min) yield top.state;
     }
   }
 }
@@ -234,10 +289,10 @@ export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost
     outputSize += text.length; output.push(text);
   };
   while (position <= source.length) {
-    host.tick(); const iterator = match(pattern, source, position, host); let end: number | undefined;
+    host.tick(); const iterator = match(pattern, source, { position, captures: [] }, host); let end: number | undefined;
     for (const candidate of iterator) {
-      if (candidate === position && position === emptyAt) continue;
-      end = candidate; break;
+      if (candidate.position === position && position === emptyAt) continue;
+      end = candidate.position; break;
     }
     if (end === undefined) { position++; continue; }
     emit(source.slice(published, position)); emit(replacement); published = end;

@@ -6079,8 +6079,8 @@
     }
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": "Pending containing successor. Historical Release35779111237 failed replay diagnostic; current main already contains fix064053213 and current10-test callback-export cohort passes."
+    "localCommit": "dfbfd238e027ff59c201fb4668b2385c78f89a57",
+    "remoteMain": "Verified exact remote main after normal rebase/push",
+    "publication": "Release35788741780 in progress. Preceding35787295850 failed root @noble/ciphers dependency declaration; separate manifest repair under actual root build verification."
   }
 }

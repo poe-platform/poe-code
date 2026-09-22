@@ -1,3 +1,4 @@
+import { perlSedCaptureCases, perlSedInvalidCaptureByteCases, perlSedCaptureHoldouts } from "./perl-sed-capture-fixtures.js";
 import { expect, it } from "vitest";
 import { perlSedCases, perlSedInvalidByteCases } from "./perl-sed-fixtures.js";
 import proof from "../../../../docs/ssconvert/perl-sed-applicability.json" with { type: "json" };
@@ -42,7 +43,7 @@ it("keeps native C-string input boundaries and literal replacement output", () =
   expect(recalculateWorkbook(book, context).sheets[0]!.cells[3]!.value).toEqual({ kind: "string", value: "a$1c" });
 });
 it("refuses unsafe or unqualified pattern execution explicitly", () => {
-  for (const pattern of ['(?{die "owned unsafe code"})', '(??{die "owned unsafe code"})', '(a)\\1', '(?<=a)b'])
+  for (const pattern of ['(?{die "owned unsafe code"})', '(??{die "owned unsafe code"})', '(a)\\11', '(?<=a)b'])
     expect(() => calculate(expression(["aab", pattern, "X"]))).toThrow("PERL_SED pattern syntax or diagnostic");
 });
 it("bounds output amplification and ordered backtracking work", () => {
@@ -62,4 +63,16 @@ it("observes cancellation within matching without more ticks", () => {
 
 it.each(perlSedInvalidByteCases)("refuses unresolved native byte-result representation $id", vector => {
   expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+});
+
+it.each(perlSedCaptureCases)("matches independent native capture state $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
+});
+
+it.each(perlSedInvalidCaptureByteCases)("refuses unresolved capture byte result $id", vector => {
+  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+});
+
+it.each(perlSedCaptureHoldouts)("matches independent capture holdout $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });

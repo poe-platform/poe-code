@@ -344,7 +344,9 @@
     "safe-bash-command-csvcut": "*",
     "safe-bash-command-tesseract": "*",
     "safe-bash-command-htmlq": "*",
-    "safe-bash-command-soffice": "*"
+    "safe-bash-command-soffice": "*",
+    "pdf-parser": "*",
+    "safe-bash-command-pdftotext": "*"
   },
   "repository": {
     "type": "git",

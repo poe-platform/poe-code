@@ -1,9 +1,8 @@
-# ssconvert usage draft
+# ssconvert usage
 
-Proposed usage documentation for the private, unpublished workspace. Explicit
-README approval is required before editing the root or package README. This
-draft does not satisfy the package README requirement; no install or release
-availability is claimed.
+The spreadsheet conversion SDK is distributed through `poe-code/ssconvert`.
+This workspace remains private and is not published separately. The examples
+below require explicit engine configuration and document supported limits.
 
 The domain workspace requires Node.js 22 or newer and uses TypeScript ESM with
 NodeNext imports. This audit executes Node.js 22.22.2 on Darwin arm64; it does

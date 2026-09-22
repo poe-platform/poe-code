@@ -1,11 +1,10 @@
 # csvkit for safe-bash
 
-Concrete candidate for a future packages/csvkit/README.md. README incorporation
-requires separate user approval under root AGENTS.md. This draft describes
-inspected source APIs. Fresh compiled public descriptor, registration and
-help/version checks are recorded in current-user-edge-validation.md; complete
-operation/profile qualification remains pending. The workspace is private and
-no registry installation is recommended.
+The CSV SDK is distributed through `poe-code/csvkit`; this workspace remains
+private and is not published separately. These examples describe inspected source
+APIs. Fresh compiled public descriptor, registration and help/version checks are
+recorded in current-user-edge-validation.md; complete operation/profile
+qualification remains pending.
 Node.js 22 or newer is required. Product TypeScript ESM uses explicit injected
 capabilities and has no native-process or Python csvkit fallback.
 

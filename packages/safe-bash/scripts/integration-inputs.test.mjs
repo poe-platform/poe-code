@@ -2800,11 +2800,16 @@ test("UTF-8 literal workerd acceptance remains admitted current input", () => {
   }
 });
 
-test("published root excludes sandbox and office packages while preserving private workspace contracts", () => {
+test("published root exposes supported shell SDKs while preserving private workspace contracts", () => {
   const source = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
-  assert.deepEqual(Object.keys(root.exports).filter(key => key.startsWith("./safe")), []);
+  assert.deepEqual(Object.keys(root.exports).filter(key => key.startsWith("./safe")).sort(), [
+    "./safe-bash", "./safe-bash/commands/media", "./safe-fs", "./safe-fs/core",
+    "./safe-fs/node", "./safe-fs/node/filesystem", "./safe-js", "./safe-js/cli",
+    "./safe-js/core", "./safe-playwright", "./safe-playwright/adapter",
+    "./safejs", "./safejs/cli", "./safejs/core",
+  ].sort());
   assert.equal(source.exports["./node"].browser, null);
   assert.equal(root.engines.node, ">=18.18");
   assert.equal(source.engines.node, ">=22");
@@ -2817,22 +2822,22 @@ test("published root excludes sandbox and office packages while preserving priva
   const archive = JSON.parse(readFileSync(new URL("../../office-package/package.json", import.meta.url), "utf8"));
   assert.equal(archive.name, "@poe-code/office-package");
   assert.deepEqual(archive.dependencies, { pako: "3.0.1" });
-  assert.equal(root.dependencies.pako, undefined);
+  assert.equal(root.dependencies.pako, "3.0.1");
   assert.equal(root.files.includes("packages/office-package/dist"), false);
   assert.equal(root.files.includes("packages/office-package/LICENSE"), false);
   assert.deepEqual(source.exports["./commands/pptx"], { types: "./dist/commands/pptx/index.d.ts", import: "./dist/commands/pptx/index.js" });
   assert.equal(root.exports["./pptx"], undefined);
   assert.equal(root.devDependencies.pptx, "*");
-  assert.equal(root.dependencies.saxes, undefined);
+  assert.equal(root.dependencies.saxes, "^6.0.0");
   assert.equal(root.files.includes("packages/pptx/dist"), false);
   assert.equal(root.files.includes("packages/pptx/LICENSE"), false);
   assert.equal(root.dependencies["@poe-platform/safe-bash"], undefined);
   assert.equal(root.devDependencies["@poe-platform/safe-bash"], "*");
-  assert.equal(root.files.includes("packages/safe-bash/dist"), false);
+  assert.equal(root.files.includes("packages/safe-bash/dist"), true);
   assert.deepEqual([...source.poeCode.packageLint.sourceExclude].sort(), build.exclude.filter(path => path.startsWith("src/")).sort());
   const entry = readFileSync(new URL("../../../src/index.ts", import.meta.url), "utf8");
-  assert.equal(entry.includes("@poe-platform/safe-bash"), false);
-  assert.equal(entry.includes("safe-bash"), false);
+  assert.ok(entry.includes("export type { RemoteMediaOptions, RemoteMediaControlContext, MediaCommandsOptions, MediaProviderSettings, MediaProviderRuntime } from '@poe-platform/safe-bash/commands/media';"));
+  assert.ok(entry.includes("export { runBash } from './sdk/bash.js';"));
 });
 
 test("Turbo admits maintained tests with a build dependency and prunes exact held inputs", () => {

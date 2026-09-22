@@ -885,6 +885,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/contracts/missing-target.test.ts"));
   assert.ok(files.includes("tests/commands/copy-preflight-canonicalization.test.ts"));
   assert.ok(files.includes("tests/commands/join-render-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/join-null-data.test.ts"));
   assert.ok(files.includes("tests/commands/ere-work-accounting.test.ts"));
   assert.ok(files.includes("tests/commands/find-time-delete.test.ts"));
   assert.ok(files.includes("tests/commands/sed-null-data.test.ts"));

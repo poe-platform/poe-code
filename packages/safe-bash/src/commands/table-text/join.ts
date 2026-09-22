@@ -106,6 +106,8 @@ function split(bytes: Uint8Array, options: Options, budget: Budget): readonly Ui
       while (offset < bytes.length && !blank(bytes[offset]!)) offset++;
       if (offset > start) add(start, offset);
     }
+    // GNU join keeps a final empty field after blanks in a NUL-delimited record.
+    if (options.separator === 0 && fields.length && blank(bytes[bytes.length - 1]!)) add(bytes.length, bytes.length);
   }
   return fields;
 }

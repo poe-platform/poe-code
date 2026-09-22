@@ -13,6 +13,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Build and rewrite once per test-file run; consumer builds and VMs stay separate.
 let portableBuild: BuildResult;
 let filesystemBuild: BuildResult;
+let browserFixtureBuild: BuildResult;
 const artifacts = new Volume();
 
 it("publishes the op entry and live compression chunks in one browser output graph", async () => {
@@ -420,10 +421,10 @@ beforeAll(async () => {
   mixedConsumer = runInContext(`(function(){ const module = { exports: {} }; ${consumer}; return module.exports; })()`, sandbox);
 });
 
-it("executes the maintained browser fixture with all top-level workflows in a Node VM", async () => {
+beforeAll(async () => {
   const directory = path.join(root, "packages/safe-bash");
   const manifest = JSON.parse(await readFile(path.join(directory, "package.json"), "utf8"));
-  const result = await build({
+  browserFixtureBuild = await build({
     entryPoints: [path.join(root, "scripts/fixtures/safe-packages-browser.mjs")],
     bundle: true, write: false, metafile: true, platform: "browser",
     conditions: ["workerd", "worker", "browser"], format: "esm", target: "es2022",
@@ -449,6 +450,10 @@ it("executes the maintained browser fixture with all top-level workflows in a No
       },
     }],
   });
+});
+
+it("executes the maintained browser fixture with all top-level workflows in a Node VM", async () => {
+  const result = browserFixtureBuild;
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.exports)).toEqual([]);
   const sandbox = createContext({

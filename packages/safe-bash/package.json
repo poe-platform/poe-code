@@ -382,6 +382,27 @@
     "./commands/ssconvert": {
       "types": "./dist/commands/ssconvert/index.d.ts",
       "import": "./dist/commands/ssconvert/index.js"
+    },
+    "./commands/media": {
+      "types": "./dist/commands/media/index.d.ts",
+      "workerd": "./dist/commands/media/index.js",
+      "browser": "./dist/commands/media/index.js",
+      "node": "./dist/commands/media/index.js",
+      "default": "./dist/commands/media/index.js"
+    },
+    "./commands/media/settings": {
+      "types": "./dist/commands/media/settings.d.ts",
+      "workerd": "./dist/commands/media/settings.js",
+      "browser": "./dist/commands/media/settings.js",
+      "node": "./dist/commands/media/settings.js",
+      "default": "./dist/commands/media/settings.js"
+    },
+    "./execution": {
+      "types": "./dist/execution.d.ts",
+      "workerd": "./dist/execution.js",
+      "browser": "./dist/execution.js",
+      "node": "./dist/execution.js",
+      "default": "./dist/execution.js"
     }
   },
   "files": [
@@ -474,7 +495,9 @@
     "@poe-code/package-lint": "*",
     "safe-bash-command-fmt": "*",
     "@poe-code/csvkit": "*",
-    "@poe-code/ssconvert": "*"
+    "@poe-code/ssconvert": "*",
+    "@poe-code/media-cli": "*",
+    "@poe-code/remote-execution": "*"
   },
   "poeCode": {
     "packageLint": {

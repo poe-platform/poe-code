@@ -5,6 +5,9 @@ import { applyPoeTheme } from "./cli/poe-theme.js";
 
 applyPoeTheme();
 export { spawn } from "./sdk/spawn.js";
+export { runBash } from './sdk/bash.js';
+export type { BashOptions } from './sdk/bash.js';
+export type { RemoteMediaOptions, RemoteMediaControlContext, MediaCommandsOptions, MediaProviderSettings, MediaProviderRuntime } from '@poe-platform/safe-bash/commands/media';
 export { runPipeline, runPipelineInit, runPipelineSequence, createRunQueue } from "./sdk/pipeline.js";
 export { runMaestro } from "@poe-code/maestro";
 export {

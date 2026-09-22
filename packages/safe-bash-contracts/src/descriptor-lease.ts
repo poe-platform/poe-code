@@ -11,7 +11,7 @@ export interface DescriptorLease {
   readonly consumerClosed?: AbortSignal;
   read?: CommandInput["read"];
   write?(bytes: Uint8Array, signal: AbortSignal): Promise<number>;
-  seek?: CommandInput["seek"];
+  seek?: NonNullable<CommandInput["seek"]>;
   stat?(signal: AbortSignal): Promise<FileStat>;
   close(): Promise<void>;
 }

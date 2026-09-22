@@ -21,6 +21,7 @@ import { text } from "toolcraft-design";
 import { helpGuidance, optionHelpGroup } from "./commands/help-guidance.js";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerAgentCommand } from "./commands/agent.js";
+import { registerBashCommand } from './commands/bash.js';
 import { registerSpawnCommand } from "./commands/spawn.js";
 import {
   createPoeAgentSpawnHandler,
@@ -993,6 +994,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerUpdateCommand(program, container, packageVersion);
   registerConfigureCommand(program, container);
   registerAgentCommand(program, container);
+  registerBashCommand(program);
   const inProcessSpawnHandlers = {
     [POE_AGENT_SPAWN_SERVICE]: createPoeAgentSpawnHandler()
   };

@@ -79,6 +79,38 @@ for (const defect of ["none", "public", "closure", "source", "link"]) test(`buil
   assert.equal(owned.descriptors.size, 0);
 });
 
+for (const defect of ["none", "public", "closure", "source", "link", "mixed-native"]) test(`build explicit portable media declarations: ${defect}`, async () => {
+  const route = { types: "./dist/index.d.ts", workerd: "./dist/index.js", browser: "./dist/index.js", node: "./dist/index.js", default: "./dist/index.js" };
+  const media = { name: "@poe-code/media-cli", version: "0.0.1", private: defect !== "public", type: "module",
+    dependencies: defect === "closure" ? { forbidden: "1" } : { saxes: "^6.0.0", "@poe-code/remote-execution": "*" },
+    exports: { ".": { ...route, ...(defect === "source" ? { types: "./src/index.d.ts" } : {}), ...(defect === "mixed-native" ? { browser: "./dist/server.js" } : {}) } } };
+  const remote = { name: "@poe-code/remote-execution", version: "0.0.1", private: true, type: "module",
+    dependencies: { "@poe-code/safe-fs": "*" }, exports: Object.fromEntries([".", "./protocol", "./binary", "./wire"].map(name => {
+      const file = name === "." ? "index" : name.slice(2) === "wire" ? "wire.generated" : name.slice(2);
+      return [name, Object.fromEntries(Object.entries(route).map(([condition, value]) => [condition, value.replace("index", file)]))];
+    })) };
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: { "@poe-code/media-cli": "*", "@poe-code/remote-execution": "*" } }),
+    "src/index.ts": 'export { answer } from "@poe-code/media-cli";',
+    "../media-cli/package.json": JSON.stringify(media),
+    "../media-cli/dist/index.d.ts": "export declare const answer: number;",
+    "../media-cli/src/index.d.ts": "SOURCE sentinel",
+    "../remote-execution/package.json": JSON.stringify(remote),
+    "../safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", exports: {
+      "./contracts": { types: "./dist/contracts/index.d.ts" },
+      "./contracts/object": { types: "./dist/contracts/object.d.ts" }, "./contracts/errors": { types: "./dist/contracts/errors.d.ts" },
+    } }),
+  });
+  if (defect === "link") {
+    owned.memory.unlinkSync(root + "/../media-cli/dist/index.d.ts");
+    owned.memory.symlinkSync(root + "/../media-cli/src/index.d.ts", root + "/../media-cli/dist/index.d.ts");
+  }
+  if (defect === "none") assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  else await assert.rejects(owned.run());
+  assert.equal(owned.reads.some(path => path.endsWith("/media-cli/src/index.d.ts")), false);
+  assert.equal(owned.descriptors.size, 0);
+});
+
 for (const defect of ["none", "pin", "name", "version", "export", "closure", "link", "source-import", "runtime-import", "unapproved-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
   const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports, dependencies: {"@poe-code/office-package": "*", entities: "^6.0.1", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", "@poe-code/pdf": "0.0.1", pptx: "*"}};

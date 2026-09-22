@@ -262,6 +262,48 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         }
         toolRoots.push(join(implementationRoot, "dist"));
       }
+      if (manifest.devDependencies?.["@poe-code/media-cli"] !== undefined) {
+        const packages = {
+          "media-cli": { dependencies: { saxes: "^6.0.0", "@poe-code/remote-execution": "*" }, routes: { ".": "index" } },
+          "remote-execution": { dependencies: { "@poe-code/safe-fs": "*" }, routes: { ".": "index", "./protocol": "protocol", "./binary": "binary", "./wire": "wire.generated" } },
+        };
+        peerPaths ??= {};
+        for (const [directory, profile] of Object.entries(packages)) {
+          const name = "@poe-code/" + directory;
+          assert.equal(manifest.devDependencies[name], "*", "media declarations require explicit local build dependencies");
+          const implementationRoot = resolve(root, "../" + directory);
+          const metadata = join(implementationRoot, "package.json");
+          peerMetadata.add(metadata);
+          const implementation = JSON.parse(read(metadata, 65536));
+          assert.equal(implementation.name, name, "media declaration workspace identity");
+          assert.equal(implementation.private, true, "media implementation must remain private");
+          assert.equal(implementation.version, "0.0.1", "media declaration workspace version");
+          assert.equal(implementation.type, "module", "media declaration workspace uses ESM");
+          assert.deepEqual(implementation.dependencies, profile.dependencies, "media declaration runtime closure");
+          assert.deepEqual(implementation.devDependencies ?? {}, {}, "media declaration build closure");
+          assert.ok(!Object.keys(implementation.peerDependencies ?? {}).length && !Object.keys(implementation.optionalDependencies ?? {}).length, "media declarations have no implicit dependency closure");
+          for (const [route, file] of Object.entries(profile.routes)) {
+            assert.deepEqual(implementation.exports?.[route], {
+              types: "./dist/" + file + ".d.ts", workerd: "./dist/" + file + ".js",
+              browser: "./dist/" + file + ".js", node: "./dist/" + file + ".js", default: "./dist/" + file + ".js",
+            }, "media portable declaration/runtime condition routes");
+            peerPaths[name + (route === "." ? "" : route.slice(1))] = [join(implementationRoot, "dist/" + file + ".d.ts")];
+          }
+          toolRoots.push(join(implementationRoot, "dist"));
+        }
+        const filesystemRoot = resolve(root, "../safe-fs");
+        const filesystemMetadata = join(filesystemRoot, "package.json");
+        peerMetadata.add(filesystemMetadata);
+        const filesystem = JSON.parse(read(filesystemMetadata, 65536));
+        assert.equal(filesystem.name, "@poe-code/safe-fs", "canonical media filesystem declaration identity");
+        assert.equal(filesystem.exports?.["./contracts"]?.types, "./dist/contracts/index.d.ts", "canonical media filesystem contracts entry");
+        toolRoots.push(join(filesystemRoot, "dist"));
+        peerPaths["@poe-code/safe-fs/contracts"] = [join(filesystemRoot, "dist/contracts/index.d.ts")];
+        for (const file of ["object", "errors"]) {
+          assert.equal(filesystem.exports?.["./contracts/" + file]?.types, "./dist/contracts/" + file + ".d.ts", "canonical media filesystem contract subpath");
+          peerPaths["@poe-code/safe-fs/contracts/" + file] = [join(filesystemRoot, "dist/contracts/" + file + ".d.ts")];
+        }
+      }
       if (manifest.peerDependencies?.["poe-code"]) {
         const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
         if (checkout) assert.equal(manifest.devDependencies?.["poe-code"], "file:../..", "checkout peer must use the explicit local root");

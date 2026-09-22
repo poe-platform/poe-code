@@ -43,6 +43,8 @@ export class SourceModuleGraph {
   private readonly requests = new Map<string, Promise<RecordEntry | SandboxObject>>();
   private requestDataSize = 0;
   private readonly pendingImports = new Set<Promise<SandboxObject>>();
+  private fulfilledImports = 0;
+  private rejectedImports = 0;
   private readonly importGroup = new AsyncLocalStorage<Set<Promise<SandboxObject>>>();
   private readonly jobs: SandboxJobQueue;
   private readonly evaluationStack: RecordEntry[] = [];
@@ -68,6 +70,15 @@ export class SourceModuleGraph {
     this.requests.clear();
   }
 
+  sourceModuleStatus() {
+    return Object.freeze({
+      pendingImports: this.pendingImports.size,
+      preparedModules: this.records.size,
+      fulfilledImports: this.fulfilledImports,
+      rejectedImports: this.rejectedImports,
+    });
+  }
+
   import(specifier: string, referrer: string): Promise<SandboxObject> {
     const group = this.importGroup.getStore();
     const pending=(async () => {
@@ -83,7 +94,10 @@ export class SourceModuleGraph {
     this.pendingImports.add(pending);
     group?.add(pending);
     const release = () => { this.pendingImports.delete(pending); group?.delete(pending); };
-    void pending.then(release, release);
+    void pending.then(
+      () => {this.fulfilledImports++; release();},
+      () => {this.rejectedImports++; release();}
+    );
     return pending;
   }
 

@@ -116,6 +116,7 @@ export type SafeJSRealm = ExecutionControl & {
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
   releaseGuestReference(reference: unknown): void;
+  sourceModuleStatus(): ReturnType<SourceModuleGraph["sourceModuleStatus"]>;
   close(): Promise<void>;
 };
 
@@ -873,6 +874,16 @@ class RealmState {
     if (this.options.stringCompilation === "deny") denyGuestStringCompilation(this.scope);
   }
 
+  sourceModuleStatus = (): ReturnType<SourceModuleGraph["sourceModuleStatus"]> => {
+    this.assertOpen();
+    return this.sourceGraph?.sourceModuleStatus() ?? Object.freeze({
+      pendingImports: 0,
+      preparedModules: 0,
+      fulfilledImports: 0,
+      rejectedImports: 0
+    });
+  };
+
   private ensureSourceGraph(): SourceModuleGraph {
     this.assertOpen();
     this.initialize();
@@ -1203,6 +1214,7 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
     invokeCallback: state.invokeCallback,
     releaseCallback: state.releaseCallback,
     releaseGuestReference: state.releaseGuestReference,
+    sourceModuleStatus: state.sourceModuleStatus,
     close: state.close
   }, state.queue));
 }

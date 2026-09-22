@@ -9,6 +9,8 @@ import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
 import { createDirectoryReader, type DirectoryReader } from "./directory-admission.js";
 import { yieldTurn } from "../contracts/yield.js";
+import { PublicDiagnostic } from "../diagnostics.js";
+import { touchTimes } from "./touch-times.js";
 
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
@@ -248,16 +250,24 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
     }),
     define("touch", async context => {
-      const parsed = options(context.args, "camr:", { "no-create": "c", reference: "r" });
+      const parsed = options(context.args, "camr:d:t:", { "no-create": "c", reference: "r", date: "d" });
       requireOperands(parsed.operands);
       const reference = value(parsed, "r");
-      const times = reference === undefined ? undefined : await context.fs.stat(pathOf(context, reference), { signal: context.signal });
+      const date = value(parsed, "d"), timestamp = value(parsed, "t");
+      if (timestamp !== undefined && (date !== undefined || reference !== undefined)) {
+        throw new PublicDiagnostic("cannot specify times from more than one source");
+      }
       const now = Date.now();
+      const explicit = reference !== undefined || date !== undefined || timestamp !== undefined;
+      const base = reference === undefined ? { atimeMs: now, mtimeMs: now }
+        : await context.fs.stat(pathOf(context, reference), { signal: context.signal });
+      const times = date === undefined && timestamp === undefined ? base
+        : touchTimes(date, timestamp, context.env.TZ ?? "UTC", base);
       await preflightOperands(context, parsed.operands, async operand => {
         const path = pathOf(context, operand);
         const existing = await maybeStat(context, path);
         const modes = existing ? ["existing"] : parsed.flags.has("c") ? ["no-create"]
-          : reference === undefined ? ["create"] : ["create", "existing"];
+          : explicit ? ["create", "existing"] : ["create"];
         await admitFilesystemModes(context, "touch", modes, [path]);
       });
       return eachOperand(context, parsed.operands, async operand => {
@@ -265,18 +275,18 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         let existing = await maybeStat(context, path);
         if (!existing) {
           if (parsed.flags.has("c")) return;
-          await admitFilesystemModes(context, "touch", reference === undefined ? ["create"] : ["create", "existing"], [path]);
-          if (reference !== undefined) needCapability(context, "utimes");
+          await admitFilesystemModes(context, "touch", explicit ? ["create", "existing"] : ["create"], [path]);
+          if (explicit) needCapability(context, "utimes");
           await context.fs.writeFile(path, new Uint8Array(), { flag: "wx", signal: context.signal });
-          if (reference === undefined) return;
+          if (!explicit) return;
           existing = await context.fs.stat(path, { signal: context.signal });
         }
         needCapability(context, "utimes");
         await admitFilesystemModes(context, "touch", ["existing"], [path]);
         const accessOnly = parsed.flags.has("a") && !parsed.flags.has("m");
         const modifyOnly = parsed.flags.has("m") && !parsed.flags.has("a");
-        await context.fs.utimes!(path, modifyOnly ? existing.atimeMs : times?.atimeMs ?? now,
-          accessOnly ? existing.mtimeMs : times?.mtimeMs ?? now, { signal: context.signal });
+        await context.fs.utimes!(path, modifyOnly ? existing.atimeMs : times.atimeMs,
+          accessOnly ? existing.mtimeMs : times.mtimeMs, { signal: context.signal });
       });
     }),
     define("cp", async context => {

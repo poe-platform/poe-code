@@ -68,7 +68,7 @@ filesystem and byte streams, not host executables.
 | Purpose | Commands |
 | --- | --- |
 | Browse | `pwd`, `ls`, `tree`, `find`, `du`, `file`, `basename`, `dirname`, `realpath`, `readlink`, `which` |
-| Files | `mkdir`, `touch`, `cp`, `mv`, `rm`, `rmdir`, `ln`, `chmod`, `stat`, `mktemp` |
+| Files | `mkdir`, `touch`, `cp`, `mv`, `rm`, `rmdir`, `ln`, `chmod`, `stat`, `mktemp`. `touch -d` / `--date` accepts epoch seconds (`@0`), ISO/RFC dates and the virtual `date` relative-date profile; `-t [[CC]YY]MMDDhhmm[.ss]` sets a calendar timestamp. |
 | Filter/search | `cat`, `head`, `tail`, `wc`, `tee`, `cut`, `tr`, `sort`, `uniq`, `sed`, `awk`, `grep`, `rg`, `egrep`, `fgrep`. `head` and `tail` accept `-z` / `--zero-terminated` for NUL-delimited records. `wc -L` / `--max-line-length` counts display columns with eight-column tab stops; UTF-8 widths use the frozen GNU/Linux C.UTF-8 profile. |
 | Format/combine | `nl`, `seq`, `rev`, `tac`, `expand`, `unexpand`, `fold`, `fmt`, `strings`, `paste`, `comm`, `join`, `column`, `split` |
 | Structured text | `jq`, `html-to-markdown`. `jq -S` / `--sort-keys` sorts object keys recursively in JSON output. |
@@ -424,7 +424,7 @@ There are no package-specific runtime environment switches. Supply these through
 | `IFS` | Field splitting and `read`; defaults to space, tab, and newline. |
 | `LC_ALL`, `LC_CTYPE`, `LC_COLLATE`, `LANG` | Character and collation behavior where supported; locale support varies by command. |
 | `TMPDIR` | `mktemp` directory; defaults to `/tmp`, which must exist in the VFS. |
-| `TZ` | `date` timezone; otherwise `timeEnv.defaultTimeZone` (default `UTC`). |
+| `TZ` | `date` and `touch` timezone. `date` otherwise uses `timeEnv.defaultTimeZone`; `touch` defaults to `UTC`. |
 | `QUOTING_STYLE` | `stat` filename quoting: `literal`, `shell-always`, or `shell-escape-always`. |
 
 `getopts` starts with `OPTIND=1` and `OPTERR=1`, updates `OPTIND`/`OPTARG`, and

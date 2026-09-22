@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { dirname, FsError, type FileSystem, type MkdirOptions } from "../../src/contracts/index.js";
 import { fixture, run } from "./helpers.js";
+import { Shell } from "../../src/shell/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 
 async function prefixFixture() {
   const backing = await fixture({ "reports/drafts/note": "draft", "other/note": "other", "explicit/note": "kept", collision: "file" });
@@ -218,6 +220,76 @@ test("mkdir creates parents and octal modes, reports errors without abandoning o
   assert.equal((await fs.stat("/work/other")).type, "directory");
   assert.equal((await run("mkdir", ["-m", "invalid", "bad"], { fs })).exitCode, 2);
 });
+
+for (const [args, expected] of [
+  [["-d", "@0"], 0],
+  [["--date=@-1.25"], -1250],
+  [["-d2024-01-02T03:04:05Z"], Date.UTC(2024, 0, 2, 3, 4, 5)],
+  [["-t", "202401020304.05"], Date.UTC(2024, 0, 2, 3, 4, 5)],
+  [["-t", "2401020304"], Date.UTC(2024, 0, 2, 3, 4)],
+  [["-t", "6901020304"], Date.UTC(1969, 0, 2, 3, 4)],
+] as const) {
+  test(`touch ${args.join(" ")} sets explicit timestamps on new and existing files`, async () => {
+    const fs = await fixture({ existing: "keep" });
+    const result = await run("touch", [...args, "new", "existing"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    for (const name of ["new", "existing"]) {
+      const stat = await fs.stat(`/work/${name}`);
+      assert.equal(stat.atimeMs, expected);
+      assert.equal(stat.mtimeMs, expected);
+    }
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/existing")), "keep");
+  });
+}
+
+test("touch explicit timestamps work through Shell and stat", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work", env: { TZ: "UTC" } }).use(agentCommands());
+  try {
+    const result = await shell.exec("touch -d @0 output; stat -c %Y output");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "0\n");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+test("touch explicit timestamps refuse unsupported timestamp creation before writing", async () => {
+  const backing = await fixture();
+  const fs: FileSystem = new Proxy(backing, { get(target, property) {
+    if (property === "capabilitiesFor") return undefined;
+    if (property === "capabilities") return { ...backing.capabilities, timestamps: false };
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const result = await run("touch", ["-d", "@0", "new"], { fs });
+  assert.equal(result.exitCode, 1);
+  await assert.rejects(backing.stat("/work/new"), { code: "ENOENT" });
+  assert.equal((await run("touch", ["-c", "-d", "@0", "new"], { fs })).exitCode, 0);
+});
+
+test("touch explicit timestamps honor TZ, selected times, no-create, and reference-relative dates", async () => {
+  const fs = await fixture({ existing: "keep", reference: "" });
+  await fs.utimes("/work/existing", 1000, 2000);
+  await fs.utimes("/work/reference", 3000, 4000);
+  assert.equal((await run("touch", ["-a", "-t", "202401020304.05", "existing"], { fs, env: { TZ: "UTC-2" } })).exitCode, 0);
+  assert.equal((await fs.stat("/work/existing")).atimeMs, Date.UTC(2024, 0, 2, 1, 4, 5));
+  assert.equal((await fs.stat("/work/existing")).mtimeMs, 2000);
+  assert.equal((await run("touch", ["-mr", "reference", "-d", "1 second", "existing"], { fs })).exitCode, 0);
+  assert.equal((await fs.stat("/work/existing")).mtimeMs, 5000);
+  assert.equal((await run("touch", ["-c", "-d", "@0", "absent"], { fs })).exitCode, 0);
+  await assert.rejects(fs.stat("/work/absent"), { code: "ENOENT" });
+});
+
+for (const args of [["-d", "invalid"], ["-t", "202402300304"], ["-t", "202401020304.99"], ["-t", "123"], ["-d", "@0", "-t", "202401020304"]]) {
+  test(`touch rejects ${args.join(" ")} before creating files`, async () => {
+    const fs = await fixture();
+    const result = await run("touch", [...args, "new"], { fs });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.match(result.stderr, /^touch: /);
+    await assert.rejects(fs.stat("/work/new"), { code: "ENOENT" });
+  });
+}
 
 test("touch creates without truncation, honors no-create and reference access/modify times", async () => {
   const fs = await fixture({ source: "keep", reference: "ref" });

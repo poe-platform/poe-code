@@ -1,3 +1,4 @@
+import { withMeasurementSeen, type MeasurementSeen } from "./measurement-seen.js";
 import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
@@ -798,7 +799,18 @@ export function measureSandboxData(
     compileTickets?: Set<CompileTicket>;
   } = {}
 ): number {
-  const seen = new WeakSet<object>();
+  return withMeasurementSeen(seen => measureSandboxDataWithSeen(values, options, seen));
+}
+
+function measureSandboxDataWithSeen(
+  values: Iterable<unknown>,
+  options: {
+    ignoreClosures?: boolean;
+    ignoreClosureCaptures?: boolean;
+    compileTickets?: Set<CompileTicket>;
+  },
+  seen: MeasurementSeen
+): number {
   const seenSymbols = new Set<symbol>();
   let usage = 0;
   const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];

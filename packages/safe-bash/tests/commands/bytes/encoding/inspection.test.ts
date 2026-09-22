@@ -47,7 +47,7 @@ test("xxd: unsupported flags/output operands preserve every VFS file", async () 
   await fs.writeFile("/output", Buffer.from("preserved"));
   await fs.symlink("/input", "/alias");
   await fs.link("/input", "/hardlink");
-  for (const args of [["-r", "input", "output"], ["-r", "input", "alias"], ["-r", "input", "hardlink"], ["-i"], ["-s-1"], ["-c257"], ["-c0"], ["-r", "-s1"], ["-r", "-l1"], ["-r", "-d"], ["-g257"], ["-g257", "-g1"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
+  for (const args of [["-r", "input", "output"], ["-r", "input", "alias"], ["-r", "input", "hardlink"], ["-s-1"], ["-c257"], ["-c0"], ["-r", "-s1"], ["-r", "-l1"], ["-r", "-d"], ["-g257"], ["-g257", "-g1"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
     assert.equal((await run("xxd", args, "!!", { fs })).exitCode, 2, args.join(" "));
   }
   assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "original");
@@ -313,3 +313,47 @@ for (const { name, args, input, expected } of [
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, expected);
   });
+
+test("xxd: binary, include and little-endian issue 160 file reproductions", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("AB"));
+  for (const [args, expected] of [
+    [["-b", "input"], "00000000: 01000001 01000010                                      AB\n"],
+    [["-i", "input"], "unsigned char input[] = {\n  0x41, 0x42\n};\nunsigned int input_len = 2;\n"],
+  ] as const) {
+    const result = await run("xxd", args, "", { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+  await fs.writeFile("/input", Buffer.from("ABCD"));
+  const result = await run("xxd", ["-e", "input"], "", { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "00000000: 44434241                              ABCD\n");
+});
+
+test("xxd: new modes preserve chunked bytes, partial groups and include row separators", async () => {
+  assert.equal((await run("xxd", ["-b", "-c4", "-g2"], sliced(Buffer.from("ABCDE")))).stdout,
+    "00000000: 0100000101000010 0100001101000100  ABCD\n00000004: 01000101                           E\n");
+  assert.equal((await run("xxd", ["-e", "-c5"], sliced(Buffer.from("ABCDE")))).stdout,
+    "00000000: 44434241       45  ABCDE\n");
+  assert.equal((await run("xxd", ["-i", "-c2", "-u"], sliced(Uint8Array.of(0, 255, 128)))).stdout,
+    "  0X00, 0XFF,\n  0X80\n");
+  assert.equal((await run("xxd", ["-i", "-n", "9-a/b"], "")).stdout,
+    "unsigned char __9_a_b[] = {\n};\nunsigned int __9_a_b_len = 0;\n");
+});
+
+
+test("xxd: new mode aliases, byte range and invalid grouping", async () => {
+  for (const [short, alias] of [["-b", "-bits"], ["-i", "-include"]]) {
+    const expected = await run("xxd", [short!, "-s1", "-l2"], allBytes);
+    const actual = await run("xxd", [alias!, "-s1", "-l2"], sliced(allBytes, 7));
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.equal(actual.stdout, expected.stdout);
+  }
+  for (const args of [["-b", "-i"], ["-e", "-g3"], ["-e", "-b"], ["-p", "-i"], ["-r", "-e"]]) {
+    assert.equal((await run("xxd", args, "AB")).exitCode, 2);
+  }
+  assert.equal((await run("xxd", ["-i"], "")).stdout, "");
+  assert.equal((await run("xxd", ["-e", "-c2", "-g2", "-u"], Uint8Array.of(0, 255, 128))).stdout,
+    "00000000: FF00  ..\n00000002:   80  .\n");
+});

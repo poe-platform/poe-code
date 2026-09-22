@@ -829,6 +829,14 @@ describe("adaptCodex", () => {
     if (diagnostic?.event !== "error") throw new Error("Missing sandbox diagnostic");
     expect(diagnostic.message).toContain("codex --enable use_legacy_landlock -s read-only");
     expect(diagnostic.message).toContain("workspace-write");
+    expect(diagnostic.message).toContain('sandbox_permissions: "require_escalated"');
+    expect(diagnostic.message).toContain("existing approval reviewer");
+    expect(diagnostic.message).toContain("Only run after approval");
+    expect(diagnostic.message).toContain("declined or unavailable");
+    expect(diagnostic.message).toContain("apply_patch");
+    expect(diagnostic.message).toContain("approval_policy=never");
+    expect(diagnostic.message).not.toContain("danger-full-access");
+    expect(diagnostic.message).not.toContain("--dangerously-bypass-approvals-and-sandbox");
     expect(diagnostic.message).toContain("host that supports bubblewrap");
   });
 

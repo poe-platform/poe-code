@@ -80,8 +80,9 @@ Only `--mode yolo` skips the agent's permission prompts, so keep it out of untru
 Codex `read` mode uses its Landlock compatibility sandbox on Linux to retain file and
 network restrictions on hosts that reject bubblewrap loopback setup. Streamed Codex
 sandbox initialization failures report compatibility guidance in the CLI and SDK.
-Workspace-write policies require a host that can enforce their sandbox; read-only
-commands do not change an existing session’s permission policy.
+If workspace-write sandbox startup fails, the agent can request approval for the exact
+command through the session’s existing reviewer; see the [sandbox recovery guidance](packages/agent-spawn/README.md#spawn-modes).
+Read-only commands do not change an existing session’s permission policy.
 
 #### Spawn against a GitHub repository
 

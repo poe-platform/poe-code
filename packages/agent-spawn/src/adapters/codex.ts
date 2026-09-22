@@ -220,7 +220,14 @@ For read-only work, verify the Landlock compatibility sandbox:
 If that succeeds, start a new session:
   codex --enable use_legacy_landlock -s read-only
 Poe Code supplies these flags for mode: "read".
-For workspace-write or policies incompatible with Landlock,
+For workspace-write, keep the session policy and existing approval reviewer.
+Ask Codex to retry the exact failed command with:
+  sandbox_permissions: "require_escalated"
+  justification: "Sandbox startup failed before this command ran."
+Only run after approval; if declined or unavailable, stop that action.
+If apply_patch also fails at sandbox startup, request an approved exec_command
+for the specific edit instead. Do not retry automatically outside the sandbox.
+With approval_policy=never or policies incompatible with approved escalation,
 use a host that supports bubblewrap and the required sandbox policy.`
           };
         }

@@ -42,7 +42,17 @@ Codex read mode enables its Landlock compatibility sandbox on Linux, retaining r
 When a streamed Codex shell command fails with the loopback initialization error,
 Poe Code reports the original diagnostic and the compatibility check below in the
 CLI and SDK event stream. Workspace-write policies may require enforcement that
-Landlock cannot provide; use a host supporting bubblewrap for those policies.
+Landlock cannot provide. For an active session whose approval policy permits
+escalation, ask Codex to retry the exact failed command using
+`sandbox_permissions: "require_escalated"` and a justification explaining the
+sandbox startup failure. The existing approval reviewer decides whether that
+specific command may run outside the sandbox; a failure does not authorize it.
+If approval is declined or unavailable, stop that action. If `apply_patch` also
+fails at startup, request an approved `exec_command` for the specific edit.
+This fallback retains the session policy and reviewer and does not automatically
+retry commands, switch to unrestricted mode, or bypass managed requirements.
+With `approval_policy=never`, or when managed policy forbids escalation, use a
+host supporting bubblewrap and the required sandbox policy.
 
 If a separately launched Codex session fails before executing a command with
 `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`, the host rejected

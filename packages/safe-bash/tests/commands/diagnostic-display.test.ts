@@ -103,7 +103,8 @@ test("listing sorts raw names and escapes operands, headers, suffixes and target
   const actual = await run(`mkdir /ordered; touch ${quote("/ordered/a\n")} ${quote("/ordered/a\\")}; ls /ordered; ls -d ${quote("/ordered/a\n")}; ln -s ${quote("/ordered/a\\")} ${quote("/link-\u009b")}; ls -lF ${quote("/link-\u009b")}; ls /ordered /names`);
   assert.equal(actual.exitCode, 0, JSON.stringify(actual.stderr));
   assert.equal(actual.stdout.startsWith("a\\n\na\\\\\n/ordered/a\\n\n"), true);
-  assert.equal(actual.stdout.includes("/link-\\302\\233@ -> /ordered/a\\\\\n"), true, JSON.stringify(actual.stdout));
+  assert.equal(actual.stdout.includes("/link-\\302\\233 -> /ordered/a\\\\\n"), true, JSON.stringify(actual.stdout));
+  assert.equal(actual.stdout.includes("/link-\\302\\233@"), false);
   assert.equal(actual.stdout.includes("/names:\n"), true);
   assert.equal(actual.stdout.includes("/ordered:\n"), true);
 });

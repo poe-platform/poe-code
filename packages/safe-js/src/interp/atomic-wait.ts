@@ -1,3 +1,4 @@
+import { nativeTypedArrayView } from "./typed-array.js";
 import { Worker } from "node:worker_threads";
 import type { Budget } from "./budget.js";
 import { runResources, type RunResources } from "./resources.js";
@@ -129,11 +130,11 @@ export async function waitForAtomicValue(
   const resources = runResources.getStore();
   if (resources === undefined) {
     const startedAt = performance.now();
-    const result = Reflect.apply(nativeWait, Atomics, [view, index, expected, timeout]) as WaitResult;
+    const result = Reflect.apply(nativeWait, Atomics, [nativeTypedArrayView(view), index, expected, timeout]) as WaitResult;
     return result.async ? {...result, startedAt} : result;
   }
   resources.signal.throwIfAborted();
-  const immediate = Reflect.apply(nativeWait, Atomics, [view, index, expected, 0]) as { async: false; value: string };
+  const immediate = Reflect.apply(nativeWait, Atomics, [nativeTypedArrayView(view), index, expected, 0]) as { async: false; value: string };
   if (immediate.value === "not-equal" || timeout <= 0) return immediate;
   let worker = workers.get(resources);
   if (worker === undefined) {

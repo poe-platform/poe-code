@@ -13,6 +13,100 @@ const readBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, "buffer"
 const readTag = Object.getOwnPropertyDescriptor(typedArrayPrototype, Symbol.toStringTag)!.get!;
 const createValuesIterator = Object.getOwnPropertyDescriptor(typedArrayPrototype, "values")!.value;
 export const typedArrayViewLayouts = new WeakMap<NumericTypedArray, { byteOffset: number; length?: number }>();
+// Only SDK-created views are registered. Their native targets never escape,
+// so every metadata mutation (including trusted SDK writes) crosses these traps.
+const ownedViews = new WeakMap<
+  object,
+  { view: NumericTypedArray; keys: Set<PropertyKey> }
+>();
+
+export function createOwnedTypedArray(
+  Native: NumericTypedArrayConstructor,
+  args: unknown[],
+): NumericTypedArray {
+  const view = Reflect.construct(Native, args) as NumericTypedArray;
+  const keys = new Set<PropertyKey>();
+  const methods = new WeakMap<object, (...args: unknown[]) => unknown>();
+  const owned = new Proxy(view, {
+    get(target, key, receiver) {
+      // Preserve native SDK reads and iteration without publishing the target.
+      const intrinsic = Object.getOwnPropertyDescriptor(
+        typedArrayPrototype,
+        key,
+      );
+      if (!Object.hasOwn(target, key) && intrinsic !== undefined) {
+        if (intrinsic.get !== undefined)
+          return Reflect.get(target, key, target);
+        if (key !== "constructor" && typeof intrinsic.value === "function") {
+          const method = Reflect.get(target, key, target);
+          const cached = methods.get(method);
+          if (cached !== undefined) return cached;
+          const wrapper = function (this: unknown, ...args: unknown[]) {
+            const native =
+              typeof this === "object" && this !== null
+                ? (ownedViews.get(this)?.view ?? this)
+                : this;
+            const callbackReceiver = native === target ? receiver : this;
+            // Native callback methods pass their receiver to user code. Keep that
+            // alias owned too, and remap in-place methods' returned receiver.
+            if (
+              [
+                "forEach",
+                "map",
+                "filter",
+                "every",
+                "some",
+                "find",
+                "findIndex",
+                "findLast",
+                "findLastIndex",
+                "reduce",
+                "reduceRight",
+              ].includes(String(key)) &&
+              typeof args[0] === "function"
+            ) {
+              const callback = args[0] as (...values: unknown[]) => unknown;
+              args[0] = function (this: unknown, ...values: unknown[]) {
+                return Reflect.apply(
+                  callback,
+                  this,
+                  values.map((value) =>
+                    value === native ? callbackReceiver : value,
+                  ),
+                );
+              };
+            }
+            const result = Reflect.apply(method, native, args);
+            return result === native ? callbackReceiver : result;
+          };
+          methods.set(method, wrapper);
+          return wrapper;
+        }
+      }
+      return Reflect.get(target, key, receiver);
+    },
+    defineProperty(target, key, descriptor) {
+      const changed = Reflect.defineProperty(target, key, descriptor);
+      if (changed && !(typeof key === "string" && isTypedArrayIndex(key)))
+        keys.add(key);
+      return changed;
+    },
+    deleteProperty(target, key) {
+      const changed = Reflect.deleteProperty(target, key);
+      if (changed) keys.delete(key);
+      return changed;
+    },
+  });
+  ownedViews.set(owned, { view, keys });
+  const backing = float16BackingViews.get(view);
+  if (backing !== undefined) float16BackingViews.set(owned, backing);
+  return owned;
+}
+
+export function nativeTypedArrayView<T extends object>(value: T): T {
+  return (ownedViews.get(value)?.view ?? value) as T;
+}
+
 const resizeBuffer = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "resize")?.value as ((length: number) => void) | undefined;
 
 export function restoreTypedArrayView(buffer: ArrayBufferLike, byteOffset: number, length?: number, budget?: Budget, Native: NumericTypedArrayConstructor = Float32Array): NumericTypedArray {
@@ -39,6 +133,8 @@ export function restoreTypedArrayView(buffer: ArrayBufferLike, byteOffset: numbe
 export function isNumericTypedArray(value: unknown): value is NumericTypedArray {
   if (typeof value === "object" && value !== null && float16BackingViews.has(value))
     return Object.getPrototypeOf(value) === Float16Array.prototype;
+  if (typeof value === "object" && value !== null && ownedViews.has(value))
+    return isNumericTypedArray(ownedViews.get(value)!.view);
   if (!ArrayBuffer.isView(value)) return false;
   const tag = Reflect.apply(readTag, value, []);
   return Object.hasOwn(numericTypedArrayConstructors, tag) &&
@@ -54,7 +150,7 @@ export function typedArrayStorage(value: NumericTypedArray, requireInBounds = fa
   elementSize: number;
 } {
   const backingView = float16BackingViews.get(value);
-  const view = backingView ?? value;
+  const view = backingView ?? nativeTypedArrayView(value);
   if (requireInBounds) Reflect.apply(createValuesIterator, view, []);
   const buffer = Reflect.apply(readBuffer, view, []) as ArrayBufferLike;
   if (
@@ -63,7 +159,7 @@ export function typedArrayStorage(value: NumericTypedArray, requireInBounds = fa
     throw new TypeError("Float32Array requires a non-shared ArrayBuffer.");
   }
   const Native = backingView === undefined
-    ? numericTypedArrayConstructors[Reflect.apply(readTag, value, []) as keyof typeof numericTypedArrayConstructors]
+    ? numericTypedArrayConstructors[Reflect.apply(readTag, view, []) as keyof typeof numericTypedArrayConstructors]
     : Float16Array;
   return {
     Native,
@@ -75,17 +171,36 @@ export function typedArrayStorage(value: NumericTypedArray, requireInBounds = fa
   };
 }
 
-export function typedArrayProperties(value: NumericTypedArray): Array<[PropertyKey, PropertyDescriptor]> {
+export function typedArrayProperties(
+  value: NumericTypedArray,
+): Array<[PropertyKey, PropertyDescriptor]> {
   const properties: Array<[PropertyKey, PropertyDescriptor]> = [];
-  for (const key of Reflect.ownKeys(value)) {
+  const tracked = ownedViews.get(value);
+  // Ordinary host views retain the conservative scan. Owned views preserve the
+  // normal ownKeys operation for reflection, but accounting uses metadata only.
+  const keys =
+    tracked === undefined
+      ? Reflect.ownKeys(value)
+      : [
+          ...[...tracked.keys].filter((key) => typeof key === "string"),
+          ...[...tracked.keys].filter((key) => typeof key === "symbol"),
+        ];
+  for (const key of keys) {
     if (typeof key === "string" && isTypedArrayIndex(key)) continue;
     properties.push([key, Object.getOwnPropertyDescriptor(value, key)!]);
   }
   return properties;
 }
 
+export function typedArraySymbolKeys(value: NumericTypedArray): symbol[] {
+  const tracked = ownedViews.get(value);
+  return tracked === undefined
+    ? Object.getOwnPropertySymbols(value)
+    : [...tracked.keys].filter((key): key is symbol => typeof key === "symbol");
+}
+
 export function typedArrayDataProperties(value: NumericTypedArray): Array<[string, PropertyDescriptor]> {
-  if (Object.getOwnPropertySymbols(value).length > 0)
+  if (typedArraySymbolKeys(value).length > 0)
     throw new TypeError("Float32Array symbol properties are not supported.");
   const properties: Array<[string, PropertyDescriptor]> = [];
   for (const [key, descriptor] of typedArrayProperties(value)) {

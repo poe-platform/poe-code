@@ -2,6 +2,8 @@ import type { Budget } from "../budget.js";
 import { getFunctionRealmPrototype } from "../function-realm.js";
 import {
   checkTypedArrayAllocation,
+  createOwnedTypedArray,
+  nativeTypedArrayView,
   typedArrayNumber,
   typedArrayStorage,
   typedArrayViewLayouts,
@@ -38,7 +40,7 @@ function hasBigIntContent(Native: NumericTypedArrayConstructor): boolean {
 
 function copyTypedArrayElements(target: NumericTypedArray, source: NumericTypedArray, offset: number, budget: Budget): void {
   if (!float16BackingViews.has(target) && !float16BackingViews.has(source)) {
-    Reflect.apply(Float32Array.prototype.set, target, [source, offset]);
+    Reflect.apply(Float32Array.prototype.set, nativeTypedArrayView(target), [nativeTypedArrayView(source), offset]);
     return;
   }
   const to = typedArrayStorage(target, true);
@@ -123,7 +125,7 @@ export function createNumericTypedArrayGlobal(budget: Budget, nativePrototype = 
                 throw new RangeError("Invalid Float32Array view length.");
             }
             budget.allocateArrayLength(length);
-            const result = Reflect.construct(Native,[buffer,offset,args[2] === undefined ? undefined : length]) as NumericTypedArray;
+            const result = createOwnedTypedArray(Native, [buffer, offset, args[2] === undefined ? undefined : length]);
             if (arrayBufferOptions(buffer) !== undefined)
               typedArrayViewLayouts.set(result, { byteOffset: offset, ...(args[2] === undefined ? {} : { length }) });
             setSandboxPrototype(result, prototype, budget);
@@ -179,7 +181,7 @@ async function allocateTypedArrayInput(source: SandboxValue, budget: Budget, Nat
       length = Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
     }
     checkTypedArrayAllocation(length, budget, Native.BYTES_PER_ELEMENT);
-    result = new Native(length);
+    result = createOwnedTypedArray(Native, [length]);
     checkData(result, 0, true);
     for (let index = 0; index < length; index++) {
       budget.visitNode();
@@ -196,11 +198,11 @@ function allocateTypedArray(source: SandboxValue, budget: Budget, Native: Numeri
         checkTypedArrayAllocation(length, budget, Native.BYTES_PER_ELEMENT);
         if (isNumericTypedArray(source)) {
           typedArrayStorage(source, true);
-          const result = new Native(length);
+          const result = createOwnedTypedArray(Native, [length]);
           copyTypedArrayElements(result, source, 0, budget);
           return result;
         }
-        const result = new Native(length);
+        const result = createOwnedTypedArray(Native, [length]);
         for (let index = 0; index < length; index += 1) {
           budget.visitNode();
           const descriptor = Object.getOwnPropertyDescriptor(source, index);
@@ -216,7 +218,7 @@ function allocateTypedArray(source: SandboxValue, budget: Budget, Native: Numeri
       if (length < 0 || !Number.isSafeInteger(length))
         throw new RangeError("Invalid typed array length.");
       checkTypedArrayAllocation(length, budget, Native.BYTES_PER_ELEMENT);
-      return new Native(length);
+      return createOwnedTypedArray(Native, [length]);
 }
 
 export function createNumericTypedArrayPrototypes(budget: Budget, bindings: Record<keyof typeof numericTypedArrayConstructors, SandboxClosure>): void {
@@ -456,7 +458,7 @@ export function getTypedArrayMember(
         const release = retainValues(budget, () => [receiver, result, ...args]);
         try {
           checkTypedArrayAllocation(storage.length, budget, storage.elementSize);
-          result = new storage.Native(storage.length);
+          result = createOwnedTypedArray(storage.Native, [storage.length]);
           if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
           createDataCheckpoint(budget, context)(result, 0, true);
           for (let index = 0; index < storage.length; index++) {
@@ -502,7 +504,7 @@ export function getTypedArrayMember(
           const checkData = createDataCheckpoint(budget, bridge);
           try {
             checkTypedArrayAllocation(storage.length, budget, storage.elementSize);
-            items = new storage.Native(storage.length);
+            items = createOwnedTypedArray(storage.Native, [storage.length]);
             if (key === "toSorted" && resultPrototype !== undefined) setSandboxPrototype(items, resultPrototype, budget);
             checkData(items, 0, true);
             for (let index = 0; index < storage.length; index++) {
@@ -511,7 +513,7 @@ export function getTypedArrayMember(
             }
             if (storage.length < 2) return items;
             checkTypedArrayAllocation(storage.length, budget, storage.elementSize);
-            scratch = new storage.Native(storage.length);
+            scratch = createOwnedTypedArray(storage.Native, [storage.length]);
             checkData(scratch, 0, true);
             for (let width = 1; width < storage.length; width *= 2) {
               for (let start = 0; start < storage.length; start += width * 2) {
@@ -653,7 +655,7 @@ export function getTypedArrayMember(
             if (index < 0 || index >= typedArrayStorage(receiver).length)
               throw new RangeError("Float32Array#with index is out of bounds.");
             checkTypedArrayAllocation(storage.length, budget, storage.elementSize);
-            result = new storage.Native(storage.length);
+            result = createOwnedTypedArray(storage.Native, [storage.length]);
             if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
             createDataCheckpoint(budget, bridge)(result, 0, true);
             for (let offset = 0; offset < storage.length; offset++) {
@@ -806,7 +808,7 @@ export function getTypedArrayMember(
           }
           if (key === "subarray") {
             if (result === undefined) {
-              result = Reflect.construct(storage.Native,[storage.buffer,offset,tracking ? undefined : length]) as NumericTypedArray;
+              result = createOwnedTypedArray(storage.Native, [storage.buffer, offset, tracking ? undefined : length]);
               if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
               if (arrayBufferOptions(storage.buffer) !== undefined)
                 typedArrayViewLayouts.set(result, { byteOffset: offset, ...(tracking ? {} : { length }) });
@@ -815,7 +817,7 @@ export function getTypedArrayMember(
           }
           if (result === undefined) {
             checkTypedArrayAllocation(length, budget, storage.elementSize);
-            result = new storage.Native(length);
+            result = createOwnedTypedArray(storage.Native, [length]);
             if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
           }
           if (!isNumericTypedArray(result)) throw new TypeError("TypedArray species must return typed storage.");

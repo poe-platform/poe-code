@@ -63,6 +63,7 @@ import { types as nodeTypes } from "node:util";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
 import { CompileScope, RegexCompileGuard, regexCompiledData } from "./regex/compile-guard.js";
 import {
+  typedArraySymbolKeys,
   type NumericTypedArray,
   copyTypedArrayStorage,
   typedArrayDataProperties,
@@ -392,7 +393,7 @@ export function ownSandboxSymbolKeys(value: SandboxValue): symbol[] {
   else if (isSandboxPromise(value)) value = getPromiseProperties(value);
   else if (isSandboxGenerator(value)) value = getGeneratorProperties(value);
   else if (isSandboxMap(value) || isSandboxSet(value)) value = getCollectionProperties(value);
-  return Object.getOwnPropertySymbols(Object(value)).filter(key => !internalSymbols.has(key));
+  return (isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(Object(value))).filter(key => !internalSymbols.has(key));
 }
 
 export function ownEnumerableSandboxKeys(value: SandboxValue): string[];
@@ -946,7 +947,7 @@ export function measureSandboxData(
       }
     }
     if (!isGuestHostObject(value)) {
-      const symbols = Object.getOwnPropertySymbols(value);
+      const symbols = isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(value);
       let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
       // Capture before visiting: retained callbacks can mutate later properties.
       for (const key of symbols) {

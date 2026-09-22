@@ -6,7 +6,7 @@ import { waitForAtomicValue } from "../atomic-wait.js";
 import { atomicWaitStates, atomicWaitOrders } from "../atomic-wait-state.js";
 import { promiseReplayContext } from "../promise-replay.js";
 import { sandboxNumber } from "../string-coercion.js";
-import { isNumericTypedArray, typedArrayStorage } from "../typed-array.js";
+import { isNumericTypedArray, typedArrayStorage, nativeTypedArrayView } from "../typed-array.js";
 import { allocateProducedSandboxValue, createSandboxClosure, type SandboxObject } from "../values.js";
 import { isSandboxSharedArrayBuffer } from "../shared-array-buffer.js";
 import { createPendingPromiseCapability } from "../promise.js";
@@ -52,7 +52,7 @@ export function createAtomicsGlobal(budget: Budget): SandboxObject {
           if (name === "notify") {
             const count=args[2]===undefined?undefined:await sandboxNumber(args[2], budget, context);
             // Non-shared notify returns zero without revalidating after coercion.
-            return shared?Reflect.apply(method,Atomics,[view,index,count]) as number:0;
+            return shared?Reflect.apply(method,Atomics,[nativeTypedArrayView(view),index,count]) as number:0;
           }
           if (name === "wait" || name === "waitAsync") {
             const expected=storage.Native===BigInt64Array?await sandboxBigInt(args[2],budget,context):await sandboxNumber(args[2],budget,context);
@@ -83,7 +83,7 @@ export function createAtomicsGlobal(budget: Budget): SandboxObject {
           }
           // Guest conversions above may detach, shrink, or regrow the storage.
           // Native invocation now receives primitives only and revalidates it.
-          return Reflect.apply(method, Atomics, [view, index, ...values]) as number | bigint;
+          return Reflect.apply(method, Atomics, [nativeTypedArrayView(view), index, ...values]) as number | bigint;
         } finally { release(); }
       }
     });

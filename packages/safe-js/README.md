@@ -426,7 +426,7 @@ Compiling stored module source enforces the owning budget's string-length
 limit and charges one step per UTF-16 source unit before parsing. Regex
 compilation retains its additional work charges.
 
-`deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible.
+`deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible. When passing sandbox typed arrays to native APIs, use `deepCopyFromSandbox`: SDK-created views use internal wrappers and do not satisfy the host's native `ArrayBuffer.isView` check. Guest reflection and `ArrayBuffer.isView` retain their normal behavior.
 
 Native Promise imports accept genuine promises from other JavaScript realms,
 preserving aliases and copying fulfillment or rejection values. Own string-keyed

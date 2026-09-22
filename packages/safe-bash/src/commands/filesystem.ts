@@ -1,5 +1,5 @@
 import {
-  basename, dirname, FsError, isPathWithin, joinPath, relativePath,
+  basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
   type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
 import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
@@ -467,10 +467,33 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           relative.set(key, directory);
         } else args.push(argument);
       }
-      const parsed = options(args, "emz", { "canonicalize-existing": "e", "canonicalize-missing": "m", zero: "z" });
+      const parsed = options(args, "emsz", { "canonicalize-existing": "e", "canonicalize-missing": "m", strip: "s", "no-symlinks": "s", zero: "z" });
       requireOperands(parsed.operands);
       const canonical = async (operand: string): Promise<string> => {
         const path = pathOf(context, operand);
+        if (parsed.flags.has("s")) {
+          context.signal.throwIfAborted();
+          const lexical = normalizePath(path);
+          if (!parsed.flags.has("m")) {
+            let prefix = "/";
+            const components = path.split("/");
+            for (let index = 1; index < components.length; index++) {
+              const component = components[index]!;
+              if (!component || component === "." && index < components.length - 1) continue;
+              if (component === ".." || component === ".") {
+                const parent = await context.fs.stat(prefix, { signal: context.signal });
+                if (parent.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
+              }
+              prefix = normalizePath(component, prefix);
+              if (parsed.flags.has("e") || index < components.length - 1) {
+                const stat = parsed.flags.has("e") ? await context.fs.stat(prefix, { signal: context.signal }) : await maybeStat(context, prefix);
+                if (index < components.length - 1 && stat !== undefined && stat.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
+              }
+            }
+            if (parsed.flags.has("e")) await context.fs.stat(lexical, { signal: context.signal });
+          }
+          return lexical;
+        }
         await admitFilesystemModes(context, "realpath", ["canonical"], [path]);
         const existing = await maybeStat(context, path, false);
         return parsed.flags.has("m") ? await canonicalMissing(context, path, "realpath")

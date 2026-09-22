@@ -71,7 +71,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `readlink` | Literal link targets; canonical `-f`, existing-only `-e`, no newline `-n`, NUL `-z`. |
 | `basename` | Root/trailing slash handling, optional suffix, `-a`, `-s`, `-z`. |
 | `dirname` | Multiple path operands, trailing slashes and roots, `-z`. |
-| `realpath` | Existing paths and missing final component; `-e`, `-m`, `-z`, `--relative-to`, `--relative-base`; relative bases follow the selected canonicalization mode. |
+| `realpath` | Existing paths and missing final component; `-e`, `-m`, `-s`/`--strip`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base`; `-s` folds paths lexically without expanding symlinks, and relative bases follow the selected canonicalization mode. |
 | `head` | Default ten lines, `-n`, `-c`, legacy leading `-NUMBER`, negative omit-last counts, `-q`, `-v`; early input termination. |
 | `tail` | Default last ten lines, `-n`, `-c`, legacy leading `-NUMBER`, `+N` origins, `-q`, `-v`; bounded suffix buffering. |
 | `wc` | `-l`, `-w`, `-c`, `-m`; multiple files/totals and GNU field widths; C/POSIX `-m` counts bytes, otherwise UTF-8 decoding across chunks (default UTF-8). Locale priority is LC_ALL, LC_CTYPE, LANG. Virtual stdin is an opaque stream, so multi-column stream width is seven; native regular-file stdin width requires descriptor metadata not currently exposed. |

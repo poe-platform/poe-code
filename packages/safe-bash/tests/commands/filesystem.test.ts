@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { dirname, FsError, type FileSystem, type MkdirOptions } from "../../src/contracts/index.js";
 import { fixture, run } from "./helpers.js";
@@ -444,6 +445,67 @@ test("readlink and realpath distinguish literal targets, existing and missing pa
   await fs.symlink("deep/inside", "/work/directory-link");
   assert.equal((await run("realpath", ["directory-link/.."], { fs })).stdout, "/work/deep\n");
   assert.match((await run("realpath", ["file/.."], { fs })).stderr, /ENOTDIR/u);
+});
+
+test("realpath strips symlinks and dot components lexically", async () => {
+  const fs = await fixture({ input: "a", "deep/inside/file": "x" });
+  await fs.symlink("deep/inside", "/work/link");
+  await fs.symlink("missing", "/work/dangling");
+  await fs.symlink("cycle", "/work/cycle");
+  const shell = new Shell({ fs, cwd: "/work" });
+  shell.use(agentCommands());
+  const reproduced = await shell.exec("realpath -s --relative-to=. input");
+  assert.equal(reproduced.exitCode, 0, reproduced.stderr);
+  assert.equal(reproduced.stdout, "input\n");
+  assert.equal(reproduced.stderr, "");
+  for (const option of ["-s", "--strip", "--no-symlinks"]) {
+    const result = await run("realpath", [option, "link", "link/../input", "absent/deep", "dangling", "//work///input", "/../../work/input"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "/work/link\n/work/input\n/work/absent/deep\n/work/dangling\n/work/input\n/work/input\n");
+    assert.equal(result.stderr, "");
+  }
+  assert.equal((await run("realpath", ["-s", "cycle"], { fs })).stdout, "/work/cycle\n");
+  assert.equal((await run("realpath", ["-sz", "--relative-to=link", "link/file"], { fs })).stdout, "file\0");
+  assert.equal((await run("realpath", ["-sm", "--relative-base=absent", "absent/deep", "input"], { fs })).stdout, "deep\n/work/input\n");
+  assert.equal((await run("realpath", ["-se", "link"], { fs })).stdout, "/work/link\n");
+  assert.equal((await run("realpath", ["-se", "absent/deep"], { fs })).exitCode, 1);
+  assert.equal((await run("realpath", ["-se", "dangling"], { fs })).exitCode, 1);
+  assert.equal((await run("realpath", ["-se", "link/../input"], { fs })).stdout, "/work/input\n");
+  for (const operand of ["input/", "input/..", "absent/../input"]) {
+    assert.equal((await run("realpath", ["-se", operand], { fs })).exitCode, 1, operand);
+  }
+  for (const operand of ["input/child", "input/", "input/..", "absent/../input", "absent/."]) {
+    assert.equal((await run("realpath", ["-s", operand], { fs })).exitCode, 1, operand);
+  }
+  assert.equal((await run("realpath", ["-sm", "input/..", "absent/../input"], { fs })).stdout, "/work\n/work/input\n");
+  assert.equal((await run("realpath", ["-s", ""], { fs })).exitCode, 1);
+});
+
+test("realpath lexical output bytes match the GNU oracle", async context => {
+  const cases = [
+    ["-s", "--relative-to=.", "input"],
+    ["--strip", "link", "absent/deep", "//work///input"],
+    ["-sm", "link/../input", "//work///input/.", "/../../work/input"],
+    ["--no-symlinks", "--relative-base=absent", "absent/deep", "input"],
+    ["-sz", "--relative-to=link", "link/file", "link"],
+    ["-sm", "--relative-to=absent", "absent/deep"],
+  ];
+  const fs = await fixture({ input: "a", "deep/inside/file": "x" });
+  await fs.symlink("deep/inside", "/work/link");
+  for (const args of cases) {
+    // Absolute virtual paths make lexical resolution independent of host fixtures.
+    const nativeArgs = args.map(arg => arg.startsWith("--relative-")
+      ? arg.replace("=.", "=/work").replace("=absent", "=/work/absent").replace("=link", "=/work/link")
+      : arg.startsWith("-") || arg.startsWith("/") ? arg : `/work/${arg}`);
+    const native = spawnSync("realpath", nativeArgs, { timeout: 1000, env: { ...process.env, LC_ALL: "C", TZ: "UTC" } });
+    if (native.error && "code" in native.error && native.error.code === "ENOENT") { context.skip("native realpath unavailable"); return; }
+    assert.ifError(native.error);
+    if (native.status !== 0 && native.stderr.toString().startsWith("realpath: illegal option -- s")) { context.skip("native realpath lacks GNU -s support"); return; }
+    const result = await run("realpath", args, { fs });
+    assert.equal(result.exitCode, native.status, `${JSON.stringify(nativeArgs)}: ${native.stderr.toString()}`);
+    assert.deepEqual(result.stdoutBytes, native.stdout);
+    assert.deepEqual(result.stderrBytes, native.stderr);
+  }
 });
 
 test("ls implements hidden names, classification, explicit directories, recursion and long records", async () => {

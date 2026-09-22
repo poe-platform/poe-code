@@ -1,4 +1,4 @@
-import { Budget, copyObject, isObject, JqError, JqLimitError, objectKeyIterator, objectKeys, put, type Json } from "./limits.js";
+import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, type Json } from "./limits.js";
 import { compareNumbers, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { jsonFragments, renderJsonFragment } from "./input.js";
 
@@ -75,6 +75,21 @@ export async function sortedKeys(value: Record<string, Json>, budget: Budget): P
   }
   await stableSort(keys, budget, (left, right) => stringCompare(left, right, budget));
   return keys;
+}
+export async function sortObjectKeys(value: Json, budget: Budget): Promise<Json> {
+  await budget.tick();
+  if (Array.isArray(value)) {
+    budget.collection(value.length);
+    const result: Json[] = [];
+    for (const item of value) result.push(await sortObjectKeys(item, budget));
+    return result;
+  }
+  if (isObject(value)) {
+    const result = object();
+    for (const key of await sortedKeys(value, budget)) put(result, key, await sortObjectKeys(value[key]!, budget));
+    return result;
+  }
+  return value;
 }
 export async function compare(left: Json, right: Json, budget: Budget): Promise<number> {
   await budget.tick();

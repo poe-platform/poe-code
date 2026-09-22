@@ -71,7 +71,7 @@ filesystem and byte streams, not host executables.
 | Files | `mkdir`, `touch`, `cp`, `mv`, `rm`, `rmdir`, `ln`, `chmod`, `stat`, `mktemp` |
 | Filter/search | `cat`, `head`, `tail`, `wc`, `tee`, `cut`, `tr`, `sort`, `uniq`, `sed`, `awk`, `grep`, `rg`, `egrep`, `fgrep`. `head` and `tail` accept `-z` / `--zero-terminated` for NUL-delimited records. `wc -L` / `--max-line-length` counts display columns with eight-column tab stops; UTF-8 widths use the frozen GNU/Linux C.UTF-8 profile. |
 | Format/combine | `nl`, `seq`, `rev`, `tac`, `expand`, `unexpand`, `fold`, `fmt`, `strings`, `paste`, `comm`, `join`, `column`, `split` |
-| Structured text | `jq`, `html-to-markdown` |
+| Structured text | `jq`, `html-to-markdown`. `jq -S` / `--sort-keys` sorts object keys recursively in JSON output. |
 | Bytes/checksums | `base64`, `base32`, `xxd`, `od`, `md5sum`, `sha1sum`, `sha256sum`, `cksum` |
 | Archives | `gzip`, `gunzip`, `zcat`, `tar` |
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |

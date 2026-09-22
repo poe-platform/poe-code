@@ -55,6 +55,7 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | `-j`, `--join-output` | Imply raw output and omit the trailing LF for every output value, including nonstrings. |
 | `-R`, `--raw-input` | Read LF-delimited strings instead of JSON; preserve CR, BOM, and final partial records. |
 | `-c`, `--compact-output` | Compact JSON instead of two-space pretty JSON. |
+| `-S`, `--sort-keys` | Sort object keys recursively by Unicode code point, without changing filter traversal order. |
 | `-s`, `--slurp` | Collect JSON values into one array; with `-R`, collect verbatim text into one string, including LF. |
 | `-n`, `--null-input` | Run once with null; do not acquire stdin or open data files, even with `-s`. |
 | `-e`, `--exit-status` | Base successful execution status on the last output value. |

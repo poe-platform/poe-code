@@ -5,12 +5,14 @@ import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, 
 import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { parse } from "./parser.js";
+import { sortObjectKeys } from "./values.js";
 
 interface Options {
   raw: boolean;
   rawInput: boolean;
   joinOutput: boolean;
   compact: boolean;
+  sortKeys: boolean;
   slurp: boolean;
   nullInput: boolean;
   exitStatus: boolean;
@@ -26,7 +28,7 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     argumentBytes += Buffer.byteLength(argument);
     if (argumentBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
   }
-  const options: Options = { raw: false, rawInput: false, joinOutput: false, compact: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], variables: new Map() };
+  const options: Options = { raw: false, rawInput: false, joinOutput: false, compact: false, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], variables: new Map() };
   const named = object();
   let ended = false;
   let variableBytes = 0;
@@ -50,15 +52,16 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
       if (options.programFile !== undefined || options.source !== undefined) throw new JqError("provide exactly one filter program", 2);
       options.programFile = operand(); continue;
     }
-    const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--slurp": "s", "--null-input": "n", "--exit-status": "e" };
+    const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e" };
     if (!ended && argument.startsWith("-") && argument !== "-") {
       const flags = Object.hasOwn(long, argument) ? long[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
-      if (!flags || !/^[rRjcsne]+$/u.test(flags)) throw new JqError(`unsupported option ${argument}`, 2);
+      if (!flags || [...flags].some(flag => !"rRjcSsne".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
       for (const flag of flags) {
         if (flag === "r") options.raw = true;
         else if (flag === "R") options.rawInput = true;
         else if (flag === "j") { options.joinOutput = true; options.raw = true; }
         else if (flag === "c") options.compact = true;
+        else if (flag === "S") options.sortKeys = true;
         else if (flag === "s") options.slurp = true;
         else if (flag === "n") options.nullInput = true;
         else options.exitStatus = true;
@@ -183,7 +186,8 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
           if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
           const remaining = limits.maxOutputBytes - budget.outputBytes;
           const suffix = options.joinOutput ? "" : "\n";
-          const text = options.raw && typeof result === "string" ? result : await stringify(result, budget, !options.compact, Math.max(0, remaining - suffix.length), "maxOutputBytes");
+          const output = options.sortKeys ? await sortObjectKeys(result, budget) : result;
+          const text = options.raw && typeof output === "string" ? output : await stringify(output, budget, !options.compact, Math.max(0, remaining - suffix.length), "maxOutputBytes");
           const bytes = Buffer.from(`${text}${suffix}`);
           if (bytes.byteLength > remaining) throw new JqLimitError("maxOutputBytes");
           budget.outputBytes += bytes.byteLength;

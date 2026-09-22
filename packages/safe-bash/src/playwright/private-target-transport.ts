@@ -178,7 +178,8 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
         targetId: internal && identity(message.params?.sessionId) ? sessions.get(message.params.sessionId)
           : identity(message.params?.targetId) ? message.params.targetId : undefined,
         detachedSessionId: internal && identity(message.params?.sessionId) ? message.params.sessionId : undefined,
-        retirementConfirmed: false,
+        retirementConfirmed: internal && identity(message.params?.sessionId) &&
+          (retiredSessions.has(message.params.sessionId) || retiredTargets.has(sessions.get(message.params.sessionId)!)),
         internal, replied: false, bytes, timer });
       if (clientKey) clientKeys.add(clientKey);
       pendingBytes += bytes;

@@ -369,13 +369,18 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("rmdir", async context => {
-      const parsed = options(context.args, "pv", { parents: "p", verbose: "v" });
+      const parsed = options(context.args, "pv", { parents: "p", verbose: "v", "ignore-fail-on-non-empty": false });
       requireOperands(parsed.operands);
       await preflightOperands(context, parsed.operands, async operand => {
         let path = pathOf(context, operand);
         const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
-          await admitEmptyDirectory(context, path, readDirectory);
+          try { await admitEmptyDirectory(context, path, readDirectory); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (parsed.flags.has("ignore-fail-on-non-empty") && codeOf(error) === "ENOTEMPTY") return;
+            throw error;
+          }
           path = dirname(path);
         } while (parsed.flags.has("p") && path !== "/" && path !== stop);
       });
@@ -384,7 +389,12 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
           if (path === "/") throw new FsError("EBUSY", { path });
-          await removeEmptyDirectory(context, path, readDirectory);
+          try { await removeEmptyDirectory(context, path, readDirectory); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (parsed.flags.has("ignore-fail-on-non-empty") && codeOf(error) === "ENOTEMPTY") return;
+            throw error;
+          }
           if (parsed.flags.has("v")) await output(context, `rmdir: removing directory '${escapeText(path, "display")}'\n`);
           path = dirname(path);
         } while (parsed.flags.has("p") && path !== "/" && path !== stop);

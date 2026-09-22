@@ -364,6 +364,59 @@ test("rmdir checks directory type and emptiness and supports parent removal", as
   assert.equal((await fs.stat("/work")).type, "directory");
 });
 
+test("rmdir --ignore-fail-on-non-empty preserves contents and removes other empty operands", async () => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" });
+  await shell.use(agentCommands());
+  const result = await shell.exec("mkdir sub empty; touch sub/input; rmdir --ignore-fail-on-non-empty sub empty");
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.stdoutBytes, new Uint8Array());
+  assert.deepEqual(result.stderrBytes, new Uint8Array());
+  assert.equal((await fs.stat("/work/sub/input")).type, "file");
+  await assert.rejects(fs.stat("/work/empty"), { code: "ENOENT" });
+});
+
+test("rmdir --ignore-fail-on-non-empty -p stops at a nonempty parent", async () => {
+  const fs = await fixture({ "parents/kept": "data" });
+  await fs.mkdir("/work/parents/child/leaf", { recursive: true });
+  const result = await run("rmdir", ["--ignore-fail-on-non-empty", "-p", "parents/child/leaf"], { fs });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+  await assert.rejects(fs.stat("/work/parents/child"), { code: "ENOENT" });
+  assert.deepEqual(await fs.readFile("/work/parents/kept"), new TextEncoder().encode("data"));
+});
+
+for (const [operand, code] of [["missing", "ENOENT"], ["file", "ENOTDIR"], ["link", "ENOTDIR"]] as const) {
+  test(`rmdir --ignore-fail-on-non-empty preserves ${code} for ${operand}`, async () => {
+    const fs = await fixture({ file: "data", "nonempty/file": "kept" });
+    await fs.symlink("nonempty", "/work/link");
+    await fs.mkdir("/work/empty");
+    const result = await run("rmdir", ["--ignore-fail-on-non-empty", "nonempty", operand, "empty"], { fs });
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes(code));
+    assert.ok(!result.stderr.includes("ENOTEMPTY"));
+    assert.equal(result.stdout, "");
+    await assert.rejects(fs.stat("/work/empty"), { code: "ENOENT" });
+    assert.equal((await fs.stat("/work/nonempty/file")).type, "file");
+  });
+}
+
+for (const code of ["EACCES", "ENOTSUP", "EROFS", "ENOTEMPTY"] as const) {
+  test(`rmdir --ignore-fail-on-non-empty preserves ${code} errors and cancellation`, async () => {
+    const fs = await fixture({ "sub/input": "kept" });
+    const controller = new AbortController();
+    const reason = new FsError(code, { path: "/work/sub" });
+    fs.rmdir = async () => { throw reason; };
+    const result = await run("rmdir", ["--ignore-fail-on-non-empty", "sub"], { fs });
+    assert.equal(result.exitCode, code === "ENOTEMPTY" ? 0 : 1);
+    assert.equal(result.stderr === "", code === "ENOTEMPTY");
+    fs.rmdir = async () => { controller.abort(reason); throw reason; };
+    await assert.rejects(run("rmdir", ["--ignore-fail-on-non-empty", "sub"], { fs, signal: controller.signal }), error => error === reason);
+    assert.equal((await fs.stat("/work/sub/input")).type, "file");
+  });
+}
+
 test("ln supports hardlinks and literal relative symbolic targets, replacement and target directories", async () => {
   const fs = await fixture({ source: "data" });
   await fs.mkdir("/work/out");

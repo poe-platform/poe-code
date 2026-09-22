@@ -275,7 +275,7 @@ export function hasOwnSandboxProperty(
   enumerable: boolean
 ): boolean {
   requireReceiver(value);
-  if (isGuestHostObject(value)) return typeof key === "symbol" ? false : hasHostObjectMember(value, String(key), enumerable);
+  if (isGuestHostObject(value)) return hasHostObjectMember(value, typeof key === "symbol" ? key : String(key), enumerable);
   let properties: object;
   if (isSandboxClosure(value)) properties = materializeFunctionProperties(value);
   else if (isSandboxMap(value) || isSandboxSet(value)) properties = getCollectionProperties(value);

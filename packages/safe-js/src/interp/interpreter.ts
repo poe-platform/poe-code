@@ -14,7 +14,7 @@ import { invokeBuiltinClosure } from "./builtin-call.js";
 import { isSandboxModuleNamespace } from "./module-namespace.js";
 import { bigIntOperation, type BigIntOperator } from "./bigint-operators.js";
 import { accessorAdapter, readPropertyDescriptor, writePropertyDescriptor } from "./accessors.js";
-import { deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
+import { getHostObjectSymbolKeys, deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
 import { propertyFunctionName, toPropertyKey } from "./property-key.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
@@ -3287,7 +3287,7 @@ function getPropertyValue(
   context: EvaluationContext,
   receiver: SandboxValue = target
 ): SandboxValue | Promise<SandboxValue> {
-  if (isGuestHostObject(target)) return typeof property === "symbol" ? undefined : getHostObjectMember(target, String(property));
+  if (isGuestHostObject(target)) return getHostObjectMember(target, typeof property === "symbol" ? property : String(property));
   let proxyBoundary: object | undefined;
   const descriptor = getSandboxPropertyDescriptor(target, property, context.budget, proxy => { proxyBoundary = proxy; });
   if (proxyBoundary !== undefined)
@@ -4147,7 +4147,7 @@ function hasSandboxProperty(value: SandboxValue, key: PropertyKey, context: Eval
   let current = value;
   let depth = 0;
   while (typeof current === "object" && current !== null) {
-    if (isGuestHostObject(current)) return typeof key === "symbol" ? false : hasHostObjectMember(current, String(key));
+    if (isGuestHostObject(current)) return hasHostObjectMember(current, typeof key === "symbol" ? key : String(key));
     if (hasOwnSandboxProperty(current, key, false)) return true;
     if (!isSandboxDate(current) && !isSandboxRegex(current) && !isSandboxMap(current) && !isSandboxSet(current) && !((isGuestClosure(current) || isSandboxGenerator(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
         (Array.isArray(current) || !isPlainSandboxObject(current) ||
@@ -4480,8 +4480,7 @@ export function setSandboxProperty(
   throwOnFailure = true
 ): void | Promise<void> {
   if (isGuestHostObject(target)) {
-    if (typeof property === "symbol") throw new TypeError("Host properties require string keys.");
-    setHostObjectMember(target, String(property), value);
+    setHostObjectMember(target, typeof property === "symbol" ? property : String(property), value);
     return;
   }
   const prototypeOwner = target;
@@ -4625,7 +4624,7 @@ export function deleteSandboxProperty(
   throwOnFailure = true
 ): boolean {
   if (target !== null && target !== undefined && typeof target !== "object") target = Object(target) as SandboxObject;
-  if (isGuestHostObject(target)) return deleteHostObjectMember(target, String(property));
+  if (isGuestHostObject(target)) return deleteHostObjectMember(target, typeof property === "symbol" ? property : String(property));
   if (isSandboxClosure(target)) target = materializeFunctionProperties(target);
   if (isSandboxRegex(target)) target = getRegexProperties(target);
   if (isSandboxPromise(target)) target = getPromiseProperties(target);
@@ -4972,8 +4971,8 @@ async function evaluateObjectSpread(
   }
 
   if (isGuestHostObject(value.value)) {
-    const entries: Array<readonly [string, SandboxValue]> = [];
-    for (const key of getHostObjectKeys(value.value)) {
+    const entries: Array<readonly [PropertyKey, SandboxValue]> = [];
+    for (const key of [...getHostObjectKeys(value.value), ...getHostObjectSymbolKeys(value.value)]) {
       if (hasHostObjectMember(value.value, key, true))
         entries.push([key, getHostObjectMember(value.value, key)]);
     }

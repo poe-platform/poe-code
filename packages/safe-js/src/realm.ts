@@ -30,6 +30,7 @@ import {
 } from "./interp/host-bridge.js";
 import {
   createLiveHostObject,
+  hostObjectGuestRoots,
   createGuestReference,
   exportHostCapability,
   readGuestReference,
@@ -303,6 +304,7 @@ class RealmState {
   });
 
   retainedRoots = (): SandboxValue[] => [
+    ...Array.from(this.hostObjects).flatMap(hostObjectGuestRoots),
     ...this.callbacks.values(),
     ...Array.from(this.pendingCallbacks, (pending) => pending.closure),
     ...this.guestReferences.values()
@@ -548,6 +550,7 @@ class RealmState {
       owner: this,
       assertActive: this.assertOpen,
       chargeWork: this.chargeWork,
+      chargeGuestData: (units) => this.budget.chargeDataUsage(units),
       checkLength: (length) => this.budget.allocateArrayLength(length),
       checkString: (value) => { this.budget.allocateString(value); },
       checkTemporaryDataSize: (size) => {

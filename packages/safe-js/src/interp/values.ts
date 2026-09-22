@@ -57,7 +57,7 @@ import { isSandboxPluralRules, pluralRulesState } from "./intl-pluralrules.js";
 import { isSandboxDurationFormat, durationFormatState } from "./intl-durationformat.js";
 import { createRawJson, isRawJson } from "./raw-json.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
-import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
+import { hostObjectGuestRoots, getHostObjectSymbolKeys, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
@@ -387,7 +387,7 @@ export function ownEnumerableSandboxEntries(
 
 export function ownSandboxSymbolKeys(value: SandboxValue): symbol[] {
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
-  if (isGuestHostObject(value)) return [];
+  if (isGuestHostObject(value)) return getHostObjectSymbolKeys(value);
   if (isSandboxClosure(value)) value = value.properties ?? {};
   else if (isSandboxRegex(value)) value = getRegexProperties(value);
   else if (isSandboxPromise(value)) value = getPromiseProperties(value);
@@ -400,6 +400,7 @@ export function ownEnumerableSandboxKeys(value: SandboxValue): string[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols: true): PropertyKey[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols = false): PropertyKey[] {
   if (includeSymbols) {
+    if (isGuestHostObject(value)) return [...ownEnumerableSandboxKeys(value), ...getHostObjectSymbolKeys(value).filter(key => hasHostObjectMember(value, key, true))];
     const properties = isSandboxClosure(value) ? value.properties ?? {} : isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxRegex(value) ? getRegexProperties(value)
       : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : Object(value);
     return [...ownEnumerableSandboxKeys(value), ...ownSandboxSymbolKeys(value).filter(key =>
@@ -1073,6 +1074,7 @@ export function measureSandboxData(
     }
     if (isGuestHostObject(value)) {
       usage += measureHostObjectData(value);
+      for (const root of hostObjectGuestRoots(value)) visit(root, depth + 1);
       return;
     }
     const prototype = getSandboxPrototype(value);

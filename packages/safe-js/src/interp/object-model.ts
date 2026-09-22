@@ -576,7 +576,7 @@ export function getSandboxDataProperty(
   while (typeof current === "object" && current !== null) {
     if (isNumericTypedArray(current) && typeof key !== "symbol" && isTypedArrayIndex(String(key)))
       return Object.getOwnPropertyDescriptor(current, key)?.value;
-    if (isGuestHostObject(current)) return typeof key === "symbol" ? undefined : getHostObjectMember(current, String(key));
+    if (isGuestHostObject(current)) return getHostObjectMember(current, typeof key === "symbol" ? key : String(key));
     if (isSandboxRegex(current)) return Object.getOwnPropertyDescriptor(getRegexProperties(current), key)?.value;
     if (isSandboxPromise(current)) return Object.getOwnPropertyDescriptor(getPromiseProperties(current), key)?.value;
     if (isSandboxGenerator(current)) {

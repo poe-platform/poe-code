@@ -309,7 +309,7 @@ Supply your own bounded `journal`; this does not add browser console behavior. W
 | `signal` | Realm cancellation signal; aborted on close or failure. |
 | `onCleanup(fn)` | Register a sync/async disposer. Cleanup runs in reverse order, awaits every disposer, and reports failures without skipping the rest. |
 | `chargeWork(units = 1)` | Charge a nonnegative integer against the shared execution budget. Fatal exhaustion cannot be swallowed to continue execution. |
-| `createHostObject({ properties?, methods?, indexed?, named? })` | Create a realm-owned capability. Properties declare synchronous `get`/`set` functions; methods are host functions. Optional `indexed` and `named` expose bounded live members. Undeclared members expose no native prototype. |
+| `createHostObject({ properties?, methods?, indexed?, named?, expandos? })` | Create a realm-owned capability. Properties declare synchronous `get`/`set` functions; methods are host functions. Optional `indexed` and `named` expose bounded live members. Optional `expandos` stores guest fields with guest identity preserved. Undeclared members expose no native prototype. |
 | `createArrayBufferReference(buffer)` | Create an opaque live reference to a fixed, attached, plain ArrayBuffer without own metadata. Requires declared and granted `array-buffer:share`; full buffer bytes count against array/data budgets and `limits.guestReferences`. |
 | `invokeCallback(callback, { thisValue?, args? })` | Invoke a captured guest function with the realm's state, cancellation and budgets. Same operation as on the realm. |
 | `startCallback(callback, { thisValue?, args? })` | Return separate `synchronous` and `result` promises for the same realm-owned invocation. Also available on the realm. |
@@ -318,6 +318,8 @@ Supply your own bounded `journal`; this does not add browser console behavior. W
 | `releaseGuestReference(reference)` | Revoke one reference and release its retained state. Also available on the realm. |
 | `nestedOperation(fn)` | During setup, mark a host operation authorized to run nested source. Requires declared and granted `source:nested`. |
 | `evaluateNested(source)` | Only inside that extension's authorized operation. Completes before the enclosing call returns to guest code, shares scope/budgets, and propagates errors. Parallel nested evaluations and ordinary source reentry are rejected. |
+
+Use `expandos: { maxKeys, maxKeyCodeUnits, assertActive? }` to allow guest assignment, deletion and enumeration of string and symbol fields. `maxKeys` must be 1–65,536; `maxKeyCodeUnits` must be 1–1,048,576 and counts string keys plus symbol descriptions in UTF-16 units. Guest graphs and closures remain subject to the realm's data budget. The optional synchronous `assertActive` hook must return `undefined` and can enforce the publisher's lifetime. Declared members, indexed names and prototype-related names remain protected. Expandos cannot be combined with `named`; arbitrary descriptors and prototype links remain unsupported.
 
 For a timer-shaped `schedule(callback, delay, ...args)`, register `context.retainGuestArguments(schedule, 2)`. The host receives normal callback/delay values and opaque `GuestReference` handles for the remaining arguments. Pass those handles to `context.invokeCallback(callback, { args })` to recover the original guest objects and observe mutations made after scheduling. References also work as callback receivers and host return values, including cycles, closures, primitives and live host objects.
 

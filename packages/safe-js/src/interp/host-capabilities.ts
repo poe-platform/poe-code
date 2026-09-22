@@ -17,6 +17,7 @@ export type HostObjectIndexedDefinition = {
   maxLength: number;
 };
 export type HostObjectDefinition = {
+  expandos?: { maxKeys: number; maxKeyCodeUnits: number; assertActive?: () => void };
   indexed?: HostObjectIndexedDefinition;
   named?: HostObjectNamedDefinition;
   properties?: Record<string, { get?: () => unknown; set?: (value: unknown) => void }>;
@@ -35,6 +36,7 @@ export type HostObjectController = {
   owner: object;
   assertActive(): void;
   chargeWork(units?: number): void;
+  chargeGuestData(units: number): void;
   checkLength(length: number): void;
   checkString(value: string): void;
   checkTemporaryDataSize(size: number): void;
@@ -50,6 +52,7 @@ type HostObjectState = {
   methods: Map<string, SandboxClosure>;
   indexed?: HostObjectIndexedDefinition;
   named?: HostObjectNamedDefinition;
+  expandos?: { values: SandboxObject; maxKeys: number; maxKeyCodeUnits: number; assertActive?: () => void };
 };
 const MAX_INDEXED_LENGTH = 65_536;
 const MAX_NAMED_KEYS = 65_536;
@@ -97,9 +100,30 @@ export function createLiveHostObject(
 ): HostObject {
   const input = readDataRecord(definition, "Host object definition");
   if (
-    Object.keys(input).some((key) => !["properties", "methods", "indexed", "named"].includes(key))
+    Object.keys(input).some((key) => !["properties", "methods", "indexed", "named", "expandos"].includes(key))
   )
     throw new TypeError("Unknown host object definition field.");
+  let expandos: HostObjectState["expandos"];
+  if (input.expandos !== undefined) {
+    const data = readDataRecord(input.expandos, "Guest expando definition");
+    if (Object.keys(data).some((key) => !["maxKeys", "maxKeyCodeUnits", "assertActive"].includes(key)))
+      throw new TypeError("Unknown guest expando field.");
+    for (const [key, maximum] of [["maxKeys", MAX_NAMED_KEYS], ["maxKeyCodeUnits", MAX_NAMED_KEY_CODE_UNITS]] as const) {
+      if (typeof data[key] !== "number" || !Number.isInteger(data[key]) || data[key] < 1 || data[key] > maximum)
+        throw new RangeError(`Guest expando ${key} must be an integer from 1 to ${maximum}.`);
+    }
+    if (data.assertActive !== undefined && (
+      typeof data.assertActive !== "function" || types.isProxy(data.assertActive) ||
+      types.isAsyncFunction(data.assertActive) || types.isGeneratorFunction(data.assertActive)
+    ))
+      throw new TypeError("Guest expando assertActive must be a synchronous function, not a proxy.");
+    expandos = {
+      values: Object.create(null),
+      maxKeys: data.maxKeys as number,
+      maxKeyCodeUnits: data.maxKeyCodeUnits as number,
+      assertActive: data.assertActive as (() => void) | undefined
+    };
+  }
   let indexed: HostObjectIndexedDefinition | undefined;
   if (input.indexed !== undefined) {
     const data = readDataRecord(input.indexed, "Indexed host capability");
@@ -166,6 +190,8 @@ export function createLiveHostObject(
       enumerable: data.enumerable as boolean | undefined
     };
   }
+  if (expandos !== undefined && named !== undefined)
+    throw new TypeError("Guest expandos cannot be combined with named host properties.");
   const properties = new Map<string, { get?: () => unknown; set?: (value: unknown) => void }>();
   for (const [name, inputProperty] of Object.entries(
     readDataRecord(input.properties ?? {}, "Host properties")
@@ -201,7 +227,7 @@ export function createLiveHostObject(
       controller.method(operation as HostOperation)
     ])
   );
-  const state = { host, guest, controller, properties, methods, indexed, named };
+  const state = { host, guest, controller, properties, methods, indexed, named, expandos };
   hostObjects.set(host, state);
   guestObjects.set(guest, state);
   return host;
@@ -274,12 +300,17 @@ export function revokeHostObject(value: HostObject, owner: object): void {
   state.methods.clear();
   state.indexed = undefined;
   state.named = undefined;
+  state.expandos = undefined;
 }
 
-export function getHostObjectMember(value: SandboxObject, key: string): SandboxValue {
+export function getHostObjectMember(value: SandboxObject, key: string | symbol): SandboxValue {
   const state = guestObjects.get(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
+  assertExpandoActive(state);
+  if (state.expandos && Object.hasOwn(state.expandos.values, key))
+    return Reflect.get(state.expandos.values, key);
+  if (typeof key === "symbol") return undefined;
   if (state.indexed !== undefined) {
     if (key === "length") return indexedLength(state);
     const index = canonicalIndex(key);
@@ -298,26 +329,44 @@ export function getHostObjectMember(value: SandboxObject, key: string): SandboxV
   return undefined;
 }
 
-export function setHostObjectMember(value: SandboxObject, key: string, entry: SandboxValue): void {
+export function setHostObjectMember(value: SandboxObject, key: string | symbol, entry: SandboxValue): void {
   const state = guestObjects.get(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
-  const property = state.properties.get(key);
+  assertExpandoActive(state);
+  const property = typeof key === "string" ? state.properties.get(key) : undefined;
   if (property !== undefined) {
-    if (property.set === undefined) throw new TypeError(`Host property '${key}' is not writable.`);
+    if (property.set === undefined) throw new TypeError(`Host property '${String(key)}' is not writable.`);
     state.controller.write(property.set, entry);
     return;
   }
-  if (state.named?.set === undefined) throw new TypeError(`Host property '${key}' is not writable.`);
+  if (state.expandos !== undefined) {
+    validateExpandoKey(state, key);
+    const current = Object.getOwnPropertyDescriptor(state.expandos.values, key);
+    if (current && !current.writable) throw new TypeError("Guest expando is not writable.");
+    if (!current) state.controller.chargeGuestData(expandoKeyUnits(key) + 1);
+    Object.defineProperty(state.expandos.values, key, current ? { value: entry } : {
+      value: entry, writable: true, enumerable: true, configurable: true
+    });
+    return;
+  }
+  if (typeof key === "symbol") throw new TypeError("Host properties require string keys.");
+  if (state.named?.set === undefined) throw new TypeError(`Host property '${String(key)}' is not writable.`);
   namedMutationKeys(state, key, true);
   state.controller.write((value) => state.named!.set!(key, value), entry);
   namedKeys(state);
 }
 
-export function deleteHostObjectMember(value: SandboxObject, key: string): boolean {
+export function deleteHostObjectMember(value: SandboxObject, key: string | symbol): boolean {
   const state = guestObjects.get(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
+  assertExpandoActive(state);
+  if (state.expandos !== undefined) {
+    validateExpandoKey(state, key, false);
+    return Reflect.deleteProperty(state.expandos.values, key);
+  }
+  if (typeof key === "symbol") throw new TypeError("Host properties require string keys.");
   if (state.named?.delete === undefined) throw new TypeError("Live host properties cannot be deleted.");
   if (!namedMutationKeys(state, key, false).includes(key)) return true;
   const deleted = state.controller.read(() => state.named!.delete!(key), (result) => {
@@ -331,6 +380,7 @@ export function deleteHostObjectMember(value: SandboxObject, key: string): boole
 export function getHostObjectKeys(value: SandboxObject): string[] {
   const state = guestObjects.get(value)!;
   state.controller.assertActive();
+  assertExpandoActive(state);
   const length = state.indexed === undefined ? 0 : indexedLength(state);
   const names =
     state.named === undefined || state.named.enumerable === false
@@ -344,25 +394,31 @@ export function getHostObjectKeys(value: SandboxObject): string[] {
               (key === "length" || canonicalIndex(key) !== undefined)
             )
         );
-  const size = length + state.properties.size + state.methods.size + names.length;
+  const expandos = state.expandos ? Object.keys(state.expandos.values) : [];
+  const size = expandos.length + length + state.properties.size + state.methods.size + names.length;
   state.controller.checkLength(size);
   state.controller.chargeWork(size + 1);
   return [
     ...Array.from({ length }, (_entry, index) => String(index)),
     ...state.properties.keys(),
     ...state.methods.keys(),
-    ...names
+    ...names,
+    ...expandos
   ];
 }
 
 export function hasHostObjectMember(
   value: SandboxObject,
-  key: string,
+  key: string | symbol,
   enumerableOnly = false
 ): boolean {
   const state = guestObjects.get(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
+  assertExpandoActive(state);
+  const expando = state.expandos && Object.getOwnPropertyDescriptor(state.expandos.values, key);
+  if (expando) return !enumerableOnly || expando.enumerable === true;
+  if (typeof key === "symbol") return false;
   if (state.indexed !== undefined) {
     if (key === "length") return !enumerableOnly;
     const index = canonicalIndex(key);
@@ -491,4 +547,46 @@ function namedKeys(state: HostObjectState): string[] {
     state.controller.checkTemporaryDataSize(1 + length + units);
     return result;
   }) as string[];
+}
+
+function expandoKeyUnits(key: string | symbol): number {
+  return typeof key === "string" ? key.length : key.description?.length ?? 0;
+}
+
+function assertExpandoActive(state: HostObjectState): void {
+  const result = state.expandos?.assertActive?.();
+  if (types.isPromise(result)) void Promise.resolve(result).catch(() => undefined);
+  if (result !== undefined) throw new TypeError("Guest expando assertActive must return undefined.");
+}
+
+function validateExpandoKey(state: HostObjectState, key: string | symbol, create = true): void {
+  if (typeof key === "string" && (
+    ["constructor", "prototype", "__proto__"].includes(key) ||
+    state.properties.has(key) || state.methods.has(key) ||
+    (state.indexed && (key === "length" || canonicalIndex(key) !== undefined))
+  ))
+    throw new TypeError("Host member is protected from guest expando mutation.");
+  const expandos = state.expandos!;
+  const keys = Reflect.ownKeys(expandos.values);
+  if (create && !Object.hasOwn(expandos.values, key)) keys.push(key);
+  state.controller.chargeWork(keys.length + 1);
+  if (keys.length > expandos.maxKeys) throw new RangeError("Guest expandos exceed maxKeys.");
+  let units = 0;
+  for (const key of keys) units += expandoKeyUnits(key);
+  if (units > expandos.maxKeyCodeUnits) throw new RangeError("Guest expandos exceed maximum UTF-16 code units.");
+  state.controller.checkLength(keys.length);
+  if (typeof key === "string") state.controller.checkString(key);
+}
+
+export function getHostObjectSymbolKeys(value: SandboxObject): symbol[] {
+  const state = guestObjects.get(value)!;
+  state.controller.assertActive();
+  assertExpandoActive(state);
+  state.controller.chargeWork((state.expandos ? Reflect.ownKeys(state.expandos.values).length : 0) + 1);
+  return state.expandos ? Object.getOwnPropertySymbols(state.expandos.values) : [];
+}
+
+export function hostObjectGuestRoots(value: HostObject | SandboxObject): SandboxValue[] {
+  const state = hostObjects.get(value) ?? guestObjects.get(value)!;
+  return state.expandos ? [state.expandos.values] : [];
 }

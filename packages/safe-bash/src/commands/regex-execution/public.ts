@@ -11,3 +11,5 @@ export { compileEre } from "./ere/syntax.js";
 export { matchEre } from "./ere/matcher.js";
 export { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
 export type { EreLimits, EreUsage, EreResource, EreExpansionBounds, EreFragment, EreSpan, EreProgram, EreResult } from "./ere/types.js";
+
+export { RegexExecutor, RegexSession } from "./portable.js";

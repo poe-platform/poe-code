@@ -482,6 +482,7 @@ export interface State {
 }
 
 interface IO {
+  readonly capabilities?: CommandContext["capabilities"];
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];
   readonly nameExpansionContext?: "document" | "conditional" | undefined;
@@ -3685,6 +3686,7 @@ export class Runtime {
       const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
+        capabilities: io.capabilities,
         [invocationScope]: io[invocationScope],
         ...(io.admittedHandles === undefined ? {} : { admittedHandles: io.admittedHandles }),
         ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }),

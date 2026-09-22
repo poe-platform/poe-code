@@ -207,7 +207,15 @@ export type InvocationCleanup = () => void | Promise<void>;
 
 export type InternalErrorHandler = (error: unknown) => void | Promise<void>;
 
+/** Borrowed host capabilities carried through dispatch. These cannot replace invocation-owned I/O. */
+export interface InvocationCapabilities {
+  readonly services?: object | undefined;
+  readonly fetch?: typeof globalThis.fetch | undefined;
+  readonly [extension: string]: unknown;
+}
+
 export interface CommandContext {
+  readonly capabilities?: InvocationCapabilities | undefined;
   readonly admittedHandles?: AdmittedHandles | undefined;
   readonly processSignals?: ProcessSignals | undefined;
   readonly onInternalError?: InternalErrorHandler | undefined;

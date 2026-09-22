@@ -1,6 +1,15 @@
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 import type { ShellExtension } from "./extensions.js";
-import type { InternalErrorHandler, CommandArguments } from "../contracts/command.js";
+import type { InternalErrorHandler, CommandArguments, InvocationCapabilities } from "../contracts/command.js";
+import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
+import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
+
+export interface ShellCapabilities extends InvocationCapabilities {
+  readonly regex?: {
+    readonly executor: BoundedRegexProvider;
+    readonly limits: Readonly<RegexExecutionOptions>;
+  } | undefined;
+}
 
 export interface ShellInvokeOptions {
   readonly admittedHandles?: CommandContext["admittedHandles"];
@@ -46,6 +55,7 @@ export interface ShellParseOptions {
 }
 
 export interface ShellOptions {
+  readonly capabilities?: ShellCapabilities;
   readonly onInternalError?: InternalErrorHandler;
   readonly fs: FileSystem;
   /** Default adds a synthetic null device; provided uses the supplied filesystem's device paths. */
@@ -58,6 +68,7 @@ export interface ShellOptions {
 }
 
 export interface ShellExecOptions {
+  readonly capabilities?: ShellCapabilities;
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];
   readonly onInternalError?: InternalErrorHandler;

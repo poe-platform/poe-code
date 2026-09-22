@@ -1,4 +1,4 @@
-import type { AsyncCommandHandler, CommandContext, CommandHandler, CommandRegistry, CommandResult } from "./command.js";
+import type { AsyncCommandHandler, CommandContext, CommandHandler, CommandRegistry, CommandResult, InvocationCapabilities } from "./command.js";
 import type { FileSystemFactory } from "./filesystem.js";
 
 export type Next = () => Promise<CommandResult>;
@@ -9,6 +9,8 @@ export type Middleware = (
 ) => CommandResult | Promise<CommandResult>;
 
 export interface PluginHost {
+  /** Borrowed defaults; explicit invocation configuration wins. */
+  provideCapabilities?(capabilities: InvocationCapabilities): void;
   readonly commands: CommandRegistry;
   use(middleware: Middleware): void;
   registerFileSystem(scheme: string, factory: FileSystemFactory): void;

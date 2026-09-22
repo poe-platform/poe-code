@@ -16,7 +16,10 @@ export const RESERVED_SERVICE_NAMES = new Set([
   "stdout",
   "stderr",
   "cwd",
-  "regex"
+  "regex",
+  "registerCleanup",
+  "invoke",
+  "inputBudget"
 ]);
 
 const RESERVED_SERVICE_NAMES_MESSAGE =

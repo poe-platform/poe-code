@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { ByteSink, ByteSource, CommandContext, FileSystem, VirtualShellPlugin } from "@poe-platform/safe-bash";
+import type { ByteSink, ByteSource, CommandContext, FileSystem, VirtualShellPlugin, ShellCapabilities } from "@poe-platform/safe-bash";
 import { cloneDefaultValue, validate, type AnySchema, type Static } from "toolcraft-schema";
 import type { Command, CommandNode, Group, HandlerFs } from "./index.js";
 import type { HumanInLoopRuntime } from "./human-in-loop/types.js";
@@ -7,6 +7,10 @@ import { executeCLICommand, formatCLIName, type CLIInvocationRuntime, type CLICo
 import { validateServices } from "./runtime/io.js";
 
 export interface ToolcraftInvocation<TServices extends object = Record<string, never>> {
+  regex?: ShellCapabilities["regex"];
+  registerCleanup?: CommandContext["registerCleanup"];
+  invoke?: CommandContext["invoke"];
+  inputBudget?: CommandContext["inputBudget"];
   cwd: string;
   env: Readonly<Record<string, string>>;
   fs: FileSystem;
@@ -17,6 +21,24 @@ export interface ToolcraftInvocation<TServices extends object = Record<string, n
   services?: TServices;
   fetch?: typeof globalThis.fetch;
   humanInLoop?: HumanInLoopRuntime;
+}
+
+declare module "./index.js" {
+  interface HandlerInvocationCapabilities {
+    readonly cwd?: string;
+    readonly stdin?: ByteSource;
+    readonly stdout?: ByteSink;
+    readonly stderr?: ByteSink;
+    readonly regex?: ShellCapabilities["regex"];
+    readonly registerCleanup?: CommandContext["registerCleanup"];
+    readonly invoke?: CommandContext["invoke"];
+    readonly inputBudget?: CommandContext["inputBudget"];
+  }
+}
+
+export interface ToolcraftCapabilities<TServices extends object = Record<string, never>> extends ShellCapabilities {
+  readonly services?: TServices | undefined;
+  readonly humanInLoop?: HumanInLoopRuntime | undefined;
 }
 
 export interface ToolcraftCommandsOptions<TServices extends object = Record<string, never>> {
@@ -154,7 +176,7 @@ export function createToolcraftCommandExecutor<TServices extends object>(
         signal: invocation.signal,
         exitCode: 0,
         defaults: multiple ? Object.fromEntries(Object.entries(defaults).filter(([key]) => key.startsWith(`${root.name}/`)).map(([key, value]) => [key.slice(root.name.length + 1), value])) : defaults,
-        capabilities: { signal: invocation.signal, stdin: invocation.stdin, stdout: invocation.stdout, stderr: invocation.stderr, cwd: invocation.cwd },
+        capabilities: { signal: invocation.signal, stdin: invocation.stdin, stdout: invocation.stdout, stderr: invocation.stderr, cwd: invocation.cwd, regex: invocation.regex, registerCleanup: invocation.registerCleanup, invoke: invocation.invoke, inputBudget: invocation.inputBudget },
         write(chunk, stream = "stdout") {
           invocation.signal.throwIfAborted();
           const bytes = new TextEncoder().encode(chunk);
@@ -200,6 +222,7 @@ export function toolcraftCommands<TServices extends object>(
   return {
     name: "toolcraft",
     setup(host) {
+      if (typeof host.provideCapabilities !== "function") throw new Error("Toolcraft requires a safe-bash runtime with invocation capabilities");
       for (const root of roots) {
         if (root.scope && !root.scope.includes("cli")) continue;
         for (const name of [root.name, ...root.aliases]) {
@@ -207,7 +230,14 @@ export function toolcraftCommands<TServices extends object>(
             name,
             description: root.description,
             execute(context: CommandContext) {
-              return executor.execute(Array.isArray(library) ? [root.name, ...context.args] : context.args, context);
+              const capabilities = context.capabilities as ToolcraftCapabilities<TServices> | undefined;
+              return executor.execute(Array.isArray(library) ? [root.name, ...context.args] : context.args, {
+                ...context,
+                services: capabilities?.services as TServices | undefined,
+                fetch: capabilities?.fetch,
+                regex: capabilities?.regex,
+                humanInLoop: capabilities?.humanInLoop
+              });
             }
           });
         }

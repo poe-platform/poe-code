@@ -89,9 +89,17 @@ structured/text rendering is retained.
 Native plugins currently exclude MCP proxy discovery, host fixture loading,
 file presets, interactive parameter resolvers and detached approval runners.
 Use an explicitly supplied in-process approval provider; providers that spawn a
-runner remain application code. Automatic propagation of configured shell regex
-providers/limits and other application-specific shell capabilities is tracked in
-issue #254; the registration surface here does not advertise those capabilities.
+runner remain application code. Shell `capabilities` supplies borrowed `services`,
+authorized `fetch`, and `humanInLoop` to each library automatically. Per-execution
+capabilities override shell defaults; explicit `undefined` revokes a capability.
+`agentCommands({ regexExecutor, regex })` also supplies its exact bounded regex
+provider and effective limits as `ctx.regex.executor` and `ctx.regex.limits`.
+`BoundedRegexProvider`, `RegexExecutionOptions`, and `RegexExecutor` are public
+safe-bash exports; missing regex never gains a native JavaScript fallback. Native
+handlers can use `signal`, byte `stdin`/`stdout`/`stderr`, `cwd`, `inputBudget`,
+`invoke` and `registerCleanup`. Dry-run readback uses an explicitly supplied mock
+or overlay filesystem. Library services combine with invocation services; runtime
+capability names are reserved and cannot be replaced through services.
 Schema pattern validation currently follows Toolcraft's existing validator.
 
 ## What the owner decides

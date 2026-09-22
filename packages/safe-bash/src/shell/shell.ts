@@ -98,6 +98,7 @@ export class Shell implements PluginHost {
   readonly #middleware: Middleware[] = [];
   readonly #filesystems = new Map<string, FileSystemFactory>();
   readonly #plugins: VirtualShellPlugin[] = [];
+  readonly #capabilities: Record<string, unknown> = {};
   readonly #options: ShellOptions;
   #ready: Promise<void> = Promise.resolve();
   #disposed = false;
@@ -132,6 +133,7 @@ export class Shell implements PluginHost {
           if (this.#disposed && !active) throw new Error("Shell is disposed");
         };
         const host: PluginHost = {
+          provideCapabilities: capabilities => { admit(); Object.assign(this.#capabilities, capabilities); },
           commands: this.commands,
           use: (middleware) => { admit(); this.#install(middleware); },
           registerFileSystem: (scheme, factory) => { admit(); this.#registerFileSystem(scheme, factory); },
@@ -244,6 +246,7 @@ export class Shell implements PluginHost {
       catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
     });
     const io = {
+      capabilities: Object.freeze({ ...this.#options.capabilities, ...options.capabilities }),
       [invocationScope]: scope,
       ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
       ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
@@ -271,6 +274,7 @@ export class Shell implements PluginHost {
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
+        io.capabilities = Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities });
         const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
         const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
         for (const [name, value] of Object.entries(variables)) {

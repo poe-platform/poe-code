@@ -105,7 +105,7 @@ export interface CommandExample {
   params: Record<string, unknown>;
 }
 
-export type GroupCheckContext<TServices extends object = EmptyServices> = TServices & {
+export type GroupCheckContext<TServices extends object = EmptyServices> = TServices & HandlerInvocationCapabilities & {
   params?: unknown;
   secrets?: Record<string, string | undefined>;
   fetch: typeof globalThis.fetch;
@@ -120,7 +120,7 @@ export type CommandCheckContext<
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TSecrets extends SecretDeclarations | undefined = undefined,
   TServices extends object = EmptyServices
-> = TServices & {
+> = TServices & HandlerInvocationCapabilities & {
   params?: Static<TParamsSchema>;
   secrets?: InferSecrets<TSecrets>;
   fetch: typeof globalThis.fetch;
@@ -151,11 +151,16 @@ export interface ToolAnnotations {
   openWorldHint?: boolean;
 }
 
+/** Additional capabilities supplied by native invocation hosts. */
+export interface HandlerInvocationCapabilities {
+  readonly signal?: AbortSignal;
+}
+
 export type HandlerContext<
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TSecrets extends SecretDeclarations | undefined = undefined,
   TServices extends object = EmptyServices
-> = TServices & {
+> = TServices & HandlerInvocationCapabilities & {
   params: Static<TParamsSchema>;
   secrets: InferSecrets<TSecrets>;
   fetch: typeof globalThis.fetch;

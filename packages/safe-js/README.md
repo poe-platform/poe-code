@@ -230,11 +230,17 @@ Execution gives host timers and cancellation turns between guest nodes after ela
 | `classicScripts` | Optional boolean, default `false`. Evaluations use classic Script grammar with persistent globals: top-level `this` is the intrinsic global object, `var` and functions create global properties, and `let`/`const` remain lexical. Injected capabilities stay immutable lexical bindings. Explicit source modules retain module semantics. |
 | `classicScriptErrors` | Optional `"fatal"` (default) or `"report"`; reporting requires `classicScripts: true`. Ordinary escaped Script exceptions return `ok: false` with `recoverable: true` while preserving realm state. Syntax, budget, cancellation, module, callback and unhandled rejection failures remain fatal. |
 | `callbackScheduling` | Optional `"after-prefix"` for a trusted host scheduler. Allows later source after every admitted callback finishes its synchronous prefix, while their asynchronous tails remain pending. Omit for exclusive source evaluation. |
+| `sourceResolver` | Explicitly grants source text and a canonical identity for each imported source. Classic Scripts use their evaluation filename as the referrer, including later calls to saved functions and generators. No filesystem or network access is granted by default. |
+| `sourceImportTimeoutMs` | Optional integer from 1 to 2147483647, disabled by default. Limits elapsed host time for each dynamic source import across resolution, linking and evaluation, including top-level await. Expiry revokes the entire realm with a deadline budget error. Timers are cooperative; synchronous host work can delay delivery. |
 
 Classic Scripts reject top-level return, await and static imports/exports. This
 option preserves declaration history across evaluations and checkpoints; browser
-window aliases and callback scheduling belong to the host. Source-resolved dynamic
-imports from classic Scripts require separate support.
+window aliases and callback scheduling belong to the host. Dynamic source imports
+require an explicit `sourceResolver` and share canonical module instances with
+source-module evaluations. `realm.sourceModuleStatus()` returns an immutable
+snapshot with `pendingImports`, `preparedModules`, `fulfilledImports` and
+`rejectedImports`; it rejects after realm revocation. Import settlement does not
+establish application readiness.
 
 Ordinary host arguments/results are still copied. To preserve live native identity, explicitly create a host object. A guest function crossing to the host becomes an opaque callback: invoke it with `realm.invokeCallback(callback, { thisValue?, args? })`, then `realm.releaseCallback(callback)` when no longer needed. Inside a declared and granted `context.nestedOperation`, await `context.invokeCallback` to settle the full guest result, including nested host calls and returned promises. Callbacks and live objects cannot cross realms or survive close. For deferred arguments that must preserve guest identity, opt into retained references as described below.
 

@@ -8,6 +8,7 @@ import {setSandboxPrototype} from "../interp/object-model.js";
 import type {SandboxObject} from "../interp/values.js";
 import {awaitWithSignal} from "../interp/cancel.js";
 import {SandboxJobQueue} from "../interp/jobs.js";
+import {SandboxError} from "../interp/budget.js";
 import {attachSourceLoader, resolveModuleNamespace, type ModuleEnvironment} from "./registry.js";
 
 export type SourceModule = {id: string; source: string};
@@ -55,6 +56,7 @@ export class SourceModuleGraph {
     resolver: SourceResolver;
     modules: ModuleEnvironment;
     serializePreparation?: boolean;
+    importDeadline?: {timeoutMs: number; abort(reason: unknown): void};
   }) {
     this.jobs = options.jobs ?? new SandboxJobQueue();
     attachSourceLoader(options.modules,this.import.bind(this));
@@ -81,6 +83,7 @@ export class SourceModuleGraph {
 
   import(specifier: string, referrer: string): Promise<SandboxObject> {
     const group = this.importGroup.getStore();
+    const cancelDeadline = this.startImportDeadline();
     const pending=(async () => {
       const entry = await this.load(specifier, referrer);
       if (!isRecord(entry)) return entry;
@@ -93,12 +96,36 @@ export class SourceModuleGraph {
     })();
     this.pendingImports.add(pending);
     group?.add(pending);
-    const release = () => { this.pendingImports.delete(pending); group?.delete(pending); };
+    const release = () => {
+      cancelDeadline();
+      this.pendingImports.delete(pending);
+      group?.delete(pending);
+    };
     void pending.then(
       () => {this.fulfilledImports++; release();},
       () => {this.rejectedImports++; release();}
     );
     return pending;
+  }
+
+  private startImportDeadline(): () => void {
+    const policy = this.options.importDeadline;
+    const signal = this.options.signal;
+    if (policy === undefined || signal?.aborted) return () => {};
+    const deadline = Date.now() + policy.timeoutMs;
+    const timer = setTimeout(() => {
+      policy.abort(new SandboxError({
+        budget: "deadline",
+        current: Date.now(),
+        limit: deadline
+      }));
+    }, policy.timeoutMs);
+    const cancel = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", cancel);
+    };
+    signal?.addEventListener("abort", cancel, { once: true });
+    return cancel;
   }
 
   withoutImportGroup<Result>(task: () => Result): Result {

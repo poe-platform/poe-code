@@ -89,6 +89,8 @@ export type RealmOptions = {
   classicScriptErrors?: "fatal" | "report";
   callbackScheduling?: "after-prefix";
   sourceResolver?: SourceResolver;
+  /** Elapsed host-time limit per dynamic import; expiry revokes the whole realm. */
+  sourceImportTimeoutMs?: number;
   clock?: RunClock;
   bindings?: Record<string, CallerInjectedBinding>;
   modules?: ModuleRegistry;
@@ -110,6 +112,7 @@ export type SafeJSRealm = ExecutionControl & {
   readonly stringCompilation: "allow" | "deny";
   readonly classicScriptErrors: "fatal" | "report";
   readonly supportsDiscardResult: true;
+  readonly sourceImportTimeoutMs?: number;
   readonly extensions: readonly SafeJSExtension["manifest"][];
   evaluate(source: string, options?: { filename?: string; sourceType?: "module"; discardResult?: boolean }): Promise<RealmResult>;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
@@ -900,7 +903,18 @@ class RealmState {
       jobs: this.queue,
       assertActive: this.assertOpen,
       surfaceUnhandledThrows: true,
-      serializePreparation: this.options.callbackScheduling === "after-prefix"
+      serializePreparation: this.options.callbackScheduling === "after-prefix",
+      ...(this.options.sourceImportTimeoutMs === undefined
+        ? {}
+        : {
+          importDeadline: {
+            timeoutMs: this.options.sourceImportTimeoutMs,
+            abort: (reason: unknown) => {
+              this.poison(reason);
+              void this.close().catch(() => undefined);
+            }
+          }
+        })
     }));
   }
 
@@ -1208,6 +1222,7 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
     stringCompilation: state.options.stringCompilation ?? "allow",
     classicScriptErrors: state.options.classicScriptErrors ?? "fatal",
     supportsDiscardResult: true as const,
+    sourceImportTimeoutMs: state.options.sourceImportTimeoutMs,
     extensions: Object.freeze(state.extensions.map((extension) => extension.manifest)),
     evaluate: state.evaluate,
     startCallback: state.startCallback,
@@ -1276,12 +1291,20 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
   if (!oneShot) supported.add("classicScripts");
   if (!oneShot) supported.add("classicScriptErrors");
   if (!oneShot) supported.add("callbackScheduling");
+  if (!oneShot) supported.add("sourceImportTimeoutMs");
   for (const [key, entry] of Object.entries(options)) {
     if (supported.has(key) || (oneShot && (key === "filename" || key === "sourceType" || entry === undefined))) continue;
     throw new TypeError(`Unsupported ${oneShot ? "extension-run" : "realm"} option '${key}'.`);
   }
   if (options.callbackScheduling !== undefined && options.callbackScheduling !== "after-prefix")
     throw new TypeError("Realm callbackScheduling must be 'after-prefix'.");
+  if (
+    options.sourceImportTimeoutMs !== undefined &&
+    (!Number.isSafeInteger(options.sourceImportTimeoutMs) ||
+      Number(options.sourceImportTimeoutMs) < 1 ||
+      Number(options.sourceImportTimeoutMs) > 2147483647)
+  )
+    throw new TypeError("Realm sourceImportTimeoutMs must be an integer between 1 and 2147483647.");
   if (options.stringCompilation !== undefined && options.stringCompilation !== "allow" && options.stringCompilation !== "deny")
     throw new TypeError("Realm stringCompilation must be 'allow' or 'deny'.");
   if (options.classicScriptErrors !== undefined && options.classicScriptErrors !== "fatal" && options.classicScriptErrors !== "report")

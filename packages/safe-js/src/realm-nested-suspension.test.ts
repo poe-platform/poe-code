@@ -12,9 +12,13 @@ it.each(["value = 7", "await 0; value = 7"])("finishes authorized nested source 
   });
   const execution = realm.evaluate("let value = 0; nested(); return value;");
   const settled = execution.then(result => ({ state: "settled", result }), error => ({ state: "failed", error }));
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    // No native I/O or timers: await 0 must settle through the microtask queue.
-    expect(await Promise.race([settled, new Promise(resolve => setImmediate(() => resolve({ state: "pending" })))]))
+    // Cooperative host turns are allowed. Still detect a circular wait between
+    // parent ownership and nested source instead of waiting indefinitely.
+    expect(await Promise.race([settled, new Promise(resolve => {
+      timer = setTimeout(() => resolve({ state: "pending" }), 1000);
+    })]))
       .toMatchObject({ state: "settled", result: { ok: true, returnValue: 7 } });
-  } finally { await realm.close(); await settled; }
+  } finally { clearTimeout(timer); await realm.close(); await settled; }
 });

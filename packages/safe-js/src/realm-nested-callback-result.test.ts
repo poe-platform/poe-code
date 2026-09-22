@@ -41,14 +41,20 @@ it.each([
     (result) => ({ state: "settled", result }),
     (error) => ({ state: "failed", error })
   );
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     expect(
       await Promise.race([
         settled,
-        new Promise((resolve) => setImmediate(() => resolve({ state: "pending" })))
+        // Joining must complete without a circular ownership wait, while
+        // cooperative host turns may occur before the final guest result.
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve({ state: "pending" }), 1000);
+        })
       ])
     ).toMatchObject({ state: "settled", result: { ok: true, returnValue: [expected, false] } });
   } finally {
+    clearTimeout(timer);
     await realm.close();
     await settled;
   }

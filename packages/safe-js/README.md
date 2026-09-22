@@ -216,6 +216,8 @@ This prints `2`. Evaluations share declarations, closures and object identity wi
 
 For scripts whose completion value is unused, call `evaluate(source, { discardResult: true })`. A successful result omits `returnValue`, so guest values with custom prototypes can remain inside the realm without crossing the data-copy boundary. Effects, resource limits and error handling still apply. `realm.supportsDiscardResult` is an immutable `true` marker for adapters that support older SDK versions.
 
+Execution gives host timers and cancellation turns between guest nodes after elapsed host time as well as interpreter work. This preserves guest job ownership and resource checks. A synchronous native call or an individual data scan can still delay delivery; cancellation is cooperative.
+
 `createRealm(options?)` accepts `bindings`, `modules`, `budget`, `clock`, `signal`, `sink` and `randomSeed` as described below, plus:
 
 | Option | Purpose / default |

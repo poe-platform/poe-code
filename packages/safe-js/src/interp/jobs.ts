@@ -64,6 +64,7 @@ export class SandboxJobQueue {
   private generation = 0;
   private controlled = false;
   private nodesUntilHostTurn = 4096;
+  private lastHostTurn = Date.now();
   private pauseRequest?: PauseRequest;
   private finished = false;
   private interruption?: { reason: unknown };
@@ -157,9 +158,12 @@ export class SandboxJobQueue {
       queue.pauseRequest.acknowledge();
       return queue.pauseRequest.continuation;
     }
-    if (--queue.nodesUntilHostTurn > 0) return;
+    // Full data reconciliation can make a single node expensive. Keep the
+    // current job's ownership while giving host timers and cancellation a turn.
+    if (--queue.nodesUntilHostTurn > 0 && Date.now() - queue.lastHostTurn < 16) return;
     queue.nodesUntilHostTurn = 4096;
     return yieldToHost().then(() => {
+      queue.lastHostTurn = Date.now();
       if (queue.pauseRequest === undefined) return;
       queue.pauseRequest.acknowledged = true;
       queue.pauseRequest.acknowledge();

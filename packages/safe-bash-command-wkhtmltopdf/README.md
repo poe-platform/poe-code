@@ -9,13 +9,19 @@ with its declarations into the Safe Bash artifact. Do not install it separately.
 
 | API | Use |
 | --- | --- |
-| `wkhtmltopdfCommands({ limits, renderer? })` | Register with `shell.use(...)`; omitted options use bounded defaults |
+| `wkhtmltopdfCommands({ limits, renderer?, replace? })` | Register with `shell.use(...)`; omitted options use bounded defaults |
 | `createWkhtmltopdfCommand(options)`, `wkhtmltopdfCommand` | Configured or default command definition |
 | `runWkhtmltopdf(context, options)` | Same arguments, cancellation and destinations as the CLI |
 | `parseInvocation(argv, options)`, `tokenizeBatchLine(line, options)` | Bounded parsing without I/O or shell evaluation |
 | `switches`, `wkhtmltopdfLimits` | Exact flag dispositions and default limits |
 | `conversionOutcome`, `planPageSequence` | Source-derived statuses and physical/logical page accounting |
 | `withResources`, `requireRendererFeatures` | Explicit bounded resources and feature admission |
+
+Registration is opt-in. Importing this subpath does not add commands to a shell
+or to `agentCommands()`. The plugin rejects an existing command of the same name
+before changing the registry. Pass `replace: true` to replace that command only;
+unrelated registrations remain intact. `replace` is SDK composition policy, not
+a virtual command argument.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

@@ -2932,8 +2932,9 @@
     }
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": "Containing successor pending; pre-cipher-fix35789637737 fails exact cipher declaration issue; current35790563033 contains repair and build islive."
-  }
+    "localCommit": "c104f0506e518bb2348c54bcd3e20722642a3093",
+    "remoteMain": "Verified exact origin/main after normal push",
+    "publication": "Release35791839389pending; containing evidence successor monitored."
+  },
+  "referenceQualification": "docs/ssconvert/perl-native-directory-ownership-proof.json records ASAN-proven borrowed-directory double free and explicitly differentiated ownership-corrected standard/ASAN profiles. All2856validcases/frozen2families exact,exit0/stderr0 there; original unmodified failures retained."
 }

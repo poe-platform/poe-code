@@ -1,0 +1,587 @@
+{
+  "scope": "Native-reference qualification and upstream ownership defect diagnosis; no product native fallback, no silent relabelling of unmodified source profile.",
+  "originalFailure": {
+    "profile": "docs/ssconvert/perl-sed-gap-proof.json",
+    "observations": "Unmodified loader may produce byte-exact CSV then abort at go_plugin_finalize. Successful unmodified POSIX/named/frozen cohorts do not erase failed original capture/lookbehind/shard runs. Undefined freed-directory lifetime depends on allocator reuse.",
+    "asan": {
+      "exit": -6,
+      "bytes": 2204,
+      "exact": true,
+      "stderrBytes": 3972,
+      "runtime": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.asan_osx_dynamic.dylib",
+      "runtimeSha256": "fe1e17021123184ac0380808606a7cce00ad657158d2d4f62916970df1e8eaef"
+    },
+    "asanError": "=================================================================\n==21220==ERROR: AddressSanitizer: attempting double-free on 0x60b0001d9eb0 in thread T0:\n    #0 0x000102909258 in free+0x7c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x41258)\n    #1 0x00010241f27c in go_plugin_finalize+0x30 (libgoffice-0.10.10.dylib:arm64+0xb27c)\n    #2 0x0001026f7674 in g_object_unref+0x230 (libgobject-2.0.0.dylib:arm64+0xb674)\n    #3 0x0001047278d4 in g_slist_free_full+0x28 (libglib-2.0.0.dylib:arm64+0x4b8d4)\n    #4 0x00010241f180 in go_plugins_shutdown+0xdc (libgoffice-0.10.10.dylib:arm64+0xb180)\n    #5 0x00010419aab0 in gnm_shutdown libgnumeric.c:374\n    #6 0x0001021ed0f8 in main ssconvert.c:1700\n    #7 0x00018548fda0 in start+0x1b4c (dyld:arm64e+0x1fda0)\n\n0x60b0001d9eb0 is located 0 bytes inside of 107-byte region [0x60b0001d9eb0,0x60b0001d9f1b)\nfreed by thread T0 here:\n    #0 0x000102909258 in free+0x7c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x41258)\n    #1 0x000104be1628  (<unknown module>)\n    #2 0x0001024200e4 in go_plugin_loader_load_base+0xc8 (libgoffice-0.10.10.dylib:arm64+0xc0e4)\n    #3 0x00010241da00 in go_plugin_load_base+0x238 (libgoffice-0.10.10.dylib:arm64+0x9a00)\n    #4 0x00010241ddb4 in go_plugin_load_service+0x60 (libgoffice-0.10.10.dylib:arm64+0x9db4)\n    #5 0x0001024218b8 in go_plugin_service_load+0x64 (libgoffice-0.10.10.dylib:arm64+0xd8b8)\n    #6 0x000104171f60 in plugin_service_function_group_func_load_stub gnm-plugin.c:166\n    #7 0x0001026f2524 in g_closure_invoke+0xc4 (libgobject-2.0.0.dylib:arm64+0x6524)\n    #8 0x0001027079ec in signal_emit_unlocked_R+0x500 (libgobject-2.0.0.dylib:arm64+0x1b9ec)\n    #9 0x000102706c20 in signal_emit_valist_unlocked+0x704 (libgobject-2.0.0.dylib:arm64+0x1ac20)\n    #10 0x0001027064ec in g_signal_emit_valist+0x3c (libgobject-2.0.0.dylib:arm64+0x1a4ec)\n    #11 0x000102707000 in g_signal_emit+0x18 (libgobject-2.0.0.dylib:arm64+0x1b000)\n    #12 0x00010416629c in gnm_func_load_if_stub func.c:161\n    #13 0x0001041550a0 in link_unlink_expr_dep dependent.c:1230\n    #14 0x000104154794 in dependent_link dependent.c:1548\n    #15 0x000104139a88 in gnm_cell_set_expr_and_value cell.c:207\n    #16 0x00010423e02c in xml_sax_cell_content xml-sax-read.c:2413\n    #17 0x000102252064 in gsf_xml_in_end_element+0x64 (libgsf-1.114.dylib:arm64+0x6064)\n    #18 0x00019015d114 in xmlParseEndTag1+0x184 (libxml2.2.dylib:arm64e+0x4a114)\n    #19 0x00019015ddc8 in xmlParseElementEnd+0x6c (libxml2.2.dylib:arm64e+0x4adc8)\n    #20 0x00019015d7b4 in xmlParseContentInternal+0xcc (libxml2.2.dylib:arm64e+0x4a7b4)\n    #21 0x00019012fed0 in xmlParseElement+0x2c (libxml2.2.dylib:arm64e+0x1ced0)\n    #22 0x00019012fcc4 in xmlParseDocument+0x374 (libxml2.2.dylib:arm64e+0x1ccc4)\n    #23 0x0001022506ec in gsf_xml_in_doc_parse+0x60 (libgsf-1.114.dylib:arm64+0x46ec)\n    #24 0x000104237b70 in read_file_common xml-sax-read.c:3660\n    #25 0x00010423886c in gnm_xml_file_open xml-sax-read.c:3789\n    #26 0x000104232dc0 in workbook_view_new_from_input workbook-view.c:1460\n    #27 0x000104233054 in workbook_view_new_from_uri workbook-view.c:1532\n    #28 0x0001021ed9f4 in convert ssconvert.c:1376\n    #29 0x0001021ed0a8 in main ssconvert.c\n\npreviously allocated by thread T0 here:\n    #0 0x000102909164 in malloc+0x78 (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x41164)\n    #1 0x000104713974 in g_malloc+0x14 (libglib-2.0.0.dylib:arm64+0x37974)\n    #2 0x00010475f954 in g_strdup+0x20 (libglib-2.0.0.dylib:arm64+0x83954)\n    #3 0x00010241f878 in go_plugin_read+0x510 (libgoffice-0.10.10.dylib:arm64+0xb878)\n    #4 0x00010241e9d4 in go_plugin_list_read_for_all_dirs+0x138 (libgoffice-0.10.10.dylib:arm64+0xa9d4)\n    #5 0x00010241ee88 in go_plugins_init+0x1ec (libgoffice-0.10.10.dylib:arm64+0xae88)\n    #6 0x0001021ece78 in main ssconvert.c:1656\n    #7 0x00018548fda0 in start+0x1b4c (dyld:arm64e+0x1fda0)\n\nSUMMARY: AddressSanitizer: double-free (libgoffice-0.10.10.dylib:arm64+0xb27c) in go_plugin_finalize+0x30\n==21220==ABORTING\n"
+  },
+  "primaryOwnershipEvidence": {
+    "url": "https://download.gnome.org/sources/goffice/0.10/goffice-0.10.62.tar.xz",
+    "archiveSha256": "500eaff50628faa75adb3cd560236a4db498d9e7c52c036b78fa9a57f21805b3",
+    "sourceSha256": "1dc26295520f96d86db126500300ac7d6bd9e521d44d8bc0ecb45e5bbf17d3a3",
+    "getterExcerpt": "go_plugin_get_dir_name (GOPlugin *plugin)\n{\n\tg_return_val_if_fail (GO_IS_PLUGIN (plugin), NULL);\n\n\treturn plugin->dir_name;\n}\n\n/**\n * go_plugin_get_id:\n * @plugin: #GOPlugin\n *\n * Returns: the ID of @plugin (unique string used for identification of\n * \tplugin).  Returned string is != NULL and stays ",
+    "apiOwnership": "Return is plugin->dir_name directly; native plugin retains ownership and frees it in go_plugin_finalize. ASAN independently observes allocation in go_plugin_read and first free in loader gplp_load_base."
+  },
+  "nativeSource": {
+    "gnumeric": "Authenticated1.12.61 archive SHA2562ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "loaderPath": "plugins/perl-loader/perl-loader.c",
+    "originalLoaderSha256": "e821a9a56ee97d33f9abe993a71796bbda16d41df94faa7c47de4a6f9322c76d",
+    "affectedLines": [
+      285,
+      289
+    ],
+    "contract": "go_plugin_get_dir_name returns plugin->dir_name directly; GOPlugin owns and frees it. Loader g_free(arg) frees borrowed storage. ASAN traces allocation in go_plugin_read, first free in loader load_base, second free in go_plugin_finalize."
+  },
+  "referenceCorrection": {
+    "purpose": "Own the loader copy before its existing free. CLI sample/grammar/result conversion unchanged. Original archive and original plugin/profile untouched; private copy and independent isolated plugin roots used.",
+    "before": "arg = go_plugin_get_dir_name (go_plugin_loader_get_plugin (loader));",
+    "after": "arg = g_strdup (go_plugin_get_dir_name (go_plugin_loader_get_plugin (loader)));",
+    "patchedLoaderSha256": "a4ce62b928baf892d8dc5c227a6ac944b535466396baaa7ada9a239b6f273487",
+    "standardProfile": {
+      "sourceFiles": [
+        {
+          "path": "plugins/perl-loader/boot.c",
+          "sha256": "3ecf48b94912993837e7de1dcf83545124d9fefa780522a377518d3fcaee43e8"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/perl-native-owned-directory-loader.c",
+          "sha256": "a4ce62b928baf892d8dc5c227a6ac944b535466396baaa7ada9a239b6f273487"
+        },
+        {
+          "path": "plugins/perl-loader/perl-gnumeric.c",
+          "sha256": "24fca5f164eadd7b24c9e470e8429a0b7e0a5014addd429380e1958bb8ca8cfc"
+        }
+      ],
+      "generatedXsinitSha256": "d8758642f467a7f63e26549c9dcf53c1c98413402fcc265a47c8446b548d002c",
+      "sdk": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+      "coreHeaders": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Perl/5.34/darwin-thread-multi-2level/CORE",
+      "pluginSha256": "1ed4a57c06218033fc51841b608d92d794e308d336e25f3f273bde48d567c7e4",
+      "libperlSha256": "fa4fa44302e252af8631ecb359ad3caf0b2ab8c25ffcdae1f19492a4183ce6a6",
+      "compile": [
+        "cc",
+        "-bundle",
+        "-undefined",
+        "dynamic_lookup",
+        "-fPIC",
+        "-DPLUGIN_ID=\"Gnumeric_PerlLoader\"",
+        "-DGNOMELOCALEDIR=\"/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/share/locale\"",
+        "-DPERL_USE_SAFE_PUTENV",
+        "-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Perl/5.34/darwin-thread-multi-2level/CORE",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/src",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/perl-loader",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/include/libspreadsheet-1.12/spreadsheet",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/include/libspreadsheet-1.12",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/lib/gnumeric/1.12.61/include",
+        "-I/opt/homebrew/Cellar/goffice/0.10.62/include/libgoffice-0.10",
+        "-I/opt/homebrew/Cellar/libgsf/1.14.59/include/libgsf-1",
+        "-I/opt/homebrew/Cellar/gtk+3/3.24.52/include/gtk-3.0",
+        "-I/opt/homebrew/Cellar/cairo/1.18.4/include",
+        "-I/opt/homebrew/Cellar/at-spi2-core/2.62.0.1/include/atk-1.0",
+        "-I/opt/homebrew/Cellar/libepoxy/1.5.10/include",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/include/gio-unix-2.0",
+        "-I/opt/homebrew/Cellar/librsvg/2.63.2/include/librsvg-2.0",
+        "-I/opt/homebrew/include/gdk-pixbuf-2.0",
+        "-I/opt/homebrew/opt/libtiff/include",
+        "-I/opt/homebrew/opt/zstd/include",
+        "-I/opt/homebrew/Cellar/xz/5.8.4/include",
+        "-I/opt/homebrew/opt/jpeg-turbo/include",
+        "-I/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+        "-I/opt/homebrew/Cellar/pango/1.58.2/include/pango-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/include",
+        "-I/opt/homebrew/Cellar/fribidi/1.0.17/include/fribidi",
+        "-I/opt/homebrew/Cellar/libthai/0.1.30/include",
+        "-I/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+        "-I/opt/homebrew/Cellar/fontconfig/2.18.3/include",
+        "-I/opt/homebrew/Cellar/libxext/1.3.7/include",
+        "-I/opt/homebrew/Cellar/xorgproto/2025.1/include",
+        "-I/opt/homebrew/Cellar/libxrender/0.9.12/include",
+        "-I/opt/homebrew/Cellar/libx11/1.8.13/include",
+        "-I/opt/homebrew/Cellar/libxcb/1.17.0/include",
+        "-I/opt/homebrew/Cellar/libxau/1.0.12/include",
+        "-I/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+        "-I/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+        "-I/opt/homebrew/Cellar/harfbuzz/14.5.0/include/harfbuzz",
+        "-I/opt/homebrew/opt/freetype/include/freetype2",
+        "-I/opt/homebrew/opt/libpng/include/libpng16",
+        "-I/opt/homebrew/opt/graphite2/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.48/include",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/perl-loader/boot.c",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/perl-native-owned-directory-loader.c",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/perl-loader/perl-gnumeric.c",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/perl-native-owned-directory-xsinit.c",
+        "-L/System/Library/Perl/5.34/darwin-thread-multi-2level/CORE",
+        "-lperl",
+        "-o",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/perl-native-owned-directory-plugins/perl-loader/perl_loader.so"
+      ],
+      "pluginPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/perl-native-owned-directory-plugins"
+    },
+    "asanProfile": {
+      "sourceFiles": [
+        {
+          "path": "plugins/perl-loader/boot.c",
+          "sha256": "3ecf48b94912993837e7de1dcf83545124d9fefa780522a377518d3fcaee43e8"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/perl-native-owned-directory-loader.c",
+          "sha256": "a4ce62b928baf892d8dc5c227a6ac944b535466396baaa7ada9a239b6f273487"
+        },
+        {
+          "path": "plugins/perl-loader/perl-gnumeric.c",
+          "sha256": "24fca5f164eadd7b24c9e470e8429a0b7e0a5014addd429380e1958bb8ca8cfc"
+        }
+      ],
+      "generatedXsinitSha256": "d8758642f467a7f63e26549c9dcf53c1c98413402fcc265a47c8446b548d002c",
+      "sdk": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+      "coreHeaders": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Perl/5.34/darwin-thread-multi-2level/CORE",
+      "pluginSha256": "772b7f2a9e64da8ccc32343e45402f6d0ed91cd3f367aff8c3238ede8c3d4940",
+      "libperlSha256": "fa4fa44302e252af8631ecb359ad3caf0b2ab8c25ffcdae1f19492a4183ce6a6",
+      "compile": [
+        "cc",
+        "-fsanitize=address",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-bundle",
+        "-undefined",
+        "dynamic_lookup",
+        "-fPIC",
+        "-DPLUGIN_ID=\"Gnumeric_PerlLoader\"",
+        "-DGNOMELOCALEDIR=\"/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/share/locale\"",
+        "-DPERL_USE_SAFE_PUTENV",
+        "-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Perl/5.34/darwin-thread-multi-2level/CORE",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/src",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/perl-loader",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/include/libspreadsheet-1.12/spreadsheet",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/include/libspreadsheet-1.12",
+        "-I/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/install/lib/gnumeric/1.12.61/include",
+        "-I/opt/homebrew/Cellar/goffice/0.10.62/include/libgoffice-0.10",
+        "-I/opt/homebrew/Cellar/libgsf/1.14.59/include/libgsf-1",
+        "-I/opt/homebrew/Cellar/gtk+3/3.24.52/include/gtk-3.0",
+        "-I/opt/homebrew/Cellar/cairo/1.18.4/include",
+        "-I/opt/homebrew/Cellar/at-spi2-core/2.62.0.1/include/atk-1.0",
+        "-I/opt/homebrew/Cellar/libepoxy/1.5.10/include",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/include/gio-unix-2.0",
+        "-I/opt/homebrew/Cellar/librsvg/2.63.2/include/librsvg-2.0",
+        "-I/opt/homebrew/include/gdk-pixbuf-2.0",
+        "-I/opt/homebrew/opt/libtiff/include",
+        "-I/opt/homebrew/opt/zstd/include",
+        "-I/opt/homebrew/Cellar/xz/5.8.4/include",
+        "-I/opt/homebrew/opt/jpeg-turbo/include",
+        "-I/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+        "-I/opt/homebrew/Cellar/pango/1.58.2/include/pango-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/include",
+        "-I/opt/homebrew/Cellar/fribidi/1.0.17/include/fribidi",
+        "-I/opt/homebrew/Cellar/libthai/0.1.30/include",
+        "-I/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+        "-I/opt/homebrew/Cellar/fontconfig/2.18.3/include",
+        "-I/opt/homebrew/Cellar/libxext/1.3.7/include",
+        "-I/opt/homebrew/Cellar/xorgproto/2025.1/include",
+        "-I/opt/homebrew/Cellar/libxrender/0.9.12/include",
+        "-I/opt/homebrew/Cellar/libx11/1.8.13/include",
+        "-I/opt/homebrew/Cellar/libxcb/1.17.0/include",
+        "-I/opt/homebrew/Cellar/libxau/1.0.12/include",
+        "-I/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+        "-I/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+        "-I/opt/homebrew/Cellar/harfbuzz/14.5.0/include/harfbuzz",
+        "-I/opt/homebrew/opt/freetype/include/freetype2",
+        "-I/opt/homebrew/opt/libpng/include/libpng16",
+        "-I/opt/homebrew/opt/graphite2/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.90.0/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.48/include",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/perl-loader/boot.c",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/perl-native-owned-directory-loader.c",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/perl-loader/perl-gnumeric.c",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/perl-native-owned-directory-asan-xsinit.c",
+        "-L/System/Library/Perl/5.34/darwin-thread-multi-2level/CORE",
+        "-lperl",
+        "-o",
+        "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/perl-native-owned-directory-asan-plugins/perl-loader/perl_loader.so"
+      ],
+      "pluginPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/reference/perl-native-owned-directory-asan-plugins"
+    },
+    "label": "ownership-corrected reference,not unmodified native CLI parity"
+  },
+  "results": [
+    {
+      "profile": "owned-directory",
+      "cohort": "capture",
+      "exit": 0,
+      "exact": true,
+      "bytes": 2204,
+      "stderrBytes": 0,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "profile": "owned-directory",
+      "cohort": "lookbehind",
+      "exit": 0,
+      "exact": true,
+      "bytes": 892,
+      "stderrBytes": 0,
+      "sha256": "67b296c69ea9175f2311913bea5fd0fd390c9fd972d1bc622f9f7768a742c614"
+    },
+    {
+      "profile": "owned-directory",
+      "cohort": "posix",
+      "exit": 0,
+      "exact": true,
+      "bytes": 7349,
+      "stderrBytes": 0,
+      "sha256": "ae5c49e2edc5b2bc1f9bda56a70c48bc5407b4768c2bebc3f960a0da75c6f6ed"
+    },
+    {
+      "profile": "owned-directory",
+      "cohort": "named",
+      "exit": 0,
+      "exact": true,
+      "bytes": 1916,
+      "stderrBytes": 0,
+      "sha256": "10f10d1583492c02dd2d8d9ee8b79b4c526ec165fe76093ac337cace92465e48"
+    },
+    {
+      "profile": "owned-directory-asan",
+      "cohort": "capture",
+      "exit": 0,
+      "exact": true,
+      "bytes": 2204,
+      "stderrBytes": 0,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "profile": "owned-directory-asan",
+      "cohort": "lookbehind",
+      "exit": 0,
+      "exact": true,
+      "bytes": 892,
+      "stderrBytes": 0,
+      "sha256": "67b296c69ea9175f2311913bea5fd0fd390c9fd972d1bc622f9f7768a742c614"
+    },
+    {
+      "profile": "owned-directory-asan",
+      "cohort": "posix",
+      "exit": 0,
+      "exact": true,
+      "bytes": 7349,
+      "stderrBytes": 0,
+      "sha256": "ae5c49e2edc5b2bc1f9bda56a70c48bc5407b4768c2bebc3f960a0da75c6f6ed"
+    },
+    {
+      "profile": "owned-directory-asan",
+      "cohort": "named",
+      "exit": 0,
+      "exact": true,
+      "bytes": 1916,
+      "stderrBytes": 0,
+      "sha256": "10f10d1583492c02dd2d8d9ee8b79b4c526ec165fe76093ac337cace92465e48"
+    },
+    {
+      "profile": "owned-directory",
+      "cohort": "original645",
+      "exit": 0,
+      "exact": true,
+      "bytes": 6640,
+      "stderrBytes": 0,
+      "sha256": "d1feafc8da10c5ac9f9c00d09b1d1d5f74074f4231bc17b1d4347a745b9d674e"
+    },
+    {
+      "profile": "owned-directory",
+      "cohort": "UTC",
+      "exit": 0,
+      "exact": true,
+      "bytes": 16,
+      "stderrBytes": 0,
+      "sha256": "6f57684c4fe0d10119ab33375df7b52797b4ad5c985d42686ea95655dcd65913"
+    },
+    {
+      "profile": "owned-directory",
+      "cohort": "America/Los_Angeles",
+      "exit": 0,
+      "exact": true,
+      "bytes": 16,
+      "stderrBytes": 0,
+      "sha256": "7df65195c131b01a567d99d7aa068a3155e7c1efface17473a8811e07d2aaa4d"
+    },
+    {
+      "profile": "owned-directory-asan",
+      "cohort": "original645",
+      "exit": 0,
+      "exact": true,
+      "bytes": 6640,
+      "stderrBytes": 0,
+      "sha256": "d1feafc8da10c5ac9f9c00d09b1d1d5f74074f4231bc17b1d4347a745b9d674e"
+    },
+    {
+      "profile": "owned-directory-asan",
+      "cohort": "UTC",
+      "exit": 0,
+      "exact": true,
+      "bytes": 16,
+      "stderrBytes": 0,
+      "sha256": "6f57684c4fe0d10119ab33375df7b52797b4ad5c985d42686ea95655dcd65913"
+    },
+    {
+      "profile": "owned-directory-asan",
+      "cohort": "America/Los_Angeles",
+      "exit": 0,
+      "exact": true,
+      "bytes": 16,
+      "stderrBytes": 0,
+      "sha256": "7df65195c131b01a567d99d7aa068a3155e7c1efface17473a8811e07d2aaa4d"
+    }
+  ],
+  "coverage": {
+    "validCasesPerProfile": 2856,
+    "cohorts": {
+      "original": 645,
+      "capture": 382,
+      "fixedLookbehind": 233,
+      "posix": 1298,
+      "named": 298
+    },
+    "frozenFamilyPerProfile": [
+      "UTC",
+      "America/Los_Angeles"
+    ],
+    "successfulRuns": 14,
+    "expectedSources": "Independent unmodified released Perl sample scalar results and actual native expected-value CSV exporter; public SDK/Shell/checkpoint/browser/worker controls match same bytes.",
+    "invalidByteCases": "18remain required representation obligations,not counted as successes."
+  },
+  "qaNotes": [
+    "No shutdown bypass or g_free suppression; corrected loader takes ownership of a new copy and ordinary shutdown/ASAN complete.",
+    "Initial copied build helper stdout retained inherited unmodified label; helper label corrected after compile. Compiler/source inventories identify patched loader explicitly; no unmodified-profile success inferred.",
+    "Final aggregator used local list named all and raised TypeError after saving all successful native receipts; corrected independent assertion on same saved14records passes. No runtime/native correction beyond directory copy."
+  ],
+  "remaining": [
+    "Original native upstream lifecycle defect remains provenance baseline; corrected reference is explicit semantic ownership correction. Wider unmodified optional profiles still require their own qualification.",
+    "18invalidUTF8 results,actual native invalid-pattern diagnostic mapping",
+    "Variable-width lookbehind,atomic/possessive and remaining grammar/Unicode identifier profiles",
+    "Other required ledger families,final frozen-candidate/packed/registry gates and successful containing publication"
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-asan-plugin-build.py",
+      "bytes": 2580,
+      "sha256": "11b8e1c3c8769f342d2a4fc9c8c2421eb6b43e4fdcca8e97f2ce01e9727cd8fa"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-asan-plugin-profile.json",
+      "bytes": 5076,
+      "sha256": "7ef340ca2e14b1b97c6f2c08b39fa2e708a345dbb3da21cd3119bbecd53489eb"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-asan-capture.csv",
+      "bytes": 2204,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-asan-capture.stderr",
+      "bytes": 3972,
+      "sha256": "bc3b23e08d9d3d4d34d5f9a2c8b26d1f331de1fa9de8ce97675b1efcf2cab3bc"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-asan-capture-results.json",
+      "bytes": 319,
+      "sha256": "dd71d47e962925f0b9a72e1ae27a4f1b2dc048c21e7a77ea099151aa0776b1b1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-directory-ownership-source.json",
+      "bytes": 821,
+      "sha256": "16e98d66e7f339a2bf47700f6660795152d5c7ac32f73e285188ac57ccf3ac2c"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/goffice-native-formula.json",
+      "bytes": 15400,
+      "sha256": "6eca6f82dd1b6e75aa3ba6838ca22ced4d5a2f45bdea10684080a478151bbb29"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/goffice-0.10.62.tar.xz",
+      "bytes": 2597780,
+      "sha256": "500eaff50628faa75adb3cd560236a4db498d9e7c52c036b78fa9a57f21805b3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/goffice-0.10.62-go-plugin.c",
+      "bytes": 54298,
+      "sha256": "1dc26295520f96d86db126500300ac7d6bd9e521d44d8bc0ecb45e5bbf17d3a3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-loader.c",
+      "bytes": 9349,
+      "sha256": "a4ce62b928baf892d8dc5c227a6ac944b535466396baaa7ada9a239b6f273487"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-build.py",
+      "bytes": 2692,
+      "sha256": "5554297aa89e65f690bdf57ac9bdf084245d5a4e08783519337cbafbd97b6251"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-profile.json",
+      "bytes": 5083,
+      "sha256": "069c0f21a24562efd8606fbc9e668bb81149203e2c37ba4189fd50bbc08089ec"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-build.py",
+      "bytes": 2764,
+      "sha256": "bdf10746df9f892c60b538b8673837c3c7c277b3ee0c93c12264b90fc7a154b3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-profile.json",
+      "bytes": 5165,
+      "sha256": "62211dff0b930d57f52dfc300222537aa21578707579019e4f7b980cb1661d6f"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-results.json",
+      "bytes": 3186,
+      "sha256": "ab3eba0011a3585aada15c347b21869d970fd34d6909d0f38950effbeb783fff"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-capture.csv",
+      "bytes": 2204,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-capture.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-lookbehind.csv",
+      "bytes": 892,
+      "sha256": "67b296c69ea9175f2311913bea5fd0fd390c9fd972d1bc622f9f7768a742c614"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-lookbehind.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-posix.csv",
+      "bytes": 7349,
+      "sha256": "ae5c49e2edc5b2bc1f9bda56a70c48bc5407b4768c2bebc3f960a0da75c6f6ed"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-posix.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-named.csv",
+      "bytes": 1916,
+      "sha256": "10f10d1583492c02dd2d8d9ee8b79b4c526ec165fe76093ac337cace92465e48"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-named.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-capture.csv",
+      "bytes": 2204,
+      "sha256": "2ff2e57508cf37d88244d4c2eb48f559185c1497aa0fe5e6bd0e0deec00a7ba8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-capture.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-lookbehind.csv",
+      "bytes": 892,
+      "sha256": "67b296c69ea9175f2311913bea5fd0fd390c9fd972d1bc622f9f7768a742c614"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-lookbehind.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-posix.csv",
+      "bytes": 7349,
+      "sha256": "ae5c49e2edc5b2bc1f9bda56a70c48bc5407b4768c2bebc3f960a0da75c6f6ed"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-posix.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-named.csv",
+      "bytes": 1916,
+      "sha256": "10f10d1583492c02dd2d8d9ee8b79b4c526ec165fe76093ac337cace92465e48"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-named.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-original.csv",
+      "bytes": 6640,
+      "sha256": "d1feafc8da10c5ac9f9c00d09b1d1d5f74074f4231bc17b1d4347a745b9d674e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-original.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-family-utc.csv",
+      "bytes": 16,
+      "sha256": "6f57684c4fe0d10119ab33375df7b52797b4ad5c985d42686ea95655dcd65913"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-family-utc.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-family-la.csv",
+      "bytes": 16,
+      "sha256": "7df65195c131b01a567d99d7aa068a3155e7c1efface17473a8811e07d2aaa4d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-family-la.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-original.csv",
+      "bytes": 6640,
+      "sha256": "d1feafc8da10c5ac9f9c00d09b1d1d5f74074f4231bc17b1d4347a745b9d674e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-original.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-family-utc.csv",
+      "bytes": 16,
+      "sha256": "6f57684c4fe0d10119ab33375df7b52797b4ad5c985d42686ea95655dcd65913"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-family-utc.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-family-la.csv",
+      "bytes": 16,
+      "sha256": "7df65195c131b01a567d99d7aa068a3155e7c1efface17473a8811e07d2aaa4d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/perl-native-owned-directory-asan-family-la.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "delivery": {
+    "publication": "Current containing successor after native qualification evidence pending; release35790563033 at7f03b497f has build/audit/checks/cached unit success; fresh unit/fourBash shards live."
+  }
+}

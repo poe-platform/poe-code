@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded explicit port matches2856valid public controls (645original,382captures,233fixed behind,1298POSIX,298named); native POSIX1298/named298cohorts exit0/stderr0.10743maintained and2897focused tests,lint/types/build pass. Earlier native capture/behind abort is ASAN-proven borrowed-directory double free in native loader,corrected reference qualification pending.18invalidUTF8 outputs,actual native diagnostics,variable-width/atomic/possessive/broadergrammar/Unicode identifiers,widerprofiles and publication remain required.",
+      "currentFinding": "Bounded explicit port matches2856valid public controls;10743maintained/2897focused tests,lint/types/build pass. Native original capture/behind shutdown abort is ASAN-proven upstream borrowed-directory double free; separately labelled one-line ownership-corrected standard/ASAN reference profiles qualify all2856valid cases/frozen2families,14runs exit0/stderr0. Original unmodified failures remain distinct.18invalidUTF8 outputs,actual native diagnostics,variable-width/atomic/possessive/broadergrammar/Unicode identifiers,widerunmodifiedprofiles/finalgates/publication stay required.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -519,12 +519,17 @@
           "kind": "native-activated-named-capture-byte-port",
           "path": "docs/ssconvert/perl-sed-named-gap-proof.json",
           "outcome": "300originalred controls repaired;298valid native/public exact cases and2additional invalid-byte refusals. Map-owned duplicate/forward resolution and assertions qualify;10743maintained tests pass."
+        },
+        {
+          "kind": "authenticated-native-directory-ownership-and-corrected-reference",
+          "path": "docs/ssconvert/perl-native-directory-ownership-proof.json",
+          "outcome": "Pinned GOffice0.10.62 getter returns borrowed plugin->dir_name; ASAN proves native loader/free/finalize double free. Private one-line strdup correction leaves primary archives/profile untouched; all14normal/ASAN/frozen reference runs exact with exit0/stderr0."
         }
       ],
       "delivery": {
-        "localCommit": "6c73f8c950b8654fbf1154493b5ac99e1db106de",
-        "remoteMain": "Latest lookbehind/capture/substitution commits verified on origin/main; separate cipher runtime declaration81390f7c0 verified and normal root build/bundle passes.",
-        "publication": "Containing Release35790262247 pending; monitor through successful publication."
+        "localCommit": "c104f0506e518bb2348c54bcd3e20722642a3093",
+        "remoteMain": "Named/POSIX/runtime improvements verified separately on origin/main",
+        "publication": "Containing successor pending; repaired cipher dependency passes actual CI build/checks/audit/cache unit at7f03b497f; fresh unit and4Bash shards live."
       }
     },
     {

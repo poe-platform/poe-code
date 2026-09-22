@@ -56,7 +56,11 @@ output remains explicitly unsupported.
 Custom-function token 255 accepts string and local indexed name suppliers,
 including known `_xlfn.` and `_xlfnodf.` extensions. Unknown function names
 remain placeholders; this does not load native plugins or grant host access.
-Add-in and true external name-table imports remain separate unsupported cases.
+BIFF7/8 add-in name tables use their declared container or SUPBOOK. Function
+symbols call only the engine's configured functions; unlinked names used as
+values yield `#REF!`. Existing linked `#NAME?` placeholders retain their
+identity when a declaration supplies their expression. True external workbook,
+DDE/OLE and built-in EXTERNNAME records remain separately unsupported.
 
 ## Virtual command
 

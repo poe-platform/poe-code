@@ -1,0 +1,2032 @@
+{
+  "version": 1,
+  "recordedAt": "2026-09-22T17:57:19.874143+00:00",
+  "status": "BIFF7/8 add-in ownership/function/value/activity and clean export cells verified; broader BIFF/name cells open",
+  "baseline": "887e467a64a355e6def5bff5f1469e68e6ad26ae",
+  "candidateFiles": [
+    {
+      "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
+      "sha256": "d7bc7b5a8811db7ccac6299a5a3d60301e235db783e67f8d739fc86d9701d2ca"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff.ts",
+      "sha256": "a9409e54c3831ee6ceba1e2783dec4bdde7ccfed9410603275a05b90e1d41b9d"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-addin-names.test.ts",
+      "sha256": "d93010bd1b47ab66432d179f834f17760d153460bd831b72da5154e38f91db36"
+    }
+  ],
+  "nativeReference": {
+    "version": "Gnumeric1.12.61",
+    "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "binarySha256": "f5c5b2888d7cea27a48cb2becfab259f0429c6ded629f79f69aceb683bbf720e",
+    "profile": "Darwin arm64 authenticated ledger dependency profile; configuration criticals/warnings captured, not a clean whole-profile qualification",
+    "source": [
+      "plugins/excel/ms-excel-read.c:3855-3930: EXTERNNAME header/name/body, last-SUPBOOK ownership or separate legacy container table",
+      "ms-excel-read.c:6984-7013: local0401 and add-in3a01 markers",
+      "plugins/excel/ms-formula-read.c:1710-1782: NameX table selection, token widths and symbol objects",
+      "src/expr-name.c:653-745,1097-1101: unlinked name creation, existing linked placeholder reuse, nonplaceholder collision rejection, activity requires scope",
+      "src/expr.c:1599-1604: inactive named values return#REF"
+    ]
+  },
+  "reproduction": {
+    "initial": "all8 original add-in tests failed before runtime change; old reader retained EXTERNNAME without binding and refused positive/unbound NameX",
+    "activity": "six original raw-memory activity cases separately failed: inactive definitions erroneously evaluated, linked placeholders did not receive new expression; corrected against source/native evidence",
+    "historicalComparison": "first36-case interim comparison passed24 and differed12: SDK5/#NAME versus native#REF for unlinked or rejected declarations; not counted as passes",
+    "memory": "15 own tests and24 neighboring qualified/custom tests passed; original imports, wrong namespace/index/full payload/work refusals, per-owner tables and writer roundtrips",
+    "exportMetadata": "Three original BIFF8 memory export regressions failed with unsupported SUPBOOK diagnostics before recognized add-in markers stopped being retained as opaque metadata; all six activity imports now re-export without diagnostics."
+  },
+  "semantics": [
+    "Modern add-in names bind only to their own immediately preceding SUPBOOK; legacy names and add-in link indexes remain per container. Self/local and true external namespaces remain distinct.",
+    "Unlinked add-in named expressions are inactive and yield#REF as values; their symbols remain suppliers for custom-function255.",
+    "Native may reuse an already linked global#NAME placeholder: its expression changes, and existing indexed references keep its identity, including explicit global qualification under local shadowing.",
+    "Registration against an already defined nonplaceholder yields an invalid table slot rather than lexical substitution. Missing indexes in known namespaces yield#REF; unbound namespaces and unsupported DDE/OLE/built-in records retain explicit refusal.",
+    "No native plugin load, fallback converter or implicit filesystem/network authority is introduced. Existing engine function/capability contracts apply.",
+    "Recognized add-in SUPBOOK markers are consumed as understood metadata; unused namespaces no longer produce spurious BIFF export loss warnings. Name bindings are computed once per workbook/container rather than for every formula."
+  ],
+  "checks": {
+    "focused": "39 own/neighbor tests passed",
+    "maintainedWorkspace": "325 files /6367 tests passed on final source",
+    "lint": "maintained ESLint and source/test/consumer typechecks passed",
+    "build": "selected maintained workspace closure passed",
+    "nativePublicCli": "54 exact CSV/status cases, SDK stdout/stderr empty",
+    "roundtrip": "Six matching BIFF exports; native and public CLI readbacks exact, SDK stderr empty in all six. Native configuration diagnostics retained separately.",
+    "screenshots": "two27-case revision screenshots visually inspected; all readable/pass",
+    "receipts": [
+      {
+        "kind": "test",
+        "sha256": "e947a3c0debe454aab09a6d88f5184fad6ef3f1e5686a7eafe3924774ee2f083"
+      },
+      {
+        "kind": "lint",
+        "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+      },
+      {
+        "kind": "build",
+        "sha256": "ac136186eff89f13dce699f3f0060df71ccc64c5585d39e01e8b1dbcf4ec2d2f"
+      },
+      {
+        "kind": "screenshot7",
+        "sha256": "36141ec1f6cd28f1950647a08f9a4759cf6f5315de40f65506c5105dc81c3ae7"
+      },
+      {
+        "kind": "screenshot8",
+        "sha256": "cf9d29ac39cf05d4b2a04be32b8f526f4babe3c6f4d43ff3ea79f876db33f63d"
+      }
+    ]
+  },
+  "nativeStderrReduction": "Configuration diagnostic classes/counts plus SHA256/byte length retained; only dynamic native process/time prefixes on those known lines removed. All other nonempty stderr lines retained.",
+  "cases": [
+    {
+      "id": "biff-addin-7-function-0",
+      "revision": 7,
+      "mode": "function",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a230010000000000000000547414d4d4102001c17060036000000000000000000000000388f400000000000002000390100000000000000000001000000000000000000000000001e05004202ff000a000000",
+      "inputSha256": "e7f3c2d0f1dec6c730c2905e45d8ab782a046295fa96c2dd601641a3fa9c75ed",
+      "expectedCsv": "24\n",
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "16527ee373598805ebf2d3a59f61964a6370ab11f7e40c6b9526fe5a52f5c0ad",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92724): gnumeric:read-WARNING **: 12:46:49.531: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92724): gnumeric:read-WARNING **: 12:46:49.531: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92724): gnumeric:read-WARNING **: 12:46:49.537: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "24\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-function-32",
+      "revision": 7,
+      "mode": "function",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a230010000000000000000547414d4d4102001c17060036000000000000000000000000388f400000000000002000590100000000000000000001000000000000000000000000001e05004202ff000a000000",
+      "inputSha256": "f126564fcd88fa537612e1d62d6d6eda53eff10479a9751b02a9fb5996bff0f2",
+      "expectedCsv": "24\n",
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "ba54ef1638c8eba6b8f19bdabcdcd4e6c4974d00c60cf6f44dbf4898d5828ed7",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92735): gnumeric:read-WARNING **: 12:46:49.641: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92735): gnumeric:read-WARNING **: 12:46:49.641: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92735): gnumeric:read-WARNING **: 12:46:49.642: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "24\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-function-64",
+      "revision": 7,
+      "mode": "function",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a230010000000000000000547414d4d4102001c17060036000000000000000000000000388f400000000000002000790100000000000000000001000000000000000000000000001e05004202ff000a000000",
+      "inputSha256": "fdb7a2a3247e7e3a444d155624b56fff63fafbab2028d367eb3922defd30fece",
+      "expectedCsv": "24\n",
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "21b916bc210773caa53e2db93ebaae706667376a1fbe91985fa9b1cd3d83d226",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92742): gnumeric:read-WARNING **: 12:46:49.728: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92742): gnumeric:read-WARNING **: 12:46:49.728: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92742): gnumeric:read-WARNING **: 12:46:49.729: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "24\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-expression-0",
+      "revision": 7,
+      "mode": "expression",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900390100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "91e83e9d56a0273a122a753f3597adc01e43e024035988ec15c6a14ee60ce0b7",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "85e9d5c09881eb49f57074f137c14de5337b71fd193e5e53cf087df324a837fc",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92744): gnumeric:read-WARNING **: 12:46:49.819: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92744): gnumeric:read-WARNING **: 12:46:49.819: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92744): gnumeric:read_expr-WARNING **: 12:46:49.819: EXCEL: 1 (of 1) UNKNOWN name 0xb95d15c00.",
+          "(ssconvert:92744): gnumeric:read-WARNING **: 12:46:49.819: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-expression-32",
+      "revision": 7,
+      "mode": "expression",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900590100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "92c89b8be24d26556a66b45fa140eb357a22d6fe4d1efe873f5f0f67aa7a25d6",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "b5fc2966afe5155afae30a09c385ff1656775229f9970cd1bd684ed58644f5bd",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92745): gnumeric:read-WARNING **: 12:46:49.908: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92745): gnumeric:read-WARNING **: 12:46:49.908: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92745): gnumeric:read_expr-WARNING **: 12:46:49.908: EXCEL: 1 (of 1) UNKNOWN name 0x734fd95e0.",
+          "(ssconvert:92745): gnumeric:read-WARNING **: 12:46:49.908: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-expression-64",
+      "revision": 7,
+      "mode": "expression",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900790100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "d0fa1912f793cace86960c02a2b392057eaf33b7a448824d5889d8f3f602067d",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "29529873c4ea20fc606f96bdb989502be2931e23858e5fc674d779b8eeebcf4f",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92760): gnumeric:read-WARNING **: 12:46:50.011: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92760): gnumeric:read-WARNING **: 12:46:50.011: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92760): gnumeric:read_expr-WARNING **: 12:46:50.011: EXCEL: 1 (of 1) UNKNOWN name 0x7a3121340.",
+          "(ssconvert:92760): gnumeric:read-WARNING **: 12:46:50.011: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-placeholder-0",
+      "revision": 7,
+      "mode": "placeholder",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000d000000000000000452617465000006002f000000000000000000000000388f400000000000001900390100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "26204c24342ee5c9f90c0f6282f75a85789662dd523f3effe5d87f639d0714e4",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "96464c65d5a2ea1dd17e437115403ad9e02cb06d9e135aaf764e2a7cb9e15666",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92856): gnumeric:read-WARNING **: 12:46:50.174: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92856): gnumeric:read-WARNING **: 12:46:50.174: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92856): gnumeric:read_expr-WARNING **: 12:46:50.174: EXCEL: 1 (of 1) UNKNOWN name 0x75a8ba5a0.",
+          "(ssconvert:92856): gnumeric:read-WARNING **: 12:46:50.174: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-placeholder-32",
+      "revision": 7,
+      "mode": "placeholder",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000d000000000000000452617465000006002f000000000000000000000000388f400000000000001900590100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "f780af88a5386c0ecbab2ea8929124c58bdc03201b5b0895f16b4769f2a05ff2",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "ab045312b5c1ed5d4f44444d611c07d66ff9ed33441088226b30f44849a22f71",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92861): gnumeric:read-WARNING **: 12:46:50.328: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92861): gnumeric:read-WARNING **: 12:46:50.328: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92861): gnumeric:read_expr-WARNING **: 12:46:50.328: EXCEL: 1 (of 1) UNKNOWN name 0xcbb44d340.",
+          "(ssconvert:92861): gnumeric:read-WARNING **: 12:46:50.328: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-placeholder-64",
+      "revision": 7,
+      "mode": "placeholder",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000d000000000000000452617465000006002f000000000000000000000000388f400000000000001900790100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "72110df4808079525082130c2a98990563433d49948d2ce5189b2cb54c5ad8a6",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "4a7d91925fe38528704e8aff81a5981a2671e80399f4fe4b5c4485a25dafa613",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92875): gnumeric:read-WARNING **: 12:46:50.511: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92875): gnumeric:read-WARNING **: 12:46:50.511: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92875): gnumeric:read_expr-WARNING **: 12:46:50.511: EXCEL: 1 (of 1) UNKNOWN name 0x7b9198e70.",
+          "(ssconvert:92875): gnumeric:read-WARNING **: 12:46:50.511: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-missing-0",
+      "revision": 7,
+      "mode": "missing",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000f00000000000000045261746502001c1706002f000000000000000000000000388f400000000000001900390100000000000000000002000000000000000000000000000a000000",
+      "inputSha256": "fd2ff616f30e6ce1dad1d319e21710e0a1f290cf482890331bbca4dbaf423da7",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "997afe75e29cb47dc19266f9eeae972d2918e57237b4ac4a793c25012653968a",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92887): gnumeric:read-WARNING **: 12:46:50.662: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92887): gnumeric:read-WARNING **: 12:46:50.662: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92887): gnumeric:read_expr-WARNING **: 12:46:50.662: EXCEL: 2 (of 1) UNKNOWN name 0x972880070.",
+          "(ssconvert:92887): gnumeric:read-WARNING **: 12:46:50.662: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-missing-32",
+      "revision": 7,
+      "mode": "missing",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000f00000000000000045261746502001c1706002f000000000000000000000000388f400000000000001900590100000000000000000002000000000000000000000000000a000000",
+      "inputSha256": "9e144d6d6050c544138c97ef0982f78191e80b1f6607db42e94a93c7e671df8d",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "c176620034a94041d12f20ad1fda5a9b76b6a492657026555ea202989182ef4a",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92893): gnumeric:read-WARNING **: 12:46:50.820: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92893): gnumeric:read-WARNING **: 12:46:50.820: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92893): gnumeric:read_expr-WARNING **: 12:46:50.820: EXCEL: 2 (of 1) UNKNOWN name 0x872dac620.",
+          "(ssconvert:92893): gnumeric:read-WARNING **: 12:46:50.820: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-missing-64",
+      "revision": 7,
+      "mode": "missing",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000f00000000000000045261746502001c1706002f000000000000000000000000388f400000000000001900790100000000000000000002000000000000000000000000000a000000",
+      "inputSha256": "d4f604a8f6430d807bfab5f09fa293a562ab701bccaab2dd0b6c2d0723481dee",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "e899eb03d8ae49aad08a3161c05bf506b7ca4e4760726450d22cdf2c443a1dc4",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92913): gnumeric:read-WARNING **: 12:46:50.970: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92913): gnumeric:read-WARNING **: 12:46:50.970: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92913): gnumeric:read_expr-WARNING **: 12:46:50.970: EXCEL: 2 (of 1) UNKNOWN name 0x96ad2c070.",
+          "(ssconvert:92913): gnumeric:read-WARNING **: 12:46:50.970: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-ref-0",
+      "revision": 7,
+      "mode": "ref",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000f00000000000000045261746502001c1706002f000000000000000000000000388f400000000000001900390100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "cc3913e9b84e84b91bc80c2e2b5da7d5c57fad4b45e9655a13a5827119e59f77",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "ad3a26e053b9369cda8e3d63e037563e5b90bcc38c3ae77b12406319847f0f09",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92917): gnumeric:read-WARNING **: 12:46:51.236: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92917): gnumeric:read-WARNING **: 12:46:51.236: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92917): gnumeric:read_expr-WARNING **: 12:46:51.236: EXCEL: 1 (of 1) UNKNOWN name 0xc7f193090.",
+          "(ssconvert:92917): gnumeric:read-WARNING **: 12:46:51.236: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-ref-32",
+      "revision": 7,
+      "mode": "ref",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000f00000000000000045261746502001c1706002f000000000000000000000000388f400000000000001900590100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "882e9a5c279a1df77fc63ec712e3d4abb6db3f8000686cf517a900bfa24e838e",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "7742a9a67d5efdbbca9f6ccc024c03486b291739039ad2b143c862072849efcb",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92943): gnumeric:read-WARNING **: 12:46:51.422: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92943): gnumeric:read-WARNING **: 12:46:51.422: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92943): gnumeric:read_expr-WARNING **: 12:46:51.422: EXCEL: 1 (of 1) UNKNOWN name 0x81b76cbd0.",
+          "(ssconvert:92943): gnumeric:read-WARNING **: 12:46:51.422: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-ref-64",
+      "revision": 7,
+      "mode": "ref",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000f00000000000000045261746502001c1706002f000000000000000000000000388f400000000000001900790100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "62e47f968ac0f60d52ed8c1ef30d2d9ce481dcf7b2cc18a0b433a77ec2a29935",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "47e079aa34ea063abba69c36d2b9a744d1d6843022f46b97c8656cc13a45277d",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92947): gnumeric:read-WARNING **: 12:46:51.591: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92947): gnumeric:read-WARNING **: 12:46:51.591: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92947): gnumeric:read_expr-WARNING **: 12:46:51.591: EXCEL: 1 (of 1) UNKNOWN name 0x97edb0540.",
+          "(ssconvert:92947): gnumeric:read-WARNING **: 12:46:51.591: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unknown-function-0",
+      "revision": 7,
+      "mode": "unknown-function",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a230017000000000000000c554e5245474953544552454402001c17060036000000000000000000000000388f400000000000002000390100000000000000000001000000000000000000000000001e05004202ff000a000000",
+      "inputSha256": "36e283a3263bbfe084075c18176b949691f20acf6b9868ee1534b339bf69c3e4",
+      "expectedCsv": "#NAME?\n",
+      "nativeExit": 0,
+      "nativeCsv": "#NAME?\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "ddb1e25d235efb9e12e9dcb20704f32ee0c4bf361a6b52b436cadc50c5bdc1c6",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92949): gnumeric:read-WARNING **: 12:46:51.764: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92949): gnumeric:read-WARNING **: 12:46:51.764: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92949): gnumeric:read-WARNING **: 12:46:51.764: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#NAME?\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unknown-function-32",
+      "revision": 7,
+      "mode": "unknown-function",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a230017000000000000000c554e5245474953544552454402001c17060036000000000000000000000000388f400000000000002000590100000000000000000001000000000000000000000000001e05004202ff000a000000",
+      "inputSha256": "3b639ef319ebb23ab8a2b9ed6ec65f132ff4fa1d1d6eaf37f2ccd2bee1e8f787",
+      "expectedCsv": "#NAME?\n",
+      "nativeExit": 0,
+      "nativeCsv": "#NAME?\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "1915421b66198b0f365ddadf78e2aad8e95b755d97bab40b2fa602bc909d65ea",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92952): gnumeric:read-WARNING **: 12:46:51.971: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92952): gnumeric:read-WARNING **: 12:46:51.971: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92952): gnumeric:read-WARNING **: 12:46:51.971: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#NAME?\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unknown-function-64",
+      "revision": 7,
+      "mode": "unknown-function",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005800000000000448657265180015000000000403000000000000000000526174651e140017000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a230017000000000000000c554e5245474953544552454402001c17060036000000000000000000000000388f400000000000002000790100000000000000000001000000000000000000000000001e05004202ff000a000000",
+      "inputSha256": "5fc0b22287cebda9e5fdada9db8d3e211ed2323b4ac57e2f308e169f4a3b4201",
+      "expectedCsv": "#NAME?\n",
+      "nativeExit": 0,
+      "nativeCsv": "#NAME?\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "96115bae7fe43d8734e7be684fe25e716e2c2cad2f0b9579d963cae10ce877c4",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:92981): gnumeric:read-WARNING **: 12:46:52.213: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92981): gnumeric:read-WARNING **: 12:46:52.213: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:92981): gnumeric:read-WARNING **: 12:46:52.213: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#NAME?\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-active-placeholder-0",
+      "revision": 7,
+      "mode": "active-placeholder",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005700000000000448657265180014000000000402000000000000000000526174651c1d17000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900390100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "7e273e111c0b47d28d055025224f88edafc961aef2db9fe6c530c84091a1ff86",
+      "expectedCsv": "5\n",
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "89836f413ca953bc0d5eb1c2eb001a65416dd7fdee6ff6bb7506bf93615d557d",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93028): gnumeric:read-WARNING **: 12:46:52.547: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93028): gnumeric:read-WARNING **: 12:46:52.547: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93028): gnumeric:read-WARNING **: 12:46:52.547: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "5\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-active-placeholder-32",
+      "revision": 7,
+      "mode": "active-placeholder",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005700000000000448657265180014000000000402000000000000000000526174651c1d17000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900590100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "29b13ed30d8a34b9c745f238f258d9dd3d3882dbc215a95c1a5e09863b76bf31",
+      "expectedCsv": "5\n",
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "4805785929fd7a7d5d5eb8f8b3487e71deaf48db650a9a66c5a6cf4a011157c1",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93102): gnumeric:read-WARNING **: 12:46:52.753: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93102): gnumeric:read-WARNING **: 12:46:52.753: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93102): gnumeric:read-WARNING **: 12:46:52.753: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "5\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-active-placeholder-64",
+      "revision": 7,
+      "mode": "active-placeholder",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b005700000000000448657265180014000000000402000000000000000000526174651c1d17000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900790100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "fd3bc9dda4bdc61d63d5332641773be21812e6236966ee417957ba2d93407f23",
+      "expectedCsv": "5\n",
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "b969e02880ac99afd26c899aba6bd48236cefb16d898c68b039f5bb7ae283550",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93163): gnumeric:read-WARNING **: 12:46:53.263: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93163): gnumeric:read-WARNING **: 12:46:53.263: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93163): gnumeric:read-WARNING **: 12:46:53.263: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "5\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unlinked-expression-0",
+      "revision": 7,
+      "mode": "unlinked-expression",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b003f0000000000044865726517000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900390100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "0ee4381c98d177f6c07c761f0ce608b9d21ce8cb2d976aedca9b3931ea0c2097",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "856830444b9ac16b6f75b16152a7cc8b4fcfa0f84ec5e8709a4b985c9dcc8e1d",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93175): gnumeric:read-WARNING **: 12:46:53.530: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93175): gnumeric:read-WARNING **: 12:46:53.531: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93175): gnumeric:read-WARNING **: 12:46:53.531: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unlinked-expression-32",
+      "revision": 7,
+      "mode": "unlinked-expression",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b003f0000000000044865726517000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900590100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "60225c086d651b9c2a6261d6d2519fdfd1fa1c42d9cc480f1bc5f667599aa9b3",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "4e60ee562def065ff678cd5161a4ce8fc0fd5b56e7f81eb1de6885c91016f2aa",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93177): gnumeric:read-WARNING **: 12:46:53.720: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93177): gnumeric:read-WARNING **: 12:46:53.720: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93177): gnumeric:read-WARNING **: 12:46:53.720: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unlinked-expression-64",
+      "revision": 7,
+      "mode": "unlinked-expression",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b003f0000000000044865726517000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23001400000000000000045261746507001e02001e03000306002f000000000000000000000000388f400000000000001900790100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "fadc67bf1dd5d47589f3dfca08d4e65289d9496b588e32e13c211f0aec40a7c5",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "c4f5733021d33bc7ff98831fd9414c9e9e19097af2f053d69d3c18936711a526",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93205): gnumeric:read-WARNING **: 12:46:54.008: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93205): gnumeric:read-WARNING **: 12:46:54.008: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93205): gnumeric:read-WARNING **: 12:46:54.008: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unlinked-placeholder-0",
+      "revision": 7,
+      "mode": "unlinked-placeholder",
+      "tokenClass": 0,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b003f0000000000044865726517000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000d000000000000000452617465000006002f000000000000000000000000388f400000000000001900390100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "4f42a7736469710ba06f805b2e474c0e487c5e690b00453f9ae3c3b950d40516",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "c068ddb6586881d135aec98407be5d106024dca427416fa99c644ab4be4bb5b8",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93207): gnumeric:read-WARNING **: 12:46:54.202: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93207): gnumeric:read-WARNING **: 12:46:54.202: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93207): gnumeric:read-WARNING **: 12:46:54.202: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unlinked-placeholder-32",
+      "revision": 7,
+      "mode": "unlinked-placeholder",
+      "tokenClass": 32,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b003f0000000000044865726517000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000d000000000000000452617465000006002f000000000000000000000000388f400000000000001900590100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "f50a44d8ac2fd9f609db4da71917a594725cc39834bc8330a4a15b190d05ad4f",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "cffaef85c8824f9c136e8f7fa9eb7974de57b5c096d678969e18b1ac8519b743",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93212): gnumeric:read-WARNING **: 12:46:54.401: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93212): gnumeric:read-WARNING **: 12:46:54.401: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93212): gnumeric:read-WARNING **: 12:46:54.401: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unlinked-placeholder-64",
+      "revision": 7,
+      "mode": "unlinked-placeholder",
+      "tokenClass": 64,
+      "inputHex": "0908100000050500bb0dcc07410000000600000085000b003f0000000000044865726517000200013a23000e000000000000000353554d02001c170a0000000908100000051000bb0dcc07410000000600000017000200013a23000d000000000000000452617465000006002f000000000000000000000000388f400000000000001900790100000000000000000001000000000000000000000000000a000000",
+      "inputSha256": "4398a0e309801e13fe015df0ee3be0342a259a46ff3d89809fd07bcb0b562554",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "509f2ef25398954402852d1ec05a744295b3a22cf6a248a18a61053c95613011",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93213): gnumeric:read-WARNING **: 12:46:54.575: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93213): gnumeric:read-WARNING **: 12:46:54.575: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93213): gnumeric:read-WARNING **: 12:46:54.575: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-function-0",
+      "revision": 8,
+      "mode": "function",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008c000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23001100000000000000050047414d4d4102001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc074100000006000000060024000000000000000000000000388f400000000000000e00390100010000001e05004202ff000a000000",
+      "inputSha256": "070518f3dc90d6cb7052f2fee1b96451ba3d06e7d814385f3e9c73839af65433",
+      "expectedCsv": "24\n",
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "bfdc31c1e1f1a074eb7e5df03ee72fcb49e6a9b4238b69b6ac76b114887ce2ed",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93218): gnumeric:read-WARNING **: 12:46:54.890: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93218): gnumeric:read-WARNING **: 12:46:54.890: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93218): gnumeric:read-WARNING **: 12:46:54.892: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "24\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-function-32",
+      "revision": 8,
+      "mode": "function",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008c000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23001100000000000000050047414d4d4102001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc074100000006000000060024000000000000000000000000388f400000000000000e00590100010000001e05004202ff000a000000",
+      "inputSha256": "38dcd3d3cd413fe2e5fedcb25d71b6d5f6145b12777cd6ac2b6fb426d103a92a",
+      "expectedCsv": "24\n",
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "65c2da3661298648e4dc520aeba13a3c5c48328c8f7c0857046686ddc91ab371",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93225): gnumeric:read-WARNING **: 12:46:55.085: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93225): gnumeric:read-WARNING **: 12:46:55.085: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93225): gnumeric:read-WARNING **: 12:46:55.086: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "24\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-function-64",
+      "revision": 8,
+      "mode": "function",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008c000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23001100000000000000050047414d4d4102001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc074100000006000000060024000000000000000000000000388f400000000000000e00790100010000001e05004202ff000a000000",
+      "inputSha256": "ef0a8048899f1881b3248e3eca79e3929f3366ffbef1342c59e542f62c84549c",
+      "expectedCsv": "24\n",
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "f46e9f32c14e3174f07585a23cffb61195b106b40befe1891082e4e4602a31cc",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93244): gnumeric:read-WARNING **: 12:46:55.309: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93244): gnumeric:read-WARNING **: 12:46:55.309: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93244): gnumeric:read-WARNING **: 12:46:55.311: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "24\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-expression-0",
+      "revision": 8,
+      "mode": "expression",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0090000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700390100010000000a000000",
+      "inputSha256": "3248f2930b57b20f5855228a83e5c5a3f7feaf6e2b2744e852801908ec4846a6",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "fba9b5e055ca32019ec05fbc8eeeaaafd31bf73fd2d96a09c715eb831b950a95",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93281): gnumeric:read-WARNING **: 12:46:55.719: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93281): gnumeric:read-WARNING **: 12:46:55.719: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93281): gnumeric:read_expr-WARNING **: 12:46:55.719: EXCEL: 1 (of 1) UNKNOWN name 0xc770c1340.",
+          "(ssconvert:93281): gnumeric:read-WARNING **: 12:46:55.719: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-expression-32",
+      "revision": 8,
+      "mode": "expression",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0090000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700590100010000000a000000",
+      "inputSha256": "1504b4f5fb208a8776464d2707de0688b8a63330fc24b4def4c275fb27bd7125",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "af7fef6e0ce4200c3a7f4373fe36c3504bbc02b837d082fe45749508a9c1c9f4",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93390): gnumeric:read-WARNING **: 12:46:55.934: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93390): gnumeric:read-WARNING **: 12:46:55.934: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93390): gnumeric:read_expr-WARNING **: 12:46:55.934: EXCEL: 1 (of 1) UNKNOWN name 0x9e7864a80.",
+          "(ssconvert:93390): gnumeric:read-WARNING **: 12:46:55.934: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-expression-64",
+      "revision": 8,
+      "mode": "expression",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0090000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700790100010000000a000000",
+      "inputSha256": "a4256dc3157aae4f25f7d0e27108415474d9a7a9e4e5e3f2ff7db84de0db71bc",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "415617ca5c2a5717c88b777c4ea4b11559f09cfb2c089d7a2c934e0c63aaa416",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93398): gnumeric:read-WARNING **: 12:46:56.110: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93398): gnumeric:read-WARNING **: 12:46:56.110: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93398): gnumeric:read_expr-WARNING **: 12:46:56.110: EXCEL: 1 (of 1) UNKNOWN name 0xc968cc000.",
+          "(ssconvert:93398): gnumeric:read-WARNING **: 12:46:56.110: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-placeholder-0",
+      "revision": 8,
+      "mode": "placeholder",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0089000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23000e00000000000000040052617465000017000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700390100010000000a000000",
+      "inputSha256": "fd2c513357905a655293f78cdfed36ab9fce55f3297013c1e11613b2ac2cd0ea",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "6a68d93ac88f78b83f7405d88be9582e954e19707f2c8b2dabb55068b8ff7770",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93404): gnumeric:read-WARNING **: 12:46:56.322: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93404): gnumeric:read-WARNING **: 12:46:56.322: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93404): gnumeric:read_expr-WARNING **: 12:46:56.322: EXCEL: 1 (of 1) UNKNOWN name 0xabd051340.",
+          "(ssconvert:93404): gnumeric:read-WARNING **: 12:46:56.322: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-placeholder-32",
+      "revision": 8,
+      "mode": "placeholder",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0089000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23000e00000000000000040052617465000017000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700590100010000000a000000",
+      "inputSha256": "44db476e7d3be79110886f52bcadf36f4ea0ac7f5620a368cb9e56973fe73d27",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "4663eac0f05ddf5c3c75d50f87319c4c1db71fe333832a9bd50367fbbb8308c3",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93413): gnumeric:read-WARNING **: 12:46:56.605: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93413): gnumeric:read-WARNING **: 12:46:56.605: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93413): gnumeric:read_expr-WARNING **: 12:46:56.605: EXCEL: 1 (of 1) UNKNOWN name 0xaba5681c0.",
+          "(ssconvert:93413): gnumeric:read-WARNING **: 12:46:56.605: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-placeholder-64",
+      "revision": 8,
+      "mode": "placeholder",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0089000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23000e00000000000000040052617465000017000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700790100010000000a000000",
+      "inputSha256": "5f17352eaedeea7cf425134d5d8b91f06c74bb731ba53f9409e06ade67c21347",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "d1d74f65f642d79cdad3fea16c5965e57c6514c9cce751340544661729c66d1c",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93420): gnumeric:read-WARNING **: 12:46:56.877: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93420): gnumeric:read-WARNING **: 12:46:56.877: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93420): gnumeric:read_expr-WARNING **: 12:46:56.877: EXCEL: 1 (of 1) UNKNOWN name 0xc4f0b9340.",
+          "(ssconvert:93420): gnumeric:read-WARNING **: 12:46:56.877: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-missing-0",
+      "revision": 8,
+      "mode": "missing",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008b000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300100000000000000004005261746502001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700390100020000000a000000",
+      "inputSha256": "4f4bbfc53795a9f85e6db2d2f477a06cb0926414cf8134e98ae6045825ae3b94",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "1e17afb3d9f4c377275fa1f1d308b3f298c0c316f728a7f6943ea7a6957f018a",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93426): gnumeric:read-WARNING **: 12:46:57.105: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93426): gnumeric:read-WARNING **: 12:46:57.105: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93426): gnumeric:read_expr-WARNING **: 12:46:57.105: EXCEL: 2 (of 1) UNKNOWN name 0x86011c540.",
+          "(ssconvert:93426): gnumeric:read-WARNING **: 12:46:57.105: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-missing-32",
+      "revision": 8,
+      "mode": "missing",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008b000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300100000000000000004005261746502001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700590100020000000a000000",
+      "inputSha256": "685715eb900cbc5909334b487c5ab775d4c43ef16eedcf80c6fe8997521bda26",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "ed524ab0bb75011824efcb87c9ba7b4441cfe352c22c7c542e1dc66ba17d9cff",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93432): gnumeric:read-WARNING **: 12:46:57.517: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93432): gnumeric:read-WARNING **: 12:46:57.517: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93432): gnumeric:read_expr-WARNING **: 12:46:57.517: EXCEL: 2 (of 1) UNKNOWN name 0xb9e919340.",
+          "(ssconvert:93432): gnumeric:read-WARNING **: 12:46:57.517: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-missing-64",
+      "revision": 8,
+      "mode": "missing",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008b000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300100000000000000004005261746502001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700790100020000000a000000",
+      "inputSha256": "e47e0d9b998f4c45509ee7b044ba5ec24fdbdd093d0f27e5ab06cd9336f949bf",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "d8193e1fcba62c5f193b8a8fab9dd281740dfc88f20192f14b236f9c8783d0c1",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93434): gnumeric:read-WARNING **: 12:46:57.735: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93434): gnumeric:read-WARNING **: 12:46:57.735: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93434): gnumeric:read_expr-WARNING **: 12:46:57.735: EXCEL: 2 (of 1) UNKNOWN name 0xc78d88620.",
+          "(ssconvert:93434): gnumeric:read-WARNING **: 12:46:57.735: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-ref-0",
+      "revision": 8,
+      "mode": "ref",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008b000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300100000000000000004005261746502001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700390100010000000a000000",
+      "inputSha256": "e3d467ae78d9fba00a8a3f564119117701d24321e67a75dfe59d5f5e16108473",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "ef7078e3b69a91d8aa99347ab1c590bea05f0de2240a9532c182c66ab128b055",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93436): gnumeric:read-WARNING **: 12:46:57.911: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93436): gnumeric:read-WARNING **: 12:46:57.911: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93436): gnumeric:read_expr-WARNING **: 12:46:57.911: EXCEL: 1 (of 1) UNKNOWN name 0xc5f1e7330.",
+          "(ssconvert:93436): gnumeric:read-WARNING **: 12:46:57.911: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-ref-32",
+      "revision": 8,
+      "mode": "ref",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008b000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300100000000000000004005261746502001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700590100010000000a000000",
+      "inputSha256": "672d252c39aadf9e5e67297aca13c0cbcd2939b98732c10678b55286ef36b489",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "9dcb9e772e06bfbefc66b1d9cb1bab54fc0f89fa2f4b45b6791cae9ac80f239b",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93477): gnumeric:read-WARNING **: 12:46:58.116: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93477): gnumeric:read-WARNING **: 12:46:58.116: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93477): gnumeric:read_expr-WARNING **: 12:46:58.116: EXCEL: 1 (of 1) UNKNOWN name 0xadc0d8ee0.",
+          "(ssconvert:93477): gnumeric:read-WARNING **: 12:46:58.116: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-ref-64",
+      "revision": 8,
+      "mode": "ref",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008b000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300100000000000000004005261746502001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700790100010000000a000000",
+      "inputSha256": "01556eda7d4274b05aa10bfe65bd4b59310fffb98b36baf5ed4664785e737b89",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15820,
+        "sha256": "c684287f95b44603fbc93451e10956caa2b8229db3ab3895fcc67f09982d13f7",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93548): gnumeric:read-WARNING **: 12:46:58.379: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93548): gnumeric:read-WARNING **: 12:46:58.379: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93548): gnumeric:read_expr-WARNING **: 12:46:58.379: EXCEL: 1 (of 1) UNKNOWN name 0xaaf12d260.",
+          "(ssconvert:93548): gnumeric:read-WARNING **: 12:46:58.379: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unknown-function-0",
+      "revision": 8,
+      "mode": "unknown-function",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0093000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a230018000000000000000c00554e5245474953544552454402001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc074100000006000000060024000000000000000000000000388f400000000000000e00390100010000001e05004202ff000a000000",
+      "inputSha256": "258ddf300de8a2dd865c135388af3fbed1ae0e9447243361e215a48ae8f0247d",
+      "expectedCsv": "#NAME?\n",
+      "nativeExit": 0,
+      "nativeCsv": "#NAME?\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "fb3da382acc74b6f541b9053bb2a438c0e523b8701eba0d425a80d3c163614ff",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93554): gnumeric:read-WARNING **: 12:46:58.584: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93554): gnumeric:read-WARNING **: 12:46:58.584: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93554): gnumeric:read-WARNING **: 12:46:58.584: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#NAME?\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unknown-function-32",
+      "revision": 8,
+      "mode": "unknown-function",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0093000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a230018000000000000000c00554e5245474953544552454402001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc074100000006000000060024000000000000000000000000388f400000000000000e00590100010000001e05004202ff000a000000",
+      "inputSha256": "3429a741d717bf5a43e08d362b9fc78d8797d251709d4910fec50d9f0eaaf951",
+      "expectedCsv": "#NAME?\n",
+      "nativeExit": 0,
+      "nativeCsv": "#NAME?\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "0fcf33fba81a2b58e236c230237679c822e580db72e6a4f77d0acbb965bd8e86",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93563): gnumeric:read-WARNING **: 12:46:58.876: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93563): gnumeric:read-WARNING **: 12:46:58.876: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93563): gnumeric:read-WARNING **: 12:46:58.876: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#NAME?\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unknown-function-64",
+      "revision": 8,
+      "mode": "unknown-function",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c0093000000000004004865726518001600000000040300000000000000000000526174651e1400ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a230018000000000000000c00554e5245474953544552454402001c1717000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc074100000006000000060024000000000000000000000000388f400000000000000e00790100010000001e05004202ff000a000000",
+      "inputSha256": "b5c417b3b80836cb1f0ca76aa229f396f552aa11267c00dd54aca7c7c1382eb9",
+      "expectedCsv": "#NAME?\n",
+      "nativeExit": 0,
+      "nativeCsv": "#NAME?\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "0f1a7b9716905101c56a1e6866a479a6c6fe189f394d20a0dde170d3ee5e024f",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93568): gnumeric:read-WARNING **: 12:46:59.075: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93568): gnumeric:read-WARNING **: 12:46:59.075: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93568): gnumeric:read-WARNING **: 12:46:59.075: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#NAME?\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-active-placeholder-0",
+      "revision": 8,
+      "mode": "active-placeholder",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008f000000000004004865726518001500000000040200000000000000000000526174651c1dae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700390100010000000a000000",
+      "inputSha256": "a2af83e9ed031b962a1b4b3fb7f38a6fcbbc3f5ecc6c4578cf6e76736de7d7c5",
+      "expectedCsv": "5\n",
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "b68935e14b7c8644f2d82aabf63d005392925626c91339c90e7e1772d2cddbb9",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93602): gnumeric:read-WARNING **: 12:46:59.251: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93602): gnumeric:read-WARNING **: 12:46:59.251: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93602): gnumeric:read-WARNING **: 12:46:59.251: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "5\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-active-placeholder-32",
+      "revision": 8,
+      "mode": "active-placeholder",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008f000000000004004865726518001500000000040200000000000000000000526174651c1dae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700590100010000000a000000",
+      "inputSha256": "cd519906aba1af0643a6cee9512747df78b1df93b298fe711521b2df861f10b5",
+      "expectedCsv": "5\n",
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "dba14a97a463c7329ee3c0ae5a061c6a0194569c39b4c042acca4798aa9347b1",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93607): gnumeric:read-WARNING **: 12:46:59.436: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93607): gnumeric:read-WARNING **: 12:46:59.436: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93607): gnumeric:read-WARNING **: 12:46:59.436: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "5\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-active-placeholder-64",
+      "revision": 8,
+      "mode": "active-placeholder",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c008f000000000004004865726518001500000000040200000000000000000000526174651c1dae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700790100010000000a000000",
+      "inputSha256": "d8d18b3c402d986952fc7eb50356b396e8b7a729a9d7262366879edd31c9b5b5",
+      "expectedCsv": "5\n",
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "bf67c11127313077d8bf74366b4beb306e0c3f626977fd66c0eb08d41728183c",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93646): gnumeric:read-WARNING **: 12:46:59.654: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93646): gnumeric:read-WARNING **: 12:46:59.654: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93646): gnumeric:read-WARNING **: 12:46:59.654: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "5\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unlinked-expression-0",
+      "revision": 8,
+      "mode": "unlinked-expression",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c00760000000000040048657265ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700390100010000000a000000",
+      "inputSha256": "0d71ea1b66ac05be35f2be78e3ed7ad3a1e635d2cac8b326a2bd553cbd54be52",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "56e57569876c5f91aaa25deac0fa8f38112237f04258466d4c5a6a899f811374",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93650): gnumeric:read-WARNING **: 12:46:59.850: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93650): gnumeric:read-WARNING **: 12:46:59.850: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93650): gnumeric:read-WARNING **: 12:46:59.850: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unlinked-expression-32",
+      "revision": 8,
+      "mode": "unlinked-expression",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c00760000000000040048657265ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700590100010000000a000000",
+      "inputSha256": "ee0a4b084cededbce7d681d52593d7a3926991dc93c35c4891290f943508915d",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "23c63e283a37fd3bdf948d8ac7ebc60c0c701518bae7a4dc766e055150957f7c",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93655): gnumeric:read-WARNING **: 12:47:00.135: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93655): gnumeric:read-WARNING **: 12:47:00.135: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93655): gnumeric:read-WARNING **: 12:47:00.135: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unlinked-expression-64",
+      "revision": 8,
+      "mode": "unlinked-expression",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c00760000000000040048657265ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a2300150000000000000004005261746507001e02001e03000317000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700790100010000000a000000",
+      "inputSha256": "6ed6ff78823969497757f86cf76a41df07a1741a46927e6f310851b9eb25e288",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "ec48869970a89fcb2b38fb93d630c970d359874efe2f508960e32705ff630971",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93657): gnumeric:read-WARNING **: 12:47:00.354: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93657): gnumeric:read-WARNING **: 12:47:00.354: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93657): gnumeric:read-WARNING **: 12:47:00.354: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unlinked-placeholder-0",
+      "revision": 8,
+      "mode": "unlinked-placeholder",
+      "tokenClass": 0,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c006f0000000000040048657265ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23000e00000000000000040052617465000017000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700390100010000000a000000",
+      "inputSha256": "546c77b7b958e612814fd6b46ade5dfce6a5cd71b78694c98901a56680c6dd72",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "bee3127a649bc5308b20e2e1020cbfb5dd9facb4e8a7cf67c7714697ca916b44",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93670): gnumeric:read-WARNING **: 12:47:00.656: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93670): gnumeric:read-WARNING **: 12:47:00.656: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93670): gnumeric:read-WARNING **: 12:47:00.656: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unlinked-placeholder-32",
+      "revision": 8,
+      "mode": "unlinked-placeholder",
+      "tokenClass": 32,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c006f0000000000040048657265ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23000e00000000000000040052617465000017000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700590100010000000a000000",
+      "inputSha256": "df1e23d38a0316e3b6ffb3e42204b5cd885767355299f8b7edc69c1a5603cf11",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "36a53915562e011c22d330ceeddb904560e13e53b5722b43c10ac3a02f58877a",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93772): gnumeric:read-WARNING **: 12:47:00.860: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93772): gnumeric:read-WARNING **: 12:47:00.860: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93772): gnumeric:read-WARNING **: 12:47:00.860: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unlinked-placeholder-64",
+      "revision": 8,
+      "mode": "unlinked-placeholder",
+      "tokenClass": 64,
+      "inputHex": "0908100000060500bb0dcc07410000000600000085000c006f0000000000040048657265ae0104000100013a23000f00000000000000030053554d02001c17ae0104000100013a23000e00000000000000040052617465000017000e0002000000fefffeff0100fefffeff0a0000000908100000061000bb0dcc07410000000600000006001d000000000000000000000000388f400000000000000700790100010000000a000000",
+      "inputSha256": "a23bd4870de43fb83d10ce4369e4261e51abd7c3cbd285f4fa0520ff4e1b9d35",
+      "expectedCsv": "#REF!\n",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderr": {
+        "bytes": 15713,
+        "sha256": "c4a147c6abc76185ef683df0af0a89217d9e0052860104ae9b3062a2bc4fef9a",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 55,
+          "assertion 'parent || key' failed": 55,
+          "unknown GOConfMonitor id.": 55
+        },
+        "otherLines": [
+          "(ssconvert:93776): gnumeric:read-WARNING **: 12:47:01.098: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93776): gnumeric:read-WARNING **: 12:47:01.098: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)",
+          "(ssconvert:93776): gnumeric:read-WARNING **: 12:47:01.098: File is most likely corrupted.",
+          "(Condition \"p->len > 0\" failed in excel_get_xf.)"
+        ]
+      },
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStdout": "",
+      "sdkStderr": "",
+      "pass": true
+    }
+  ],
+  "roundtrips": [
+    {
+      "id": "biff-addin-7-function-0",
+      "expectedCsv": "24\n",
+      "sdkExit": 0,
+      "reopenedExit": 0,
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "sdkCsv": "24\n",
+      "sdkStderr": "",
+      "nativeStderr": {
+        "bytes": 18070,
+        "sha256": "fe54c706921ef52c03f38534fe17208d7060cf8f7307d62ae71afe5efbb4782c",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 65,
+          "assertion 'parent || key' failed": 65,
+          "unknown GOConfMonitor id.": 65
+        },
+        "otherLines": []
+      },
+      "outputSha256": "e4acdde4a165a8a4dbe94045d0ea58bf625a6d30f20d6d31a2446d46dbb22f85",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-active-placeholder-0",
+      "expectedCsv": "5\n",
+      "sdkExit": 0,
+      "reopenedExit": 0,
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "sdkCsv": "5\n",
+      "sdkStderr": "",
+      "nativeStderr": {
+        "bytes": 18070,
+        "sha256": "4239cc13b77ea6bf620f9ce9f14e0f840bd3608f9c3bc7ff7758fd391da9b556",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 65,
+          "assertion 'parent || key' failed": 65,
+          "unknown GOConfMonitor id.": 65
+        },
+        "otherLines": []
+      },
+      "outputSha256": "b05504ce605b521c5f8c28254430cf8647cd8ea959ad434e9baf28916e86687e",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-7-unlinked-expression-0",
+      "expectedCsv": "#REF!\n",
+      "sdkExit": 0,
+      "reopenedExit": 0,
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": "",
+      "nativeStderr": {
+        "bytes": 18070,
+        "sha256": "461de26fcb5a01b5dfbec75d907ad3dc807c4d089f5a48296ca41d17ae057230",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 65,
+          "assertion 'parent || key' failed": 65,
+          "unknown GOConfMonitor id.": 65
+        },
+        "otherLines": []
+      },
+      "outputSha256": "e8edcc978210fc07c77f3fae7510cffafdd3b9fdcd7dc74ea8d03ccee4409207",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-function-0",
+      "expectedCsv": "24\n",
+      "sdkExit": 0,
+      "reopenedExit": 0,
+      "nativeExit": 0,
+      "nativeCsv": "24\n",
+      "sdkCsv": "24\n",
+      "sdkStderr": "",
+      "nativeStderr": {
+        "bytes": 18070,
+        "sha256": "ee1883f906bdd8f8d83082c5e35ada5aadb5d0883271522300fc47d78416ac40",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 65,
+          "assertion 'parent || key' failed": 65,
+          "unknown GOConfMonitor id.": 65
+        },
+        "otherLines": []
+      },
+      "outputSha256": "530390b00207c40acf4ec7e4308a498715bb2d02092f4600de6187d1b8b04277",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-active-placeholder-0",
+      "expectedCsv": "5\n",
+      "sdkExit": 0,
+      "reopenedExit": 0,
+      "nativeExit": 0,
+      "nativeCsv": "5\n",
+      "sdkCsv": "5\n",
+      "sdkStderr": "",
+      "nativeStderr": {
+        "bytes": 18070,
+        "sha256": "863823d4187cf0853c75a3ba5185c6278766be239fbb70cf97d38d56c88a68a7",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 65,
+          "assertion 'parent || key' failed": 65,
+          "unknown GOConfMonitor id.": 65
+        },
+        "otherLines": []
+      },
+      "outputSha256": "7742115b68a2d3993aee5788f17b7ebf12edc89f8d848758bc3c27facf9e521c",
+      "pass": true
+    },
+    {
+      "id": "biff-addin-8-unlinked-expression-0",
+      "expectedCsv": "#REF!\n",
+      "sdkExit": 0,
+      "reopenedExit": 0,
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": "",
+      "nativeStderr": {
+        "bytes": 18070,
+        "sha256": "16e92a13b6ceb224f09c09f1a4e9e3a7b07a5e155b36aade53315676a1d11431",
+        "configurationDiagnostics": {
+          "assertion 'node || key' failed": 65,
+          "assertion 'parent || key' failed": 65,
+          "unknown GOConfMonitor id.": 65
+        },
+        "otherLines": []
+      },
+      "outputSha256": "6382d4b7d6e3f77829d036834f80c6a84ac6a86e6d408e051297c07e076b1c2f",
+      "pass": true
+    }
+  ],
+  "remaining": [
+    "Built-in EXTERNNAME, DDE/OLE and true external workbook/table records remain separately unsupported/unqualified.",
+    "Broader registration collisions/loops/ordering, alias cycles and versions earlier than BIFF7 require case evidence; no broad completion claim.",
+    "ODF global qualification, arrays/other tokens, modern deleted links and wider formats/profiles remain open."
+  ],
+  "delivery": {
+    "localCommit": null,
+    "remoteMain": null,
+    "publication": null
+  }
+}

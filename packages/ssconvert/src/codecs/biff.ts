@@ -2,7 +2,7 @@ import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, ImportedValue, UnsupportedRecord, RichTextRun, FormulaGroup } from "../workbook.js";
 import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord } from "./biff-binary.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
-import { translateBiffFormula, biffErrors } from "./biff-formulas.js";
+import { translateBiffFormula, biffErrors, type BiffFormulaContext } from "./biff-formulas.js";
 import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-metadata.js";
 import { writeCfb } from "./biff-write-binary.js";
@@ -38,12 +38,14 @@ const ignoredOpcodes = new Set([0xb, 0x20b, 0xd7, 0xff, 0x16, 0x1f, 0x5b, 0x5c, 
   0x40, 0x8c, 0x9c, 0xbf, 0xda, 0x160, 0x161, 0x13d, 0x1c0, 0x1c1, 0x1c2, 0x86, 0x87, 0x9b,
   0x80, 0x82, 0x8d, 0x5f, 0x8b, 0x8e, 0x42e, 0x1af, 0xe, 0x293, 0x1b7, 0x1bc]);
 interface PendingCell { cell: Cell; xf: number; tokens?: Uint8Array; revision: number; codepage: number; }
+interface PendingExternalName { name: string; tokens: Uint8Array; revision: number; codepage: number; supported: boolean; record: BiffRecord; }
 interface PendingSheet {
   id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
   cells: PendingCell[]; merges: Range[]; rows: AxisMetadata[]; columns: AxisMetadata[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
   records: BiffRecord[]; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
+  legacyExternalNames: PendingExternalName[]; legacyAddinSheets: Set<number>;
   groups: { id: string; kind: "shared" | "array"; range: Range; tokens: Uint8Array; keyRow: number; keyColumn: number }[];
 }
 interface BoundSheet { offset: number; name: string; visibility: PendingSheet["visibility"]; type: number; }
@@ -82,7 +84,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
   const names: { name: string; flags: number; tokens: Uint8Array; sheetIndex: number; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
   const legacyExternalSheets: (string | null | undefined)[] = [];
-  const supbooks: boolean[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
+  const legacyExternalNames: PendingExternalName[] = [], legacyAddinSheets = new Set<number>();
+  const supbooks: { kind: "local" | "addin" | "external"; names: PendingExternalName[] }[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
   const fontTable: Font[] = [], xfTable: { data: Binary; revision: number }[] = [], palette = [...defaultPalette];
   const formatTable = new Map<number, string>(Object.entries(formats).map(([id, code]) => [Number(id), code]));
   const sharedStrings: { text: string; richText?: readonly RichTextRun[] }[] = [];
@@ -131,7 +134,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         const name = accountText(bound?.name ?? (sheets.length ? `Worksheet${sheets.length + 1}` : "Worksheet"));
         if (sheets.some(sheet => sheet.name === name)) invalidBiff("duplicate worksheet name");
         sheet = { id: name, name, offset: record.offset, visibility: bound?.visibility ?? "visible", cells: [],
-          merges: [], rows: [], columns: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [] }; sheets.push(sheet);
+          merges: [], rows: [], columns: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalNames: [], legacyAddinSheets: new Set() }; sheets.push(sheet);
       }
       scopes.push({ type, ...(sheet ? { sheet } : {}), revision: ver }); lastFormula = undefined;
       if (![5, 0x10, 0x40, 0x100].includes(type)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
@@ -196,7 +199,28 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       for (let i = 0; i < count; i++) palette[i] = Array.from(data.slice(2 + i * 4, 3), byte => byte.toString(16).padStart(2, "0")).join("").toUpperCase();
       continue;
     }
-    if (opcode === 0x1ae) { data.check(0, 4); supbooks.push(data.u16(2) === 0x401 && data.bytes.length === 4); await retain(record, unsupported, !supbooks[supbooks.length - 1]); continue; }
+    if (opcode === 0x1ae) {
+      data.check(0, 4);
+      const kind = data.bytes.length === 4 && data.u16(2) === 0x401 ? "local" : data.bytes.length === 4 && data.u16(2) === 0x3a01 ? "addin" : "external";
+      supbooks.push({ kind, names: [] });
+      if (kind !== "addin") await retain(record, unsupported, kind === "external");
+      continue;
+    }
+    if (ver >= 7 && (opcode === 0x23 || opcode === 0x223)) {
+      data.check(0, 7);
+      const flags = data.u16(0), length = data.u8(6);
+      const cursor = new BiffStrings([new Binary(data.slice(7, data.bytes.length - 7))], context, codepage);
+      const name = accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length));
+      const end = 7 + cursor.consumedBytes;
+      const tokenLength = end + 2 <= data.bytes.length ? data.u16(end) : 0;
+      const tokens = tokenLength ? data.slice(end + 2, tokenLength) : new Uint8Array();
+      const table = ver >= 8 ? supbooks.at(-1)?.names : sheet?.legacyExternalNames ?? legacyExternalNames;
+      if (!table) invalidBiff("EXTERNNAME without SUPBOOK");
+      table.push({ name, tokens, revision: ver, codepage, supported: flags === 0, record });
+      const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : (sheet?.legacyAddinSheets ?? legacyAddinSheets).size > 0;
+      if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported);
+      continue;
+    }
     if (opcode === 0x17 && ver >= 8) {
       const count = data.u16(0); data.check(2, count * 6);
       for (let i = 0; i < count; i++) externalReferences.push({ book: data.u16(2 + i * 6), first: data.u16(4 + i * 6), last: data.u16(6 + i * 6) });
@@ -208,9 +232,12 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       if (kind === 3) links.push(accountText(biffDecode(data.slice(2, Math.min(length, data.bytes.length - 2)), codepage)));
       else if (kind === 2) links.push(sheet?.name);
       else if (kind === 4) links.push(null);
+      else if (kind === 0x3a && length === 1 && data.bytes.length === 2) {
+        (sheet?.legacyAddinSheets ?? legacyAddinSheets).add(links.length); links.push(undefined);
+      }
       else {
         links.push(undefined);
-        if (!(kind === 0x3a && length === 1 && data.bytes.length === 2)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
+        await retain(record, sheet?.unsupportedRecords ?? unsupported);
       }
       continue;
     }
@@ -359,7 +386,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     return ai < 0 || bi < 0 ? a.offset - b.offset : ai - bi;
   });
   const externalSheets = externalReferences.map(ref => {
-    if (!supbooks[ref.book]) return undefined;
+    if (supbooks[ref.book]?.kind !== "local") return undefined;
     const first = sheets[ref.first]?.name, last = sheets[ref.last]?.name;
     if (first === undefined || last === undefined) return undefined;
     return ref.first === ref.last ? first : [first, last] as const;
@@ -369,10 +396,47 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (!name.sheetIndex) return undefined;
     return (name.revision >= 8 ? sheets[name.sheetIndex - 1]?.name : (name.owner?.legacyExternalSheets ?? legacyExternalSheets)[name.sheetIndex - 1]) ?? undefined;
   });
+  const externalNameTables = new Map<PendingExternalName[], readonly ({ name: string; expression?: string } | undefined)[]>();
+  const formulaNames = names.map(name => name.name);
   const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false) => translateBiffFormula(tokens, {
-    revision, codepage: cp, row, column, names: names.map(name => name.name), externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
+    revision, codepage: cp, row, column, names: formulaNames, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
     ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets, nameSheets,
+    externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
+  const addinTables = [
+    ...supbooks.filter(book => book.kind === "addin").map(book => book.names),
+    ...(legacyAddinSheets.size ? [legacyExternalNames] : []),
+    ...sheets.filter(sheet => sheet.legacyAddinSheets.size > 0).map(sheet => sheet.legacyExternalNames)
+  ];
+  const globals = new Map(names.filter(name => name.sheetIndex === 0).map(name => [name.name, name]));
+  const locals = new Set(names.filter(name => name.sheetIndex !== 0).map(name => name.name));
+  for (const table of addinTables) {
+    const entries: ({ name: string; expression?: string } | undefined)[] = [];
+    for (const name of table) {
+      if (!name.supported) { entries.push({ name: name.name }); continue; }
+      const global = globals.get(name.name);
+      if (global && global.record.offset < name.record.offset) {
+        const placeholder = global.tokens.length === 0 || global.tokens.length === 2 && global.tokens[0] === 0x1c && global.tokens[1] === 29;
+        if (!placeholder) { entries.push(undefined); continue; }
+        // Native EXTERNNAME reuses an existing linked #NAME placeholder. Its
+        // expression changes, while all indexed references keep the same object.
+        global.tokens = name.tokens; global.revision = name.revision; global.codepage = name.codepage;
+        entries.push({ name: name.name, expression: "=" + (locals.has(name.name) ? "[]" : "") + name.name });
+      } else {
+        // An unlinked expression is inactive (expr_name_is_active). The symbol
+        // is still valid for custom-function255, but value lookup yields #REF!.
+        entries.push({ name: name.name, expression: "=#REF!" });
+      }
+    }
+    externalNameTables.set(table, entries);
+  }
+  const modernExternalNames = externalReferences.map(ref => supbooks[ref.book]?.kind === "addin" ? externalNameTables.get(supbooks[ref.book]!.names) : undefined);
+  const legacyNameBindings = new Map<PendingSheet | undefined, NonNullable<BiffFormulaContext["externalNames"]>>();
+  for (const owner of [undefined, ...sheets]) {
+    const namespaces = owner?.legacyAddinSheets ?? legacyAddinSheets;
+    const table = externalNameTables.get(owner?.legacyExternalNames ?? legacyExternalNames);
+    legacyNameBindings.set(owner, (owner?.legacyExternalSheets ?? legacyExternalSheets).map((_, at) => namespaces.has(at) ? table : undefined));
+  }
   const materializedNames: NamedExpression[] = [];
   const globalPlaceholders = new Set<string>();
   for (const name of names) {

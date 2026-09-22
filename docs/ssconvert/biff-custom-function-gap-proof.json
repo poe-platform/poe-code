@@ -617,8 +617,8 @@
     "Arrays/other tokens, deleted modern link records, external books and profiles remain open."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "887e467a64a355e6def5bff5f1469e68e6ad26ae",
+    "remoteMain": "exact ls-remote HEAD verified after push; ancestor of fetched mainf8a67293d verified",
+    "publication": "Release35761803901 cancelled by newer containing head; successor35762294220 pending"
   }
 }

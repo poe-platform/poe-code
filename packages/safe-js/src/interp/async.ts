@@ -197,7 +197,10 @@ export function createInterpretedClosure(
   homeObject?: SandboxObject | SandboxClosure,
   initializeGeneratorPrototype = true
 ) {
-  if (context.evalCompletion) context = {...context, evalCompletion: undefined};
+  // Calls install their own callee. Keeping the creating invocation's callee
+  // would retain its properties outside this closure's lexical captures.
+  if (context.callee !== undefined || context.evalCompletion)
+    context = {...context, callee: undefined, evalCompletion: undefined};
   if (node.type !== "ArrowFunctionExpression") {
     context = { ...context, functionEnvironment: { homeObject } };
   }

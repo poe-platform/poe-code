@@ -1,0 +1,55 @@
+import assert from 'node:assert/strict';
+import { runInNewContext } from 'node:vm';
+import { analyzeDiff3, createDiff3Engine, Diff3Error } from '@poe-platform/safe-bash/commands/diff3';
+
+const limits = { inputBytes: 1000, retainedBytes: 2000, tokens: 100, graphCells: 10000, work: 10000 };
+const b = text => new TextEncoder().encode(text);
+const result = analyzeDiff3({ base: b('a\n'), left: b('l\n'), right: b('r\n') }, limits);
+assert.equal(result.regions[0].kind, 'conflict');
+assert.equal(result.alignmentProfile, 'gnu-3.12-qualified');
+const foreign = runInNewContext('Uint8Array.of(255, 10)');
+const replay = analyzeDiff3({ base: foreign, left: foreign, right: foreign }, limits);
+foreign.fill(0);
+assert.deepEqual(Array.from(replay.files.base[0].bytes), [255, 10]);
+const engine = createDiff3Engine(limits);
+engine.push('base', b('owned')); engine.dispose(); engine.dispose();
+assert.equal(engine.accounting().retainedBytes, 0);
+assert.throws(() => engine.finish(), error => error instanceof Diff3Error && error.code === 'CLOSED');
+assert.throws(() => analyzeDiff3({ base: b('a'), left: b('b'), right: b('c') }, { ...limits, work: 0 }), error => error instanceof Diff3Error && error.resource === 'work');
+console.log('Installed diff3 engine runtime passed');
+
+const root = await import('@poe-platform/safe-bash');
+const contracts = await import('@poe-platform/safe-bash/contracts/command');
+const { createDiff3Command, diff3Commands, diff3, compareDiff3, parseDiff3Arguments } = await import('@poe-platform/safe-bash/commands/diff3');
+assert.equal(createDiff3Command().runtimeIdentity, contracts.commandRuntimeIdentity);
+const fs = root.createMemoryFileSystem();
+for (const [path, content] of [['/ours', 'a\nours\nz\n'], ['/base', 'a\nbase\nz\n'], ['/theirs', 'a\ntheirs\nz\n']]) await fs.writeFile(path, b(content));
+await fs.symlink('/ours', '/alias');
+const shell = new root.Shell({ fs });
+const expected = 'a\n<<<<<<< /alias\nours\n||||||| /base\nbase\n=======\ntheirs\n>>>>>>> /theirs\nz\n';
+try {
+  assert.equal(shell.commands.has('diff3'), false);
+  shell.use(diff3Commands()); shell.use(root.agentCommands());
+  const cli = await shell.exec('diff3 -m /alias /base /theirs');
+  assert.equal(cli.exitCode, 1); assert.equal(cli.stdout, expected); assert.equal(cli.stderr, '');
+  shell.register({ name: 'sdk-diff3', runtimeIdentity: contracts.commandRuntimeIdentity, execute(context) { return diff3(context, { files: ['/alias', '/base', '/theirs'], merge: true }); } });
+  assert.deepEqual(await shell.exec('sdk-diff3'), cli);
+  await fs.writeFile('/run.sh', b('diff3 -mE /alias /base /theirs | cat\n'));
+  assert.equal((await shell.exec('sh /run.sh')).stdout, 'a\n<<<<<<< /alias\nours\n=======\ntheirs\n>>>>>>> /theirs\nz\n');
+  const output = await shell.exec('diff3 -m /alias /base /theirs > /merged');
+  assert.equal(output.exitCode, 1); assert.deepEqual(await fs.readFile('/merged'), b(expected));
+  await fs.mkdir('/directory');
+  assert.equal((await shell.exec('diff3 /directory /base /theirs')).exitCode, 2);
+  assert.equal((await shell.exec('diff3 -e -i /ours /base /theirs')).stdout, '2c\ntheirs\n.\nw\nq\n');
+  assert.deepEqual(await fs.readFile('/ours'), b('a\nours\nz\n'));
+  assert.equal((await shell.exec('diff3 -m - - /theirs')).exitCode, 2);
+  const before = shell.commands.list();
+  const host = { commands: shell.commands };
+  assert.throws(() => diff3Commands().setup(host), { message: 'Command already registered: diff3' });
+  assert.deepEqual(shell.commands.list(), before);
+  diff3Commands({ replace: true }).setup(host);
+  assert.equal((await shell.exec('diff3 --diff-program=host /ours /base /theirs')).exitCode, 2);
+} finally { await shell.dispose(); }
+const merged = compareDiff3([b('ours'), b('base'), b('theirs')], parseDiff3Arguments(['-m', 'ours', 'base', 'theirs']));
+assert.deepEqual(merged.stdout, b('<<<<<<< ours\nours||||||| base\nbase=======\ntheirs>>>>>>> theirs\n'));
+console.log('Installed diff3 behavior, command/SDK, aliases, registration and publication passed');

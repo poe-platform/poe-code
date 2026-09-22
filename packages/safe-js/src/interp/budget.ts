@@ -15,6 +15,8 @@ export type BudgetOptions = {
   deadline?: number | Date;
   maxCallDepth?: number;
   stringLength?: number;
+  regexSourceLength?: number;
+  regexCompileAllocations?: number;
   arrayLength?: number;
   dataSize?: number;
 };
@@ -71,6 +73,8 @@ type BudgetLimits = {
   maxSteps?: number;
   maxCallDepth?: number;
   stringLength?: number;
+  regexSourceLength?: number;
+  regexCompileAllocations?: number;
   arrayLength?: number;
   dataSize?: number;
 };
@@ -123,6 +127,12 @@ class BudgetAccounting {
       maxSteps: normalizeLimit("maxSteps", options.maxSteps),
       maxCallDepth: normalizeLimit("maxCallDepth", options.maxCallDepth),
       stringLength: normalizeLimit("stringLength", options.stringLength),
+      ...(options.regexSourceLength === undefined ? {} : {
+        regexSourceLength: normalizeRegexLimit("regexSourceLength", options.regexSourceLength, 16384)
+      }),
+      ...(options.regexCompileAllocations === undefined ? {} : {
+        regexCompileAllocations: normalizeRegexLimit("regexCompileAllocations", options.regexCompileAllocations, 65536)
+      }),
       arrayLength: normalizeLimit("arrayLength", options.arrayLength),
       dataSize: normalizeLimit("dataSize", options.dataSize)
     });
@@ -649,5 +659,12 @@ function normalizeLimit(name: keyof BudgetLimits, value: number | undefined): nu
     throw new Error(`${name} must be a non-negative integer.`);
   }
 
+  return value;
+}
+
+function normalizeRegexLimit(name: string, value: number | undefined, maximum: number): number | undefined {
+  if (value === undefined) return undefined;
+  if (!Number.isSafeInteger(value) || value < 1 || value > maximum)
+    throw new RangeError(`${name} must be an integer from 1 to ${maximum}.`);
   return value;
 }

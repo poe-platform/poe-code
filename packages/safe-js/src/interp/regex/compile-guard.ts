@@ -47,7 +47,8 @@ export class RegexCompileGuard {
   }
 
   checkLength(length: number, flags = false): void {
-    const hard = flags ? REGEX_COMPILE_LIMITS.flagsLength : REGEX_COMPILE_LIMITS.sourceLength;
+    const hard = flags ? REGEX_COMPILE_LIMITS.flagsLength
+      : this.scope?.owner?.budget.limits.regexSourceLength ?? REGEX_COMPILE_LIMITS.sourceLength;
     const limit = Math.min(hard, this.scope?.owner?.budget.limits.stringLength ?? hard);
     if (length > limit) throw new SandboxError({ budget: "stringLength", current: length, limit });
   }
@@ -60,11 +61,12 @@ export class RegexCompileGuard {
 
   allocate(units: number): void {
     const next = this.allocations + units;
-    if (next > REGEX_COMPILE_LIMITS.allocations) {
+    const limit = this.scope?.owner?.budget.limits.regexCompileAllocations ?? REGEX_COMPILE_LIMITS.allocations;
+    if (next > limit) {
       throw new SandboxError({
         budget: "dataSize",
         current: next,
-        limit: REGEX_COMPILE_LIMITS.allocations
+        limit
       });
     }
     this.work(units);
